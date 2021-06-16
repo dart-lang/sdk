@@ -47,11 +47,6 @@ class G {
   G.named(this.field);
 }
 
-@H<int>() // //# 05: compile-time error
-class H<T> {
-  const H();
-}
-
 @I[0] // //# 06: compile-time error
 class I {}
 
@@ -187,7 +182,6 @@ main() {
   reflectClass(E).metadata;
   reflectClass(F).metadata;
   reflectClass(G).metadata;
-  reflectClass(H).metadata;
   reflectClass(I).metadata;
   reflectClass(J).metadata;
   reflectClass(K).metadata;

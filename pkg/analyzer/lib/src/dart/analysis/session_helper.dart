@@ -22,13 +22,14 @@ class AnalysisSessionHelper {
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
   Future<ClassElement?> getClass(String libraryUri, String className) async {
-    var libraryElement = await session.getLibraryByUri(libraryUri);
-    var element = libraryElement.exportNamespace.get(className);
-    if (element is ClassElement) {
-      return element;
-    } else {
-      return null;
+    var libraryResult = await session.getLibraryByUri2(libraryUri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element.exportNamespace.get(className);
+      if (element is ClassElement) {
+        return element;
+      }
     }
+    return null;
   }
 
   /// Return the declaration of the [element], or `null` is the [element]
@@ -36,22 +37,17 @@ class AnalysisSessionHelper {
   Future<ElementDeclarationResult?> getElementDeclaration(
       Element element) async {
     var libraryPath = element.library!.source.fullName;
-
-    // This should not happen in valid code, but sometimes we treat a file
-    // with a `part of` directive as a library, because there is no library
-    // that contains this part, or because it is imported as a library.
-    if (isPart(libraryPath)) {
-      return null;
-    }
-
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
-    return resolvedLibrary.getElementDeclaration(element);
+    return resolvedLibrary?.getElementDeclaration(element);
   }
 
   /// Return the resolved unit that declares the given [element].
   Future<ResolvedUnitResult?> getResolvedUnitByElement(Element element) async {
     var libraryPath = element.library!.source.fullName;
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+    if (resolvedLibrary == null) {
+      return null;
+    }
 
     var unitPath = element.source!.fullName;
     return resolvedLibrary.units!.singleWhere((resolvedUnit) {
@@ -64,26 +60,24 @@ class AnalysisSessionHelper {
   /// library does not export a top-level accessor with such name.
   Future<PropertyAccessorElement?> getTopLevelPropertyAccessor(
       String uri, String name) async {
-    var libraryElement = await session.getLibraryByUri(uri);
-    var element = libraryElement.exportNamespace.get(name);
-    if (element is PropertyAccessorElement) {
-      return element;
-    } else {
-      return null;
+    var libraryResult = await session.getLibraryByUri2(uri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element.exportNamespace.get(name);
+      if (element is PropertyAccessorElement) {
+        return element;
+      }
     }
-  }
-
-  /// Return `true` if the file with the [path] is a part.
-  bool isPart(String path) {
-    return session.getFile(path).isPart;
+    return null;
   }
 
   /// Return a newly resolved, or cached library with the given [path].
-  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) async {
+  Future<ResolvedLibraryResult?> _getResolvedLibrary(String path) async {
     var result = _resolvedLibraries[path];
     if (result == null) {
-      result = await session.getResolvedLibrary(path);
-      _resolvedLibraries[path] = result;
+      var some = await session.getResolvedLibrary2(path);
+      if (some is ResolvedLibraryResult) {
+        result = _resolvedLibraries[path] = some;
+      }
     }
     return result;
   }

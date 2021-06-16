@@ -822,11 +822,12 @@ class ConstantEvaluationEngine {
     DartObjectImpl obj,
     DartType type,
   ) {
-    if (obj.isNull) {
-      return true;
+    var typeSystem = library.typeSystem;
+    if (!typeSystem.isNonNullableByDefault) {
+      type = typeSystem.toLegacyType(type);
     }
     var objType = obj.type;
-    return library.typeSystem.isSubtypeOf(objType, type);
+    return typeSystem.isSubtypeOf(objType, type);
   }
 
   DartObjectImpl _nullObject(LibraryElementImpl library) {

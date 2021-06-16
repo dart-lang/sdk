@@ -20,7 +20,7 @@ class B extends self::A {
   synthetic constructor •() → self::B*
     ;
 }
-class Foo<T extends self::A* = self::A*> extends core::Object {
+class Foo<T extends self::A*> extends core::Object {
   synthetic constructor •() → self::Foo<self::Foo::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

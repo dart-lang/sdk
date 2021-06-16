@@ -74,7 +74,7 @@ class DartProject {
   bool isApi(Element element) => _apiModel.contains(element);
 
   String _calculateName() {
-    var pubspec = this.pubspec;
+    final pubspec = this.pubspec;
     if (pubspec != null) {
       var nameEntry = pubspec.name;
       if (nameEntry != null) {
@@ -134,16 +134,18 @@ class _ApiModel {
     for (Source source in sources!) {
       String path = source.uri.path;
       if (path.startsWith(libDir) && !path.startsWith(libSrcDir)) {
-        ResolvedUnitResult result = await driver.getResult(source.fullName);
-        LibraryElement library = result.libraryElement;
+        var result = await driver.getResult2(source.fullName);
+        if (result is ResolvedUnitResult) {
+          LibraryElement library = result.libraryElement;
 
-        NamespaceBuilder namespaceBuilder = NamespaceBuilder();
-        Namespace exports =
-            namespaceBuilder.createExportNamespaceForLibrary(library);
-        Namespace public =
-            namespaceBuilder.createPublicNamespaceForLibrary(library);
-        elements.addAll(exports.definedNames.values);
-        elements.addAll(public.definedNames.values);
+          NamespaceBuilder namespaceBuilder = NamespaceBuilder();
+          Namespace exports =
+              namespaceBuilder.createExportNamespaceForLibrary(library);
+          Namespace public =
+              namespaceBuilder.createPublicNamespaceForLibrary(library);
+          elements.addAll(exports.definedNames.values);
+          elements.addAll(public.definedNames.values);
+        }
       }
     }
   }

@@ -6,6 +6,8 @@
 // Tests 'identical' for cases that not supported in dart2js (bigint,
 // disambiguation int/double).
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -42,11 +41,6 @@ class A {
 ''');
     createRenameRefactoringAtString('test() {}');
     expect(refactoring.oldName, 'test');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Constructor name must not be null.');
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
@@ -135,6 +129,7 @@ main() {
     await indexTestUnit('''
 /// Documentation for [new A]
 class A {
+  int field = 0;
 }
 class B extends A {
   B() : super() {}
@@ -153,6 +148,8 @@ main() {
     return assertSuccessfulRefactoring('''
 /// Documentation for [new A.newName]
 class A {
+  int field = 0;
+
   A.newName();
 }
 class B extends A {
@@ -200,6 +197,35 @@ main() {
 ''');
   }
 
+  Future<void> test_createChange_lint_sortConstructorsFirst() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await indexTestUnit('''
+class A {
+  int field = 0;
+}
+main() {
+  new A();
+}
+''');
+    // configure refactoring
+    _createConstructorInvocationRefactoring('new A();');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+
+  int field = 0;
+}
+main() {
+  new A.newName();
+}
+''');
+  }
+
   Future<void> test_createChange_remove() async {
     await indexTestUnit('''
 /// Documentation for [A.test] and [new A.test]
@@ -239,7 +265,8 @@ main() {
   Future<void> test_newInstance_nullElement() async {
     await indexTestUnit('');
     var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
-    var refactoring = RenameRefactoring(workspace, testAnalysisResult, null);
+    var refactoring =
+        RenameRefactoring.create(workspace, testAnalysisResult, null);
     expect(refactoring, isNull);
   }
 

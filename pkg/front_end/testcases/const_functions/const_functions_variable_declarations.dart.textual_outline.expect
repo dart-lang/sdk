@@ -11,4 +11,12 @@ const var4 = function4();
 int function4() {}
 const var5 = function5();
 int function5() {}
+const var6 = function6();
+int function6() {}
+const var7 = function7();
+int function7() {}
+const var8 = function8();
+int function8() {}
+const var9 = function9();
+int? function9() {}
 void main() {}

@@ -18,14 +18,14 @@ static method varAssignmentTest(core::int a) → core::int {
 static method function() → core::int {
   function varAssignmentTest2() → core::int {
     core::int x = 2;
-    x = x.{core::num::+}(1);
+    x = x.{core::num::+}(1){(core::num) → core::int};
     return x;
   }
   return #C1;
 }
 static method varAssignmentTest3(core::int a) → core::int {
   core::int x = 4;
-  x = a.{core::num::+}(1);
+  x = a.{core::num::+}(1){(core::num) → core::int};
   return x;
 }
 static method main() → void {

@@ -4,7 +4,15 @@
 
 import 'dart:math' as math;
 
-import 'package:analyzer/dart/ast/ast.dart' show AstNode, ConstructorName;
+import 'package:analyzer/dart/ast/ast.dart'
+    show
+        Annotation,
+        AsExpression,
+        AstNode,
+        ConstructorName,
+        Expression,
+        InvocationExpression,
+        SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
@@ -209,11 +217,12 @@ class GenericInferrer {
 
       if (inferred is FunctionType &&
           inferred.typeFormals.isNotEmpty &&
-          !genericMetadataIsEnabled) {
+          !genericMetadataIsEnabled &&
+          errorReporter != null) {
         if (failAtError) return null;
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
-        errorReporter?.reportErrorForNode(
+        errorReporter.reportErrorForNode(
             CompileTimeErrorCode.COULD_NOT_INFER, errorNode!, [
           parameter.name,
           ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
@@ -229,20 +238,11 @@ class GenericInferrer {
         // by [infer], with [typeParam] filled in as its bounds. This is
         // considered a failure of inference, under the "strict-inference"
         // mode.
-        if (errorNode is ConstructorName &&
-            !(errorNode.type.type as InterfaceType)
-                .element
-                .hasOptionalTypeArgs) {
-          String constructorName = errorNode.name == null
-              ? errorNode.type.name.name
-              : '${errorNode.type}.${errorNode.name}';
-          errorReporter?.reportErrorForNode(
-              HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
-              errorNode,
-              [constructorName]);
-        }
-        // TODO(srawlins): More inference failure cases, like functions, and
-        // function expressions.
+        _reportInferenceFailure(
+          errorReporter: errorReporter,
+          errorNode: errorNode,
+          genericMetadataIsEnabled: genericMetadataIsEnabled,
+        );
       }
     }
 
@@ -486,6 +486,83 @@ class GenericInferrer {
     }
   }
 
+  /// Reports an inference failure on [errorNode] according to its type.
+  void _reportInferenceFailure({
+    ErrorReporter? errorReporter,
+    AstNode? errorNode,
+    required bool genericMetadataIsEnabled,
+  }) {
+    if (errorReporter == null || errorNode == null) {
+      return;
+    }
+    if (errorNode.parent is InvocationExpression &&
+        errorNode.parent?.parent is AsExpression) {
+      // Casts via `as` do not play a part in downward inference. We allow an
+      // exception when inference has "failed" but the return value is
+      // immediately cast with `as`.
+      return;
+    }
+    if (errorNode is ConstructorName &&
+        !(errorNode.type.type as InterfaceType).element.hasOptionalTypeArgs) {
+      String constructorName = errorNode.name == null
+          ? errorNode.type.name.name
+          : '${errorNode.type}.${errorNode.name}';
+      errorReporter.reportErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+          errorNode,
+          [constructorName]);
+    } else if (errorNode is Annotation) {
+      if (genericMetadataIsEnabled) {
+        // Only report an error if generic metadata is valid syntax.
+        var element = errorNode.name.staticElement;
+        if (element != null && !element.hasOptionalTypeArgs) {
+          String constructorName = errorNode.constructorName == null
+              ? errorNode.name.name
+              : '${errorNode.name.name}.${errorNode.constructorName}';
+          errorReporter.reportErrorForNode(
+              HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+              errorNode,
+              [constructorName]);
+        }
+      }
+    } else if (errorNode is SimpleIdentifier) {
+      var element = errorNode.staticElement;
+      if (element != null) {
+        if (element is VariableElement) {
+          // For variable elements, we check their type and possible alias type.
+          var type = element.type;
+          var typeElement = type.element;
+          if (typeElement != null && typeElement.hasOptionalTypeArgs) {
+            return;
+          }
+          var typeAliasElement = type.aliasElement;
+          if (typeAliasElement != null &&
+              typeAliasElement.hasOptionalTypeArgs) {
+            return;
+          }
+        }
+        if (!element.hasOptionalTypeArgs) {
+          errorReporter.reportErrorForNode(
+              HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
+              errorNode,
+              [errorNode.name]);
+          return;
+        }
+      }
+    } else if (errorNode is Expression) {
+      var type = errorNode.staticType;
+      if (type != null) {
+        var typeDisplayString = type.getDisplayString(
+            withNullability: _typeSystem.isNonNullableByDefault);
+        errorReporter.reportErrorForNode(
+            HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
+            errorNode,
+            [typeDisplayString]);
+        return;
+      }
+    }
+  }
+
   /// If in a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType _toLegacyElementIfOptOut(DartType type) {
@@ -580,7 +657,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
     // However in summary code it doesn't look like the AST node with span is
     // available.
     String prefix;
-    var genericClass = this.genericClass;
+    final genericClass = this.genericClass;
     if (genericClass != null &&
         (genericClass.name == "List" || genericClass.name == "Map") &&
         genericClass.library.isDartCore == true) {

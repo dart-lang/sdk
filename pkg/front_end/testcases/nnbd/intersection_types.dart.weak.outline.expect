@@ -14,7 +14,7 @@ class C extends self::B {
   synthetic constructor •() → self::C
     ;
 }
-class Foo<T extends self::A? = self::A?> extends core::Object {
+class Foo<T extends self::A?> extends core::Object {
   synthetic constructor •() → self::Foo<self::Foo::T%>
     ;
   method doPromotionsToNullable(generic-covariant-impl self::Foo::T% t) → dynamic

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 ///////////////////////////////////////////////////////////////////////
 // The following tests check that setters or getters in an extension
 // correctly shadow members with the same basename in the surrounding

@@ -343,7 +343,9 @@ class Scope extends MutableScope {
   void recordUse(String name, int charOffset, Uri fileUri) {
     if (isModifiable) {
       usedNames ??= <String, int>{};
-      usedNames.putIfAbsent(name, () => charOffset);
+      // Don't use putIfAbsent to avoid the context allocation needed
+      // for the closure.
+      usedNames[name] ??= charOffset;
     }
   }
 

@@ -7,7 +7,8 @@ library vm.transformations.type_flow.summary;
 
 import 'dart:core' hide Type;
 
-import 'package:kernel/ast.dart' hide Statement, StatementVisitor, MapEntry;
+import 'package:kernel/ast.dart'
+    hide Statement, StatementVisitor, MapLiteralEntry;
 
 import 'calls.dart';
 import 'types.dart';

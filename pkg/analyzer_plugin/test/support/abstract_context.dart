@@ -97,7 +97,8 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    return contextFor(path).currentSession.getResolvedUnit(path);
+    var session = contextFor(path).currentSession;
+    return await session.getResolvedUnit2(path) as ResolvedUnitResult;
   }
 
   void setUp() {

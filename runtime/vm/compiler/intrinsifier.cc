@@ -269,7 +269,8 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
   // therefore don't intrinsify them, falling back on the native C++
   // implementations.
   if (function.recognized_kind() == MethodRecognizer::kObject_getHash ||
-      function.recognized_kind() == MethodRecognizer::kObject_setHash) {
+      function.recognized_kind() ==
+          MethodRecognizer::kObject_setHashIfNotSetYet) {
     return false;
   }
 #endif

@@ -398,12 +398,11 @@ void DeferredObject::Fill() {
               // it is already converted to 32-bit float via DoubleToFloat
               // instruction before it was stored.
               // Reinterpret double value as float to get the value back.
-              union {
-                double d;
-                float f;
-              } v;
-              v.d = Double::Cast(value).value();
-              typed_data.SetFloat32(element_offset, v.f);
+              typed_data.SetFloat32(
+                  element_offset,
+                  bit_cast<float, uint32_t>(
+                      static_cast<uint32_t>(bit_cast<uint64_t, double>(
+                          Double::Cast(value).value()))));
               break;
             case kTypedDataFloat64ArrayCid:
               typed_data.SetFloat64(element_offset,
@@ -441,7 +440,9 @@ void DeferredObject::Fill() {
           offset ^= GetFieldOffset(i);
           field ^= offset_map.At(offset.Value() / kWordSize);
           value = GetValue(i);
-          if (!field.IsNull()) {
+          ASSERT((value.ptr() != Object::sentinel().ptr()) ||
+                 (!field.IsNull() && field.is_late()));
+          if (!field.IsNull() && (value.ptr() != Object::sentinel().ptr())) {
             obj.SetField(field, value);
             if (FLAG_trace_deoptimization_verbose) {
               OS::PrintErr("    %s <- %s\n",
@@ -456,8 +457,11 @@ void DeferredObject::Fill() {
             ASSERT(offset.Value() < cls.host_instance_size());
             obj.SetFieldAtOffset(offset.Value(), value);
             if (FLAG_trace_deoptimization_verbose) {
-              OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
-                           offset.Value(), value.ToCString());
+              OS::PrintErr(
+                  "    %s @ offset(%" Pd ") <- %s\n",
+                  (field.IsNull() ? "null Field"
+                                  : String::Handle(field.name()).ToCString()),
+                  offset.Value(), value.ToCString());
             }
           }
         }

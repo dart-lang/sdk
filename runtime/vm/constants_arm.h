@@ -320,9 +320,6 @@ const Register kWriteBarrierObjectReg = R1;
 const Register kWriteBarrierValueReg = R0;
 const Register kWriteBarrierSlotReg = R9;
 
-// ABI for allocation stubs.
-const Register kAllocationStubTypeArgumentsReg = R3;
-
 // Common ABI for shared slow path stubs.
 struct SharedSlowPathStubABI {
   static const Register kResultReg = R0;
@@ -350,9 +347,9 @@ struct TTSInternalRegs {
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of subtype test cache stubs that are _not_ preserved.
 struct STCInternalRegs {
-  static const Register kInstanceCidOrFunctionReg = R9;
+  static const Register kInstanceCidOrSignatureReg = R9;
 
-  static const intptr_t kInternalRegisters = (1 << kInstanceCidOrFunctionReg);
+  static const intptr_t kInternalRegisters = (1 << kInstanceCidOrSignatureReg);
 };
 
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
@@ -451,16 +448,43 @@ struct RangeErrorABI {
   static const Register kIndexReg = R1;
 };
 
-// ABI for AllocateMint*Stub.
-struct AllocateMintABI {
+// ABI for AllocateObjectStub.
+struct AllocateObjectABI {
   static const Register kResultReg = R0;
+  static const Register kTypeArgumentsReg = R3;
+};
+
+// ABI for AllocateClosureStub.
+struct AllocateClosureABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kFunctionReg = R1;
+  static const Register kContextReg = R2;
+  static const Register kScratchReg = R4;
+};
+
+// ABI for AllocateMintShared*Stub.
+struct AllocateMintABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
   static const Register kTempReg = R1;
 };
 
-// ABI for Allocate<TypedData>ArrayStub.
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+struct AllocateBoxABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kTempReg = R1;
+};
+
+// ABI for AllocateArrayStub.
+struct AllocateArrayABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kLengthReg = R2;
+  static const Register kTypeArgumentsReg = R1;
+};
+
+// ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
   static const Register kLengthReg = R4;
-  static const Register kResultReg = R0;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
@@ -547,7 +571,7 @@ class CallingConventions {
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSizeBut8AlignedTo8;
 
-  // How fields in composites are aligned.
+  // How fields in compounds are aligned.
 #if defined(TARGET_OS_MACOS_IOS)
   static constexpr AlignmentStrategy kFieldAlignment =
       kAlignedToValueSizeBut8AlignedTo4;
@@ -759,6 +783,11 @@ enum ScaleFactor {
   TIMES_WORD_SIZE = kInt32SizeLog2,
 #else
 #error "Unexpected word size"
+#endif
+#if !defined(DART_COMPRESSED_POINTERS)
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_WORD_SIZE,
+#else
+#error Cannot compress ARM32
 #endif
 };
 

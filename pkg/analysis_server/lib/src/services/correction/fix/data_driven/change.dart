@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
@@ -16,5 +14,5 @@ abstract class Change<D> {
 
   /// Validate that this change can be applied. Return the data to be passed to
   /// [apply] if the change can be applied, or `null` if it can't be applied.
-  D validate(DataDrivenFix fix);
+  D? validate(DataDrivenFix fix);
 }

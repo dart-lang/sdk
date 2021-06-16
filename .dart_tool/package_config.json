@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-04-06T14:39:06.316531",
+  "generated": "2021-05-24T09:58:37.618570",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -253,6 +253,12 @@
       "languageVersion": "2.3"
     },
     {
+      "name": "devtools_shared",
+      "rootUri": "../third_party/devtools/devtools_shared",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "diagnostic",
       "rootUri": "../pkg/diagnostic",
       "packageUri": "lib/",
@@ -306,6 +312,12 @@
       "languageVersion": "2.7"
     },
     {
+      "name": "frontend_server_client",
+      "rootUri": "../third_party/pkg/webdev/frontend_server_client",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "glob",
       "rootUri": "../third_party/pkg/glob",
       "packageUri": "lib/",
@@ -339,7 +351,7 @@
       "name": "http_parser",
       "rootUri": "../third_party/pkg/http_parser",
       "packageUri": "lib/",
-      "languageVersion": "2.11"
+      "languageVersion": "2.12"
     },
     {
       "name": "http_retry",
@@ -369,7 +381,7 @@
       "name": "js_ast",
       "rootUri": "../pkg/js_ast",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "js_runtime",
@@ -381,7 +393,7 @@
       "name": "json_rpc_2",
       "rootUri": "../third_party/pkg/json_rpc_2",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "kernel",
@@ -397,6 +409,12 @@
     {
       "name": "linter",
       "rootUri": "../third_party/pkg/linter",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "lints",
+      "rootUri": "../third_party/pkg/lints",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -533,7 +551,7 @@
       "name": "pub",
       "rootUri": "../third_party/pkg/pub",
       "packageUri": "lib/",
-      "languageVersion": "2.11"
+      "languageVersion": "2.12"
     },
     {
       "name": "pub_semver",
@@ -623,7 +641,7 @@
       "name": "sse",
       "rootUri": "../third_party/pkg/sse",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "stack_trace",
@@ -659,7 +677,7 @@
       "name": "telemetry",
       "rootUri": "../pkg/telemetry",
       "packageUri": "lib/",
-      "languageVersion": "1.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "term_glyph",
@@ -749,13 +767,7 @@
       "name": "vm_snapshot_analysis",
       "rootUri": "../pkg/vm_snapshot_analysis",
       "packageUri": "lib/",
-      "languageVersion": "2.8"
-    },
-    {
-      "name": "wasm",
-      "rootUri": "../pkg/wasm",
-      "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "watcher",

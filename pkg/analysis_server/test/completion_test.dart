@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:test/test.dart';
@@ -1484,9 +1482,7 @@ class B extends A {
   }
 }''', <String>['1+fa', '1-fb', '1+ma', '1-mb']);
 
-    buildTests(
-        'testCompletion_superConstructorInvocation_noNamePrefix',
-        '''
+    buildTests('testCompletion_superConstructorInvocation_noNamePrefix', '''
 class A {
   A.fooA();
   A.fooB();
@@ -1494,13 +1490,9 @@ class A {
 }
 class B extends A {
   B() : super.!1
-}''',
-        <String>['1+fooA', '1+fooB', '1+bar'],
-        failingTests: '1');
+}''', <String>['1+fooA', '1+fooB', '1+bar']);
 
-    buildTests(
-        'testCompletion_superConstructorInvocation_withNamePrefix',
-        '''
+    buildTests('testCompletion_superConstructorInvocation_withNamePrefix', '''
 class A {
   A.fooA();
   A.fooB();
@@ -1508,9 +1500,7 @@ class A {
 }
 class B extends A {
   B() : super.f!1
-}''',
-        <String>['1+fooA', '1+fooB', '1-bar'],
-        failingTests: '1');
+}''', <String>['1+fooA', '1+fooB', '1-bar']);
 
     buildTests(
         'testCompletion_this_bad_inConstructorInitializer',
@@ -2418,7 +2408,7 @@ class A<Z extends X> {
   /// expected to fail.  This should be used to mark known completion bugs that
   /// have not yet been fixed.
   void buildTests(String baseName, String originalSource, List<String> results,
-      {Map<String, String> extraFiles, String failingTests = ''}) {
+      {Map<String, String>? extraFiles, String failingTests = ''}) {
     var completionTests = LocationSpec.from(originalSource, results);
     completionTests.sort((LocationSpec first, LocationSpec second) {
       return first.id.compareTo(second.id);
@@ -2445,9 +2435,10 @@ class A<Z extends X> {
         ++expectedFailCount;
         test('$testName (expected failure $expectedFailCount)', () {
           var test = CompletionTestCase();
-          return Future(() => test.runTest(spec, extraFiles)).then((_) {
-            fail('Test passed - expected to fail.');
-          }, onError: (_) {});
+          expect(
+            () => test.runTest(spec, extraFiles),
+            throwsA(anything),
+          );
         });
       } else {
         ++expectedPassCount;

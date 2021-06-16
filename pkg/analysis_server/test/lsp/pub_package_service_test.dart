@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -25,12 +23,10 @@ void main() {
 class PubApiTest {
   static const pubDefaultUrl = 'https://pub.dartlang.org';
 
-  Uri lastCalledUrl;
-  MockHttpClient httpClient;
+  Uri? lastCalledUrl;
+  late MockHttpClient httpClient;
 
-  PubApi api;
-
-  Future<void> check_pubHostedUrl(String envValue, String expectedBase) async {
+  Future<void> check_pubHostedUrl(String? envValue, String expectedBase) async {
     final api =
         PubApi(InstrumentationService.NULL_SERVICE, httpClient, envValue);
     await api.allPackages();
@@ -303,7 +299,7 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
     await openFile(pubspecFileUri, '');
     await pumpEventQueue();
 
-    final cache = server.pubPackageService.readDiskCache();
+    final cache = server.pubPackageService.readDiskCache()!;
     final packages = cache.packages.values.toList();
 
     expect(packages.map((p) => p.packageName), equals(['one', 'two', 'three']));

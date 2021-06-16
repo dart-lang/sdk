@@ -22,36 +22,36 @@ library from "org-dartlang-test:///main.dart" as main {
       : super dart.core::Object::•()
       ;
     get field5() → dart.core::int? {
-      if(!this.{main::C::_#C#field5#isSet}) {
+      if(!this.{main::C::_#C#field5#isSet}{dart.core::bool}) {
         this.{main::C::_#C#field5} = 42;
         this.{main::C::_#C#field5#isSet} = true;
       }
-      return this.{main::C::_#C#field5};
+      return this.{main::C::_#C#field5}{dart.core::int?};
     }
     set field5(dart.core::int? #t1) → void {
       this.{main::C::_#C#field5#isSet} = true;
       this.{main::C::_#C#field5} = #t1;
     }
     get field6() → dart.core::int?
-      return this.{main::C::_#C#field6#isSet} ?{dart.core::int?} this.{main::C::_#C#field6} : throw new dart._internal::LateError::fieldNI("field6");
+      return this.{main::C::_#C#field6#isSet}{dart.core::bool} ?{dart.core::int?} this.{main::C::_#C#field6}{dart.core::int?} : throw new dart._internal::LateError::fieldNI("field6");
     set field6(dart.core::int? #t2) → void {
       this.{main::C::_#C#field6#isSet} = true;
       this.{main::C::_#C#field6} = #t2;
     }
     get field7() → dart.core::int? {
-      if(!this.{main::C::_#C#field7#isSet}) {
+      if(!this.{main::C::_#C#field7#isSet}{dart.core::bool}) {
         final dart.core::int? #t3 = 42;
-        if(this.{main::C::_#C#field7#isSet})
+        if(this.{main::C::_#C#field7#isSet}{dart.core::bool})
           throw new dart._internal::LateError::fieldADI("field7");
         this.{main::C::_#C#field7} = #t3;
         this.{main::C::_#C#field7#isSet} = true;
       }
-      return this.{main::C::_#C#field7};
+      return this.{main::C::_#C#field7}{dart.core::int?};
     }
     get field8() → dart.core::int?
-      return this.{main::C::_#C#field8#isSet} ?{dart.core::int?} this.{main::C::_#C#field8} : throw new dart._internal::LateError::fieldNI("field8");
+      return this.{main::C::_#C#field8#isSet}{dart.core::bool} ?{dart.core::int?} this.{main::C::_#C#field8}{dart.core::int?} : throw new dart._internal::LateError::fieldNI("field8");
     set field8(dart.core::int? #t4) → void
-      if(this.{main::C::_#C#field8#isSet})
+      if(this.{main::C::_#C#field8#isSet}{dart.core::bool})
         throw new dart._internal::LateError::fieldAI("field8");
       else {
         this.{main::C::_#C#field8#isSet} = true;

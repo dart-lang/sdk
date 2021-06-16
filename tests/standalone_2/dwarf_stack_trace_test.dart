@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// VMOptions=--dwarf-stack-traces --save-debugging-info=dwarf.so
 
 import 'dart:convert';
@@ -86,11 +88,19 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
     Expect.isNotNull(externalCallInfo);
     final allCallInfo = dwarf.callInfoFor(addr, includeInternalFrames: true);
     Expect.isNotNull(allCallInfo);
-    for (final call in allCallInfo) {
+    for (final call in externalCallInfo) {
       Expect.isTrue(call is DartCallInfo, "got non-Dart call info ${call}");
+      Expect.isFalse(call.isInternal);
+      Expect.isTrue(allCallInfo.contains(call),
+          "External call info ${call} is not among all calls");
     }
-    Expect.deepEquals(externalCallInfo, allCallInfo);
-    gotCallsInfo.add(allCallInfo.cast<DartCallInfo>().toList());
+    for (final call in allCallInfo) {
+      if (!call.isInternal) {
+        Expect.isTrue(externalCallInfo.contains(call),
+            "External call info ${call} is not among external calls");
+      }
+    }
+    gotCallsInfo.add(externalCallInfo.cast<DartCallInfo>().toList());
   }
 
   print("");
@@ -101,10 +111,13 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
     gotCallsInfo[i].forEach((frame) => print("    ${frame}"));
   }
 
+  // Remove empty entries which correspond to skipped internal frames.
+  gotCallsInfo.removeWhere((calls) => calls.isEmpty);
+
   checkFrames(gotCallsInfo, expectedCallsInfo);
 
   final gotSymbolizedLines = await Stream.fromIterable(rawLines)
-      .transform(DwarfStackTraceDecoder(dwarf, includeInternalFrames: true))
+      .transform(DwarfStackTraceDecoder(dwarf, includeInternalFrames: false))
       .toList();
 
   final gotSymbolizedCalls =
@@ -138,13 +151,13 @@ final expectedCallsInfo = <List<DartCallInfo>>[
     DartCallInfo(
         function: "bar",
         filename: "dwarf_stack_trace_test.dart",
-        line: 17,
+        line: 19,
         column: 3,
         inlined: true),
     DartCallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_test.dart",
-        line: 23,
+        line: 25,
         column: 3,
         inlined: false)
   ],
@@ -153,7 +166,7 @@ final expectedCallsInfo = <List<DartCallInfo>>[
     DartCallInfo(
         function: "main",
         filename: "dwarf_stack_trace_test.dart",
-        line: 29,
+        line: 31,
         column: 5,
         inlined: false)
   ],

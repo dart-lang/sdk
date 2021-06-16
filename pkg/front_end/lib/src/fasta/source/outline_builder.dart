@@ -555,7 +555,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleMixinOn(Token onKeyword, int typeCount) {
     debugEvent("handleMixinOn");
-    push(const FixedNullableList<NamedTypeBuilder>().pop(stack, typeCount) ??
+    push(const FixedNullableList<TypeBuilder>().pop(stack, typeCount) ??
         new ParserRecovery(offsetForToken(onKeyword)));
   }
 
@@ -859,8 +859,8 @@ class OutlineBuilder extends StackListenerImpl {
         endToken.charOffset,
         nativeMethodName,
         asyncModifier,
-        isTopLevel: true,
-        isExtensionInstanceMember: false);
+        isInstanceMember: false,
+        isExtensionMember: false);
     nativeMethodName = null;
   }
 
@@ -1176,7 +1176,9 @@ class OutlineBuilder extends StackListenerImpl {
 
     declarationBuilder.resolveTypes(typeVariables, libraryBuilder);
     if (constructorName != null) {
-      if (isConst && bodyKind != MethodBody.Abstract) {
+      if (isConst &&
+          bodyKind != MethodBody.Abstract &&
+          !libraryBuilder.enableConstFunctionsInLibrary) {
         addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
         modifiers &= ~constMask;
       }
@@ -1209,6 +1211,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+      bool isExtensionMember = methodKind == _MethodKind.extensionMethod;
       libraryBuilder.addProcedure(
           metadata,
           modifiers,
@@ -1223,9 +1226,8 @@ class OutlineBuilder extends StackListenerImpl {
           endToken.charOffset,
           nativeMethodName,
           asyncModifier,
-          isTopLevel: false,
-          isExtensionInstanceMember:
-              methodKind == _MethodKind.extensionMethod && !isStatic);
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember);
     }
     nativeMethodName = null;
     inConstructor = false;
@@ -2166,6 +2168,17 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void debugEvent(String name) {
     // printEvent('OutlineBuilder: $name');
+  }
+
+  @override
+  void handleNewAsIdentifier(Token token) {
+    // TODO(johnniwinther, paulberry): disable this error when the
+    // "constructor-tearoffs" feature is enabled.
+    addProblem(
+        templateExperimentNotEnabled.withArguments('constructor-tearoffs',
+            libraryBuilder.enableConstructorTearoffsVersionInLibrary.toText()),
+        token.charOffset,
+        token.length);
   }
 }
 

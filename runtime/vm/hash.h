@@ -16,7 +16,7 @@ inline uint32_t CombineHashes(uint32_t hash, uint32_t other_hash) {
   return hash;
 }
 
-inline uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits) {
+inline uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits = kBitsPerInt32) {
   hash += hash << 3;
   hash ^= hash >> 11;  // Logical shift, unsigned hash.
   hash += hash << 15;

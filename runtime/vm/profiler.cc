@@ -27,7 +27,6 @@
 
 namespace dart {
 
-static const intptr_t kSampleSize = 8;
 static const intptr_t kMaxSamplesPerTick = 16;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
@@ -38,7 +37,7 @@ DEFINE_FLAG(int,
             "Time between profiler samples in microseconds. Minimum 50.");
 DEFINE_FLAG(int,
             max_profile_depth,
-            kSampleSize* kMaxSamplesPerTick,
+            Sample::kPCArraySizeInWords* kMaxSamplesPerTick,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 #if defined(USING_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true, "Always collect native stack traces.");
@@ -69,7 +68,6 @@ ProfilerCounters Profiler::counters_ = {};
 void Profiler::Init() {
   // Place some sane restrictions on user controlled flags.
   SetSampleDepth(FLAG_max_profile_depth);
-  Sample::Init();
   if (!FLAG_profiler) {
     return;
   }
@@ -158,24 +156,9 @@ void Profiler::UpdateSamplePeriod() {
   SetSamplePeriod(FLAG_profile_period);
 }
 
-intptr_t Sample::pcs_length_ = 0;
-intptr_t Sample::instance_size_ = 0;
-
-void Sample::Init() {
-  pcs_length_ = kSampleSize;
-  instance_size_ = sizeof(Sample) + (sizeof(uword) * pcs_length_);  // NOLINT.
-}
-
-uword* Sample::GetPCArray() const {
-  return reinterpret_cast<uword*>(reinterpret_cast<uintptr_t>(this) +
-                                  sizeof(*this));
-}
-
 SampleBuffer::SampleBuffer(intptr_t capacity) {
-  ASSERT(Sample::instance_size() > 0);
-
-  const intptr_t size = Utils::RoundUp(capacity * Sample::instance_size(),
-                                       VirtualMemory::PageSize());
+  const intptr_t size =
+      Utils::RoundUp(capacity * sizeof(Sample), VirtualMemory::PageSize());
   const bool kNotExecutable = false;
   memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
   if (memory_ == NULL) {
@@ -188,7 +171,7 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
 
   if (FLAG_trace_profiler) {
     OS::PrintErr("Profiler holds %" Pd " samples\n", capacity);
-    OS::PrintErr("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
+    OS::PrintErr("Profiler sample is %" Pd " bytes\n", sizeof(Sample));
     OS::PrintErr("Profiler memory usage = %" Pd " bytes\n", size);
   }
   if (FLAG_sample_buffer_duration != 0) {
@@ -218,9 +201,7 @@ AllocationSampleBuffer::~AllocationSampleBuffer() {
 Sample* SampleBuffer::At(intptr_t idx) const {
   ASSERT(idx >= 0);
   ASSERT(idx < capacity_);
-  intptr_t offset = idx * Sample::instance_size();
-  uint8_t* samples = reinterpret_cast<uint8_t*>(samples_);
-  return reinterpret_cast<Sample*>(samples + offset);
+  return &samples_[idx];
 }
 
 intptr_t SampleBuffer::ReserveSampleSlot() {
@@ -273,7 +254,7 @@ intptr_t AllocationSampleBuffer::ReserveSampleSlotLocked() {
     uint8_t* samples_array_ptr = reinterpret_cast<uint8_t*>(samples_);
     uint8_t* free_sample_ptr = reinterpret_cast<uint8_t*>(free_sample);
     return static_cast<intptr_t>((free_sample_ptr - samples_array_ptr) /
-                                 Sample::instance_size());
+                                 sizeof(Sample));
   } else if (cursor_ < static_cast<uintptr_t>(capacity_ - 1)) {
     return cursor_ += 1;
   } else {
@@ -510,7 +491,7 @@ class ProfilerStackWalker : public ValueObject {
       return false;
     }
     ASSERT(sample_ != NULL);
-    if (frame_index_ == kSampleSize) {
+    if (frame_index_ == Sample::kPCArraySizeInWords) {
       Sample* new_sample = sample_buffer_->ReserveSampleAndLink(sample_);
       if (new_sample == NULL) {
         // Could not reserve new sample- mark this as truncated.
@@ -520,7 +501,7 @@ class ProfilerStackWalker : public ValueObject {
       frame_index_ = 0;
       sample_ = new_sample;
     }
-    ASSERT(frame_index_ < kSampleSize);
+    ASSERT(frame_index_ < Sample::kPCArraySizeInWords);
     sample_->SetAt(frame_index_, pc);
     frame_index_++;
     total_frames_++;
@@ -1573,7 +1554,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
   bool truncated = false;
   Sample* current = sample;
   while (current != NULL) {
-    for (intptr_t i = 0; i < kSampleSize; i++) {
+    for (intptr_t i = 0; i < Sample::kPCArraySizeInWords; i++) {
       if (current->At(i) == 0) {
         break;
       }
@@ -1585,7 +1566,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
   }
 
   if (!sample->exit_frame_sample()) {
-    processed_sample->FixupCaller(clt, sample->pc_marker(),
+    processed_sample->FixupCaller(clt, /* pc_marker */ 0,
                                   sample->GetStackBuffer());
   }
 
@@ -1612,7 +1593,7 @@ Sample* SampleBuffer::Next(Sample* sample) {
 }
 
 ProcessedSample::ProcessedSample()
-    : pcs_(kSampleSize),
+    : pcs_(Sample::kPCArraySizeInWords),
       timestamp_(0),
       vm_tag_(0),
       user_tag_(0),

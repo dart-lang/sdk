@@ -132,7 +132,6 @@ main() {
           entry: 'main',
           methodName: 'foo',
           disableTypeInference: false,
-          enableTripleShift: true,
           soundNullSafety: true,
           check: checkerForAbsentPresent(test));
     }

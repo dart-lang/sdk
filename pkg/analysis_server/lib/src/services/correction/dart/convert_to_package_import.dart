@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -18,6 +16,12 @@ class ConvertToPackageImport extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_PACKAGE_IMPORT;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT;
 
   @override
@@ -25,12 +29,12 @@ class ConvertToPackageImport extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is StringLiteral) {
-      node = node.parent;
+    var targetNode = node;
+    if (targetNode is StringLiteral) {
+      targetNode = targetNode.parent!;
     }
-    if (node is ImportDirective) {
-      var importDirective = node;
+    if (targetNode is ImportDirective) {
+      var importDirective = targetNode;
       var uriSource = importDirective.uriSource;
 
       // Ignore if invalid URI.
@@ -45,7 +49,8 @@ class ConvertToPackageImport extends CorrectionProducer {
 
       // Don't offer to convert a 'package:' URI to itself.
       try {
-        if (Uri.parse(importDirective.uriContent).scheme == 'package') {
+        var uriContent = importDirective.uriContent;
+        if (uriContent == null || Uri.parse(uriContent).scheme == 'package') {
           return;
         }
       } on FormatException {

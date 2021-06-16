@@ -6,6 +6,12 @@ import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/kernel.dart' show loadComponentFromBytes;
 import 'package:kernel/verifier.dart' show verifyComponent;
 
+import 'package:front_end/src/api_prototype/language_version.dart'
+    show uriUsesLegacyLanguageVersion;
+
+import 'package:front_end/src/api_unstable/vm.dart'
+    show CompilerOptions, NnbdMode, StandardFileSystem;
+
 import '../lib/frontend_server.dart';
 
 main(List<String> args) async {
@@ -20,6 +26,20 @@ main(List<String> args) async {
   }
 
   await compileTests(flutterDir, flutterPlatformDir, new StdoutLogger());
+}
+
+Future<NnbdMode> _getNNBDMode(Uri script, Uri packagesFileUri) async {
+  final CompilerOptions compilerOptions = new CompilerOptions()
+    ..sdkRoot = null
+    ..fileSystem = StandardFileSystem.instance
+    ..packagesFileUri = packagesFileUri
+    ..sdkSummary = null
+    ..nnbdMode = NnbdMode.Weak;
+
+  if (await uriUsesLegacyLanguageVersion(script, compilerOptions)) {
+    return NnbdMode.Weak;
+  }
+  return NnbdMode.Strong;
 }
 
 Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
@@ -68,34 +88,63 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
 
   List<String> allCompilationErrors = [];
   for (File dotPackage in dotPackagesFiles) {
-    Directory tempDir;
     Directory systemTempDir = Directory.systemTemp;
-    tempDir = systemTempDir.createTempSync('flutter_frontend_test');
-    try {
-      Directory testDir =
-          new Directory.fromUri(dotPackage.parent.uri.resolve("test/"));
-      if (!testDir.existsSync()) continue;
-      if (testDir.toString().contains("packages/flutter_web_plugins/test/")) {
-        // TODO(jensj): Figure out which tests are web-tests, and compile those
-        // in a setup that can handle that.
-        continue;
+    Directory tempDir;
+    Directory testDir =
+        new Directory.fromUri(dotPackage.parent.uri.resolve("test/"));
+    if (!testDir.existsSync()) continue;
+    if (testDir.toString().contains("packages/flutter_web_plugins/test/")) {
+      // TODO(jensj): Figure out which tests are web-tests, and compile those
+      // in a setup that can handle that.
+      continue;
+    }
+    logger.notice("Go for $testDir");
+    List<File> testFiles =
+        new List<File>.from(testDir.listSync(recursive: true).where((f) {
+      if (!f.path.endsWith("_test.dart")) return false;
+      if (filter != null) {
+        String testName = f.path.substring(flutterDirectory.path.length);
+        if (!testName.startsWith(filter)) return false;
       }
-      logger.notice("Go for $testDir");
-      List<String> compilationErrors = await attemptStuff(
-          tempDir,
-          flutterPlatformDirectory,
-          dotPackage,
-          testDir,
-          flutterDirectory,
-          logger,
-          filter);
-      if (compilationErrors.isNotEmpty) {
-        logger.notice("Notice that we had ${compilationErrors.length} "
-            "compilation errors for $testDir");
-        allCompilationErrors.addAll(compilationErrors);
+      return true;
+    }));
+
+    // Split into NNBD Strong and Weak so only the ones that match are
+    // compiled togeher. If mixing-and-matching the first file (which could
+    // be either) will setup the compiler which can lead to compilation errors
+    // for another file, for instance if the first one is strong but a
+    // subsequent one tries to opt out (i.e. is weak) an error is issued that
+    // that's not possible.
+    List<File> weak = [];
+    List<File> strong = [];
+    for (File file in testFiles) {
+      if (await _getNNBDMode(file.uri, dotPackage.uri) == NnbdMode.Weak) {
+        weak.add(file);
+      } else {
+        strong.add(file);
       }
-    } finally {
-      tempDir.delete(recursive: true);
+    }
+    for (List<File> files in [weak, strong]) {
+      if (files.isEmpty) continue;
+      tempDir = systemTempDir.createTempSync('flutter_frontend_test');
+      try {
+        List<String> compilationErrors = await attemptStuff(
+            files,
+            tempDir,
+            flutterPlatformDirectory,
+            dotPackage,
+            testDir,
+            flutterDirectory,
+            logger,
+            filter);
+        if (compilationErrors.isNotEmpty) {
+          logger.notice("Notice that we had ${compilationErrors.length} "
+              "compilation errors for $testDir");
+          allCompilationErrors.addAll(compilationErrors);
+        }
+      } finally {
+        tempDir.delete(recursive: true);
+      }
     }
   }
   if (allCompilationErrors.isNotEmpty) {
@@ -107,6 +156,7 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
 }
 
 Future<List<String>> attemptStuff(
+    List<File> testFiles,
     Directory tempDir,
     Directory flutterPlatformDirectory,
     File dotPackage,
@@ -114,15 +164,6 @@ Future<List<String>> attemptStuff(
     Directory flutterDirectory,
     Logger logger,
     String filter) async {
-  List<File> testFiles =
-      new List<File>.from(testDir.listSync(recursive: true).where((f) {
-    if (!f.path.endsWith("_test.dart")) return false;
-    if (filter != null) {
-      String testName = f.path.substring(flutterDirectory.path.length);
-      if (!testName.startsWith(filter)) return false;
-    }
-    return true;
-  }));
   if (testFiles.isEmpty) return [];
 
   File dillFile = new File('${tempDir.path}/dill.dill');

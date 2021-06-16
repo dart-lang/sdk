@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -306,7 +306,7 @@ class Database(object):
         if type_def_name in self._all_type_defs:
             raise RuntimeError('Typedef %s already exists' % type_def_name)
         self._all_type_defs[type_def_name] = type_def
-        print '  Added typedef %s' % type_def_name
+        print('  Added typedef %s' % type_def_name)
 
     def TransitiveSecondaryParents(self, interface, propagate_event_target):
         """Returns a list of all non-primary parents.

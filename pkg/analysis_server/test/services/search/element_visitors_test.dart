@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
@@ -62,8 +60,7 @@ int ccc;
   }
 
   void _assertElement(int nameOffset, ElementKind kind, String name) {
-    var element = findElementByNameOffset(testUnitElement, nameOffset);
-    expect(element, isNotNull);
+    var element = findElementByNameOffset(testUnitElement, nameOffset)!;
     expect(element.kind, kind);
     expect(element.name, name);
   }

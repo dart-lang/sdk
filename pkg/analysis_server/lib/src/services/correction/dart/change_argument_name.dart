@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/executable_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -20,18 +18,25 @@ class ChangeArgumentName extends MultiCorrectionProducer {
 
   @override
   Iterable<CorrectionProducer> get producers sync* {
-    var names = _getNamedParameterNames();
-    if (names == null || names.isEmpty) {
+    var namedContext = _getNamedParameterNames();
+    if (namedContext == null) {
       return;
     }
-    SimpleIdentifier argumentName = node;
-    var invalidName = argumentName.name;
+
+    var names = namedContext.names;
+    if (names.isEmpty) {
+      return;
+    }
+
+    var currentNameNode = namedContext.identifier;
+    var currentName = currentNameNode.name;
+
     for (var proposedName in names) {
-      var distance = _computeDistance(invalidName, proposedName);
+      var distance = _computeDistance(currentName, proposedName);
       if (distance <= _maxDistance) {
         // TODO(brianwilkerson) Create a way to use the distance as part of the
         //  computation of the priority (so that closer names sort first).
-        yield _ChangeName(argumentName, proposedName);
+        yield _ChangeName(currentNameNode, proposedName);
       }
     }
   }
@@ -47,15 +52,20 @@ class ChangeArgumentName extends MultiCorrectionProducer {
     return levenshtein(current, proposal, _maxDistance, caseSensitive: false);
   }
 
-  List<String> _getNamedParameterNames() {
-    var namedExpression = node?.parent?.parent;
+  _NamedExpressionContext? _getNamedParameterNames() {
+    final node = this.node;
+    var namedExpression = node.parent?.parent;
     if (node is SimpleIdentifier &&
         namedExpression is NamedExpression &&
-        namedExpression.name == node.parent &&
-        namedExpression.parent is ArgumentList) {
-      var parameters = ExecutableParameters.forInvocation(
-          sessionHelper, namedExpression.parent.parent);
-      return parameters?.namedNames;
+        namedExpression.name == node.parent) {
+      var argumentList = namedExpression.parent;
+      if (argumentList is ArgumentList) {
+        var parameters = ExecutableParameters.forInvocation(
+            sessionHelper, argumentList.parent);
+        if (parameters != null) {
+          return _NamedExpressionContext(node, parameters.namedNames);
+        }
+      }
     }
     return null;
   }
@@ -87,4 +97,11 @@ class _ChangeName extends CorrectionProducer {
       builder.addSimpleReplacement(range.node(_argumentName), _proposedName);
     });
   }
+}
+
+class _NamedExpressionContext {
+  final SimpleIdentifier identifier;
+  final List<String> names;
+
+  _NamedExpressionContext(this.identifier, this.names);
 }

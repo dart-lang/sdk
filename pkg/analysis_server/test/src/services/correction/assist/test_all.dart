@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_diagnostic_property_reference_test.dart' as add_diagnostic_property;
@@ -54,6 +52,7 @@ import 'flutter_remove_widget_test.dart' as flutter_remove_widget;
 import 'flutter_surround_with_set_state_test.dart' as surround_with_set_state;
 import 'flutter_swap_with_child_test.dart' as flutter_swap_with_child;
 import 'flutter_swap_with_parent_test.dart' as flutter_swap_with_parent;
+import 'flutter_wrap_builder_test.dart' as flutter_wrap_builder;
 import 'flutter_wrap_center_test.dart' as flutter_wrap_center;
 import 'flutter_wrap_column_test.dart' as flutter_wrap_column;
 import 'flutter_wrap_container_test.dart' as flutter_wrap_container;
@@ -139,6 +138,7 @@ void main() {
     flutter_wrap_padding.main();
     flutter_wrap_row.main();
     flutter_wrap_sized_box.main();
+    flutter_wrap_builder.main();
     flutter_wrap_stream_builder.main();
     import_add_show.main();
     inline_invocation.main();

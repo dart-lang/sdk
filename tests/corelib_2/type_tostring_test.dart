@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Testing the behavior of `Type.toString`.
 //
 // The behavior is *unspecified*, but users may depend on it.
@@ -128,7 +130,6 @@ typedef G3 = T Function<T>(S Function<S>(S, T));
 typedef G4 = S Function<T>(S, T) Function<S>(S);
 typedef G5 = S Function<S, T>(S, T);
 
-typedef Weird = Function Function<Function>(
-    Function Function<Function>(Function));
+typedef Weird = X Function<X>(X Function<X>(X));
 
 RegExp re(String source) => RegExp(source);

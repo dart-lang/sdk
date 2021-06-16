@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
@@ -12,7 +10,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 
 class SignatureHelpHandler
-    extends MessageHandler<SignatureHelpParams, SignatureHelp> {
+    extends MessageHandler<SignatureHelpParams, SignatureHelp?> {
   SignatureHelpHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_signatureHelp;
@@ -22,10 +20,17 @@ class SignatureHelpHandler
       SignatureHelpParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SignatureHelp>> handle(
+  Future<ErrorOr<SignatureHelp?>> handle(
       SignatureHelpParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
+    }
+
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
     }
 
     // If triggered automatically by pressing the trigger character, we will
@@ -49,28 +54,25 @@ class SignatureHelpHandler
     return offset.mapResult((offset) {
       final computer = DartUnitSignatureComputer(
           server.getDartdocDirectiveInfoFor(unit.result),
-          unit.result.unit,
+          unit.result.unit!,
           offset);
       if (!computer.offsetIsValid) {
-        return success(); // No error, just no valid hover.
+        return success(null); // No error, just no valid hover.
       }
       final signature = computer.compute();
       if (signature == null) {
-        return success(); // No error, just no valid hover.
+        return success(null); // No error, just no valid hover.
       }
 
       // Skip results if this was an auto-trigger but not from the start of the
       // argument list.
       // The ArgumentList's offset is before the paren, but the request offset
       // will be after.
-      if (autoTriggered &&
-          computer.argumentList != null &&
-          offset != computer.argumentList.offset + 1) {
-        return success();
+      if (autoTriggered && offset != computer.argumentList.offset + 1) {
+        return success(null);
       }
 
-      final formats =
-          server.clientCapabilities.signatureHelpDocumentationFormats;
+      final formats = clientCapabilities.signatureHelpDocumentationFormats;
       return success(toSignatureHelp(formats, signature));
     });
   }

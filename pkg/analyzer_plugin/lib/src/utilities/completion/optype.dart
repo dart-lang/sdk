@@ -308,6 +308,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       }
       if (0 <= index && index < parameters.length) {
         var param = parameters[index];
+        var paramType = param.type;
+        if (paramType is FunctionType && paramType.returnType.isVoid) {
+          optype.includeVoidReturnSuggestions = true;
+        }
         if (param.isNamed == true) {
           var context = _argumentListContext(node);
           optype.completionLocation = 'ArgumentList_${context}_named';
@@ -478,7 +482,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         return node.end;
       }
 
-      var entity = this.entity;
+      final entity = this.entity;
       if (entity != null) {
         if (entity.offset <= declarationStart()) {
           optype.completionLocation = 'CompilationUnit_declaration';
@@ -574,10 +578,34 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (identical(entity, node.expression)) {
+    var expression = node.expression;
+    if (identical(entity, expression)) {
       optype.completionLocation = 'ExpressionFunctionBody_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+      var parent = node.parent;
+      if (parent is FunctionExpression) {
+        var type = parent.staticType;
+        if (type is FunctionType) {
+          if (type.returnType.isVoid) {
+            // TODO(brianwilkerson) Determine whether the return type can ever
+            //  be inferred as void and remove this case if it can't be.
+            optype.includeVoidReturnSuggestions = true;
+          } else {
+            var grandparent = parent.parent;
+            if (grandparent is ArgumentList) {
+              var parameter = parent.staticParameterElement;
+              if (parameter != null) {
+                var parameterType = parameter.type;
+                if (parameterType is FunctionType &&
+                    parameterType.returnType.isVoid) {
+                  optype.includeVoidReturnSuggestions = true;
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -708,7 +736,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     optype.completionLocation = 'FormalParameterList_parameter';
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is Token) {
       var previous = node.findPrevious(entity);
       if (previous != null) {
@@ -744,7 +772,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitForParts(ForParts node) {
-    var entity = this.entity;
+    final entity = this.entity;
     if (_isEntityPrevTokenSynthetic()) {
       // Actual: for (var v i^)
       // Parsed: for (var i; i^;)
@@ -1412,7 +1440,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   bool _isEntityPrevTokenSynthetic() {
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is AstNode) {
       var previous = entity.findPrevious(entity.beginToken);
       if (previous?.isSynthetic ?? false) {

@@ -1,0 +1,143 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+part private_members_part.dart;
+class _Class extends core::Object { // from org-dartlang-testcase:///private_members_part.dart
+  field core::int? _#_Class#_privateField1 = null;
+  field core::bool _#_Class#_privateField1#isSet = false;
+  field core::int? _#_Class#_privateField2 = null;
+  field core::bool _#_Class#_privateField2#isSet = false;
+  field core::int? _#_Class#_privateFinalField1 = null;
+  field core::bool _#_Class#_privateFinalField1#isSet = false;
+  field core::int? _#_Class#_privateFinalField2 = null;
+  field core::bool _#_Class#_privateFinalField2#isSet = false;
+  synthetic constructor •() → self::_Class
+    : super core::Object::•()
+    ;
+  get _privateField1() → core::int {
+    if(!this.{self::_Class::_#_Class#_privateField1#isSet}{core::bool}) {
+      this.{self::_Class::_#_Class#_privateField1} = 1;
+      this.{self::_Class::_#_Class#_privateField1#isSet} = true;
+    }
+    return let final core::int? #t1 = this.{self::_Class::_#_Class#_privateField1}{core::int?} in #t1{core::int};
+  }
+  set _privateField1(core::int #t2) → void {
+    this.{self::_Class::_#_Class#_privateField1#isSet} = true;
+    this.{self::_Class::_#_Class#_privateField1} = #t2;
+  }
+  get _privateField2() → core::int? {
+    if(!this.{self::_Class::_#_Class#_privateField2#isSet}{core::bool}) {
+      this.{self::_Class::_#_Class#_privateField2} = 1;
+      this.{self::_Class::_#_Class#_privateField2#isSet} = true;
+    }
+    return this.{self::_Class::_#_Class#_privateField2}{core::int?};
+  }
+  set _privateField2(core::int? #t3) → void {
+    this.{self::_Class::_#_Class#_privateField2#isSet} = true;
+    this.{self::_Class::_#_Class#_privateField2} = #t3;
+  }
+  get _privateFinalField1() → core::int {
+    if(!this.{self::_Class::_#_Class#_privateFinalField1#isSet}{core::bool}) {
+      this.{self::_Class::_#_Class#_privateFinalField1} = 1;
+      this.{self::_Class::_#_Class#_privateFinalField1#isSet} = true;
+    }
+    return let final core::int? #t4 = this.{self::_Class::_#_Class#_privateFinalField1}{core::int?} in #t4{core::int};
+  }
+  set _privateFinalField1(core::int #t5) → void {
+    this.{self::_Class::_#_Class#_privateFinalField1#isSet} = true;
+    this.{self::_Class::_#_Class#_privateFinalField1} = #t5;
+  }
+  get _privateFinalField2() → core::int? {
+    if(!this.{self::_Class::_#_Class#_privateFinalField2#isSet}{core::bool}) {
+      this.{self::_Class::_#_Class#_privateFinalField2} = 1;
+      this.{self::_Class::_#_Class#_privateFinalField2#isSet} = true;
+    }
+    return this.{self::_Class::_#_Class#_privateFinalField2}{core::int?};
+  }
+  set _privateFinalField2(core::int? #t6) → void {
+    this.{self::_Class::_#_Class#_privateFinalField2#isSet} = true;
+    this.{self::_Class::_#_Class#_privateFinalField2} = #t6;
+  }
+}
+extension _Extension on core::int { // from org-dartlang-testcase:///private_members_part.dart
+  static field _privateField1 = self::_#_Extension|_privateField1;
+  static field _privateField1 = self::_#_Extension|_privateField1#isSet;
+  static get _privateField1 = get self::_Extension|_privateField1;
+  static set _privateField1 = set self::_Extension|_privateField1;
+  static field _privateField2 = self::_#_Extension|_privateField2;
+  static field _privateField2 = self::_#_Extension|_privateField2#isSet;
+  static get _privateField2 = get self::_Extension|_privateField2;
+  static set _privateField2 = set self::_Extension|_privateField2;
+  static field _privateFinalField1 = self::_#_Extension|_privateFinalField1;
+  static field _privateFinalField1 = self::_#_Extension|_privateFinalField1#isSet;
+  static get _privateFinalField1 = get self::_Extension|_privateFinalField1;
+  static set _privateFinalField1 = set self::_Extension|_privateFinalField1;
+  static field _privateFinalField2 = self::_#_Extension|_privateFinalField2;
+  static field _privateFinalField2 = self::_#_Extension|_privateFinalField2#isSet;
+  static get _privateFinalField2 = get self::_Extension|_privateFinalField2;
+  static set _privateFinalField2 = set self::_Extension|_privateFinalField2;
+}
+static field core::int? _#_Extension|_privateField1 = null /* from org-dartlang-testcase:///private_members_part.dart */;
+static field core::bool _#_Extension|_privateField1#isSet = false /* from org-dartlang-testcase:///private_members_part.dart */;
+static field core::int? _#_Extension|_privateField2 = null /* from org-dartlang-testcase:///private_members_part.dart */;
+static field core::bool _#_Extension|_privateField2#isSet = false /* from org-dartlang-testcase:///private_members_part.dart */;
+static field core::int? _#_Extension|_privateFinalField1 = null /* from org-dartlang-testcase:///private_members_part.dart */;
+static field core::bool _#_Extension|_privateFinalField1#isSet = false /* from org-dartlang-testcase:///private_members_part.dart */;
+static field core::int? _#_Extension|_privateFinalField2 = null /* from org-dartlang-testcase:///private_members_part.dart */;
+static field core::bool _#_Extension|_privateFinalField2#isSet = false /* from org-dartlang-testcase:///private_members_part.dart */;
+static method main() → dynamic {
+  self::_Class c = new self::_Class::•();
+  c.{self::_Class::_privateField1} = c.{self::_Class::_privateField1}{core::int};
+  c.{self::_Class::_privateField2} = c.{self::_Class::_privateField2}{core::int?};
+  c.{self::_Class::_privateFinalField1}{core::int};
+  c.{self::_Class::_privateFinalField2}{core::int?};
+  self::_Extension|_privateField1 = self::_Extension|_privateField1;
+  self::_Extension|_privateField2 = self::_Extension|_privateField2;
+  self::_Extension|_privateFinalField1;
+  self::_Extension|_privateFinalField2;
+}
+static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField1() → core::int {
+  if(!self::_#_Extension|_privateField1#isSet) {
+    self::_#_Extension|_privateField1 = 1;
+    self::_#_Extension|_privateField1#isSet = true;
+  }
+  return let final core::int? #t7 = self::_#_Extension|_privateField1 in #t7{core::int};
+}
+static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField1(core::int #t8) → void {
+  self::_#_Extension|_privateField1#isSet = true;
+  self::_#_Extension|_privateField1 = #t8;
+}
+static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField2() → core::int? {
+  if(!self::_#_Extension|_privateField2#isSet) {
+    self::_#_Extension|_privateField2 = 1;
+    self::_#_Extension|_privateField2#isSet = true;
+  }
+  return self::_#_Extension|_privateField2;
+}
+static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField2(core::int? #t9) → void {
+  self::_#_Extension|_privateField2#isSet = true;
+  self::_#_Extension|_privateField2 = #t9;
+}
+static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField1() → core::int {
+  if(!self::_#_Extension|_privateFinalField1#isSet) {
+    self::_#_Extension|_privateFinalField1 = 1;
+    self::_#_Extension|_privateFinalField1#isSet = true;
+  }
+  return let final core::int? #t10 = self::_#_Extension|_privateFinalField1 in #t10{core::int};
+}
+static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField1(core::int #t11) → void {
+  self::_#_Extension|_privateFinalField1#isSet = true;
+  self::_#_Extension|_privateFinalField1 = #t11;
+}
+static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField2() → core::int? {
+  if(!self::_#_Extension|_privateFinalField2#isSet) {
+    self::_#_Extension|_privateFinalField2 = 1;
+    self::_#_Extension|_privateFinalField2#isSet = true;
+  }
+  return self::_#_Extension|_privateFinalField2;
+}
+static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField2(core::int? #t12) → void {
+  self::_#_Extension|_privateFinalField2#isSet = true;
+  self::_#_Extension|_privateFinalField2 = #t12;
+}

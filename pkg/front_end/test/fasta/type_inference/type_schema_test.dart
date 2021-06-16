@@ -6,7 +6,6 @@
 
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,9 +30,9 @@ class UnknownTypeTest {
   void test_isKnown() {
     expect(isKnown(unknownType), isFalse);
     expect(isKnown(const DynamicType()), isTrue);
-    var classA = new Class(name: 'A');
+    var classA = new Class(name: 'A', fileUri: dummyUri);
     var A = new InterfaceType(classA, Nullability.legacy);
-    var typedefF = new Typedef('F', A);
+    var typedefF = new Typedef('F', A, fileUri: dummyUri);
     expect(isKnown(A), isTrue);
     expect(isKnown(new InterfaceType(classA, Nullability.legacy, [A])), isTrue);
     expect(

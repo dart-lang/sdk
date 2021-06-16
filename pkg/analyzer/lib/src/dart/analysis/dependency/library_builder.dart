@@ -688,7 +688,7 @@ class _LibraryBuilder {
     var builder = ApiSignature();
     builder.addBytes(uriSignature);
 
-    var enclosingClassNameSignature = this.enclosingClassNameSignature;
+    final enclosingClassNameSignature = this.enclosingClassNameSignature;
     if (enclosingClassNameSignature != null) {
       builder.addBytes(enclosingClassNameSignature);
     }

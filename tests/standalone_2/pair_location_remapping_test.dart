@@ -4,6 +4,8 @@
 // Test that pair locations are remaped in slow path environments.
 // VMOptions=--optimization_counter_threshold=10 --no-use-osr --no-background_compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

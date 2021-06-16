@@ -13,9 +13,9 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -172,7 +172,8 @@ class Driver implements CommandLineStarter {
 
     // Note: This references analysisDriver via closure, so it will change over
     // time during the following analysis.
-    var defaultSeverityProcessor = (AnalysisError error) {
+    SeverityProcessor defaultSeverityProcessor;
+    defaultSeverityProcessor = (AnalysisError error) {
       return determineProcessedSeverity(
           error, options, analysisDriver.analysisOptions);
     };
@@ -485,6 +486,7 @@ class Driver implements CommandLineStarter {
 
 class _AnalysisContextProvider {
   final ResourceProvider _resourceProvider;
+  final FileContentCache _fileContentCache;
 
   CommandLineOptions _commandLineOptions;
   List<String> _pathList;
@@ -493,7 +495,8 @@ class _AnalysisContextProvider {
   AnalysisContextCollectionImpl _collection;
   DriverBasedAnalysisContext _analysisContext;
 
-  _AnalysisContextProvider(this._resourceProvider);
+  _AnalysisContextProvider(this._resourceProvider)
+      : _fileContentCache = FileContentCache(_resourceProvider);
 
   DriverBasedAnalysisContext get analysisContext {
     return _analysisContext;
@@ -519,12 +522,15 @@ class _AnalysisContextProvider {
   }
 
   void configureForPath(String path) {
-    var parentFolder = _resourceProvider.getFile(path).parent2;
+    var folder = _resourceProvider.getFolder(path);
+    if (!folder.exists) {
+      folder = _resourceProvider.getFile(path).parent2;
+    }
 
     // In batch mode we are given separate file paths to analyze.
     // All files of a folder have the same configuration.
     // So, reuse the corresponding analysis context.
-    _analysisContext = _folderContexts[parentFolder];
+    _analysisContext = _folderContexts[folder];
     if (_analysisContext != null) {
       return;
     }
@@ -547,10 +553,11 @@ class _AnalysisContextProvider {
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions.dartSdkPath,
       updateAnalysisOptions: _updateAnalysisOptions,
+      fileContentCache: _fileContentCache,
     );
 
     _setContextForPath(path);
-    _folderContexts[parentFolder] = _analysisContext;
+    _folderContexts[folder] = _analysisContext;
   }
 
   void setCommandLineOptions(

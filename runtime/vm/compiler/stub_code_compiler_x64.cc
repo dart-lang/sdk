@@ -28,14 +28,6 @@
 #define __ assembler->
 
 namespace dart {
-
-DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool,
-            use_slow_path,
-            false,
-            "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, precompiled_mode);
-
 namespace compiler {
 
 // Ensures that [RAX] is a new object, if not it will be added to the remembered
@@ -43,8 +35,8 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [RAX], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
-static void EnsureIsNewOrRemembered(Assembler* assembler,
-                                    bool preserve_registers = true) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
+                                               bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -383,8 +375,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // the saved THR and the return address. The target will know to skip them.
   __ call(TMP);
 
-  // EnterSafepoint takes care to not clobber *any* registers (besides TMP).
-  __ EnterSafepoint();
+  // Takes care to not clobber *any* registers (besides TMP).
+  __ EnterFullSafepoint();
 
   // Restore THR (callee-saved).
   __ popq(THR);
@@ -408,8 +400,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 // RDX: The type_arguments_field_offset (or 0)
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
-    const Object& closure_allocation_stub,
-    const Object& context_allocation_stub) {
+    const Code& closure_allocation_stub,
+    const Code& context_allocation_stub) {
   const intptr_t kReceiverOffsetInWords =
       target::frame_layout.param_end_from_fp + 1;
 
@@ -451,37 +443,42 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     __ Bind(&done);
   }
 
+  // Put context in right register for AllocateClosure call.
+  __ MoveRegister(AllocateClosureABI::kContextReg, RAX);
+
   // Store receiver in context
-  __ movq(RSI, Address(RBP, target::kWordSize * kReceiverOffsetInWords));
-  __ StoreIntoObject(
-      RAX, FieldAddress(RAX, target::Context::variable_offset(0)), RSI);
+  __ movq(AllocateClosureABI::kScratchReg,
+          Address(RBP, target::kWordSize * kReceiverOffsetInWords));
+  __ StoreIntoObject(AllocateClosureABI::kContextReg,
+                     FieldAddress(AllocateClosureABI::kContextReg,
+                                  target::Context::variable_offset(0)),
+                     AllocateClosureABI::kScratchReg);
 
-  // Push context.
-  __ pushq(RAX);
+  // Pop function.
+  __ popq(AllocateClosureABI::kFunctionReg);
 
-  // Allocate closure.
+  // Allocate closure. After this point, we only use the registers in
+  // AllocateClosureABI.
   __ LoadObject(CODE_REG, closure_allocation_stub);
-  __ call(FieldAddress(
-      CODE_REG, target::Code::entry_point_offset(CodeEntryKind::kUnchecked)));
+  __ call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 
   // Populate closure object.
-  __ popq(RCX);  // Pop context.
-  __ StoreIntoObject(RAX, FieldAddress(RAX, target::Closure::context_offset()),
-                     RCX);
-  __ popq(RCX);  // Pop extracted method.
+  __ popq(AllocateClosureABI::kScratchReg);  // Pop type argument vector.
   __ StoreIntoObjectNoBarrier(
-      RAX, FieldAddress(RAX, target::Closure::function_offset()), RCX);
-  __ popq(RCX);  // Pop type argument vector.
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::instantiator_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
+  __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
   __ StoreIntoObjectNoBarrier(
-      RAX,
-      FieldAddress(RAX, target::Closure::instantiator_type_arguments_offset()),
-      RCX);
-  __ LoadObject(RCX, EmptyTypeArguments());
-  __ StoreIntoObjectNoBarrier(
-      RAX, FieldAddress(RAX, target::Closure::delayed_type_arguments_offset()),
-      RCX);
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::delayed_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
 
   __ LeaveStubFrame();
+  // No-op if the two are the same.
+  __ MoveRegister(RAX, AllocateClosureABI::kResultReg);
   __ Ret();
 }
 
@@ -1049,11 +1046,13 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 }
 
 // Called for inline allocation of arrays.
-// Input parameters:
-//   R10 : Array length as Smi.
-//   RBX : array element type (either NULL or an instantiated type).
-// NOTE: R10 cannot be clobbered here as the caller relies on it being saved.
-// The newly allocated object is returned in RAX.
+// Input registers (preserved):
+//   AllocateArrayABI::kLengthReg: array length as Smi.
+//   AllocateArrayABI::kTypeArgumentsReg: type arguments of array.
+// Output registers:
+//   AllocateArrayABI::kResultReg: newly allocated array.
+// Clobbered:
+//   RCX, RDI, R12
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
@@ -1061,7 +1060,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // and is computed as:
     // RoundedAllocationSize(
     //     (array_length * target::kwordSize) + target::Array::header_size()).
-    __ movq(RDI, R10);  // Array Length.
+    __ movq(RDI, AllocateArrayABI::kLengthReg);  // Array Length.
     // Check that length is Smi.
     __ testq(RDI, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);
@@ -1085,15 +1084,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ andq(RDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
     const intptr_t cid = kArrayCid;
-    __ movq(RAX, Address(THR, target::Thread::top_offset()));
+    __ movq(AllocateArrayABI::kResultReg,
+            Address(THR, target::Thread::top_offset()));
 
     // RDI: allocation size.
-    __ movq(RCX, RAX);
+    __ movq(RCX, AllocateArrayABI::kResultReg);
     __ addq(RCX, RDI);
     __ j(CARRY, &slow_case);
 
     // Check if the allocation fits into the remaining space.
-    // RAX: potential new object start.
+    // AllocateArrayABI::kResultReg: potential new object start.
     // RCX: potential next object start.
     // RDI: allocation size.
     __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
@@ -1102,10 +1102,10 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ movq(Address(THR, target::Thread::top_offset()), RCX);
-    __ addq(RAX, Immediate(kHeapObjectTag));
+    __ addq(AllocateArrayABI::kResultReg, Immediate(kHeapObjectTag));
 
     // Initialize the tags.
-    // RAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // RDI: allocation size.
     {
       Label size_tag_overflow, done;
@@ -1125,23 +1125,29 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       __ movq(FieldAddress(RAX, target::Array::tags_offset()), RDI);  // Tags.
     }
 
-    // RAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // Store the type argument field.
     // No generational barrier needed, since we store into a new object.
     __ StoreIntoObjectNoBarrier(
-        RAX, FieldAddress(RAX, target::Array::type_arguments_offset()), RBX);
+        AllocateArrayABI::kResultReg,
+        FieldAddress(AllocateArrayABI::kResultReg,
+                     target::Array::type_arguments_offset()),
+        AllocateArrayABI::kTypeArgumentsReg);
 
     // Set the length field.
-    __ StoreIntoObjectNoBarrier(
-        RAX, FieldAddress(RAX, target::Array::length_offset()), R10);
+    __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                FieldAddress(AllocateArrayABI::kResultReg,
+                                             target::Array::length_offset()),
+                                AllocateArrayABI::kLengthReg);
 
     // Initialize all array elements to raw_null.
-    // RAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // RCX: new object end address.
     // RDI: iterator which initially points to the start of the variable
     // data area to be initialized.
     __ LoadObject(R12, NullObject());
-    __ leaq(RDI, FieldAddress(RAX, target::Array::header_size()));
+    __ leaq(RDI, FieldAddress(AllocateArrayABI::kResultReg,
+                              target::Array::header_size()));
     Label done;
     Label init_loop;
     __ Bind(&init_loop);
@@ -1153,11 +1159,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 #endif  // DEBUG
     __ j(ABOVE_EQUAL, &done, kJumpLength);
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
+    __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg, Address(RDI, 0),
+                                R12);
     __ addq(RDI, Immediate(target::kWordSize));
     __ jmp(&init_loop, kJumpLength);
     __ Bind(&done);
-    __ ret();  // returns the newly allocated object in RAX.
+    __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
     // into the runtime.
@@ -1166,14 +1173,13 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  // Setup space on stack for return value.
-  __ pushq(Immediate(0));
-  __ pushq(R10);  // Array length as Smi.
-  __ pushq(RBX);  // Element type.
+  __ pushq(Immediate(0));                         // Space for return value.
+  __ pushq(AllocateArrayABI::kLengthReg);         // Array length as Smi.
+  __ pushq(AllocateArrayABI::kTypeArgumentsReg);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
-  __ popq(RAX);  // Pop element type argument.
-  __ popq(R10);  // Pop array length argument.
-  __ popq(RAX);  // Pop return value from return slot.
+  __ popq(AllocateArrayABI::kTypeArgumentsReg);  // Pop element type argument.
+  __ popq(AllocateArrayABI::kLengthReg);         // Pop array length argument.
+  __ popq(AllocateArrayABI::kResultReg);         // Pop allocated object.
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
@@ -1231,7 +1237,7 @@ static const RegisterSet kCalleeSavedRegisterSet(
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
 //   RSP : points to return address.
-//   RDI : target code
+//   RDI : target code or entry point (in bare instructions mode).
 //   RSI : arguments descriptor array.
 //   RDX : arguments array.
 //   RCX : current thread.
@@ -1239,7 +1245,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushq(Address(RSP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
-  const Register kTargetCodeReg = CallingConventions::kArg1Reg;
+  const Register kTargetReg = CallingConventions::kArg1Reg;
   const Register kArgDescReg = CallingConventions::kArg2Reg;
   const Register kArgsReg = CallingConventions::kArg3Reg;
   const Register kThreadReg = CallingConventions::kArg4Reg;
@@ -1304,8 +1310,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // Push arguments. At this point we only need to preserve kTargetCodeReg.
-  ASSERT(kTargetCodeReg != RDX);
+  // Push arguments. At this point we only need to preserve kTargetReg.
+  ASSERT(kTargetReg != RDX);
 
   // Load number of arguments into RBX and adjust count for type arguments.
   __ movq(RBX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
@@ -1339,14 +1345,14 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the Dart code entrypoint.
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
+    __ xorq(CODE_REG, CODE_REG);  // GC-safe value into CODE_REG.
   } else {
     __ xorq(PP, PP);  // GC-safe value into PP.
+    __ movq(CODE_REG, Address(kTargetReg, VMHandles::kOffsetOfRawPtrInHandle));
+    __ movq(kTargetReg,
+            FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
-  __ movq(CODE_REG,
-          Address(kTargetCodeReg, VMHandles::kOffsetOfRawPtrInHandle));
-  __ movq(kTargetCodeReg,
-          FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ call(kTargetCodeReg);  // R10 is the arguments descriptor array.
+  __ call(kTargetReg);  // R10 is the arguments descriptor array.
 
   // Read the saved number of passed arguments as Smi.
   __ movq(RDX, Address(RBP, kArgumentsDescOffset));
@@ -1782,7 +1788,6 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
   // Note: Keep in sync with calling function.
-  // kAllocationStubTypeArgumentsReg = RDX
   const Register kTagsReg = R8;
 
   {
@@ -1796,8 +1801,10 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
       __ ExtractInstanceSizeFromTags(kInstanceSizeReg, kTagsReg);
 
-      __ movq(RAX, Address(THR, target::Thread::top_offset()));
-      __ leaq(kNewTopReg, Address(RAX, kInstanceSizeReg, TIMES_1, 0));
+      __ movq(AllocateObjectABI::kResultReg,
+              Address(THR, target::Thread::top_offset()));
+      __ leaq(kNewTopReg, Address(AllocateObjectABI::kResultReg,
+                                  kInstanceSizeReg, TIMES_1, 0));
       // Check if the allocation fits into the remaining space.
       __ cmpq(kNewTopReg, Address(THR, target::Thread::end_offset()));
       __ j(ABOVE_EQUAL, &slow_case);
@@ -1807,15 +1814,18 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
     // Set the tags.
     // 64 bit store also zeros the identity hash field.
-    __ movq(Address(RAX, target::Object::tags_offset()), kTagsReg);
+    __ movq(
+        Address(AllocateObjectABI::kResultReg, target::Object::tags_offset()),
+        kTagsReg);
 
-    __ addq(RAX, Immediate(kHeapObjectTag));
+    __ addq(AllocateObjectABI::kResultReg, Immediate(kHeapObjectTag));
 
     // Initialize the remaining words of the object.
     {
       const Register kNextFieldReg = RDI;
       __ leaq(kNextFieldReg,
-              FieldAddress(RAX, target::Instance::first_field_offset()));
+              FieldAddress(AllocateObjectABI::kResultReg,
+                           target::Instance::first_field_offset()));
 
       const Register kNullReg = R10;
       __ LoadObject(kNullReg, NullObject());
@@ -1831,7 +1841,8 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
       __ j(ABOVE_EQUAL, &done, kJumpLength);
-      __ StoreIntoObjectNoBarrier(RAX, Address(kNextFieldReg, 0), kNullReg);
+      __ StoreIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                  Address(kNextFieldReg, 0), kNullReg);
       __ addq(kNextFieldReg, Immediate(target::kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
@@ -1854,8 +1865,10 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
                            host_type_arguments_field_offset_in_words_offset()));
 
       // Set the type arguments in the new object.
-      __ StoreIntoObject(RAX, FieldAddress(RAX, kTypeOffsetReg, TIMES_8, 0),
-                         kAllocationStubTypeArgumentsReg);
+      __ StoreIntoObject(AllocateObjectABI::kResultReg,
+                         FieldAddress(AllocateObjectABI::kResultReg,
+                                      kTypeOffsetReg, TIMES_8, 0),
+                         AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
     }  // kTypeOffsetReg = RDI;
@@ -1867,7 +1880,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
   // Fall back on slow case:
   if (!is_cls_parameterized) {
-    __ LoadObject(kAllocationStubTypeArgumentsReg, NullObject());
+    __ LoadObject(AllocateObjectABI::kTypeArgumentsReg, NullObject());
   }
   // Tail call to generic allocation stub.
   __ jmp(
@@ -1885,8 +1898,6 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 }
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
-  // Note: Keep in sync with calling stub.
-  // kAllocationStubTypeArgumentsReg = RDX
   const Register kTagsToClsIdReg = R8;
 
   if (!FLAG_use_bare_instructions) {
@@ -1901,27 +1912,27 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   // Setup space on stack for return value.
-  __ LoadObject(RAX, NullObject());
-  __ pushq(RAX);
+  __ LoadObject(AllocateObjectABI::kResultReg, NullObject());
+  __ pushq(AllocateObjectABI::kResultReg);
 
   // Push class of object to be allocated.
-  __ LoadClassById(RAX, kTagsToClsIdReg);
-  __ pushq(RAX);
+  __ LoadClassById(AllocateObjectABI::kResultReg, kTagsToClsIdReg);
+  __ pushq(AllocateObjectABI::kResultReg);
 
   // Must be Object::null() if non-parameterized class.
-  __ pushq(kAllocationStubTypeArgumentsReg);
+  __ pushq(AllocateObjectABI::kTypeArgumentsReg);
 
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);
 
-  __ popq(RAX);  // Pop argument (type arguments of object).
-  __ popq(RAX);  // Pop argument (class of object).
-  __ popq(RAX);  // Pop result (newly allocated object).
+  __ popq(AllocateObjectABI::kResultReg);  // Drop type arguments.
+  __ popq(AllocateObjectABI::kResultReg);  // Drop class.
+  __ popq(AllocateObjectABI::kResultReg);  // Pop newly allocated object.
 
   // Write-barrier elimination is enabled for [cls] and we therefore need to
   // ensure that the object is in new-space or has remembered bit set.
   EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
 
-  // RAX: new object
+  // AllocateObjectABI::kResultReg: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
 
@@ -1935,9 +1946,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     const Class& cls,
     const Code& allocate_object,
     const Code& allocat_object_parametrized) {
-  static_assert(kAllocationStubTypeArgumentsReg == RDX,
-                "Adjust register allocation in the AllocationStub");
-
   classid_t cls_id = target::Class::GetId(cls);
   ASSERT(cls_id != kIllegalCid);
 
@@ -1959,8 +1967,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
-  // Note: Keep in sync with helper function.
-  // kAllocationStubTypeArgumentsReg = RDX
   const Register kTagsReg = R8;
 
   __ movq(kTagsReg, Immediate(tags));
@@ -1996,7 +2002,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     }
   } else {
     if (!is_cls_parameterized) {
-      __ LoadObject(kAllocationStubTypeArgumentsReg, NullObject());
+      __ LoadObject(AllocateObjectABI::kTypeArgumentsReg, NullObject());
     }
     __ jmp(Address(THR,
                    target::Thread::allocate_object_slow_entry_point_offset()));
@@ -2792,20 +2798,23 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, not_closure;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrFunctionReg,
+    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrSignatureReg,
                            TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(STCInternalRegs::kInstanceCidOrFunctionReg,
+    __ LoadClassId(STCInternalRegs::kInstanceCidOrSignatureReg,
                    TypeTestABI::kInstanceReg);
   }
-  __ cmpq(STCInternalRegs::kInstanceCidOrFunctionReg, Immediate(kClosureCid));
+  __ cmpq(STCInternalRegs::kInstanceCidOrSignatureReg, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
   // Closure handling.
   {
-    __ movq(STCInternalRegs::kInstanceCidOrFunctionReg,
+    __ movq(STCInternalRegs::kInstanceCidOrSignatureReg,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
+    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
+                      FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
+                                   target::Function::signature_offset()));
     if (n >= 3) {
       __ movq(
           STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
@@ -2829,7 +2838,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ Bind(&not_closure);
     if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+      __ LoadClassById(kScratchReg,
+                       STCInternalRegs::kInstanceCidOrSignatureReg);
       __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ movl(
           kScratchReg,
@@ -2847,7 +2857,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         __ movq(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
       }
     }
-    __ SmiTag(STCInternalRegs::kInstanceCidOrFunctionReg);
+    __ SmiTag(STCInternalRegs::kInstanceCidOrSignatureReg);
   }
 
   Label found, not_found, next_iteration;
@@ -2857,10 +2867,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movq(kScratchReg,
           Address(STCInternalRegs::kCacheEntryReg,
                   target::kWordSize *
-                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
+                      target::SubtypeTestCache::kInstanceCidOrSignature));
   __ cmpq(kScratchReg, kNullReg);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ cmpq(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+  __ cmpq(kScratchReg, STCInternalRegs::kInstanceCidOrSignatureReg);
   if (n == 1) {
     __ j(EQUAL, &found, Assembler::kNearJump);
   } else {
@@ -3380,12 +3390,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ jmp(RCX);
 }
 
-void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
-  __ int3();
-}
-
 // Instantiate type arguments from instantiator and function type args.
 // RBX: uninstantiated type arguments.
 // RDX: instantiator type arguments.
@@ -3394,9 +3398,9 @@ void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
     Assembler* assembler) {
   // Lookup cache before calling runtime.
-  __ movq(RAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::instantiations_offset()));
+  __ LoadCompressed(RAX, compiler::FieldAddress(
+                             InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::instantiations_offset()));
   __ leaq(RAX, compiler::FieldAddress(RAX, Array::data_offset()));
 
   // The instantiations cache is initialized with Object::zero_array() and is
@@ -3452,12 +3456,13 @@ void StubCodeCompiler::
   // Return the instantiator type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ movq(RAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
-  __ movq(RDI, compiler::FieldAddress(
-                   InstantiationABI::kInstantiatorTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      RAX,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(RDI, compiler::FieldAddress(
+                                InstantiationABI::kInstantiatorTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
   __ andq(RDI, RAX);
   __ cmpq(RDI, RAX);
   __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
@@ -3474,12 +3479,13 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
   // Return the function type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ movq(RAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
-  __ movq(RDI,
-          compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
-                                 target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      RAX,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      RDI, compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
+                                  target::TypeArguments::nullability_offset()));
   __ andq(RDI, RAX);
   __ cmpq(RDI, RAX);
   __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
@@ -3543,7 +3549,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
       scale_factor = TIMES_8;
     }
     const intptr_t fixed_size_plus_alignment_padding =
-        target::TypedData::InstanceSize() +
+        target::TypedData::HeaderSize() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ leaq(RDI, Address(RDI, scale_factor, fixed_size_plus_alignment_padding));
     __ andq(RDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
@@ -3602,7 +3608,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* RBX: scratch register. */
     /* data area to be initialized. */
     __ xorq(RBX, RBX); /* Zero. */
-    __ leaq(RDI, FieldAddress(RAX, target::TypedData::InstanceSize()));
+    __ leaq(RDI, FieldAddress(RAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
         RAX, FieldAddress(RAX, target::TypedDataBase::data_field_offset()),
         RDI);

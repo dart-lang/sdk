@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,7 +24,7 @@ class FoldingComputerTest extends AbstractContextTest {
     FoldingKind.DOCUMENTATION_COMMENT
   };
 
-  String sourcePath;
+  late String sourcePath;
 
   @override
   void setUp() {
@@ -69,7 +68,7 @@ class MyClass2 {/*4:INC*/
   @setterAnnotation1/*7:INC*/
   @setterAnnotation2/*7:EXC:ANNOTATIONS*/
   void set myThing(int value) {}
-  
+
   @methodAnnotation1/*8:INC*/
   @methodAnnotation2/*8:EXC:ANNOTATIONS*/
   void myMethod() {}
@@ -497,6 +496,31 @@ main() {/*1:INC*/
     _compareRegions(regions, content);
   }
 
+  Future<void> test_parameters_function() async {
+    var content = '''
+foo(/*1:INC*/
+  String aaaaa,
+  String bbbbb, {
+  String ccccc,
+  }/*1:INC:PARAMETERS*/) {}
+''';
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  Future<void> test_parameters_method() async {
+    var content = '''
+class C {/*1:INC*/
+  C(/*2:INC*/
+    String aaaaa,
+    String bbbbb,
+  /*2:INC:PARAMETERS*/) : super();
+/*1:INC:CLASS_BODY*/}
+''';
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
   Future<void> test_single_import_directives() async {
     var content = """
 import 'dart:async';
@@ -515,7 +539,7 @@ main() {}
   ///
   /// If [onlyKinds] is supplied only regions of that type will be compared.
   void _compareRegions(List<FoldingRegion> regions, String content,
-      [Set<FoldingKind> onlyKinds]) {
+      [Set<FoldingKind>? onlyKinds]) {
     // Find all numeric markers for region starts.
     final regex = RegExp(r'/\*(\d+):(INC|EXC)\*/');
     final expectedRegions = regex.allMatches(content);
@@ -535,7 +559,8 @@ main() {}
       final i = m.group(1);
       final inclusiveStart = m.group(2) == 'INC';
       // Find the end marker.
-      final endMatch = RegExp('/\\*$i:(INC|EXC):(.+?)\\*/').firstMatch(content);
+      final endMatch =
+          RegExp('/\\*$i:(INC|EXC):(.+?)\\*/').firstMatch(content)!;
 
       final inclusiveEnd = endMatch.group(1) == 'INC';
       final expectedKindString = endMatch.group(2);
@@ -556,8 +581,9 @@ main() {}
 
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    var result = await session.getResolvedUnit(sourcePath);
-    var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);
+    var result =
+        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
+    var computer = DartUnitFoldingComputer(result.lineInfo, result.unit!);
     return computer.compute();
   }
 }

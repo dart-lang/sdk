@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set_parser.dart';
@@ -24,10 +22,10 @@ void main() {
 /// Utilities shared between tests of the [TransformOverrideSetParser].
 abstract class AbstractTransformOverrideSetParserTest {
   /// The listener to which errors will be reported.
-  GatheringErrorListener errorListener;
+  late GatheringErrorListener errorListener;
 
   /// The result of parsing the test file's content.
-  TransformOverrideSet result;
+  TransformOverrideSet? result;
 
   void assertErrors(String code, List<ExpectedError> expectedErrors) {
     parse(code);
@@ -39,17 +37,16 @@ abstract class AbstractTransformOverrideSetParserTest {
     errorListener.assertNoErrors();
   }
 
-  void assertOverride(String title, {bool bulkApply}) {
-    var override = result.overrideForTransform(title);
-    expect(override, isNotNull);
+  void assertOverride(String title, {bool? bulkApply}) {
+    var override = result!.overrideForTransform(title)!;
     if (bulkApply != null) {
       expect(override.bulkApply, bulkApply);
     }
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
-          {String text,
-          Pattern messageContains,
+          {String? text,
+          Pattern? messageContains,
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,
@@ -59,7 +56,8 @@ abstract class AbstractTransformOverrideSetParserTest {
 
   void parse(String content) {
     errorListener = GatheringErrorListener();
-    var errorReporter = ErrorReporter(errorListener, MockSource('data.yaml'));
+    var errorReporter =
+        ErrorReporter(errorListener, MockSource(fullName: 'data.yaml'));
     var parser = TransformOverrideSetParser(errorReporter);
     result = parser.parse(content);
   }

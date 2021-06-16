@@ -1,6 +1,51 @@
-## 1.4.0-dev
+## 1.8.0-dev
+* Added `StringInterpolation.firstString` and `lastString`, to express
+  explicitly  that there are always (possibly empty) strings as the first
+  and the last elements of an interpolation.
+* Deprecated `ImportElement.prefixOffset`, use `prefix.nameOffset` instead.
+
+## 1.7.0
+* Require `meta: ^1.4.0`.
+
+## 1.6.0
+* Deprecated `AnalysisDriver` default constructor.  Added `tmp1`. The goal
+  is to allow deprecating and removing unused  parameters.
+* Added AST structures and visit methods to support the upcoming "constructor
+  tearoffs" feature: `ConstructorReference`, `FunctionReference`, and
+  `TypeLiteral`.
+
+## 1.5.0
+* Support for the language version `2.14`.
+* Deprecated `AnalysisSession.getUnitElement()`.
+  Use `AnalysisSession.getUnitElement2()` instead.
+* Deprecated `AnalysisSession.getResolvedUnit()`.
+  Use `AnalysisSession.getResolvedUnit2()` instead.
+* Deprecated `AnalysisSession.getResolvedLibrary()`.
+  Use `AnalysisSession.getResolvedLibrary2()` instead.
+* Deprecated `AnalysisSession.getResolvedLibraryByElement()`.
+  Use `AnalysisSession.getResolvedLibraryByElement2()` instead.
+* Deprecated `AnalysisSession.getLibraryByUri()`.
+  Use `AnalysisSession.getLibraryByUri2()` instead.
+* Deprecated `AnalysisSession.getErrors()`.
+  Use `AnalysisSession.getErrors2()` instead.
+* Deprecated `AnalysisSession.getParsedLibrary()`.
+  Use `AnalysisSession.getParsedLibrary2()` instead.
+* Deprecated `AnalysisSession.getParsedLibraryByElement()`.
+  Use `AnalysisSession.getParsedLibraryByElement2()` instead.
+* Deprecated `AnalysisSession.getParsedUnit()`.
+  Use `AnalysisSession.getParsedUnit2()` instead.
+* Deprecated `AnalysisSession.getFile()` and `getSourceKind()`.
+  Use `AnalysisSession.getFile2()` instead.
+* Deprecated `AnalysisSession.getUnitElementSignature()`.
+  This method is not used by any known client, and will be removed.
+
+## 1.4.0
 * Deprecated `TypeProvider.nonSubtypableClasses`.
   Use `TypeProvider.isNonSubtypableClass` instead.
+* Added `sdkPath` to `AnalysisContextCollection` constructor.
+* Improved support for generalized type aliases.
+* The feature `nonfunction-type-aliases` is enabled by default in the
+  language version `2.13`.
 
 ## 1.3.0
 * Added `Expression.inConstantContext` to API.

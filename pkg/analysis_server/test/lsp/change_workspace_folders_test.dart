@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,8 +15,8 @@ void main() {
 
 @reflectiveTest
 class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
-  String workspaceFolder1Path, workspaceFolder2Path, workspaceFolder3Path;
-  Uri workspaceFolder1Uri, workspaceFolder2Uri, workspaceFolder3Uri;
+  late String workspaceFolder1Path, workspaceFolder2Path, workspaceFolder3Path;
+  late Uri workspaceFolder1Uri, workspaceFolder2Uri, workspaceFolder3Uri;
 
   @override
   void setUp() {

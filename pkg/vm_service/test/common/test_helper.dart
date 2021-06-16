@@ -7,11 +7,14 @@ library test_helper;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+
 import 'package:process/process.dart';
-import 'package:vm_service/vm_service_io.dart';
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service_io.dart';
+
 import 'service_test_common.dart';
+
 export 'service_test_common.dart' show IsolateTest, VMTest;
 
 /// The extra arguments to use

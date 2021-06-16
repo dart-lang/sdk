@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // All things regarding constant variables.
 
+// @dart = 2.9
+
 /** Helper library for 'var_test.dart' */
 library const_var_helper;
 

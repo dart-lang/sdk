@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.type_checker;
 
 import 'ast.dart';
@@ -20,9 +18,9 @@ abstract class TypeChecker {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
   final bool ignoreSdk;
-  TypeEnvironment environment;
-  Library currentLibrary;
-  InterfaceType currentThisType;
+  final TypeEnvironment environment;
+  Library? currentLibrary;
+  InterfaceType? currentThisType;
 
   TypeChecker(this.coreTypes, this.hierarchy, {this.ignoreSdk: true})
       : environment = new TypeEnvironment(coreTypes, hierarchy);
@@ -68,14 +66,14 @@ abstract class TypeChecker {
 
   DartType getterType(Class host, Member member) {
     Supertype hostType =
-        hierarchy.getClassAsInstanceOf(host, member.enclosingClass);
+        hierarchy.getClassAsInstanceOf(host, member.enclosingClass!)!;
     Substitution substitution = Substitution.fromSupertype(hostType);
     return substitution.substituteType(member.getterType);
   }
 
   DartType setterType(Class host, Member member) {
     Supertype hostType =
-        hierarchy.getClassAsInstanceOf(host, member.enclosingClass);
+        hierarchy.getClassAsInstanceOf(host, member.enclosingClass!)!;
     Substitution substitution = Substitution.fromSupertype(hostType);
     return substitution.substituteType(member.setterType, contravariant: true);
   }
@@ -128,12 +126,12 @@ class TypeCheckingVisitor
   final ClassHierarchy hierarchy;
 
   CoreTypes get coreTypes => environment.coreTypes;
-  Library get currentLibrary => checker.currentLibrary;
-  Class get currentClass => checker.currentThisType.classNode;
-  InterfaceType get currentThisType => checker.currentThisType;
+  Library? get currentLibrary => checker.currentLibrary;
+  Class? get currentClass => checker.currentThisType?.classNode;
+  InterfaceType? get currentThisType => checker.currentThisType;
 
-  DartType currentReturnType;
-  DartType currentYieldType;
+  DartType? currentReturnType;
+  DartType? currentYieldType;
   AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
 
   TypeCheckingVisitor(this.checker, this.environment, this.hierarchy);
@@ -147,7 +145,7 @@ class TypeCheckingVisitor
   }
 
   Expression checkAndDowncastExpression(Expression from, DartType to) {
-    TreeNode parent = from.parent;
+    TreeNode? parent = from.parent;
     DartType type = visitExpression(from);
     Expression result = checker.checkAndDowncastExpression(from, type, to);
     result.parent = parent;
@@ -193,7 +191,7 @@ class TypeCheckingVisitor
   visitField(Field node) {
     if (node.initializer != null) {
       node.initializer =
-          checkAndDowncastExpression(node.initializer, node.type);
+          checkAndDowncastExpression(node.initializer!, node.type);
     }
   }
 
@@ -223,14 +221,14 @@ class TypeCheckingVisitor
         .forEach(handleOptionalParameter);
     node.namedParameters.forEach(handleOptionalParameter);
     if (node.body != null) {
-      visitStatement(node.body);
+      visitStatement(node.body!);
     }
     currentAsyncMarker = oldAsyncMarker;
   }
 
   void handleNestedFunctionNode(FunctionNode node) {
-    DartType oldReturn = currentReturnType;
-    DartType oldYield = currentYieldType;
+    DartType? oldReturn = currentReturnType;
+    DartType? oldYield = currentYieldType;
     currentReturnType = _getInternalReturnType(node);
     currentYieldType = _getYieldType(node);
     handleFunctionNode(node);
@@ -241,19 +239,19 @@ class TypeCheckingVisitor
   void handleOptionalParameter(VariableDeclaration parameter) {
     if (parameter.initializer != null) {
       // Default parameter values cannot be downcast.
-      checkExpressionNoDowncast(parameter.initializer, parameter.type);
+      checkExpressionNoDowncast(parameter.initializer!, parameter.type);
     }
   }
 
   Substitution getReceiverType(
       TreeNode access, Expression receiver, Member member) {
     DartType type = visitExpression(receiver);
-    Class superclass = member.enclosingClass;
+    Class superclass = member.enclosingClass!;
     if (superclass.supertype == null) {
       return Substitution.empty; // Members on Object are always accessible.
     }
     while (type is TypeParameterType) {
-      type = (type as TypeParameterType).bound;
+      type = type.bound;
     }
     if (type is NeverType || type is NullType) {
       // The bottom type is a subtype of all types, so it should be allowed.
@@ -261,7 +259,7 @@ class TypeCheckingVisitor
     }
     if (type is InterfaceType) {
       // The receiver type should implement the interface declaring the member.
-      List<DartType> upcastTypeArguments =
+      List<DartType>? upcastTypeArguments =
           hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
       if (upcastTypeArguments != null) {
         return Substitution.fromPairs(
@@ -280,27 +278,27 @@ class TypeCheckingVisitor
 
   Substitution getSuperReceiverType(Member member) {
     return Substitution.fromSupertype(
-        hierarchy.getClassAsInstanceOf(currentClass, member.enclosingClass));
+        hierarchy.getClassAsInstanceOf(currentClass!, member.enclosingClass!)!);
   }
 
   DartType handleCall(Arguments arguments, DartType functionType,
       {Substitution receiver: Substitution.empty,
-      List<TypeParameter> typeParameters}) {
+      List<TypeParameter>? typeParameters}) {
     if (functionType is FunctionType) {
       typeParameters ??= functionType.typeParameters;
       if (arguments.positional.length < functionType.requiredParameterCount) {
         fail(arguments, 'Too few positional arguments');
-        return NeverType.fromNullability(currentLibrary.nonNullable);
+        return NeverType.fromNullability(currentLibrary!.nonNullable);
       }
       if (arguments.positional.length >
           functionType.positionalParameters.length) {
         fail(arguments, 'Too many positional arguments');
-        return NeverType.fromNullability(currentLibrary.nonNullable);
+        return NeverType.fromNullability(currentLibrary!.nonNullable);
       }
       List<DartType> typeArguments = arguments.types;
       if (typeArguments.length != typeParameters.length) {
         fail(arguments, 'Wrong number of type arguments');
-        return NeverType.fromNullability(currentLibrary.nonNullable);
+        return NeverType.fromNullability(currentLibrary!.nonNullable);
       }
       Substitution substitution = _instantiateFunction(
           typeParameters, typeArguments, arguments,
@@ -328,7 +326,7 @@ class TypeCheckingVisitor
         }
         if (!found) {
           fail(argument.value, 'Unexpected named parameter: ${argument.name}');
-          return NeverType.fromNullability(currentLibrary.nonNullable);
+          return NeverType.fromNullability(currentLibrary!.nonNullable);
         }
       }
       return substitution.substituteType(functionType.returnType);
@@ -339,7 +337,7 @@ class TypeCheckingVisitor
     }
   }
 
-  DartType _getInternalReturnType(FunctionNode function) {
+  DartType? _getInternalReturnType(FunctionNode function) {
     switch (function.asyncMarker) {
       case AsyncMarker.Sync:
         return function.returnType;
@@ -359,17 +357,17 @@ class TypeCheckingVisitor
       case AsyncMarker.SyncYielding:
         // The SyncStar transform wraps the original function body twice,
         // where the inner most function returns bool.
-        TreeNode parent = function.parent;
+        TreeNode? parent = function.parent;
         while (parent is! FunctionNode) {
-          parent = parent.parent;
+          parent = parent!.parent;
         }
-        FunctionNode enclosingFunction = parent as FunctionNode;
+        FunctionNode enclosingFunction = parent;
         if (enclosingFunction.dartAsyncMarker == AsyncMarker.Sync) {
           parent = enclosingFunction.parent;
           while (parent is! FunctionNode) {
-            parent = parent.parent;
+            parent = parent!.parent;
           }
-          enclosingFunction = parent as FunctionNode;
+          enclosingFunction = parent;
           if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
             return coreTypes.boolLegacyRawType;
           }
@@ -381,7 +379,7 @@ class TypeCheckingVisitor
     }
   }
 
-  DartType _getYieldType(FunctionNode function) {
+  DartType? _getYieldType(FunctionNode function) {
     switch (function.asyncMarker) {
       case AsyncMarker.Sync:
       case AsyncMarker.Async:
@@ -408,7 +406,7 @@ class TypeCheckingVisitor
 
   Substitution _instantiateFunction(List<TypeParameter> typeParameters,
       List<DartType> typeArguments, TreeNode where,
-      {Substitution receiverSubstitution}) {
+      {Substitution? receiverSubstitution}) {
     Substitution instantiation =
         Substitution.fromPairs(typeParameters, typeArguments);
     Substitution substitution = receiverSubstitution == null
@@ -459,7 +457,7 @@ class TypeCheckingVisitor
             .computeThisFunctionType(class_.enclosingLibrary.nonNullable),
         typeParameters: class_.typeParameters);
     return new InterfaceType(
-        target.enclosingClass, currentLibrary.nonNullable, arguments.types);
+        target.enclosingClass, currentLibrary!.nonNullable, arguments.types);
   }
 
   @override
@@ -470,7 +468,7 @@ class TypeCheckingVisitor
   @override
   DartType visitFunctionExpression(FunctionExpression node) {
     handleNestedFunctionNode(node.function);
-    return node.function.computeThisFunctionType(currentLibrary.nonNullable);
+    return node.function.computeThisFunctionType(currentLibrary!.nonNullable);
   }
 
   @override
@@ -491,7 +489,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitLet(Let node) {
-    DartType value = visitExpression(node.variable.initializer);
+    DartType value = visitExpression(node.variable.initializer!);
     if (node.variable.type is DynamicType) {
       node.variable.type = value;
     }
@@ -509,12 +507,12 @@ class TypeCheckingVisitor
     DartType type = visitExpression(node.expression);
     if (type is! FunctionType) {
       fail(node, 'Not a function type: $type');
-      return NeverType.fromNullability(currentLibrary.nonNullable);
+      return NeverType.fromNullability(currentLibrary!.nonNullable);
     }
     FunctionType functionType = type;
     if (functionType.typeParameters.length != node.typeArguments.length) {
       fail(node, 'Wrong number of type arguments');
-      return NeverType.fromNullability(currentLibrary.nonNullable);
+      return NeverType.fromNullability(currentLibrary!.nonNullable);
     }
     return _instantiateFunction(
             functionType.typeParameters, node.typeArguments, node)
@@ -527,7 +525,7 @@ class TypeCheckingVisitor
       node.expressions[i] =
           checkAndDowncastExpression(node.expressions[i], node.typeArgument);
     }
-    return environment.listType(node.typeArgument, currentLibrary.nonNullable);
+    return environment.listType(node.typeArgument, currentLibrary!.nonNullable);
   }
 
   @override
@@ -536,7 +534,7 @@ class TypeCheckingVisitor
       node.expressions[i] =
           checkAndDowncastExpression(node.expressions[i], node.typeArgument);
     }
-    return environment.setType(node.typeArgument, currentLibrary.nonNullable);
+    return environment.setType(node.typeArgument, currentLibrary!.nonNullable);
   }
 
   @override
@@ -550,12 +548,12 @@ class TypeCheckingVisitor
 
   @override
   DartType visitMapLiteral(MapLiteral node) {
-    for (MapEntry entry in node.entries) {
+    for (MapLiteralEntry entry in node.entries) {
       entry.key = checkAndDowncastExpression(entry.key, node.keyType);
       entry.value = checkAndDowncastExpression(entry.value, node.valueType);
     }
     return environment.mapType(
-        node.keyType, node.valueType, currentLibrary.nonNullable);
+        node.keyType, node.valueType, currentLibrary!.nonNullable);
   }
 
   DartType handleDynamicCall(DartType receiver, Arguments arguments) {
@@ -568,15 +566,15 @@ class TypeCheckingVisitor
       TreeNode access, FunctionType function, Arguments arguments) {
     if (function.requiredParameterCount > arguments.positional.length) {
       fail(access, 'Too few positional arguments');
-      return NeverType.fromNullability(currentLibrary.nonNullable);
+      return NeverType.fromNullability(currentLibrary!.nonNullable);
     }
     if (function.positionalParameters.length < arguments.positional.length) {
       fail(access, 'Too many positional arguments');
-      return NeverType.fromNullability(currentLibrary.nonNullable);
+      return NeverType.fromNullability(currentLibrary!.nonNullable);
     }
     if (function.typeParameters.length != arguments.types.length) {
       fail(access, 'Wrong number of type arguments');
-      return NeverType.fromNullability(currentLibrary.nonNullable);
+      return NeverType.fromNullability(currentLibrary!.nonNullable);
     }
     Substitution instantiation =
         Substitution.fromPairs(function.typeParameters, arguments.types);
@@ -589,7 +587,7 @@ class TypeCheckingVisitor
     }
     for (int i = 0; i < arguments.named.length; ++i) {
       NamedExpression argument = arguments.named[i];
-      DartType parameterType = function.getNamedParameter(argument.name);
+      DartType? parameterType = function.getNamedParameter(argument.name);
       if (parameterType != null) {
         DartType expectedType =
             instantiation.substituteType(parameterType, contravariant: true);
@@ -597,7 +595,7 @@ class TypeCheckingVisitor
             checkAndDowncastExpression(argument.value, expectedType);
       } else {
         fail(argument.value, 'Unexpected named parameter: ${argument.name}');
-        return NeverType.fromNullability(currentLibrary.nonNullable);
+        return NeverType.fromNullability(currentLibrary!.nonNullable);
       }
     }
     return instantiation.substituteType(function.returnType);
@@ -605,7 +603,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitMethodInvocation(MethodInvocation node) {
-    Member target = node.interfaceTarget;
+    Member? target = node.interfaceTarget;
     if (target == null) {
       DartType receiver = visitExpression(node.receiver);
       if (node.name.text == '==') {
@@ -626,34 +624,31 @@ class TypeCheckingVisitor
           receiver, argument);
     } else {
       return handleCall(node.arguments, target.getterType,
-          receiver: getReceiverType(node, node.receiver, node.interfaceTarget));
+          receiver: getReceiverType(node, node.receiver, target));
     }
   }
 
   @override
   DartType visitPropertyGet(PropertyGet node) {
-    if (node.interfaceTarget == null) {
+    Member? target = node.interfaceTarget;
+    if (target == null) {
       final DartType receiver = visitExpression(node.receiver);
       checkUnresolvedInvocation(receiver, node);
       return const DynamicType();
     } else {
-      Substitution receiver =
-          getReceiverType(node, node.receiver, node.interfaceTarget);
-      return receiver.substituteType(node.interfaceTarget.getterType);
+      Substitution receiver = getReceiverType(node, node.receiver, target);
+      return receiver.substituteType(target.getterType);
     }
   }
 
   @override
   DartType visitPropertySet(PropertySet node) {
+    Member? target = node.interfaceTarget;
     DartType value = visitExpression(node.value);
-    if (node.interfaceTarget != null) {
-      Substitution receiver =
-          getReceiverType(node, node.receiver, node.interfaceTarget);
-      checkAssignable(
-          node.value,
-          value,
-          receiver.substituteType(node.interfaceTarget.setterType,
-              contravariant: true));
+    if (target != null) {
+      Substitution receiver = getReceiverType(node, node.receiver, target);
+      checkAssignable(node.value, value,
+          receiver.substituteType(target.setterType, contravariant: true));
     } else {
       final DartType receiver = visitExpression(node.receiver);
       checkUnresolvedInvocation(receiver, node);
@@ -680,7 +675,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitRethrow(Rethrow node) {
-    return NeverType.fromNullability(currentLibrary.nonNullable);
+    return NeverType.fromNullability(currentLibrary!.nonNullable);
   }
 
   @override
@@ -708,8 +703,8 @@ class TypeCheckingVisitor
 
   @override
   DartType visitListConcatenation(ListConcatenation node) {
-    DartType type =
-        environment.iterableType(node.typeArgument, currentLibrary.nonNullable);
+    DartType type = environment.iterableType(
+        node.typeArgument, currentLibrary!.nonNullable);
     for (Expression part in node.lists) {
       DartType partType = visitExpression(part);
       checkAssignable(node, type, partType);
@@ -719,8 +714,8 @@ class TypeCheckingVisitor
 
   @override
   DartType visitSetConcatenation(SetConcatenation node) {
-    DartType type =
-        environment.iterableType(node.typeArgument, currentLibrary.nonNullable);
+    DartType type = environment.iterableType(
+        node.typeArgument, currentLibrary!.nonNullable);
     for (Expression part in node.sets) {
       DartType partType = visitExpression(part);
       checkAssignable(node, type, partType);
@@ -731,7 +726,7 @@ class TypeCheckingVisitor
   @override
   DartType visitMapConcatenation(MapConcatenation node) {
     DartType type = environment.mapType(
-        node.keyType, node.valueType, currentLibrary.nonNullable);
+        node.keyType, node.valueType, currentLibrary!.nonNullable);
     for (Expression part in node.maps) {
       DartType partType = visitExpression(part);
       checkAssignable(node, type, partType);
@@ -749,7 +744,7 @@ class TypeCheckingVisitor
       checkAssignable(node, fieldType, valueType);
     });
     return new InterfaceType(
-        node.classNode, currentLibrary.nonNullable, node.typeArguments);
+        node.classNode, currentLibrary!.nonNullable, node.typeArguments);
   }
 
   @override
@@ -764,38 +759,38 @@ class TypeCheckingVisitor
 
   @override
   DartType visitSuperMethodInvocation(SuperMethodInvocation node) {
-    if (node.interfaceTarget == null) {
-      checkUnresolvedInvocation(currentThisType, node);
-      return handleDynamicCall(currentThisType, node.arguments);
+    Member? target = node.interfaceTarget;
+    if (target == null) {
+      checkUnresolvedInvocation(currentThisType!, node);
+      return handleDynamicCall(currentThisType!, node.arguments);
     } else {
-      return handleCall(node.arguments, node.interfaceTarget.getterType,
-          receiver: getSuperReceiverType(node.interfaceTarget));
+      return handleCall(node.arguments, target.getterType,
+          receiver: getSuperReceiverType(target));
     }
   }
 
   @override
   DartType visitSuperPropertyGet(SuperPropertyGet node) {
-    if (node.interfaceTarget == null) {
-      checkUnresolvedInvocation(currentThisType, node);
+    Member? target = node.interfaceTarget;
+    if (target == null) {
+      checkUnresolvedInvocation(currentThisType!, node);
       return const DynamicType();
     } else {
-      Substitution receiver = getSuperReceiverType(node.interfaceTarget);
-      return receiver.substituteType(node.interfaceTarget.getterType);
+      Substitution receiver = getSuperReceiverType(target);
+      return receiver.substituteType(target.getterType);
     }
   }
 
   @override
   DartType visitSuperPropertySet(SuperPropertySet node) {
+    Member? target = node.interfaceTarget;
     DartType value = visitExpression(node.value);
-    if (node.interfaceTarget != null) {
-      Substitution receiver = getSuperReceiverType(node.interfaceTarget);
-      checkAssignable(
-          node.value,
-          value,
-          receiver.substituteType(node.interfaceTarget.setterType,
-              contravariant: true));
+    if (target != null) {
+      Substitution receiver = getSuperReceiverType(target);
+      checkAssignable(node.value, value,
+          receiver.substituteType(target.setterType, contravariant: true));
     } else {
-      checkUnresolvedInvocation(currentThisType, node);
+      checkUnresolvedInvocation(currentThisType!, node);
     }
     return value;
   }
@@ -807,13 +802,13 @@ class TypeCheckingVisitor
 
   @override
   DartType visitThisExpression(ThisExpression node) {
-    return currentThisType;
+    return currentThisType!;
   }
 
   @override
   DartType visitThrow(Throw node) {
     visitExpression(node.expression);
-    return NeverType.fromNullability(currentLibrary.nonNullable);
+    return NeverType.fromNullability(currentLibrary!.nonNullable);
   }
 
   @override
@@ -836,7 +831,7 @@ class TypeCheckingVisitor
   @override
   DartType visitLoadLibrary(LoadLibrary node) {
     return environment.futureType(
-        const DynamicType(), currentLibrary.nonNullable);
+        const DynamicType(), currentLibrary!.nonNullable);
   }
 
   @override
@@ -853,7 +848,7 @@ class TypeCheckingVisitor
   visitAssertStatement(AssertStatement node) {
     visitExpression(node.condition);
     if (node.message != null) {
-      visitExpression(node.message);
+      visitExpression(node.message!);
     }
   }
 
@@ -907,25 +902,25 @@ class TypeCheckingVisitor
 
   DartType getIterableElementType(DartType iterable) {
     if (iterable is InterfaceType) {
-      Member iteratorGetter =
+      Member? iteratorGetter =
           hierarchy.getInterfaceMember(iterable.classNode, iteratorName);
       if (iteratorGetter == null) return const DynamicType();
       List<DartType> castedIterableArguments =
           hierarchy.getTypeArgumentsAsInstanceOf(
-              iterable, iteratorGetter.enclosingClass);
+              iterable, iteratorGetter.enclosingClass!)!;
       DartType iteratorType = Substitution.fromPairs(
-              iteratorGetter.enclosingClass.typeParameters,
+              iteratorGetter.enclosingClass!.typeParameters,
               castedIterableArguments)
           .substituteType(iteratorGetter.getterType);
       if (iteratorType is InterfaceType) {
-        Member currentGetter =
+        Member? currentGetter =
             hierarchy.getInterfaceMember(iteratorType.classNode, currentName);
         if (currentGetter == null) return const DynamicType();
         List<DartType> castedIteratorTypeArguments =
             hierarchy.getTypeArgumentsAsInstanceOf(
-                iteratorType, currentGetter.enclosingClass);
+                iteratorType, currentGetter.enclosingClass!)!;
         return Substitution.fromPairs(
-                currentGetter.enclosingClass.typeParameters,
+                currentGetter.enclosingClass!.typeParameters,
                 castedIteratorTypeArguments)
             .substituteType(currentGetter.getterType);
       }
@@ -935,7 +930,7 @@ class TypeCheckingVisitor
 
   DartType getStreamElementType(DartType stream) {
     if (stream is InterfaceType) {
-      List<DartType> asStreamArguments =
+      List<DartType>? asStreamArguments =
           hierarchy.getTypeArgumentsAsInstanceOf(stream, coreTypes.streamClass);
       if (asStreamArguments == null) return const DynamicType();
       return asStreamArguments.single;
@@ -948,7 +943,7 @@ class TypeCheckingVisitor
     node.variables.forEach(visitVariableDeclaration);
     if (node.condition != null) {
       node.condition = checkAndDowncastExpression(
-          node.condition, environment.coreTypes.boolLegacyRawType);
+          node.condition!, environment.coreTypes.boolLegacyRawType);
     }
     node.updates.forEach(visitExpression);
     visitStatement(node.body);
@@ -965,7 +960,7 @@ class TypeCheckingVisitor
         node.condition, environment.coreTypes.boolLegacyRawType);
     visitStatement(node.then);
     if (node.otherwise != null) {
-      visitStatement(node.otherwise);
+      visitStatement(node.otherwise!);
     }
   }
 
@@ -976,15 +971,16 @@ class TypeCheckingVisitor
 
   @override
   visitReturnStatement(ReturnStatement node) {
-    if (node.expression != null) {
+    Expression? expression = node.expression;
+    if (expression != null) {
       if (currentReturnType == null) {
         fail(node, 'Return of a value from void method');
       } else {
-        DartType type = visitExpression(node.expression);
+        DartType type = visitExpression(expression);
         if (currentAsyncMarker == AsyncMarker.Async) {
           type = environment.flatten(type);
         }
-        checkAssignable(node.expression, type, currentReturnType);
+        checkAssignable(expression, type, currentReturnType!);
       }
     }
   }
@@ -1016,7 +1012,7 @@ class TypeCheckingVisitor
   visitVariableDeclaration(VariableDeclaration node) {
     if (node.initializer != null) {
       node.initializer =
-          checkAndDowncastExpression(node.initializer, node.type);
+          checkAndDowncastExpression(node.initializer!, node.type);
     }
   }
 
@@ -1034,18 +1030,18 @@ class TypeCheckingVisitor
           ? coreTypes.streamClass
           : coreTypes.iterableClass;
       DartType type = visitExpression(node.expression);
-      List<DartType> asContainerArguments = type is InterfaceType
+      List<DartType>? asContainerArguments = type is InterfaceType
           ? hierarchy.getTypeArgumentsAsInstanceOf(type, container)
           : null;
       if (asContainerArguments != null) {
         checkAssignable(
-            node.expression, asContainerArguments[0], currentYieldType);
+            node.expression, asContainerArguments[0], currentYieldType!);
       } else {
         fail(node.expression, '$type is not an instance of $container');
       }
     } else {
       node.expression =
-          checkAndDowncastExpression(node.expression, currentYieldType);
+          checkAndDowncastExpression(node.expression, currentYieldType!);
     }
   }
 
@@ -1126,8 +1122,7 @@ class TypeCheckingVisitor
     node.arguments.positional.forEach(visitExpression);
     node.arguments.named
         .forEach((NamedExpression n) => visitExpression(n.value));
-    // TODO(johnniwinther): Return the correct result type.
-    return const DynamicType();
+    return node.functionType?.returnType ?? const DynamicType();
   }
 
   @override
@@ -1194,8 +1189,7 @@ class TypeCheckingVisitor
     node.arguments.positional.forEach(visitExpression);
     node.arguments.named
         .forEach((NamedExpression n) => visitExpression(n.value));
-    // TODO(johnniwinther): Return the correct result type.
-    return const DynamicType();
+    return node.functionType.returnType;
   }
 
   @override

@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 export "spawn_uri_exported_main_lib.dart";
 
 maine() {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -40,15 +38,14 @@ class SocketServerTest {
     channel2.expectMsgCount(responseCount: 1);
     expect(channel2.responsesReceived[0].id, equals(''));
     expect(channel2.responsesReceived[0].error, isNotNull);
-    expect(channel2.responsesReceived[0].error.code,
+    expect(channel2.responsesReceived[0].error!.code,
         equals(RequestErrorCode.SERVER_ALREADY_STARTED));
     channel2
         .sendRequest(ServerShutdownParams().toRequest('0'))
         .then((Response response) {
       expect(response.id, equals('0'));
-      expect(response.error, isNotNull);
-      expect(
-          response.error.code, equals(RequestErrorCode.SERVER_ALREADY_STARTED));
+      var error = response.error!;
+      expect(error.code, equals(RequestErrorCode.SERVER_ALREADY_STARTED));
       channel2.expectMsgCount(responseCount: 2);
     });
   }
@@ -75,15 +72,15 @@ class SocketServerTest {
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
     var handler = _MockRequestHandler(false);
-    server.analysisServer.handlers = [handler];
+    server.analysisServer!.handlers = [handler];
     var request = ServerGetVersionParams().toRequest('0');
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('0'));
-      expect(response.error, isNotNull);
-      expect(response.error.code, equals(RequestErrorCode.SERVER_ERROR));
-      expect(response.error.message, equals('mock request exception'));
-      expect(response.error.stackTrace, isNotNull);
-      expect(response.error.stackTrace, isNotEmpty);
+      var error = response.error!;
+      expect(error.code, equals(RequestErrorCode.SERVER_ERROR));
+      expect(error.message, equals('mock request exception'));
+      expect(error.stackTrace, isNotNull);
+      expect(error.stackTrace, isNotEmpty);
       channel.expectMsgCount(responseCount: 1, notificationCount: 1);
     });
   }
@@ -92,7 +89,7 @@ class SocketServerTest {
     var channel = MockServerChannel();
     var server = _createSocketServer(channel);
     var handler = _MockRequestHandler(true);
-    server.analysisServer.handlers = [handler];
+    server.analysisServer!.handlers = [handler];
     var request = ServerGetVersionParams().toRequest('0');
     var response = await channel.sendRequest(request, throwOnError: false);
     expect(response.id, equals('0'));

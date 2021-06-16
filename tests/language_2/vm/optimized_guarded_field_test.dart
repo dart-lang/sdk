@@ -5,6 +5,8 @@
 // by store to load forwarding.
 // VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "dart:typed_data";
 

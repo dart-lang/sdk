@@ -178,7 +178,7 @@ class ObjectOffsetTrait {
 
   static Key KeyOf(Pair kv) { return kv.object; }
   static Value ValueOf(Pair kv) { return kv.offset; }
-  static intptr_t Hashcode(Key key);
+  static uword Hash(Key key);
   static inline bool IsKeyEqual(Pair pair, Key key);
 };
 
@@ -269,10 +269,10 @@ class ImageWriter : public ValueObject {
   void PrepareForSerialization(GrowableArray<ImageWriterCommand>* commands);
 
   bool IsROSpace() const {
-    return offset_space_ == V8SnapshotProfileWriter::kVmData ||
-           offset_space_ == V8SnapshotProfileWriter::kVmText ||
-           offset_space_ == V8SnapshotProfileWriter::kIsolateData ||
-           offset_space_ == V8SnapshotProfileWriter::kIsolateText;
+    return offset_space_ == IdSpace::kVmData ||
+           offset_space_ == IdSpace::kVmText ||
+           offset_space_ == IdSpace::kIsolateData ||
+           offset_space_ == IdSpace::kIsolateText;
   }
   int32_t GetTextOffsetFor(InstructionsPtr instructions, CodePtr code);
   uint32_t GetDataOffsetFor(ObjectPtr raw_object);
@@ -436,8 +436,7 @@ class ImageWriter : public ValueObject {
   GrowableArray<ObjectData> objects_;
   GrowableArray<InstructionsData> instructions_;
 
-  V8SnapshotProfileWriter::IdSpace offset_space_ =
-      V8SnapshotProfileWriter::kSnapshot;
+  IdSpace offset_space_ = IdSpace::kSnapshot;
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
   const char* const image_type_;
   const char* const instructions_section_type_;
@@ -472,13 +471,14 @@ class TraceImageObjectScope : ValueObject {
         stream_(ASSERT_NOTNULL(stream)),
         section_offset_(section_offset),
         start_offset_(stream_->Position() - section_offset),
-        object_type_(writer->ObjectTypeForProfile(object)) {}
+        object_type_(writer->ObjectTypeForProfile(object)),
+        object_name_(object.IsString() ? object.ToCString() : nullptr) {}
 
   ~TraceImageObjectScope() {
     if (writer_->profile_writer_ == nullptr) return;
     ASSERT(writer_->IsROSpace());
     writer_->profile_writer_->SetObjectTypeAndName(
-        {writer_->offset_space_, start_offset_}, object_type_, nullptr);
+        {writer_->offset_space_, start_offset_}, object_type_, object_name_);
     writer_->profile_writer_->AttributeBytesTo(
         {writer_->offset_space_, start_offset_},
         stream_->Position() - section_offset_ - start_offset_);
@@ -490,6 +490,7 @@ class TraceImageObjectScope : ValueObject {
   const intptr_t section_offset_;
   const intptr_t start_offset_;
   const char* const object_type_;
+  const char* const object_name_;
 
   DISALLOW_COPY_AND_ASSIGN(TraceImageObjectScope);
 };

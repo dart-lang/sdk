@@ -6,16 +6,16 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
+extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
-extensions/call_methods: TypeCheckError
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
-extensions/issue40713: TypeCheckError
 extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
@@ -31,6 +31,7 @@ general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
 general/crashes/crash_02/main: Crash
 general/crashes/crash_04/main: Crash
+general/crashes/crash_06/main: Crash
 general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError
@@ -55,6 +56,7 @@ general/error_recovery/issue_39024.crash: RuntimeError
 general/error_recovery/issue_39026.crash: RuntimeError
 general/error_recovery/issue_39026_prime.crash: RuntimeError
 general/error_recovery/issue_39033.crash: RuntimeError
+general/error_recovery/issue_39033b.crash: RuntimeError
 general/error_recovery/issue_39058.crash: RuntimeError
 general/error_recovery/issue_39058_prime.crash: RuntimeError
 general/error_recovery/issue_39202.crash: RuntimeError
@@ -66,7 +68,6 @@ general/error_recovery/issue_39958_04: RuntimeError
 general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
 general/external_import: RuntimeError
-general/function_invocation_bounds: TypeCheckError
 general/getter_vs_setter_type: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError

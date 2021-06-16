@@ -4,6 +4,8 @@
 //
 // VMOptions=--reify-generic-functions
 
+// @dart=2.12
+
 import "package:expect/expect.dart";
 
 T foo<T>(T i) => i;

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 
@@ -20,6 +21,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _allocatorExtensionName = 'AllocatorAlloc';
   static const _arrayClassName = 'Array';
   static const _dartFfiLibraryName = 'dart.ffi';
+  static const _isLeafParamName = 'isLeaf';
   static const _opaqueClassName = 'Opaque';
 
   static const List<String> _primitiveIntegerNativeTypes = [
@@ -41,6 +43,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   static const _structClassName = 'Struct';
 
+  static const _unionClassName = 'Union';
+
   /// The type system used to check types.
   final TypeSystemImpl typeSystem;
 
@@ -49,18 +53,18 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// A flag indicating whether we are currently visiting inside a subclass of
   /// `Struct`.
-  bool inStruct = false;
+  bool inCompound = false;
 
-  /// Subclass of `Struct` we are currently visiting, or `null`.
-  ClassDeclaration? struct;
+  /// Subclass of `Struct` or `Union` we are currently visiting, or `null`.
+  ClassDeclaration? compound;
 
   /// Initialize a newly created verifier.
   FfiVerifier(this.typeSystem, this._errorReporter);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    inStruct = false;
-    struct = null;
+    inCompound = false;
+    compound = null;
     // Only the Allocator, Opaque and Struct class may be extended.
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
@@ -68,14 +72,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       final ffiClass = superclass.ffiClass;
       if (ffiClass != null) {
         final className = ffiClass.name;
-        if (className == _structClassName) {
-          inStruct = true;
-          struct = node;
+        if (className == _structClassName || className == _unionClassName) {
+          inCompound = true;
+          compound = node;
           if (node.declaredElement!.isEmptyStruct) {
             _errorReporter
                 .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [node.name]);
           }
-          _validatePackedAnnotation(node.metadata);
+          if (className == _structClassName) {
+            _validatePackedAnnotation(node.metadata);
+          }
         } else if (className != _allocatorClassName &&
             className != _opaqueClassName) {
           _errorReporter.reportErrorForNode(
@@ -83,7 +89,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               superclass.name,
               [node.name.name, superclass.name.name]);
         }
-      } else if (superclass.isStructSubtype) {
+      } else if (superclass.isCompoundSubtype) {
         _errorReporter.reportErrorForNode(
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
             superclass,
@@ -101,7 +107,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (typename.ffiClass != null) {
         _errorReporter.reportErrorForNode(
             subtypeOfFfiCode, typename, [node.name, typename.name]);
-      } else if (typename.isStructSubtype) {
+      } else if (typename.isCompoundSubtype) {
         _errorReporter.reportErrorForNode(
             subtypeOfStructCode, typename, [node.name, typename.name]);
       }
@@ -122,7 +128,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (inStruct && node.declaredElement!.typeParameters.isNotEmpty) {
+    if (inCompound && node.declaredElement!.typeParameters.isNotEmpty) {
       _errorReporter.reportErrorForNode(
           FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name]);
     }
@@ -131,7 +137,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (inStruct) {
+    if (inCompound) {
       _errorReporter.reportErrorForNode(
           FfiCode.FIELD_INITIALIZER_IN_STRUCT, node);
     }
@@ -140,8 +146,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    if (inStruct) {
-      _validateFieldsInStruct(node);
+    if (inCompound) {
+      _validateFieldsInCompound(node);
     }
     super.visitFieldDeclaration(node);
   }
@@ -248,7 +254,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       case _PrimitiveDartType.none:
         break;
     }
-    if (nativeType.isStructSubtype) {
+    if (nativeType.isCompoundSubtype) {
       return true;
     }
     if (nativeType.isPointer) {
@@ -311,10 +317,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final nativeArgumentType = nativeType.typeArguments.single;
         return _isValidFfiNativeType(nativeArgumentType,
                 allowVoid: true, allowEmptyStruct: true, allowHandle: true) ||
-            nativeArgumentType.isStructSubtype ||
+            nativeArgumentType.isCompoundSubtype ||
             nativeArgumentType.isNativeType;
       }
-      if (nativeType.isStructSubtype) {
+      if (nativeType.isCompoundSubtype) {
         if (!allowEmptyStruct) {
           if (nativeType.element.isEmptyStruct) {
             // TODO(dartbug.com/36780): This results in an error message not
@@ -335,6 +341,26 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return _isValidFfiNativeFunctionType(nativeType);
     }
     return false;
+  }
+
+  // Get the const bool value of `expr` if it exists.
+  // Return null if it isn't a const bool.
+  bool? _maybeGetBoolConstValue(Expression expr) {
+    if (expr is BooleanLiteral) {
+      return expr.value;
+    } else if (expr is Identifier) {
+      final staticElm = expr.staticElement;
+      if (staticElm is ConstVariableElement) {
+        return staticElm.computeConstantValue()?.toBoolValue();
+      }
+      if (staticElm is PropertyAccessorElementImpl) {
+        final v = staticElm.variable;
+        if (v is ConstVariableElement) {
+          return v.computeConstantValue()?.toBoolValue();
+        }
+      }
+    }
+    return null;
   }
 
   _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
@@ -457,7 +483,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
+      _validateFfiLeafCallUsesNoHandles(node, TPrime, node);
     }
+    _validateIsLeafIsConst(node);
   }
 
   /// Validates that the given [nativeType] is, when native types are converted
@@ -547,9 +575,40 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _validateFfiLeafCallUsesNoHandles(
+      MethodInvocation node, DartType nativeType, AstNode errorNode) {
+    final args = node.argumentList.arguments;
+    if (args.isNotEmpty) {
+      for (final arg in args) {
+        if (arg is NamedExpression) {
+          if (arg.element?.name == _isLeafParamName) {
+            // Handles are ok for regular (non-leaf) calls. Check `isLeaf:true`.
+            final bool? isLeaf = _maybeGetBoolConstValue(arg.expression);
+            if (isLeaf != null && isLeaf) {
+              if (nativeType is FunctionType) {
+                if (_primitiveNativeType(nativeType.returnType) ==
+                    _PrimitiveDartType.handle) {
+                  _errorReporter.reportErrorForNode(
+                      FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, errorNode);
+                }
+                for (final param in nativeType.normalParameterTypes) {
+                  if (_primitiveNativeType(param) ==
+                      _PrimitiveDartType.handle) {
+                    _errorReporter.reportErrorForNode(
+                        FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, errorNode);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   /// Validate that the fields declared by the given [node] meet the
-  /// requirements for fields within a struct class.
-  void _validateFieldsInStruct(FieldDeclaration node) {
+  /// requirements for fields within a struct or union class.
+  void _validateFieldsInCompound(FieldDeclaration node) {
     if (node.isStatic) {
       return;
     }
@@ -576,18 +635,18 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final arrayDimensions = declaredType.arrayDimensions;
         _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
         final arrayElement = declaredType.arrayElementType;
-        if (arrayElement.isStructSubtype) {
+        if (arrayElement.isCompoundSubtype) {
           final elementClass = (arrayElement as InterfaceType).element;
-          _validatePackingNesting(struct!.declaredElement!, elementClass,
+          _validatePackingNesting(compound!.declaredElement!, elementClass,
               errorNode: fieldType);
         }
-      } else if (declaredType.isStructSubtype) {
+      } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
           _errorReporter
               .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [clazz.name]);
         }
-        _validatePackingNesting(struct!.declaredElement!, clazz,
+        _validatePackingNesting(compound!.declaredElement!, clazz,
             errorNode: fieldType);
       } else {
         _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
@@ -632,7 +691,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if ((FT as FunctionType).returnType.isVoid ||
         R.isPointer ||
         R.isHandle ||
-        R.isStructSubtype) {
+        R.isCompoundSubtype) {
       if (argCount != 1) {
         _errorReporter.reportErrorForNode(
             FfiCode.INVALID_EXCEPTION_VALUE, node.argumentList.arguments[1]);
@@ -646,6 +705,27 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (!_validateCompatibleNativeType(e.typeOrThrow, R, true)) {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, e, [e.staticType, R, 'fromFunction']);
+      }
+    }
+  }
+
+  void _validateIsLeafIsConst(MethodInvocation node) {
+    // Ensure `isLeaf` is const as we need the value at compile time to know
+    // which trampoline to generate.
+    final args = node.argumentList.arguments;
+    if (args.isNotEmpty) {
+      for (final arg in args) {
+        if (arg is NamedExpression) {
+          if (arg.element?.name == _isLeafParamName) {
+            if (_maybeGetBoolConstValue(arg.expression) == null) {
+              final AstNode errorNode = node;
+              _errorReporter.reportErrorForNode(
+                  FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
+                  errorNode,
+                  [_isLeafParamName]);
+            }
+          }
+        }
       }
     }
   }
@@ -674,6 +754,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
+    _validateIsLeafIsConst(node);
+    _validateFfiLeafCallUsesNoHandles(node, S, typeArguments![0]);
   }
 
   /// Validate that none of the [annotations] are from `dart:ffi`.
@@ -808,6 +890,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (annotationDimensions != arrayDimensions) {
       _errorReporter.reportErrorForNode(
           FfiCode.SIZE_ANNOTATION_DIMENSIONS, annotation);
+    }
+    // Check dimensions is positive
+    for (int dimension in dimensions) {
+      if (dimension <= 0) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.NON_POSITIVE_ARRAY_DIMENSION, annotation);
+      }
     }
   }
 
@@ -975,7 +1064,7 @@ extension on ClassElement {
         return false;
       } else if (declaredType.isPointer) {
         return false;
-      } else if (declaredType.isStructSubtype) {
+      } else if (declaredType.isCompoundSubtype) {
         return false;
       } else if (declaredType.isArray) {
         return false;
@@ -1087,22 +1176,25 @@ extension on DartType {
     return false;
   }
 
-  bool get isStruct {
+  bool get isCompound {
     final self = this;
     if (self is InterfaceType) {
       final element = self.element;
-      return element.name == FfiVerifier._structClassName && element.isFfiClass;
+      final name = element.name;
+      return (name == FfiVerifier._structClassName ||
+              name == FfiVerifier._unionClassName) &&
+          element.isFfiClass;
     }
     return false;
   }
 
   /// Returns `true` if this is a struct type, i.e. a subtype of `Struct`.
-  bool get isStructSubtype {
+  bool get isCompoundSubtype {
     final self = this;
     if (self is InterfaceType) {
       final superType = self.element.supertype;
       if (superType != null) {
-        return superType.isStruct;
+        return superType.isCompound;
       }
     }
     return false;
@@ -1115,17 +1207,17 @@ extension on TypeName {
     return name.staticElement.ffiClass;
   }
 
-  /// Return `true` if this represents a subtype of `Struct`.
-  bool get isStructSubtype {
+  /// Return `true` if this represents a subtype of `Struct` or `Union`.
+  bool get isCompoundSubtype {
     var element = name.staticElement;
     if (element is ClassElement) {
-      bool isStruct(InterfaceType? type) {
-        return type != null && type.isStruct;
+      bool isCompound(InterfaceType? type) {
+        return type != null && type.isCompound;
       }
 
-      return isStruct(element.supertype) ||
-          element.interfaces.any(isStruct) ||
-          element.mixins.any(isStruct);
+      return isCompound(element.supertype) ||
+          element.interfaces.any(isCompound) ||
+          element.mixins.any(isCompound);
     }
     return false;
   }

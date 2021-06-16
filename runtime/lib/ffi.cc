@@ -62,7 +62,7 @@ DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
 }
 
 // Static invocations to this method are translated directly in streaming FGB.
-DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 1) {
+DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
   UNREACHABLE();
 }
 

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test explicit import of dart:core in the source code..
 
+// @dart = 2.9
+
 library ImportCoreTest.dart;
 
 import "dart:core";

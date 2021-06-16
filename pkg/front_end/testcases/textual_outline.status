@@ -20,7 +20,11 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
+const_functions/const_functions_const_ctor: FormatterCrash
+const_functions/const_functions_const_ctor_error: FormatterCrash
 const_functions/const_functions_const_factory: FormatterCrash
+dart2js/late_fields: FormatterCrash
+dart2js/late_statics: FormatterCrash
 extensions/extension_constructor: FormatterCrash
 extensions/extension_field_with_type_parameter_usage: FormatterCrash
 extensions/issue38600: FormatterCrash
@@ -48,6 +52,7 @@ general/error_recovery/constructor_recovery_return_type: FormatterCrash
 general/error_recovery/constructor_recovery_set: FormatterCrash
 general/error_recovery/issue_22313: FormatterCrash
 general/error_recovery/issue_39033.crash: FormatterCrash
+general/error_recovery/issue_39033b.crash: FormatterCrash
 general/error_recovery/issue_39058_prime.crash: FormatterCrash
 general/error_recovery/issue_39202.crash: FormatterCrash
 general/error_recovery/issue_39230.crash: FormatterCrash
@@ -60,6 +65,7 @@ general/invalid_operator: FormatterCrash
 general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash
+general/issue45700.crash: FormatterCrash
 general/many_errors: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash

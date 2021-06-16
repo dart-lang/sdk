@@ -9,6 +9,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
 #include "vm/heap/become.h"
+#include "vm/heap/pages.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/heap/safepoint.h"
 #include "vm/heap/verifier.h"
@@ -305,16 +306,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ObjectPtr new_obj = ScavengeObject(raw_obj);
 
     // Update the reference.
-    if (!new_obj->IsNewObject()) {
-      // Setting the mark bit above must not be ordered after a publishing store
-      // of this object. Note this could be a publishing store even if the
-      // object was promoted by an early invocation of ScavengePointer. Compare
-      // Object::Allocate.
-      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
-          new_obj, std::memory_order_release);
-    } else {
-      *p = new_obj;
-    }
+    *p = new_obj;
 
     // Update the store buffer as needed.
     if (visiting_old_object_ != nullptr) {
@@ -412,7 +404,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         // push it to the mark stack after forwarding its slots.
         tags = UntaggedObject::OldAndNotMarkedBit::update(
             !thread_->is_marking(), tags);
-        new_obj->untag()->tags_ = tags;
+        // release: Setting the mark bit above must not be ordered after a
+        // publishing store of this object. Compare Object::Allocate.
+        new_obj->untag()->tags_.store(tags, std::memory_order_release);
       }
 
       intptr_t cid = UntaggedObject::ClassIdTag::decode(header);
@@ -874,17 +868,15 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     if (raw_obj->IsPseudoObject()) return;
     RELEASE_ASSERT(raw_obj->IsOldObject());
 
-    if (raw_obj->untag()->IsCardRemembered()) {
-      RELEASE_ASSERT(!raw_obj->untag()->IsRemembered());
-      // TODO(rmacnak): Verify card tables.
-      return;
-    }
-
     RELEASE_ASSERT(raw_obj->untag()->IsRemembered() ==
                    in_store_buffer_->Contains(raw_obj));
 
     visiting_ = raw_obj;
     is_remembered_ = raw_obj->untag()->IsRemembered();
+    is_card_remembered_ = raw_obj->untag()->IsCardRemembered();
+    if (is_card_remembered_) {
+      RELEASE_ASSERT(!is_remembered_);
+    }
     raw_obj->untag()->VisitPointers(this);
   }
 
@@ -892,12 +884,24 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
-        if (!is_remembered_) {
+        if (is_card_remembered_) {
+          if (!OldPage::Of(visiting_)->IsCardRemembered(ptr)) {
+            FATAL3(
+                "Old object %#" Px " references new object %#" Px
+                ", but the "
+                "slot's card is not remembered. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
+                ptr);
+          }
+        } else if (!is_remembered_) {
           FATAL3(
               "Old object %#" Px " references new object %#" Px
-              ", but it is not"
-              " in any store buffer. Consider using rr to watch the slot %p and"
-              " reverse-continue to find the store with a missing barrier.\n",
+              ", but it is "
+              "not in any store buffer. Consider using rr to watch the "
+              "slot %p and reverse-continue to find the store with a missing "
+              "barrier.\n",
               static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
         }
         RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
@@ -911,12 +915,24 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = ptr->Decompress(heap_base);
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
-        if (!is_remembered_) {
+        if (is_card_remembered_) {
+          if (!OldPage::Of(visiting_)->IsCardRemembered(ptr)) {
+            FATAL3(
+                "Old object %#" Px " references new object %#" Px
+                ", but the "
+                "slot's card is not remembered. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
+                ptr);
+          }
+        } else if (!is_remembered_) {
           FATAL3(
               "Old object %#" Px " references new object %#" Px
-              ", but it is not"
-              " in any store buffer. Consider using rr to watch the slot %p and"
-              " reverse-continue to find the store with a missing barrier.\n",
+              ", but it is "
+              "not in any store buffer. Consider using rr to watch the "
+              "slot %p and reverse-continue to find the store with a missing "
+              "barrier.\n",
               static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
         }
         RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
@@ -929,6 +945,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
   const SemiSpace* const to_;
   ObjectPtr visiting_;
   bool is_remembered_;
+  bool is_card_remembered_;
 };
 
 void Scavenger::VerifyStoreBuffers() {
@@ -968,9 +985,12 @@ SemiSpace* Scavenger::Prologue() {
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
-  SemiSpace* from = to_;
-
-  to_ = new SemiSpace(NewSizeInWords(from->max_capacity_in_words()));
+  SemiSpace* from;
+  {
+    MutexLocker ml(&space_lock_);
+    from = to_;
+    to_ = new SemiSpace(NewSizeInWords(from->max_capacity_in_words()));
+  }
   UpdateMaxHeapCapacity();
 
   return from;
@@ -1553,7 +1573,7 @@ void Scavenger::Scavenge() {
   // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
   // logic to avoid needless collections.
   Thread* thread = Thread::Current();
-  SafepointOperationScope safepoint_scope(thread);
+  GcSafepointOperationScope safepoint_scope(thread);
 
   int64_t safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, safe_point - start);
@@ -1723,9 +1743,12 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
 
   // Swap from-space and to-space. The abandoned to-space will be deleted in
   // the epilogue.
-  SemiSpace* temp = to_;
-  to_ = *from;
-  *from = temp;
+  {
+    MutexLocker ml(&space_lock_);
+    SemiSpace* temp = to_;
+    to_ = *from;
+    *from = temp;
+  }
 
   // Release any remaining part of the promotion worklist that wasn't completed.
   promotion_stack_.Reset();
@@ -1791,7 +1814,7 @@ void Scavenger::Evacuate() {
   // The latter means even if the scavenge promotes every object in the new
   // space, the new allocation means the space is not empty,
   // causing the assertion below to fail.
-  SafepointOperationScope scope(Thread::Current());
+  GcSafepointOperationScope scope(Thread::Current());
 
   // Forces the next scavenge to promote all the objects in the new space.
   early_tenure_ = true;

@@ -233,8 +233,6 @@ struct RunInSafepointAndRWCodeArgs {
 };
 
 DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
-  if (!FLAG_enable_testing_pragmas) return nullptr;
-
   if (strcmp(command, "gc-on-nth-allocation") == 0) {
     TransitionNativeToVM _(Thread::Current());
     intptr_t argument = reinterpret_cast<intptr_t>(arg);
@@ -246,6 +244,12 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     ASSERT(arg == nullptr);  // Don't pass an argument to this command.
     TransitionNativeToVM _(Thread::Current());
     IsolateGroup::Current()->heap()->CollectAllGarbage();
+    return nullptr;
+
+  } else if (strcmp(command, "is-thread-in-generated") == 0) {
+    if (Thread::Current()->execution_state() == Thread::kThreadInGenerated) {
+      return reinterpret_cast<void*>(1);
+    }
     return nullptr;
 
   } else if (strcmp(command, "is-mutator-in-native") == 0) {
@@ -263,7 +267,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     Thread::EnterIsolateAsHelper(args->isolate, Thread::TaskKind::kUnknownTask);
     Thread* const thread = Thread::Current();
     {
-      SafepointOperationScope scope(thread);
+      GcSafepointOperationScope scope(thread);
       args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/false);
       (*args->callback)();
       args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/true);

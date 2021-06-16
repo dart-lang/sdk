@@ -23,6 +23,6 @@ class C extends core::Object {
 static method test() → dynamic {
   self::C c = new self::C::•();
   c.{self::C::test} = 1;
-  c.{self::C::test};
+  c.{self::C::test}{dynamic};
 }
 static method main() → dynamic {}

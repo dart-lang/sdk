@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -81,7 +81,7 @@ class IDLNode(object):
                                          ('%s %s' % (self.id, extras)).strip(),
                                          hash(self))
             return '<%s %s 0x%x>' % (type(self).__name__, extras, hash(self))
-        except Exception, e:
+        except Exception as e:
             return "can't convert to string: %s" % e
 
     def _extra_repr(self):
@@ -264,7 +264,7 @@ class IDLNode(object):
         }
         result = label_field.get(label)
         if result != '' and not (result):
-            print 'FATAL ERROR: AST mapping name not found %s.' % label
+            print('FATAL ERROR: AST mapping name not found %s.' % label)
         return result if result else ''
 
     def _convert_all(self, ast, label, idlnode_ctor):
@@ -708,7 +708,7 @@ class IDLType(IDLNode):
                     # should consider synthesizing a new interface (e.g., UnionType) that's
                     # both Type1 and Type2.
         if not self.id:
-            print '>>>> __module__ %s' % ast.__module__
+            print('>>>> __module__ %s' % ast.__module__)
             raise SyntaxError('Could not parse type %s' % (ast))
 
     def _label_to_type(self, label, ast):
@@ -796,7 +796,11 @@ def generate_callback(interface_name, result_type, arguments):
     return syn_op
 
 
-def generate_operation(interface_name, result_type_name, oper_name, arguments):
+def generate_operation(interface_name,
+                       result_type_name,
+                       oper_name,
+                       arguments,
+                       result_nullable=False):
     """ Synthesize an IDLOperation with no AST used for support of setlike."""
     """ Arguments is a list of argument where each argument is:
           [IDLType, argument_name, optional_boolean] """
@@ -805,6 +809,7 @@ def generate_operation(interface_name, result_type_name, oper_name, arguments):
 
     syn_op.type = IDLType(None, result_type_name)
     syn_op.type = resolveTypedef(syn_op.type)
+    syn_op.type.nullable = result_nullable
 
     for argument in arguments:
         arg = IDLArgument(None, argument[1])
@@ -854,9 +859,13 @@ def generate_setLike_operations_properties(interface, set_like):
     setlike_ops.append(set_op)
 
     if not set_like.is_read_only:
+        # Issue #45676: `add` can return null on Firefox, so this should be
+        # typed nullable.
+        add_result_nullable = True
         set_op = generate_operation(
             interface.id, interface.id, 'add',
-            [[IDLType(None, set_like.value_type.base_type), 'arg']])
+            [[IDLType(None, set_like.value_type.base_type), 'arg']],
+            add_result_nullable)
         setlike_ops.append(set_op)
         set_op = generate_operation(
             interface.id, 'boolean', 'delete',

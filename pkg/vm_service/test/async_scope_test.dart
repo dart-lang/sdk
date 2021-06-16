@@ -3,13 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
-import 'package:vm_service/vm_service.dart';
+
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
+
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const int LINE_A = 19;
-const int LINE_B = 25;
+const int LINE_A = 20;
+const int LINE_B = 26;
 
 foo() {}
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test verifies that annotations on parameters are correctly handled
 // in the tree shaker.
 // Regression test for https://github.com/dart-lang/sdk/issues/34644.

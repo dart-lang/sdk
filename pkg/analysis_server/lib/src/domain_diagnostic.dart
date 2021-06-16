@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:core';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -40,7 +38,7 @@ class DiagnosticDomainHandler implements RequestHandler {
   Future handleGetServerPort(Request request) async {
     try {
       // Open a port (or return the existing one).
-      var port = await server.diagnosticServer.getServerPort();
+      var port = await server.diagnosticServer!.getServerPort();
       server.sendResponse(
           DiagnosticGetServerPortResult(port).toResponse(request.id));
     } catch (error) {
@@ -49,7 +47,7 @@ class DiagnosticDomainHandler implements RequestHandler {
   }
 
   @override
-  Response handleRequest(Request request) {
+  Response? handleRequest(Request request) {
     try {
       var requestName = request.method;
       if (requestName == DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS) {

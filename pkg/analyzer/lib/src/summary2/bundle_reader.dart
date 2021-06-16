@@ -4,581 +4,1338 @@
 
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/testing/token_factory.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary2/apply_resolution.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
-import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
+import 'package:analyzer/src/summary2/element_flags.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-Map<String, LibraryReader> createLibraryReadersWithAstBytes({
-  required LinkedElementFactory elementFactory,
-  required Uint8List resolutionBytes,
-  required Map<String, Map<String, Uint8List>> uriToLibrary_uriToUnitAstBytes,
-}) {
-  var _resolutionReader = SummaryDataReader(resolutionBytes);
-
-  _resolutionReader.offset = _resolutionReader.bytes.length - 4 * 3;
-  var resolutionLibrariesOffset = _resolutionReader.readUint32();
-  var resolutionReferencesOffset = _resolutionReader.readUint32();
-  var resolutionStringsOffset = _resolutionReader.readUint32();
-  _resolutionReader.createStringTable(resolutionStringsOffset);
-
-  var referenceReader = _ReferenceReader(
-    elementFactory,
-    _resolutionReader,
-    resolutionReferencesOffset,
-  );
-
-  _resolutionReader.offset = resolutionLibrariesOffset;
-  var resolutionLibraryOffsets = _resolutionReader.readUint30List();
-
-  assert(
-    uriToLibrary_uriToUnitAstBytes.length == resolutionLibraryOffsets.length,
-  );
-
-  // TODO(scheglov) Don't read anything, we know URIs.
-  var libraryMap = <String, LibraryReader>{};
-  for (var i = 0; i < resolutionLibraryOffsets.length; i++) {
-    _resolutionReader.offset = resolutionLibraryOffsets[i];
-    var libraryUriStr = _resolutionReader.readStringReference();
-    var resolutionUnitOffsets = _resolutionReader.readUint30List();
-    var exportsIndexList = _resolutionReader.readUint30List();
-
-    var uriToUnitAstBytes = uriToLibrary_uriToUnitAstBytes[libraryUriStr]!;
-
-    var reference = elementFactory.rootReference.getChild(libraryUriStr);
-    var libraryReader = LibraryReaderForAstBytes._(
-      elementFactory,
-      uriToUnitAstBytes,
-      _resolutionReader,
-      referenceReader,
-      reference,
-      resolutionUnitOffsets,
-      exportsIndexList,
-    );
-    libraryMap[libraryUriStr] = libraryReader;
-  }
-
-  return libraryMap;
-}
-
 class BundleReader {
-  final SummaryDataReader _astReader;
-  final SummaryDataReader _resolutionReader;
-
-  bool _withInformative = false;
+  final SummaryDataReader _reader;
+  final Map<Uri, Uint8List> _unitsInformativeBytes;
 
   final Map<String, LibraryReader> libraryMap = {};
 
   BundleReader({
     required LinkedElementFactory elementFactory,
-    required Uint8List astBytes,
     required Uint8List resolutionBytes,
-  })   : _astReader = SummaryDataReader(astBytes),
-        _resolutionReader = SummaryDataReader(resolutionBytes) {
-    _astReader.offset = 0;
-    _withInformative = _astReader.readByte() == 1;
-
-    _astReader.offset = _astReader.bytes.length - 4 * 2;
-    var astLibrariesOffset = _astReader.readUint32();
-    var astStringsOffset = _astReader.readUint32();
-    _astReader.createStringTable(astStringsOffset);
-
-    _resolutionReader.offset = _resolutionReader.bytes.length - 4 * 3;
-    var resolutionLibrariesOffset = _resolutionReader.readUint32();
-    var resolutionReferencesOffset = _resolutionReader.readUint32();
-    var resolutionStringsOffset = _resolutionReader.readUint32();
-    _resolutionReader.createStringTable(resolutionStringsOffset);
+    Map<Uri, Uint8List> unitsInformativeBytes = const {},
+  })  : _reader = SummaryDataReader(resolutionBytes),
+        _unitsInformativeBytes = unitsInformativeBytes {
+    _reader.offset = _reader.bytes.length - 4 * 4;
+    var baseResolutionOffset = _reader.readUInt32();
+    var librariesOffset = _reader.readUInt32();
+    var referencesOffset = _reader.readUInt32();
+    var stringsOffset = _reader.readUInt32();
+    _reader.createStringTable(stringsOffset);
 
     var referenceReader = _ReferenceReader(
       elementFactory,
-      _resolutionReader,
-      resolutionReferencesOffset,
+      _reader,
+      referencesOffset,
     );
 
-    _astReader.offset = astLibrariesOffset;
-    var astLibraryOffsets = _astReader.readUint30List();
-
-    _resolutionReader.offset = resolutionLibrariesOffset;
-    var resolutionLibraryOffsets = _resolutionReader.readUint30List();
-
-    assert(astLibraryOffsets.length == resolutionLibraryOffsets.length);
-
-    for (var i = 0; i < astLibraryOffsets.length; i++) {
-      _astReader.offset = astLibraryOffsets[i];
-      var name = _astReader.readStringReference();
-      var nameOffset = _astReader.readUInt30() - 1;
-      var nameLength = _astReader.readUInt30();
-      var hasPartOfDirective = _astReader.readByte() != 0;
-      var astUnitOffsets = _astReader.readUint30List();
-
-      _resolutionReader.offset = resolutionLibraryOffsets[i];
-      var libraryUriStr = _resolutionReader.readStringReference();
-      var resolutionUnitOffsets = _resolutionReader.readUint30List();
-      assert(astUnitOffsets.length == resolutionUnitOffsets.length);
-      var exportsIndexList = _resolutionReader.readUint30List();
-
-      var reference = elementFactory.rootReference.getChild(libraryUriStr);
-      var libraryReader = LibraryReaderFromBundle._(
-        elementFactory,
-        _withInformative,
-        _astReader,
-        _resolutionReader,
-        referenceReader,
-        reference,
-        name,
-        nameOffset,
-        nameLength,
-        hasPartOfDirective,
-        astUnitOffsets,
-        resolutionUnitOffsets,
-        exportsIndexList,
+    _reader.offset = librariesOffset;
+    var libraryHeaderList = _reader.readTypedList(() {
+      return _LibraryHeader(
+        uriStr: _reader.readStringReference(),
+        offset: _reader.readUInt30(),
+        classMembersLengths: _reader.readUInt30List(),
       );
-      libraryMap[libraryUriStr] = libraryReader;
+    });
+
+    for (var libraryHeader in libraryHeaderList) {
+      _reader.offset = libraryHeader.offset;
+      var uriStr = libraryHeader.uriStr;
+      var reference = elementFactory.rootReference.getChild(uriStr);
+      libraryMap[uriStr] = LibraryReader._(
+        elementFactory: elementFactory,
+        reader: _reader,
+        unitsInformativeBytes: _unitsInformativeBytes,
+        baseResolutionOffset: baseResolutionOffset,
+        referenceReader: referenceReader,
+        reference: reference,
+        offset: _reader.offset,
+        classMembersLengths: libraryHeader.classMembersLengths,
+      );
+    }
+  }
+}
+
+class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+  void Function()? _readMembers;
+  void Function()? applyInformativeDataToMembers;
+
+  ClassElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  /// Ensure that all members of the [element] are available. This includes
+  /// being able to ask them for example using [ClassElement.methods], and
+  /// as well access them through their [Reference]s. For a class declaration
+  /// this means reading them, for a named mixin application this means
+  /// computing constructors.
+  void readMembers(ClassElementImpl element) {
+    if (element.isMixinApplication) {
+      element.constructors;
+    } else {
+      _readMembers?.call();
+      _readMembers = null;
+
+      applyInformativeDataToMembers?.call();
+      applyInformativeDataToMembers = null;
     }
   }
 
-  LibraryReader getLibrary(String uriStr) {
-    return libraryMap[uriStr]!;
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    element.supertype = reader._readOptionalInterfaceType();
+    element.mixins = reader._readInterfaceTypeList();
+    element.interfaces = reader._readInterfaceTypeList();
+    applyConstantOffsets?.perform();
   }
 }
 
-class ClassReader {
-  final int membersOffset;
+class CompilationUnitElementLinkedData
+    extends ElementLinkedData<CompilationUnitElementImpl> {
+  CompilationUnitElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
 
-  ClassReader(this.membersOffset);
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+  }
 }
 
-abstract class LibraryReader {
-  final LinkedElementFactory _elementFactory;
-  final SummaryDataReader _resolutionReader;
-  final _ReferenceReader _referenceReader;
+class ConstructorElementLinkedData
+    extends ElementLinkedData<ConstructorElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  ConstructorElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    _addEnclosingElementTypeParameters(reader, element);
+
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+    reader._addFormalParameters(element.parameters);
+    _readFormalParameters(reader, element.parameters);
+    if (element.isConst || element.isFactory) {
+      element.redirectedConstructor =
+          reader.readElement() as ConstructorElement?;
+      element.constantInitializers = reader._readNodeList();
+    }
+    applyConstantOffsets?.perform();
+  }
+}
+
+/// Lazy reader of resolution information.
+abstract class ElementLinkedData<E extends ElementImpl> {
   final Reference reference;
+  final LibraryReader _libraryReader;
+  final CompilationUnitElementImpl unitElement;
 
-  final Uint32List _resolutionUnitOffsets;
-  final Uint32List _exportsIndexList;
-  List<Reference>? _exports;
+  /// When this object is created, this offset is the offset of the resolution
+  /// information in the [_libraryReader]. After reading is done, this offset
+  /// is set to `-1`.
+  int _offset;
 
-  List<UnitReader>? _units;
+  ElementLinkedData(
+      this.reference, LibraryReader libraryReader, this.unitElement, int offset)
+      : _libraryReader = libraryReader,
+        _offset = offset;
 
-  LibraryReader._(
-    this._elementFactory,
-    this._resolutionReader,
-    this._referenceReader,
-    this.reference,
-    this._resolutionUnitOffsets,
-    this._exportsIndexList,
-  );
+  void read(ElementImpl element) {
+    if (_offset == -1) {
+      return null;
+    }
 
-  List<Reference> get exports {
-    return _exports ??= _exportsIndexList
+    var dataReader = _libraryReader._reader.fork(_offset);
+    _offset = -1;
+
+    var reader = ResolutionReader(
+      _libraryReader._elementFactory,
+      _libraryReader._referenceReader,
+      dataReader,
+    );
+
+    _read(element as E, reader);
+  }
+
+  void _addEnclosingElementTypeParameters(
+    ResolutionReader reader,
+    ElementImpl element,
+  ) {
+    var enclosing = element.enclosingElement;
+    if (enclosing is ClassElement) {
+      reader._addTypeParameters(enclosing.typeParameters);
+    } else if (enclosing is CompilationUnitElement) {
+      // Nothing.
+    } else if (enclosing is ExtensionElement) {
+      reader._addTypeParameters(enclosing.typeParameters);
+    } else {
+      throw UnimplementedError('${enclosing.runtimeType}');
+    }
+  }
+
+  void _read(E element, ResolutionReader reader);
+
+  void _readFormalParameters(
+    ResolutionReader reader,
+    List<ParameterElement> parameters,
+  ) {
+    for (var parameter in parameters) {
+      parameter as ParameterElementImpl;
+      parameter.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+      _readTypeParameters(reader, parameter.typeParameters);
+      _readFormalParameters(reader, parameter.parameters);
+      parameter.type = reader.readRequiredType();
+      if (parameter is ConstVariableElement) {
+        var defaultParameter = parameter as ConstVariableElement;
+        var initializer = reader._readOptionalExpression();
+        if (initializer != null) {
+          defaultParameter.constantInitializer = initializer;
+        }
+      }
+      if (parameter is FieldFormalParameterElementImpl) {
+        parameter.field = reader.readElement() as FieldElement?;
+      }
+    }
+  }
+
+  void _readTypeParameters(
+    ResolutionReader reader,
+    List<TypeParameterElement> typeParameters,
+  ) {
+    reader._addTypeParameters(typeParameters);
+    for (var typeParameter in typeParameters) {
+      typeParameter as TypeParameterElementImpl;
+      typeParameter.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+      typeParameter.bound = reader.readType();
+      typeParameter.defaultType = reader.readType();
+    }
+  }
+}
+
+class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  EnumElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    var typeProvider = element.library.typeProvider;
+
+    element.metadata = reader._readAnnotationList(
+      unitElement: element.enclosingElement,
+    );
+
+    var indexField = element.getField('index') as FieldElementImpl;
+    indexField.type = typeProvider.intType;
+
+    var toStringMethod = element.getMethod('toString') as MethodElementImpl;
+    toStringMethod.returnType = typeProvider.stringType;
+
+    for (var constant in element.constants) {
+      constant as FieldElementImpl;
+      constant.metadata = reader._readAnnotationList(
+        unitElement: element.enclosingElement,
+      );
+    }
+
+    applyConstantOffsets?.perform();
+  }
+}
+
+class ExtensionElementLinkedData
+    extends ElementLinkedData<ExtensionElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  ExtensionElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: element.enclosingElement,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    element.extendedType = reader.readRequiredType();
+    applyConstantOffsets?.perform();
+  }
+}
+
+class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  FieldElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    _addEnclosingElementTypeParameters(reader, element);
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+    element.type = reader.readRequiredType();
+    if (element is ConstFieldElementImpl) {
+      var initializer = reader._readOptionalExpression();
+      if (initializer != null) {
+        element.constantInitializer = initializer;
+        ConstantContextForExpressionImpl(initializer);
+      }
+    }
+    applyConstantOffsets?.perform();
+  }
+}
+
+class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  FunctionElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    element.returnType = reader.readRequiredType();
+    _readFormalParameters(reader, element.parameters);
+    applyConstantOffsets?.perform();
+  }
+}
+
+class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
+  LibraryElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  LinkedElementFactory get elementFactory {
+    return _libraryReader._elementFactory;
+  }
+
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+
+    for (var import in element.imports) {
+      import as ImportElementImpl;
+      import.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+      import.importedLibrary = reader.readElement() as LibraryElementImpl?;
+    }
+
+    for (var export in element.exports) {
+      export as ExportElementImpl;
+      export.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+      export.exportedLibrary = reader.readElement() as LibraryElementImpl?;
+    }
+
+    element.entryPoint = reader.readElement() as FunctionElement?;
+  }
+}
+
+class LibraryReader {
+  final LinkedElementFactory _elementFactory;
+  final SummaryDataReader _reader;
+  final Map<Uri, Uint8List> _unitsInformativeBytes;
+  final int _baseResolutionOffset;
+  final _ReferenceReader _referenceReader;
+  final Reference _reference;
+  final int _offset;
+
+  final Uint32List _classMembersLengths;
+  int _classMembersLengthsIndex = 0;
+
+  late List<Reference> exports;
+
+  LibraryReader._({
+    required LinkedElementFactory elementFactory,
+    required SummaryDataReader reader,
+    required Map<Uri, Uint8List> unitsInformativeBytes,
+    required int baseResolutionOffset,
+    required _ReferenceReader referenceReader,
+    required Reference reference,
+    required int offset,
+    required Uint32List classMembersLengths,
+  })  : _elementFactory = elementFactory,
+        _reader = reader,
+        _unitsInformativeBytes = unitsInformativeBytes,
+        _baseResolutionOffset = baseResolutionOffset,
+        _referenceReader = referenceReader,
+        _reference = reference,
+        _offset = offset,
+        _classMembersLengths = classMembersLengths;
+
+  LibraryElementImpl readElement({required Source librarySource}) {
+    var analysisContext = _elementFactory.analysisContext;
+    var analysisSession = _elementFactory.analysisSession;
+    var sourceFactory = analysisContext.sourceFactory;
+
+    _reader.offset = _offset;
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+
+    var name = _reader.readStringReference();
+    var featureSet = _readFeatureSet();
+
+    var libraryElement = LibraryElementImpl(
+        analysisContext, analysisSession, name, -1, 0, featureSet);
+    _reference.element = libraryElement;
+    libraryElement.reference = _reference;
+
+    libraryElement.languageVersion = _readLanguageVersion();
+    libraryElement.imports = _reader.readTypedList(_readImportElement);
+    libraryElement.exports = _reader.readTypedList(_readExportElement);
+    LibraryElementFlags.read(_reader, libraryElement);
+
+    var unitContainerRef = _reference.getChild('@unit');
+    var unitCount = _reader.readUInt30();
+    var units = <CompilationUnitElementImpl>[];
+    for (var i = 0; i < unitCount; i++) {
+      var unitElement = _readUnitElement(
+        sourceFactory: sourceFactory,
+        unitContainerRef: unitContainerRef,
+        libraryElement: libraryElement,
+        librarySource: librarySource,
+      );
+      units.add(unitElement);
+    }
+
+    var exportsIndexList = _reader.readUInt30List();
+    exports = exportsIndexList
         .map((index) => _referenceReader.referenceOfIndex(index))
         .toList();
-  }
 
-  /// Is `true` if the defining unit has [PartOfDirective].
-  bool get hasPartOfDirective;
+    libraryElement.definingCompilationUnit = units[0];
+    libraryElement.parts = units.skip(1).toList();
 
-  String get name;
-
-  int get nameLength;
-
-  int get nameOffset;
-
-  List<UnitReader> get units;
-
-  bool get withInformative;
-}
-
-/// Implementation of [LibraryReader] that reads ASTs for units from separate
-/// byte buffers.
-class LibraryReaderForAstBytes extends LibraryReader {
-  final Map<String, Uint8List> _uriToUnitAstBytes;
-
-  bool _hasNameRead = false;
-  late final bool _withInformative;
-  late final String _name;
-  late final int _nameOffset;
-  late final int _nameLength;
-  late final bool _hasPartOfDirective;
-
-  LibraryReaderForAstBytes._(
-    LinkedElementFactory elementFactory,
-    Map<String, Uint8List> uriToUnitAstBytes,
-    SummaryDataReader resolutionReader,
-    _ReferenceReader referenceReader,
-    Reference reference,
-    Uint32List resolutionUnitOffsets,
-    Uint32List exportsIndexList,
-  )   : _uriToUnitAstBytes = uriToUnitAstBytes,
-        super._(
-          elementFactory,
-          resolutionReader,
-          referenceReader,
-          reference,
-          resolutionUnitOffsets,
-          exportsIndexList,
-        ) {
-    // TODO(scheglov) This fails when there are invalid URIs.
-    // assert(_uriToUnitAstBytes.length == _resolutionUnitOffsets.length);
-  }
-
-  @override
-  bool get hasPartOfDirective {
-    _readName();
-    return _hasPartOfDirective;
-  }
-
-  @override
-  String get name {
-    _readName();
-    return _name;
-  }
-
-  @override
-  int get nameLength {
-    _readName();
-    return _nameLength;
-  }
-
-  @override
-  int get nameOffset {
-    _readName();
-    return _nameOffset;
-  }
-
-  @override
-  List<UnitReader> get units {
-    if (_units != null) return _units!;
-    _units = [];
-
-    for (var i = 0; i < _resolutionUnitOffsets.length; i++) {
-      _resolutionReader.offset = _resolutionUnitOffsets[i];
-      var unitUriStr = _resolutionReader.readStringReference();
-      var isSynthetic = _resolutionReader.readByte() != 0;
-      var isPart = _resolutionReader.readByte() != 0;
-      String? partUriStr = _resolutionReader.readStringReference();
-      if (!isPart) {
-        partUriStr = null;
-      }
-      var resolutionDirectivesOffset = _resolutionReader.readUInt30();
-      var resolutionDeclarationOffsets = _resolutionReader.readUint30List();
-
-      // TODO(scheglov) Is this right?
-      if (unitUriStr.isEmpty) {
-        unitUriStr = 'null';
-      }
-
-      var astBytes = _uriToUnitAstBytes[unitUriStr]!;
-      var astReader = SummaryDataReader(astBytes);
-      astReader.offset = astBytes.length - 4 * 4;
-      var headerOffset = astReader.readUint32();
-      var indexOffset = astReader.readUint32();
-      astReader.readUint32(); // library data
-      var astStringsOffset = astReader.readUint32();
-      astReader.createStringTable(astStringsOffset);
-
-      _units!.add(
-        UnitReader._(
-          this,
-          resolutionDirectivesOffset,
-          resolutionDeclarationOffsets,
-          reference.getChild('@unit').getChild(unitUriStr),
-          isSynthetic,
-          partUriStr,
-          astReader,
-          headerOffset,
-          indexOffset,
-        ),
-      );
-    }
-
-    return _units!;
-  }
-
-  @override
-  bool get withInformative {
-    _readName();
-    return _withInformative;
-  }
-
-  void _readName() {
-    if (_hasNameRead) return;
-    _hasNameRead = true;
-
-    var uriStr = reference.name;
-    var definingUnitBytes = _uriToUnitAstBytes[uriStr]!;
-    var reader = SummaryDataReader(definingUnitBytes);
-    reader.offset = definingUnitBytes.length - 4 * 2;
-    var libraryDataOffset = reader.readUint32();
-    var astStringsOffset = reader.readUint32();
-    reader.createStringTable(astStringsOffset);
-
-    reader.offset = libraryDataOffset;
-    _name = reader.readStringReference();
-    _nameOffset = reader.readUInt30() - 1;
-    _nameLength = reader.readUInt30();
-    _hasPartOfDirective = reader.readByte() != 0;
-    _withInformative = reader.readByte() != 0;
-  }
-}
-
-class LibraryReaderFromBundle extends LibraryReader {
-  final SummaryDataReader _astReader;
-  final Uint32List _astUnitOffsets;
-
-  @override
-  final String name;
-
-  @override
-  final int nameOffset;
-
-  @override
-  final int nameLength;
-
-  @override
-  final bool hasPartOfDirective;
-
-  @override
-  final bool withInformative;
-
-  LibraryReaderFromBundle._(
-    LinkedElementFactory elementFactory,
-    this.withInformative,
-    SummaryDataReader astReader,
-    SummaryDataReader resolutionReader,
-    _ReferenceReader referenceReader,
-    Reference reference,
-    this.name,
-    this.nameOffset,
-    this.nameLength,
-    this.hasPartOfDirective,
-    Uint32List astUnitOffsets,
-    Uint32List resolutionUnitOffsets,
-    Uint32List exportsIndexList,
-  )   : _astReader = astReader,
-        _astUnitOffsets = astUnitOffsets,
-        super._(
-          elementFactory,
-          resolutionReader,
-          referenceReader,
-          reference,
-          resolutionUnitOffsets,
-          exportsIndexList,
-        ) {
-    assert(_astUnitOffsets.length == _resolutionUnitOffsets.length);
-  }
-
-  @override
-  List<UnitReader> get units {
-    if (_units != null) return _units!;
-    _units = [];
-
-    for (var i = 0; i < _astUnitOffsets.length; i++) {
-      var astUnitOffset = _astUnitOffsets[i];
-      var resolutionUnitOffset = _resolutionUnitOffsets[i];
-
-      _astReader.offset = astUnitOffset;
-      var headerOffset = _astReader.readUInt30();
-      var indexOffset = _astReader.offset;
-
-      _resolutionReader.offset = resolutionUnitOffset;
-      var unitUriStr = _resolutionReader.readStringReference();
-      var isSynthetic = _resolutionReader.readByte() != 0;
-      var isPart = _resolutionReader.readByte() != 0;
-      String? partUriStr = _resolutionReader.readStringReference();
-      if (!isPart) {
-        partUriStr = null;
-      }
-      var resolutionDirectivesOffset = _resolutionReader.readUInt30();
-      var resolutionDeclarationOffsets = _resolutionReader.readUint30List();
-
-      _units!.add(
-        UnitReader._(
-          this,
-          resolutionDirectivesOffset,
-          resolutionDeclarationOffsets,
-          reference.getChild('@unit').getChild(unitUriStr),
-          isSynthetic,
-          partUriStr,
-          _astReader,
-          headerOffset,
-          indexOffset,
-        ),
-      );
-    }
-
-    return _units!;
-  }
-}
-
-class LinkedContext implements AstLinkedContext {
-  final UnitReader _unitReader;
-  final AstNode _node;
-  final int _resolutionIndex;
-  final Uint32List? _codeOffsetLengthList;
-  final Uint32List _documentationTokenIndexList;
-
-  @override
-  final int codeOffset;
-
-  @override
-  final int codeLength;
-
-  @override
-  final bool isClassWithConstConstructor;
-
-  bool _isApplied = false;
-
-  bool _hasDocumentationComment = false;
-
-  late final _UnitMemberReader _reader;
-
-  LinkedContext(
-    this._unitReader,
-    this._node, {
-    required this.codeOffset,
-    required this.codeLength,
-    this.isClassWithConstConstructor = false,
-    Uint32List? codeOffsetLengthList,
-    required int resolutionIndex,
-    required Uint32List documentationTokenIndexList,
-  })   : _resolutionIndex = resolutionIndex,
-        _codeOffsetLengthList = codeOffsetLengthList,
-        _documentationTokenIndexList = documentationTokenIndexList;
-
-  @override
-  List<ClassMember> get classMembers {
-    var reader = _reader;
-    if (reader is _ClassReader) {
-      return reader.classMembers;
-    } else if (_node is ClassTypeAlias) {
-      return const <ClassMember>[];
-    } else {
-      throw UnimplementedError();
-    }
-  }
-
-  @override
-  // TODO: implement unitDirectives
-  List<Directive> get unitDirectives => throw UnimplementedError();
-
-  @override
-  void applyResolution(LinkedUnitContext unitContext) {
-    if (_isApplied) {
-      return;
-    }
-    _isApplied = true;
-
-    var localElements = <Element>[];
-    var resolutionReader = LinkedResolutionReader(
-      _unitReader,
-      localElements,
-      _unitReader._resolutionDeclarationsOffset[_resolutionIndex],
+    libraryElement.linkedData = LibraryElementLinkedData(
+      reference: _reference,
+      libraryReader: this,
+      unitElement: units[0],
+      offset: resolutionOffset,
     );
-    _node.accept(
-      ApplyResolutionVisitor(
-        unitContext,
-        localElements,
-        resolutionReader,
+
+    InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
+        .applyTo(libraryElement);
+
+    return libraryElement;
+  }
+
+  ClassElementImpl _readClassElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readStringReference();
+    var reference = unitReference.getChild('@class').getChild(name);
+
+    var element = ClassElementImpl(name, -1);
+
+    var linkedData = ClassElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+    ClassElementFlags.read(_reader, element);
+
+    element.typeParameters = _readTypeParameters();
+
+    if (!element.isMixinApplication) {
+      var membersOffset = _reader.offset;
+      linkedData._readMembers = () {
+        _reader.offset = membersOffset;
+        _readClassElementMembers(unitElement, element, reference);
+      };
+      _reader.offset += _classMembersLengths[_classMembersLengthsIndex++];
+    }
+
+    return element;
+  }
+
+  void _readClassElementMembers(
+    CompilationUnitElementImpl unitElement,
+    ClassElementImpl element,
+    Reference reference,
+  ) {
+    var accessors = <PropertyAccessorElementImpl>[];
+    var fields = <FieldElement>[];
+    _readFields(unitElement, element, reference, accessors, fields);
+    _readPropertyAccessors(
+        unitElement, element, reference, accessors, fields, '@field');
+    element.fields = fields;
+    element.accessors = accessors;
+
+    element.constructors = _readConstructors(unitElement, element, reference);
+    element.methods = _readMethods(unitElement, element, reference);
+  }
+
+  void _readClasses(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var length = _reader.readUInt30();
+    unitElement.types = List.generate(length, (index) {
+      return _readClassElement(unitElement, unitReference);
+    });
+  }
+
+  List<ConstructorElementImpl> _readConstructors(
+    CompilationUnitElementImpl unitElement,
+    ClassElementImpl classElement,
+    Reference classReference,
+  ) {
+    var containerRef = classReference.getChild('@constructor');
+    var length = _reader.readUInt30();
+    return List.generate(length, (_) {
+      var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+      var name = _reader.readStringReference();
+      var reference = containerRef.getChild(name);
+      var element = ConstructorElementImpl(name, -1);
+      var linkedData = ConstructorElementLinkedData(
+        reference: reference,
+        libraryReader: this,
+        unitElement: unitElement,
+        offset: resolutionOffset,
+      );
+      element.setLinkedData(reference, linkedData);
+      ConstructorElementFlags.read(_reader, element);
+      element.parameters = _readParameters(element, reference);
+      return element;
+    });
+  }
+
+  EnumElementImpl _readEnumElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readStringReference();
+    var reference = unitReference.getChild('@enum').getChild(name);
+
+    var element = EnumElementImpl(name, -1);
+
+    var linkedData = EnumElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+
+    var fields = <FieldElement>[];
+    var getters = <PropertyAccessorElement>[];
+
+    // Build the 'index' field.
+    {
+      var field = FieldElementImpl('index', -1)
+        ..enclosingElement = element
+        ..isSynthetic = true
+        ..isFinal = true;
+      fields.add(field);
+      getters.add(
+        PropertyAccessorElementImpl_ImplicitGetter(field,
+            reference: reference.getChild('@getter').getChild('index'))
+          ..enclosingElement = element,
+      );
+    }
+
+    // Build the 'values' field.
+    {
+      var field = ConstFieldElementImpl_EnumValues(element);
+      fields.add(field);
+      getters.add(
+        PropertyAccessorElementImpl_ImplicitGetter(field,
+            reference: reference.getChild('@getter').getChild('values'))
+          ..enclosingElement = element,
+      );
+    }
+
+    // Build fields for all enum constants.
+    var containerRef = reference.getChild('@constant');
+    var constantCount = _reader.readUInt30();
+    for (var i = 0; i < constantCount; i++) {
+      var constantName = _reader.readStringReference();
+      var field = ConstFieldElementImpl_EnumValue(element, constantName, i);
+      var constantRef = containerRef.getChild(name);
+      field.reference = constantRef;
+      constantRef.element = field;
+      fields.add(field);
+      getters.add(
+        PropertyAccessorElementImpl_ImplicitGetter(field,
+            reference: reference.getChild('@getter').getChild(constantName))
+          ..enclosingElement = element,
+      );
+    }
+
+    element.fields = fields;
+    element.accessors = getters;
+    element.createToStringMethodElement();
+
+    return element;
+  }
+
+  void _readEnums(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var count = _reader.readUInt30();
+    unitElement.enums = List.generate(count, (_) {
+      return _readEnumElement(unitElement, unitReference);
+    });
+  }
+
+  ExportElementImpl _readExportElement() {
+    var element = ExportElementImpl(-1);
+    element.uri = _reader.readOptionalStringReference();
+    element.combinators = _reader.readTypedList(_readNamespaceCombinator);
+    return element;
+  }
+
+  ExtensionElementImpl _readExtensionElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readOptionalStringReference();
+    var refName = _reader.readStringReference();
+    var reference = unitReference.getChild('@extension').getChild(refName);
+
+    var element = ExtensionElementImpl(name, -1);
+    element.setLinkedData(
+      reference,
+      ExtensionElementLinkedData(
+        reference: reference,
+        libraryReader: this,
+        unitElement: unitElement,
+        offset: resolutionOffset,
       ),
     );
+
+    element.typeParameters = _readTypeParameters();
+
+    var accessors = <PropertyAccessorElement>[];
+    var fields = <FieldElement>[];
+    _readPropertyAccessors(
+        unitElement, element, reference, accessors, fields, '@field');
+    _readFields(unitElement, element, reference, accessors, fields);
+    element.accessors = accessors;
+    element.fields = fields;
+
+    element.methods = _readMethods(unitElement, element, reference);
+
+    return element;
   }
 
-  @override
-  int getVariableDeclarationCodeLength(VariableDeclaration node) {
-    var variableList = node.parent as VariableDeclarationList;
-    var variables = variableList.variables;
-    for (var i = 0; i < variables.length; i++) {
-      if (identical(variables[i], node)) {
-        return _codeOffsetLengthList![2 * i + 1];
+  void _readExtensions(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var count = _reader.readUInt30();
+    unitElement.extensions = List.generate(count, (_) {
+      return _readExtensionElement(unitElement, unitReference);
+    });
+  }
+
+  FeatureSet _readFeatureSet() {
+    var featureSetEncoded = _reader.readUint8List();
+    return ExperimentStatus.fromStorage(featureSetEncoded);
+  }
+
+  FieldElementImpl _readFieldElement(
+    CompilationUnitElementImpl unitElement,
+    ElementImpl classElement,
+    Reference classReference,
+    Reference containerRef,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readStringReference();
+    var isConstElement = _reader.readBool();
+    var reference = containerRef.getChild(name);
+
+    FieldElementImpl element;
+    if (isConstElement) {
+      element = ConstFieldElementImpl(name, -1);
+    } else {
+      element = FieldElementImpl(name, -1);
+    }
+
+    var linkedData = FieldElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+
+    FieldElementFlags.read(_reader, element);
+    element.typeInferenceError = _readTopLevelInferenceError();
+    element.createImplicitAccessors(classReference, name);
+
+    return element;
+  }
+
+  void _readFields(
+    CompilationUnitElementImpl unitElement,
+    ElementImpl classElement,
+    Reference classReference,
+    List<PropertyAccessorElement> accessors,
+    List<FieldElement> variables,
+  ) {
+    var containerRef = classReference.getChild('@field');
+    var createdElements = <FieldElement>[];
+    var variableElementCount = _reader.readUInt30();
+    for (var i = 0; i < variableElementCount; i++) {
+      var variable = _readFieldElement(
+          unitElement, classElement, classReference, containerRef);
+      createdElements.add(variable);
+      variables.add(variable);
+
+      var getter = variable.getter;
+      if (getter is PropertyAccessorElementImpl) {
+        accessors.add(getter);
+      }
+
+      var setter = variable.setter;
+      if (setter is PropertyAccessorElementImpl) {
+        accessors.add(setter);
       }
     }
-    throw StateError('No |$node| in: $variableList');
   }
 
-  @override
-  int getVariableDeclarationCodeOffset(VariableDeclaration node) {
-    var variableList = node.parent as VariableDeclarationList;
-    var variables = variableList.variables;
-    for (var i = 0; i < variables.length; i++) {
-      if (identical(variables[i], node)) {
-        return _codeOffsetLengthList![2 * i + 0];
+  void _readFunctions(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var count = _reader.readUInt30();
+    unitElement.functions = List.generate(count, (_) {
+      var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+      var name = _reader.readStringReference();
+      var reference = unitReference.getChild('@function').getChild(name);
+
+      var element = FunctionElementImpl(name, -1);
+
+      var linkedData = FunctionElementLinkedData(
+        reference: reference,
+        libraryReader: this,
+        unitElement: unitElement,
+        offset: resolutionOffset,
+      );
+      element.setLinkedData(reference, linkedData);
+
+      FunctionElementFlags.read(_reader, element);
+      element.typeParameters = _readTypeParameters();
+      element.parameters = _readParameters(element, reference);
+
+      return element;
+    });
+  }
+
+  ImportElementImpl _readImportElement() {
+    var element = ImportElementImpl(-1);
+    ImportElementFlags.read(_reader, element);
+    element.uri = _reader.readOptionalStringReference();
+    var prefixName = _reader.readOptionalStringReference();
+    if (prefixName != null) {
+      var reference = _reference.getChild('@prefix').getChild(prefixName);
+      var prefixElement =
+          PrefixElementImpl(prefixName, -1, reference: reference);
+      element.prefix = prefixElement;
+    }
+    element.combinators = _reader.readTypedList(_readNamespaceCombinator);
+    return element;
+  }
+
+  LibraryLanguageVersion _readLanguageVersion() {
+    var packageMajor = _reader.readUInt30();
+    var packageMinor = _reader.readUInt30();
+    var package = Version(packageMajor, packageMinor, 0);
+
+    Version? override;
+    if (_reader.readBool()) {
+      var overrideMajor = _reader.readUInt30();
+      var overrideMinor = _reader.readUInt30();
+      override = Version(overrideMajor, overrideMinor, 0);
+    }
+
+    return LibraryLanguageVersion(package: package, override: override);
+  }
+
+  List<MethodElementImpl> _readMethods(
+    CompilationUnitElementImpl unitElement,
+    ElementImpl enclosingElement,
+    Reference enclosingReference,
+  ) {
+    var containerRef = enclosingReference.getChild('@method');
+    var length = _reader.readUInt30();
+    return List.generate(length, (_) {
+      var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+      var name = _reader.readStringReference();
+      var reference = containerRef.getChild(name);
+      var element = MethodElementImpl(name, -1);
+      var linkedData = MethodElementLinkedData(
+        reference: reference,
+        libraryReader: this,
+        unitElement: unitElement,
+        offset: resolutionOffset,
+      );
+      element.setLinkedData(reference, linkedData);
+      MethodElementFlags.read(_reader, element);
+      element.typeParameters = _readTypeParameters();
+      element.parameters = _readParameters(element, reference);
+      element.typeInferenceError = _readTopLevelInferenceError();
+      return element;
+    });
+  }
+
+  MixinElementImpl _readMixinElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readStringReference();
+    var reference = unitReference.getChild('@mixin').getChild(name);
+
+    var element = MixinElementImpl(name, -1);
+
+    var linkedData = MixinElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+
+    element.typeParameters = _readTypeParameters();
+
+    var accessors = <PropertyAccessorElement>[];
+    var fields = <FieldElement>[];
+    _readPropertyAccessors(
+        unitElement, element, reference, accessors, fields, '@field');
+    _readFields(unitElement, element, reference, accessors, fields);
+    element.accessors = accessors;
+    element.fields = fields;
+
+    element.constructors = _readConstructors(unitElement, element, reference);
+    element.methods = _readMethods(unitElement, element, reference);
+    element.superInvokedNames = _reader.readStringReferenceList();
+
+    return element;
+  }
+
+  void _readMixins(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var length = _reader.readUInt30();
+    unitElement.mixins = List.generate(length, (index) {
+      return _readMixinElement(unitElement, unitReference);
+    });
+  }
+
+  NamespaceCombinator _readNamespaceCombinator() {
+    var tag = _reader.readByte();
+    if (tag == Tag.HideCombinator) {
+      var combinator = HideElementCombinatorImpl();
+      combinator.hiddenNames = _reader.readStringReferenceList();
+      return combinator;
+    } else if (tag == Tag.ShowCombinator) {
+      var combinator = ShowElementCombinatorImpl();
+      combinator.shownNames = _reader.readStringReferenceList();
+      return combinator;
+    } else {
+      throw UnimplementedError('tag: $tag');
+    }
+  }
+
+  List<ParameterElementImpl> _readParameters(
+    ElementImpl enclosingElement,
+    Reference enclosingReference,
+  ) {
+    var containerRef = enclosingReference.getChild('@parameter');
+    var length = _reader.readUInt30();
+    return List.generate(length, (_) {
+      var name = _reader.readStringReference();
+      var isInitializingFormal = _reader.readBool();
+      var reference = containerRef.getChild(name);
+
+      var kindIndex = _reader.readByte();
+      var kind = ResolutionReader._formalParameterKind(kindIndex);
+
+      ParameterElementImpl element;
+      if (kind.isRequiredPositional) {
+        if (isInitializingFormal) {
+          element = FieldFormalParameterElementImpl(name, -1);
+        } else {
+          element = ParameterElementImpl(name, -1);
+        }
+      } else {
+        if (isInitializingFormal) {
+          element = DefaultFieldFormalParameterElementImpl(name, -1);
+        } else {
+          element = DefaultParameterElementImpl(name, -1);
+        }
+        element.reference = reference;
+        reference.element = element;
+      }
+      element.parameterKind = kind;
+      ParameterElementFlags.read(_reader, element);
+      element.typeParameters = _readTypeParameters();
+      element.parameters = _readParameters(element, reference);
+      return element;
+    });
+  }
+
+  PropertyAccessorElementImpl _readPropertyAccessorElement(
+    CompilationUnitElementImpl unitElement,
+    ElementImpl classElement,
+    Reference classReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+
+    var name = _reader.readStringReference();
+
+    var element = PropertyAccessorElementImpl(name, -1);
+    PropertyAccessorElementFlags.read(_reader, element);
+
+    var reference = classReference
+        .getChild(element.isGetter ? '@getter' : '@setter')
+        .getChild(name);
+    var linkedData = PropertyAccessorElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+
+    element.parameters = _readParameters(element, reference);
+    return element;
+  }
+
+  void _readPropertyAccessors(
+    CompilationUnitElementImpl unitElement,
+    ElementImpl enclosingElement,
+    Reference enclosingReference,
+    List<PropertyAccessorElement> accessors,
+    List<PropertyInducingElement> properties,
+    String containerRefName,
+  ) {
+    var containerRef = enclosingReference.getChild(containerRefName);
+
+    var accessorCount = _reader.readUInt30();
+    for (var i = 0; i < accessorCount; i++) {
+      var accessor = _readPropertyAccessorElement(
+        unitElement,
+        enclosingElement,
+        enclosingReference,
+      );
+      accessors.add(accessor);
+
+      var name = accessor.displayName;
+      var isGetter = accessor.isGetter;
+
+      var reference = containerRef.getChild(name);
+
+      PropertyInducingElementImpl property;
+      if (enclosingElement is CompilationUnitElementImpl) {
+        var existing = reference.element;
+        if (existing is TopLevelVariableElementImpl) {
+          property = existing;
+        } else {
+          var field = TopLevelVariableElementImpl(name, -1);
+          property = field;
+        }
+      } else {
+        var existing = reference.element;
+        if (existing is FieldElementImpl) {
+          property = existing;
+        } else {
+          var field = FieldElementImpl(name, -1);
+          field.isStatic = accessor.isStatic;
+          property = field;
+        }
+      }
+
+      if (reference.element == null) {
+        reference.element = property;
+        properties.add(property);
+
+        property.enclosingElement = enclosingElement;
+        property.isSynthetic = true;
+      }
+
+      accessor.variable = property;
+      if (isGetter) {
+        property.getter = accessor;
+      } else {
+        property.setter = accessor;
+        if (property.isSynthetic) {
+          property.isFinal = false;
+        }
       }
     }
-    throw StateError('No |$node| in: $variableList');
   }
 
+  TopLevelInferenceError? _readTopLevelInferenceError() {
+    var kindIndex = _reader.readByte();
+    var kind = TopLevelInferenceErrorKind.values[kindIndex];
+    if (kind == TopLevelInferenceErrorKind.none) {
+      return null;
+    }
+    return TopLevelInferenceError(
+      kind: kind,
+      arguments: _reader.readStringReferenceList(),
+    );
+  }
+
+  TopLevelVariableElementImpl _readTopLevelVariableElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readStringReference();
+    var isConst = _reader.readBool();
+    var reference = unitReference.getChild('@variable').getChild(name);
+
+    TopLevelVariableElementImpl element;
+    if (isConst) {
+      element = ConstTopLevelVariableElementImpl(name, -1);
+    } else {
+      element = TopLevelVariableElementImpl(name, -1);
+    }
+
+    var linkedData = TopLevelVariableElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+
+    element.isConst = isConst;
+    TopLevelVariableElementFlags.read(_reader, element);
+    element.typeInferenceError = _readTopLevelInferenceError();
+    element.createImplicitAccessors(unitReference, name);
+
+    return element;
+  }
+
+  void _readTopLevelVariables(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+    List<PropertyAccessorElementImpl> accessors,
+    List<TopLevelVariableElementImpl> variables,
+  ) {
+    var variableElementCount = _reader.readUInt30();
+    for (var i = 0; i < variableElementCount; i++) {
+      var variable = _readTopLevelVariableElement(unitElement, unitReference);
+      variables.add(variable);
+
+      var getter = variable.getter;
+      if (getter is PropertyAccessorElementImpl) {
+        accessors.add(getter);
+      }
+
+      var setter = variable.setter;
+      if (setter is PropertyAccessorElementImpl) {
+        accessors.add(setter);
+      }
+    }
+  }
+
+  TypeAliasElementImpl _readTypeAliasElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readStringReference();
+    var reference = unitReference.getChild('@typeAlias').getChild(name);
+
+    var isFunctionTypeAliasBased = _reader.readBool();
+
+    TypeAliasElementImpl element;
+    if (isFunctionTypeAliasBased) {
+      element =
+          // ignore: deprecated_member_use_from_same_package
+          FunctionTypeAliasElementImpl(name, -1);
+    } else {
+      element = TypeAliasElementImpl(name, -1);
+    }
+
+    var linkedData = TypeAliasElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+
+    element.isFunctionTypeAliasBased = isFunctionTypeAliasBased;
+    TypeAliasElementFlags.read(_reader, element);
+
+    element.typeParameters = _readTypeParameters();
+
+    return element;
+  }
+
+  void _readTypeAliases(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var length = _reader.readUInt30();
+    unitElement.typeAliases = List.generate(length, (_) {
+      return _readTypeAliasElement(unitElement, unitReference);
+    });
+  }
+
+  List<TypeParameterElementImpl> _readTypeParameters() {
+    var length = _reader.readUInt30();
+    return List.generate(length, (_) {
+      var name = _reader.readStringReference();
+      var varianceEncoding = _reader.readByte();
+      var variance = _decodeVariance(varianceEncoding);
+      var element = TypeParameterElementImpl(name, -1);
+      element.variance = variance;
+      return element;
+    });
+  }
+
+  CompilationUnitElementImpl _readUnitElement({
+    required SourceFactory sourceFactory,
+    required Reference unitContainerRef,
+    required LibraryElementImpl libraryElement,
+    required Source librarySource,
+  }) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var unitUriStr = _reader.readStringReference();
+    var unitUri = Uri.parse(unitUriStr);
+    var unitSource = sourceFactory.forUri2(unitUri)!;
+
+    var unitElement = CompilationUnitElementImpl();
+    unitElement.source = unitSource;
+    unitElement.librarySource = librarySource;
+
+    var unitReference = unitContainerRef.getChild(unitUriStr);
+    unitElement.setLinkedData(
+      unitReference,
+      CompilationUnitElementLinkedData(
+        reference: unitReference,
+        libraryReader: this,
+        unitElement: unitElement,
+        offset: resolutionOffset,
+      ),
+    );
+
+    unitElement.uri = _reader.readOptionalStringReference();
+    unitElement.isSynthetic = _reader.readBool();
+
+    _readClasses(unitElement, unitReference);
+    _readEnums(unitElement, unitReference);
+    _readExtensions(unitElement, unitReference);
+    _readFunctions(unitElement, unitReference);
+    _readMixins(unitElement, unitReference);
+    _readTypeAliases(unitElement, unitReference);
+
+    var accessors = <PropertyAccessorElementImpl>[];
+    var variables = <TopLevelVariableElementImpl>[];
+    _readTopLevelVariables(unitElement, unitReference, accessors, variables);
+    _readPropertyAccessors(unitElement, unitElement, unitReference, accessors,
+        variables, '@variable');
+    unitElement.accessors = accessors;
+    unitElement.topLevelVariables = variables;
+    return unitElement;
+  }
+
+  static Variance? _decodeVariance(int index) {
+    var tag = TypeParameterVarianceTag.values[index];
+    switch (tag) {
+      case TypeParameterVarianceTag.legacy:
+        return null;
+      case TypeParameterVarianceTag.unrelated:
+        return Variance.unrelated;
+      case TypeParameterVarianceTag.covariant:
+        return Variance.covariant;
+      case TypeParameterVarianceTag.contravariant:
+        return Variance.contravariant;
+      case TypeParameterVarianceTag.invariant:
+        return Variance.invariant;
+    }
+  }
+}
+
+class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  MethodElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
   @override
-  void readDocumentationComment() {
-    if (_hasDocumentationComment) {
-      return;
-    }
-    _hasDocumentationComment = true;
+  void _read(element, reader) {
+    _addEnclosingElementTypeParameters(reader, element);
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    _readFormalParameters(reader, element.parameters);
+    element.returnType = reader.readRequiredType();
+    applyConstantOffsets?.perform();
+  }
+}
 
-    if (_documentationTokenIndexList.isEmpty) {
-      return;
-    }
+class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
 
-    var tokens = <Token>[];
-    for (var lexemeIndex in _documentationTokenIndexList) {
-      var lexeme = _unitReader.astReader.stringOfIndex(lexemeIndex);
-      var token = TokenFactory.tokenFromString(lexeme);
-      tokens.add(token);
-    }
+  MixinElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
 
-    var comment = astFactory.documentationComment(tokens);
-    (_node as AnnotatedNodeImpl).documentationComment = comment;
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: element.enclosingElement,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    element.superclassConstraints = reader._readInterfaceTypeList();
+    element.interfaces = reader._readInterfaceTypeList();
+    applyConstantOffsets?.perform();
+  }
+}
+
+class PropertyAccessorElementLinkedData
+    extends ElementLinkedData<PropertyAccessorElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  PropertyAccessorElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    _addEnclosingElementTypeParameters(reader, element);
+
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+
+    element.returnType = reader.readRequiredType();
+    _readFormalParameters(reader, element.parameters);
+
+    applyConstantOffsets?.perform();
   }
 }
 
 /// Helper for reading elements and types from their binary encoding.
-class LinkedResolutionReader {
-  final UnitReader _unitReader;
+class ResolutionReader {
+  final LinkedElementFactory _elementFactory;
+  final _ReferenceReader _referenceReader;
+  final SummaryDataReader _reader;
 
   /// The stack of [TypeParameterElement]s and [ParameterElement] that are
-  /// available in the scope of [nextElement] and [nextType].
+  /// available in the scope of [readElement] and [readType].
   ///
   /// This stack is shared with the client of the reader, and update mostly
   /// by the client. However it is also updated during [_readFunctionType].
-  final List<Element> _localElements;
+  final List<Element> _localElements = [];
 
-  /// The offset in [_Reader.bytes] from which we read resolution now.
-  int _byteOffset = 0;
-
-  LinkedResolutionReader(
-    this._unitReader,
-    this._localElements,
-    this._byteOffset,
+  ResolutionReader(
+    this._elementFactory,
+    this._referenceReader,
+    this._reader,
   );
 
-  /// TODO(scheglov) Remove after fixing http://dartbug.com/44449
-  int get byteOffset => _byteOffset;
+  int readByte() {
+    return _reader.readByte();
+  }
 
-  /// TODO(scheglov) Remove after fixing http://dartbug.com/44449
-  Uint8List get bytes => _unitReader._resolutionReader.bytes;
+  double readDouble() {
+    return _reader.readDouble();
+  }
 
-  Element? nextElement() {
-    var memberFlags = readByte();
+  Element? readElement() {
+    var memberFlags = _reader.readByte();
     var element = _readRawElement();
 
     if (element == null) {
@@ -614,13 +1371,26 @@ class LinkedResolutionReader {
     throw UnimplementedError('memberFlags: $memberFlags');
   }
 
-  String nextString() {
-    var index = _readUInt30();
-    return _unitReader._resolutionReader.stringOfIndex(index);
+  List<DartType>? readOptionalTypeList() {
+    if (_reader.readBool()) {
+      return _readTypeList();
+    }
   }
 
-  DartType? nextType() {
-    var tag = readByte();
+  DartType readRequiredType() {
+    return readType()!;
+  }
+
+  String readStringReference() {
+    return _reader.readStringReference();
+  }
+
+  List<String> readStringReferenceList() {
+    return _reader.readStringReferenceList();
+  }
+
+  DartType? readType() {
+    var tag = _reader.readByte();
     if (tag == Tag.NullType) {
       return null;
     } else if (tag == Tag.DynamicType) {
@@ -630,7 +1400,7 @@ class LinkedResolutionReader {
       var type = _readFunctionType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
-      var element = nextElement() as ClassElement;
+      var element = readElement() as ClassElement;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = InterfaceTypeImpl(
@@ -640,7 +1410,7 @@ class LinkedResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = nextElement() as ClassElement;
+      var element = readElement() as ClassElement;
       var type = InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
@@ -648,7 +1418,7 @@ class LinkedResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = nextElement() as ClassElement;
+      var element = readElement() as ClassElement;
       var type = InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
@@ -656,7 +1426,7 @@ class LinkedResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
-      var element = nextElement() as ClassElement;
+      var element = readElement() as ClassElement;
       var type = InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
@@ -668,7 +1438,7 @@ class LinkedResolutionReader {
       var type = NeverTypeImpl.instance.withNullability(nullability);
       return _readAliasElementArguments(type);
     } else if (tag == Tag.TypeParameterType) {
-      var element = nextElement() as TypeParameterElement;
+      var element = readElement() as TypeParameterElement;
       var nullability = _readNullability();
       var type = TypeParameterTypeImpl(
         element: element,
@@ -683,34 +1453,50 @@ class LinkedResolutionReader {
     }
   }
 
-  int readByte() {
-    return _unitReader._resolutionReader.bytes[_byteOffset++];
-  }
-
-  List<String> readStringList() {
-    var values = <String>[];
-    var length = _readUInt30();
-    for (var i = 0; i < length; i++) {
-      var value = _readStringReference();
-      values.add(value);
-    }
-    return values;
+  List<T> readTypedList<T>(T Function() read) {
+    var length = readUInt30();
+    return List<T>.generate(length, (_) {
+      return read();
+    });
   }
 
   int readUInt30() {
-    var byte = readByte();
-    if (byte & 0x80 == 0) {
-      // 0xxxxxxx
-      return byte;
-    } else if (byte & 0x40 == 0) {
-      // 10xxxxxx
-      return ((byte & 0x3F) << 8) | readByte();
+    return _reader.readUInt30();
+  }
+
+  int readUInt32() {
+    return _reader.readUInt32();
+  }
+
+  void _addFormalParameters(List<ParameterElement> parameters) {
+    for (var parameter in parameters) {
+      _localElements.add(parameter);
+    }
+  }
+
+  void _addTypeParameters(List<TypeParameterElement> typeParameters) {
+    for (var typeParameter in typeParameters) {
+      _localElements.add(typeParameter);
+    }
+  }
+
+  ElementImpl? _readAliasedElement(CompilationUnitElementImpl unitElement) {
+    var tag = _reader.readByte();
+    if (tag == AliasedElementTag.nothing) {
+      return null;
+    } else if (tag == AliasedElementTag.genericFunctionElement) {
+      var typeParameters = _readTypeParameters(unitElement);
+      var formalParameters = _readFormalParameters(unitElement);
+      var returnType = readRequiredType();
+
+      _localElements.length -= typeParameters.length;
+
+      return GenericFunctionTypeElementImpl.forOffset(-1)
+        ..typeParameters = typeParameters
+        ..parameters = formalParameters
+        ..returnType = returnType;
     } else {
-      // 11xxxxxx
-      return ((byte & 0x3F) << 24) |
-          (readByte() << 16) |
-          (readByte() << 8) |
-          readByte();
+      throw UnimplementedError('tag: $tag');
     }
   }
 
@@ -755,42 +1541,80 @@ class LinkedResolutionReader {
     return type;
   }
 
+  List<ElementAnnotationImpl> _readAnnotationList({
+    required CompilationUnitElementImpl unitElement,
+  }) {
+    var length = _reader.readUInt30();
+    if (length == 0) {
+      return const <ElementAnnotationImpl>[];
+    }
+    return List.generate(length, (_) {
+      var ast = _readRequiredNode() as Annotation;
+      return ElementAnnotationImpl(unitElement)
+        ..annotationAst = ast
+        ..element = ast.element;
+    });
+  }
+
+  List<ParameterElementImpl> _readFormalParameters(
+    CompilationUnitElementImpl? unitElement,
+  ) {
+    var formalParameterCount = _reader.readUInt30();
+    return List.generate(formalParameterCount, (_) {
+      var kindIndex = _reader.readByte();
+      var kind = _formalParameterKind(kindIndex);
+      var hasImplicitType = _reader.readBool();
+      var isInitializingFormal = _reader.readBool();
+      var typeParameters = _readTypeParameters(unitElement);
+      var type = readRequiredType();
+      var name = readStringReference();
+      if (kind.isRequiredPositional) {
+        ParameterElementImpl element;
+        if (isInitializingFormal) {
+          element = FieldFormalParameterElementImpl(name, -1)
+            ..parameterKind = kind
+            ..type = type;
+        } else {
+          element = ParameterElementImpl(name, -1)
+            ..parameterKind = kind
+            ..type = type;
+        }
+        element.hasImplicitType = hasImplicitType;
+        element.typeParameters = typeParameters;
+        element.parameters = _readFormalParameters(unitElement);
+        // TODO(scheglov) reuse for formal parameters
+        _localElements.length -= typeParameters.length;
+        if (unitElement != null) {
+          element.metadata = _readAnnotationList(unitElement: unitElement);
+        }
+        return element;
+      } else {
+        var element = DefaultParameterElementImpl(name, -1)
+          ..parameterKind = kind
+          ..type = type;
+        element.hasImplicitType = hasImplicitType;
+        element.typeParameters = typeParameters;
+        element.parameters = _readFormalParameters(unitElement);
+        // TODO(scheglov) reuse for formal parameters
+        _localElements.length -= typeParameters.length;
+        if (unitElement != null) {
+          element.metadata = _readAnnotationList(unitElement: unitElement);
+        }
+        return element;
+      }
+    });
+  }
+
   /// TODO(scheglov) Optimize for write/read of types without type parameters.
   FunctionType _readFunctionType() {
-    var typeParameters = <TypeParameterElement>[];
-    var typeParametersLength = _readUInt30();
-    for (var i = 0; i < typeParametersLength; i++) {
-      var name = _readStringReference();
-      var element = TypeParameterElementImpl.synthetic(name);
-      typeParameters.add(element);
-      _localElements.add(element);
-    }
-    for (var i = 0; i < typeParametersLength; i++) {
-      var element = typeParameters[i] as TypeParameterElementImpl;
-      var bound = nextType();
-      element.bound = bound;
-    }
-
-    var returnType = nextType()!;
-
-    var formalParameters = <ParameterElement>[];
-    var formalParametersLength = _readUInt30();
-    for (var i = 0; i < formalParametersLength; i++) {
-      var kindIndex = readByte();
-      var type = nextType()!;
-      var name = nextString();
-      formalParameters.add(
-        ParameterElementImpl.synthetic(
-          name,
-          type,
-          _formalParameterKind(kindIndex),
-        ),
-      );
-    }
+    // TODO(scheglov) reuse for formal parameters
+    var typeParameters = _readTypeParameters(null);
+    var returnType = readRequiredType();
+    var formalParameters = _readFormalParameters(null);
 
     var nullability = _readNullability();
 
-    _localElements.length -= typeParametersLength;
+    _localElements.length -= typeParameters.length;
 
     return FunctionTypeImpl(
       typeFormals: typeParameters,
@@ -800,56 +1624,97 @@ class LinkedResolutionReader {
     );
   }
 
+  InterfaceType _readInterfaceType() {
+    var element = _readRawElement() as ClassElement;
+    var typeArguments = _readTypeList();
+    var nullability = _readNullability();
+    var type = InterfaceTypeImpl(
+      element: element,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullability,
+    );
+    return type;
+  }
+
+  List<InterfaceType> _readInterfaceTypeList() {
+    var length = _reader.readUInt30();
+    if (length == 0) {
+      return const <InterfaceType>[];
+    }
+    return List.generate(length, (_) => _readInterfaceType());
+  }
+
+  List<T> _readNodeList<T>() {
+    var length = _reader.readUInt30();
+    return List<T>.generate(length, (_) {
+      return _readRequiredNode() as T;
+    });
+  }
+
   NullabilitySuffix _readNullability() {
-    var index = readByte();
+    var index = _reader.readByte();
     return NullabilitySuffix.values[index];
   }
 
+  ExpressionImpl? _readOptionalExpression() {
+    if (_reader.readBool()) {
+      return _readRequiredNode() as ExpressionImpl;
+    }
+  }
+
+  InterfaceType? _readOptionalInterfaceType() {
+    var hasSuperType = _reader.readByte() != 0;
+    if (hasSuperType) {
+      return _readInterfaceType();
+    }
+  }
+
   Element? _readRawElement() {
-    var index = _readUInt30();
+    var index = _reader.readUInt30();
 
     if ((index & 0x1) == 0x1) {
       return _localElements[index >> 1];
     }
 
     var referenceIndex = index >> 1;
-    var referenceReader = _unitReader._referenceReader;
-    var reference = referenceReader.referenceOfIndex(referenceIndex);
+    var reference = _referenceReader.referenceOfIndex(referenceIndex);
 
-    var elementFactory = _unitReader.elementFactory;
-    return elementFactory.elementOfReference(reference);
+    return _elementFactory.elementOfReference(reference);
   }
 
-  String _readStringReference() {
-    var index = _readUInt30();
-    return _unitReader._resolutionReader.stringOfIndex(index);
+  AstNode _readRequiredNode() {
+    var astReader = AstBinaryReader(reader: this);
+    return astReader.readNode();
   }
 
   List<DartType> _readTypeList() {
     var types = <DartType>[];
-    var length = _readUInt30();
+    var length = _reader.readUInt30();
     for (var i = 0; i < length; i++) {
-      var argument = nextType()!;
+      var argument = readType()!;
       types.add(argument);
     }
     return types;
   }
 
-  int _readUInt30() {
-    var byte = readByte();
-    if (byte & 0x80 == 0) {
-      // 0xxxxxxx
-      return byte;
-    } else if (byte & 0x40 == 0) {
-      // 10xxxxxx
-      return ((byte & 0x3F) << 8) | readByte();
-    } else {
-      // 11xxxxxx
-      return ((byte & 0x3F) << 24) |
-          (readByte() << 16) |
-          (readByte() << 8) |
-          readByte();
+  List<TypeParameterElementImpl> _readTypeParameters(
+    CompilationUnitElementImpl? unitElement,
+  ) {
+    var typeParameterCount = _reader.readUInt30();
+    var typeParameters = List.generate(typeParameterCount, (_) {
+      var name = readStringReference();
+      var typeParameter = TypeParameterElementImpl(name, -1);
+      _localElements.add(typeParameter);
+      return typeParameter;
+    });
+
+    for (var typeParameter in typeParameters) {
+      typeParameter.bound = readType();
+      if (unitElement != null) {
+        typeParameter.metadata = _readAnnotationList(unitElement: unitElement);
+      }
     }
+    return typeParameters;
   }
 
   static ParameterKind _formalParameterKind(int encoding) {
@@ -867,480 +1732,74 @@ class LinkedResolutionReader {
   }
 }
 
-class SummaryDataForCompilationUnit {
-  final int codeLength;
+class TopLevelVariableElementLinkedData
+    extends ElementLinkedData<TopLevelVariableElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
 
-  SummaryDataForCompilationUnit(this.codeLength);
-}
-
-class SummaryDataForFormalParameter {
-  final int codeOffset;
-  final int codeLength;
-
-  SummaryDataForFormalParameter({
-    required this.codeOffset,
-    required this.codeLength,
-  });
-}
-
-class SummaryDataForLibraryDirective {
-  final UnitReader _unitReader;
-  final LibraryDirectiveImpl _node;
-  final Uint32List _documentationTokenIndexList;
-  bool _hasDocumentationComment = false;
-
-  SummaryDataForLibraryDirective(
-    this._unitReader,
-    this._node, {
-    required Uint32List documentationTokenIndexList,
-  }) : _documentationTokenIndexList = documentationTokenIndexList {
-    _node.summaryData = this;
-  }
-
-  void readDocumentationComment() {
-    if (_hasDocumentationComment) {
-      return;
-    }
-    _hasDocumentationComment = true;
-
-    if (_documentationTokenIndexList.isEmpty) {
-      return;
-    }
-
-    var tokens = <Token>[];
-    for (var lexemeIndex in _documentationTokenIndexList) {
-      var lexeme = _unitReader.astReader.stringOfIndex(lexemeIndex);
-      var token = TokenFactory.tokenFromString(lexeme);
-      tokens.add(token);
-    }
-
-    var comment = astFactory.documentationComment(tokens);
-    _node.documentationComment = comment;
-  }
-}
-
-class SummaryDataForTypeParameter {
-  final int codeOffset;
-  final int codeLength;
-
-  SummaryDataForTypeParameter({
-    required this.codeOffset,
-    required this.codeLength,
-  });
-}
-
-class UnitReader implements ReferenceNodeAccessor {
-  final LibraryReader libraryReader;
-
-  final Reference reference;
-
-  final bool isSynthetic;
-
-  /// If a part, the URI that is used in the [PartDirective].
-  /// Or `null` for the defining unit.
-  final String? partUriStr;
-
-  final int _directivesResolutionOffset;
-  bool _isDirectivesResolutionApplied = false;
-
-  final Uint32List _resolutionDeclarationsOffset;
-
-  final SummaryDataReader astReader;
-
-  late final int _directivesOffset;
-  final List<_UnitMemberReader> _memberReaders = [];
-
-  late final CompilationUnitImpl _unit;
-  bool _hasDirectives = false;
-  bool _hasDeclarations = false;
-
-  UnitReader._(
-    this.libraryReader,
-    this._directivesResolutionOffset,
-    this._resolutionDeclarationsOffset,
-    this.reference,
-    this.isSynthetic,
-    this.partUriStr,
-    this.astReader,
-    int headerOffset,
-    int indexOffset,
-  ) {
-    reference.nodeAccessor = this;
-
-    astReader.offset = headerOffset;
-    var languageVersion = _readLanguageVersion();
-    var featureSetEncoded = astReader.readUint8List();
-    var lineInfo = _readLineInfo();
-    var codeLength = astReader.readUInt30();
-    var featureSet = ExperimentStatus.fromStorage(featureSetEncoded);
-    _directivesOffset = astReader.offset;
-
-    _unit = astFactory.compilationUnit(
-      beginToken: Tokens.BANG,
-      // TODO(scheglov)
-      // scriptTag: _readNode(data.compilationUnit_scriptTag),
-      directives: [],
-      declarations: [],
-      endToken: Tokens.BANG,
-      featureSet: featureSet,
-    );
-    _unit.languageVersion = languageVersion;
-    _unit.lineInfo = lineInfo;
-    _unit.summaryData = SummaryDataForCompilationUnit(codeLength);
-
-    astReader.offset = indexOffset;
-    _readIndex2();
-  }
-
-  LinkedElementFactory get elementFactory => libraryReader._elementFactory;
-
-  /// TODO(scheglov)
-  /// This methods breaks lazy loading, and loads everything eagerly.
-  /// We use it because of `unitElement.types` for example, when we are
-  /// explicitly asked for all [ClassDeclaration]s and [ClassTypeAlias]s.
-  @Deprecated('review it')
-  @override
-  CompilationUnit get node {
-    readDirectives();
-    readDeclarations();
-    return _unit;
-  }
-
-  CompilationUnit get unit => _unit;
-
-  String get uriStr => reference.name;
-
-  bool get withInformative => libraryReader.withInformative;
-
-  _ReferenceReader get _referenceReader => libraryReader._referenceReader;
-
-  SummaryDataReader get _resolutionReader => libraryReader._resolutionReader;
-
-  /// Apply resolution to directives.
-  void applyDirectivesResolution(LinkedUnitContext unitContext) {
-    if (_isDirectivesResolutionApplied) {
-      return;
-    }
-    _isDirectivesResolutionApplied = true;
-
-    var localElements = <Element>[];
-    var resolutionReader = LinkedResolutionReader(
-      this,
-      localElements,
-      _directivesResolutionOffset,
-    );
-    for (var directive in _unit.directives) {
-      directive.accept(
-        ApplyResolutionVisitor(
-          unitContext,
-          localElements,
-          resolutionReader,
-        ),
-      );
-    }
-  }
-
-  void readDeclarations() {
-    if (!_hasDeclarations) {
-      _hasDeclarations = true;
-      for (var reader in _memberReaders) {
-        reader.node;
-      }
-    }
-  }
-
-  /// Ensure that directives are read in this unit.
-  void readDirectives() {
-    if (!_hasDirectives) {
-      _hasDirectives = true;
-      astReader.offset = _directivesOffset;
-      var length = astReader.readUInt30();
-      for (var i = 0; i < length; i++) {
-        var astReader = AstBinaryReader(
-          reader: this,
-        );
-        var directive = astReader.readNode() as Directive;
-        _unit.directives.add(directive);
-      }
-    }
-  }
-
-  @override
-  void readIndex() {}
-
-  /// Read the index of declarations in this unit, and add `null`s into
-  /// [CompilationUnit.declarations] as placeholders.
-  ///
-  /// TODO(scheglov) we don't need both this method, and [readIndex].
-  void _readIndex2() {
-    var unitReference = reference;
-    var length = astReader.readUInt30();
-    for (var i = 0; i < length; i++) {
-      var offset = astReader.readUInt30();
-      var tag = astReader.readByte();
-      if (tag == Tag.Class) {
-        var name = astReader.readStringReference();
-        var indexOffset = astReader.readUInt30();
-        var reference = unitReference.getChild('@class').getChild(name);
-        _memberReaders.add(
-          _ClassReader(
-            unitReader: this,
-            reference: reference,
-            offset: offset,
-            unit: _unit,
-            indexOffset: indexOffset,
-          ),
-        );
-      } else if (tag == Tag.ClassTypeAlias) {
-        var name = astReader.readStringReference();
-        var reader = _UnitMemberReader(this, offset, _unit);
-        _memberReaders.add(reader);
-        unitReference.getChild('@class').getChild(name).nodeAccessor = reader;
-      } else if (tag == Tag.EnumDeclaration) {
-        var name = astReader.readStringReference();
-        var reader = _UnitMemberReader(this, offset, _unit);
-        _memberReaders.add(reader);
-        unitReference.getChild('@enum').getChild(name).nodeAccessor = reader;
-      } else if (tag == Tag.ExtensionDeclaration) {
-        var name = astReader.readStringReference();
-        var indexOffset = astReader.readUInt30();
-        var reference = unitReference.getChild('@extension').getChild(name);
-        _memberReaders.add(
-          _ClassReader(
-            unitReader: this,
-            reference: reference,
-            offset: offset,
-            unit: _unit,
-            indexOffset: indexOffset,
-          ),
-        );
-      } else if (tag == Tag.FunctionDeclaration) {
-        var name = astReader.readStringReference();
-        var reader = _UnitMemberReader(this, offset, _unit);
-        _memberReaders.add(reader);
-        var containerRef = unitReference.getChild('@function');
-        containerRef.getChild(name).nodeAccessor = reader;
-      } else if (tag == Tag.FunctionDeclaration_getter) {
-        var name = astReader.readStringReference();
-        var reader = _UnitMemberReader(this, offset, _unit);
-        _memberReaders.add(reader);
-        var getterRef = unitReference.getChild('@getter');
-        getterRef.getChild(name).nodeAccessor = reader;
-        var variableRef = unitReference.getChild('@variable');
-        variableRef.getChild(name).nodeAccessor ??= reader;
-      } else if (tag == Tag.FunctionDeclaration_setter) {
-        var name = astReader.readStringReference();
-        var reader = _UnitMemberReader(this, offset, _unit);
-        _memberReaders.add(reader);
-        var setterRef = unitReference.getChild('@setter');
-        setterRef.getChild(name).nodeAccessor = reader;
-        var variableRef = unitReference.getChild('@variable');
-        variableRef.getChild(name).nodeAccessor ??= reader;
-      } else if (tag == Tag.GenericTypeAlias) {
-        var name = astReader.readStringReference();
-        var reader = _UnitMemberReader(this, offset, _unit);
-        _memberReaders.add(reader);
-        unitReference.getChild('@typeAlias').getChild(name).nodeAccessor =
-            reader;
-      } else if (tag == Tag.FunctionTypeAlias) {
-        var name = astReader.readStringReference();
-        var reader = _UnitMemberReader(this, offset, _unit);
-        _memberReaders.add(reader);
-        unitReference.getChild('@typeAlias').getChild(name).nodeAccessor =
-            reader;
-      } else if (tag == Tag.MixinDeclaration) {
-        var name = astReader.readStringReference();
-        var indexOffset = astReader.readUInt30();
-        var reference = unitReference.getChild('@mixin').getChild(name);
-        _memberReaders.add(
-          _ClassReader(
-            unitReader: this,
-            reference: reference,
-            offset: offset,
-            unit: _unit,
-            indexOffset: indexOffset,
-          ),
-        );
-      } else if (tag == Tag.TopLevelVariableDeclaration) {
-        var reader = _UnitMemberReader(this, offset, _unit);
-        var length = astReader.readUInt30();
-        for (var i = 0; i < length; i++) {
-          var name = astReader.readStringReference();
-          _memberReaders.add(reader);
-          unitReference.getChild('@getter').getChild(name).nodeAccessor =
-              reader;
-          // TODO(scheglov) only if not final/const
-          // Crash in language_2/export/local_export_test.dart
-          unitReference.getChild('@setter').getChild(name).nodeAccessor =
-              reader;
-        }
-      } else {
-        // TODO(scheglov) implement
-      }
-    }
-  }
-
-  LibraryLanguageVersion _readLanguageVersion() {
-    var packageMajor = astReader.readUInt30();
-    var packageMinor = astReader.readUInt30();
-    var overrideMajor = astReader.readUInt30();
-    var overrideMinor = astReader.readUInt30();
-    return LibraryLanguageVersion(
-      package: Version(packageMajor, packageMinor, 0),
-      override: overrideMajor > 0
-          ? Version(overrideMajor - 1, overrideMinor - 1, 0)
-          : null,
-    );
-  }
-
-  LineInfo _readLineInfo() {
-    var lineStarts = astReader.readUint30List();
-    return LineInfo(lineStarts);
-  }
-}
-
-class _ClassMemberMock extends AstNodeImpl implements ClassMemberImpl {
-  static final instance = _ClassMemberMock();
-
-  @override
-  AstNode? parent;
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _ClassMemberReader implements ReferenceNodeAccessor {
-  final UnitReader unitReader;
-  final int offset;
-  final List<ClassMember> _members;
-  final int _membersIndex;
-  ClassMemberImpl? _node;
-
-  _ClassMemberReader(this.unitReader, this.offset, this._members)
-      : _membersIndex = _members.length {
-    _members.add(_ClassMemberMock.instance);
-  }
-
-  @override
-  AstNode get node {
-    if (_node == null) {
-      var astReader = AstBinaryReader(
-        reader: unitReader,
-      );
-      unitReader.astReader.offset = offset;
-      _node = astReader.readNode() as ClassMemberImpl;
-      _members[_membersIndex] = _node!;
-    }
-    return _node!;
-  }
-
-  @override
-  void readIndex() {}
-}
-
-class _ClassReader extends _UnitMemberReader {
-  final Reference reference;
-  final int indexOffset;
-
-  bool _hasIndex = false;
-  final List<_ClassMemberReader> _classMemberReaders = [];
-  late final List<ClassMember> _classMembers;
-
-  _ClassReader({
-    required this.reference,
-    required UnitReader unitReader,
+  TopLevelVariableElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
     required int offset,
-    required CompilationUnitImpl unit,
-    required this.indexOffset,
-  }) : super(unitReader, offset, unit) {
-    reference.nodeAccessor ??= this;
-  }
-
-  List<_ClassMemberReader> get classMemberReaders {
-    readIndex();
-    return _classMemberReaders;
-  }
-
-  List<ClassMember> get classMembers {
-    return classMemberReaders.map((e) => e.node as ClassMember).toList();
-  }
+  }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void readIndex() {
-    if (_hasIndex) return;
-    _hasIndex = true;
-
-    var node = _node;
-    if (node == null) {
-      throw StateError('The class node must be read before reading members.');
-    }
-
-    if (node is ClassDeclarationImpl) {
-      _classMembers = node.members;
-    } else if (node is ExtensionDeclarationImpl) {
-      _classMembers = node.members;
-    } else if (node is MixinDeclarationImpl) {
-      _classMembers = node.members;
-    } else {
-      throw StateError('(${node.runtimeType}) $node');
-    }
-
-    unitReader.astReader.offset = indexOffset;
-
-    var length = unitReader.astReader.readUInt30();
-    for (var i = 0; i < length; i++) {
-      var offset = unitReader.astReader.readUInt30();
-      var tag = unitReader.astReader.readByte();
-      if (tag == Tag.ConstructorDeclaration) {
-        var reader = _ClassMemberReader(unitReader, offset, _classMembers);
-        _classMemberReaders.add(reader);
-        var name = unitReader.astReader.readStringReference();
-        var reference = this.reference.getChild('@constructor').getChild(name);
-        reference.nodeAccessor ??= reader;
-      } else if (tag == Tag.MethodDeclaration) {
-        var reader = _ClassMemberReader(unitReader, offset, _classMembers);
-        _classMemberReaders.add(reader);
-        var name = unitReader.astReader.readStringReference();
-        var reference = this.reference.getChild('@method').getChild(name);
-        reference.nodeAccessor ??= reader;
-      } else if (tag == Tag.MethodDeclaration_getter) {
-        var reader = _ClassMemberReader(unitReader, offset, _classMembers);
-        _classMemberReaders.add(reader);
-        var name = unitReader.astReader.readStringReference();
-        var reference = this.reference.getChild('@getter').getChild(name);
-        reference.nodeAccessor ??= reader;
-      } else if (tag == Tag.MethodDeclaration_setter) {
-        var reader = _ClassMemberReader(unitReader, offset, _classMembers);
-        _classMemberReaders.add(reader);
-        var name = unitReader.astReader.readStringReference();
-        var reference = this.reference.getChild('@setter').getChild(name);
-        reference.nodeAccessor ??= reader;
-      } else if (tag == Tag.FieldDeclaration) {
-        var reader = _ClassMemberReader(unitReader, offset, _classMembers);
-        _classMemberReaders.add(reader);
-        var length = unitReader.astReader.readUInt30();
-        for (var i = 0; i < length; i++) {
-          var name = unitReader.astReader.readStringReference();
-          var fieldRef = reference.getChild('@field').getChild(name);
-          fieldRef.nodeAccessor ??= reader;
-          var getterRef = reference.getChild('@getter').getChild(name);
-          getterRef.nodeAccessor ??= reader;
-          var setterRef = reference.getChild('@setter').getChild(name);
-          setterRef.nodeAccessor ??= reader;
-        }
-      } else {
-        throw UnimplementedError('tag: $tag');
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+    element.type = reader.readRequiredType();
+    if (element is ConstTopLevelVariableElementImpl) {
+      var initializer = reader._readOptionalExpression();
+      if (initializer != null) {
+        element.constantInitializer = initializer;
+        ConstantContextForExpressionImpl(initializer);
       }
     }
+    applyConstantOffsets?.perform();
   }
 }
 
-class _CompilationUnitMemberMock extends AstNodeImpl
-    implements CompilationUnitMemberImpl {
-  static final instance = _CompilationUnitMemberMock();
+class TypeAliasElementLinkedData
+    extends ElementLinkedData<TypeAliasElementImpl> {
+  TypeAliasElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    element.aliasedElement = reader._readAliasedElement(unitElement);
+    element.aliasedType = reader.readRequiredType();
+  }
+}
+
+/// Information that we need to know about each library before reading it,
+/// and without reading it.
+///
+/// Specifically, the [offset] allows us to know the location of each library,
+/// so that when we need to read this library, we know where it starts without
+/// reading previous libraries.
+class _LibraryHeader {
+  final String uriStr;
+  final int offset;
+
+  /// We don't read class members when reading libraries, by performance
+  /// reasons - in many cases only some classes of a library are used. But
+  /// we need to know how much data to skip for each class.
+  final Uint32List classMembersLengths;
+
+  _LibraryHeader({
+    required this.uriStr,
+    required this.offset,
+    required this.classMembersLengths,
+  });
 }
 
 class _ReferenceReader {
@@ -1352,8 +1811,8 @@ class _ReferenceReader {
 
   _ReferenceReader(this.elementFactory, this._reader, int offset) {
     _reader.offset = offset;
-    _parents = _reader.readUint30List();
-    _names = _reader.readUint30List();
+    _parents = _reader.readUInt30List();
+    _names = _reader.readUInt30List();
     assert(_parents.length == _names.length);
 
     _references = List.filled(_names.length, null);
@@ -1382,37 +1841,4 @@ class _ReferenceReader {
 
     return reference;
   }
-}
-
-class _UnitMemberReader implements ReferenceNodeAccessor {
-  final UnitReader unitReader;
-  final int offset;
-  final CompilationUnitImpl _unit;
-  final int _index;
-  CompilationUnitMemberImpl? _node;
-
-  _UnitMemberReader(this.unitReader, this.offset, this._unit)
-      : _index = _unit.declarations.length {
-    _unit.declarations.add(_CompilationUnitMemberMock.instance);
-  }
-
-  @override
-  AstNode get node {
-    if (_node == null) {
-      var astReader = AstBinaryReader(
-        reader: unitReader,
-      );
-      unitReader.astReader.offset = offset;
-      _node = astReader.readNode() as CompilationUnitMemberImpl;
-      _unit.declarations[_index] = _node!;
-
-      var hasLinkedContext = _node as HasAstLinkedContext;
-      var linkedContext = hasLinkedContext.linkedContext as LinkedContext;
-      linkedContext._reader = this;
-    }
-    return _node!;
-  }
-
-  @override
-  void readIndex() {}
 }

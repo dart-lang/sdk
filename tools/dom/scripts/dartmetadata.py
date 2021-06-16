@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -170,6 +170,16 @@ _dart2js_annotations = monitored.Dict(
         'Gamepad.buttons': [
             "@Creates('JSExtendableArray|GamepadButton')",
             "@Returns('JSExtendableArray')",
+        ],
+        # Creates a GeolocationPosition or a GeolocationPositionError for a
+        # callback. See issue #45562.
+        'Geolocation.getCurrentPosition': [
+            "@Creates('Geoposition')",
+            "@Creates('PositionError')",
+        ],
+        'Geolocation.watchPosition': [
+            "@Creates('Geoposition')",
+            "@Creates('PositionError')",
         ],
         'HTMLCanvasElement.getContext': [
             "@Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')",
@@ -704,7 +714,7 @@ class DartMetadata(object):
 
         if _monitor_type_metadata:
             monitored_interfaces = {}
-            for interface_id, interface_data in self._types.iteritems():
+            for interface_id, interface_data in self._types.items():
                 monitored_interface = interface_data.copy()
                 monitored_interface['members'] = monitored.Dict(
                     'dartmetadata.%s' % interface_id, interface_data['members'])

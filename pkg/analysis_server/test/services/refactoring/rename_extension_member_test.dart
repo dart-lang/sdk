@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -139,12 +137,12 @@ extension E on int {
 }
 ''');
     createRenameRefactoringAtString('test =>');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: 'Field name must not be null.',
+      expectedMessage: 'Field name must not be empty.',
     );
 
     // OK
@@ -159,14 +157,6 @@ extension E on int {
 }
 ''');
     createRenameRefactoringAtString('test() {}');
-
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-      refactoring.checkNewName(),
-      RefactoringProblemSeverity.FATAL,
-      expectedMessage: 'Method name must not be null.',
-    );
 
     // empty
     refactoring.newName = '';
@@ -238,7 +228,7 @@ extension E on int {
 main() {
   0.test;
   0.test = 2;
-  
+
   E(0).test;
   E(0).test = 3;
 }
@@ -261,7 +251,7 @@ extension E on int {
 main() {
   0.newName;
   0.newName = 2;
-  
+
   E(0).newName;
   E(0).newName = 3;
 }
@@ -281,7 +271,7 @@ extension E on int {
 main() {
   0.test;
   0.test = 2;
-  
+
   E(0).test;
   E(0).test = 3;
 }
@@ -304,7 +294,7 @@ extension E on int {
 main() {
   0.newName;
   0.newName = 2;
-  
+
   E(0).newName;
   E(0).newName = 3;
 }

@@ -5,6 +5,8 @@
 //
 // Dart test for function type alias.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 typedef Fun(Null a, Null b);

@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../src/services/correction/assist/assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -324,8 +322,7 @@ import 'package:ddd/ddd.dart';
     await addLibraryImports(testAnalysisResult.session, change,
         testLibraryElement, newLibraries.toSet());
     var testEdit = change.getFileEdit(testFile);
-    expect(testEdit, isNotNull);
-    var resultCode = SourceEdit.applySequence(testCode, testEdit.edits);
+    var resultCode = SourceEdit.applySequence(testCode, testEdit!.edits);
     expect(resultCode, expectedCode);
   }
 

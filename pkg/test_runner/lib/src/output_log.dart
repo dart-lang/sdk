@@ -6,83 +6,59 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-/// An OutputLog records the output from a test, but truncates it if
-/// it is longer than [_maxHead] characters, and just keeps the head and
-/// the last [_tailLength] characters of the output.
-class OutputLog implements StreamConsumer<List<int>> {
-  static const _maxHead = 500 * 1024;
-  static const _tailLength = 10 * 1024;
+const _nonUtf8Error = '[test.dart: This test output contains non-UTF8 data]';
+const _truncatedError =
+    '[test.dart: This test output was too long and was truncated here.';
 
-  List<int> _head = [];
-  List<int> _tail;
-  List<int> complete;
-  bool _dataDropped = false;
+/// Records the output from a test.
+class OutputLog implements StreamConsumer<List<int>> {
+  // TODO(45618): Reduce this if language_2/unsorted/disassemble_test is fixed
+  // to produce less output and any other large-output tests are fixed.
+  static const _maxLength = 10 * 1024 * 1024;
+
+  final List<int> _data = [];
   StreamSubscription _subscription;
 
-  bool _hasNonUtf8 = false;
-  bool get hasNonUtf8 => _hasNonUtf8;
+  bool get hasNonUtf8 => _hasNonUtf8 ??= _checkUtf8();
+  bool _hasNonUtf8;
+
+  bool get wasTruncated => _wasTruncated;
+  bool _wasTruncated = false;
+
+  List<int> get bytes => _data;
 
   void add(List<int> data) {
-    if (complete != null) {
-      throw StateError("Cannot add to OutputLog after calling toList");
+    if (_hasNonUtf8 != null) {
+      throw StateError("Cannot add to OutputLog after accessing bytes.");
     }
-    if (_tail == null) {
-      _head.addAll(data);
-      if (_head.length > _maxHead) {
-        _tail = _head.sublist(_maxHead);
-        _head.length = _maxHead;
-      }
+
+    // Discard additional output after we've reached the limit.
+    if (_wasTruncated) return;
+
+    if (_data.length + data.length > _maxLength) {
+      _data.addAll(data.take(_maxLength - _data.length));
+      _data.addAll(utf8.encode(_truncatedError));
+      _wasTruncated = true;
     } else {
-      _tail.addAll(data);
-    }
-    if (_tail != null && _tail.length > 2 * _tailLength) {
-      _tail = _truncatedTail();
-      _dataDropped = true;
+      _data.addAll(data);
     }
   }
 
-  List<int> _truncatedTail() => _tail.length > _tailLength
-      ? _tail.sublist(_tail.length - _tailLength)
-      : _tail;
+  void clear() {
+    _data.clear();
+  }
 
-  void _checkUtf8(List<int> data) {
+  bool _checkUtf8() {
     try {
-      utf8.decode(data, allowMalformed: false);
+      utf8.decode(_data, allowMalformed: false);
+      return false;
     } on FormatException {
-      _hasNonUtf8 = true;
-      var malformed = utf8.decode(data, allowMalformed: true);
-      data
-        ..clear()
-        ..addAll(utf8.encode(malformed))
-        ..addAll("""
-*****************************************************************************
-test.dart: The output of this test contained non-UTF8 formatted data.
-*****************************************************************************
-"""
-            .codeUnits);
+      var malformed = utf8.decode(_data, allowMalformed: true);
+      _data.clear();
+      _data.addAll(utf8.encode(malformed));
+      _data.addAll(utf8.encode(_nonUtf8Error));
+      return true;
     }
-  }
-
-  List<int> toList() {
-    if (complete == null) {
-      complete = _head;
-      if (_dataDropped) {
-        complete.addAll("""
-*****************************************************************************
-test.dart: Data was removed due to excessive length. If you need the limit to
-be increased, please contact dart-engprod or file an issue.
-*****************************************************************************
-"""
-            .codeUnits);
-        complete.addAll(_truncatedTail());
-      } else if (_tail != null) {
-        complete.addAll(_tail);
-      }
-      _head = null;
-      _tail = null;
-      _checkUtf8(complete);
-    }
-    return complete;
   }
 
   @override
@@ -92,14 +68,9 @@ be increased, please contact dart-engprod or file an issue.
   }
 
   @override
-  Future close() {
-    toList();
-    return _subscription?.cancel();
-  }
+  Future close() => _subscription?.cancel();
 
-  Future cancel() {
-    return _subscription?.cancel();
-  }
+  Future cancel() => _subscription?.cancel();
 }
 
 /// An [OutputLog] that tees the output to a file as well.

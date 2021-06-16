@@ -13,7 +13,7 @@ class A extends core::Object {
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  @#C3
   method bar([@vm.inferred-type.metadata=int] core::int* x) → void
-    return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] exp::Expect::isTrue([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd] [@vm.inferred-type.metadata=dart.core::bool] x.{core::int::isOdd});
+    return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] exp::Expect::isTrue([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd] [@vm.inferred-type.metadata=dart.core::bool] x.{core::int::isOdd}{core::bool*});
 }
 class B extends core::Object {
   synthetic constructor •() → self::B*
@@ -21,20 +21,20 @@ class B extends core::Object {
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  @#C3
   method bar([@vm.inferred-type.metadata=int?] core::int* x) → void
-    return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] exp::Expect::isTrue([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd??] [@vm.inferred-type.metadata=dart.core::bool] x.{core::int::isOdd});
+    return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] exp::Expect::isTrue([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd??] [@vm.inferred-type.metadata=dart.core::bool] x.{core::int::isOdd}{core::bool*});
 }
 class C extends self::A implements self::B {
   synthetic constructor •() → self::C*
     : super self::A::•()
     ;
 }
-[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* alwaysFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(2);
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* alwaysFalse = [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("1") =={core::num::==}{(core::Object*) →* core::bool*} 2;
 static method main() → dynamic {
   final math::Random* r = [@vm.inferred-type.metadata=dart.math::_Random] math::Random::•();
   if([@vm.inferred-type.metadata=dart.core::bool?] self::alwaysFalse) {
-    [@vm.direct-call.metadata=#lib::A.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::bar}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10));
-    [@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::bar}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10));
-    [@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::bar}(null);
+    [@vm.direct-call.metadata=#lib::A.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::bar}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10){(core::int*) →* core::int*}){(core::int*) →* void};
+    [@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::bar}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10){(core::int*) →* core::int*}){(core::int*) →* void};
+    [@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::bar}(null){(core::int*) →* void};
   }
   final core::List<self::B*>* l = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::B*>] core::_GrowableList::_literal2<self::B*>(new self::B::•(), new self::C::•());
   {
@@ -42,8 +42,13 @@ static method main() → dynamic {
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       self::B* b = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current};
       {
-        b.{self::B::bar}(13);
+        b.{self::B::bar}(13){(core::int*) →* void};
       }
     }
   }
+}
+constants  {
+  #C1 = "vm:never-inline"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
 }

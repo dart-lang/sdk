@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library test.generic_bounded_by_type_parameter;
 
 import 'dart:mirrors';
@@ -50,12 +52,8 @@ main() {
   Expect.equals(reflectClass(Object), xFromGeneric.upperBound); // //# 02: continued
   Expect.equals(reflectClass(Object), yFromGeneric.upperBound); // //# 02: continued
 
-  typeParameters(superDecl, [#T, #R]);
-  typeParameters(superOfNumAndInt, [#T, #R]);
-  typeParameters(genericDecl, [#X, #Y]); // //# 02: continued
-  typeParameters(superOfXAndY, [#T, #R]); // //# 02: continued
-  typeParameters(genericOfNumAndDouble, [#X, #Y]); // //# 02: continued
-  typeParameters(superOfNumAndDouble, [#T, #R]); // //# 02: continued
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
 
   typeArguments(superDecl, []);
   typeArguments(superOfNumAndInt, [reflectClass(num), reflectClass(int)]);

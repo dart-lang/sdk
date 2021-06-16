@@ -68,6 +68,8 @@ class ProtobufHandler {
         _builderInfoAddMethod =
             libraryIndex.getMember(protobufLibraryUri, 'BuilderInfo', 'add');
 
+  bool usesAnnotationClass(Class cls) => cls == _tagNumberClass;
+
   /// This method is called from summary collector when analysis discovered
   /// that [member] is called and needs to construct a summary for its body.
   ///
@@ -143,9 +145,19 @@ class ProtobufHandler {
     Statistics.protobufMetadataFieldsPruned += cls.numberOfFieldsPruned;
   }
 
-  bool _isUnusedMetadata(_MessageClass cls, MethodInvocation node) {
+  bool _isUnusedMetadataMethodInvocation(
+      _MessageClass cls, MethodInvocation node) {
     if (node.interfaceTarget != null &&
         node.interfaceTarget.enclosingClass == _builderInfoClass &&
+        fieldAddingMethods.contains(node.name.text)) {
+      final tagNumber = (node.arguments.positional[0] as IntLiteral).value;
+      return !cls._usedTags.contains(tagNumber);
+    }
+    return false;
+  }
+
+  bool _isUnusedMetadata(_MessageClass cls, InstanceInvocation node) {
+    if (node.interfaceTarget.enclosingClass == _builderInfoClass &&
         fieldAddingMethods.contains(node.name.text)) {
       final tagNumber = (node.arguments.positional[0] as IntLiteral).value;
       return !cls._usedTags.contains(tagNumber);
@@ -170,8 +182,38 @@ class _MetadataTransformer extends Transformer {
 
   @override
   TreeNode visitMethodInvocation(MethodInvocation node) {
-    if (!ph._isUnusedMetadata(cls, node)) {
+    if (!ph._isUnusedMetadataMethodInvocation(cls, node)) {
       super.visitMethodInvocation(node);
+      return node;
+    }
+    // Replace the field metadata method with a dummy call to
+    // `BuilderInfo.add`. This is to preserve the index calculations when
+    // removing a field.
+    // Change the tag-number to 0. Otherwise the decoder will get confused.
+    ++numberOfFieldsPruned;
+    return MethodInvocation(
+        node.receiver,
+        ph._builderInfoAddMethod.name,
+        Arguments(
+          <Expression>[
+            IntLiteral(0), // tagNumber
+            NullLiteral(), // name
+            NullLiteral(), // fieldType
+            NullLiteral(), // defaultOrMaker
+            NullLiteral(), // subBuilder
+            NullLiteral(), // valueOf
+            NullLiteral(), // enumValues
+          ],
+          types: <DartType>[const NullType()],
+        ),
+        ph._builderInfoAddMethod)
+      ..fileOffset = node.fileOffset;
+  }
+
+  @override
+  TreeNode visitInstanceInvocation(InstanceInvocation node) {
+    if (!ph._isUnusedMetadata(cls, node)) {
+      super.visitInstanceInvocation(node);
       return node;
     }
     // Replace the field metadata method with a dummy call to

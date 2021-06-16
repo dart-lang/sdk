@@ -110,7 +110,7 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'bad' isn't defined for the class 'C'.
   {
-    var b = new C(1) as B?;
+    B? b = new C(1) as dynamic;
     Expect.equals(1, b?.v);
     //                  ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER

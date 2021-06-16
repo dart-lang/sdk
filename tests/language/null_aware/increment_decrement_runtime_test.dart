@@ -44,66 +44,161 @@ main() {
   nullC()?.v = 1;
 
   // e1?.v++ is equivalent to ((x) => x == null ? null : x.v++)(e1).
-
-
+  Expect.equals(null, nullC()?.v++);
+  {
+    C? c = new C(1) as dynamic;
+    Expect.equals(1, c?.v++);
+    Expect.equals(2, c!.v);
+  }
 
   // C?.v++ is equivalent to C.v++.
-
-
+  {
+    C.staticInt = 1;
+    Expect.equals(1, C?.staticInt++);
+    Expect.equals(2, C.staticInt);
+  }
+  {
+    h.C.staticInt = 1;
+    Expect.equals(1, h.C?.staticInt++);
+    Expect.equals(2, h.C.staticInt);
+  }
 
   // The static type of e1?.v++ is the same as the static type of e1.v.
+  {
+    E e1 = new E();
+    D? d = new D(e1) as dynamic;
+    E? e2 = d?.v++;
+    Expect.identical(e1, e2);
+  }
 
-
-
-
-
-
+  {
+    E e1 = new E();
+    D.staticE = e1;
+    E? e2 = D?.staticE++;
+    Expect.identical(e1, e2);
+  }
+  {
+    h.E e1 = new h.E();
+    h.D.staticE = e1;
+    h.E? e2 = h.D?.staticE++;
+    Expect.identical(e1, e2);
+  }
 
   // e1?.v-- is equivalent to ((x) => x == null ? null : x.v--)(e1).
-
-
+  Expect.equals(null, nullC()?.v--);
+  {
+    C? c = new C(1) as dynamic;
+    Expect.equals(1, c?.v--);
+    Expect.equals(0, c!.v);
+  }
 
   // C?.v-- is equivalent to C.v--.
-
-
+  {
+    C.staticInt = 1;
+    Expect.equals(1, C?.staticInt--);
+    Expect.equals(0, C.staticInt);
+  }
+  {
+    h.C.staticInt = 1;
+    Expect.equals(1, h.C?.staticInt--);
+    Expect.equals(0, h.C.staticInt);
+  }
 
   // The static type of e1?.v-- is the same as the static type of e1.v.
+  {
+    E e1 = new E();
+    D? d = new D(e1) as dynamic;
+    E? e2 = d?.v--;
+    Expect.identical(e1, e2);
+  }
 
-
-
-
-
-
+  {
+    E e1 = new E();
+    D.staticE = e1;
+    E? e2 = D?.staticE--;
+    Expect.identical(e1, e2);
+  }
+  {
+    h.E e1 = new h.E();
+    h.D.staticE = e1;
+    h.E? e2 = h.D?.staticE--;
+    Expect.identical(e1, e2);
+  }
 
   // ++e1?.v is equivalent to e1?.v += 1.
-
-
+  Expect.equals(null, ++nullC()?.v);
+  {
+    C? c = new C(1) as dynamic;
+    Expect.equals(2, ++c?.v);
+    Expect.equals(2, c!.v);
+  }
 
   // ++C?.v is equivalent to C?.v += 1.
-
-
+  {
+    C.staticInt = 1;
+    Expect.equals(2, ++C?.staticInt);
+    Expect.equals(2, C.staticInt);
+  }
+  {
+    h.C.staticInt = 1;
+    Expect.equals(2, ++h.C?.staticInt);
+    Expect.equals(2, h.C.staticInt);
+  }
 
   // The static type of ++e1?.v is the same as the static type of e1.v + 1.
+  {
+    D? d = new D(new E()) as dynamic;
+    F? f = ++d?.v;
+    Expect.identical(d!.v, f);
+  }
 
-
-
-
-
-
+  {
+    D? d = new D(new E()) as dynamic;
+    F? f = ++d?.v;
+    Expect.identical(d!.v, f);
+  }
+  {
+    h.D.staticE = new h.E();
+    h.F? f = ++h.D?.staticE;
+    Expect.identical(h.D.staticE, f);
+  }
 
   // --e1?.v is equivalent to e1?.v -= 1.
-
-
+  Expect.equals(null, --nullC()?.v);
+  {
+    C? c = new C(1) as dynamic;
+    Expect.equals(0, --c?.v);
+    Expect.equals(0, c!.v);
+  }
 
   // --C?.v is equivalent to C?.v -= 1.
-
-
+  {
+    C.staticInt = 1;
+    Expect.equals(0, --C?.staticInt);
+    Expect.equals(0, C.staticInt);
+  }
+  {
+    h.C.staticInt = 1;
+    Expect.equals(0, --h.C?.staticInt);
+    Expect.equals(0, h.C.staticInt);
+  }
 
   // The static type of --e1?.v is the same as the static type of e1.v - 1.
+  {
+    D? d = new D(new E()) as dynamic;
+    F? f = --d?.v;
+    Expect.identical(d!.v, f);
+  }
 
+  {
+    D.staticE = new E();
+    F? f = --D?.staticE;
+    Expect.identical(D.staticE, f);
+  }
 
-
-
-
-
+  {
+    h.D.staticE = new h.E();
+    h.F? f = --h.D?.staticE;
+    Expect.identical(h.D.staticE, f);
+  }
 }

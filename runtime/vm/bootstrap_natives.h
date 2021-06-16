@@ -18,7 +18,7 @@ namespace dart {
   V(DartAsync_fatal, 1)                                                        \
   V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
-  V(Object_setHash, 2)                                                         \
+  V(Object_setHashIfNotSetYet, 2)                                              \
   V(Object_toString, 1)                                                        \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \
@@ -333,6 +333,7 @@ namespace dart {
   V(GrowableList_setLength, 2)                                                 \
   V(GrowableList_setData, 2)                                                   \
   V(Internal_unsafeCast, 1)                                                    \
+  V(Internal_nativeEffect, 1)                                                  \
   V(Internal_reachabilityFence, 1)                                             \
   V(Internal_collectAllGarbage, 0)                                             \
   V(Internal_makeListFixedLength, 1)                                           \
@@ -347,16 +348,6 @@ namespace dart {
   V(Internal_writeIntoTwoByteString, 3)                                        \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
-  V(LinkedHashMap_getIndex, 1)                                                 \
-  V(LinkedHashMap_setIndex, 2)                                                 \
-  V(LinkedHashMap_getData, 1)                                                  \
-  V(LinkedHashMap_setData, 2)                                                  \
-  V(LinkedHashMap_getHashMask, 1)                                              \
-  V(LinkedHashMap_setHashMask, 2)                                              \
-  V(LinkedHashMap_getUsedData, 1)                                              \
-  V(LinkedHashMap_setUsedData, 2)                                              \
-  V(LinkedHashMap_getDeletedKeys, 1)                                           \
-  V(LinkedHashMap_setDeletedKeys, 2)                                           \
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_setKey, 2)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
@@ -405,12 +396,13 @@ namespace dart {
   V(Ffi_storePointer, 3)                                                       \
   V(Ffi_address, 1)                                                            \
   V(Ffi_fromAddress, 1)                                                        \
-  V(Ffi_asFunctionInternal, 1)                                                 \
+  V(Ffi_asFunctionInternal, 2)                                                 \
   V(Ffi_nativeCallbackFunction, 2)                                             \
   V(Ffi_pointerFromFunction, 1)                                                \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
+  V(Ffi_dl_providesSymbol, 2)                                                  \
   V(Ffi_asExternalTypedData, 2)                                                \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \

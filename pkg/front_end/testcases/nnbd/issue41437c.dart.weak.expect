@@ -101,22 +101,22 @@ static method test() → dynamic async {
   })(); // error
     ^" in (() → asy::Stream<dynamic> async* {
     yield self::getNull();
-  }).call() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
-  asy::Stream<core::bool> var2 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
-  core::bool var3 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+  })(){() → asy::Stream<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+  asy::Stream<core::bool> var2 = (() → dynamic => self::getNull())(){() → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
+  core::bool var3 = (() → dynamic => self::getNull())(){() → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
   asy::Stream<core::bool> var4 = let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:54:5: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
   })(); // error
     ^" in (() → asy::Stream<dynamic> async* {
     yield* self::getStreamNull();
-  }).call() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+  })(){() → asy::Stream<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
   asy::Stream<core::bool> var5 = let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:55:46: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
   Stream<bool> var5 = (() => getStreamNull())(); // error
-                                             ^" in (() → asy::Stream<dynamic> => self::getStreamNull()).call() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
-  asy::Stream<core::bool> var6 = (() → asy::Stream<core::bool> => self::getStreamBool()).call();
+                                             ^" in (() → asy::Stream<dynamic> => self::getStreamNull())(){() → asy::Stream<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+  asy::Stream<core::bool> var6 = (() → asy::Stream<core::bool> => self::getStreamBool())(){() → asy::Stream<core::bool>};
   asy::Stream<core::bool> var7 = (() → asy::Stream<core::bool> async* {
     yield* self::getStreamBool();
-  }).call();
+  })(){() → asy::Stream<core::bool>};
 }
 static method main() → dynamic {}

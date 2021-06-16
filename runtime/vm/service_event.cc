@@ -117,6 +117,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "BreakpointResolved";
     case kBreakpointRemoved:
       return "BreakpointRemoved";
+    case kBreakpointUpdated:
+      return "BreakpointUpdated";
     case kGC:
       return "GC";  // TODO(koda): Change to GarbageCollected.
     case kInspect:
@@ -166,6 +168,7 @@ const StreamInfo* ServiceEvent::stream_info() const {
     case kBreakpointAdded:
     case kBreakpointResolved:
     case kBreakpointRemoved:
+    case kBreakpointUpdated:
     case kInspect:
     case kDebuggerSettingsUpdate:
       return &Service::debug_stream;

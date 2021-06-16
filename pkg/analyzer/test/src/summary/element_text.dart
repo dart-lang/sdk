@@ -52,8 +52,9 @@ void checkElementText(
   bool withCodeRanges = false,
   bool withConstElements = true,
   bool withExportScope = false,
-  bool withFullyResolvedAst = false,
   bool withOffsets = false,
+  bool withResolvedAst = false,
+  bool withResolvedAstOffsets = false,
   bool withSyntheticAccessors = false,
   bool withSyntheticFields = false,
   bool withTypes = false,
@@ -65,8 +66,9 @@ void checkElementText(
     withCodeRanges: withCodeRanges,
     withConstElements: withConstElements,
     withExportScope: withExportScope,
-    withFullyResolvedAst: withFullyResolvedAst,
     withOffsets: withOffsets,
+    withResolvedAst: withResolvedAst,
+    withResolvedAstOffsets: withResolvedAstOffsets,
     withSyntheticAccessors: withSyntheticAccessors,
     withSyntheticFields: withSyntheticFields,
     withTypes: withTypes,
@@ -135,8 +137,9 @@ class _ElementWriter {
   final bool withAliasElementArguments;
   final bool withCodeRanges;
   final bool withExportScope;
-  final bool withFullyResolvedAst;
   final bool withOffsets;
+  final bool withResolvedAst;
+  final bool withResolvedAstOffsets;
   final bool withConstElements;
   final bool withSyntheticAccessors;
   final bool withSyntheticFields;
@@ -152,8 +155,9 @@ class _ElementWriter {
     this.withCodeRanges = false,
     this.withConstElements = true,
     this.withExportScope = false,
-    this.withFullyResolvedAst = false,
     this.withOffsets = false,
+    this.withResolvedAst = false,
+    this.withResolvedAstOffsets = false,
     this.withSyntheticAccessors = false,
     this.withSyntheticFields = false,
     this.withTypes = false,
@@ -249,7 +253,7 @@ class _ElementWriter {
 
     buffer.writeln('}');
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       _withIndent(() {
         _writeResolvedMetadata(e.metadata);
         _writeResolvedTypeParameters(e.typeParameters);
@@ -283,10 +287,21 @@ class _ElementWriter {
     buffer.write(e.enclosingElement.name);
     if (e.name.isNotEmpty) {
       buffer.write('.');
-      writeName(e);
+      buffer.write(e.displayName);
     }
     if (!e.isSynthetic) {
       writeCodeRange(e);
+      if (withOffsets) {
+        var periodOffset = e.periodOffset;
+        var nameEnd = e.nameEnd;
+        if (periodOffset != null && nameEnd != null) {
+          buffer.write('[periodOffset: $periodOffset]');
+          buffer.write('[nameOffset: ${e.nameOffset}]');
+          buffer.write('[nameEnd: $nameEnd]');
+        } else {
+          buffer.write('[nameOffset: ${e.nameOffset}]');
+        }
+      }
     }
 
     writeParameterElements(e.parameters);
@@ -304,9 +319,10 @@ class _ElementWriter {
     }
 
     var initializers = (e as ConstructorElementImpl).constantInitializers;
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       buffer.writeln(';');
       _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
         if (initializers.isNotEmpty) {
           _writelnWithIndent('constantInitializers');
           _withIndent(() {
@@ -384,7 +400,7 @@ class _ElementWriter {
 
     buffer.writeln('}');
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       _withIndent(() {
         _writeResolvedMetadata(e.metadata);
         _writeResolvedTypeParameters(e.typeParameters);
@@ -410,8 +426,10 @@ class _ElementWriter {
 
     buffer.writeln(' {}');
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       _withIndent(() {
+        _writeResolvedTypeParameters(e.typeParameters);
+        _writeResolvedMetadata(e.metadata);
         _writeParameterElementDefaultValues(e.parameters);
       });
     }
@@ -431,11 +449,12 @@ class _ElementWriter {
 
       writeIf(e.isDeferred, ' deferred');
 
-      if (e.prefix != null) {
+      var prefix = e.prefix;
+      if (prefix != null) {
         buffer.write(' as ');
-        writeName(e.prefix!);
+        writeName(prefix);
         if (withOffsets) {
-          buffer.write('(${e.prefixOffset})');
+          buffer.write('(${prefix.nameOffset})');
         }
       }
 
@@ -443,7 +462,7 @@ class _ElementWriter {
 
       buffer.writeln(';');
 
-      if (withFullyResolvedAst) {
+      if (withResolvedAst) {
         _withIndent(() {
           _writeResolvedMetadata(e.metadata);
         });
@@ -496,7 +515,7 @@ class _ElementWriter {
   }
 
   void writeMetadata(Element e, String prefix, String separator) {
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       return;
     }
 
@@ -534,7 +553,7 @@ class _ElementWriter {
       buffer.writeln(' {}');
     }
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       _withIndent(() {
         _writeResolvedTypeParameters(e.typeParameters);
         _writeResolvedMetadata(e.metadata);
@@ -583,7 +602,7 @@ class _ElementWriter {
       writeNode(e.name);
       if (e.constructorName != null) {
         buffer.write('.');
-        writeNode(e.constructorName!);
+        writeNode(e.constructorName);
       }
       if (e.arguments != null) {
         writeList('(', ')', e.arguments!.arguments, ', ', writeNode,
@@ -598,7 +617,7 @@ class _ElementWriter {
       writeNode(e.condition);
       if (e.message != null) {
         buffer.write(', ');
-        writeNode(e.message!);
+        writeNode(e.message);
       }
       buffer.write(')');
     } else if (e is BinaryExpression) {
@@ -623,13 +642,13 @@ class _ElementWriter {
       writeNode(e.type);
       if (e.name != null) {
         buffer.write('.');
-        writeNode(e.name!);
+        writeNode(e.name);
       }
     } else if (e is DoubleLiteral) {
       buffer.write(e.value);
     } else if (e is GenericFunctionType) {
       if (e.returnType != null) {
-        writeNode(e.returnType!);
+        writeNode(e.returnType);
         buffer.write(' ');
       }
       buffer.write('Function');
@@ -837,7 +856,13 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
 
-    if (!withFullyResolvedAst) {
+    if (!withResolvedAst) {
+      if (e.typeParameters.isNotEmpty) {
+        buffer.write('/*');
+        writeTypeParameterElements(e.typeParameters, withDefault: false);
+        buffer.write('*/');
+      }
+
       if (e.parameters.isNotEmpty) {
         buffer.write('/*');
         writeList('(', ')', e.parameters, ', ', writeParameterElement);
@@ -873,7 +898,17 @@ class _ElementWriter {
     if (!e.isSynthetic) {
       PropertyInducingElement variable = e.variable;
       expect(variable, isNotNull);
-      expect(variable.isSynthetic, isTrue);
+
+      if (e.isGetter) {
+        // Usually we have a synthetic property for a non-synthetic accessor.
+        expect(variable.isSynthetic, isTrue);
+      } else {
+        // But it is possible to have a non-synthetic property.
+        // class A {
+        //   final int foo;
+        //   set foo(int newValue) {}
+        // }
+      }
 
       var variableEnclosing = variable.enclosingElement;
       if (variableEnclosing is CompilationUnitElement) {
@@ -895,7 +930,8 @@ class _ElementWriter {
       }
     }
 
-    if (e.enclosingElement is ClassElement) {
+    if (e.enclosingElement is ClassElement ||
+        e.enclosingElement is ExtensionElement) {
       writeDocumentation(e, '  ');
       writeMetadata(e, '  ', '\n');
 
@@ -921,20 +957,25 @@ class _ElementWriter {
 
     writeName(e);
 
+    expect(e.typeParameters, isEmpty);
+
     if (e.isSetter || e.parameters.isNotEmpty) {
       writeParameterElements(e.parameters);
     }
 
-    expect(e.typeParameters, isEmpty);
-
-    expect(e.isSynchronous, isTrue);
-    expect(e.isAsynchronous, isFalse);
-    expect(e.isGenerator, isFalse);
+    writeBodyModifiers(e);
 
     if (e.isAbstract || e.isExternal) {
       buffer.writeln(';');
     } else {
       buffer.writeln(' {}');
+    }
+
+    if (withResolvedAst) {
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        _writeParameterElementDefaultValues(e.parameters);
+      });
     }
   }
 
@@ -970,6 +1011,7 @@ class _ElementWriter {
     } else {
       writeDocumentation(e);
       writeMetadata(e, '', '\n');
+      writeIf(e.isSynthetic, 'synthetic ');
       writeIf(e is TopLevelVariableElementImpl && e.isExternal, 'external ');
     }
 
@@ -983,7 +1025,7 @@ class _ElementWriter {
 
     writeTypeInferenceError(e);
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       buffer.writeln(';');
       _withIndent(() {
         _writeResolvedMetadata(e.metadata);
@@ -1058,6 +1100,21 @@ class _ElementWriter {
     }
 
     buffer.writeln(';');
+
+    if (withResolvedAst) {
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        _writeResolvedTypeParameters(e.typeParameters);
+        var aliasedElement = e.aliasedElement;
+        if (aliasedElement is GenericFunctionTypeElement) {
+          _writelnWithIndent('aliasedElement');
+          _withIndent(() {
+            _writeResolvedTypeParameters(aliasedElement.typeParameters);
+            _writeResolvedParameterElements(aliasedElement.parameters);
+          });
+        }
+      });
+    }
   }
 
   void writeTypeInferenceError(Element e) {
@@ -1112,7 +1169,7 @@ class _ElementWriter {
     List<TypeParameterElement> elements, {
     required bool withDefault,
   }) {
-    if (!withFullyResolvedAst) {
+    if (!withResolvedAst) {
       writeList<TypeParameterElement>('<', '>', elements, ', ', (e) {
         writeTypeParameterElement(e, withDefault: withDefault);
       });
@@ -1152,7 +1209,17 @@ class _ElementWriter {
   /// the same enclosing element as the [property].
   void _assertSyntheticAccessorEnclosing(
       PropertyInducingElement property, PropertyAccessorElement accessor) {
-    expect(accessor.isSynthetic, isTrue);
+    if (accessor.isSynthetic) {
+      // Usually we have a non-synthetic property, and a synthetic accessor.
+    } else {
+      // But it is possible to have a non-synthetic setter.
+      // class A {
+      //   final int foo;
+      //   set foo(int newValue) {}
+      // }
+      assert(accessor.isSetter, isTrue);
+    }
+
     expect(accessor.variable, same(property));
 
     var propertyEnclosing = property.enclosingElement;
@@ -1166,7 +1233,7 @@ class _ElementWriter {
   }
 
   String _getElementLocationString(Element? element) {
-    if (element == null) {
+    if (element == null || element is MultiplyDefinedElement) {
       return 'null';
     }
 
@@ -1217,10 +1284,10 @@ class _ElementWriter {
   }
 
   void _withIndent(void Function() f) {
-    var indent = this.indent;
-    this.indent = '$indent  ';
+    var savedIndent = indent;
+    indent = '$savedIndent  ';
     f();
-    this.indent = indent;
+    indent = savedIndent;
   }
 
   void _writelnTypeWithIndent(String name, DartType? type) {
@@ -1239,8 +1306,9 @@ class _ElementWriter {
     String enclosingNames = '',
   }) {
     for (var parameter in parameters) {
-      if (parameter is DefaultParameterElementImpl) {
-        var defaultValue = parameter.constantInitializer;
+      if (parameter is ConstVariableElement) {
+        var defaultParameter = parameter as ConstVariableElement;
+        var defaultValue = defaultParameter.constantInitializer;
         if (defaultValue != null) {
           _writelnWithIndent(enclosingNames + parameter.name);
           _withIndent(() {
@@ -1278,8 +1346,40 @@ class _ElementWriter {
         sink: buffer,
         indent: indent,
         withNullability: true,
+        withOffsets: withResolvedAstOffsets,
       ),
     );
+  }
+
+  void _writeResolvedParameterElements(
+    List<ParameterElement> parameters, {
+    String enclosingNames = '',
+  }) {
+    if (parameters.isNotEmpty) {
+      _writelnWithIndent('parameters');
+      _withIndent(() {
+        var index = 0;
+        for (var formalParameter in parameters) {
+          var metadata = formalParameter.metadata;
+          var name = formalParameter.name;
+          if (name.isEmpty) {
+            name = '$index';
+          }
+          _writelnWithIndent(name);
+          _withIndent(() {
+            _writeResolvedMetadata(metadata);
+            var subParameters = formalParameter.parameters;
+            _withIndent(() {
+              _writeResolvedParameterElements(
+                subParameters,
+                enclosingNames: enclosingNames + name + '::',
+              );
+            });
+          });
+          index++;
+        }
+      });
+    }
   }
 
   void _writeResolvedTypeParameters(List<TypeParameterElement> elements) {

@@ -38,7 +38,8 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {Target target,
     bool enableSuperMixins = false,
     List<String> experimentalFlags,
-    Map<String, String> environmentDefines}) async {
+    Map<String, String> environmentDefines,
+    Uri packagesFileUri}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   target ??= new TestingVmTarget(new TargetFlags())
@@ -48,6 +49,7 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     ..target = target
     ..additionalDills = <Uri>[platformKernel]
     ..environmentDefines = environmentDefines
+    ..packagesFileUri = packagesFileUri
     ..explicitExperimentalFlags =
         parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
             onError: (String message) {
@@ -69,7 +71,9 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
 
 String kernelLibraryToString(Library library) {
   final StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, showMetadata: true).writeLibraryFile(library);
+  final printer = new Printer(buffer, showMetadata: true);
+  printer.writeLibraryFile(library);
+  printer.writeConstantTable(library.enclosingComponent);
   return buffer
       .toString()
       .replaceAll(library.importUri.toString(), library.name);

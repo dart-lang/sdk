@@ -5,6 +5,8 @@
 // VMOptions=
 // VMOptions=--use_slow_path
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class First {

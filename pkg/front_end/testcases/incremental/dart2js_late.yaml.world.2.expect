@@ -1,0 +1,22 @@
+main = <No Member>;
+library from "org-dartlang-test:///late_statics.dart" as lat {
+//
+// Problems in library:
+//
+// org-dartlang-test:///late_statics.dart:4:7: Error: Setter not found: 'a'.
+//   lib.a = 42;
+//       ^
+//
+
+  import "org-dartlang-test:///late_statics_lib.dart" as lib;
+
+  static method testUninitializedNonFinalTopLevelField() → void {
+    dart.core::print(lat2::a);
+    invalid-expression "org-dartlang-test:///late_statics.dart:4:7: Error: Setter not found: 'a'.\n  lib.a = 42;\n      ^";
+    dart.core::print(lat2::a);
+  }
+}
+library from "org-dartlang-test:///late_statics_lib.dart" as lat2 {
+
+  static final field _late_helper::_Cell a = new _late_helper::_Cell::named("a");
+}

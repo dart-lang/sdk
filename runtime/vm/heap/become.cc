@@ -126,9 +126,11 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
       if (visiting_object_ == nullptr) {
         *p = new_target;
       } else if (visiting_object_->untag()->IsCardRemembered()) {
-        visiting_object_->untag()->StoreArrayPointer(p, new_target, thread_);
+        visiting_object_->untag()->StoreCompressedArrayPointer(p, new_target,
+                                                               thread_);
       } else {
-        visiting_object_->untag()->StorePointer(p, new_target, thread_);
+        visiting_object_->untag()->StoreCompressedPointer(p, new_target,
+                                                          thread_);
       }
     }
   }
@@ -295,7 +297,7 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
     ForwardObjectTo(before_obj, after_obj);
     heap->ForwardWeakEntries(before_obj, after_obj);
 #if defined(HASH_IN_OBJECT_HEADER)
-    Object::SetCachedHash(after_obj, Object::GetCachedHash(before_obj));
+    Object::SetCachedHashIfNotSet(after_obj, Object::GetCachedHash(before_obj));
 #endif
   }
 

@@ -20,7 +20,8 @@ namespace compiler {
 namespace ffi {
 
 FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
-                               const FunctionType& c_signature);
+                               const FunctionType& c_signature,
+                               bool is_leaf);
 
 }  // namespace ffi
 

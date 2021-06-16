@@ -35,6 +35,8 @@ import '../scope.dart' as type;
 import '../source/outline_builder.dart' as type;
 
 class ValueKinds {
+  static const ValueKind AnnotationListOrNull =
+      const SingleValueKind<List<type.Expression>>(NullValue.Metadata);
   static const ValueKind Arguments = const SingleValueKind<type.Arguments>();
   static const ValueKind ArgumentsOrNull =
       const SingleValueKind<type.Arguments>(NullValue.Arguments);

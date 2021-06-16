@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/front_end/messages.yaml' and run
@@ -781,6 +779,32 @@ Message _withArgumentsConstEvalKeyImplementsEqual(
       message:
           """The key '${constant}' does not have a primitive operator '=='.""" +
               labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>
+    templateConstEvalUnhandledException = const Template<
+            Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        messageTemplate: r"""Unhandled exception: #constant""",
+        withArguments: _withArgumentsConstEvalUnhandledException);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
+    codeConstEvalUnhandledException = const Code<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>(
+  "ConstEvalUnhandledException",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalUnhandledException(
+    Constant _constant, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalUnhandledException,
+      message: """Unhandled exception: ${constant}""" + labeler.originMessages,
       arguments: {'constant': _constant});
 }
 

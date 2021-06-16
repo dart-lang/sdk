@@ -207,11 +207,11 @@ class FlutterMetricsComputer {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
           var resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+              await context.currentSession.getResolvedUnit2(filePath);
           //
           // Check for errors that cause the file to be skipped.
           //
-          if (resolvedUnitResult.state != ResultState.VALID) {
+          if (resolvedUnitResult is! ResolvedUnitResult) {
             print('');
             print('File $filePath skipped because it could not be analyzed.');
             continue;

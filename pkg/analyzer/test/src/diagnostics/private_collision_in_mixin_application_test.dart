@@ -71,6 +71,26 @@ class D extends C with B {}
     ]);
   }
 
+  test_class_mixinAndMixin_withoutExtends() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  void _foo() {}
+}
+
+class B {
+  void _foo() {}
+}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+class C with A, B {}
+''', [
+      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 34, 1),
+    ]);
+  }
+
   test_class_staticAndInstanceElement() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {

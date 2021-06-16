@@ -4,6 +4,8 @@
 //
 // Script used by the file_lock_test.dart test.
 
+// @dart = 2.9
+
 import "dart:async";
 import "dart:io";
 

@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
     show ClassElement, ExtensionElement;
 import 'package:analyzer/dart/element/type.dart';
-import 'package:meta/meta.dart';
 
 /// An object that can be used to determine whether an element is appropriate
 /// for a given reference.
@@ -31,10 +28,10 @@ class ElementMatcher {
   /// Initialize a newly created matcher representing a reference to an element
   /// with the given [name] in a library that imports the [importedUris].
   ElementMatcher(
-      {@required this.importedUris,
-      @required this.components,
-      List<ElementKind> kinds})
-      : assert(components != null && components.isNotEmpty),
+      {required this.importedUris,
+      required this.components,
+      List<ElementKind>? kinds})
+      : assert(components.isNotEmpty),
         validKinds = kinds ?? const [];
 
   /// Return `true` if this matcher matches the given [element].
@@ -99,7 +96,7 @@ class ElementMatcher {
   /// Return an element matcher that will match the element that is, or should
   /// be, associated with the given [node], or `null` if there is no appropriate
   /// matcher for the node.
-  static ElementMatcher forNode(AstNode node) {
+  static ElementMatcher? forNode(AstNode? node) {
     if (node == null) {
       return null;
     }
@@ -122,14 +119,14 @@ class ElementMatcher {
   /// For example, for a constructor this would be the name of the constructor
   /// followed by the name of the class in which the constructor is declared
   /// (with an empty string for the unnamed constructor).
-  static List<String> _componentsForNode(AstNode node) {
+  static List<String>? _componentsForNode(AstNode? node) {
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is Label && parent.parent is NamedExpression) {
         // The parent of the named expression is an argument list. Because we
         // don't represent parameters as elements, the element we need to match
         // against is the invocation containing those arguments.
-        return _componentsFromParent(parent.parent.parent);
+        return _componentsFromParent(parent.parent!.parent!);
       } else if (parent is TypeName && parent.parent is ConstructorName) {
         return ['', node.name];
       } else if (parent is MethodDeclaration && node == parent.name) {
@@ -147,15 +144,20 @@ class ElementMatcher {
       }
       return [node.identifier.name];
     } else if (node is ConstructorName) {
-      return [node.name.name];
+      var constructorName = node.name;
+      if (constructorName != null) {
+        return [constructorName.name];
+      }
     } else if (node is NamedType) {
       return [node.name.name];
     } else if (node is TypeArgumentList) {
       return _componentsFromParent(node);
     } else if (node is ArgumentList) {
       return _componentsFromParent(node);
-    } else if (node?.parent is ArgumentList) {
-      return _componentsFromParent(node.parent);
+    }
+    var parent = node?.parent;
+    if (parent is ArgumentList) {
+      return _componentsFromParent(parent);
     }
     return null;
   }
@@ -172,9 +174,13 @@ class ElementMatcher {
     }
     if (element != null) {
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ClassElement ||
-          enclosingElement is ExtensionElement) {
+      if (enclosingElement is ClassElement) {
         return [identifier.name, enclosingElement.name];
+      } else if (enclosingElement is ExtensionElement) {
+        var name = enclosingElement.name;
+        if (name != null) {
+          return [identifier.name, name];
+        }
       }
     }
     return [identifier.name];
@@ -182,7 +188,7 @@ class ElementMatcher {
 
   /// Return the components for the element associated with the given [node] by
   /// looking at the parent of the [node].
-  static List<String> _componentsFromParent(AstNode node) {
+  static List<String>? _componentsFromParent(AstNode node) {
     var parent = node.parent;
     if (parent is ArgumentList) {
       parent = parent.parent;
@@ -231,17 +237,20 @@ class ElementMatcher {
 
   /// Return the URIs of the imports in the library containing the [node], or
   /// `null` if the imports can't be determined.
-  static List<Uri> _importElementsForNode(AstNode node) {
+  static List<Uri>? _importElementsForNode(AstNode node) {
     var root = node.root;
     if (root is! CompilationUnit) {
       return null;
     }
     var importedUris = <Uri>[];
-    var library = (root as CompilationUnit).declaredElement.library;
+    var library = root.declaredElement?.library;
+    if (library == null) {
+      return null;
+    }
     for (var importElement in library.imports) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.
-      var uri = importElement.importedLibrary?.source?.uri;
+      var uri = importElement.importedLibrary?.source.uri;
       if (uri != null) {
         // The [uri] is `null` if the literal string is not a valid URI.
         importedUris.add(uri);
@@ -251,9 +260,9 @@ class ElementMatcher {
   }
 
   /// Return the kinds of elements that could reasonably be referenced at the
-  /// location of the [node]. If [child] is no `null` then the [node] is a
-  /// parent of the original node.
-  static List<ElementKind> _kindsForNode(AstNode node, {AstNode child}) {
+  /// location of the [node]. If [child] is not `null` then the [node] is a
+  /// parent of the [child].
+  static List<ElementKind>? _kindsForNode(AstNode? node, {AstNode? child}) {
     if (node is ConstructorName) {
       return const [ElementKind.constructorKind];
     } else if (node is ExtensionOverride) {
@@ -261,8 +270,8 @@ class ElementMatcher {
     } else if (node is InstanceCreationExpression) {
       return const [ElementKind.constructorKind];
     } else if (node is Label) {
-      var argumentList = node.parent.parent;
-      return _kindsForNode(argumentList.parent, child: argumentList);
+      var argumentList = node.parent?.parent;
+      return _kindsForNode(argumentList?.parent, child: argumentList);
     } else if (node is MethodInvocation) {
       assert(child != null);
       if (node.target == child) {
@@ -315,7 +324,7 @@ class ElementMatcher {
   }
 
   /// Return the name of the class associated with the given [target].
-  static String _nameOfTarget(Expression target) {
+  static String? _nameOfTarget(Expression? target) {
     if (target is SimpleIdentifier) {
       var type = target.staticType;
       if (type != null) {

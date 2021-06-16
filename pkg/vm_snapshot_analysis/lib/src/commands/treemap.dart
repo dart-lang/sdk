@@ -56,24 +56,27 @@ viewed in a browser:
 
   @override
   Future<void> run() async {
-    if (argResults.rest.length != 2) {
+    final args = argResults!;
+
+    if (args.rest.length != 2) {
       usageException('Need to specify input JSON and output directory.');
     }
 
-    final input = File(argResults.rest[0]);
-    final outputDir = Directory(argResults.rest[1]);
+    final input = File(args.rest[0]);
+    final outputDir = Directory(args.rest[1]);
 
     if (!input.existsSync()) {
       usageException('Input file ${input.path} does not exist!');
     }
 
-    if (outputDir.existsSync() && !argResults['force']) {
+    if (outputDir.existsSync() && !args['force']) {
       usageException(
           'Output directory ${outputDir.path} already exists, specify --force to ignore.');
     }
 
     await generateTreeMap(input, outputDir,
-        format: _formatFromString[argResults['format']]);
+        format: _formatFromString[args['format']] ??
+            (throw 'Unrecognized format ${args['format']}'));
   }
 
   // Note: the first key in this map is the default format.
@@ -95,8 +98,8 @@ Future<void> generateTreeMap(File input, Directory outputDir,
   // Create output directory and copy all auxiliary files from binary_size tool.
   await outputDir.create(recursive: true);
 
-  final assetsUri = await Isolate.resolvePackageUri(
-      Uri.parse('package:vm_snapshot_analysis/src/assets'));
+  final assetsUri = (await Isolate.resolvePackageUri(
+      Uri.parse('package:vm_snapshot_analysis/src/assets')))!;
   final assetsDir = assetsUri.toFilePath();
   final d3SrcDir = p.join(assetsDir, 'd3', 'src');
 
@@ -114,7 +117,7 @@ Future<void> generateTreeMap(File input, Directory outputDir,
   final dataJsPath = p.join(outputDir.path, 'data.js');
   final sink = File(dataJsPath).openWrite();
   sink.write('var tree_data=');
-  await sink.addStream(Stream<Object>.fromIterable([tree])
+  await sink.addStream(Stream<Object?>.fromIterable([tree])
       .transform(json.encoder.fuse(utf8.encoder)));
   await sink.close();
 

@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:expect/expect.dart';
 
@@ -163,6 +165,85 @@ Future testAbstractAddress() async {
   await completer.future;
 }
 
+String getAbstractSocketTestFileName() {
+  var executable = Platform.executable;
+  var dirIndex = executable.lastIndexOf('dart');
+  var buffer = new StringBuffer(executable.substring(0, dirIndex));
+  buffer.write('abstract_socket_test');
+  return buffer.toString();
+}
+
+Future testShortAbstractAddress() async {
+  if (!Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  var retries = 10;
+  var retryDelay = const Duration(seconds: 1);
+  Process process;
+  var stdoutFuture;
+  var stderrFuture;
+  try {
+    var socketAddress = '@hidden';
+    var abstractSocketServer = getAbstractSocketTestFileName();
+    // check if the executable exists, some build configurations do not
+    // build it (e.g: precompiled simarm/simarm64)
+    if (!File(abstractSocketServer).existsSync()) {
+      return;
+    }
+
+    // Start up a subprocess that listens on '@hidden'.
+    process = await Process.start(abstractSocketServer, [socketAddress]);
+    stdoutFuture = process.stdout
+        .transform(const Utf8Decoder(allowMalformed: true))
+        .listen(stdout.write)
+        .asFuture(null);
+    stderrFuture = process.stderr
+        .transform(const Utf8Decoder(allowMalformed: true))
+        .listen(stderr.write)
+        .asFuture(null);
+    var serverAddress =
+        InternetAddress(socketAddress, type: InternetAddressType.unix);
+
+    // The subprocess may take some time to start, so retry setting up the
+    // connection a few times.
+    Socket client;
+    while (true) {
+      try {
+        client = await Socket.connect(serverAddress, 0);
+        break;
+      } catch (e, st) {
+        if (retries <= 0) {
+          rethrow;
+        }
+        retries--;
+      }
+      await Future.delayed(retryDelay);
+    }
+
+    List<int> sendData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    List<int> data = [];
+    var completer = Completer<void>();
+    client.listen(data.addAll, onDone: () {
+      Expect.listEquals(sendData, data);
+      completer.complete();
+    });
+    client.add(sendData);
+    await client.close();
+    await completer.future;
+    client.destroy();
+    var exitCode = await process.exitCode;
+    process = null;
+    Expect.equals(exitCode, 0);
+  } catch (e, st) {
+    Expect.fail('Failed with exception:\n$e\n$st');
+  } finally {
+    process?.kill(ProcessSignal.sigkill);
+    await stdoutFuture;
+    await stderrFuture;
+    await process?.exitCode;
+  }
+}
+
 Future testExistingFile(String name) async {
   // Test that a leftover file(In case of previous process being killed and
   // finalizer doesn't clean up the file) will be cleaned up and bind() should
@@ -178,6 +259,187 @@ Future testExistingFile(String name) async {
     return;
   }
   Expect.fail("bind should fail with existing file");
+}
+
+Future testSetSockOpt(String name) async {
+  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var server = await ServerSocket.bind(address, 0, shared: false);
+
+  var sub;
+  sub = server.listen((s) {
+    sub.cancel();
+    server.close();
+  });
+
+  var socket = await Socket.connect(address, server.port);
+  socket.write(" socket content");
+
+  // Get some socket options.
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelTcp, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelUdp, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelIPv4, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelIPv6, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelSocket, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Protocol not available'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option = RawSocketOption.fromBool(
+          RawSocketOption.IPv4MulticastInterface, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option = RawSocketOption.fromBool(
+          RawSocketOption.IPv6MulticastInterface, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  // Set some socket options
+  try {
+    socket.setOption(SocketOption.tcpNoDelay, true);
+  } catch (e) {
+    Expect.isTrue(e.toString().contains('Operation not supported'));
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelTcp, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelUdp, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelIPv4, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelIPv6, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelSocket, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Protocol not available'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option = RawSocketOption.fromBool(
+          RawSocketOption.IPv4MulticastInterface, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option = RawSocketOption.fromBool(
+          RawSocketOption.IPv6MulticastInterface, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  socket.destroy();
+  await server.close();
+}
+
+Future testHttpServer(String name) async {
+  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var httpServer = await HttpServer.bind(address, 0);
+
+  var sub;
+  sub = httpServer.listen((s) {
+    sub.cancel();
+    httpServer.close();
+  });
+
+  var socket = await Socket.connect(address, httpServer.port);
+
+  socket.destroy();
+  await httpServer.close();
 }
 
 // Create socket in temp directory
@@ -211,6 +473,13 @@ void main() async {
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testExistingFile('${dir.path}');
     });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testSetSockOpt('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testHttpServer('${dir.path}');
+    });
+    await testShortAbstractAddress();
   } catch (e) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
       Expect.fail("Unexpected exception $e is thrown");

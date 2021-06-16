@@ -4,6 +4,8 @@
 // Dart test program for testing named parameters.
 // Specifying named argument for not existing named parameter is run time error.
 
+// @dart = 2.9
+
 // This test is very similar to NamedParameters3Test, but exercises a
 // different corner case in the frog compiler. frog wasn't detecting unused
 // named arguments when no other arguments were expected. So, this test

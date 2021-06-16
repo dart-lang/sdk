@@ -3368,6 +3368,46 @@ TEST_CASE(DartAPI_WeakPersistentHandleErrors) {
       Dart_NewWeakPersistentHandle(obj2, NULL, 0, NopCallback);
   EXPECT_EQ(ref2, static_cast<void*>(NULL));
 
+  // Pointer object.
+  Dart_Handle ffi_lib = Dart_LookupLibrary(NewString("dart:ffi"));
+  Dart_Handle pointer_type =
+      Dart_GetNonNullableType(ffi_lib, NewString("Pointer"), 0, NULL);
+  Dart_Handle obj3 = Dart_Allocate(pointer_type);
+  EXPECT_VALID(obj3);
+  Dart_WeakPersistentHandle ref3 =
+      Dart_NewWeakPersistentHandle(obj3, nullptr, 0, FinalizableHandleCallback);
+  EXPECT_EQ(ref3, static_cast<void*>(nullptr));
+
+  // Subtype of Struct or Union object.
+  const char* kScriptChars = R"(
+      import 'dart:ffi';
+
+      class MyStruct extends Struct {
+        external Pointer notEmpty;
+      }
+
+      class MyUnion extends Union {
+        external Pointer notEmpty;
+      }
+  )";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle my_struct_type =
+      Dart_GetNonNullableType(lib, NewString("MyStruct"), 0, NULL);
+  Dart_Handle obj4 = Dart_Allocate(my_struct_type);
+  EXPECT_VALID(obj4);
+  Dart_WeakPersistentHandle ref4 =
+      Dart_NewWeakPersistentHandle(obj4, nullptr, 0, FinalizableHandleCallback);
+  EXPECT_EQ(ref4, static_cast<void*>(nullptr));
+
+  Dart_Handle my_union_type =
+      Dart_GetNonNullableType(lib, NewString("MyUnion"), 0, NULL);
+  Dart_Handle obj5 = Dart_Allocate(my_union_type);
+  EXPECT_VALID(obj5);
+  Dart_WeakPersistentHandle ref5 =
+      Dart_NewWeakPersistentHandle(obj4, nullptr, 0, FinalizableHandleCallback);
+  EXPECT_EQ(ref5, static_cast<void*>(nullptr));
+
   Dart_ExitScope();
 }
 
@@ -3387,6 +3427,46 @@ TEST_CASE(DartAPI_FinalizableHandleErrors) {
   Dart_FinalizableHandle ref2 =
       Dart_NewFinalizableHandle(obj2, nullptr, 0, FinalizableHandleCallback);
   EXPECT_EQ(ref2, static_cast<void*>(nullptr));
+
+  // Pointer object.
+  Dart_Handle ffi_lib = Dart_LookupLibrary(NewString("dart:ffi"));
+  Dart_Handle pointer_type =
+      Dart_GetNonNullableType(ffi_lib, NewString("Pointer"), 0, NULL);
+  Dart_Handle obj3 = Dart_Allocate(pointer_type);
+  EXPECT_VALID(obj3);
+  Dart_FinalizableHandle ref3 =
+      Dart_NewFinalizableHandle(obj3, nullptr, 0, FinalizableHandleCallback);
+  EXPECT_EQ(ref3, static_cast<void*>(nullptr));
+
+  // Subtype of Struct or Union object.
+  const char* kScriptChars = R"(
+      import 'dart:ffi';
+
+      class MyStruct extends Struct {
+        external Pointer notEmpty;
+      }
+
+      class MyUnion extends Union {
+        external Pointer notEmpty;
+      }
+  )";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle my_struct_type =
+      Dart_GetNonNullableType(lib, NewString("MyStruct"), 0, NULL);
+  Dart_Handle obj4 = Dart_Allocate(my_struct_type);
+  EXPECT_VALID(obj4);
+  Dart_FinalizableHandle ref4 =
+      Dart_NewFinalizableHandle(obj4, nullptr, 0, FinalizableHandleCallback);
+  EXPECT_EQ(ref4, static_cast<void*>(nullptr));
+
+  Dart_Handle my_union_type =
+      Dart_GetNonNullableType(lib, NewString("MyUnion"), 0, NULL);
+  Dart_Handle obj5 = Dart_Allocate(my_union_type);
+  EXPECT_VALID(obj5);
+  Dart_FinalizableHandle ref5 =
+      Dart_NewFinalizableHandle(obj4, nullptr, 0, FinalizableHandleCallback);
+  EXPECT_EQ(ref5, static_cast<void*>(nullptr));
 
   Dart_ExitScope();
 }

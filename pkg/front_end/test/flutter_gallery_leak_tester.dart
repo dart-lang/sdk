@@ -216,10 +216,10 @@ main(List<String> args) async {
       },
       stderrReceiver: (s) => print("err> $s"));
 
-  await sendAndWait(heapHelper.process, ['compile package:gallery/main.dart']);
   Stopwatch stopwatch = new Stopwatch()..start();
-  await pauseAndWait(heapHelper);
+  await sendAndWait(heapHelper.process, ['compile package:gallery/main.dart']);
   print("First compile took ${stopwatch.elapsedMilliseconds} ms");
+  await pauseAndWait(heapHelper);
 
   await recompileAndWait(heapHelper.process, "package:gallery/main.dart", []);
   await accept(heapHelper);

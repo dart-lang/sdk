@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -28,8 +26,12 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     if (classDeclaration == null) {
       return;
     }
+
     var className = classDeclaration.name.name;
-    var superType = classDeclaration.declaredElement.supertype;
+    var superType = classDeclaration.declaredElement?.supertype;
+    if (superType == null) {
+      return;
+    }
 
     // prepare names of uninitialized final fields
     var fieldNames = <String>[];
@@ -44,12 +46,19 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       }
     }
     // prepare location for a new constructor
-    var targetLocation = utils.prepareNewConstructorLocation(classDeclaration);
+    var targetLocation = utils.prepareNewConstructorLocation(
+        resolvedResult.session, classDeclaration);
+    if (targetLocation == null) {
+      return;
+    }
 
     if (flutter.isExactlyStatelessWidgetType(superType) ||
         flutter.isExactlyStatefulWidgetType(superType)) {
       // Specialize for Flutter widgets.
       var keyClass = await sessionHelper.getClass(flutter.widgetsUri, 'Key');
+      if (keyClass == null) {
+        return;
+      }
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(targetLocation.offset, (builder) {
           builder.write(targetLocation.prefix);

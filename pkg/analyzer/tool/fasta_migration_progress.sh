@@ -44,7 +44,7 @@ if [[ $logfile == '' ]]; then
   echo "  Log file: $logfile"
   # TODO: delete by default and stop logging the location of the file.
   # delete=1
-  python tools/test.py -m release --checked --use-sdk \
+  python3 tools/test.py -m release --checked --use-sdk \
      --vm-options="-DuseFastaParser=true" \
      --print_passing_stdout \
      pkg/analy > $logfile

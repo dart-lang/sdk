@@ -16,7 +16,7 @@ abstract class Row {
   /// Note: there is a border on the left and right of each column
   /// plus whitespace around it.
   static int totalWidth(List<int> widths) =>
-      widths.fold(0, (sum, width) => sum + width + 3) + 1;
+      widths.fold<int>(0, (sum, width) => sum + width + 3) + 1;
 }
 
 enum Separator {
@@ -91,7 +91,7 @@ class Text {
   final String value;
   final AlignmentDirection direction;
 
-  Text({this.value, this.direction});
+  Text({required this.value, required this.direction});
   Text.left(String value)
       : this(value: value, direction: AlignmentDirection.Left);
   Text.right(String value)
@@ -113,7 +113,6 @@ class Text {
         final diff = width - value.length;
         return ' ' * (diff ~/ 2) + value + (' ' * (diff - diff ~/ 2));
     }
-    return null; // Make analyzer happy.
   }
 
   int get length => value.length;
@@ -126,7 +125,7 @@ class AsciiTable {
 
   final List<Row> rows = <Row>[];
 
-  AsciiTable({List<dynamic> header, this.maxWidth = unlimitedWidth}) {
+  AsciiTable({List<dynamic>? header, this.maxWidth = unlimitedWidth}) {
     if (header != null) {
       addSeparator();
       addRow(header);

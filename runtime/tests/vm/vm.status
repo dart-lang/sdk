@@ -30,6 +30,10 @@ dart_2/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart_2/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart_2/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 
+[ $arch == ia32 ]
+dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+dart_2/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
@@ -99,8 +103,10 @@ dart_2/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invok
 
 [ $compiler != dartkp ]
 dart/base_il_serialization: SkipByDesign # Serialization currently supported only when compiling with --aot.
+dart/disassemble_aot_test: SkipByDesign # runs gen snapshot.
 dart/entrypoints/aot/*: SkipByDesign # These tests should only run on AOT.
 dart_2/base_il_serialization: SkipByDesign # Serialization currently supported only when compiling with --aot.
+dart_2/disassemble_aot_test: SkipByDesign # runs gen snapshot.
 dart_2/entrypoints/aot/*: SkipByDesign # These tests should only run on AOT.
 
 [ $compiler == fasta ]
@@ -128,7 +134,9 @@ dart_2/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
+dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
+dart_2/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
 dart_2/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $nnbd == legacy ]
@@ -282,7 +290,9 @@ dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart/regress_45898_test: Pass, Slow
 dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart_2/regress_45898_test: Pass, Slow
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
@@ -375,10 +385,12 @@ dart_2/thread_priority_linux_test: SkipByDesign
 
 [ $builder_tag == crossword || $builder_tag == crossword_ast ]
 dart/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot determine the location of gen_snapshot (only tools/test.py knows where it is).
+dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot.
 dart/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart/split_aot_kernel_generation2_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart/split_aot_kernel_generation_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart_2/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot determine the location of gen_snapshot (only tools/test.py knows where it is).
+dart_2/gen_snapshot_include_resolved_urls_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot.
 dart_2/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart_2/split_aot_kernel_generation2_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart_2/split_aot_kernel_generation_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot

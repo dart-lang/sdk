@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -34,7 +32,7 @@ var aa = new A();
 
     var processor = await computeFixes();
     var changeMap = processor.changeMap;
-    var errors = changeMap.libraryMap[testFile];
+    var errors = changeMap.libraryMap[testFile]!;
     expect(errors, hasLength(1));
     expect(errors[LintNames.unnecessary_new], 2);
   }

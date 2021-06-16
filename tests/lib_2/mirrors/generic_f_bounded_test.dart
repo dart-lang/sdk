@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library test.generic_f_bounded;
 
 import 'dart:mirrors';
@@ -43,13 +45,14 @@ main() {
   Expect.equals(magnitudeDecl, magnitudeOfR.originalDeclaration);
   Expect.equals(rFromSorter, magnitudeOfR.typeArguments.single);
 
-  typeParameters(magnitudeDecl, [#T]);
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
+
   typeParameters(realDecl, []);
-  typeParameters(sorterDecl, [#R]);
   typeParameters(realSorterDecl, []);
-  typeParameters(magnitudeOfReal, [#T]);
-  typeParameters(sorterOfReal, [#R]);
-  typeParameters(magnitudeOfR, [#T]);
+
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
 
   typeArguments(magnitudeDecl, []);
   typeArguments(realDecl, []);

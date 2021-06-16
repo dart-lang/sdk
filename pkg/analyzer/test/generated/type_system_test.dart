@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -472,22 +473,51 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
       return typeSystem.tryPromoteToType(to, from) as TypeParameterTypeImpl;
     }
 
-    void check(
-      TypeParameterTypeImpl type,
-      TypeParameterElement expectedElement,
-      DartType expectedBound,
-    ) {
-      expect(type.element, expectedElement);
-      expect(type.promotedBound, expectedBound);
+    void check(TypeParameterTypeImpl type, String expected) {
+      expect(type.getDisplayString(withNullability: true), expected);
     }
 
     var T = typeParameter('T');
-    var T0 = typeParameterTypeNone(T);
+    var T_none = typeParameterTypeNone(T);
+    var T_question = typeParameterTypeQuestion(T);
+    var T_star = typeParameterTypeStar(T);
 
-    var T1 = tryPromote(numNone, T0);
-    check(T1, T, numNone);
+    check(tryPromote(numNone, T_none), 'T & num');
+    check(tryPromote(numQuestion, T_none), 'T & num?');
+    check(tryPromote(numStar, T_none), 'T & num*');
+
+    check(tryPromote(numNone, T_question), 'T & num');
+    check(tryPromote(numQuestion, T_question), 'T? & num?');
+    check(tryPromote(numStar, T_question), 'T* & num*');
+
+    check(tryPromote(numNone, T_star), 'T* & num');
+    check(tryPromote(numQuestion, T_star), 'T* & num?');
+    check(tryPromote(numStar, T_star), 'T* & num*');
+  }
+
+  test_typeParameter_twice() {
+    TypeParameterTypeImpl tryPromote(DartType to, TypeParameterTypeImpl from) {
+      return typeSystem.tryPromoteToType(to, from) as TypeParameterTypeImpl;
+    }
+
+    void check(
+      TypeParameterTypeImpl type,
+      TypeParameterElement element,
+      NullabilitySuffix nullability,
+      DartType promotedBound,
+    ) {
+      expect(type.element, element);
+      expect(type.nullabilitySuffix, nullability);
+      expect(type.promotedBound, promotedBound);
+    }
+
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+
+    var T1 = tryPromote(numNone, T_none);
+    check(T1, T, NullabilitySuffix.none, numNone);
 
     var T2 = tryPromote(intNone, T1);
-    check(T2, T, intNone);
+    check(T2, T, NullabilitySuffix.none, intNone);
   }
 }

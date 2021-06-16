@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' as io;
 import 'dart:math' as math;
 
@@ -36,7 +34,6 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
 
 import 'output_utilities.dart';
 
@@ -83,7 +80,7 @@ ArgParser createArgParser() {
 }
 
 /// Print usage information for this tool.
-void printUsage(ArgParser parser, {String error}) {
+void printUsage(ArgParser parser, {String? error}) {
   if (error != null) {
     print(error);
     print('');
@@ -271,20 +268,20 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// The library containing the compilation unit being visited.
-  LibraryElement enclosingLibrary;
+  late LibraryElement enclosingLibrary;
 
   /// A flag indicating whether we are currently in a context in which type
   /// parameters are visible.
   bool inGenericContext = false;
 
   /// The type provider associated with the current compilation unit.
-  TypeProvider typeProvider;
+  late TypeProvider typeProvider;
 
   /// The type system associated with the current compilation unit.
-  TypeSystem typeSystem;
+  late TypeSystem typeSystem;
 
   /// The object used to compute the values of features.
-  FeatureComputer featureComputer;
+  late FeatureComputer featureComputer;
 
   /// Initialize a newly created collector to add data points to the given
   /// [data].
@@ -461,10 +458,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     inGenericContext = inGenericContext || node.typeParameters != null;
     _recordDataForNode('ClassTypeAlias (superclass)', node.superclass);
     var context = 'superclass';
-    if (node.withClause != null) {
-      _recordTokenType('ClassDeclaration ($context)', node.withClause);
-      context = 'with';
-    }
+    _recordTokenType('ClassDeclaration ($context)', node.withClause);
+    context = 'with';
     _recordTokenType('ClassDeclaration ($context)', node.implementsClause);
     super.visitClassTypeAlias(node);
     inGenericContext = wasInGenericContext;
@@ -489,7 +484,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    enclosingLibrary = node.declaredElement.library;
+    enclosingLibrary = node.declaredElement!.library;
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
     inheritanceManager = InheritanceManager3();
@@ -510,12 +505,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     data.recordPercentage(
         'Compilation units with at least one prefix', hasPrefix);
     super.visitCompilationUnit(node);
-
-    featureComputer = null;
-    inheritanceManager = null;
-    typeSystem = null;
-    typeProvider = null;
-    enclosingLibrary = null;
   }
 
   @override
@@ -865,13 +854,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     var context = 'uri';
-    if (node.deferredKeyword != null) {
-      data.recordTokenType(
-          'ImportDirective ($context)', node.deferredKeyword.type);
+    var deferredKeyword = node.deferredKeyword;
+    if (deferredKeyword != null) {
+      data.recordTokenType('ImportDirective ($context)', deferredKeyword.type);
       context = 'deferred';
     }
-    if (node.asKeyword != null) {
-      data.recordTokenType('ImportDirective ($context)', node.asKeyword.type);
+    var asKeyword = node.asKeyword;
+    if (asKeyword != null) {
+      data.recordTokenType('ImportDirective ($context)', asKeyword.type);
       context = 'prefix';
     }
     if (node.configurations.isNotEmpty) {
@@ -977,7 +967,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // There are no completions.
     data.recordPercentage(
         'Methods with type parameters', node.typeParameters != null);
-    var element = node.declaredElement;
+    var element = node.declaredElement!;
     if (!element.isStatic && element.enclosingElement is ClassElement) {
       var overriddenMembers = inheritanceManager.getOverridden2(
           element.enclosingElement as ClassElement,
@@ -1293,8 +1283,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: [Keyword.ON]);
       context = 'catch';
     }
-    if (node.finallyKeyword != null) {
-      data.recordTokenType('TryStatement ($context)', node.finallyKeyword.type);
+    var finallyKeyword = node.finallyKeyword;
+    if (finallyKeyword != null) {
+      data.recordTokenType('TryStatement ($context)', finallyKeyword.type);
     }
     super.visitTryStatement(node);
   }
@@ -1329,7 +1320,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var keywords = node.parent.parent is FieldDeclaration
+    var keywords = node.parent?.parent is FieldDeclaration
         ? [Keyword.COVARIANT, ...expressionKeywords]
         : expressionKeywords;
     _recordDataForNode('VariableDeclaration (initializer)', node.initializer,
@@ -1375,7 +1366,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the context in which the [node] occurs. The [node] is expected to
   /// be the parent of the argument expression.
-  String _argumentListContext(AstNode node) {
+  String _argumentListContext(AstNode? node) {
     if (node is ArgumentList) {
       var parent = node.parent;
       if (parent is InstanceCreationExpression) {
@@ -1412,17 +1403,17 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       return 0;
     }
     var depth = 0;
-    var currentElement = element;
+    Element? currentElement = element;
     while (currentElement != enclosingLibrary) {
       depth++;
-      currentElement = currentElement.enclosingElement;
+      currentElement = currentElement?.enclosingElement;
     }
     return depth;
   }
 
   /// Return the first child of the [node] that is neither a comment nor an
   /// annotation.
-  SyntacticEntity _firstChild(AstNode node) {
+  SyntacticEntity? _firstChild(AstNode node) {
     var children = node.childEntities.toList();
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -1435,13 +1426,13 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the element associated with the left-most identifier that is a
   /// child of the [node].
-  Element _leftMostElement(AstNode node) =>
+  Element? _leftMostElement(AstNode node) =>
       _leftMostIdentifier(node)?.staticElement;
 
   /// Return the left-most child of the [node] if it is a simple identifier, or
   /// `null` if the left-most child is not a simple identifier. Comments and
   /// annotations are ignored for this purpose.
-  SimpleIdentifier _leftMostIdentifier(AstNode node) {
+  SimpleIdentifier? _leftMostIdentifier(AstNode? node) {
     var currentNode = node;
     while (currentNode != null && currentNode is! SimpleIdentifier) {
       var firstChild = _firstChild(currentNode);
@@ -1451,17 +1442,18 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         currentNode = null;
       }
     }
-    if (currentNode is SimpleIdentifier && currentNode.inDeclarationContext()) {
-      return null;
+    if (currentNode is SimpleIdentifier &&
+        !currentNode.inDeclarationContext()) {
+      return currentNode;
     }
-    return currentNode;
+    return null;
   }
 
   /// Return the element kind of the element associated with the left-most
   /// identifier that is a child of the [node].
-  ElementKind _leftMostKind(AstNode node) {
+  ElementKind? _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
-      return convertElementToElementKind(node.constructorName.staticElement);
+      return convertElementToElementKind(node.constructorName.staticElement!);
     }
     var element = _leftMostElement(node);
     if (element == null) {
@@ -1470,17 +1462,17 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element is ClassElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
-        element = parent.element;
+        element = parent.element!;
       }
     }
     return convertElementToElementKind(element);
   }
 
   /// Return the left-most token that is a child of the [node].
-  Token _leftMostToken(AstNode node) {
-    SyntacticEntity entity = node;
+  Token? _leftMostToken(AstNode node) {
+    SyntacticEntity? entity = node;
     while (entity is AstNode) {
-      entity = _firstChild(entity as AstNode);
+      entity = _firstChild(entity);
     }
     if (entity is Token) {
       return entity;
@@ -1490,7 +1482,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the number of functions between the [reference] and the [function]
   /// in which the referenced parameter is declared.
-  int _parameterReferenceDepth(AstNode reference, Element function) {
+  int _parameterReferenceDepth(AstNode? reference, Element function) {
     var depth = 0;
     var node = reference;
     while (node != null) {
@@ -1515,7 +1507,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     return -1;
   }
 
-  void _recordContextType(DartType type) {
+  void _recordContextType(DartType? type) {
     if (type == null) {
       data.incrementCount('has no context type');
     } else {
@@ -1525,7 +1517,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record information about the given [node] occurring in the given
   /// [context].
-  void _recordDataForNode(String context, AstNode node,
+  void _recordDataForNode(String context, AstNode? node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
     if (inGenericContext) {
@@ -1557,7 +1549,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record the element kind of the element associated with the left-most
   /// identifier that is a child of the [node] in the given [context].
-  void _recordElementKind(String context, AstNode node) {
+  void _recordElementKind(String context, AstNode? node) {
     if (node != null) {
       var kind = _leftMostKind(node);
       if (kind != null) {
@@ -1573,7 +1565,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record the distance between the static type of the target (the
   /// [targetType]) and the [member] to which the reference was resolved.
-  void _recordMemberDepth(DartType targetType, Element member) {
+  void _recordMemberDepth(DartType? targetType, Element? member) {
     if (member == null) {
       return;
     }
@@ -1593,7 +1585,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         /// superclasses caused by mixins.
         int getSuperclassDepth() {
           var depth = 0;
-          var currentClass = targetClass;
+          ClassElement? currentClass = targetClass;
           while (currentClass != null) {
             if (currentClass == memberClass) {
               return depth;
@@ -1614,7 +1606,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         /// includes all of the implicit superclasses caused by mixins.
         int getTargetDepth() {
           var depth = 0;
-          var currentClass = targetClass;
+          ClassElement? currentClass = targetClass;
           while (currentClass != null) {
             depth += currentClass.mixins.length + 1;
             currentClass = currentClass.supertype?.element;
@@ -1663,8 +1655,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
 
-    void recordParameterOverride(ParameterElement overrideParameter,
-        ParameterElement overriddenParameter) {
+    void recordParameterOverride(ParameterElement? overrideParameter,
+        ParameterElement? overriddenParameter) {
       var overrideType = overrideParameter?.type;
       var overriddenType = overriddenParameter?.type;
       if (overrideType == null ||
@@ -1692,11 +1684,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record the depth of the element associated with the left-most identifier
   /// that is a child of the given [node].
-  void _recordReferenceDepth(AstNode node) {
+  void _recordReferenceDepth(AstNode? node) {
     var reference = _leftMostIdentifier(node);
     var element = reference?.staticElement;
     if (element is ParameterElement) {
-      var definingElement = element.enclosingElement;
+      var definingElement = element.enclosingElement!;
       var depth = _parameterReferenceDepth(node, definingElement);
       _recordDistance('function depth of referenced parameter', depth);
     } else if (element is LocalVariableElement) {
@@ -1705,7 +1697,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       //  additionally measuring the number of function boundaries that are
       //  crossed and then reporting the distance with a label such as
       //  'local variable ($boundaryCount)'.
-      var distance = featureComputer.localVariableDistance(node, element);
+      var distance = node == null
+          ? -1
+          : featureComputer.localVariableDistance(node, element);
       _recordDistance('distance to local variable', distance);
     } else if (element != null) {
       // TODO(brianwilkerson) We might want to cross reference the depth of
@@ -1718,20 +1712,20 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record the number of tokens between a given identifier and the nearest
   /// previous token with the same lexeme.
-  void _recordTokenDistance(AstNode node) {
+  void _recordTokenDistance(AstNode? node) {
     var identifier = _leftMostIdentifier(node);
     if (identifier != null) {
       int distance() {
         var token = identifier.token;
         var lexeme = token.lexeme;
         var distance = 1;
-        token = token.previous;
+        token = token.previous!;
         while (!token.isEof && distance <= 100) {
           if (token.lexeme == lexeme) {
             return distance;
           }
           distance++;
-          token = token.previous;
+          token = token.previous!;
         }
         return -1;
       }
@@ -1742,13 +1736,13 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record the token type of the left-most token that is a child of the
   /// [node] in the given [context].
-  void _recordTokenType(String context, AstNode node,
+  void _recordTokenType(String context, AstNode? node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     if (node != null) {
       var token = _leftMostToken(node);
       if (token != null) {
         var type = token.type;
-        if (token.isKeyword && token.keyword.isBuiltInOrPseudo) {
+        if (token.isKeyword && token.keyword!.isBuiltInOrPseudo) {
           // These keywords can be used as identifiers, so determine whether it
           // is being used as a keyword or an identifier.
           if (!allowedKeywords.contains(token.keyword)) {
@@ -1851,7 +1845,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the return type of the [element], or `null` if the element doesn't
   /// have a return type.
-  DartType _returnType(Element element) {
+  DartType? _returnType(Element? element) {
     if (element is ExecutableElement) {
       return element.returnType;
     }
@@ -1871,7 +1865,7 @@ class RelevanceMetricsComputer {
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
-  Future<void> compute(String rootPath, {@required bool verbose}) async {
+  Future<void> compute(String rootPath, {required bool verbose}) async {
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -1933,7 +1927,7 @@ class RelevanceMetricsComputer {
   /// output if [verbose] is `true`.
   Future<void> _computeInContext(
       ContextRoot root, RelevanceDataCollector collector,
-      {@required bool verbose}) async {
+      {required bool verbose}) async {
     // Create a new collection to avoid consuming large quantities of memory.
     final collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
@@ -1946,17 +1940,11 @@ class RelevanceMetricsComputer {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
           var resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+              await context.currentSession.getResolvedUnit2(filePath);
           //
           // Check for errors that cause the file to be skipped.
           //
-          if (resolvedUnitResult == null) {
-            print('File $filePath skipped because resolved unit was null.');
-            if (verbose) {
-              print('');
-            }
-            continue;
-          } else if (resolvedUnitResult.state != ResultState.VALID) {
+          if (resolvedUnitResult is! ResolvedUnitResult) {
             print('File $filePath skipped because it could not be analyzed.');
             if (verbose) {
               print('');
@@ -1976,7 +1964,7 @@ class RelevanceMetricsComputer {
             continue;
           }
 
-          resolvedUnitResult.unit.accept(collector);
+          resolvedUnitResult.unit!.accept(collector);
         } catch (exception, stacktrace) {
           print('Exception caught analyzing: "$filePath"');
           print(exception);
@@ -2005,7 +1993,7 @@ class RelevanceMetricsComputer {
 
   /// Convert the contents of a single [map] into the values for each row in the
   /// column occupied by the map.
-  List<String> _convertMap<T extends Object>(String context, Map<T, int> map) {
+  List<String> _convertMap<T extends Object>(String context, Map<T, int>? map) {
     var columns = <String>[];
     if (map == null) {
       return columns;
@@ -2062,13 +2050,15 @@ class RelevanceMetricsComputer {
   /// Write a [contextMap] containing one kind of metric data to the [sink].
   void _writeContextMap(
       StringSink sink, Map<String, Map<String, int>> contextMap) {
-    var contexts = contextMap.keys.toList()..sort();
-    for (var i = 0; i < contexts.length; i++) {
+    var entries = contextMap.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
+    for (var i = 0; i < entries.length; i++) {
       if (i > 0) {
         sink.writeln();
       }
-      var context = contexts[i];
-      var lines = _convertMap(context, contextMap[context]);
+      var context = entries[i].key;
+      var data = entries[i].value;
+      var lines = _convertMap(context, data);
       for (var line in lines) {
         sink.writeln('  $line');
       }
@@ -2132,9 +2122,11 @@ class RelevanceMetricsComputer {
   /// Write a [percentageMap] containing one kind of metric data to the [sink].
   void _writePercentageData(
       StringSink sink, Map<String, _PercentageData> percentageMap) {
-    var names = percentageMap.keys.toList()..sort();
-    for (var name in names) {
-      var data = percentageMap[name];
+    var entries = percentageMap.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
+    for (var entry in entries) {
+      var name = entry.key;
+      var data = entry.value;
       var total = data.total;
       var value = data.positive;
       var percent = total == 0 ? '  0.0' : _formatPercent(value, total);

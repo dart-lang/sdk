@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
@@ -24,8 +22,7 @@ class LibraryPrefixContributorTest extends DartCompletionContributorTest {
     for (var prefix in expectedPrefixes) {
       var cs =
           assertSuggest(prefix, csKind: CompletionSuggestionKind.IDENTIFIER);
-      var element = cs.element;
-      expect(element, isNotNull);
+      var element = cs.element!;
       expect(element.kind, equals(ElementKind.LIBRARY));
       expect(element.parameters, isNull);
       expect(element.returnType, isNull);

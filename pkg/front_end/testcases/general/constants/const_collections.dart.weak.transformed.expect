@@ -220,15 +220,15 @@ class ConstIterable extends col::IterableBase<core::int*> /*hasConstConstructor*
     : super col::IterableBase::•()
     ;
   get iterator() → core::Iterator<core::int*>*
-    return core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator};
+    return core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator}{core::Iterator<core::int*>*};
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::int*>* other) → core::Iterable<core::int*>*; -> core::Iterable::followedBy
-  abstract member-signature method map<T extends core::Object* = dynamic>((core::int*) →* self::ConstIterable::map::T* f) → core::Iterable<self::ConstIterable::map::T*>*; -> core::Iterable::map
+  abstract member-signature method map<T extends core::Object* = dynamic>((core::int*) →* self::ConstIterable::map::T* toElement) → core::Iterable<self::ConstIterable::map::T*>*; -> core::Iterable::map
   abstract member-signature method where((core::int*) →* core::bool* test) → core::Iterable<core::int*>*; -> core::Iterable::where
   abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::whereType::T*>*; -> core::Iterable::whereType
-  abstract member-signature method expand<T extends core::Object* = dynamic>((core::int*) →* core::Iterable<self::ConstIterable::expand::T*>* f) → core::Iterable<self::ConstIterable::expand::T*>*; -> core::Iterable::expand
+  abstract member-signature method expand<T extends core::Object* = dynamic>((core::int*) →* core::Iterable<self::ConstIterable::expand::T*>* toElements) → core::Iterable<self::ConstIterable::expand::T*>*; -> core::Iterable::expand
   abstract member-signature method contains(core::Object* element) → core::bool*; -> core::Iterable::contains
-  abstract member-signature method forEach((core::int*) →* void f) → void; -> core::Iterable::forEach
+  abstract member-signature method forEach((core::int*) →* void action) → void; -> core::Iterable::forEach
   abstract member-signature method reduce(generic-covariant-impl (core::int*, core::int*) →* core::int* combine) → core::int*; -> core::Iterable::reduce
   abstract member-signature method fold<T extends core::Object* = dynamic>(self::ConstIterable::fold::T* initialValue, (self::ConstIterable::fold::T*, core::int*) →* self::ConstIterable::fold::T* combine) → self::ConstIterable::fold::T*; -> core::Iterable::fold
   abstract member-signature method every((core::int*) →* core::bool* test) → core::bool*; -> core::Iterable::every
@@ -264,7 +264,7 @@ class WithEquals extends core::Object /*hasConstConstructor*/  {
     : self::WithEquals::i = i, super core::Object::•()
     ;
   operator ==(core::Object* o) → core::bool* {
-    return o is self::WithEquals* && o{self::WithEquals*}.{self::WithEquals::i}.{core::num::==}(this.{self::WithEquals::i});
+    return o is self::WithEquals* && o{self::WithEquals*}.{self::WithEquals::i}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} this.{self::WithEquals::i}{core::int*};
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -281,15 +281,15 @@ class CustomIterable extends col::IterableBase<core::String*> /*hasConstConstruc
     : super col::IterableBase::•()
     ;
   get iterator() → core::Iterator<core::String*>*
-    return core::_GrowableList::•<core::String*>(0).{core::Iterable::iterator};
+    return core::_GrowableList::•<core::String*>(0).{core::Iterable::iterator}{core::Iterator<core::String*>*};
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::String*>* other) → core::Iterable<core::String*>*; -> core::Iterable::followedBy
-  abstract member-signature method map<T extends core::Object* = dynamic>((core::String*) →* self::CustomIterable::map::T* f) → core::Iterable<self::CustomIterable::map::T*>*; -> core::Iterable::map
+  abstract member-signature method map<T extends core::Object* = dynamic>((core::String*) →* self::CustomIterable::map::T* toElement) → core::Iterable<self::CustomIterable::map::T*>*; -> core::Iterable::map
   abstract member-signature method where((core::String*) →* core::bool* test) → core::Iterable<core::String*>*; -> core::Iterable::where
   abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::whereType::T*>*; -> core::Iterable::whereType
-  abstract member-signature method expand<T extends core::Object* = dynamic>((core::String*) →* core::Iterable<self::CustomIterable::expand::T*>* f) → core::Iterable<self::CustomIterable::expand::T*>*; -> core::Iterable::expand
+  abstract member-signature method expand<T extends core::Object* = dynamic>((core::String*) →* core::Iterable<self::CustomIterable::expand::T*>* toElements) → core::Iterable<self::CustomIterable::expand::T*>*; -> core::Iterable::expand
   abstract member-signature method contains(core::Object* element) → core::bool*; -> core::Iterable::contains
-  abstract member-signature method forEach((core::String*) →* void f) → void; -> core::Iterable::forEach
+  abstract member-signature method forEach((core::String*) →* void action) → void; -> core::Iterable::forEach
   abstract member-signature method reduce(generic-covariant-impl (core::String*, core::String*) →* core::String* combine) → core::String*; -> core::Iterable::reduce
   abstract member-signature method fold<T extends core::Object* = dynamic>(self::CustomIterable::fold::T* initialValue, (self::CustomIterable::fold::T*, core::String*) →* self::CustomIterable::fold::T* combine) → self::CustomIterable::fold::T*; -> core::Iterable::fold
   abstract member-signature method every((core::String*) →* core::bool* test) → core::bool*; -> core::Iterable::every
@@ -402,7 +402,7 @@ static const field core::List<core::String*>* foo = #C8;
 static const field core::List<core::String*>* bar = #C10;
 static field core::List<core::String*>* barAsVar = block {
   final core::List<core::String*>* #t1 = core::List::of<core::String*>(#C8);
-  #t1.{core::List::add}{Invariant}("!");
+  #t1.{core::List::add}("!"){(core::String*) →* void};
 } =>#t1;
 static const field core::List<core::String*>* barWithNullSpread = invalid-expression "Null value during constant evaluation.";
 static const field core::List<core::String*>* barWithIntSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
@@ -476,7 +476,7 @@ static method main() → dynamic {
   core::print(#C22);
   core::print( block {
     final core::Set<core::String*>* #t2 = new col::_CompactLinkedHashSet::•<core::String*>();
-    #t2.{core::Set::add}{Invariant}("hello");
+    #t2.{core::Set::add}("hello"){(core::String*) →* core::bool*};
   } =>#t2);
   core::print(#C26);
 }
@@ -514,7 +514,7 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///const_collections.dart:
 - CustomIterable. (from org-dartlang-testcase:///const_collections.dart:79:9)
-- IterableBase. (from org-dartlang-sdk:///sdk/lib/collection/iterable.dart:218:9)
+- IterableBase. (from org-dartlang-sdk:///sdk/lib/collection/iterable.dart:219:9)
 - WithEquals. (from org-dartlang-testcase:///const_collections.dart:72:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - CustomMap. (from org-dartlang-testcase:///const_collections.dart:84:9)

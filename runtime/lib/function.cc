@@ -54,6 +54,9 @@ DEFINE_NATIVE_ENTRY(Closure_equals, 0, 2) {
         ObjectPtr receiver_a = context_a.At(0);
         ObjectPtr receiver_b = context_b.At(0);
         if ((receiver_a == receiver_b) &&
+            (!func_a.IsGeneric() ||
+             receiver.delayed_type_arguments() ==
+                 other_closure.delayed_type_arguments()) &&
             ((func_a.ptr() == func_b.ptr()) ||
              ((func_a.name() == func_b.name()) &&
               (func_a.Owner() == func_b.Owner())))) {

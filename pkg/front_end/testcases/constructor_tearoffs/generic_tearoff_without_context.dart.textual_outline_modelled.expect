@@ -1,0 +1,7 @@
+bar() => A.foo;
+
+class A<X> {
+  A.foo() {}
+}
+
+main() {}

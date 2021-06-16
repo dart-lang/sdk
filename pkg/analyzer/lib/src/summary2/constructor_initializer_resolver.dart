@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
@@ -14,74 +14,55 @@ class ConstructorInitializerResolver {
   final Linker _linker;
   final LibraryElementImpl _libraryElement;
 
-  late CompilationUnitElementImpl _unitElement;
-  late ClassElement _classElement;
-  late ConstructorElement _constructorElement;
-  late ConstructorDeclarationImpl _constructorNode;
-  late AstResolver _astResolver;
-
   ConstructorInitializerResolver(this._linker, this._libraryElement);
 
   void resolve() {
-    for (var unit in _libraryElement.units) {
-      _unitElement = unit as CompilationUnitElementImpl;
-      for (var classElement in unit.types) {
-        _classElement = classElement;
+    for (var unitElement in _libraryElement.units) {
+      var classElements = [...unitElement.mixins, ...unitElement.types];
+      for (var classElement in classElements) {
         for (var constructorElement in classElement.constructors) {
-          _constructor(constructorElement as ConstructorElementImpl);
+          _constructor(
+            unitElement as CompilationUnitElementImpl,
+            classElement as ClassElementImpl,
+            constructorElement as ConstructorElementImpl,
+          );
         }
       }
     }
   }
 
-  void _constructor(ConstructorElementImpl constructorElement) {
-    if (constructorElement.isSynthetic) return;
+  void _constructor(
+    CompilationUnitElementImpl unitElement,
+    ClassElementImpl classElement,
+    ConstructorElementImpl element,
+  ) {
+    if (element.isSynthetic) return;
 
-    _constructorElement = constructorElement;
-    _constructorNode =
-        constructorElement.linkedNode as ConstructorDeclarationImpl;
+    var node = _linker.getLinkingNode(element) as ConstructorDeclarationImpl;
 
-    var functionScope = LinkingNodeContext.get(_constructorNode).scope;
+    var functionScope = LinkingNodeContext.get(node).scope;
     var initializerScope = ConstructorInitializerScope(
       functionScope,
-      constructorElement,
+      element,
     );
 
-    _astResolver = AstResolver(_linker, _unitElement, initializerScope);
+    var astResolver = AstResolver(_linker, unitElement, initializerScope, node,
+        enclosingClassElement: classElement,
+        enclosingExecutableElement: element);
 
-    var body = _constructorNode.body;
+    var body = node.body;
     body.localVariableInfo = LocalVariableInfo();
 
-    _initializers();
-    _redirectedConstructor();
-  }
+    astResolver.resolveConstructorNode(node);
 
-  void _initializers() {
-    var isConst = _constructorNode.constKeyword != null;
-    if (!isConst) {
-      return;
-    }
-
-    for (var initializer in _constructorNode.initializers) {
-      _astResolver.resolve(
-        initializer,
-        () => initializer,
-        enclosingClassElement: _classElement,
-        enclosingExecutableElement: _constructorElement,
-        enclosingFunctionBody: _constructorNode.body,
-      );
-    }
-  }
-
-  void _redirectedConstructor() {
-    var redirected = _constructorNode.redirectedConstructor;
-    if (redirected != null) {
-      _astResolver.resolve(
-        redirected,
-        () => redirected,
-        enclosingClassElement: _classElement,
-        enclosingExecutableElement: _constructorElement,
-      );
+    if (node.factoryKeyword != null) {
+      element.redirectedConstructor = node.redirectedConstructor?.staticElement;
+    } else {
+      for (var initializer in node.initializers) {
+        if (initializer is RedirectingConstructorInvocation) {
+          element.redirectedConstructor = initializer.staticElement;
+        }
+      }
     }
   }
 }

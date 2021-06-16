@@ -137,7 +137,7 @@ convert(x) => x as _s_;
     testRecovery('''
 f() {
   var x;
-  x = 
+  x =
 }
 ''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
 f() {
@@ -195,7 +195,7 @@ f(int a, int b) { }
 
   void test_conditionalExpression_else() {
     testRecovery('''
-f() => x ? y : 
+f() => x ? y :
 ''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
 f() => x ? y : _s_;
 ''');

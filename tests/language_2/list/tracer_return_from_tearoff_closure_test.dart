@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dart2js's list tracer, that used to not see a
 // returned value of a method can escape to places where that method
 // is closurized and invoked.

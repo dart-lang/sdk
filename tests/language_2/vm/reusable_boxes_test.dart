@@ -4,6 +4,8 @@
 // Test correct handling reusable boxes.
 // VMOptions=--optimization_counter_threshold=100 --no-background_compilation
 
+// @dart = 2.9
+
 library reusable_boxes_test;
 
 import 'dart:typed_data';

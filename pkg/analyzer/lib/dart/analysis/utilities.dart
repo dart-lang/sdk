@@ -88,11 +88,18 @@ ParseStringResult parseString(
     featureSet: scanner.featureSet,
   );
   var unit = parser.parseCompilationUnit(token);
-  unit.lineInfo = LineInfo(scanner.lineStarts);
+  var lineInfo = LineInfo(scanner.lineStarts);
+  unit.lineInfo = lineInfo;
   ParseStringResult result =
       ParseStringResultImpl(content, unit, errorCollector.errors);
   if (throwIfDiagnostics && result.errors.isNotEmpty) {
-    throw ArgumentError('Content produced diagnostics when parsed');
+    var buffer = StringBuffer();
+    for (var error in result.errors) {
+      var location = lineInfo.getLocation(error.offset);
+      buffer.writeln('  ${error.errorCode.name}: ${error.message} - '
+          '${location.lineNumber}:${location.columnNumber}');
+    }
+    throw ArgumentError('Content produced diagnostics when parsed:\n$buffer');
   }
   return result;
 }
@@ -106,11 +113,26 @@ ParseStringResult parseString(
 /// create one or more contexts and use those contexts to resolve the files.
 ///
 /// TODO(migration): should not be nullable
+@Deprecated('Use resolveFile2() instead')
 Future<ResolvedUnitResult?> resolveFile(
     {required String path, ResourceProvider? resourceProvider}) async {
   AnalysisContext context =
       _createAnalysisContext(path: path, resourceProvider: resourceProvider);
   return await context.currentSession.getResolvedUnit(path);
+}
+
+/// Return the result of resolving the file at the given [path].
+///
+/// If a [resourceProvider] is given, it will be used to access the file system.
+///
+/// Note that if more than one file is going to be resolved then this function
+/// is inefficient. Clients should instead use [AnalysisContextCollection] to
+/// create one or more contexts and use those contexts to resolve the files.
+Future<SomeResolvedUnitResult> resolveFile2(
+    {required String path, ResourceProvider? resourceProvider}) async {
+  AnalysisContext context =
+      _createAnalysisContext(path: path, resourceProvider: resourceProvider);
+  return await context.currentSession.getResolvedUnit2(path);
 }
 
 /// Return a newly create analysis context in which the file at the given [path]

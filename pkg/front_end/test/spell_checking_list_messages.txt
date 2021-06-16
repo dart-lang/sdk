@@ -19,6 +19,7 @@ c
 compilercontext.runincontext
 compilesdk
 constructor(s)
+core
 count.#count
 d
 dart.dev
@@ -33,6 +34,7 @@ f
 ffi
 flutter_runner
 futureor
+guides
 h
 https
 interop
@@ -41,6 +43,7 @@ js_util
 libraries.json
 list.filled
 loadlibrary
+migrate
 name.#name
 name.stack
 nameokempty

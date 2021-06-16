@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -18,58 +16,98 @@ class ReplaceConditionalWithIfElse extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    ConditionalExpression conditional;
     // may be on Statement with Conditional
     var statement = node.thisOrAncestorOfType<Statement>();
     if (statement == null) {
       return;
     }
-    // variable declaration
-    var inVariable = false;
-    if (statement is VariableDeclarationStatement) {
-      var variableStatement = statement;
-      for (var variable in variableStatement.variables.variables) {
-        if (variable.initializer is ConditionalExpression) {
-          conditional = variable.initializer as ConditionalExpression;
-          inVariable = true;
-          break;
-        }
-      }
-    }
-    // assignment
-    var inAssignment = false;
-    if (statement is ExpressionStatement) {
-      var exprStmt = statement;
-      if (exprStmt.expression is AssignmentExpression) {
-        var assignment = exprStmt.expression as AssignmentExpression;
-        if (assignment.operator.type == TokenType.EQ &&
-            assignment.rightHandSide is ConditionalExpression) {
-          conditional = assignment.rightHandSide as ConditionalExpression;
-          inAssignment = true;
-        }
-      }
-    }
-    // return
-    var inReturn = false;
-    if (statement is ReturnStatement) {
-      var returnStatement = statement;
-      if (returnStatement.expression is ConditionalExpression) {
-        conditional = returnStatement.expression as ConditionalExpression;
-        inReturn = true;
-      }
-    }
-    // prepare environment
-    var indent = utils.getIndent(1);
-    var prefix = utils.getNodePrefix(statement);
 
-    if (inVariable || inAssignment || inReturn) {
+    // Type v = conditional;
+    if (statement is VariableDeclarationStatement) {
+      return _variableDeclarationStatement(builder, statement);
+    }
+
+    // v = conditional;
+    if (statement is ExpressionStatement) {
+      var expression = statement.expression;
+      if (expression is AssignmentExpression) {
+        return _assignmentExpression(builder, statement, expression);
+      }
+    }
+
+    // return conditional;
+    if (statement is ReturnStatement) {
+      return _returnStatement(builder, statement);
+    }
+  }
+
+  Future<void> _assignmentExpression(
+    ChangeBuilder builder,
+    ExpressionStatement statement,
+    AssignmentExpression assignment,
+  ) async {
+    var conditional = assignment.rightHandSide;
+    if (assignment.operator.type == TokenType.EQ &&
+        conditional is ConditionalExpression) {
+      var indent = utils.getIndent(1);
+      var prefix = utils.getNodePrefix(statement);
+
       await builder.addDartFileEdit(file, (builder) {
-        // Type v = Conditional;
-        if (inVariable) {
+        var leftSide = assignment.leftHandSide;
+        var conditionSrc = utils.getNodeText(conditional.condition);
+        var thenSrc = utils.getNodeText(conditional.thenExpression);
+        var elseSrc = utils.getNodeText(conditional.elseExpression);
+        var name = utils.getNodeText(leftSide);
+        var src = '';
+        src += 'if ($conditionSrc) {' + eol;
+        src += prefix + indent + '$name = $thenSrc;' + eol;
+        src += prefix + '} else {' + eol;
+        src += prefix + indent + '$name = $elseSrc;' + eol;
+        src += prefix + '}';
+        builder.addSimpleReplacement(range.node(statement), src);
+      });
+    }
+  }
+
+  Future<void> _returnStatement(
+    ChangeBuilder builder,
+    ReturnStatement statement,
+  ) async {
+    var conditional = statement.expression;
+    if (conditional is ConditionalExpression) {
+      var indent = utils.getIndent(1);
+      var prefix = utils.getNodePrefix(statement);
+
+      await builder.addDartFileEdit(file, (builder) {
+        var conditionSrc = utils.getNodeText(conditional.condition);
+        var thenSrc = utils.getNodeText(conditional.thenExpression);
+        var elseSrc = utils.getNodeText(conditional.elseExpression);
+        var src = '';
+        src += 'if ($conditionSrc) {' + eol;
+        src += prefix + indent + 'return $thenSrc;' + eol;
+        src += prefix + '} else {' + eol;
+        src += prefix + indent + 'return $elseSrc;' + eol;
+        src += prefix + '}';
+        builder.addSimpleReplacement(range.node(statement), src);
+      });
+    }
+  }
+
+  Future<void> _variableDeclarationStatement(
+    ChangeBuilder builder,
+    VariableDeclarationStatement statement,
+  ) async {
+    for (var variable in statement.variables.variables) {
+      var conditional = variable.initializer;
+      if (conditional is ConditionalExpression) {
+        var indent = utils.getIndent(1);
+        var prefix = utils.getNodePrefix(statement);
+
+        await builder.addDartFileEdit(file, (builder) {
           var variable = conditional.parent as VariableDeclaration;
           var variableList = variable.parent as VariableDeclarationList;
           if (variableList.type == null) {
-            var type = variable.declaredElement.type;
+            var type = variable.declaredElement!.type;
             var keyword = variableList.keyword;
             if (keyword != null && keyword.keyword == Keyword.VAR) {
               builder.addReplacement(range.token(keyword), (builder) {
@@ -94,37 +132,8 @@ class ReplaceConditionalWithIfElse extends CorrectionProducer {
           src += prefix + indent + '$name = $elseSrc;' + eol;
           src += prefix + '}';
           builder.addSimpleReplacement(range.endLength(statement, 0), src);
-        }
-        // v = Conditional;
-        if (inAssignment) {
-          var assignment = conditional.parent as AssignmentExpression;
-          var leftSide = assignment.leftHandSide;
-          var conditionSrc = utils.getNodeText(conditional.condition);
-          var thenSrc = utils.getNodeText(conditional.thenExpression);
-          var elseSrc = utils.getNodeText(conditional.elseExpression);
-          var name = utils.getNodeText(leftSide);
-          var src = '';
-          src += 'if ($conditionSrc) {' + eol;
-          src += prefix + indent + '$name = $thenSrc;' + eol;
-          src += prefix + '} else {' + eol;
-          src += prefix + indent + '$name = $elseSrc;' + eol;
-          src += prefix + '}';
-          builder.addSimpleReplacement(range.node(statement), src);
-        }
-        // return Conditional;
-        if (inReturn) {
-          var conditionSrc = utils.getNodeText(conditional.condition);
-          var thenSrc = utils.getNodeText(conditional.thenExpression);
-          var elseSrc = utils.getNodeText(conditional.elseExpression);
-          var src = '';
-          src += 'if ($conditionSrc) {' + eol;
-          src += prefix + indent + 'return $thenSrc;' + eol;
-          src += prefix + '} else {' + eol;
-          src += prefix + indent + 'return $elseSrc;' + eol;
-          src += prefix + '}';
-          builder.addSimpleReplacement(range.node(statement), src);
-        }
-      });
+        });
+      }
     }
   }
 

@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method foo(<X extends Z% = dynamic, Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>({m: core::Map<Y%, Z%>}) → dynamic bar, core::Map<core::String, core::String> m) → dynamic {
+  bar<core::String, core::String, core::String>(m: m){({m: core::Map<core::String, core::String>}) → dynamic};
+}
+static method main() → dynamic {}

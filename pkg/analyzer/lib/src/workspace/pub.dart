@@ -6,8 +6,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 
 /// Information about a Pub workspace.
 class PubWorkspace extends SimpleWorkspace {
@@ -29,6 +31,19 @@ class PubWorkspace extends SimpleWorkspace {
     this._pubspecFile,
   ) : super(provider, packageMap, root) {
     _theOnlyPackage = PubWorkspacePackage(root, this);
+  }
+
+  /// Return the content of the pubspec file, `null` if cannot be read.
+  String? get _pubspecContent {
+    try {
+      return _pubspecFile.readAsStringSync();
+    } catch (_) {}
+  }
+
+  @internal
+  @override
+  void contributeToResolutionSalt(ApiSignature buffer) {
+    buffer.addString(_pubspecContent ?? '');
   }
 
   @override
@@ -82,11 +97,9 @@ class PubWorkspacePackage extends WorkspacePackage {
   Pubspec? get pubspec {
     if (!_parsedPubspec) {
       _parsedPubspec = true;
-      try {
-        final content = workspace._pubspecFile.readAsStringSync();
+      final content = workspace._pubspecContent;
+      if (content != null) {
         _pubspec = Pubspec.parse(content);
-      } catch (_) {
-        // Pubspec will be null.
       }
     }
     return _pubspec;

@@ -23,7 +23,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   late String testCode;
   late String testFile;
-  ResolvedUnitResult? testAnalysisResult;
+  late ResolvedUnitResult testAnalysisResult;
   late CompilationUnit testUnit;
   late CompilationUnitElement testUnitElement;
   late LibraryElement testLibraryElement;
@@ -70,7 +70,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestFile() async {
-    var result = await session.getResolvedUnit(testFile);
+    var result = await session.getResolvedUnit2(testFile) as ResolvedUnitResult;
     testAnalysisResult = result;
     testCode = result.content!;
     testUnit = result.unit!;

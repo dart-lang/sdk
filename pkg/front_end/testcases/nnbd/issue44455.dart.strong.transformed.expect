@@ -21,8 +21,8 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-typedef F<Y extends core::num = core::num> = () → Y;
-typedef F2<Y extends core::num = core::num> = () → Y;
+typedef F<Y extends core::num> = () → Y;
+typedef F2<Y extends core::num> = () → Y;
 class A<X extends () → self::A::X = () → dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::X>
     : super core::Object::•()

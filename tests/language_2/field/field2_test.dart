@@ -5,6 +5,8 @@
 // Should be an error because we have setter/getter functions and fields
 // in the class.
 
+// @dart = 2.9
+
 class C {
   get a {
     return 1;

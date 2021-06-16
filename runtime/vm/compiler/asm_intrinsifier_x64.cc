@@ -242,9 +242,15 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
 
   __ movq(RDI, Address(RSP, 4 * target::kWordSize));  // x_digits
   __ movq(R8, Address(RSP, 3 * target::kWordSize));   // x_used is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(R8, R8);
+#endif
   __ subq(R8, Immediate(2));  // x_used > 0, Smi. R8 = x_used - 1, round up.
   __ sarq(R8, Immediate(2));  // R8 + 1 = number of digit pairs to read.
   __ movq(RCX, Address(RSP, 2 * target::kWordSize));  // n is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RCX, RCX);
+#endif
   __ SmiUntag(RCX);
   __ movq(RBX, Address(RSP, 1 * target::kWordSize));  // r_digits
   __ movq(RSI, RCX);
@@ -282,11 +288,17 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
 
   __ movq(RDI, Address(RSP, 4 * target::kWordSize));  // x_digits
   __ movq(RCX, Address(RSP, 2 * target::kWordSize));  // n is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RCX, RCX);
+#endif
   __ SmiUntag(RCX);
   __ movq(RBX, Address(RSP, 1 * target::kWordSize));  // r_digits
   __ movq(RDX, RCX);
   __ sarq(RDX, Immediate(6));  // RDX = n ~/ (2*_DIGIT_BITS).
   __ movq(RSI, Address(RSP, 3 * target::kWordSize));  // x_used is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RSI, RSI);
+#endif
   __ subq(RSI, Immediate(2));  // x_used > 0, Smi. RSI = x_used - 1, round up.
   __ sarq(RSI, Immediate(2));
   __ leaq(RDI,
@@ -322,10 +334,16 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
 
   __ movq(RDI, Address(RSP, 5 * target::kWordSize));  // digits
   __ movq(R8, Address(RSP, 4 * target::kWordSize));   // used is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(R8, R8);
+#endif
   __ addq(R8, Immediate(2));  // used > 0, Smi. R8 = used + 1, round up.
   __ sarq(R8, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RSI, Address(RSP, 3 * target::kWordSize));  // a_digits
   __ movq(RCX, Address(RSP, 2 * target::kWordSize));  // a_used is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RCX, RCX);
+#endif
   __ addq(RCX, Immediate(2));  // a_used > 0, Smi. R8 = a_used + 1, round up.
   __ sarq(RCX, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RBX, Address(RSP, 1 * target::kWordSize));  // r_digits
@@ -383,10 +401,16 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
 
   __ movq(RDI, Address(RSP, 5 * target::kWordSize));  // digits
   __ movq(R8, Address(RSP, 4 * target::kWordSize));   // used is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(R8, R8);
+#endif
   __ addq(R8, Immediate(2));  // used > 0, Smi. R8 = used + 1, round up.
   __ sarq(R8, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RSI, Address(RSP, 3 * target::kWordSize));  // a_digits
   __ movq(RCX, Address(RSP, 2 * target::kWordSize));  // a_used is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RCX, RCX);
+#endif
   __ addq(RCX, Immediate(2));  // a_used > 0, Smi. R8 = a_used + 1, round up.
   __ sarq(RCX, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RBX, Address(RSP, 1 * target::kWordSize));  // r_digits
@@ -464,13 +488,19 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // RBX = x, done if x == 0
   __ movq(RCX, Address(RSP, 7 * target::kWordSize));  // x_digits
   __ movq(RAX, Address(RSP, 6 * target::kWordSize));  // xi is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RAX, RAX);
+#endif
   __ movq(RBX,
           FieldAddress(RCX, RAX, TIMES_2, target::TypedData::data_offset()));
   __ testq(RBX, RBX);
   __ j(ZERO, &done, Assembler::kNearJump);
 
   // R8 = (SmiUntag(n) + 1)/2, no_op if n == 0
-  __ movq(R8, Address(RSP, 1 * target::kWordSize));
+  __ movq(R8, Address(RSP, 1 * target::kWordSize));  // n is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(R8, R8);
+#endif
   __ addq(R8, Immediate(2));
   __ sarq(R8, Immediate(2));  // R8 = number of digit pairs to process.
   __ j(ZERO, &done, Assembler::kNearJump);
@@ -478,12 +508,18 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // RDI = mip = &m_digits[i >> 1]
   __ movq(RDI, Address(RSP, 5 * target::kWordSize));  // m_digits
   __ movq(RAX, Address(RSP, 4 * target::kWordSize));  // i is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RAX, RAX);
+#endif
   __ leaq(RDI,
           FieldAddress(RDI, RAX, TIMES_2, target::TypedData::data_offset()));
 
   // RSI = ajp = &a_digits[j >> 1]
   __ movq(RSI, Address(RSP, 3 * target::kWordSize));  // a_digits
   __ movq(RAX, Address(RSP, 2 * target::kWordSize));  // j is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RAX, RAX);
+#endif
   __ leaq(RSI,
           FieldAddress(RSI, RAX, TIMES_2, target::TypedData::data_offset()));
 
@@ -572,6 +608,9 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   // RDI = xip = &x_digits[i >> 1]
   __ movq(RDI, Address(RSP, 4 * target::kWordSize));  // x_digits
   __ movq(RAX, Address(RSP, 3 * target::kWordSize));  // i is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RAX, RAX);
+#endif
   __ leaq(RDI,
           FieldAddress(RDI, RAX, TIMES_2, target::TypedData::data_offset()));
 
@@ -598,8 +637,8 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   __ addq(RSI, Immediate(2 * kBytesPerBigIntDigit));
 
   // int n = (used - i + 1)/2 - 1
-  __ movq(R8, Address(RSP, 1 * target::kWordSize));  // used is Smi
-  __ subq(R8, Address(RSP, 3 * target::kWordSize));  // i is Smi
+  __ OBJ(mov)(R8, Address(RSP, 1 * target::kWordSize));  // used is Smi
+  __ OBJ(sub)(R8, Address(RSP, 3 * target::kWordSize));  // i is Smi
   __ addq(R8, Immediate(2));
   __ sarq(R8, Immediate(2));
   __ decq(R8);  // R8 = number of digit pairs to process.
@@ -690,6 +729,9 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   // RBX = dp = &digits[(i >> 1) - 1]
   __ movq(RBX, Address(RSP, 2 * target::kWordSize));  // digits
   __ movq(RAX, Address(RSP, 1 * target::kWordSize));  // i is Smi and odd.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RAX, RAX);
+#endif
   __ leaq(RBX, FieldAddress(
                    RBX, RAX, TIMES_2,
                    target::TypedData::data_offset() - kBytesPerBigIntDigit));
@@ -742,6 +784,9 @@ void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
   // RAX = digits[i >> 1 .. (i >> 1) + 1]
   __ movq(RBX, Address(RSP, 2 * target::kWordSize));  // digits
   __ movq(RAX, Address(RSP, 1 * target::kWordSize));  // i is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RAX, RAX);
+#endif
   __ movq(RAX,
           FieldAddress(RBX, RAX, TIMES_2, target::TypedData::data_offset()));
 
@@ -1408,16 +1453,37 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
   __ ret();
 }
 
-void AsmIntrinsifier::Object_setHash(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Object.
-  __ movq(RDX, Address(RSP, +1 * target::kWordSize));  // Value.
-  __ SmiUntag(RDX);
-  __ shlq(RDX, Immediate(target::UntaggedObject::kHashTagPos));
-  // lock+orq is an atomic read-modify-write.
-  __ lock();
-  __ orq(FieldAddress(RAX, target::Object::tags_offset()), RDX);
-  __ ret();
+void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
+                                                Label* normal_ir_body) {
+  ASSERT(target::String::hash_offset() == 4);
+
+  __ movq(RBX, Address(RSP, +2 * target::kWordSize));  // Object.
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));  // Value.
+  __ SmiUntag(RCX);
+  __ MoveRegister(RDX, RCX);
+  __ shlq(RDX, Immediate(32));
+
+  Label retry, success, already_in_rax;
+  __ Bind(&retry);
+  // RAX is used by "cmpxchgq" as comparison value (if comparison succeeds the
+  // store is performed).
+  __ movq(RAX, FieldAddress(RBX, 0));
+  __ TestImmediate(RAX, Immediate(0xffffffff00000000));
+  __ BranchIf(NOT_ZERO, &already_in_rax);
+  __ MoveRegister(RSI, RAX);
+  __ orq(RSI, RDX);
+  __ LockCmpxchgq(FieldAddress(RBX, 0), RSI);
+  __ BranchIf(NOT_ZERO, &retry);
+  // Fall-through with RCX containing new hash value (untagged)
+  __ Bind(&success);
+  __ SmiTag(RCX);
+  __ MoveRegister(RAX, RCX);
+  __ Ret();
+
+  __ Bind(&already_in_rax);
+  __ shrq(RAX, Immediate(32));
+  __ SmiTag(RAX);
+  __ Ret();
 }
 
 void GenerateSubstringMatchesSpecialization(Assembler* assembler,
@@ -1554,6 +1620,12 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ CompareClassId(RAX, kTwoByteStringCid);
   __ j(NOT_EQUAL, normal_ir_body);
   ASSERT(kSmiTagShift == 1);
+#if defined(DART_COMPRESSED_POINTERS)
+  // The upper half of a compressed Smi contains undefined bits, but no x64
+  // addressing mode will ignore these bits. We have already checked the index
+  // is positive, so we just clear the upper bits, which is shorter than movsxd.
+  __ orl(RCX, RCX);
+#endif
   __ movzxw(RCX, FieldAddress(RAX, RCX, TIMES_1,
                               target::OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(target::Symbols::kNumberOfOneCharCodeSymbols));
@@ -1818,6 +1890,12 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
   __ movq(RAX, Address(RSP, +3 * target::kWordSize));  // target::TwoByteString.
   // Untag index and multiply by element size -> no-op.
   __ SmiUntag(RCX);
+#if defined(DART_COMPRESSED_POINTERS)
+  // The upper half of a compressed Smi contains undefined bits, but no x64
+  // addressing mode will ignore these bits. We know the index is positive, so
+  // we just clear the upper bits, which is shorter than movsxd.
+  __ orl(RBX, RBX);
+#endif
   __ movw(FieldAddress(RAX, RBX, TIMES_1, target::TwoByteString::data_offset()),
           RCX);
   __ ret();
@@ -1825,7 +1903,10 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
 
 void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
-  __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.v=
+  __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RDI, RDI);
+#endif
   Label ok;
   TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, RDI);
   // RDI: Start address to copy from (untagged).
@@ -1838,7 +1919,10 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
 
 void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
-  __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.v=
+  __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RDI, RDI);
+#endif
   Label ok;
   TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body, RDI);
   // RDI: Start address to copy from (untagged).

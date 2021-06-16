@@ -30,7 +30,7 @@ class C<X extends core::Object* = dynamic, Y extends self::A<self::C::X*>* = sel
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class D<X extends core::num* = core::num*, Y extends self::A<self::D::X*>* = self::A<core::num*>*> extends core::Object {
+class D<X extends core::num*, Y extends self::A<self::D::X*>* = self::A<core::num*>*> extends core::Object {
   synthetic constructor •() → self::D<self::D::X*, self::D::Y*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -58,7 +58,7 @@ class E<X extends core::Object* = dynamic, Y extends () →* self::E::X* = () �
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class F<X extends core::num* = core::num*, Y extends () →* self::F::X* = () →* core::num*> extends core::Object {
+class F<X extends core::num*, Y extends () →* self::F::X* = () →* core::num*> extends core::Object {
   synthetic constructor •() → self::F<self::F::X*, self::F::Y*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

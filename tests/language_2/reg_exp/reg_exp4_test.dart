@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing regular expressions in Dart.
 
+// @dart = 2.9
+
 class RegEx2Test {
   static void testMain() {
     final helloPattern = new RegExp("with (hello)");

@@ -144,7 +144,8 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 
   // Now Call the invoke stub which will invoke the dart function.
   const Code& code = Code::Handle(zone, function.CurrentCode());
-  return InvokeCode(code, arguments_descriptor, arguments, thread);
+  return InvokeCode(code, function.entry_point(), arguments_descriptor,
+                    arguments, thread);
 }
 
 extern "C" {
@@ -155,10 +156,16 @@ typedef uword /*ObjectPtr*/ (*invokestub)(const Code& target_code,
                                           const Array& arguments_descriptor,
                                           const Array& arguments,
                                           Thread* thread);
+typedef uword /*ObjectPtr*/ (*invokestub_bare_instructions)(
+    uword entry_point,
+    const Array& arguments_descriptor,
+    const Array& arguments,
+    Thread* thread);
 }
 
 NO_SANITIZE_SAFE_STACK
 ObjectPtr DartEntry::InvokeCode(const Code& code,
+                                uword entry_point,
                                 const Array& arguments_descriptor,
                                 const Array& arguments,
                                 Thread* thread) {
@@ -166,19 +173,27 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
   ASSERT(thread->no_callback_scope_depth() == 0);
   ASSERT(!IsolateGroup::Current()->null_safety_not_set());
 
-  invokestub entrypoint =
-      reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());
+  const uword stub = StubCode::InvokeDartCode().EntryPoint();
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
 #if defined(USING_SIMULATOR)
   return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      reinterpret_cast<intptr_t>(entrypoint), reinterpret_cast<intptr_t>(&code),
+      static_cast<intptr_t>(stub),
+      ((FLAG_precompiled_mode && FLAG_use_bare_instructions)
+           ? static_cast<intptr_t>(entry_point)
+           : reinterpret_cast<intptr_t>(&code)),
       reinterpret_cast<intptr_t>(&arguments_descriptor),
       reinterpret_cast<intptr_t>(&arguments),
       reinterpret_cast<intptr_t>(thread)));
 #else
-  return static_cast<ObjectPtr>(
-      entrypoint(code, arguments_descriptor, arguments, thread));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    return static_cast<ObjectPtr>(
+        (reinterpret_cast<invokestub_bare_instructions>(stub))(
+            entry_point, arguments_descriptor, arguments, thread));
+  } else {
+    return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
+        code, arguments_descriptor, arguments, thread));
+  }
 #endif
 }
 

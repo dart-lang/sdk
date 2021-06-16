@@ -197,7 +197,7 @@ dynamicToStringTearOff(dynamic cls) {
   cls.toString;
 }
 
-/*member: dynamicToEquals:dynamic=[Object.==],type=[inst:JSNull]*/
+/*member: dynamicToEquals:type=[inst:JSNull]*/
 dynamicToEquals(dynamic cls) {
   cls == null;
 }

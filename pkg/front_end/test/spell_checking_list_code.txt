@@ -23,6 +23,7 @@ across
 activated
 adequate
 adi
+advantage
 affecting
 afterwards
 agree
@@ -183,6 +184,7 @@ claim
 claimed
 claims
 clamp
+clamped
 clarification
 clashes
 class's
@@ -200,6 +202,7 @@ class6a
 class6b
 clazz
 cli
+client's
 clil
 clock
 cls
@@ -299,6 +302,7 @@ degrades
 degree
 del
 delimit
+delimiting
 demands
 demangle
 demangled
@@ -332,6 +336,7 @@ dirtify
 dirtifying
 dirty
 disallow
+disambiguating
 disambiguator
 disjoint
 dispatched
@@ -365,6 +370,7 @@ ef
 effects
 efficient
 efficiently
+eighth
 elem
 eliminating
 elt
@@ -445,7 +451,12 @@ fishy
 fishythefish
 fixnum
 fleshed
+float32
+float32x
+float32x4
 float64
+float64x
+float64x2
 floitsch
 flowed
 flushed
@@ -572,6 +583,7 @@ infos
 init
 initializations
 initializer's
+inlines
 insertion
 inspect
 inspecting
@@ -581,6 +593,12 @@ inspired
 inst
 instanceof
 instantiator
+int16
+int32
+int32x
+int32x4
+int64
+int8
 integrate
 intentionally
 interim
@@ -597,6 +615,7 @@ ints
 invariants
 io
 is64
+isolated
 issuecomment
 issuing
 iterables
@@ -809,6 +828,7 @@ ordered
 orders
 ordinal
 org
+orig
 orphancy
 orphans
 ors
@@ -857,6 +877,7 @@ per
 perf
 permanently
 permit
+permits
 physically
 pi
 picking
@@ -884,6 +905,7 @@ preexisting
 preorder
 presented
 presubmit
+presumably
 prev
 prime
 printer
@@ -937,6 +959,7 @@ rarely
 ratio
 rb
 rc
+rd
 re
 reach
 reachabilities
@@ -958,6 +981,7 @@ received
 receivers
 recheck
 recognizing
+recompile
 recompiled
 recompiling
 recompute
@@ -1141,6 +1165,7 @@ streaming
 strict
 stringified
 stringify
+structs
 structures
 stub
 stubs
@@ -1252,6 +1277,7 @@ tuple4
 tuple5
 tuple6
 tuple7
+tuple8
 type1
 type2
 typeref
@@ -1262,6 +1288,7 @@ ui
 uint
 uint16
 uint32
+uint64
 uint8
 umbrella
 un
@@ -1301,6 +1328,7 @@ universally
 unlinked
 unlower
 unmark
+unmodifiable
 unneeded
 unordered
 unpaired

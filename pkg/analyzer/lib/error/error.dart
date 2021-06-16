@@ -105,6 +105,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
   CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
   CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
+  CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN,
+  CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION,
@@ -186,7 +188,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
   CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-  CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
@@ -218,7 +219,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
   CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
   CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
-  CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
   CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
@@ -228,6 +228,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
   CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
   CompileTimeErrorCode.INVALID_ANNOTATION,
+  CompileTimeErrorCode.INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.INVALID_ASSIGNMENT,
   CompileTimeErrorCode.INVALID_CAST_FUNCTION,
@@ -338,6 +339,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER,
   CompileTimeErrorCode.NOT_A_TYPE,
   CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+  CompileTimeErrorCode.NOT_BINARY_OPERATOR,
   CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
   CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
   CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
@@ -462,6 +464,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
+  FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
   FfiCode.EMPTY_STRUCT,
   FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
   FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY,
@@ -470,6 +473,8 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.GENERIC_STRUCT_SUBCLASS,
   FfiCode.INVALID_EXCEPTION_VALUE,
   FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
+  FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE,
+  FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE,
   FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD,
   FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD,
   FfiCode.MISSING_EXCEPTION_VALUE,
@@ -479,6 +484,7 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.MUST_BE_A_SUBTYPE,
   FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
   FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
+  FfiCode.NON_POSITIVE_ARRAY_DIMENSION,
   FfiCode.NON_SIZED_TYPE_ARGUMENT,
   FfiCode.PACKED_ANNOTATION,
   FfiCode.PACKED_ANNOTATION_ALIGNMENT,
@@ -498,6 +504,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
   HintCode.DEPRECATED_EXTENDS_FUNCTION,
   HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION,
+  HintCode.DEPRECATED_IMPLEMENTS_FUNCTION,
   HintCode.DEPRECATED_MEMBER_USE,
   HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE,
   HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
@@ -515,7 +522,9 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
   HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE,
   HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+  HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
   HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+  HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
   HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
   HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
   HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
@@ -591,6 +600,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNIGNORABLE_IGNORE,
   HintCode.UNNECESSARY_CAST,
   HintCode.UNNECESSARY_IGNORE,
+  HintCode.UNNECESSARY_IMPORT,
   HintCode.UNNECESSARY_NO_SUCH_METHOD,
   HintCode.UNNECESSARY_NULL_COMPARISON_FALSE,
   HintCode.UNNECESSARY_NULL_COMPARISON_TRUE,
@@ -605,7 +615,10 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNUSED_IMPORT,
   HintCode.UNUSED_LABEL,
   HintCode.UNUSED_LOCAL_VARIABLE,
+  HintCode.UNUSED_RESULT,
+  HintCode.UNUSED_RESULT_WITH_MESSAGE,
   HintCode.UNUSED_SHOWN_NAME,
+  HintCode.USE_OF_NATIVE_EXTENSION,
   LanguageCode.IMPLICIT_DYNAMIC_FIELD,
   LanguageCode.IMPLICIT_DYNAMIC_FUNCTION,
   LanguageCode.IMPLICIT_DYNAMIC_INVOKE,
@@ -848,10 +861,6 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
   StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
-  StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK,
-  StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE,
-  StrongModeCode.TOP_LEVEL_INSTANCE_GETTER,
-  StrongModeCode.TOP_LEVEL_INSTANCE_METHOD,
   TodoCode.TODO,
 ];
 
@@ -948,7 +957,8 @@ class AnalysisError implements Diagnostic {
         filePath: source.fullName,
         length: length,
         message: message,
-        offset: offset);
+        offset: offset,
+        url: null);
   }
 
   /// Initialize a newly created analysis error with given values.
@@ -960,7 +970,8 @@ class AnalysisError implements Diagnostic {
         filePath: source.fullName,
         length: length,
         message: message,
-        offset: offset);
+        offset: offset,
+        url: null);
   }
 
   /// Initialize a newly created analysis error. The error is associated with
@@ -982,6 +993,7 @@ class AnalysisError implements Diagnostic {
       length: length,
       message: messageText,
       offset: offset,
+      url: null,
     );
   }
 
@@ -1010,7 +1022,7 @@ class AnalysisError implements Diagnostic {
 
   /// Return the message to be displayed for this error. The message should
   /// indicate what is wrong and why it is wrong.
-  String get message => _problemMessage.message;
+  String get message => _problemMessage.messageText(includeUrl: true);
 
   /// The character offset from the beginning of the source (zero based) where
   /// the error occurred.

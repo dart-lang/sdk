@@ -23,6 +23,6 @@ class C extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field self::C* c = new self::C::•();
-static field () →* core::int* function_ref = self::c.{self::C::function};
-static field core::List<() →* core::int*>* function_ref_list = <() →* core::int*>[self::c.{self::C::function}];
+static field () →* core::int* function_ref = self::c.{self::C::function}{() →* core::int*};
+static field core::List<() →* core::int*>* function_ref_list = <() →* core::int*>[self::c.{self::C::function}{() →* core::int*}];
 static method main() → dynamic {}

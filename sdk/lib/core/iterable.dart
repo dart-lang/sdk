@@ -170,19 +170,33 @@ abstract class Iterable<E> {
     return FollowedByIterable<E>(this, other);
   }
 
+  /// The current elements of this iterable modified by [toElement].
+  ///
   /// Returns a new lazy [Iterable] with elements that are created by
-  /// calling `f` on each element of this `Iterable` in iteration order.
+  /// calling `toElement` on each element of this `Iterable` in
+  /// iteration order.
   ///
-  /// This method returns a view of the mapped elements. As long as the
-  /// returned [Iterable] is not iterated over, the supplied function [f] will
-  /// not be invoked. The transformed elements will not be cached. Iterating
-  /// multiple times over the returned [Iterable] will invoke the supplied
-  /// function [f] multiple times on the same element.
+  /// The returned iterable is lazy, so it won't iterate the elements of
+  /// this iterable until it is itself iterated, and then it will apply
+  /// [toElement] to create one element at a time.
+  /// The converted elements are not cached.
+  /// Iterating multiple times over the returned [Iterable]
+  /// will invoke the supplied [toElement] function once per element
+  /// for on each iteration.
   ///
-  /// Methods on the returned iterable are allowed to omit calling `f`
+  /// Methods on the returned iterable are allowed to omit calling `toElement`
   /// on any element where the result isn't needed.
-  /// For example, [elementAt] may call `f` only once.
-  Iterable<T> map<T>(T f(E e)) => MappedIterable<E, T>(this, f);
+  /// For example, [elementAt] may call `toElement` only once.
+  ///
+  /// Equivalent to:
+  /// ```dart
+  /// Iterable<T> map<T>(T toElement(E e)) sync* {
+  ///   for (var value in this) {
+  ///     yield toElement(value);
+  ///   }
+  /// }
+  /// ```
+  Iterable<T> map<T>(T toElement(E e)) => MappedIterable<E, T>(this, toElement);
 
   /// Returns a new lazy [Iterable] with all elements that satisfy the
   /// predicate [test].
@@ -212,10 +226,10 @@ abstract class Iterable<E> {
   /// Expands each element of this [Iterable] into zero or more elements.
   ///
   /// The resulting Iterable runs through the elements returned
-  /// by [f] for each element of this, in iteration order.
+  /// by [toElements] for each element of this, in iteration order.
   ///
-  /// The returned [Iterable] is lazy, and calls [f] for each element
-  /// of this every time it's iterated.
+  /// The returned [Iterable] is lazy, and calls [toElements] for each element
+  /// of this iterable every time the returned iterable is iterated.
   ///
   /// Example:
   /// ```dart
@@ -227,8 +241,17 @@ abstract class Iterable<E> {
   /// var duplicated = input.expand((i) => [i, i]).toList();
   /// print(duplicated); // => [1, 1, 2, 2, 3, 3]
   /// ```
-  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
-      ExpandIterable<E, T>(this, f);
+  ///
+  /// Equivalent to:
+  /// ```dart
+  /// Iterable<T> expand<T>(Iterable<T> toElements(E e)) sync* {
+  ///   for (var value in this) {
+  ///     yield* toElements(value);
+  ///   }
+  /// }
+  /// ```
+  Iterable<T> expand<T>(Iterable<T> toElements(E element)) =>
+      ExpandIterable<E, T>(this, toElements);
 
   /// Whether the collection contains an element equal to [element].
   ///
@@ -251,10 +274,9 @@ abstract class Iterable<E> {
     return false;
   }
 
-  /// Applies the function [f] to each element of this collection in iteration
-  /// order.
-  void forEach(void f(E element)) {
-    for (E element in this) f(element);
+  /// Invokes [action] on each element of this iterable in iteration order.
+  void forEach(void action(E element)) {
+    for (E element in this) action(element);
   }
 
   /// Reduces a collection to a single value by iteratively combining elements

@@ -21,7 +21,6 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   Dart2jsConstantEvaluator(
       ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
       {Map<String, String> environment: const {},
-      bool enableTripleShift = false,
       bool supportReevaluationForTesting: false,
       ir.EvaluationMode evaluationMode})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
@@ -31,7 +30,7 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
             environment,
             typeEnvironment,
             new ErrorReporter(reportError),
-            enableTripleShift: enableTripleShift,
+            enableTripleShift: true,
             evaluationMode: evaluationMode);
 
   @override

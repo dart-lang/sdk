@@ -202,7 +202,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     if (type is InterfaceType) {
       impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
       if (_rtiNeed.classNeedsTypeArguments(type.element)) {
-        FunctionEntity helper = _commonElements.setRuntimeTypeInfo;
+        FunctionEntity helper = _commonElements.setArrayType;
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             helper, helper.parameterStructure.callStructure));
       }

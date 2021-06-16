@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Second dart test program.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Magic incantation to avoid the compiler recognizing the constant values

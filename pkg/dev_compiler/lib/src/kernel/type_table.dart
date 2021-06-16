@@ -43,7 +43,7 @@ Set<TypeParameter> freeTypeParameters(DartType t) {
 
 /// A name for a type made of JS identifier safe characters.
 ///
-/// 'L' and 'N' are prepended to a type name to represent a legacy or nullable
+/// 'L' and 'N' are appended to a type name to represent a legacy or nullable
 /// flavor of a type.
 String _typeString(DartType type, {bool flat = false}) {
   var nullability = type.declaredNullability == Nullability.legacy
@@ -213,8 +213,10 @@ class TypeTable {
     // resulting in some duplicated runtime code. We may get some performance
     // wins if we just locally hoist everything.
     if (freeVariables.isNotEmpty) {
+      // TODO(40273) Remove prepended text when we have a better way to hide
+      // these names from debug tools.
       _unboundTypeIds[type] =
-          js_ast.TemporaryId(escapeIdentifier(_typeString(type)));
+          js_ast.TemporaryId(escapeIdentifier('__t\$${_typeString(type)}'));
     }
 
     for (var free in freeVariables) {

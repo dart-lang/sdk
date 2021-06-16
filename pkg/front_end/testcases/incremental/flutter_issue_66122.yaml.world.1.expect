@@ -3,7 +3,7 @@ library from "org-dartlang-test:///after_layout.dart" as aft {
 
   import "package:flutter/framework.dart";
 
-  abstract class AfterLayoutMixin<T extends fra::StatefulWidget* = fra::StatefulWidget*> extends fra::State<aft::AfterLayoutMixin::T*> /*isMixinDeclaration*/  {
+  abstract class AfterLayoutMixin<T extends fra::StatefulWidget*> extends fra::State<aft::AfterLayoutMixin::T*> /*isMixinDeclaration*/  {
     abstract member-signature get _widget() → aft::AfterLayoutMixin::T*; -> fra::State::_widget
     abstract member-signature set _widget(generic-covariant-impl aft::AfterLayoutMixin::T* value) → void; -> fra::State::_widget
     abstract member-signature method toString() → dart.core::String*; -> fra::_State&Object&Diagnosticable::toString
@@ -27,7 +27,7 @@ library from "package:flutter/framework.dart" as fra {
     mixin-super-stub method toString() → dart.core::String
       return super.{fra::Diagnosticable::toString}();
   }
-  abstract class State<T extends fra::StatefulWidget = fra::StatefulWidget> extends fra::_State&Object&Diagnosticable {
+  abstract class State<T extends fra::StatefulWidget> extends fra::_State&Object&Diagnosticable {
     generic-covariant-impl field fra::State::T? _widget = null;
     synthetic constructor •() → fra::State<fra::State::T>
       : super fra::_State&Object&Diagnosticable::•()

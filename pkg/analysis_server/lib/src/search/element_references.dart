@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart'
     show SearchResult, newSearchResult_fromMatch;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -28,7 +26,6 @@ class ElementReferencesComputer {
     if (withPotential && _isMemberElement(element)) {
       var name = element.displayName;
       var matches = await searchEngine.searchMemberReferences(name);
-      matches = SearchMatch.withNotNullElement(matches);
       results.addAll(matches.where((match) => !match.isResolved).map(toResult));
     }
 
@@ -51,7 +48,6 @@ class ElementReferencesComputer {
   Future<List<SearchResult>> _findSingleElementReferences(
       Element element) async {
     var matches = await searchEngine.searchReferences(element);
-    matches = SearchMatch.withNotNullElement(matches);
     return matches.map(toResult).toList();
   }
 

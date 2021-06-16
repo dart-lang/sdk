@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 /// A library used to spawn the Dart Developer Service, used to communicate
 /// with a Dart VM Service instance.
 library dds;
@@ -41,13 +39,12 @@ abstract class DartDevelopmentService {
   /// default.
   static Future<DartDevelopmentService> startDartDevelopmentService(
     Uri remoteVmServiceUri, {
-    Uri serviceUri,
+    Uri? serviceUri,
     bool enableAuthCodes = true,
     bool ipv6 = false,
+    DevToolsConfiguration? devToolsConfiguration,
+    bool logRequests = false,
   }) async {
-    if (remoteVmServiceUri == null) {
-      throw ArgumentError.notNull('remoteVmServiceUri');
-    }
     if (remoteVmServiceUri.scheme != 'http') {
       throw ArgumentError(
         'remoteVmServiceUri must have an HTTP scheme. Actual: ${remoteVmServiceUri.scheme}',
@@ -63,12 +60,15 @@ abstract class DartDevelopmentService {
       // If provided an address to bind to, ensure it uses a protocol consistent
       // with that used to spawn DDS.
       final addresses = await InternetAddress.lookup(serviceUri.host);
-      final address = addresses.firstWhere(
-        (a) => (a.type ==
-            (ipv6 ? InternetAddressType.IPv6 : InternetAddressType.IPv4)),
-        orElse: () => null,
-      );
-      if (address == null) {
+
+      try {
+        // Check to see if there's a valid address.
+        addresses.firstWhere(
+          (a) => (a.type ==
+              (ipv6 ? InternetAddressType.IPv6 : InternetAddressType.IPv4)),
+        );
+      } on StateError {
+        // Could not find a valid address.
         throw ArgumentError(
           "serviceUri '$serviceUri' is not an IPv${ipv6 ? "6" : "4"} address.",
         );
@@ -80,6 +80,8 @@ abstract class DartDevelopmentService {
       serviceUri,
       enableAuthCodes,
       ipv6,
+      devToolsConfiguration,
+      logRequests,
     );
     await service.startService();
     return service;
@@ -111,19 +113,24 @@ abstract class DartDevelopmentService {
   /// [DartDevelopmentService] via HTTP.
   ///
   /// Returns `null` if the service is not running.
-  Uri get uri;
+  Uri? get uri;
 
   /// The [Uri] VM service clients can use to communicate with this
   /// [DartDevelopmentService] via server-sent events (SSE).
   ///
   /// Returns `null` if the service is not running.
-  Uri get sseUri;
+  Uri? get sseUri;
 
   /// The [Uri] VM service clients can use to communicate with this
   /// [DartDevelopmentService] via a [WebSocket].
   ///
   /// Returns `null` if the service is not running.
-  Uri get wsUri;
+  Uri? get wsUri;
+
+  /// The HTTP [Uri] of the hosted DevTools instance.
+  ///
+  /// Returns `null` if DevTools is not running.
+  Uri? get devToolsUri;
 
   /// Set to `true` if this instance of [DartDevelopmentService] is accepting
   /// requests.
@@ -167,4 +174,14 @@ class DartDevelopmentServiceException implements Exception {
 
   final int errorCode;
   final String message;
+}
+
+class DevToolsConfiguration {
+  const DevToolsConfiguration({
+    required this.customBuildDirectoryPath,
+    this.enable = false,
+  });
+
+  final bool enable;
+  final Uri customBuildDirectoryPath;
 }

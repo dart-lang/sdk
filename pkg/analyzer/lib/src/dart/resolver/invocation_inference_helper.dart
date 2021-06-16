@@ -71,7 +71,7 @@ class InvocationInferenceHelper {
     required ErrorReporter errorReporter,
     required TypeSystemImpl typeSystem,
     required MigrationResolutionHooks? migrationResolutionHooks,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
         _migrationResolutionHooks = migrationResolutionHooks,
@@ -110,6 +110,10 @@ class InvocationInferenceHelper {
         } else {
           var name = constructorIdentifier.name;
           rawElement = typeElement.getNamedConstructor(name);
+          if (rawElement != null &&
+              !rawElement.isAccessibleIn(definingLibrary)) {
+            rawElement = null;
+          }
         }
       }
     } else if (typeElement is TypeAliasElement) {

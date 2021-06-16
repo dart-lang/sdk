@@ -4,6 +4,8 @@
 //
 // Utility script to generate some output on stdout and stderr.
 
+// @dart = 2.9
+
 import "dart:async";
 import "dart:io";
 import "dart:math";

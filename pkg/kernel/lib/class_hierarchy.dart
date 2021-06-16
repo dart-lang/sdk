@@ -8,7 +8,7 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'ast.dart' hide MapEntry;
+import 'ast.dart';
 import 'core_types.dart';
 import 'type_algebra.dart';
 import 'src/heap.dart';
@@ -282,7 +282,7 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
   /// [getDeclaredMembers] and [getInterfaceMembers].
   static int compareMembers(Member first, Member second) {
     if (first == second) return 0;
-    return compareNames(first.name!, second.name!);
+    return compareNames(first.name, second.name);
   }
 
   /// Compares names, using the same sort order as [getDeclaredMembers] and
@@ -328,7 +328,7 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
     while (low <= high) {
       int mid = low + ((high - low) >> 1);
       Member pivot = members[mid];
-      int comparison = compareNames(name, pivot.name!);
+      int comparison = compareNames(name, pivot.name);
       if (comparison < 0) {
         high = mid - 1;
       } else if (comparison > 0) {
@@ -417,7 +417,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
   Member? getSingleTargetForInterfaceInvocation(Member interfaceTarget,
       {bool setter: false}) {
     if (invalidated) throw "This data structure has been invalidated";
-    Name name = interfaceTarget.name!;
+    Name name = interfaceTarget.name;
     Member? target = null;
     ClassSet subtypes = getSubtypesOf(interfaceTarget.enclosingClass!);
     for (Class c in subtypes) {
@@ -1218,7 +1218,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           setters: setters)) {
         if (mixinMember is! Procedure ||
             (mixinMember is Procedure && !mixinMember.isSynthetic)) {
-          memberMap[mixinMember.name!] = mixinMember;
+          memberMap[mixinMember.name] = mixinMember;
         }
       }
     }
@@ -1227,21 +1227,21 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       if (procedure.isStatic) continue;
       if (procedure.kind == ProcedureKind.Setter) {
         if (setters) {
-          memberMap[procedure.name!] = procedure;
+          memberMap[procedure.name] = procedure;
         }
       } else {
         if (!setters) {
-          memberMap[procedure.name!] = procedure;
+          memberMap[procedure.name] = procedure;
         }
       }
     }
     for (Field field in classNode.fields) {
       if (field.isStatic) continue;
       if (!setters) {
-        memberMap[field.name!] = field;
+        memberMap[field.name] = field;
       }
       if (setters && field.hasSetter) {
-        memberMap[field.name!] = field;
+        memberMap[field.name] = field;
       }
     }
 

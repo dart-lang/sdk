@@ -178,60 +178,89 @@ abstract class num implements Comparable<num> {
   /// otherwise the result is a [double].
   num remainder(num other);
 
-  /// Whether [other] is numerically smaller than this number.
+  /// Whether this number is numerically smaller than [other].
   ///
-  /// If either operand is the [double] NaN, the result is always false.
+  /// Returns `true` if this number is smaller than [other].
+  /// Returns `false` if this number is greater than or equal to [other]
+  /// or if either value is a NaN value like [double.nan].
   bool operator <(num other);
 
-  /// Whether [other] is numerically smaller than or equal to this number.
+  /// Whether this number is numerically smaller than or equal to [other].
   ///
-  /// If either operand is the [double] NaN, the result is always false.
+  /// Returns `true` if this number is smaller than or equal to [other].
+  /// Returns `false` if this number is greater than [other]
+  /// or if either value is a NaN value like [double.nan].
   bool operator <=(num other);
 
-  /// Whether [other] is numerically greater than this number.
+  /// Whether this number is numerically greater than [other].
   ///
-  /// If either operand is the [double] NaN, the result is always false.
+  /// Returns `true` if this number is greater than [other].
+  /// Returns `false` if this number is smaller than or equal to [other]
+  /// or if either value is a NaN value like [double.nan].
   bool operator >(num other);
 
-  /// Whether [other] is numerically greater than or equal to this number.
+  /// Whether this number is numerically greater than or equal to [other].
   ///
-  /// If either operand is the [double] NaN, the result is always false.
+  /// Returns `true` if this number is greater than or equal to [other].
+  /// Returns `false` if this number is smaller than [other]
+  /// or if either value is a NaN value like [double.nan].
   bool operator >=(num other);
 
-  /// Whether the number is the double Not-a-Number value.
+  /// Whether this number is a Not-a-Number value.
+  ///
+  /// Is `true` if this number is the [double.nan] value
+  /// or any other of the possible [double] NaN values.
+  /// Is `false` if this number is an integer,
+  /// a finite double or an infinite double ([double.infinity]
+  /// or [double.negativeInfinity]).
+  ///
+  /// All numbers satisfy exacly one of of [isInfinite], [isFinite]
+  /// and `isNaN`.
   bool get isNaN;
 
-  /// Whether if the number is negative.
+  /// Whether this number is negative.
   ///
-  /// Negative numbers are those less than zero, and the double `-0.0`.
+  /// A number is negative if it's smaller than zero,
+  /// or if it is the double `-0.0`.
+  /// This precludes a NaN value like [double.nan] from being negative.
   bool get isNegative;
 
-  /// Whether the number is positive infinity or negative infinity.
+  /// Whether this number is positive infinity or negative infinity.
+  ///
+  /// Only satisfied by [double.infinity] and [double.negativeInfinity].
+  ///
+  /// All numbers satisfy exacly one of of `isInfinite`, [isFinite]
+  /// and [isNaN].
   bool get isInfinite;
 
-  /// Whether the number is finite.
+  /// Whether this number is finite.
   ///
-  /// The only non-finite numbers are NaN, positive infinity, and
+  /// The only non-finite numbers are NaN values, positive infinity, and
   /// negative infinity. All integers are finite.
+  ///
+  /// All numbers satisfy exacly one of of [isInfinite], `isFinite`
+  /// and [isNaN].
   bool get isFinite;
 
   /// The absolute value of this number.
   ///
   /// The absolute value is the value itself, if the value is non-negative,
   /// and `-value` if the value is negative.
+  ///
+  /// Integer overflow may cause the result of `-value` to stay negative.
   num abs();
 
   /// Negative one, zero or positive one depending on the sign and
-  /// numerical value of the number.
+  /// numerical value of this number.
   ///
-  /// Returns minus one if the number is less than zero,
-  /// plus one if the number is greater than zero,
-  /// and zero if the number is equal to zero.
+  /// The value minus one if this number is less than zero,
+  /// plus one if this number is greater than zero,
+  /// and zero if this number is equal to zero.
   ///
-  /// Returns NaN if the number is the [double] NaN value.
+  /// Returns NaN if this number is a [double] NaN value.
   ///
   /// Returns a number of the same type as this number.
-  /// For doubles, `-0.0.sign == -0.0`.
+  /// For doubles, `(-0.0).sign` is `-0.0`.
   ///
   /// The result satisfies:
   /// ```dart

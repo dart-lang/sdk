@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_swap_with_child.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,7 +15,7 @@ class FlutterSwapWithParent extends FlutterParentAndChild {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var child = flutter.identifyNewExpression(node);
-    if (!flutter.isWidgetCreation(child)) {
+    if (child == null || !flutter.isWidgetCreation(child)) {
       return;
     }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -46,10 +44,10 @@ class CompletionRequestImpl implements CompletionRequest {
   ResourceProvider get resourceProvider => result.session.resourceProvider;
 
   @override
-  Source get source => result.unit.declaredElement.source;
+  Source get source => result.unit!.declaredElement!.source;
 
   @override
-  String get sourceContents => result?.content;
+  String? get sourceContents => result.content;
 
   /// Abort the current completion request.
   void abort() {

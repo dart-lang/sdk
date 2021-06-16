@@ -36,7 +36,7 @@ type UInt7 extends UInt {
 
 type UInt14 extends UInt {
   Byte byte1(10xxxxxx); // most significant byte, discard the high bit
-  Byte byte2(xxxxxxxx); // least signficant byte
+  Byte byte2(xxxxxxxx); // least significant byte
 }
 
 type UInt30 extends UInt {
@@ -87,7 +87,7 @@ type StringReference {
 }
 
 type ConstantReference {
-  UInt offset; // Byte offset into the Component's constants.
+  UInt index; // Index into [constantsMapping] and [constants].
 }
 
 type SourceInfo {
@@ -147,16 +147,17 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 60;
+  UInt32 formatVersion = 65;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
+  List<Constant> constants;
+  RList<UInt32> constantsMapping; // Byte offset into the Component's constants.
   List<CanonicalName> canonicalNames;
   MetadataPayload[] metadataPayloads;
   RList<MetadataMapping> metadataMappings;
   StringTable strings;
-  List<Constant> constants;
   ComponentIndex componentIndex;
 }
 
@@ -179,11 +180,13 @@ type MetadataMapping {
 type ComponentIndex {
   Byte[] 8bitAlignment; // 0-bytes to make the entire component (!) 8-byte aligned.
   UInt32 binaryOffsetForSourceTable;
+  UInt32 binaryOffsetForConstantTable;
+  UInt32 binaryOffsetForConstantTableIndex;
   UInt32 binaryOffsetForCanonicalNames;
   UInt32 binaryOffsetForMetadataPayloads;
   UInt32 binaryOffsetForMetadataMappings;
   UInt32 binaryOffsetForStringTable;
-  UInt32 binaryOffsetForConstantTable;
+  UInt32 binaryOffsetForStartOfComponentIndex;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
   UInt32 compilationMode; // enum NonNullableByDefaultCompiledMode { Disabled = 0, Weak = 1, Strong = 2, Agnostic = 3 } with a fixed-size integer.
   UInt32[libraryCount + 1] libraryOffsets;
@@ -340,6 +343,7 @@ type Extension extends Node {
   List<Expression> annotations;
   UriReference fileUri;
   FileOffset fileOffset;
+  Byte flags (isExtensionTypeDeclaration);
   List<TypeParameter> typeParameters;
   DartType onType;
   List<ExtensionMemberDescriptor> members;
@@ -425,8 +429,7 @@ type Procedure extends Member {
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
-  // Can only be absent if abstract, but tag is there anyway.
-  Option<FunctionNode> function;
+  FunctionNode function;
 }
 
 type RedirectingFactoryConstructor extends Member {
@@ -786,7 +789,6 @@ type FunctionTearOff extends Expression {
   Byte tag = 126;
   FileOffset fileOffset;
   Expression receiver;
-  DartType functionType;
 }
 
 type LocalFunctionInvocation extends Expression {
@@ -1497,7 +1499,7 @@ type TypeParameter {
   Byte variance; // Index into the Variance enum above
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
-  Option<DartType> defaultType; // type used when the parameter is not passed
+  DartType defaultType; // type used when the parameter is not passed
 }
 
 ```

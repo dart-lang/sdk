@@ -42,6 +42,7 @@ arbitrarily
 asdf
 asserter
 assure
+asterisk
 auth
 authority
 autobianchi
@@ -135,6 +136,7 @@ class5b
 class5c
 class5d
 cloneable
+cm
 cmd
 cmp
 cnn
@@ -144,6 +146,7 @@ collisions
 columns
 commented
 commit
+commits
 companion
 comparative
 comparer
@@ -164,6 +167,7 @@ contract
 conversion
 conversions
 coo
+corge
 corners
 costly
 cov
@@ -293,6 +297,7 @@ field4a
 field4b
 filesystem
 filler
+filters
 fisk
 five
 floor
@@ -356,6 +361,7 @@ getter1e
 goo
 google
 graphic
+grault
 greeting
 gtgt
 gulp
@@ -493,11 +499,13 @@ local3h
 logd
 logs
 loo
+lookahead
 loopback
 mac
 maker
 matters
 mds
+meaningless
 measured
 method1d
 metric
@@ -537,6 +545,7 @@ noisy
 nondefault
 nonexisting
 noo
+noted
 numerator
 ob
 obool
@@ -638,6 +647,7 @@ regards
 regenerate
 regressions
 reify
+reject
 reload
 remap
 remaps

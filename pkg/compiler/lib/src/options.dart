@@ -133,11 +133,6 @@ class CompilerOptions implements DiagnosticOptions {
       fe.isExperimentEnabled(fe.ExperimentalFlag.nonNullable,
           explicitExperimentalFlags: explicitExperimentalFlags);
 
-  /// Whether `--enable-experiment=triple-shift` is provided.
-  bool get enableTripleShift =>
-      fe.isExperimentEnabled(fe.ExperimentalFlag.tripleShift,
-          explicitExperimentalFlags: explicitExperimentalFlags);
-
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 
@@ -253,6 +248,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// which case [_disableMinification] wins.
   bool _disableMinification = false;
 
+  /// Whether to omit names of late variables from error messages.
+  bool omitLateNames = false;
+
+  /// Flag to turn off `omitLateNames` even if enabled elsewhere, e.g. via
+  /// `-O2`. Both [omitLateNames] and [_noOmitLateNames] can be true, in which
+  /// case [_noOmitLateNames] wins.
+  bool _noOmitLateNames = false;
+
   /// Whether to model which native classes are live based on annotations on the
   /// core libraries. If false, all native classes will be included by default.
   bool enableNativeLiveTypeAnalysis = true;
@@ -357,6 +360,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// (experimental)
   bool useNewSourceInfo = false;
 
+  /// Whether or not use simple load ids.
+  bool useSimpleLoadIds = false;
+
   /// Enable verbose printing during compilation. Includes a time-breakdown
   /// between phases at the end.
   bool verbose = false;
@@ -394,6 +400,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
+  /// Use the dart2js lowering of late instance variables rather than the CFE
+  /// lowering.
+  bool experimentLateInstanceVariables = false;
+
   /// When null-safety is enabled, whether the compiler should emit code with
   /// unsound or sound semantics.
   ///
@@ -414,14 +424,6 @@ class CompilerOptions implements DiagnosticOptions {
         "Null safety mode unspecified");
     return !enableNonNullable || (nullSafetyMode == NullSafetyMode.unsound);
   }
-
-  /// The path to the file that contains the profiled allocations.
-  ///
-  /// The file must contain the Map that was produced by using
-  /// [experimentalTrackAllocations] encoded as a JSON map.
-  ///
-  /// This is an experimental feature.
-  String experimentalAllocationsPath;
 
   /// If specified, a bundle of optimizations to enable (or disable).
   int optimizationLevel = null;
@@ -500,6 +502,8 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '${Flags.dumpSsa}=', null)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
+      ..omitLateNames = _hasOption(options, Flags.omitLateNames)
+      .._noOmitLateNames = _hasOption(options, Flags.noOmitLateNames)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
@@ -511,8 +515,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.noNativeNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
-      ..experimentalAllocationsPath = _extractStringOption(
-          options, "${Flags.experimentalAllocationsPath}=", null)
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
@@ -520,6 +522,8 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
+      ..experimentLateInstanceVariables =
+          _hasOption(options, Flags.experimentLateInstanceVariables)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries
@@ -539,6 +543,7 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
+      ..useSimpleLoadIds = _hasOption(options, Flags.useSimpleLoadIds)
       ..verbose = _hasOption(options, Flags.verbose)
       ..reportPrimaryMetrics = _hasOption(options, Flags.reportMetrics)
       ..reportSecondaryMetrics = _hasOption(options, Flags.reportAllMetrics)
@@ -634,6 +639,7 @@ class CompilerOptions implements DiagnosticOptions {
       if (optimizationLevel >= 2) {
         enableMinification = true;
         laxRuntimeTypeToString = true;
+        omitLateNames = true;
       }
       if (optimizationLevel >= 3) {
         omitImplicitChecks = true;
@@ -667,6 +673,10 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_disableMinification) {
       enableMinification = false;
+    }
+
+    if (_noOmitLateNames) {
+      omitLateNames = false;
     }
 
     if (_noNativeNullAssertions || nullSafetyMode != NullSafetyMode.sound) {

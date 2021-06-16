@@ -310,8 +310,9 @@ class Address : public ValueObject {
     switch (cid) {
       case kArrayCid:
       case kImmutableArrayCid:
+        return kEightBytes;
       case kTypeArgumentsCid:
-        return kFourBytes;
+        return kObjectBytes;
       case kOneByteStringCid:
       case kExternalOneByteStringCid:
         return kByte;
@@ -546,8 +547,10 @@ class Assembler : public AssemblerBase {
     br(TMP);
   }
 
-  void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
-  void LoadCompressedField(Register dst, FieldAddress address) {
+  void LoadField(Register dst, const FieldAddress& address) override {
+    ldr(dst, address);
+  }
+  void LoadCompressedField(Register dst, const FieldAddress& address) override {
     LoadCompressed(dst, address);
   }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
@@ -576,10 +579,18 @@ class Assembler : public AssemblerBase {
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
   }
-
-  void CompareWithMemoryValue(Register value, Address address) {
-    ldr(TMP, address);
+  void CompareWithCompressedFieldFromOffset(Register value,
+                                            Register base,
+                                            int32_t offset) {
+    LoadCompressedFieldFromOffset(TMP, base, offset);
     cmp(value, Operand(TMP));
+  }
+
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize sz = kEightBytes) {
+    ldr(TMP, address, sz);
+    cmp(value, Operand(TMP), sz);
   }
 
   void CompareTypeNullabilityWith(Register type, int8_t value) {
@@ -1679,7 +1690,9 @@ class Assembler : public AssemblerBase {
 
   void LoadFromOffset(Register dest,
                       const Address& address,
-                      OperandSize sz = kEightBytes);
+                      OperandSize sz = kEightBytes) override {
+    ldr(dest, address, sz);
+  }
   void LoadFromOffset(Register dest,
                       Register base,
                       int32_t offset,
@@ -1687,13 +1700,13 @@ class Assembler : public AssemblerBase {
   void LoadFieldFromOffset(Register dest,
                            Register base,
                            int32_t offset,
-                           OperandSize sz = kEightBytes) {
+                           OperandSize sz = kEightBytes) override {
     LoadFromOffset(dest, base, offset - kHeapObjectTag, sz);
   }
   void LoadCompressedFieldFromOffset(Register dest,
                                      Register base,
-                                     int32_t offset) {
-    LoadCompressed(dest, FieldAddress(base, offset));
+                                     int32_t offset) override {
+    LoadCompressedFromOffset(dest, base, offset - kHeapObjectTag);
   }
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
@@ -1706,6 +1719,13 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kEightBytes) {
     add(dest, base, Operand(index, LSL, scale));
     LoadFromOffset(dest, dest, payload_offset - kHeapObjectTag, sz);
+  }
+  void LoadIndexedCompressed(Register dest,
+                             Register base,
+                             int32_t offset,
+                             Register index) {
+    add(dest, base, Operand(index, LSL, TIMES_COMPRESSED_WORD_SIZE));
+    LoadCompressedFieldFromOffset(dest, dest, offset);
   }
   void LoadSFromOffset(VRegister dest, Register base, int32_t offset);
   void LoadDFromOffset(VRegister dest, Register base, int32_t offset);
@@ -1721,6 +1741,11 @@ class Assembler : public AssemblerBase {
   void StoreToStack(Register src, intptr_t depth);
   void CompareToStack(Register src, intptr_t depth);
 
+  void StoreToOffset(Register src,
+                     const Address& address,
+                     OperandSize sz = kEightBytes) override {
+    str(src, address, sz);
+  }
   void StoreToOffset(Register src,
                      Register base,
                      int32_t offset,
@@ -1742,12 +1767,8 @@ class Assembler : public AssemblerBase {
     StoreQToOffset(src, base, offset - kHeapObjectTag);
   }
 
-  enum CanBeSmi {
-    kValueIsNotSmi,
-    kValueCanBeSmi,
-  };
-
   void LoadCompressed(Register dest, const Address& slot);
+  void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);
   void LoadCompressedSmi(Register dest, const Address& slot);
 
   // Store into a heap object and apply the generational and incremental write
@@ -1758,11 +1779,12 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
-  void StoreCompressedIntoObject(Register object,
-                                 const Address& dest,
-                                 Register value,
-                                 CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
+  void StoreCompressedIntoObject(
+      Register object,
+      const Address& dest,
+      Register value,
+      CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
   void StoreBarrier(Register object, Register value, CanBeSmi can_value_be_smi);
   void StoreIntoArray(Register object,
                       Register slot,
@@ -1780,10 +1802,10 @@ class Assembler : public AssemblerBase {
       CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value);
+                                Register value) override;
   void StoreCompressedIntoObjectNoBarrier(Register object,
                                           const Address& dest,
-                                          Register value);
+                                          Register value) override;
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
                                       Register value);
@@ -1869,6 +1891,10 @@ class Assembler : public AssemblerBase {
   // Note: input and output registers must be different.
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+  void EnsureHasClassIdInDEBUG(intptr_t cid,
+                               Register src,
+                               Register scratch,
+                               bool can_be_null = false) override;
 
   // Reserve specifies how much space to reserve for the Dart stack.
   void SetupDartSP(intptr_t reserve = 4096);
@@ -1889,8 +1915,8 @@ class Assembler : public AssemblerBase {
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
-  void EnterSafepoint(Register scratch);
-  void ExitSafepoint(Register scratch);
+  void EnterFullSafepoint(Register scratch);
+  void ExitFullSafepoint(Register scratch);
 
   void CheckCodePointer();
   void RestoreCodePointer();
@@ -1970,18 +1996,12 @@ class Assembler : public AssemblerBase {
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid, Register temp_reg, Label* trace);
 
-  // Inlined allocation of an instance of class 'cls', code has no runtime
-  // calls. Jump to 'failure' if the instance cannot be allocated here.
-  // Allocated instance is returned in 'instance_reg'.
-  // Only the tags field of the object is initialized.
-  // Result:
-  //   * [instance_reg] will contain allocated new-space object
-  //   * [top_reg] will contain Thread::top_offset()
-  void TryAllocate(const Class& cls,
-                   Label* failure,
-                   Register instance_reg,
-                   Register top_reg,
-                   bool tag_result = true);
+  void TryAllocateObject(intptr_t cid,
+                         intptr_t instance_size,
+                         Label* failure,
+                         JumpDistance distance,
+                         Register instance_reg,
+                         Register top_reg) override;
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,

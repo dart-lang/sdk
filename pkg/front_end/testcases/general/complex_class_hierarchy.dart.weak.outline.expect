@@ -28,7 +28,7 @@ class D extends self::C {
   synthetic constructor •() → self::D*
     ;
 }
-class G<T extends self::A* = self::A*> extends core::Object {
+class G<T extends self::A*> extends core::Object {
   synthetic constructor •() → self::G<self::G::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

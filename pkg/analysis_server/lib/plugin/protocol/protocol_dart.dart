@@ -2,22 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Utilities for converting Dart entities into analysis server's protocol
 /// entities.
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 
 /// Return a protocol [Element] corresponding to the given [engine.Element].
-Element convertElement(engine.Element element) {
+Element convertElement(engine.Element element,
+    {required bool withNullability}) {
   var kind = convertElementToElementKind(element);
   var name = getElementDisplayName(element);
   var elementTypeParameters = _getTypeParametersString(element);
-  var aliasedType = getAliasedTypeString(element);
-  var elementParameters = _getParametersString(element);
-  var elementReturnType = getReturnTypeString(element);
+  var aliasedType =
+      getAliasedTypeString(element, withNullability: withNullability);
+  var elementParameters =
+      _getParametersString(element, withNullability: withNullability);
+  var elementReturnType =
+      getReturnTypeString(element, withNullability: withNullability);
   return Element(
     kind,
     name,
@@ -124,13 +126,14 @@ ElementKind convertElementToElementKind(engine.Element element) {
 
 String getElementDisplayName(engine.Element element) {
   if (element is engine.CompilationUnitElement) {
-    return pathos.basename(element.source.fullName);
+    return path.basename(element.source.fullName);
   } else {
     return element.displayName;
   }
 }
 
-String _getParametersString(engine.Element element) {
+String? _getParametersString(engine.Element element,
+    {required bool withNullability}) {
   // TODO(scheglov) expose the corresponding feature from ExecutableElement
   List<engine.ParameterElement> parameters;
   if (element is engine.ExecutableElement) {
@@ -173,14 +176,14 @@ String _getParametersString(engine.Element element) {
     } else if (parameter.hasRequired) {
       sb.write('@required ');
     }
-    parameter.appendToWithoutDelimiters(sb, withNullability: false);
+    parameter.appendToWithoutDelimiters(sb, withNullability: withNullability);
   }
   sb.write(closeOptionalString);
   return '(' + sb.toString() + ')';
 }
 
-String _getTypeParametersString(engine.Element element) {
-  List<engine.TypeParameterElement> typeParameters;
+String? _getTypeParametersString(engine.Element element) {
+  List<engine.TypeParameterElement>? typeParameters;
   if (element is engine.ClassElement) {
     typeParameters = element.typeParameters;
   } else if (element is engine.TypeAliasElement) {

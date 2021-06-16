@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 import "package:expect/expect.dart";
 
 // regression test for ddc #588

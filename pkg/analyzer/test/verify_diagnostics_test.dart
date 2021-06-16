@@ -40,6 +40,8 @@ class DocumentationValidator {
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
+    // The mock SDK doesn't define any internal libraries.
+    'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     // Has code in the example section that needs to be skipped (because it's
     // part of the explanitory text not part of the example), but there's
     // currently no way to do that.
@@ -55,6 +57,8 @@ class DocumentationValidator {
     // No example, by design.
     'CompileTimeErrorCode.MISSING_DART_LIBRARY',
     // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
+    // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.NON_SYNC_FACTORY',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
@@ -63,6 +67,12 @@ class DocumentationValidator {
     'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
+    // https://github.com/dart-lang/sdk/issues/45960
+    'CompileTimeErrorCode.RETURN_IN_GENERATOR',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
     // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // The code has been replaced but is not yet removed.
@@ -251,8 +261,8 @@ class DocumentationValidator {
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
-    ParsedUnitResult result = session.getParsedUnit(path);
-    if (result.state != ResultState.VALID) {
+    var result = session.getParsedUnit2(path);
+    if (result is! ParsedUnitResult) {
       throw StateError('Unable to parse "$path"');
     }
     return result;

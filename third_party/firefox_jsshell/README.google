@@ -1,12 +1,11 @@
-Name: Firefox command line javascript shell.
+Name: The SpiderMonkey shell.
 Short Name: js-shell
-URL: http://ftp.mozilla.org/pub/firefox/candidates/54.0.1-candidates/build1/
-Version: JavaScript-C54.0.1
-Date: July 6, 2017
-License: MPL, http://www.mozilla.org/MPL
+URL: https://archive.mozilla.org/pub/firefox/releases/88.0/jsshell/
+Version: JavaScript-C88.0
+Date: April 19, 2021
+License: MPL2, https://www.mozilla.org/en-US/MPL/2.0/
 
 Description:
-This directory contains the firefox js-shell binaries for Windows, Mac and
-Linux.
-The binaries are used for testing dart code compiled to javascript.
+This directory contains the Mozilla SpiderMonkey shell binaries.
 
+The binaries are used for testing dart code compiled to javascript.

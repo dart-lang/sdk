@@ -252,7 +252,7 @@ abstract class Target {
       // transformations.
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
+      ReferenceFromIndex? referenceFromIndex,
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier});
 
@@ -262,16 +262,21 @@ abstract class Target {
   /// purposes. It is illegal to modify any of the enclosing nodes of the
   /// procedure.
   void performTransformationsOnProcedure(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      Procedure procedure,
+      // TODO(askesc): Consider how to generally pass compiler options to
+      // transformations.
+      Map<String, String> environmentDefines,
       {void Function(String msg)? logger}) {}
 
   /// Whether a platform library may define a restricted type, such as `bool`,
   /// `int`, `double`, `num`, and `String`.
   ///
-  /// By default only `dart:core` may define restricted types, but some target
-  /// implementations override this.
+  /// By default only `dart:core` and `dart:typed_data` may define restricted
+  /// types, but some target implementations override this.
   bool mayDefineRestrictedType(Uri uri) =>
-      uri.scheme == 'dart' && uri.path == 'core';
+      uri.isScheme('dart') && (uri.path == 'core' || uri.path == 'typed_data');
 
   /// Whether a library is allowed to import a platform private library.
   ///
@@ -463,7 +468,7 @@ class NoneTarget extends Target {
       List<Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
+      ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {}
 

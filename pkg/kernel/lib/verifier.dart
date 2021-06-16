@@ -182,11 +182,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void declareTypeParameters(List<TypeParameter> parameters) {
     for (int i = 0; i < parameters.length; ++i) {
       TypeParameter parameter = parameters[i];
-      if (parameter.bound == null) {
+      if (identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
         problem(
             currentParent, "Missing bound for type parameter '$parameter'.");
       }
-      if (parameter.defaultType == null) {
+      if (identical(
+          parameter.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
         problem(currentParent,
             "Missing default type for type parameter '$parameter'.");
       }
@@ -261,7 +262,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     assert(state == null);
     typedefState[node] = TypedefState.BeingChecked;
     Set<TypeParameter> savedTypeParameters = typeParametersInScope;
-    typeParametersInScope = node.typeParameters.toSet();
+    typeParametersInScope = node.typeParameters.toSet()
+      ..addAll(node.typeParametersOfFunctionType);
     TreeNode? savedParent = currentParent;
     currentParent = node;
     // Visit children without checking the parent pointer on the typedef itself
@@ -283,11 +285,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     TreeNode? oldParent = enterParent(node);
     bool isTopLevel = node.parent == currentLibrary;
     if (isTopLevel && !node.isStatic) {
-      problem(node, "The top-level field '${node.name!.text}' should be static",
+      problem(node, "The top-level field '${node.name.text}' should be static",
           context: node);
     }
     if (node.isConst && !node.isStatic) {
-      problem(node, "The const field '${node.name!.text}' should be static",
+      problem(node, "The const field '${node.name.text}' should be static",
           context: node);
     }
     bool isImmutable = node.isLate
@@ -296,7 +298,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (isImmutable == node.hasSetter) {
       if (node.hasSetter) {
         problem(node,
-            "The immutable field '${node.name!.text}' has a setter reference",
+            "The immutable field '${node.name.text}' has a setter reference",
             context: node);
       } else {
         if (isOutline && node.isLate) {
@@ -306,7 +308,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           // whether it has an initializer or not.
         } else {
           problem(node,
-              "The mutable field '${node.name!.text}' has no setter reference",
+              "The mutable field '${node.name.text}' has no setter reference",
               context: node);
         }
       }
@@ -363,7 +365,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Only forwarding stubs can have a forwarding stub super target "
           "$node.");
     }
-    node.function!.accept(this);
+    node.function.accept(this);
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
     exitParent(oldParent);
@@ -377,7 +379,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     // in scope in the initializer list.
     TreeNode? oldParent = enterParent(node);
     int stackHeight = enterLocalScope();
-    visitChildren(node.function!);
+    visitChildren(node.function);
     visitList(node.initializers, this);
     if (!isOutline) {
       checkInitializers(node);
@@ -434,7 +436,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     declareTypeParameters(node.typeParameters);
     for (TypeParameter typeParameter in node.typeParameters) {
-      typeParameter.bound?.accept(this);
+      typeParameter.bound.accept(this);
       if (typeParameter.annotations.isNotEmpty) {
         problem(
             typeParameter, "Annotation on type parameter in function type.");
@@ -539,7 +541,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         !(parent is ForStatement && parent.body != node) &&
         !(parent is ForInStatement && parent.body != node) &&
         parent is! Let &&
-        parent is! LocalInitializer) {
+        parent is! LocalInitializer &&
+        parent is! Typedef) {
       problem(
           node,
           "VariableDeclaration must be a direct child of a Block, "

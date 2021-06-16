@@ -4,6 +4,8 @@
 //
 // Dart test for new function type alias.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class FunctionLiteralsTest {

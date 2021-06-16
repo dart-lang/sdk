@@ -411,6 +411,16 @@ class VMService extends MessageRouter {
     replyPort.send(bytes);
   }
 
+  Future<void> clearState() async {
+    // Create a copy of the set as a list because client.disconnect() will
+    // alter the connected clients set.
+    final clientsList = clients.toList();
+    for (final client in clientsList) {
+      await client.disconnect();
+    }
+    devfs.cleanup();
+  }
+
   Future _exit() async {
     isExiting = true;
 
@@ -423,14 +433,7 @@ class VMService extends MessageRouter {
     // Close receive ports.
     isolateControlPort.close();
     scriptLoadPort.close();
-
-    // Create a copy of the set as a list because client.disconnect() will
-    // alter the connected clients set.
-    final clientsList = clients.toList();
-    for (final client in clientsList) {
-      client.disconnect();
-    }
-    devfs.cleanup();
+    await clearState();
     final cleanup = VMServiceEmbedderHooks.cleanup;
     if (cleanup != null) {
       await cleanup();

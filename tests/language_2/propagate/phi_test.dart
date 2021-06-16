@@ -4,6 +4,8 @@
 // Check that phi type computation in the Dart2Js compiler does the
 // correct thing.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 bar() => 490;

@@ -10,7 +10,7 @@ import self as self;
 
 static method foo() → dynamic async {
   invalid-type x;
-  for (dynamic y in x.z) {
+  for (dynamic y in x{<invalid>}.z) {
   }
 }
 static method main() → dynamic {}

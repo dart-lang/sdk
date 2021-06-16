@@ -705,11 +705,11 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       if (onError == null) {
         return;
       }
-      if (onError is void Function(Object)) {
-        onError(e);
-      } else {
-        assert(onError is void Function(Object, StackTrace));
+      if (onError is void Function(Object, StackTrace)) {
         onError(e, st);
+      } else {
+        assert(onError is void Function(Object));
+        onError(e);
       }
     }, onDone: () {
       _profileData?.finishResponse();
@@ -784,15 +784,16 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
           return new Future.value(false);
         }
         var proxy = _httpRequest._proxy;
-        return authenticateProxy(
-            proxy.host, proxy.port, scheme.toString(), realm);
-      } else {
-        var authenticate = _httpClient._authenticate;
-        if (authenticate == null) {
-          return new Future.value(false);
+        if (!proxy.isDirect) {
+          return authenticateProxy(
+              proxy.host!, proxy.port!, scheme.toString(), realm);
         }
-        return authenticate(_httpRequest.uri, scheme.toString(), realm);
       }
+      var authenticate = _httpClient._authenticate;
+      if (authenticate == null) {
+        return new Future.value(false);
+      }
+      return authenticate(_httpRequest.uri, scheme.toString(), realm);
     }
 
     List<String> challenge = authChallenge()!;
@@ -1582,7 +1583,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     headers._finalize();
 
     // Write headers.
-    headers._build(buffer);
+    headers._build(buffer,
+        skipZeroContentLength: method == "CONNECT" ||
+            method == "DELETE" ||
+            method == "GET" ||
+            method == "HEAD");
     buffer.addByte(_CharCode.CR);
     buffer.addByte(_CharCode.LF);
     Uint8List headerBytes = buffer.takeBytes();
@@ -2442,7 +2447,9 @@ class _ConnectionTarget {
       }
       return socketFuture.then((socket) {
         _connecting--;
-        socket.setOption(SocketOption.tcpNoDelay, true);
+        if (socket.address.type != InternetAddressType.unix) {
+          socket.setOption(SocketOption.tcpNoDelay, true);
+        }
         var connection =
             new _HttpClientConnection(key, socket, client, false, context);
         if (isSecure && !proxy.isDirect) {
@@ -2497,9 +2504,10 @@ class _HttpClient implements HttpClient {
   final List<_Credentials> _credentials = [];
   final List<_ProxyCredentials> _proxyCredentials = [];
   final SecurityContext? _context;
-  Function? _authenticate;
-  Function? _authenticateProxy;
-  Function? _findProxy = HttpClient.findProxyFromEnvironment;
+  Future<bool> Function(Uri, String scheme, String? realm)? _authenticate;
+  Future<bool> Function(String host, int port, String scheme, String? realm)?
+      _authenticateProxy;
+  String Function(Uri)? _findProxy = HttpClient.findProxyFromEnvironment;
   Duration _idleTimeout = const Duration(seconds: 15);
   BadCertificateCallback? _badCertificateCallback;
 
@@ -2598,7 +2606,7 @@ class _HttpClient implements HttpClient {
         !force || !_connectionTargets.values.any((s) => s._active.isNotEmpty));
   }
 
-  set authenticate(Future<bool> f(Uri url, String scheme, String realm)?) {
+  set authenticate(Future<bool> f(Uri url, String scheme, String? realm)?) {
     _authenticate = f;
   }
 
@@ -2608,7 +2616,7 @@ class _HttpClient implements HttpClient {
   }
 
   set authenticateProxy(
-      Future<bool> f(String host, int port, String scheme, String realm)?) {
+      Future<bool> f(String host, int port, String scheme, String? realm)?) {
     _authenticateProxy = f;
   }
 
@@ -2619,6 +2627,24 @@ class _HttpClient implements HttpClient {
   }
 
   set findProxy(String f(Uri uri)?) => _findProxy = f;
+
+  static void _startRequestTimelineEvent(
+      TimelineTask? timeline, String method, Uri uri) {
+    timeline?.start('HTTP CLIENT ${method.toUpperCase()}', arguments: {
+      'method': method.toUpperCase(),
+      'uri': uri.toString(),
+    });
+  }
+
+  bool _isLoopback(String host) {
+    if (host.isEmpty) return false;
+    if ("localhost" == host) return true;
+    try {
+      return InternetAddress(host).isLoopback;
+    } on ArgumentError {
+      return false;
+    }
+  }
 
   Future<_HttpClientRequest> _openUrl(String method, Uri uri) {
     if (_closing) {
@@ -2640,10 +2666,10 @@ class _HttpClient implements HttpClient {
       }
     }
 
+    _httpConnectionHook(uri);
+
     bool isSecure = uri.isScheme("https");
-    if (!isSecure && !isInsecureConnectionAllowed(uri.host)) {
-      throw new StateError("Insecure HTTP is not allowed by platform: $uri");
-    }
+
     int port = uri.port;
     if (port == 0) {
       port =
@@ -3141,7 +3167,9 @@ class _HttpServer extends Stream<HttpRequest>
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest event)?,
       {Function? onError, void onDone()?, bool? cancelOnError}) {
     _serverSocket.listen((Socket socket) {
-      socket.setOption(SocketOption.tcpNoDelay, true);
+      if (socket.address.type != InternetAddressType.unix) {
+        socket.setOption(SocketOption.tcpNoDelay, true);
+      }
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection(socket, this);
       _idleConnections.add(connection);

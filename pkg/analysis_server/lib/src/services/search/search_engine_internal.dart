@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -17,7 +15,7 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._drivers);
 
   @override
-  Future<Set<String>> membersOfSubtypes(ClassElement type) async {
+  Future<Set<String>?> membersOfSubtypes(ClassElement type) async {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
 
@@ -26,7 +24,7 @@ class SearchEngineImpl implements SearchEngine {
     var visitedIds = <String>{};
     var members = <String>{};
 
-    Future<void> addMembers(ClassElement type, SubtypeResult subtype) async {
+    Future<void> addMembers(ClassElement? type, SubtypeResult? subtype) async {
       if (subtype != null && !visitedIds.add(subtype.id)) {
         return;
       }
@@ -206,10 +204,10 @@ class SearchMatchImpl implements SearchMatch {
 
   static SearchMatchImpl forElement(Element element) {
     return SearchMatchImpl(
-        element.source.fullName,
-        element.librarySource,
-        element.source,
-        element.library,
+        element.source!.fullName,
+        element.librarySource!,
+        element.source!,
+        element.library!,
         element,
         true,
         true,
@@ -220,10 +218,10 @@ class SearchMatchImpl implements SearchMatch {
   static SearchMatchImpl forSearchResult(SearchResult result) {
     var enclosingElement = result.enclosingElement;
     return SearchMatchImpl(
-        enclosingElement.source.fullName,
-        enclosingElement.librarySource,
-        enclosingElement.source,
-        enclosingElement.library,
+        enclosingElement.source!.fullName,
+        enclosingElement.librarySource!,
+        enclosingElement.source!,
+        enclosingElement.library!,
         enclosingElement,
         result.isResolved,
         result.isQualified,

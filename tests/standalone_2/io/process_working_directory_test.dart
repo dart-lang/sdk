@@ -4,6 +4,8 @@
 //
 // Process working directory test.
 
+// @dart = 2.9
+
 library ProcessWorkingDirectoryTest;
 
 import "dart:io";

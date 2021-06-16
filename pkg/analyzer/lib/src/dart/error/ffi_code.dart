@@ -23,6 +23,15 @@ class FfiCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the argument
+   */
+  static const FfiCode ARGUMENT_MUST_BE_A_CONSTANT = FfiCode(
+      name: 'ARGUMENT_MUST_BE_A_CONSTANT',
+      message: "Argument '{0}' must be a constant.",
+      correction: "Try replacing the value with a literal or const.");
+
+  /**
+   * Parameters:
    * 0: the name of the struct class
    */
   static const FfiCode EMPTY_STRUCT = FfiCode(
@@ -52,7 +61,8 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode FIELD_IN_STRUCT_WITH_INITIALIZER = FfiCode(
       name: 'FIELD_IN_STRUCT_WITH_INITIALIZER',
-      message: "Fields in subclasses of 'Struct' can't have initializers.",
+      message:
+          "Fields in subclasses of 'Struct' and 'Union' can't have initializers.",
       correction:
           "Try removing the initializer and marking the field as external.");
 
@@ -61,7 +71,8 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode FIELD_INITIALIZER_IN_STRUCT = FfiCode(
       name: 'FIELD_INITIALIZER_IN_STRUCT',
-      message: "Constructors in subclasses of 'Struct' can't have field "
+      message:
+          "Constructors in subclasses of 'Struct' and 'Union' can't have field "
           "initializers.",
       correction: "Try removing the field initializer and marking the field as"
           " external.");
@@ -72,7 +83,8 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode GENERIC_STRUCT_SUBCLASS = FfiCode(
       name: 'GENERIC_STRUCT_SUBCLASS',
-      message: "The class '{0}' can't extend 'Struct' because it is generic.",
+      message:
+          "The class '{0}' can't extend 'Struct' or 'Union' because it is generic.",
       correction: "Try removing the type parameters from '{0}'.");
 
   /**
@@ -95,10 +107,26 @@ class FfiCode extends AnalyzerErrorCode {
       message:
           "Fields in struct classes can't have the type '{0}'. They can only "
           "be declared as 'int', 'double', 'Array', 'Pointer', or subtype of "
-          "'Struct'.",
+          "'Struct' or 'Union'.",
       correction:
           "Try using 'int', 'double', 'Array', 'Pointer', or subtype of "
-          "'Struct'.");
+          "'Struct' or 'Union'.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode LEAF_CALL_MUST_NOT_RETURN_HANDLE = FfiCode(
+      name: 'LEAF_CALL_MUST_NOT_RETURN_HANDLE',
+      message: "FFI leaf call must not return a Handle.",
+      correction: "Try changing the return type to primitive or struct.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode LEAF_CALL_MUST_NOT_TAKE_HANDLE = FfiCode(
+      name: 'LEAF_CALL_MUST_NOT_TAKE_HANDLE',
+      message: "FFI leaf call must not take arguments of type Handle.",
+      correction: "Try changing the argument type to primitive or struct.");
 
   /**
    * No parameters.
@@ -194,6 +222,14 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try changing the type argument to be a 'NativeFunction'.");
 
   /**
+   * No parameters.
+   */
+  static const FfiCode NON_POSITIVE_ARRAY_DIMENSION = FfiCode(
+    name: 'NON_POSITIVE_INPUT_ON_ARRAY',
+    message: "Array dimensions must be positive numbers.",
+    correction: "Try changing the input to a positive number.");
+
+  /**
    * Parameters:
    * 0: the type of the field
    */
@@ -202,9 +238,9 @@ class FfiCode extends AnalyzerErrorCode {
       message:
           "Type arguments to '{0}' can't have the type '{1}'. They can only "
           "be declared as native integer, 'Float', 'Double', 'Pointer', or "
-          "subtype of Struct'.",
+          "subtype of 'Struct' or 'Union'.",
       correction: "Try using a native integer, 'Float', 'Double', 'Pointer', "
-          "or subtype of 'Struct'.");
+          "or subtype of 'Struct' or 'Union'.");
 
   /**
    * No parameters.
@@ -252,7 +288,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_EXTENDS = FfiCode(
     name: 'SUBTYPE_OF_FFI_CLASS',
     message: "The class '{0}' can't extend '{1}'.",
-    correction: "Try extending 'Struct'.",
+    correction: "Try extending 'Struct' or 'Union'.",
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
   );
 
@@ -264,7 +300,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS = FfiCode(
     name: 'SUBTYPE_OF_FFI_CLASS',
     message: "The class '{0}' can't implement '{1}'.",
-    correction: "Try extending 'Struct'.",
+    correction: "Try extending 'Struct' or 'Union'.",
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS',
   );
 
@@ -276,7 +312,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_WITH = FfiCode(
     name: 'SUBTYPE_OF_FFI_CLASS',
     message: "The class '{0}' can't mix in '{1}'.",
-    correction: "Try extending 'Struct'.",
+    correction: "Try extending 'Struct' or 'Union'.",
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_WITH',
   );
 
@@ -288,8 +324,8 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS = FfiCode(
     name: 'SUBTYPE_OF_STRUCT_CLASS',
     message: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of "
-        "'Struct'.",
-    correction: "Try extending 'Struct' directly.",
+        "'Struct' or 'Union'.",
+    correction: "Try extending 'Struct' or 'Union' directly.",
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
   );
 
@@ -302,8 +338,8 @@ class FfiCode extends AnalyzerErrorCode {
     name: 'SUBTYPE_OF_STRUCT_CLASS',
     message:
         "The class '{0}' can't implement '{1}' because '{1}' is a subtype of "
-        "'Struct'.",
-    correction: "Try extending 'Struct' directly.",
+        "'Struct' or 'Union'.",
+    correction: "Try extending 'Struct' or 'Union' directly.",
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
   );
 
@@ -315,8 +351,8 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_WITH = FfiCode(
     name: 'SUBTYPE_OF_STRUCT_CLASS',
     message: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of "
-        "'Struct'.",
-    correction: "Try extending 'Struct' directly.",
+        "'Struct' or 'Union'.",
+    correction: "Try extending 'Struct' or 'Union' directly.",
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
   );
 

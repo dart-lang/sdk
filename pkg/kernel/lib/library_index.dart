@@ -108,6 +108,19 @@ class LibraryIndex {
     return _libraries[library]?.tryGetMember(className, memberName);
   }
 
+  Constructor getConstructor(
+      String library, String className, String memberName) {
+    return _getLibraryIndex(library).getConstructor(className, memberName);
+  }
+
+  Procedure getProcedure(String library, String className, String memberName) {
+    return _getLibraryIndex(library).getProcedure(className, memberName);
+  }
+
+  Field getField(String library, String className, String memberName) {
+    return _getLibraryIndex(library).getField(className, memberName);
+  }
+
   /// Returns the top-level member with the given name, in the given library.
   ///
   /// If a getter or setter is wanted, the `get:` or `set:` prefix must be
@@ -126,6 +139,14 @@ class LibraryIndex {
   Member? tryGetTopLevelMember(
       String library, String className, String memberName) {
     return tryGetMember(library, topLevel, memberName);
+  }
+
+  Procedure getTopLevelProcedure(String library, String memberName) {
+    return getProcedure(library, topLevel, memberName);
+  }
+
+  Field getTopLevelField(String library, String memberName) {
+    return getField(library, topLevel, memberName);
   }
 }
 
@@ -186,6 +207,18 @@ class _ClassTable {
   Member? tryGetMember(String className, String memberName) {
     return classes[className]?.tryGetMember(memberName);
   }
+
+  Constructor getConstructor(String className, String memberName) {
+    return _getClassIndex(className).getConstructor(memberName);
+  }
+
+  Procedure getProcedure(String className, String memberName) {
+    return _getClassIndex(className).getProcedure(memberName);
+  }
+
+  Field getField(String className, String memberName) {
+    return _getClassIndex(className).getField(memberName);
+  }
 }
 
 class _MemberTable {
@@ -221,14 +254,14 @@ class _MemberTable {
 
   String getDisambiguatedName(Member member) {
     if (member is Procedure) {
-      if (member.isGetter) return LibraryIndex.getterPrefix + member.name!.text;
-      if (member.isSetter) return LibraryIndex.setterPrefix + member.name!.text;
+      if (member.isGetter) return LibraryIndex.getterPrefix + member.name.text;
+      if (member.isSetter) return LibraryIndex.setterPrefix + member.name.text;
     }
-    return member.name!.text;
+    return member.name.text;
   }
 
   void _addMember(Member member) {
-    if (member.name!.isPrivate && member.name!.library != library) {
+    if (member.name.isPrivate && member.name.library != library) {
       // Members whose name is private to other libraries cannot currently
       // be found with the LibraryIndex class.
       return;
@@ -254,7 +287,7 @@ class _MemberTable {
     final NamedNode? replacement = extensionMember.member.node;
     if (replacement is! Member) return;
     Member member = replacement;
-    if (member.name!.isPrivate && member.name!.library != library) {
+    if (member.name.isPrivate && member.name.library != library) {
       // Members whose name is private to other libraries cannot currently
       // be found with the LibraryIndex class.
       return;
@@ -290,4 +323,31 @@ class _MemberTable {
   }
 
   Member? tryGetMember(String name) => members[name];
+
+  Constructor getConstructor(String name) {
+    Member member = getMember(name);
+    if (member is! Constructor) {
+      throw "Member '$name' in $containerName is not a Constructor: "
+          "${member} (${member.runtimeType}).";
+    }
+    return member;
+  }
+
+  Procedure getProcedure(String name) {
+    Member member = getMember(name);
+    if (member is! Procedure) {
+      throw "Member '$name' in $containerName is not a Procedure: "
+          "${member} (${member.runtimeType}).";
+    }
+    return member;
+  }
+
+  Field getField(String name) {
+    Member member = getMember(name);
+    if (member is! Field) {
+      throw "Member '$name' in $containerName is not a Field: "
+          "${member} (${member.runtimeType}).";
+    }
+    return member;
+  }
 }

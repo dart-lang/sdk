@@ -20,7 +20,7 @@ class B extends self::A {
   synthetic constructor •() → self::B*
     ;
 }
-class Class<T extends self::A* = self::A*> extends core::Object {
+class Class<T extends self::A*> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T*>*
     ;
   method method1a(generic-covariant-impl self::Class::T* t) → void

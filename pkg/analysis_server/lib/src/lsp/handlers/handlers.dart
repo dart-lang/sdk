@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -46,21 +44,22 @@ abstract class CancellationToken {
 }
 
 abstract class CommandHandler<P, R> with Handler<P, R> {
-  CommandHandler(LspAnalysisServer server) {
-    this.server = server;
-  }
+  @override
+  final LspAnalysisServer server;
 
-  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+  CommandHandler(this.server);
+
+  Future<ErrorOr<Object?>> handle(List<dynamic>? arguments,
       ProgressReporter progress, CancellationToken cancellationToken);
 }
 
 mixin Handler<P, R> {
-  LspAnalysisServer server;
-
   final fileModifiedError = error<R>(ErrorCodes.ContentModified,
       'Document was modified before operation completed', null);
 
-  bool fileHasBeenModified(String path, int clientVersion) {
+  LspAnalysisServer get server;
+
+  bool fileHasBeenModified(String path, num? clientVersion) {
     final serverDocIdentifier = server.getVersionedDocumentIdentifier(path);
     return clientVersion != null &&
         clientVersion != serverDocIdentifier.version;
@@ -81,7 +80,7 @@ mixin Handler<P, R> {
     if (result?.state != ResultState.VALID) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
-    return success(result);
+    return success(result!);
   }
 
   ErrorOr<ParsedUnitResult> requireUnresolvedUnit(String path) {
@@ -89,7 +88,7 @@ mixin Handler<P, R> {
     if (result?.state != ResultState.VALID) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
-    return success(result);
+    return success(result!);
   }
 }
 
@@ -103,7 +102,7 @@ mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
     final driver = server.getAnalysisDriver(path);
     final pluginFutures = server.pluginManager.broadcastRequest(
       params,
-      contextRoot: driver.analysisContext.contextRoot,
+      contextRoot: driver?.analysisContext?.contextRoot,
     );
 
     return waitForResponses(pluginFutures,
@@ -116,9 +115,10 @@ mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
 /// Clients may not extend, implement or mix-in this class.
 abstract class MessageHandler<P, R>
     with Handler<P, R>, RequestHandlerMixin<LspAnalysisServer> {
-  MessageHandler(LspAnalysisServer server) {
-    this.server = server;
-  }
+  @override
+  final LspAnalysisServer server;
+
+  MessageHandler(this.server);
 
   /// The method that this handler can handle.
   Method get handlesMessage;
@@ -144,7 +144,9 @@ abstract class MessageHandler<P, R>
       );
     }
 
-    final params = jsonHandler.convertParams(message.params);
+    final params = message.params != null
+        ? jsonHandler.convertParams(message.params)
+        : null as P;
     return handle(params, token);
   }
 }
@@ -169,7 +171,7 @@ abstract class ServerStateMessageHandler {
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
-  FutureOr<ErrorOr<Object>> handleMessage(IncomingMessage message) async {
+  FutureOr<ErrorOr<Object?>> handleMessage(IncomingMessage message) async {
     final handler = _messageHandlers[message.method];
     if (handler == null) {
       return handleUnknownMessage(message);
@@ -197,21 +199,16 @@ abstract class ServerStateMessageHandler {
     }
   }
 
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // If it's an optional *Notification* we can ignore it (return success).
     // Otherwise respond with failure. Optional Requests must still be responded
     // to so they don't leave open requests on the client.
     return _isOptionalNotification(message)
-        ? success()
+        ? success(null)
         : error(ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
   }
 
   void registerHandler(MessageHandler handler) {
-    assert(
-        handler.handlesMessage != null,
-        'Unable to register handler ${handler.runtimeType} because it does '
-        'not declare which messages it can handle');
-
     _messageHandlers[handler.handlesMessage] = handler;
   }
 

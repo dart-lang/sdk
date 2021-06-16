@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
@@ -76,6 +74,9 @@ final highlightRegionTokenModifiers =
   HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION: {
     SemanticTokenModifiers.declaration
   },
+  HighlightRegionType.VALID_STRING_ESCAPE: {
+    CustomSemanticTokenModifiers.escape
+  },
 };
 
 /// A mapping from [HighlightRegionType] to [SemanticTokenTypes].
@@ -86,7 +87,6 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.COMMENT_BLOCK: SemanticTokenTypes.comment,
   HighlightRegionType.COMMENT_DOCUMENTATION: SemanticTokenTypes.comment,
   HighlightRegionType.COMMENT_END_OF_LINE: SemanticTokenTypes.comment,
-  HighlightRegionType.CONSTRUCTOR: SemanticTokenTypes.class_,
   HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION:
       SemanticTokenTypes.variable,
   HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE:
@@ -138,6 +138,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.TYPE_PARAMETER: SemanticTokenTypes.typeParameter,
   HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE:
       SemanticTokenTypes.variable,
+  HighlightRegionType.VALID_STRING_ESCAPE: SemanticTokenTypes.string,
 };
 
 /// A helper for converting from Server highlight regions to LSP semantic tokens.
@@ -154,7 +155,7 @@ class RegionTypeMapper {
     // for faster lookups.
     for (final regionType in highlightRegionTokenTypes.keys) {
       _tokenTypeIndexForHighlightRegion[regionType] = semanticTokenLegend
-          .indexForType(highlightRegionTokenTypes[regionType]);
+          .indexForType(highlightRegionTokenTypes[regionType]!);
     }
 
     for (final regionType in highlightRegionTokenTypes.keys) {
@@ -166,10 +167,10 @@ class RegionTypeMapper {
   /// Gets the [SemanticTokenModifiers] bitmask for a [HighlightRegionType]. Returns
   /// null if the region type has not been mapped.
   int bitmaskForModifier(HighlightRegionType type) =>
-      _tokenModifierBitmaskForHighlightRegion[type];
+      _tokenModifierBitmaskForHighlightRegion[type]!;
 
   /// Gets the [SemanticTokenTypes] index for a [HighlightRegionType]. Returns
   /// null if the region type has not been mapped.
   int indexForToken(HighlightRegionType type) =>
-      _tokenTypeIndexForHighlightRegion[type];
+      _tokenTypeIndexForHighlightRegion[type]!;
 }

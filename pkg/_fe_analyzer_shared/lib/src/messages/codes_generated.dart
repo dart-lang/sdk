@@ -1293,7 +1293,7 @@ const Template<
 const Code<Message Function(String nameOKEmpty)> codeConstEvalDeferredLibrary =
     const Code<Message Function(String nameOKEmpty)>("ConstEvalDeferredLibrary",
         analyzerCodes: <String>[
-      "NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY"
+      "INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY"
     ]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1350,6 +1350,28 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(
   return new Message(codeConstEvalFailedAssertionWithMessage,
       message: """This assertion failed with message: ${stringOKEmpty}""",
       arguments: {'stringOKEmpty': stringOKEmpty});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String nameOKEmpty)>
+    templateConstEvalGetterNotFound =
+    const Template<Message Function(String nameOKEmpty)>(
+        messageTemplate: r"""Variable get not found: '#nameOKEmpty'""",
+        withArguments: _withArgumentsConstEvalGetterNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String nameOKEmpty)> codeConstEvalGetterNotFound =
+    const Code<Message Function(String nameOKEmpty)>(
+  "ConstEvalGetterNotFound",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalGetterNotFound(String nameOKEmpty) {
+  // ignore: unnecessary_null_comparison
+  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+  return new Message(codeConstEvalGetterNotFound,
+      message: """Variable get not found: '${nameOKEmpty}'""",
+      arguments: {'nameOKEmpty': nameOKEmpty});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1515,6 +1537,29 @@ const Code<Null> codeConstEvalUnevaluated = messageConstEvalUnevaluated;
 const MessageCode messageConstEvalUnevaluated = const MessageCode(
     "ConstEvalUnevaluated",
     message: r"""Couldn't evaluate constant expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String stringOKEmpty)>
+    templateConstEvalUnhandledCoreException =
+    const Template<Message Function(String stringOKEmpty)>(
+        messageTemplate: r"""Unhandled core exception: #stringOKEmpty""",
+        withArguments: _withArgumentsConstEvalUnhandledCoreException);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String stringOKEmpty)>
+    codeConstEvalUnhandledCoreException =
+    const Code<Message Function(String stringOKEmpty)>(
+  "ConstEvalUnhandledCoreException",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalUnhandledCoreException(String stringOKEmpty) {
+  // ignore: unnecessary_null_comparison
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  return new Message(codeConstEvalUnhandledCoreException,
+      message: """Unhandled core exception: ${stringOKEmpty}""",
+      arguments: {'stringOKEmpty': stringOKEmpty});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2115,6 +2160,18 @@ Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
   return new Message(codeDeferredPrefixDuplicatedCause,
       message: """'${name}' is used here.""", arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDeprecateDartExt = messageDeprecateDartExt;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDeprecateDartExt = const MessageCode(
+    "DeprecateDartExt",
+    severity: Severity.info,
+    message:
+        r"""Dart native extensions are deprecated and will be removed in the 2.15 release of Dart SDK.""",
+    tip:
+        r"""Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -3691,26 +3748,30 @@ const MessageCode messageFastaUsageShort =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-    Message Function(String name)> templateFfiEmptyStruct = const Template<
-        Message Function(String name)>(
+    Message Function(
+        String string,
+        String
+            name)> templateFfiEmptyStruct = const Template<
+        Message Function(String string, String name)>(
     messageTemplate:
-        r"""Struct '#name' is empty. Empty structs are undefined behavior.""",
+        r"""#string '#name' is empty. Empty structs and unions are undefined behavior.""",
     withArguments: _withArgumentsFfiEmptyStruct);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFfiEmptyStruct =
-    const Code<Message Function(String name)>(
+const Code<Message Function(String string, String name)> codeFfiEmptyStruct =
+    const Code<Message Function(String string, String name)>(
   "FfiEmptyStruct",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiEmptyStruct(String name) {
+Message _withArgumentsFfiEmptyStruct(String string, String name) {
+  if (string.isEmpty) throw 'No string provided';
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiEmptyStruct,
       message:
-          """Struct '${name}' is empty. Empty structs are undefined behavior.""",
-      arguments: {'name': name});
+          """${string} '${name}' is empty. Empty structs and unions are undefined behavior.""",
+      arguments: {'string': string, 'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3728,6 +3789,27 @@ const Code<Null> codeFfiExpectedConstant = messageFfiExpectedConstant;
 const MessageCode messageFfiExpectedConstant = const MessageCode(
     "FfiExpectedConstant",
     message: r"""Exceptional return value must be a constant.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateFfiExpectedConstantArg =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Argument '#name' must be a constant.""",
+        withArguments: _withArgumentsFfiExpectedConstantArg);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiExpectedConstantArg =
+    const Code<Message Function(String name)>(
+  "FfiExpectedConstantArg",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiExpectedConstantArg(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiExpectedConstantArg,
+      message: """Argument '${name}' must be a constant.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
@@ -3758,7 +3840,7 @@ const Template<
     Message Function(String name)> templateFfiFieldAnnotation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
+        r"""Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.""",
     withArguments: _withArgumentsFfiFieldAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3773,33 +3855,36 @@ Message _withArgumentsFfiFieldAnnotation(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiFieldAnnotation,
       message:
-          """Field '${name}' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
+          """Field '${name}' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.""",
       arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, List<String> _names)>
-    templateFfiFieldCyclic =
-    const Template<Message Function(String name, List<String> _names)>(
-        messageTemplate: r"""Struct '#name' contains itself. Cycle elements:
+const Template<
+        Message Function(String string, String name, List<String> _names)>
+    templateFfiFieldCyclic = const Template<
+            Message Function(String string, String name, List<String> _names)>(
+        messageTemplate: r"""#string '#name' contains itself. Cycle elements:
 #names""", withArguments: _withArgumentsFfiFieldCyclic);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, List<String> _names)>
-    codeFfiFieldCyclic =
-    const Code<Message Function(String name, List<String> _names)>(
+const Code<Message Function(String string, String name, List<String> _names)>
+    codeFfiFieldCyclic = const Code<
+        Message Function(String string, String name, List<String> _names)>(
   "FfiFieldCyclic",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldCyclic(String name, List<String> _names) {
+Message _withArgumentsFfiFieldCyclic(
+    String string, String name, List<String> _names) {
+  if (string.isEmpty) throw 'No string provided';
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (_names.isEmpty) throw 'No names provided';
   String names = itemizeNames(_names);
   return new Message(codeFfiFieldCyclic,
-      message: """Struct '${name}' contains itself. Cycle elements:
-${names}""", arguments: {'name': name, 'names': _names});
+      message: """${string} '${name}' contains itself. Cycle elements:
+${names}""", arguments: {'string': string, 'name': name, 'names': _names});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3860,7 +3945,7 @@ const Template<
     Message Function(String name)> templateFfiFieldNull = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct`.""",
+        r"""Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
     withArguments: _withArgumentsFfiFieldNull);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3875,9 +3960,27 @@ Message _withArgumentsFfiFieldNull(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiFieldNull,
       message:
-          """Field '${name}' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct`.""",
+          """Field '${name}' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiLeafCallMustNotReturnHandle =
+    messageFfiLeafCallMustNotReturnHandle;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiLeafCallMustNotReturnHandle = const MessageCode(
+    "FfiLeafCallMustNotReturnHandle",
+    message: r"""FFI leaf call must not have Handle return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiLeafCallMustNotTakeHandle =
+    messageFfiLeafCallMustNotTakeHandle;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
+    "FfiLeafCallMustNotTakeHandle",
+    message: r"""FFI leaf call must not have Handle argument types.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4014,24 +4117,26 @@ Message _withArgumentsFfiSizeAnnotationDimensions(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateFfiStructGeneric =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Struct '#name' should not be generic.""",
+const Template<Message Function(String string, String name)>
+    templateFfiStructGeneric =
+    const Template<Message Function(String string, String name)>(
+        messageTemplate: r"""#string '#name' should not be generic.""",
         withArguments: _withArgumentsFfiStructGeneric);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFfiStructGeneric =
-    const Code<Message Function(String name)>(
+const Code<Message Function(String string, String name)> codeFfiStructGeneric =
+    const Code<Message Function(String string, String name)>(
   "FfiStructGeneric",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiStructGeneric(String name) {
+Message _withArgumentsFfiStructGeneric(String string, String name) {
+  if (string.isEmpty) throw 'No string provided';
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiStructGeneric,
-      message: """Struct '${name}' should not be generic.""",
-      arguments: {'name': name});
+      message: """${string} '${name}' should not be generic.""",
+      arguments: {'string': string, 'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4332,6 +4437,15 @@ const MessageCode messageForInLoopWithConstVariable = const MessageCode(
     tip: r"""Try removing the 'const' modifier.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFunctionAsTypeParameter = messageFunctionAsTypeParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFunctionAsTypeParameter = const MessageCode(
+    "FunctionAsTypeParameter",
+    message:
+        r"""'Function' is a built-in identifier, could not used as a type identifier.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4351,6 +4465,30 @@ const MessageCode messageFunctionTypedParameterVar = const MessageCode(
     message:
         r"""Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.""",
     tip: r"""Try replacing the keyword with a return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateFunctionUsedAsDec = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""'Function' is a built-in identifier, could not used as a #name name.""",
+    withArguments: _withArgumentsFunctionUsedAsDec);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFunctionUsedAsDec =
+    const Code<Message Function(String name)>(
+  "FunctionUsedAsDec",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFunctionUsedAsDec(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFunctionUsedAsDec,
+      message:
+          """'Function' is a built-in identifier, could not used as a ${name} name.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeGeneratorReturnsValue = messageGeneratorReturnsValue;
@@ -7188,6 +7326,15 @@ const MessageCode messageNonPartOfDirectiveInPart = const MessageCode(
     message: r"""The part-of directive must be the only directive in a part.""",
     tip:
         r"""Try removing the other directives, or moving them to the library for which this is a part.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonPositiveArrayDimensions =
+    messageNonPositiveArrayDimensions;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonPositiveArrayDimensions = const MessageCode(
+    "NonPositiveArrayDimensions",
+    message: r"""Array dimensions must be positive numbers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>

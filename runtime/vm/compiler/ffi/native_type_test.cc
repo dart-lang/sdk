@@ -17,7 +17,7 @@ const NativeCompoundType& RunStructTest(dart::Zone* zone,
                                         const NativeTypes& member_types,
                                         intptr_t packing = kMaxInt32) {
   const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(zone, member_types, packing);
+      NativeStructType::FromNativeTypes(zone, member_types, packing);
 
   const char* test_result = struct_type.ToCString(zone, /*multi_line=*/true);
 
@@ -181,7 +181,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_floatarray) {
   auto& inner_struct_members = *new (Z) NativeTypes(Z, 1);
   inner_struct_members.Add(&inner_array_type);
   const auto& inner_struct =
-      NativeCompoundType::FromNativeTypes(Z, inner_struct_members);
+      NativeStructType::FromNativeTypes(Z, inner_struct_members);
 
   const auto& array_type = *new (Z) NativeArrayType(inner_struct, 2);
 
@@ -207,7 +207,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_packed) {
   const intptr_t packing = 1;
 
   const auto& struct_type =
-      NativeCompoundType::FromNativeTypes(Z, members, packing);
+      NativeStructType::FromNativeTypes(Z, members, packing);
 
   // Should be 3 bytes on every platform.
   EXPECT_EQ(3, struct_type.SizeInBytes());
@@ -223,7 +223,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_packed_array) {
   inner_members.Add(&uint8_type);
   const intptr_t packing = 1;
   const auto& inner_struct_type =
-      NativeCompoundType::FromNativeTypes(Z, inner_members, packing);
+      NativeStructType::FromNativeTypes(Z, inner_members, packing);
 
   EXPECT_EQ(3, inner_struct_type.SizeInBytes());
   // Non-windows x64 considers this struct as all members aligned, even though
@@ -234,7 +234,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_packed_array) {
 
   auto& members = *new (Z) NativeTypes(Z, 1);
   members.Add(&array_type);
-  const auto& struct_type = NativeCompoundType::FromNativeTypes(Z, members);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, members);
 
   EXPECT_EQ(6, struct_type.SizeInBytes());
   // Non-windows x64 passes this as a struct with unaligned members, because
@@ -251,7 +251,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_packed_nested) {
   inner_members.Add(&uint8_type);
   const intptr_t packing = 1;
   const auto& inner_struct_type =
-      NativeCompoundType::FromNativeTypes(Z, inner_members, packing);
+      NativeStructType::FromNativeTypes(Z, inner_members, packing);
 
   EXPECT_EQ(5, inner_struct_type.SizeInBytes());
   // Non-windows x64 considers this struct as all members aligned, even though
@@ -261,12 +261,82 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_packed_nested) {
   auto& members = *new (Z) NativeTypes(Z, 2);
   members.Add(&uint8_type);
   members.Add(&inner_struct_type);
-  const auto& struct_type = NativeCompoundType::FromNativeTypes(Z, members);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, members);
 
   EXPECT_EQ(6, struct_type.SizeInBytes());
   // Non-windows x64 passes this as a struct with unaligned members, even
   // though the nested struct itself has all its members aligned in isolation.
   EXPECT(struct_type.ContainsUnalignedMembers());
+}
+
+UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_union_size) {
+  const auto& uint8_type = *new (Z) NativePrimitiveType(kUint8);
+  const auto& uint32_type = *new (Z) NativePrimitiveType(kUint32);
+
+  const auto& array8_bytes = *new (Z) NativeArrayType(uint32_type, 2);
+  const auto& array9_bytes = *new (Z) NativeArrayType(uint8_type, 9);
+
+  auto& members = *new (Z) NativeTypes(Z, 2);
+  members.Add(&array8_bytes);
+  members.Add(&array9_bytes);
+  const auto& union_type = NativeUnionType::FromNativeTypes(Z, members);
+
+  // The alignment requirements of the first member and the size of the second
+  // member force the size to be rounded up to 12.
+  EXPECT_EQ(12, union_type.SizeInBytes());
+
+  EXPECT(!union_type.ContainsUnalignedMembers());
+}
+
+UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_union_primitive_members) {
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+
+  const auto& float_array_type = *new (Z) NativeArrayType(float_type, 3);
+
+  auto& struct_member_types = *new (Z) NativeTypes(Z, 4);
+  struct_member_types.Add(&float_type);
+  struct_member_types.Add(&float_type);
+  struct_member_types.Add(&float_type);
+  struct_member_types.Add(&float_type);
+  const auto& struct_type =
+      NativeStructType::FromNativeTypes(Z, struct_member_types);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 2);
+  member_types.Add(&float_array_type);
+  member_types.Add(&struct_type);
+  const auto& union_type = NativeUnionType::FromNativeTypes(Z, member_types);
+
+  EXPECT_EQ(16, union_type.SizeInBytes());
+
+  EXPECT_EQ(4, union_type.NumPrimitiveMembersRecursive());
+  EXPECT(union_type.FirstPrimitiveMember().Equals(float_type));
+  EXPECT(union_type.ContainsHomogenuousFloats());
+
+  EXPECT(!union_type.ContainsUnalignedMembers());
+}
+
+UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_union_unaligned) {
+  const auto& uint8_type = *new (Z) NativePrimitiveType(kUint8);
+  const auto& uint32_type = *new (Z) NativePrimitiveType(kUint32);
+
+  auto& inner_members = *new (Z) NativeTypes(Z, 2);
+  inner_members.Add(&uint8_type);
+  inner_members.Add(&uint32_type);
+  const intptr_t packing = 1;
+  const auto& struct_type =
+      NativeStructType::FromNativeTypes(Z, inner_members, packing);
+
+  const auto& array_type = *new (Z) NativeArrayType(uint8_type, 5);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 2);
+  member_types.Add(&array_type);
+  member_types.Add(&struct_type);
+  const auto& union_type = NativeUnionType::FromNativeTypes(Z, member_types);
+
+  EXPECT_EQ(5, union_type.SizeInBytes());
+  EXPECT_EQ(1, union_type.AlignmentInBytesField());
+
+  EXPECT(union_type.ContainsUnalignedMembers());
 }
 
 }  // namespace ffi

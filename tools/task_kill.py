@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -105,8 +105,11 @@ def GetPidsPosix(process_name):
     # Sample output:
     # 1 /sbin/launchd
     # 80943 /Applications/Safari.app/Contents/MacOS/Safari
-    p = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         shell=True,
+                         universal_newlines=True)
     output, stderr = p.communicate()
     results = []
     lines = output.splitlines()
@@ -123,8 +126,11 @@ def GetPidsWindows(process_name):
     cmd = 'tasklist /FI "IMAGENAME eq %s" /NH' % process_name
     # Sample output:
     # dart.exe    4356 Console            1      6,800 K
-    p = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         shell=True,
+                         universal_newlines=True)
     output, stderr = p.communicate()
     results = []
     lines = output.splitlines()
@@ -146,44 +152,44 @@ def GetPids(process_name):
 def PrintPidStackInfo(pid):
     command_pattern = STACK_INFO_COMMAND.get(os_name, False)
     if command_pattern:
-        p = subprocess.Popen(
-            command_pattern % pid,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True)
+        p = subprocess.Popen(command_pattern % pid,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             shell=True,
+                             universal_newlines=True)
         stdout, stderr = p.communicate()
         stdout = stdout.splitlines()
         stderr = stderr.splitlines()
 
-        print "  Stack:"
+        print("  Stack:")
         for line in stdout:
-            print "    %s" % line
+            print("    %s" % line)
         if stderr:
-            print "  Stack (stderr):"
+            print("  Stack (stderr):")
             for line in stderr:
-                print "    %s" % line
+                print("    %s" % line)
 
 
 def PrintPidInfo(pid, dump_stacks):
     # We assume that the list command will return lines in the format:
     # EXECUTABLE_PATH ARGS
     # There may be blank strings in the output
-    p = subprocess.Popen(
-        INFO_COMMAND[os_name] % pid,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True)
+    p = subprocess.Popen(INFO_COMMAND[os_name] % pid,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         shell=True,
+                         universal_newlines=True)
     output, stderr = p.communicate()
     lines = output.splitlines()
 
     # Pop the header
     lines.pop(0)
 
-    print "Hanging process info:"
-    print "  PID: %s" % pid
+    print("Hanging process info:")
+    print("  PID: %s" % pid)
     for line in lines:
         # wmic will output a bunch of empty strings, we ignore these
-        if line: print "  Command line: %s" % line
+        if line: print("  Command line: %s" % line)
 
     if dump_stacks:
         PrintPidStackInfo(pid)
@@ -200,8 +206,11 @@ def KillPosix(pid):
 def KillWindows(pid):
     # os.kill is not available until python 2.7
     cmd = "taskkill /F /PID %s" % pid
-    p = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         shell=True,
+                         universal_newlines=True)
     p.communicate()
 
 

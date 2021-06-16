@@ -512,9 +512,7 @@ void ScopeBuilder::VisitConstructor() {
 void ScopeBuilder::VisitProcedure() {
   ProcedureHelper procedure_helper(&helper_);
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
-  if (helper_.ReadTag() == kSomething) {
-    VisitFunctionNode();
-  }
+  VisitFunctionNode();
 }
 
 void ScopeBuilder::VisitField() {
@@ -540,9 +538,7 @@ void ScopeBuilder::VisitFunctionNode() {
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
     VisitDartType();  // read ith bound.
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
-    if (helper_.ReadTag() == kSomething) {
-      VisitDartType();  // read ith default type.
-    }
+    VisitDartType();  // read ith default type.
     helper.Finish();
   }
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
@@ -697,6 +693,34 @@ void ScopeBuilder::VisitExpression() {
       // read interface_target_reference.
       helper_.SkipInterfaceMemberNameReference();
       return;
+    case kInstanceGet:
+      helper_.ReadByte();      // read kind.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipName();      // read name.
+      helper_.SkipDartType();  // read result_type.
+      // read interface_target_reference.
+      helper_.SkipInterfaceMemberNameReference();
+      return;
+    case kDynamicGet:
+      helper_.ReadByte();      // read kind.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipName();      // read name.
+      return;
+    case kInstanceTearOff:
+      helper_.ReadByte();      // read kind.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipName();      // read name.
+      helper_.SkipDartType();  // read result_type.
+      // read interface_target_reference.
+      helper_.SkipInterfaceMemberNameReference();
+      return;
+    case kFunctionTearOff:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      return;
     case kPropertySet:
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read receiver.
@@ -704,6 +728,22 @@ void ScopeBuilder::VisitExpression() {
       VisitExpression();       // read value.
       // read interface_target_reference.
       helper_.SkipInterfaceMemberNameReference();
+      return;
+    case kInstanceSet:
+      helper_.ReadByte();      // read kind.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipName();      // read name.
+      VisitExpression();       // read value.
+      // read interface_target_reference.
+      helper_.SkipInterfaceMemberNameReference();
+      return;
+    case kDynamicSet:
+      helper_.ReadByte();      // read kind.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipName();      // read name.
+      VisitExpression();       // read value.
       return;
     case kSuperPropertyGet:
       HandleLoadReceiver();
@@ -735,6 +775,53 @@ void ScopeBuilder::VisitExpression() {
       VisitArguments();        // read arguments.
       // read interface_target_reference.
       helper_.SkipInterfaceMemberNameReference();
+      return;
+    case kInstanceInvocation:
+      helper_.ReadByte();      // read kind.
+      helper_.ReadFlags();     // read flags.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipName();      // read name.
+      VisitArguments();        // read arguments.
+      helper_.SkipDartType();  // read function_type.
+      // read interface_target_reference.
+      helper_.SkipInterfaceMemberNameReference();
+      return;
+    case kDynamicInvocation:
+      helper_.ReadByte();      // read kind.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipName();      // read name.
+      VisitArguments();        // read arguments.
+      return;
+    case kLocalFunctionInvocation: {
+      helper_.ReadPosition();  // read position.
+      intptr_t variable_kernel_offset =
+          helper_.ReadUInt();  // read variable kernel position.
+      helper_.ReadUInt();      // read relative variable index.
+      VisitArguments();        // read arguments.
+      helper_.SkipDartType();  // read function_type.
+      VisitVariableGet(variable_kernel_offset);
+      return;
+    }
+    case kFunctionInvocation:
+      helper_.ReadByte();      // read kind.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      VisitArguments();        // read arguments.
+      helper_.SkipDartType();  // read function_type.
+      return;
+    case kEqualsCall:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read left.
+      VisitExpression();       // read right.
+      helper_.SkipDartType();  // read function_type.
+      // read interface_target_reference.
+      helper_.SkipInterfaceMemberNameReference();
+      return;
+    case kEqualsNull:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read expression.
       return;
     case kSuperMethodInvocation:
       HandleLoadReceiver();
@@ -918,15 +1005,13 @@ void ScopeBuilder::VisitExpression() {
     case kConstSetLiteral:
     case kConstMapLiteral:
     case kSymbolLiteral:
-      // Const invocations and const literals are removed by the
-      // constant evaluator.
     case kListConcatenation:
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
     case kFileUriExpression:
-      // Collection concatenation, instance creation operations and
-      // in-expression URI changes are internal to the front end and
+    case kStaticTearOff:
+      // These nodes are internal to the front end and
       // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
@@ -1359,9 +1444,7 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
       VisitDartType();  // read bound.
       helper.ReadUntilExcludingAndSetJustRead(
           TypeParameterHelper::kDefaultType);
-      if (helper_.ReadTag() == kSomething) {
-        VisitDartType();  // read default type.
-      }
+      VisitDartType();  // read default type.
       helper.Finish();
     }
     helper_.ReadUInt();  // read required parameter count.

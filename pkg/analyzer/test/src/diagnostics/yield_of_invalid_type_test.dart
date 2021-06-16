@@ -107,6 +107,17 @@ f() async* {
 ''');
   }
 
+  test_none_asyncStar_null_to_streamInt() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 33, 4),
+    ], legacy: []);
+    await assertErrorsInCode('''
+Stream<int> f() async* {
+  yield null;
+}
+''', errors);
+  }
+
   test_none_syncStar_dynamic_to_iterableInt() async {
     await assertErrorsInCode(
         '''

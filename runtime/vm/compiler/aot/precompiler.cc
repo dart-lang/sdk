@@ -27,6 +27,7 @@
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
@@ -60,6 +61,10 @@ namespace dart {
 #define IG (isolate_group())
 #define Z (zone())
 
+DEFINE_FLAG(bool,
+            print_precompiler_timings,
+            false,
+            "Print per-phase breakdown of time spent precompiling");
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
 DEFINE_FLAG(bool, print_gop, false, "Print global object pool");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
@@ -255,7 +260,7 @@ class RetainedReasonsWriter : public ValueObject {
 
     static Value ValueOf(Pair kv) { return kv.value; }
 
-    static inline intptr_t Hashcode(Key key) {
+    static inline uword Hash(Key key) {
       if (key->IsFunction()) {
         return Function::Cast(*key).Hash();
       }
@@ -331,10 +336,19 @@ ErrorPtr Precompiler::CompileAll() {
   if (setjmp(*jump.Set()) == 0) {
     Precompiler precompiler(Thread::Current());
     precompiler.DoCompileAll();
+    precompiler.ReportStats();
     return Error::null();
   } else {
     return Thread::Current()->StealStickyError();
   }
+}
+
+void Precompiler::ReportStats() {
+  if (!FLAG_print_precompiler_timings) {
+    return;
+  }
+
+  thread()->compiler_timings()->Print();
 }
 
 Precompiler::Precompiler(Thread* thread)
@@ -359,8 +373,6 @@ Precompiler::Precompiler(Thread* thread)
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       sent_selectors_(),
-      entry_point_functions_(
-          HashTables::New<FunctionSet>(/*initial_capacity=*/128)),
       functions_called_dynamically_(
           HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       seen_functions_(HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
@@ -380,11 +392,14 @@ Precompiler::Precompiler(Thread* thread)
       get_runtime_type_is_unique_(false) {
   ASSERT(Precompiler::singleton_ == NULL);
   Precompiler::singleton_ = this;
+
+  if (FLAG_print_precompiler_timings) {
+    thread->set_compiler_timings(new CompilerTimings());
+  }
 }
 
 Precompiler::~Precompiler() {
   // We have to call Release() in DEBUG mode.
-  entry_point_functions_.Release();
   functions_called_dynamically_.Release();
   seen_functions_.Release();
   possibly_retained_functions_.Release();
@@ -392,9 +407,13 @@ Precompiler::~Precompiler() {
 
   ASSERT(Precompiler::singleton_ == this);
   Precompiler::singleton_ = NULL;
+
+  delete thread()->compiler_timings();
+  thread()->set_compiler_timings(nullptr);
 }
 
 void Precompiler::DoCompileAll() {
+  PRECOMPILER_TIMER_SCOPE(this, CompileAll);
   {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
@@ -533,44 +552,56 @@ void Precompiler::DoCompileAll() {
         tracer_ = nullptr;
       }
 
-      TraceForRetainedFunctions();
+      {
+        PRECOMPILER_TIMER_SCOPE(this, TraceForRetainedFunctions);
+        TraceForRetainedFunctions();
+      }
+
       FinalizeDispatchTable();
       ReplaceFunctionStaticCallEntries();
 
-      DropFunctions();
-      DropFields();
-      TraceTypesFromRetainedClasses();
-      DropTypes();
-      DropFunctionTypes();
-      DropTypeParameters();
-      DropTypeArguments();
+      {
+        PRECOMPILER_TIMER_SCOPE(this, Drop);
 
-      // Clear these before dropping classes as they may hold onto otherwise
-      // dead instances of classes we will remove or otherwise unused symbols.
-      IG->object_store()->set_unique_dynamic_targets(Array::null_array());
-      Class& null_class = Class::Handle(Z);
-      Function& null_function = Function::Handle(Z);
-      Field& null_field = Field::Handle(Z);
-      IG->object_store()->set_pragma_class(null_class);
-      IG->object_store()->set_pragma_name(null_field);
-      IG->object_store()->set_pragma_options(null_field);
-      IG->object_store()->set_completer_class(null_class);
-      IG->object_store()->set_symbol_class(null_class);
-      IG->object_store()->set_compiletime_error_class(null_class);
-      IG->object_store()->set_growable_list_factory(null_function);
-      IG->object_store()->set_simple_instance_of_function(null_function);
-      IG->object_store()->set_simple_instance_of_true_function(null_function);
-      IG->object_store()->set_simple_instance_of_false_function(null_function);
-      IG->object_store()->set_async_star_move_next_helper(null_function);
-      IG->object_store()->set_complete_on_async_return(null_function);
-      IG->object_store()->set_async_star_stream_controller(null_class);
-      DropMetadata();
-      DropLibraryEntries();
+        DropFunctions();
+        DropFields();
+        TraceTypesFromRetainedClasses();
+
+        // Clear these before dropping classes as they may hold onto otherwise
+        // dead instances of classes we will remove or otherwise unused symbols.
+        IG->object_store()->set_unique_dynamic_targets(Array::null_array());
+        Class& null_class = Class::Handle(Z);
+        Function& null_function = Function::Handle(Z);
+        Field& null_field = Field::Handle(Z);
+        IG->object_store()->set_pragma_class(null_class);
+        IG->object_store()->set_pragma_name(null_field);
+        IG->object_store()->set_pragma_options(null_field);
+        IG->object_store()->set_completer_class(null_class);
+        IG->object_store()->set_symbol_class(null_class);
+        IG->object_store()->set_compiletime_error_class(null_class);
+        IG->object_store()->set_growable_list_factory(null_function);
+        IG->object_store()->set_simple_instance_of_function(null_function);
+        IG->object_store()->set_simple_instance_of_true_function(null_function);
+        IG->object_store()->set_simple_instance_of_false_function(
+            null_function);
+        IG->object_store()->set_async_star_move_next_helper(null_function);
+        IG->object_store()->set_complete_on_async_return(null_function);
+        IG->object_store()->set_async_star_stream_controller(null_class);
+        DropMetadata();
+        DropLibraryEntries();
+      }
     }
-    DropClasses();
-    DropLibraries();
 
-    Obfuscate();
+    {
+      PRECOMPILER_TIMER_SCOPE(this, Drop);
+      DropClasses();
+      DropLibraries();
+    }
+
+    {
+      PRECOMPILER_TIMER_SCOPE(this, Obfuscate);
+      Obfuscate();
+    }
 
 #if defined(DEBUG)
     const auto& non_visited =
@@ -581,7 +612,11 @@ void Precompiler::DoCompileAll() {
     }
 #endif
     DiscardCodeObjects();
-    ProgramVisitor::Dedup(T);
+
+    {
+      PRECOMPILER_TIMER_SCOPE(this, Dedup);
+      ProgramVisitor::Dedup(T);
+    }
 
     if (FLAG_write_retained_reasons_to != nullptr) {
       reasons_writer.Write();
@@ -617,6 +652,7 @@ void Precompiler::DoCompileAll() {
 }
 
 void Precompiler::PrecompileConstructors() {
+  PRECOMPILER_TIMER_SCOPE(this, PrecompileConstructors);
   class ConstructorVisitor : public FunctionVisitor {
    public:
     explicit ConstructorVisitor(Precompiler* precompiler, Zone* zone)
@@ -686,6 +722,8 @@ void Precompiler::AddRoots() {
 }
 
 void Precompiler::Iterate() {
+  PRECOMPILER_TIMER_SCOPE(this, Iterate);
+
   Function& function = Function::Handle(Z);
 
   phase_ = Phase::kFixpointCodeGeneration;
@@ -795,6 +833,7 @@ void Precompiler::ProcessFunction(const Function& function) {
   if (!error_.IsNull()) {
     Jump(error_);
   }
+
   // Used in the JIT to save type-feedback across compilations.
   function.ClearICDataArray();
   AddCalleesOf(function, gop_offset);
@@ -965,7 +1004,7 @@ void Precompiler::AddTypesOf(const Class& cls) {
     AddType(type);
   }
 
-  AddTypeArguments(TypeArguments::Handle(Z, cls.type_parameters()));
+  AddTypeParameters(TypeParameters::Handle(Z, cls.type_parameters()));
 
   type = cls.super_type();
   AddType(type);
@@ -993,15 +1032,6 @@ void Precompiler::AddTypesOf(const Function& function) {
 
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   AddType(signature);
-
-  // At this point, ensure any cached default type arguments are canonicalized.
-  function.UpdateCachedDefaultTypeArguments(thread());
-  if (function.CachesDefaultTypeArguments()) {
-    const auto& defaults = TypeArguments::Handle(
-        Z, function.default_type_arguments(/*kind_out=*/nullptr));
-    ASSERT(defaults.IsCanonical());
-    AddTypeArguments(defaults);
-  }
 
   // A class may have all functions inlined except a local function.
   const Class& owner = Class::Handle(Z, function.Owner());
@@ -1057,10 +1087,8 @@ void Precompiler::AddType(const AbstractType& abstype) {
     if (typeparams_to_retain_.HasKey(&param)) return;
     typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.ptr()));
 
-    auto& type = AbstractType::Handle(Z, param.bound());
-    AddType(type);
-    type = param.default_argument();
-    AddType(type);
+    auto& bound = AbstractType::Handle(Z, param.bound());
+    AddType(bound);
     return;
   }
 
@@ -1070,7 +1098,7 @@ void Precompiler::AddType(const AbstractType& abstype) {
         FunctionType::ZoneHandle(Z, FunctionType::Cast(abstype).ptr());
     functiontypes_to_retain_.Insert(&signature);
 
-    AddTypeArguments(TypeArguments::Handle(Z, signature.type_parameters()));
+    AddTypeParameters(TypeParameters::Handle(Z, signature.type_parameters()));
 
     AbstractType& type = AbstractType::Handle(Z);
     type = signature.result_type();
@@ -1096,6 +1124,16 @@ void Precompiler::AddType(const AbstractType& abstype) {
     type = TypeRef::Cast(abstype).type();
     AddType(type);
   }
+}
+
+void Precompiler::AddTypeParameters(const TypeParameters& params) {
+  if (params.IsNull()) return;
+
+  TypeArguments& args = TypeArguments::Handle();
+  args = params.bounds();
+  AddTypeArguments(args);
+  args = params.defaults();
+  AddTypeArguments(args);
 }
 
 void Precompiler::AddTypeArguments(const TypeArguments& args) {
@@ -1464,7 +1502,6 @@ void Precompiler::AddAnnotatedRoots() {
           if (type == EntryPointPragma::kAlways ||
               type == EntryPointPragma::kCallOnly) {
             AddFunction(function, RetainReasons::kEntryPointPragma);
-            entry_point_functions_.Insert(function);
           }
 
           if ((type == EntryPointPragma::kAlways ||
@@ -1473,12 +1510,10 @@ void Precompiler::AddAnnotatedRoots() {
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2, RetainReasons::kEntryPointPragma);
-            entry_point_functions_.Insert(function2);
           }
 
           if (function.IsGenerativeConstructor()) {
             AddInstantiatedClass(cls);
-            entry_point_functions_.Insert(function);
           }
         }
         if (function.kind() == UntaggedFunction::kImplicitGetter &&
@@ -1487,7 +1522,6 @@ void Precompiler::AddAnnotatedRoots() {
             field ^= implicit_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
               AddFunction(function, RetainReasons::kImplicitGetter);
-              entry_point_functions_.Insert(function);
             }
           }
         }
@@ -1497,7 +1531,6 @@ void Precompiler::AddAnnotatedRoots() {
             field ^= implicit_setters.At(i);
             if (function.accessor_field() == field.ptr()) {
               AddFunction(function, RetainReasons::kImplicitSetter);
-              entry_point_functions_.Insert(function);
             }
           }
         }
@@ -1507,7 +1540,6 @@ void Precompiler::AddAnnotatedRoots() {
             field ^= implicit_static_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
               AddFunction(function, RetainReasons::kImplicitStaticGetter);
-              entry_point_functions_.Insert(function);
             }
           }
         }
@@ -1581,6 +1613,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
                 Function::CreateDynamicInvocationForwarderName(selector);
             function2 = function.GetDynamicInvocationForwarder(selector2);
             AddFunction(function2, RetainReasons::kDynamicInvocationForwarder);
+            functions_called_dynamically_.Insert(function2);
           }
         } else if (function.kind() == UntaggedFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
@@ -1630,12 +1663,14 @@ void Precompiler::CheckForNewDynamicFunctions() {
                 function2 = function.GetDynamicInvocationForwarder(selector2);
                 AddFunction(function2,
                             RetainReasons::kDynamicInvocationForwarder);
+                functions_called_dynamically_.Insert(function2);
               }
             } else {
               if (metadata.method_or_setter_called_dynamically) {
                 function2 = function.GetDynamicInvocationForwarder(selector2);
                 AddFunction(function2,
                             RetainReasons::kDynamicInvocationForwarder);
+                functions_called_dynamically_.Insert(function2);
               }
             }
           }
@@ -1815,6 +1850,7 @@ void Precompiler::TraceForRetainedFunctions() {
       cls = it.GetNextClass();
       functions = cls.current_functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
+        SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
         function ^= functions.At(j);
         bool retain = possibly_retained_functions_.ContainsKey(function);
         if (!retain && function.HasImplicitClosureFunction()) {
@@ -1892,6 +1928,7 @@ void Precompiler::TraceForRetainedFunctions() {
 }
 
 void Precompiler::FinalizeDispatchTable() {
+  PRECOMPILER_TIMER_SCOPE(this, FinalizeDispatchTable);
   if (!FLAG_use_bare_instructions || !FLAG_use_table_dispatch) return;
   // Build the entries used to serialize the dispatch table before
   // dropping functions, as we may clear references to Code objects.
@@ -1924,6 +1961,7 @@ void Precompiler::FinalizeDispatchTable() {
 }
 
 void Precompiler::ReplaceFunctionStaticCallEntries() {
+  PRECOMPILER_TIMER_SCOPE(this, ReplaceFunctionStaticCallEntries);
   class StaticCallTableEntryFixer : public CodeVisitor {
    public:
     explicit StaticCallTableEntryFixer(Zone* zone)
@@ -2168,6 +2206,7 @@ void Precompiler::DropFields() {
 }
 
 void Precompiler::AttachOptimizedTypeTestingStub() {
+  PRECOMPILER_TIMER_SCOPE(this, AttachOptimizedTypeTestingStub);
   IsolateGroup::Current()->heap()->CollectAllGarbage();
   GrowableHandlePtrArray<const AbstractType> types(Z, 200);
   {
@@ -2232,163 +2271,6 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
          StubCode::TopTypeTypeTest().EntryPoint());
 }
 
-void Precompiler::DropTypes() {
-  ObjectStore* object_store = IG->object_store();
-  GrowableObjectArray& retained_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Array& types_array = Array::Handle(Z);
-  Type& type = Type::Handle(Z);
-  // First drop all the types that are not referenced.
-  {
-    CanonicalTypeSet types_table(Z, object_store->canonical_types());
-    types_array = HashTables::ToArray(types_table, false);
-    for (intptr_t i = 0; i < types_array.Length(); i++) {
-      type ^= types_array.At(i);
-      bool retain = types_to_retain_.HasKey(&type);
-      if (retain) {
-        retained_types.Add(type);
-      } else {
-        type.ClearCanonical();
-        dropped_type_count_++;
-      }
-    }
-    types_table.Release();
-  }
-
-  // Now construct a new type table and save in the object store.
-  const intptr_t dict_size =
-      Utils::RoundUpToPowerOfTwo(retained_types.Length() * 4 / 3);
-  types_array = HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld);
-  CanonicalTypeSet types_table(Z, types_array.ptr());
-  bool present;
-  for (intptr_t i = 0; i < retained_types.Length(); i++) {
-    type ^= retained_types.At(i);
-    present = types_table.Insert(type);
-    ASSERT(!present);
-  }
-  object_store->set_canonical_types(types_table.Release());
-}
-
-void Precompiler::DropFunctionTypes() {
-  ObjectStore* object_store = IG->object_store();
-  GrowableObjectArray& retained_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Array& types_array = Array::Handle(Z);
-  FunctionType& type = FunctionType::Handle(Z);
-  // First drop all the function types that are not referenced.
-  {
-    CanonicalFunctionTypeSet types_table(
-        Z, object_store->canonical_function_types());
-    types_array = HashTables::ToArray(types_table, false);
-    for (intptr_t i = 0; i < types_array.Length(); i++) {
-      type ^= types_array.At(i);
-      bool retain = functiontypes_to_retain_.HasKey(&type);
-      if (retain) {
-        retained_types.Add(type);
-      } else {
-        type.ClearCanonical();
-        dropped_functiontype_count_++;
-      }
-    }
-    types_table.Release();
-  }
-
-  // Now construct a new function type table and save in the object store.
-  const intptr_t dict_size =
-      Utils::RoundUpToPowerOfTwo(retained_types.Length() * 4 / 3);
-  types_array =
-      HashTables::New<CanonicalFunctionTypeSet>(dict_size, Heap::kOld);
-  CanonicalFunctionTypeSet types_table(Z, types_array.ptr());
-  bool present;
-  for (intptr_t i = 0; i < retained_types.Length(); i++) {
-    type ^= retained_types.At(i);
-    present = types_table.Insert(type);
-    ASSERT(!present);
-  }
-  object_store->set_canonical_function_types(types_table.Release());
-}
-
-void Precompiler::DropTypeParameters() {
-  ObjectStore* object_store = IG->object_store();
-  GrowableObjectArray& retained_typeparams =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Array& typeparams_array = Array::Handle(Z);
-  TypeParameter& typeparam = TypeParameter::Handle(Z);
-  // First drop all the type parameters that are not referenced.
-  // Note that we only visit 'free-floating' type parameters and not
-  // declarations of type parameters contained in the 'type_parameters'
-  // array in generic classes and functions.
-  {
-    CanonicalTypeParameterSet typeparams_table(
-        Z, object_store->canonical_type_parameters());
-    typeparams_array = HashTables::ToArray(typeparams_table, false);
-    for (intptr_t i = 0; i < typeparams_array.Length(); i++) {
-      typeparam ^= typeparams_array.At(i);
-      bool retain = typeparams_to_retain_.HasKey(&typeparam);
-      if (retain) {
-        retained_typeparams.Add(typeparam);
-      } else {
-        typeparam.ClearCanonical();
-        dropped_typeparam_count_++;
-      }
-    }
-    typeparams_table.Release();
-  }
-
-  // Now construct a new type parameter table and save in the object store.
-  const intptr_t dict_size =
-      Utils::RoundUpToPowerOfTwo(retained_typeparams.Length() * 4 / 3);
-  typeparams_array =
-      HashTables::New<CanonicalTypeParameterSet>(dict_size, Heap::kOld);
-  CanonicalTypeParameterSet typeparams_table(Z, typeparams_array.ptr());
-  bool present;
-  for (intptr_t i = 0; i < retained_typeparams.Length(); i++) {
-    typeparam ^= retained_typeparams.At(i);
-    present = typeparams_table.Insert(typeparam);
-    ASSERT(!present);
-  }
-  object_store->set_canonical_type_parameters(typeparams_table.Release());
-}
-
-void Precompiler::DropTypeArguments() {
-  ObjectStore* object_store = IG->object_store();
-  Array& typeargs_array = Array::Handle(Z);
-  GrowableObjectArray& retained_typeargs =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  TypeArguments& typeargs = TypeArguments::Handle(Z);
-  // First drop all the type arguments that are not referenced.
-  {
-    CanonicalTypeArgumentsSet typeargs_table(
-        Z, object_store->canonical_type_arguments());
-    typeargs_array = HashTables::ToArray(typeargs_table, false);
-    for (intptr_t i = 0; i < typeargs_array.Length(); i++) {
-      typeargs ^= typeargs_array.At(i);
-      bool retain = typeargs_to_retain_.HasKey(&typeargs);
-      if (retain) {
-        retained_typeargs.Add(typeargs);
-      } else {
-        typeargs.ClearCanonical();
-        dropped_typearg_count_++;
-      }
-    }
-    typeargs_table.Release();
-  }
-
-  // Now construct a new type arguments table and save in the object store.
-  const intptr_t dict_size =
-      Utils::RoundUpToPowerOfTwo(retained_typeargs.Length() * 4 / 3);
-  typeargs_array =
-      HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld);
-  CanonicalTypeArgumentsSet typeargs_table(Z, typeargs_array.ptr());
-  bool present;
-  for (intptr_t i = 0; i < retained_typeargs.Length(); i++) {
-    typeargs ^= retained_typeargs.At(i);
-    present = typeargs_table.Insert(typeargs);
-    ASSERT(!present);
-  }
-  object_store->set_canonical_type_arguments(typeargs_table.Release());
-}
-
 void Precompiler::TraceTypesFromRetainedClasses() {
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(Z);
@@ -2403,10 +2285,6 @@ void Precompiler::TraceTypesFromRetainedClasses() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-
-      // The subclasses/implementors array is only needed for CHA.
-      cls.ClearDirectSubclasses();
-      cls.ClearDirectImplementors();
 
       bool retain = false;
       members = cls.fields();
@@ -2488,12 +2366,6 @@ void Precompiler::DropLibraryEntries() {
   Array& dict = Array::Handle(Z);
   Object& entry = Object::Handle(Z);
 
-  Array& scripts = Array::Handle(Z);
-  Script& script = Script::Handle(Z);
-  KernelProgramInfo& program_info = KernelProgramInfo::Handle(Z);
-  const TypedData& null_typed_data = TypedData::Handle(Z);
-  const KernelProgramInfo& null_info = KernelProgramInfo::Handle(Z);
-
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
 
@@ -2527,26 +2399,6 @@ void Precompiler::DropLibraryEntries() {
       dict.SetAt(j, Object::null_object());
     }
 
-    scripts = lib.LoadedScripts();
-    if (!scripts.IsNull()) {
-      for (intptr_t i = 0; i < scripts.Length(); ++i) {
-        script = Script::RawCast(scripts.At(i));
-        program_info = script.kernel_program_info();
-        if (!program_info.IsNull()) {
-          program_info.set_constants(Array::null_array());
-          program_info.set_scripts(Array::null_array());
-          program_info.set_libraries_cache(Array::null_array());
-          program_info.set_classes_cache(Array::null_array());
-        }
-        script.set_resolved_url(String::null_string());
-        script.set_compile_time_constants(Array::null_array());
-        script.set_line_starts(null_typed_data);
-        script.set_debug_positions(Array::null_array());
-        script.set_kernel_program_info(null_info);
-        script.set_source(String::null_string());
-      }
-    }
-
     lib.RehashDictionary(dict, used * 4 / 3 + 1);
     if (!(retain_root_library_caches_ &&
           (lib.ptr() == IG->object_store()->root_library()))) {
@@ -2558,6 +2410,12 @@ void Precompiler::DropLibraryEntries() {
 void Precompiler::DropClasses() {
   Class& cls = Class::Handle(Z);
   Array& constants = Array::Handle(Z);
+  GrowableObjectArray& implementors = GrowableObjectArray::Handle(Z);
+  GrowableObjectArray& retained_implementors = GrowableObjectArray::Handle(Z);
+  Class& implementor = Class::Handle(Z);
+  GrowableObjectArray& subclasses = GrowableObjectArray::Handle(Z);
+  GrowableObjectArray& retained_subclasses = GrowableObjectArray::Handle(Z);
+  Class& subclass = Class::Handle(Z);
 
   // We are about to remove classes from the class table. For this to be safe,
   // there must be no instances of these classes on the heap, not even
@@ -2567,6 +2425,7 @@ void Precompiler::DropClasses() {
   IG->heap()->CollectAllGarbage();
   IG->heap()->WaitForSweeperTasks(T);
 
+  SafepointWriteRwLocker ml(T, IG->program_lock());
   ClassTable* class_table = IG->class_table();
   intptr_t num_cids = class_table->NumCids();
 
@@ -2584,6 +2443,30 @@ void Precompiler::DropClasses() {
 
     cls = class_table->At(cid);
     ASSERT(!cls.IsNull());
+
+    implementors = cls.direct_implementors();
+    if (!implementors.IsNull()) {
+      retained_implementors = GrowableObjectArray::New();
+      for (intptr_t i = 0; i < implementors.Length(); i++) {
+        implementor ^= implementors.At(i);
+        if (classes_to_retain_.HasKey(&implementor)) {
+          retained_implementors.Add(implementor);
+        }
+      }
+      cls.set_direct_implementors(retained_implementors);
+    }
+
+    subclasses = cls.direct_subclasses();
+    if (!subclasses.IsNull()) {
+      retained_subclasses = GrowableObjectArray::New();
+      for (intptr_t i = 0; i < subclasses.Length(); i++) {
+        subclass ^= subclasses.At(i);
+        if (classes_to_retain_.HasKey(&subclass)) {
+          retained_subclasses.Add(subclass);
+        }
+      }
+      cls.set_direct_subclasses(retained_subclasses);
+    }
 
     if (cls.IsTopLevel()) {
       // Top-level classes are referenced directly from their library. They
@@ -2669,24 +2552,55 @@ void Precompiler::DropLibraries() {
 
 // Traverse program structure and mark Code objects
 // which do not have useful information as discarded.
+// Should be called after Precompiler::ReplaceFunctionStaticCallEntries().
+// Should be called before ProgramVisitor::Dedup() as Dedup may clear
+// static calls target table.
 void Precompiler::DiscardCodeObjects() {
   class DiscardCodeVisitor : public CodeVisitor {
    public:
     DiscardCodeVisitor(Zone* zone,
                        const FunctionSet& functions_to_retain,
-                       const FunctionSet& entry_point_functions,
                        const FunctionSet& functions_called_dynamically)
         : zone_(zone),
           function_(Function::Handle(zone)),
+          class_(Class::Handle(zone)),
+          library_(Library::Handle(zone)),
+          loading_unit_(LoadingUnit::Handle(zone)),
+          static_calls_target_table_(Array::Handle(zone)),
+          kind_and_offset_(Smi::Handle(zone)),
+          call_target_(Code::Handle(zone)),
+          targets_of_calls_via_code_(
+              GrowableObjectArray::Handle(zone, GrowableObjectArray::New())),
           functions_to_retain_(functions_to_retain),
-          entry_point_functions_(entry_point_functions),
           functions_called_dynamically_(functions_called_dynamically) {}
+
+    // Certain static calls (e.g. between different loading units) are
+    // performed through Code objects indirectly. Such Code objects
+    // cannot be fully discarded.
+    void RecordCodeObjectsUsedForCalls(const Code& code) {
+      static_calls_target_table_ = code.static_calls_target_table();
+      if (static_calls_target_table_.IsNull()) return;
+
+      StaticCallsTable static_calls(static_calls_target_table_);
+      for (const auto& view : static_calls) {
+        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
+        auto const kind = Code::KindField::decode(kind_and_offset_.Value());
+        if (kind == Code::kCallViaCode) {
+          call_target_ =
+              Code::RawCast(view.Get<Code::kSCallTableCodeOrTypeTarget>());
+          ASSERT(!call_target_.IsNull());
+          targets_of_calls_via_code_.Add(call_target_);
+        }
+      }
+    }
 
     void VisitCode(const Code& code) override {
       ++total_code_objects_;
 
+      RecordCodeObjectsUsedForCalls(code);
+
       // Only discard Code objects corresponding to Dart functions.
-      if (!code.IsFunctionCode()) {
+      if (!code.IsFunctionCode() || code.IsUnknownDartCode()) {
         ++non_function_codes_;
         return;
       }
@@ -2705,25 +2619,14 @@ void Precompiler::DiscardCodeObjects() {
       function_ = code.function();
       if (functions_to_retain_.ContainsKey(function_)) {
         // Retain Code objects corresponding to:
-        // * invisible functions (to filter them from stack traces);
         // * async/async* closures (to construct async stacks).
         // * native functions (to find native implementation).
-        if (!function_.is_visible()) {
-          ++codes_with_invisible_function_;
-          return;
-        }
         if (function_.is_native()) {
           ++codes_with_native_function_;
           return;
         }
         if (function_.IsAsyncClosure() || function_.IsAsyncGenClosure()) {
           ++codes_with_async_closure_function_;
-          return;
-        }
-
-        // Retain Code objects for entry points.
-        if (entry_point_functions_.ContainsKey(function_)) {
-          ++codes_with_entry_point_function_;
           return;
         }
 
@@ -2734,12 +2637,40 @@ void Precompiler::DiscardCodeObjects() {
           return;
         }
       } else {
-        ASSERT(!entry_point_functions_.ContainsKey(function_));
         ASSERT(!functions_called_dynamically_.ContainsKey(function_));
+      }
+
+      // Retain Code objects in the non-root loading unit as
+      // they are allocated while loading root unit but filled
+      // while loading another unit.
+      class_ = function_.Owner();
+      library_ = class_.library();
+      loading_unit_ = library_.loading_unit();
+      if (loading_unit_.id() != LoadingUnit::kRootId) {
+        ++codes_with_deferred_function_;
+        return;
+      }
+
+      // Retain Code objects corresponding to FFI trampolines.
+      if (function_.IsFfiTrampoline()) {
+        ++codes_with_ffi_trampoline_function_;
+        return;
       }
 
       code.set_is_discarded(true);
       ++discarded_codes_;
+    }
+
+    void RetainCodeObjectsUsedAsCallTargets() {
+      for (intptr_t i = 0, n = targets_of_calls_via_code_.Length(); i < n;
+           ++i) {
+        call_target_ = Code::RawCast(targets_of_calls_via_code_.At(i));
+        if (call_target_.is_discarded()) {
+          call_target_.set_is_discarded(false);
+          ++codes_used_as_call_targets_;
+          --discarded_codes_;
+        }
+      }
     }
 
     void PrintStatistics() const {
@@ -2749,16 +2680,18 @@ void Precompiler::DiscardCodeObjects() {
                 codes_with_exception_handlers_);
       THR_Print("    %8" Pd " Codes with pc descriptors\n",
                 codes_with_pc_descriptors_);
-      THR_Print("    %8" Pd " Codes with invisible functions\n",
-                codes_with_invisible_function_);
       THR_Print("    %8" Pd " Codes with native functions\n",
                 codes_with_native_function_);
       THR_Print("    %8" Pd " Codes with async closure functions\n",
                 codes_with_async_closure_function_);
       THR_Print("    %8" Pd " Codes with dynamically called functions\n",
                 codes_with_dynamically_called_function_);
-      THR_Print("    %8" Pd " Codes with entry point functions\n",
-                codes_with_entry_point_function_);
+      THR_Print("    %8" Pd " Codes with deferred functions\n",
+                codes_with_deferred_function_);
+      THR_Print("    %8" Pd " Codes with ffi trampoline functions\n",
+                codes_with_ffi_trampoline_function_);
+      THR_Print("    %8" Pd " Codes used as call targets\n",
+                codes_used_as_call_targets_);
       THR_Print("    %8" Pd " Codes discarded\n", discarded_codes_);
       THR_Print("    %8" Pd " Codes total\n", total_code_objects_);
     }
@@ -2766,8 +2699,14 @@ void Precompiler::DiscardCodeObjects() {
    private:
     Zone* zone_;
     Function& function_;
+    Class& class_;
+    Library& library_;
+    LoadingUnit& loading_unit_;
+    Array& static_calls_target_table_;
+    Smi& kind_and_offset_;
+    Code& call_target_;
+    GrowableObjectArray& targets_of_calls_via_code_;
     const FunctionSet& functions_to_retain_;
-    const FunctionSet& entry_point_functions_;
     const FunctionSet& functions_called_dynamically_;
 
     // Statistics
@@ -2775,11 +2714,12 @@ void Precompiler::DiscardCodeObjects() {
     intptr_t non_function_codes_ = 0;
     intptr_t codes_with_exception_handlers_ = 0;
     intptr_t codes_with_pc_descriptors_ = 0;
-    intptr_t codes_with_invisible_function_ = 0;
     intptr_t codes_with_native_function_ = 0;
     intptr_t codes_with_async_closure_function_ = 0;
     intptr_t codes_with_dynamically_called_function_ = 0;
-    intptr_t codes_with_entry_point_function_ = 0;
+    intptr_t codes_with_deferred_function_ = 0;
+    intptr_t codes_with_ffi_trampoline_function_ = 0;
+    intptr_t codes_used_as_call_targets_ = 0;
     intptr_t discarded_codes_ = 0;
   };
 
@@ -2791,9 +2731,10 @@ void Precompiler::DiscardCodeObjects() {
     return;
   }
 
-  DiscardCodeVisitor visitor(Z, functions_to_retain_, entry_point_functions_,
+  DiscardCodeVisitor visitor(Z, functions_to_retain_,
                              functions_called_dynamically_);
   ProgramVisitor::WalkProgram(Z, IG, &visitor);
+  visitor.RetainCodeObjectsUsedAsCallTargets();
 
   if (FLAG_trace_precompiler) {
     visitor.PrintStatistics();
@@ -3030,6 +2971,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
 
         TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
+        COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
         flow_graph =
             pipeline->BuildFlowGraph(zone, parsed_function(), ic_data_array,
                                      Compiler::kNoOSRDeoptId, optimized());
@@ -3116,10 +3058,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array, function_stats);
       {
+        COMPILER_TIMINGS_TIMER_SCOPE(thread(), EmitCode);
         TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
       }
       {
+        COMPILER_TIMINGS_TIMER_SCOPE(thread(), FinalizeCode);
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
         ASSERT(thread()->IsMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
@@ -3229,7 +3173,7 @@ static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
         FLAG_trace_compiler || (FLAG_trace_optimizing_compiler && optimized);
-    Timer per_compile_timer(trace_compiler, "Compilation time");
+    Timer per_compile_timer;
     per_compile_timer.Start();
 
     ParsedFunction* parsed_function = new (zone)
@@ -3293,6 +3237,7 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
                                       Thread* thread,
                                       Zone* zone,
                                       const Function& function) {
+  PRECOMPILER_TIMER_SCOPE(precompiler, CompileFunction);
   NoActiveIsolateScope no_isolate_scope;
 
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);

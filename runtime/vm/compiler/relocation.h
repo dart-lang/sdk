@@ -117,8 +117,8 @@ class InstructionsMapTraits {
 
   static Key KeyOf(Pair kv) { return kv.instructions; }
   static ValueType ValueOf(Pair kv) { return kv.value; }
-  static inline intptr_t Hashcode(Key key) {
-    return static_cast<intptr_t>(key);
+  static inline uword Hash(Key key) {
+    return Utils::WordHash(static_cast<intptr_t>(key));
   }
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair.instructions == key;
@@ -183,7 +183,9 @@ class CodeRelocator : public StackResource {
                                 intptr_t destination_text);
   void ResolveTrampoline(UnresolvedTrampoline* unresolved_trampoline);
 
-  void BuildTrampolinesForAlmostOutOfRangeCalls(bool force);
+  void BuildTrampolinesForAlmostOutOfRangeCalls(
+      const Code& next_caller,
+      const Array& next_caller_targets);
 
   intptr_t FindDestinationInText(const InstructionsPtr destination,
                                  intptr_t offset_into_target);

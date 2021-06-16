@@ -35,9 +35,9 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
   late String bazelRoot;
   late String tmpPath;
   late String workspacePath;
-  late String bazelOutPath;
-  late String bazelBinPath;
-  late String bazelGenfilesPath;
+  late String bazelOrBlazeOutPath;
+  late String bazelOrBlazeBinPath;
+  late String bazelOrBlazeGenfilesPath;
   late Directory oldSourceDirectory;
 
   String inTmpDir(String relative) =>
@@ -61,21 +61,19 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
     sourceDirectory = Directory(inWorkspace('third_party/dart/project'));
     sourceDirectory.createSync(recursive: true);
 
-    bazelRoot = inTmpDir('bazel_root');
+    bazelRoot = inTmpDir('bazel_or_blaze_root');
     Directory(bazelRoot).createSync(recursive: true);
 
-    bazelOutPath = '$bazelRoot/execroot/bazel_workspace/bazel-out';
-    bazelBinPath = '$bazelRoot/execroot/bazel_workspace/bazel-out/bin';
-    bazelGenfilesPath =
-        '$bazelRoot/execroot/bazel_workspace/bazel-out/genfiles';
+    bazelOrBlazeOutPath =
+        '$bazelRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out';
+    bazelOrBlazeBinPath =
+        '$bazelRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out/bin';
+    bazelOrBlazeGenfilesPath =
+        '$bazelRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out/genfiles';
 
-    Directory(inTmpDir(bazelOutPath)).createSync(recursive: true);
-    Directory(inTmpDir(bazelBinPath)).createSync(recursive: true);
-    Directory(inTmpDir(bazelGenfilesPath)).createSync(recursive: true);
-
-    Link(inWorkspace('bazel-out')).createSync(bazelOutPath);
-    Link(inWorkspace('bazel-bin')).createSync(bazelBinPath);
-    Link(inWorkspace('bazel-genfiles')).createSync(bazelGenfilesPath);
+    Directory(inTmpDir(bazelOrBlazeOutPath)).createSync(recursive: true);
+    Directory(inTmpDir(bazelOrBlazeBinPath)).createSync(recursive: true);
+    Directory(inTmpDir(bazelOrBlazeGenfilesPath)).createSync(recursive: true);
 
     commandLogPath = inTmpDir('$bazelRoot/command.log');
   }
@@ -91,6 +89,17 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
   // not run from a snapshot.
   @TestTimeout(Timeout.factor(2))
   Future<void> test_bazelChanges() async {
+    await testChangesImpl('bazel');
+  }
+
+  // Add a bit more time -- the isolate take a while to start when the test is
+  // not run from a snapshot.
+  @TestTimeout(Timeout.factor(2))
+  Future<void> test_blazeChanges() async {
+    await testChangesImpl('blaze');
+  }
+
+  Future<void> testChangesImpl(String prefix) async {
     var testFile = inWorkspace('${sourceDirectory.path}/lib/test.dart');
 
     var errors = <AnalysisError>[];
@@ -126,8 +135,9 @@ void main() { my_fun(); }
 
     await resetCompleterAndErrors();
     var generatedFilePath = inWorkspace(
-        '$bazelGenfilesPath/third_party/dart/project/lib/generated.dart');
+        '$bazelOrBlazeGenfilesPath/third_party/dart/project/lib/generated.dart');
     writeFile(generatedFilePath, 'my_fun() {}');
+    _createSymlinks(prefix);
     writeFile(commandLogPath, 'Build completed successfully');
 
     await processedNotification.future;
@@ -145,6 +155,7 @@ void main() { my_fun(); }
     // Now delete the file completely.
     await resetCompleterAndErrors();
     File(generatedFilePath).deleteSync();
+    _deleteSymlinks(prefix);
     writeFile(commandLogPath, 'Build did NOT complete successfully');
 
     await processedNotification.future;
@@ -153,9 +164,22 @@ void main() { my_fun(); }
     // And finally re-add the correct file -- errors should go away once again.
     await resetCompleterAndErrors();
     writeFile(generatedFilePath, 'my_fun() {}');
+    _createSymlinks(prefix);
     writeFile(commandLogPath, 'Build completed successfully');
 
     await processedNotification.future;
     expect(errors, isEmpty);
+  }
+
+  void _createSymlinks(String prefix) {
+    Link(inWorkspace('$prefix-out')).createSync(bazelOrBlazeOutPath);
+    Link(inWorkspace('$prefix-bin')).createSync(bazelOrBlazeBinPath);
+    Link(inWorkspace('$prefix-genfiles')).createSync(bazelOrBlazeGenfilesPath);
+  }
+
+  void _deleteSymlinks(String prefix) {
+    Link(inWorkspace('$prefix-out')).deleteSync();
+    Link(inWorkspace('$prefix-bin')).deleteSync();
+    Link(inWorkspace('$prefix-genfiles')).deleteSync();
   }
 }

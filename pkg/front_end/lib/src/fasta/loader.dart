@@ -85,6 +85,7 @@ abstract class Loader {
   final Set<String> seenMessages = new Set<String>();
 
   LibraryBuilder coreLibrary;
+  LibraryBuilder typedDataLibrary;
 
   /// The first library that we've been asked to compile. When compiling a
   /// program (aka script), this is the library that should have a main method.
@@ -209,8 +210,12 @@ abstract class Loader {
             packageLanguageVersionProblem, 0, noLength, library.fileUri);
       }
 
-      if (uri.scheme == "dart" && uri.path == "core") {
-        coreLibrary = library;
+      if (uri.scheme == "dart") {
+        if (uri.path == "core") {
+          coreLibrary = library;
+        } else if (uri.path == "typed_data") {
+          typedDataLibrary = library;
+        }
       }
       if (library.loader != this) {
         if (coreLibrary == library) {
@@ -231,8 +236,8 @@ abstract class Loader {
       if (coreLibrary == library) {
         target.loadExtraRequiredLibraries(this);
       }
-      if (target.backendTarget
-          .mayDefineRestrictedType(origin?.importUri ?? uri)) {
+      Uri libraryUri = origin?.importUri ?? uri;
+      if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
         library.mayImplementRestrictedTypes = true;
       }
       if (uri.scheme == "dart") {

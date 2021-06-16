@@ -38,13 +38,6 @@ abstract class ModularEmitterBase implements ModularEmitter {
     return pa;
   }
 
-  js.PropertyAccess globalPropertyAccessForType(Entity element) {
-    js.Name name = _namer.globalPropertyNameForType(element);
-    js.PropertyAccess pa =
-        new js.PropertyAccess(_namer.readGlobalObjectForType(element), name);
-    return pa;
-  }
-
   js.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {
     js.Name name = _namer.globalPropertyNameForMember(element);
     js.PropertyAccess pa =
@@ -74,21 +67,14 @@ abstract class ModularEmitterBase implements ModularEmitter {
   }
 
   @override
-  js.PropertyAccess prototypeAccess(ClassEntity element,
-      {bool hasBeenInstantiated}) {
-    js.Expression constructor =
-        hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
+  js.PropertyAccess prototypeAccess(ClassEntity element) {
+    js.Expression constructor = constructorAccess(element);
     return js.js('#.prototype', constructor);
   }
 
   @override
-  js.Expression typeAccess(Entity element) {
-    return globalPropertyAccessForType(element);
-  }
-
-  @override
-  js.Name typeAccessNewRti(Entity element) {
-    return _namer.globalPropertyNameForType(element);
+  js.Name typeAccessNewRti(ClassEntity element) {
+    return _namer.className(element);
   }
 
   @override

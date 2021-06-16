@@ -91,22 +91,28 @@ part 'unknown.dart';
 
   test_valid_dll() async {
     newFile("$testPackageLibPath/lib.dll");
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart-ext:lib';
-''');
+''', [
+      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 22),
+    ]);
   }
 
   test_valid_dylib() async {
     newFile("$testPackageLibPath/lib.dylib");
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart-ext:lib';
-''');
+''', [
+      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 22),
+    ]);
   }
 
   test_valid_so() async {
     newFile("$testPackageLibPath/lib.so");
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart-ext:lib';
-''');
+''', [
+      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 22),
+    ]);
   }
 }

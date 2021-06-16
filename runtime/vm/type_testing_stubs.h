@@ -80,7 +80,6 @@ class TypeTestingStubGenerator {
       HierarchyInfo* hi,
       const Type& type,
       const Class& type_class,
-      const TypeArguments& type_parameters,
       const TypeArguments& type_arguments);
 
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
@@ -88,7 +87,6 @@ class TypeTestingStubGenerator {
       HierarchyInfo* hi,
       const Type& type,
       const Class& type_class,
-      const TypeArguments& type_parameters,
       const TypeArguments& type_arguments,
       const Register class_id_reg,
       const Register instance_type_args_reg);
@@ -287,7 +285,7 @@ class TypeUsageInfo : public ThreadStackResource {
 
     static Key KeyOf(Pair kv) { return kv; }
     static Value ValueOf(Pair kv) { return kv; }
-    static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+    static inline uword Hash(Key key) { return key->Hash(); }
   };
 
   class TypeSetTrait : public ObjectSetTrait<const AbstractType> {

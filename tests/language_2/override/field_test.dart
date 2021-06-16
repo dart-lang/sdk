@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test checking that static/instance field shadowing do not conflict.
 
+// @dart = 2.9
+
 class A {
   int instanceFieldInA;
   static int staticFieldInA;

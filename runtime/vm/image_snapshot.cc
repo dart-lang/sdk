@@ -142,7 +142,7 @@ bool Image::compiled_to_elf() const {
 #endif
 }
 
-intptr_t ObjectOffsetTrait::Hashcode(Key key) {
+uword ObjectOffsetTrait::Hash(Key key) {
   ObjectPtr obj = key;
   ASSERT(!obj->IsSmi());
 
@@ -462,15 +462,13 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
   // BSSsection in the text section as an initial InstructionsSection object.
   WriteBss(vm);
 
-  offset_space_ = vm ? V8SnapshotProfileWriter::kVmText
-                     : V8SnapshotProfileWriter::kIsolateText;
+  offset_space_ = vm ? IdSpace::kVmText : IdSpace::kIsolateText;
   WriteText(vm);
 
   // Append the direct-mapped RO data objects after the clustered snapshot
   // and then for ELF and assembly outputs, add appropriate sections with
   // that combined data.
-  offset_space_ = vm ? V8SnapshotProfileWriter::kVmData
-                     : V8SnapshotProfileWriter::kIsolateData;
+  offset_space_ = vm ? IdSpace::kVmData : IdSpace::kIsolateData;
   WriteROData(clustered_stream, vm);
 }
 
@@ -493,7 +491,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
   if (profile_writer_ != nullptr) {
     const intptr_t end_position = stream->Position();
     profile_writer_->AttributeBytesTo(
-        V8SnapshotProfileWriter::ArtificialRootId(),
+        V8SnapshotProfileWriter::kArtificialRootId,
         end_position - start_position);
   }
 #endif
@@ -653,14 +651,14 @@ void ImageWriter::WriteText(bool vm) {
   const char* bss_symbol = SectionSymbol(ProgramSection::Bss, vm);
   ASSERT(bss_symbol != nullptr);
 
-  if (FLAG_precompiled_mode) {
-    if (profile_writer_ != nullptr) {
-      profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
-                                            instructions_symbol);
-      profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
-      profile_writer_->AddRoot(parent_id);
-    }
+  if (profile_writer_ != nullptr) {
+    profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
+                                          instructions_symbol);
+    profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
+    profile_writer_->AddRoot(parent_id);
+  }
 
+  if (FLAG_precompiled_mode) {
     const intptr_t section_header_length =
         compiler::target::InstructionsSection::HeaderSize();
     // Calculated using next_text_offset_, which doesn't include post-payload
@@ -680,10 +678,10 @@ void ImageWriter::WriteText(bool vm) {
                                             instructions_symbol);
       profile_writer_->AttributeBytesTo(id,
                                         section_size - section_payload_length);
-      const intptr_t element_offset = id.second - parent_id.second;
+      const intptr_t element_offset = id.nonce() - parent_id.nonce();
       profile_writer_->AttributeReferenceTo(
           parent_id,
-          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+          V8SnapshotProfileWriter::Reference::Element(element_offset), id);
       // Later objects will have the InstructionsSection as a parent if in
       // bare instructions mode, otherwise the image.
       if (bare_instruction_payloads) {
@@ -714,7 +712,7 @@ void ImageWriter::WriteText(bool vm) {
             ? compiler::target::InstructionsSection::HeaderSize()
             : compiler::target::InstructionsSection::InstanceSize(0);
     text_offset += Align(section_contents_alignment, text_offset);
-    ASSERT_EQUAL(text_offset - id.second, expected_size);
+    ASSERT_EQUAL(text_offset - id.nonce(), expected_size);
   }
 #endif
 
@@ -725,7 +723,7 @@ void ImageWriter::WriteText(bool vm) {
   SnapshotTextObjectNamer namer(zone);
 #endif
 
-  ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
+  ASSERT(offset_space_ != IdSpace::kSnapshot);
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
     const bool is_trampoline = data.trampoline_bytes != nullptr;
@@ -744,10 +742,10 @@ void ImageWriter::WriteText(bool vm) {
                                           : SizeInSnapshot(data.insns_->ptr());
       profile_writer_->SetObjectTypeAndName(id, type, object_name);
       profile_writer_->AttributeBytesTo(id, size);
-      const intptr_t element_offset = id.second - parent_id.second;
+      const intptr_t element_offset = id.nonce() - parent_id.nonce();
       profile_writer_->AttributeReferenceTo(
           parent_id,
-          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+          V8SnapshotProfileWriter::Reference::Element(element_offset), id);
     }
 #endif
 

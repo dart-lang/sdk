@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -12,7 +10,13 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddNeNull extends CorrectionProducer {
+class AddNeNull extends CorrectionProducerWithDiagnostic {
+  @override
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
   @override
   FixKind get fixKind => DartFixKind.ADD_NE_NULL;
 
@@ -22,7 +26,7 @@ class AddNeNull extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (unit.featureSet.isEnabled(Feature.non_nullable)) {
-      var node = this.node;
+      final node = this.node;
       if (node is Expression &&
           node.staticType?.nullabilitySuffix == NullabilitySuffix.none) {
         return;

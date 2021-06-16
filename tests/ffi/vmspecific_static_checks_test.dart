@@ -61,6 +61,12 @@ void main() {
   testSizeOfHandle();
   testElementAtGeneric();
   testElementAtNativeType();
+  testLookupFunctionIsLeafMustBeConst();
+  testAsFunctionIsLeafMustBeConst();
+  testLookupFunctionTakesHandle();
+  testAsFunctionTakesHandle();
+  testLookupFunctionReturnsHandle();
+  testAsFunctionReturnsHandle();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -705,6 +711,44 @@ class TestStruct1405 extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 
+void testLookupFunctionIsLeafMustBeConst() {
+  bool notAConst = false;
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>("timesFour", isLeaf:notAConst); //# 1500: compile-time error
+}
+
+void testAsFunctionIsLeafMustBeConst() {
+  bool notAConst = false;
+  Pointer<NativeFunction<Int8UnOp>> p = Pointer.fromAddress(1337);
+  IntUnOp f = p.asFunction(isLeaf:notAConst); //# 1501: compile-time error
+}
+
+typedef NativeTakesHandle = Void Function(Handle);
+typedef TakesHandle = void Function(Object);
+
+void testLookupFunctionTakesHandle() {
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  l.lookupFunction<NativeTakesHandle, TakesHandle>("takesHandle", isLeaf:true); //# 1502: compile-time error
+}
+
+void testAsFunctionTakesHandle() {
+  Pointer<NativeFunction<NativeTakesHandle>> p = Pointer.fromAddress(1337); //# 1503: compile-time error
+  TakesHandle f = p.asFunction(isLeaf:true); //# 1503: compile-time error
+}
+
+typedef NativeReturnsHandle = Handle Function();
+typedef ReturnsHandle = Object Function();
+
+void testLookupFunctionReturnsHandle() {
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  l.lookupFunction<NativeReturnsHandle, ReturnsHandle>("returnsHandle", isLeaf:true); //# 1504: compile-time error
+}
+
+void testAsFunctionReturnsHandle() {
+  Pointer<NativeFunction<NativeReturnsHandle>> p = Pointer.fromAddress(1337); //# 1505: compile-time error
+  ReturnsHandle f = p.asFunction(isLeaf:true); //# 1505: compile-time error
+}
+
 @Packed(1)
 class TestStruct1600 extends Struct {
   external Pointer<Uint8> notEmpty;
@@ -759,4 +803,30 @@ class TestStruct1606Packed extends Struct {
   @Array(2) //# 1606: compile-time error
   external Array<TestStruct1604> //# 1606: compile-time error
       nestedLooselyPacked; //# 1606: compile-time error
+}
+
+@Packed(0) //# 1607: compile-time error
+class TestStruct1607 extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1800 extends Struct {
+  external Pointer<Uint8> notEmpty;
+
+  @Array(-1) //# 1800: compile-time error
+  external Array<Uint8> inlineArray; //# 1800: compile-time error
+}
+
+class TestStruct1801 extends Struct {
+  external Pointer<Uint8> notEmpty;
+
+  @Array(1, -1) //# 1801: compile-time error
+  external Array<Uint8> inlineArray; //# 1801: compile-time error
+}
+
+class TestStruct1802 extends Struct {
+  external Pointer<Uint8> notEmpty;
+
+  @Array.multi([2, 2, 2, 2, 2, 2, -1]) //# 1802: compile-time error
+  external Array<Uint8> inlineArray; //# 1802: compile-time error
 }

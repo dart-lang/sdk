@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -51,6 +52,12 @@ class _DartNavigationCollector {
       this.collector, this.requestedOffset, this.requestedLength);
 
   void _addRegion(int offset, int length, Element? element) {
+    if (element != null && element.isSynthetic) {
+      var parent = element.enclosingElement;
+      if (parent is EnumElementImpl) {
+        element = parent;
+      }
+    }
     if (element is FieldFormalParameterElement) {
       element = element.field;
     }
@@ -130,13 +137,7 @@ class _DartNavigationCollector {
     // Read the declaration so we can get the offset after the doc comments.
     // TODO(dantup): Skip this for parts (getParsedLibrary will throw), but find
     // a better solution.
-    var session = codeElement.session;
-    final declaration =
-        session != null && !session.getFile(location.file).isPart
-            ? session
-                .getParsedLibrary(location.file)
-                .getElementDeclaration(codeElement)
-            : null;
+    final declaration = _parsedDeclaration(codeElement);
     var node = declaration?.node;
     if (node is VariableDeclaration) {
       node = node.parent;
@@ -151,6 +152,25 @@ class _DartNavigationCollector {
 
     return converter.locationFromElement(element,
         offset: codeOffset, length: codeLength);
+  }
+
+  static ElementDeclarationResult? _parsedDeclaration(Element element) {
+    var session = element.session;
+    if (session == null) {
+      return null;
+    }
+
+    var libraryPath = element.library?.source.fullName;
+    if (libraryPath == null) {
+      return null;
+    }
+
+    var parsedLibrary = session.getParsedLibrary2(libraryPath);
+    if (parsedLibrary is! ParsedLibraryResult) {
+      return null;
+    }
+
+    return parsedLibrary.getElementDeclaration(element);
   }
 }
 

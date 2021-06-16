@@ -504,7 +504,7 @@ m(B b) {
       writeElement: findElement.setter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+')!,
+        numElement.getMethod('+'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -517,7 +517,7 @@ m(B b) {
       writeElement: findElement.setter('y'),
       writeType: 'int?',
       operatorElement: elementMatcher(
-        numElement.getMethod('+')!,
+        numElement.getMethod('+'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -560,7 +560,7 @@ m(B b) {
       writeElement: findElement.setter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+')!,
+        numElement.getMethod('+'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int?',
@@ -573,7 +573,7 @@ m(B b) {
       writeElement: findElement.setter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+')!,
+        numElement.getMethod('+'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -607,7 +607,7 @@ m(int x, int? y) {
       writeElement: findElement.parameter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+')!,
+        numElement.getMethod('+'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -620,7 +620,7 @@ m(int x, int? y) {
       writeElement: findElement.parameter('y'),
       writeType: 'int?',
       operatorElement: elementMatcher(
-        numElement.getMethod('+')!,
+        numElement.getMethod('+'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',

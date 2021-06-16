@@ -19,8 +19,6 @@ void computeLibraryCycle(Uint32List salt, FileState file) {
 
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
-  final int id = fileObjectId++;
-
   /// The libraries that belong to this cycle.
   final List<FileState> libraries = [];
 
@@ -68,7 +66,7 @@ class LibraryCycle {
 
   @override
   String toString() {
-    return '[[id: $id] ' + libraries.join(', ') + ']';
+    return '[' + libraries.join(', ') + ']';
   }
 }
 
@@ -110,8 +108,8 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
-      var firstPath = first.file.path!;
-      var secondPath = second.file.path!;
+      var firstPath = first.file.path;
+      var secondPath = second.file.path;
       return firstPath.compareTo(secondPath);
     });
 
@@ -128,7 +126,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     for (var node in scc) {
       cycle.libraries.add(node.file);
 
-      signature.addLanguageVersion(node.file.packageLanguageVersion!);
+      signature.addLanguageVersion(node.file.packageLanguageVersion);
       signature.addString(node.file.uriStr);
 
       signature.addInt(node.file.libraryFiles.length);

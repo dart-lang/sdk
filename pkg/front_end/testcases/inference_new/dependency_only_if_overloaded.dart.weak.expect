@@ -13,10 +13,10 @@ import "dart:core" as core;
 static field core::int* intValue = 0;
 static field core::num* numValue = 0;
 static field core::double* doubleValue = 0.0;
-static field invalid-type a = () → core::num* => self::intValue.{core::num::+}(self::b as{TypeError,ForDynamic} core::num*);
-static field dynamic b = self::a.call();
-static field () →* core::num* c = () → core::num* => self::numValue.{core::num::+}(self::d);
-static field core::num* d = self::c.call();
-static field () →* core::double* e = () → core::double* => self::doubleValue.{core::double::+}(self::f);
-static field core::double* f = self::e.call();
+static field invalid-type a = () → core::num* => self::intValue.{core::num::+}(self::b as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+static field dynamic b = self::a{dynamic}.call();
+static field () →* core::num* c = () → core::num* => self::numValue.{core::num::+}(self::d){(core::num*) →* core::num*};
+static field core::num* d = self::c(){() →* core::num*};
+static field () →* core::double* e = () → core::double* => self::doubleValue.{core::double::+}(self::f){(core::num*) →* core::double*};
+static field core::double* f = self::e(){() →* core::double*};
 static method main() → dynamic {}

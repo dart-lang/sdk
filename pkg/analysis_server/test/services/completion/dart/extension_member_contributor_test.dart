@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,7 +30,7 @@ class B extends A {
   int b = 0;
 }
 extension E on B {
-  void e() { 
+  void e() {
     ^
   }
 }
@@ -51,7 +49,7 @@ class B extends A {
   set b(int b) { }
 }
 extension E on B {
-  void e() { 
+  void e() {
     ^
   }
 }
@@ -70,7 +68,7 @@ class B extends A {
   void b() { }
 }
 extension E on B {
-  void e() { 
+  void e() {
     ^
   }
 }
@@ -87,7 +85,7 @@ class A<T> {
 }
 
 extension E on A<int> {
-  void e() { 
+  void e() {
     ^
   }
 }

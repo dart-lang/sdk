@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 
 /// A contributor that produces suggestions based on the members of a library
 /// when the completion is in a show or hide combinator of an import or export.
@@ -24,7 +21,7 @@ class CombinatorContributor extends DartCompletionContributor {
     // Build the list of suggestions.
     var directive = node.thisOrAncestorOfType<NamespaceDirective>();
     if (directive is NamespaceDirective) {
-      var library = directive.uriElement as LibraryElement;
+      var library = directive.uriElement;
       if (library != null) {
         var existingNames = _getCombinatorNames(directive);
         for (var element in library.exportNamespace.definedNames.values) {

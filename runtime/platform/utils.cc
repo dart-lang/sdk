@@ -50,35 +50,6 @@ int Utils::CountOneBits32(uint32_t x) {
 #endif
 }
 
-// TODO(koda): Compare to flsll call/intrinsic.
-int Utils::HighestBit(int64_t v) {
-  uint64_t x = static_cast<uint64_t>((v > 0) ? v : -v);
-  uint64_t t;
-  int r = 0;
-  if ((t = x >> 32) != 0) {
-    x = t;
-    r += 32;
-  }
-  if ((t = x >> 16) != 0) {
-    x = t;
-    r += 16;
-  }
-  if ((t = x >> 8) != 0) {
-    x = t;
-    r += 8;
-  }
-  if ((t = x >> 4) != 0) {
-    x = t;
-    r += 4;
-  }
-  if ((t = x >> 2) != 0) {
-    x = t;
-    r += 2;
-  }
-  if (x > 1) r += 1;
-  return r;
-}
-
 int Utils::CountLeadingZeros64(uint64_t x) {
 #if defined(ARCH_IS_32_BIT)
   const uint32_t x_hi = static_cast<uint32_t>(x >> 32);

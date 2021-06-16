@@ -1,0 +1,50 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int firstVar = self::firstFn();
+static const field core::int firstCatchVar = self::firstCatchFn();
+static const field core::bool isEmptyVar = self::isEmptyFn();
+static const field core::bool isNotEmptyVar = self::isNotEmptyFn();
+static const field core::int lastVar = self::lastFn();
+static const field core::int lastCatchVar = self::lastCatchFn();
+static const field core::int lengthVar = self::lengthFn();
+static const field core::int singleVar = self::singleFn();
+static const field core::int singleCatchVar = self::singleCatchFn();
+static const field core::int singleCatchVar2 = self::singleCatchFn2();
+static const field core::int getWithIndexVar = self::getWithIndexFn();
+static const field core::int rangeErrorCatchVar = self::rangeErrorCatchFn();
+static const field core::List<core::int> mutableListVar = self::mutableList();
+static const field core::List<core::int> mutableListAddVar = self::mutableListAdd();
+static method firstFn() → core::int
+  ;
+static method firstCatchFn() → core::int
+  ;
+static method isEmptyFn() → core::bool
+  ;
+static method isNotEmptyFn() → core::bool
+  ;
+static method lastFn() → core::int
+  ;
+static method lastCatchFn() → core::int
+  ;
+static method lengthFn() → core::int
+  ;
+static method singleFn() → core::int
+  ;
+static method singleCatchFn() → core::int
+  ;
+static method singleCatchFn2() → core::int
+  ;
+static method getWithIndexFn() → core::int
+  ;
+static method rangeErrorCatchFn() → core::int
+  ;
+static method mutableList() → core::List<core::int>
+  ;
+static method mutableListAdd() → core::List<core::int>
+  ;
+static method main() → void
+  ;

@@ -8,7 +8,7 @@ import logging
 import multiprocessing
 import os
 import posixpath
-import Queue
+import queue
 import re
 import subprocess
 import sys
@@ -241,7 +241,7 @@ class ELFSymbolizer(object):
             # Objects required to handle the addr2line subprocess.
             self._proc = None  # Subprocess.Popen(...) instance.
             self._thread = None  # Threading.thread instance.
-            self._out_queue = None  # Queue.Queue instance (for buffering a2l stdout).
+            self._out_queue = None  # queue.Queue instance (for buffering a2l stdout).
             self._RestartAddr2LineProcess()
 
         def EnqueueRequest(self, addr, callback_arg):
@@ -282,7 +282,7 @@ class ELFSymbolizer(object):
 
                     try:
                         lines = self._out_queue.get(block=True, timeout=0.25)
-                    except Queue.Empty:
+                    except queue.Empty:
                         # On timeout (1/4 s.) repeat the inner loop and check if either the
                         # addr2line process did crash or we waited its output for too long.
                         continue
@@ -303,7 +303,7 @@ class ELFSymbolizer(object):
             while True:
                 try:
                     lines = self._out_queue.get_nowait()
-                except Queue.Empty:
+                except queue.Empty:
                     break
                 self._ProcessSymbolOutput(lines)
 
@@ -328,7 +328,7 @@ class ELFSymbolizer(object):
             self._proc = None
 
         def _WriteToA2lStdin(self, addr):
-            self._proc.stdin.write('%s\n' % hex(addr))
+            self._proc.stdin.write(('%s\n' % hex(addr)).encode())
             if self._symbolizer.inlines:
                 # In the case of inlines we output an extra blank line, which causes
                 # addr2line to emit a (??,??:0) tuple that we use as a boundary marker.
@@ -396,7 +396,7 @@ class ELFSymbolizer(object):
             # The only reason of existence of this Queue (and the corresponding
             # Thread below) is the lack of a subprocess.stdout.poll_avail_lines().
             # Essentially this is a pipe able to extract a couple of lines atomically.
-            self._out_queue = Queue.Queue()
+            self._out_queue = queue.Queue()
 
             # Start the underlying addr2line process in line buffered mode.
 
@@ -408,7 +408,6 @@ class ELFSymbolizer(object):
                 cmd += ['--inlines']
             self._proc = subprocess.Popen(
                 cmd,
-                bufsize=1,
                 stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE,
                 stderr=sys.stderr,
@@ -442,8 +441,8 @@ class ELFSymbolizer(object):
             try:
                 lines_for_one_symbol = []
                 while True:
-                    line1 = process_pipe.readline().rstrip('\r\n')
-                    line2 = process_pipe.readline().rstrip('\r\n')
+                    line1 = process_pipe.readline().decode().rstrip('\r\n')
+                    line2 = process_pipe.readline().decode().rstrip('\r\n')
                     if not line1 or not line2:
                         break
                     inline_has_more_lines = inlines and (

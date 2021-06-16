@@ -5,13 +5,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:smith/smith.dart';
-import 'package:test_runner/src/test_configurations.dart';
 import 'package:path/path.dart' as path;
 
 import 'configuration.dart';
 import 'path.dart';
 import 'repository.dart';
+import 'test_configurations.dart';
 import 'utils.dart';
 
 const _defaultTestSelectors = [

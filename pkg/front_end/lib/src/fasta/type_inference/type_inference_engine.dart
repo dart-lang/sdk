@@ -7,25 +7,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 
-import 'package:kernel/ast.dart'
-    show
-        Constructor,
-        DartType,
-        DartTypeVisitor,
-        Field,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        Member,
-        NamedType,
-        NullType,
-        Statement,
-        TreeNode,
-        TypeParameter,
-        TypeParameterType,
-        TypedefType,
-        VariableDeclaration,
-        Variance;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -233,6 +215,9 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
 class InferenceDataForTesting {
   final FlowAnalysisResult flowAnalysisResult = new FlowAnalysisResult();
+
+  final TypeInferenceResultForTesting typeInferenceResult =
+      new TypeInferenceResultForTesting();
 }
 
 /// The result of performing flow analysis on a unit.
@@ -335,4 +320,10 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
     }
     return from;
   }
+}
+
+/// Type inference results used for testing.
+class TypeInferenceResultForTesting {
+  final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
+  final Map<TreeNode, DartType> inferredVariableTypes = {};
 }

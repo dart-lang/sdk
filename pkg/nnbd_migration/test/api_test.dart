@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
@@ -62,8 +63,9 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
     for (var path in input.keys) {
-      if (!(session.getFile(path)).isPart) {
-        for (var unit in (await session.getResolvedLibrary(path)).units) {
+      var resolvedLibrary = await session.getResolvedLibrary2(path);
+      if (resolvedLibrary is ResolvedLibraryResult) {
+        for (var unit in resolvedLibrary.units) {
           migration.prepareInput(unit);
         }
       }
@@ -71,16 +73,18 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     expect(migration.unmigratedDependencies, isEmpty);
     _betweenStages();
     for (var path in input.keys) {
-      if (!(session.getFile(path)).isPart) {
-        for (var unit in (await session.getResolvedLibrary(path)).units) {
+      var resolvedLibrary = await session.getResolvedLibrary2(path);
+      if (resolvedLibrary is ResolvedLibraryResult) {
+        for (var unit in resolvedLibrary.units) {
           migration.processInput(unit);
         }
       }
     }
     _betweenStages();
     for (var path in input.keys) {
-      if (!(session.getFile(path)).isPart) {
-        for (var unit in (await session.getResolvedLibrary(path)).units) {
+      var resolvedLibrary = await session.getResolvedLibrary2(path);
+      if (resolvedLibrary is ResolvedLibraryResult) {
+        for (var unit in resolvedLibrary.units) {
           migration.finalizeInput(unit);
         }
       }
@@ -243,6 +247,54 @@ class C<T extends num?> {}
 void main() {
   C<num> c = C();
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_ambiguous_bang_hint_after_as() async {
+    var content = '''
+T f<T>(Object/*?*/ x) => x as T/*!*/;
+''';
+    // The `/*!*/` is considered to apply to the type `T`, not to the expression
+    // `x as T`, so we shouldn't produce `(x as T)!`.
+    var expected = '''
+T f<T>(Object? x) => x as T;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_ambiguous_bang_hint_after_as_assigned() async {
+    var content = '''
+T f<T>(Object/*?*/ x, T/*!*/ y) => y = x as T/*!*/;
+''';
+    // The `/*!*/` is considered to apply to the type `T`, not to the expression
+    // `y = x as T`, so we shouldn't produce `(y = x as T)!`.
+    var expected = '''
+T f<T>(Object? x, T y) => y = x as T;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_ambiguous_bang_hint_after_is() async {
+    var content = '''
+bool f<T>(Object/*?*/ x) => x is T/*!*/;
+''';
+    // The `/*!*/` is considered to apply to the type `T`, not to the expression
+    // `x is T`, so we shouldn't produce `(x is T)!`.
+    var expected = '''
+bool f<T>(Object? x) => x is T;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_ambiguous_bang_hint_after_is_conditional() async {
+    var content = '''
+dynamic f<T>(Object/*?*/ x, dynamic y) => y ? y : x is T/*!*/;
+''';
+    // The `/*!*/` is considered to apply to the type `T`, not to the expression
+    // `y ? y : x is T`, so we shouldn't produce `(y ? y : x is T)!`.
+    var expected = '''
+dynamic f<T>(Object? x, dynamic y) => y ? y : x is T;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -712,6 +764,102 @@ main() {
     // we would consider the use of `j` in `f` to establish non-null intent, so
     // the null check would be erroneously placed in `g`'s call to `f`.
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
+  }
+
+  Future<void> test_collection_literal_typed_list() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g(<int>[x, y]);
+}
+g(List<int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g(<int>[x!, y!]);
+}
+g(List<int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_typed_map() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g(<int, int>{x: y});
+}
+g(Map<int/*!*/, int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g(<int, int>{x!: y!});
+}
+g(Map<int, int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_typed_set() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g(<int>{x, y});
+}
+g(Set<int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g(<int>{x!, y!});
+}
+g(Set<int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_untyped_list() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g([x, y]);
+}
+g(List<int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g([x!, y!]);
+}
+g(List<int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_untyped_map() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g({x: y});
+}
+g(Map<int/*!*/, int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g({x!: y!});
+}
+g(Map<int, int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_untyped_set() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g({x, y});
+}
+g(Set<int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g({x!, y!});
+}
+g(Set<int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
   }
 
   Future<void> test_comment_bang_implies_non_null_intent() async {
@@ -1577,15 +1725,9 @@ void f(int/*?*/ x, int/*?*/ y) {
 }
 g({List<int/*!*/>/*!*/ named}) {}
 ''';
-    // Note: this test is to ensure that we don't produce
-    // `g((named: <int?>[x, y]) as List<int>)` (which would be a parse error).
-    // The migration we produce (`g(named: <int?>[x, y])`) still isn't great,
-    // because it's a type mismatch, but it's better.
-    //
-    // TODO(paulberry): a better migration would be `g(named: <int>[x!, y!])`.
     var expected = '''
 void f(int? x, int? y) {
-  g(named: <int?>[x, y]);
+  g(named: <int>[x!, y!]);
 }
 g({required List<int> named}) {}
 ''';
@@ -2138,6 +2280,37 @@ int f(int? i) => i!;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_extension_complex() async {
+    var content = '''
+import 'already_migrated.dart';
+class D<V> extends C<V> {}
+abstract class Foo {
+  D<List<int>> get z;
+  List<int> test() => z.x ?? [];
+}
+''';
+    var alreadyMigrated = '''
+// @dart=2.12
+extension E<T> on C<T> {
+  T? get x => y;
+}
+class C<U> {
+  U? y;
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+class D<V> extends C<V> {}
+abstract class Foo {
+  D<List<int>> get z;
+  List<int> test() => z.x ?? [];
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
   Future<void> test_extension_extended_type_nullability_intent() async {
     var content = '''
 extension E on C {
@@ -2183,15 +2356,15 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_extension_null_check_non_nullable() async {
+  Future<void> test_extension_null_check_non_nullable_binary() async {
     var content = '''
 class C {}
 extension E on C/*!*/ {
-  void m() {}
+  void operator+(int other) {}
 }
 void f(C c, bool b) {
   if (b) {
-    c.m();
+    c + 0;
   }
 }
 void g() => f(null, false);
@@ -2199,11 +2372,11 @@ void g() => f(null, false);
     var expected = '''
 class C {}
 extension E on C {
-  void m() {}
+  void operator+(int other) {}
 }
 void f(C? c, bool b) {
   if (b) {
-    c!.m();
+    c! + 0;
   }
 }
 void g() => f(null, false);
@@ -2232,6 +2405,90 @@ extension E<T extends Object> on T {
 void f(C? c, bool b) {
   if (b) {
     c!.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_index() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void operator[](int index) {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c[0];
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void operator[](int index) {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c![0];
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_method() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void m() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void m() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c!.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_prefix() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void operator-() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    -c;
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void operator-() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    -c!;
   }
 }
 void g() => f(null, false);
@@ -2480,6 +2737,25 @@ C f(C c) => c.clone();
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_extension_on_type_substitution() async {
+    var content = '''
+extension E<T> on T {
+  T get foo => this;
+}
+List<int> f(List<int/*?*/> x) => x.foo;
+''';
+    // To see that the return type of `f` must be `List<int?`, the migration
+    // tool needs to substitute the actual type argument (`T=List<int?>`) into
+    // the extension's "on" type.
+    var expected = '''
+extension E<T> on T {
+  T get foo => this;
+}
+List<int?> f(List<int?> x) => x.foo;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_extension_override() async {
     var content = '''
 extension E on int {
@@ -2540,6 +2816,38 @@ extension E on int? {
   int get one => 1;
 }
 int f(int? x) => E(x).one;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_use_can_imply_non_null_intent() async {
+    var content = '''
+extension E<T extends Object/*!*/> on T/*!*/ {
+  void foo() {}
+}
+f(int i) {
+  i.foo();
+}
+g(bool b, int/*?*/ j) {
+  if (b) {
+    f(j);
+  }
+}
+''';
+    // Since the extension declaration says `T extends Object/*!*/`, `i` will
+    // not be made nullable.
+    var expected = '''
+extension E<T extends Object> on T {
+  void foo() {}
+}
+f(int i) {
+  i.foo();
+}
+g(bool b, int? j) {
+  if (b) {
+    f(j!);
+  }
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }

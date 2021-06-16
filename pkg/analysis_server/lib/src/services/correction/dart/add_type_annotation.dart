@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -28,7 +27,7 @@ class AddTypeAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is SimpleFormalParameter) {
@@ -36,7 +35,8 @@ class AddTypeAnnotation extends CorrectionProducer {
         return;
       }
     }
-    while (node != null) {
+
+    for (var node in this.node.withParents) {
       if (node is VariableDeclarationList) {
         await _forVariableDeclaration(builder, node);
         return;
@@ -47,8 +47,7 @@ class AddTypeAnnotation extends CorrectionProducer {
         var forLoopParts = node.forLoopParts;
         if (forLoopParts is ForEachParts) {
           var offset = this.node.offset;
-          if (forLoopParts.iterable != null &&
-              offset < forLoopParts.iterable.offset) {
+          if (offset < forLoopParts.iterable.offset) {
             if (forLoopParts is ForEachPartsWithDeclaration) {
               await _forDeclaredIdentifier(builder, forLoopParts.loopVariable);
             }
@@ -56,7 +55,6 @@ class AddTypeAnnotation extends CorrectionProducer {
         }
         return;
       }
-      node = node.parent;
     }
   }
 
@@ -78,7 +76,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (declaredIdentifier.type != null) {
       return;
     }
-    var type = declaredIdentifier.declaredElement.type;
+    var type = declaredIdentifier.declaredElement!.type;
     if (type is! InterfaceType && type is! FunctionType) {
       return;
     }
@@ -88,7 +86,7 @@ class AddTypeAnnotation extends CorrectionProducer {
       var validChange = true;
       await builder.addDartFileEdit(file, (builder) {
         var keyword = declaredIdentifier.keyword;
-        if (keyword.keyword == Keyword.VAR) {
+        if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addReplacement(range.token(keyword), (builder) {
             validChange = builder.writeType(type);
           });
@@ -114,7 +112,7 @@ class AddTypeAnnotation extends CorrectionProducer {
       return;
     }
     // Prepare the type.
-    var type = parameter.declaredElement.type;
+    var type = parameter.declaredElement!.type;
     // TODO(scheglov) If the parameter is in a method declaration, and if the
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden
@@ -175,7 +173,7 @@ class AddTypeAnnotation extends CorrectionProducer {
       var validChange = true;
       await builder.addDartFileEdit(file, (builder) {
         var keyword = declarationList.keyword;
-        if (keyword?.keyword == Keyword.VAR) {
+        if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addReplacement(range.token(keyword), (builder) {
             validChange = builder.writeType(type);
           });

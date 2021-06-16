@@ -195,6 +195,31 @@ include: foo.include
     }
   }
 
+  void test_getOptions_include_emptyLints() {
+    pathTranslator.newFile('/foo.include', r'''
+linter:
+  rules:
+    - prefer_single_quotes
+''');
+    pathTranslator.newFile('/$analysisOptionsYaml', r'''
+include: foo.include
+linter:
+  rules:
+    # avoid_print: false
+''');
+    YamlMap options = _getOptions('/');
+    expect(options, hasLength(2));
+    {
+      var linter = options.valueAt('linter') as YamlMap;
+      expect(linter, hasLength(1));
+      {
+        var rules = linter.valueAt('rules') as YamlList;
+        expect(rules, hasLength(1));
+        expect(rules[0], 'prefer_single_quotes');
+      }
+    }
+  }
+
   void test_getOptions_include_missing() {
     pathTranslator.newFile('/$analysisOptionsYaml', r'''
 include: /foo.include

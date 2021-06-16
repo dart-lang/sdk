@@ -185,11 +185,6 @@ class FileTracker {
     return _logger.run('Verify API signature of $path', () {
       _logger.writeln('Work in ${_fsState.contextName}');
 
-      var file = _fsState.getFileForPath(path);
-      if (file.isInExternalSummaries) {
-        return file;
-      }
-
       bool anyApiChanged = false;
       List<FileState> files = _fsState.getFilesForPath(path);
       for (FileState file in files) {

@@ -264,6 +264,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
           return members;
         }
       case M.InstanceKind.plainInstance:
+      case M.InstanceKind.receivePort:
         return _loadedInstance.fields
             .map<Element>((f) => new DivElement()
               ..children = <Element>[

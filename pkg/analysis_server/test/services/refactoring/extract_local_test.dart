@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,7 +21,7 @@ void main() {
 @reflectiveTest
 class ExtractLocalTest extends RefactoringTest {
   @override
-  ExtractLocalRefactoringImpl refactoring;
+  late ExtractLocalRefactoringImpl refactoring;
 
   Future<void> test_checkFinalConditions_sameVariable_after() async {
     await indexTestUnit('''
@@ -196,11 +193,6 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     expect(refactoring.refactoringName, 'Extract Local Variable');
-    // null
-    refactoring.name = null;
-    assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Variable name must not be null.');
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
@@ -1365,8 +1357,11 @@ main() {
             'Expression must be selected to activate this refactoring.');
   }
 
-  void _assertSingleLinkedEditGroup(
-      {int length, List<int> offsets, List<String> names}) {
+  void _assertSingleLinkedEditGroup({
+    required int length,
+    required List<int> offsets,
+    required List<String> names,
+  }) {
     var positions =
         offsets.map((offset) => {'file': testFile, 'offset': offset});
     var suggestions = names.map((name) => {'value': name, 'kind': 'VARIABLE'});
@@ -1394,7 +1389,8 @@ main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = ExtractLocalRefactoring(testAnalysisResult, offset, length);
+    refactoring =
+        ExtractLocalRefactoringImpl(testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:convert/convert.dart";
 import "package:crypto/crypto.dart";
 import "package:expect/expect.dart";
@@ -207,7 +209,7 @@ void testAuthenticateCallback(String algorithm, String qop) {
   Server.start(algorithm, qop).then((server) {
     HttpClient client = new HttpClient();
 
-    client.authenticate = (Uri url, String scheme, String realm) {
+    client.authenticate = (url, scheme, realm) {
       Expect.equals("Digest", scheme);
       Expect.equals("test", realm);
       Completer completer = new Completer<bool>();
@@ -348,7 +350,7 @@ void testLocalServerDigest() {
   client.addCredentials(Uri.parse("http://127.0.0.1/digest"), "test",
       new HttpClientDigestCredentials("dart", "password"));
 
-  client.authenticate = (Uri url, String scheme, String realm) {
+  client.authenticate = (url, scheme, realm) {
     client.addCredentials(Uri.parse("http://127.0.0.1/digest"), "test",
         new HttpClientDigestCredentials("dart", "password"));
     return new Future.value(true);

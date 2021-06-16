@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Fuzzy arrows will be eliminated from Dart 2.0 soon.  This test checks that
 // implementations have properly removed fuzzy arrow support, both at compile
 // time and at run time.  See dartbug.com/29630 for a detailed explanation.

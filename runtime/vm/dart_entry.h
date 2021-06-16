@@ -122,6 +122,12 @@ class ArgumentsDescriptor : public ValueObject {
 
   enum { kCachedDescriptorCount = 32 };
 
+  // For creating ArgumentDescriptor Slots.
+  static constexpr bool ContainsCompressedPointers() {
+    // Use the same state as the backing store.
+    return Array::ContainsCompressedPointers();
+  }
+
  private:
   // Absolute indices into the array.
   // Keep these in sync with the constants in invocation_mirror_patch.dart.
@@ -194,6 +200,7 @@ class DartEntry : public AllStatic {
   // Invokes the specified code as if it was a Dart function.
   // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   static ObjectPtr InvokeCode(const Code& code,
+                              uword entry_point,
                               const Array& arguments_descriptor,
                               const Array& arguments,
                               Thread* thread);

@@ -601,6 +601,10 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@sealed`.
   bool get hasSealed;
 
+  /// Return `true` if this element has an annotation of the form `@useResult`
+  /// or `@UseResult('..')`.
+  bool get hasUseResult;
+
   /// Return `true` if this element has an annotation of the form
   /// `@visibleForTemplate`.
   bool get hasVisibleForTemplate;
@@ -806,6 +810,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated class as being
   /// intended to be used as an annotation.
   bool get isTarget;
+
+  /// Return `true` if this annotation marks the associated returned element as
+  /// requiring use.
+  bool get isUseResult;
 
   /// Return `true` if this annotation marks the associated member as being
   /// visible for template files.
@@ -1276,6 +1284,7 @@ abstract class ImportElement implements Element, UriReferencedElement {
   /// Return the offset of the prefix of this import in the file that contains
   /// this import directive, or `-1` if this import is synthetic, does not have
   /// a prefix, or otherwise does not have an offset.
+  @Deprecated('Use prefix.nameOffset instead')
   int get prefixOffset;
 }
 

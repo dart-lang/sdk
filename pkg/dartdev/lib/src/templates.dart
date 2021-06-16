@@ -5,11 +5,12 @@
 import 'dart:convert' show utf8;
 
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 import 'templates/console_full.dart';
 import 'templates/console_simple.dart';
 import 'templates/package_simple.dart';
-import 'templates/server_simple.dart';
+import 'templates/server_shelf.dart';
 import 'templates/web_simple.dart';
 
 final _substituteRegExp = RegExp(r'__([a-zA-Z]+)__');
@@ -19,7 +20,7 @@ final List<Generator> generators = [
   ConsoleSimpleGenerator(),
   ConsoleFullGenerator(),
   PackageSimpleGenerator(),
-  ServerSimpleGenerator(),
+  ServerShelfGenerator(),
   WebSimpleGenerator(),
 ];
 
@@ -99,7 +100,25 @@ abstract class Generator implements Comparable<Generator> {
 
   /// Return some user facing instructions about how to finish installation of
   /// the template.
-  String getInstallInstructions() => '';
+  ///
+  /// [directory] is the directory of the generated project.
+  ///
+  /// [scriptPath] is the path of the default target script
+  /// (e.g., bin/foo.dart) **without** an extension. If null, the implicit run
+  /// command will be output by default (e.g., dart run).
+  String getInstallInstructions(
+    String directory,
+    String scriptPath,
+  ) {
+    final buffer = StringBuffer();
+    buffer.writeln('  cd ${p.relative(directory)}');
+    if (scriptPath != null) {
+      buffer.write('  dart run $scriptPath.dart');
+    } else {
+      buffer.write('  dart run');
+    }
+    return buffer.toString();
+  }
 
   @override
   String toString() => '[$id: $description]';

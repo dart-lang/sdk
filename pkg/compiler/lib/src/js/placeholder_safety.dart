@@ -338,7 +338,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   }
 
   @override
-  int visitFun(js.Fun node) {
+  int visitFunctionExpression(js.FunctionExpression node) {
     bool oldSafe = safe;
     int oldNextPosition = nextPosition;
     visit(node.body);

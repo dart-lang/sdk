@@ -33,7 +33,7 @@ class A extends core::Object {
   constructor bar(core::int fieldOfA) → self::A
     ;
 }
-class B<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+class B<X extends core::Object?, Y extends core::Object> extends core::Object {
   generic-covariant-impl field self::B::X% fieldOfB;
   generic-covariant-impl field self::B::Y fieldOfB2;
   constructor foo() → self::B<self::B::X%, self::B::Y>
@@ -45,11 +45,11 @@ abstract class M extends core::Object /*isMixinDeclaration*/  {
   static field core::int staticFieldOfM;
   field core::int fieldOfM;
 }
-abstract class N<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object /*isMixinDeclaration*/  {
+abstract class N<X extends core::Object?, Y extends core::Object> extends core::Object /*isMixinDeclaration*/  {
   generic-covariant-impl field self::N::X% fieldOfN;
   generic-covariant-impl field self::N::Y fieldOfN2;
 }
-class C<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+class C<X extends core::Object?, Y extends core::Object> extends core::Object {
   static field core::int? staticFieldOfX;
   static field core::int staticFieldOfXInitialized;
   generic-covariant-impl field self::C::X? fieldOfX;
@@ -68,7 +68,7 @@ class C<X extends core::Object? = core::Object?, Y extends core::Object = core::
   constructor bar(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
     ;
 }
-abstract class L<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object /*isMixinDeclaration*/  {
+abstract class L<X extends core::Object?, Y extends core::Object> extends core::Object /*isMixinDeclaration*/  {
   static field core::int? staticFieldOfL;
   static field core::int staticFieldOfLInitialized;
   generic-covariant-impl field self::L::X? fieldOfL;

@@ -87,6 +87,13 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& scrubbed_name = String::Handle(ScrubbedName());
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, scrubbed_name.ToCString(), vm_name.ToCString());
+  const Script& script = Script::Handle(this->script());
+  if (!script.IsNull()) {
+    jsobj.AddLocation(script, token_pos(), end_token_pos());
+  }
+
+  jsobj.AddProperty("library", Object::Handle(library()));
+
   if (ref) {
     return;
   }
@@ -115,11 +122,6 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     Type& mix = Type::Handle();
     mix ^= interface_array.At(interface_array.Length() - 1);
     jsobj.AddProperty("mixin", mix);
-  }
-  jsobj.AddProperty("library", Object::Handle(library()));
-  const Script& script = Script::Handle(this->script());
-  if (!script.IsNull()) {
-    jsobj.AddLocation(script, token_pos(), end_token_pos());
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");
@@ -167,6 +169,15 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
       }
     }
   }
+}
+
+void TypeParameters::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("kind", "TypeParameters");
+  jsobj.AddProperty("flags", Array::Handle(flags()));
+  jsobj.AddProperty("names", Array::Handle(names()));
+  jsobj.AddProperty("bounds", TypeArguments::Handle(bounds()));
+  jsobj.AddProperty("defaults", TypeArguments::Handle(defaults()));
 }
 
 void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -308,6 +319,12 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("const", is_const());
   jsobj.AddProperty("_intrinsic", is_intrinsic());
   jsobj.AddProperty("_native", is_native());
+
+  const Script& script = Script::Handle(this->script());
+  if (!script.IsNull()) {
+    jsobj.AddLocation(script, token_pos(), end_token_pos());
+  }
+
   if (ref) {
     return;
   }
@@ -338,11 +355,6 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
     if (!field.IsNull()) {
       jsobj.AddProperty("_field", field);
     }
-  }
-
-  const Script& script = Script::Handle(this->script());
-  if (!script.IsNull()) {
-    jsobj.AddLocation(script, token_pos(), end_token_pos());
   }
 }
 
@@ -381,6 +393,12 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("final", is_final());
   jsobj.AddProperty("const", is_const());
+
+  const class Script& script = Script::Handle(Script());
+  if (!script.IsNull()) {
+    jsobj.AddLocation(script, token_pos(), end_token_pos());
+  }
+
   if (ref) {
     return;
   }
@@ -406,10 +424,6 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("_guardLength", "variable");
   } else {
     jsobj.AddPropertyF("_guardLength", "%" Pd, guarded_list_length());
-  }
-  const class Script& script = Script::Handle(Script());
-  if (!script.IsNull()) {
-    jsobj.AddLocation(script, token_pos());
   }
 }
 
@@ -620,6 +634,10 @@ void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void InstructionsSection::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+void InstructionsTable::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 

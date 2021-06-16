@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -17,7 +15,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart' show SourceKind;
+import 'package:collection/collection.dart';
 
 class EditDartFix
     with FixCodeProcessor, FixErrorProcessor, FixLintProcessor
@@ -31,9 +29,7 @@ class EditDartFix
 
   DartFixListener listener;
 
-  EditDartFix(this.server, this.request) {
-    listener = DartFixListener(server);
-  }
+  EditDartFix(this.server, this.request) : listener = DartFixListener(server);
 
   Future<Response> compute() async {
     final params = EditDartfixParams.fromRequest(request);
@@ -46,9 +42,10 @@ class EditDartFix
         }
       }
     }
-    if (params.includedFixes != null) {
-      for (var key in params.includedFixes) {
-        var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
+    var includedFixes = params.includedFixes;
+    if (includedFixes != null) {
+      for (var key in includedFixes) {
+        var info = allFixes.firstWhereOrNull((i) => i.key == key);
         if (info != null) {
           fixInfo.add(info);
         } else {
@@ -57,9 +54,10 @@ class EditDartFix
         }
       }
     }
-    if (params.excludedFixes != null) {
-      for (var key in params.excludedFixes) {
-        var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
+    var excludedFixes = params.excludedFixes;
+    if (excludedFixes != null) {
+      for (var key in excludedFixes) {
+        var info = allFixes.firstWhereOrNull((i) => i.key == key);
         if (info != null) {
           fixInfo.remove(info);
         } else {
@@ -114,15 +112,15 @@ class EditDartFix
       if (res is Folder) {
         fixFolders.add(res);
       } else {
-        fixFiles.add(res);
+        fixFiles.add(res as File);
       }
     }
 
-    String changedPath;
+    String? changedPath;
     contextManager.driverMap.values.forEach((driver) {
       // Setup a listener to remember the resource that changed during analysis
       // so it can be reported if there is an InconsistentAnalysisException.
-      driver.onCurrentSessionAboutToBeDiscarded = (String path) {
+      driver.onCurrentSessionAboutToBeDiscarded = (String? path) {
         changedPath = path;
       };
     });
@@ -153,7 +151,7 @@ class EditDartFix
     ).toResponse(request.id);
   }
 
-  Folder findPkgFolder(Folder start) {
+  Folder? findPkgFolder(Folder start) {
     for (var folder in start.withAncestors) {
       if (folder.getChild('analysis_options.yaml').exists ||
           folder.getChild('pubspec.yaml').exists) {
@@ -194,16 +192,14 @@ class EditDartFix
   /// Return `true` if the path in within the set of `included` files
   /// or is within an `included` directory.
   bool isIncluded(String filePath) {
-    if (filePath != null) {
-      for (var file in fixFiles) {
-        if (file.path == filePath) {
-          return true;
-        }
+    for (var file in fixFiles) {
+      if (file.path == filePath) {
+        return true;
       }
-      for (var folder in fixFolders) {
-        if (folder.contains(filePath)) {
-          return true;
-        }
+    }
+    for (var folder in fixFolders) {
+      if (folder.contains(filePath)) {
+        return true;
       }
     }
     return false;
@@ -217,26 +213,18 @@ class EditDartFix
     for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
       var driver = server.getAnalysisDriver(path);
-      switch (await driver.getSourceKind(path)) {
-        case SourceKind.PART:
-          // Parts will either be found in a library, below, or if the library
-          // isn't [isIncluded], will be picked up in the final loop.
-          continue;
-          break;
-        case SourceKind.LIBRARY:
-          var result = await driver.getResolvedLibrary(path);
-          if (result != null) {
-            for (var unit in result.units) {
-              if (pathsToProcess.contains(unit.path) &&
-                  !pathsProcessed.contains(unit.path)) {
-                await process(unit);
-                pathsProcessed.add(unit.path);
-              }
+      if (driver != null) {
+        var result = await driver.getResolvedLibrary2(path);
+        if (result is ResolvedLibraryResult) {
+          for (var unit in result.units!) {
+            if (pathsToProcess.contains(unit.path) &&
+                !pathsProcessed.contains(unit.path)) {
+              await process(unit);
+              pathsProcessed.add(unit.path!);
             }
           }
           break;
-        default:
-          break;
+        }
       }
     }
 

@@ -75,7 +75,8 @@ class HintCode extends AnalyzerErrorCode {
       HintCode(
           'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
           "The argument type '{0}' can't be assigned to the parameter type "
-              "'{1} Function(Object)' or '{1} Function(Object, StackTrace)'.");
+              "'{1} Function(Object)' or '{1} Function(Object, StackTrace)'.",
+          hasPublishedDocs: true);
 
   /**
    * Users should not assign values marked `@doNotStore`.
@@ -93,6 +94,37 @@ class HintCode extends AnalyzerErrorCode {
       'CAN_BE_NULL_AFTER_NULL_AWARE',
       "The receiver uses '?.', so its value can be null.",
       correction: "Replace the '.' with a '?.' in the invocation.");
+
+  /**
+   * Generate a hint for method, property or function annotated with
+   * `@useResult` whose invocation is unchecked.
+   *
+   * Parameters:
+   * 0: the name of the annotated method, property or function
+   */
+  static const HintCode UNUSED_RESULT = HintCode(
+      'UNUSED_RESULT', "'{0}' should be used.",
+      correction:
+          "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
+      hasPublishedDocs: false);
+
+  /**
+   * Generate a hint for method, property or function annotated with
+   * `@useResult` whose invocation is unchecked.
+   *
+   * Parameters:
+   * 0: the name of the annotated method, property or function
+   * 1: message details
+   */
+  static const HintCode UNUSED_RESULT_WITH_MESSAGE = HintCode(
+    'UNUSED_RESULT',
+    "'{0}' should be used. {1}.",
+    // todo(pq): consider passing in correction details: https://github.com/dart-lang/sdk/issues/46066
+    correction:
+        "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
+    hasPublishedDocs: false,
+    uniqueName: 'HintCode.UNUSED_RESULT_WITH_MESSAGE',
+  );
 
   /**
    * Dead code is code that is never reached, this can happen for instance if a
@@ -288,6 +320,15 @@ class HintCode extends AnalyzerErrorCode {
       'DEPRECATED_FUNCTION_CLASS_DECLARATION',
       "Declaring a class named 'Function' is deprecated.",
       correction: "Try renaming the class.");
+
+  /**
+   * According to the specification: If a class or mixin declaration implements
+   * Function, it has no effect.
+   */
+  static const HintCode DEPRECATED_IMPLEMENTS_FUNCTION = HintCode(
+      'DEPRECATED_IMPLEMENTS_FUNCTION',
+      "Implementing 'Function' has no effect.",
+      correction: "Try removing 'Function' from the 'implements' clause.");
 
   /**
    * Parameters:
@@ -728,6 +769,15 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
+   * When "strict-inference" is enabled, types in function invocations must be
+   * inferred via the context type, or have type arguments.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_FUNCTION_INVOCATION = HintCode(
+      'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
+      "The type argument(s) of the function '{0}' can't be inferred.",
+      correction: "Use explicit type argument(s) for '{0}'.");
+
+  /**
    * When "strict-inference" is enabled, recursive local functions, top-level
    * functions, methods, and function-typed function parameters must all
    * specify a return type. See the strict-inference resource:
@@ -738,6 +788,16 @@ class HintCode extends AnalyzerErrorCode {
       'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
       "The return type of '{0}' cannot be inferred.",
       correction: "Declare the return type of '{0}'.");
+
+  /**
+   * When "strict-inference" is enabled, types in function invocations must be
+   * inferred via the context type, or have type arguments.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_GENERIC_INVOCATION = HintCode(
+      'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
+      "The type argument(s) of the generic function type '{0}' can't be "
+          "inferred.",
+      correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
    * When "strict-inference" is enabled, types in instance creation
@@ -1869,6 +1929,7 @@ class HintCode extends AnalyzerErrorCode {
       'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
       "A value of type '{0}' can't be returned by the 'onError' handler "
           "because it must be assignable to '{1}'.",
+      hasPublishedDocs: true,
       uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR');
 
   /**
@@ -1880,6 +1941,7 @@ class HintCode extends AnalyzerErrorCode {
       'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
       "The return type '{0}' isn't assignable to '{1}', as required by "
           "'Future.catchError'.",
+      hasPublishedDocs: true,
       uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR');
 
   /**
@@ -2336,8 +2398,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_NEVER = HintCode(
       'SDK_VERSION_NEVER',
-      "The type 'Never' wasn't supported until version 2.X.0, but this code is "
-          "required to be able to run on earlier versions.",
+      "The type 'Never' wasn't supported until version 2.12.0, but this code "
+          "is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.",
       hasPublishedDocs: true);
 
@@ -2680,6 +2742,12 @@ class HintCode extends AnalyzerErrorCode {
       correction:
           "Try removing the name from the list, or removing the whole comment "
           "if this is the only name in the list.");
+
+  static const HintCode UNNECESSARY_IMPORT = HintCode(
+      'UNNECESSARY_IMPORT',
+      "The import of '{0}' is unnecessary as all of the used elements are also "
+          "provided by the import of '{1}'.",
+      correction: 'Try removing the import directive.');
 
   /**
    * Unnecessary `noSuchMethod` declaration.
@@ -3155,6 +3223,15 @@ class HintCode extends AnalyzerErrorCode {
       'UNUSED_SHOWN_NAME', "The name {0} is shown, but isn’t used.",
       correction: "Try removing the name from the list of shown members.",
       hasPublishedDocs: true);
+
+  /**
+   * Users should not import or export Dart native extensions via 'dart-ext:'.
+   */
+  static const HintCode USE_OF_NATIVE_EXTENSION = HintCode(
+      'USE_OF_NATIVE_EXTENSION',
+      "Dart native extensions are deprecated and will not be available in Dart "
+          "2.15",
+      correction: "Try using dart:ffi for C interop.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

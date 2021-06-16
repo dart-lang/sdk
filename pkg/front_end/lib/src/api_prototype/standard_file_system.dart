@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library front_end.standard_file_system;
 
 import 'dart:io' as io;
@@ -112,7 +110,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
    */
   FileSystemException _toFileSystemException(io.FileSystemException exception) {
     String message = exception.message;
-    String osMessage = exception.osError?.message;
+    String? osMessage = exception.osError?.message;
     if (osMessage != null && osMessage.isNotEmpty) {
       message = osMessage;
     }
@@ -125,7 +123,9 @@ class DataFileSystemEntity implements FileSystemEntity {
   @override
   final Uri uri;
 
-  DataFileSystemEntity(this.uri);
+  DataFileSystemEntity(this.uri)
+      : assert(uri.scheme == 'data'),
+        assert(uri.data != null);
 
   @override
   int get hashCode => uri.hashCode;
@@ -141,7 +141,7 @@ class DataFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<List<int>> readAsBytes() async {
-    return uri.data.contentAsBytes();
+    return uri.data!.contentAsBytes();
   }
 
   @override
@@ -152,6 +152,6 @@ class DataFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<String> readAsString() async {
-    return uri.data.contentAsString();
+    return uri.data!.contentAsString();
   }
 }

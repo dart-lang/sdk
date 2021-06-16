@@ -16,6 +16,8 @@ import 'package:kernel/ast.dart'
         Expression,
         Field,
         FieldInitializer,
+        InstanceAccessKind,
+        InstanceGet,
         IntLiteral,
         InterfaceType,
         ListLiteral,
@@ -126,6 +128,9 @@ class EnumBuilder extends SourceClassBuilder {
       Class referencesFrom,
       IndexedClass referencesFromIndexed) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
+
+    Uri fileUri = parent.fileUri;
+
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
     TypeBuilder intType = new NamedTypeBuilder(
@@ -146,7 +151,8 @@ class EnumBuilder extends SourceClassBuilder {
         /* arguments = */ null,
         /* fileUri = */ null,
         /* charOffset = */ null);
-    Class cls = new Class(name: name, reference: referencesFrom?.reference);
+    Class cls = new Class(
+        name: name, reference: referencesFrom?.reference, fileUri: fileUri);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     NamedTypeBuilder selfType = new NamedTypeBuilder(
@@ -172,6 +178,33 @@ class EnumBuilder extends SourceClassBuilder {
     ///   static const List<E> values = const <E>[id0, ..., idn-1];
     ///   String toString() => _name;
     /// }
+
+    FieldNameScheme instanceFieldNameScheme = new FieldNameScheme(
+        isInstanceMember: true,
+        className: name,
+        isExtensionMember: false,
+        extensionName: null,
+        libraryReference: referencesFrom != null
+            ? referencesFromIndexed.library.reference
+            : parent.library.reference);
+
+    FieldNameScheme staticFieldNameScheme = new FieldNameScheme(
+        isInstanceMember: false,
+        className: name,
+        isExtensionMember: false,
+        extensionName: null,
+        libraryReference: referencesFrom != null
+            ? referencesFromIndexed.library.reference
+            : parent.library.reference);
+
+    ProcedureNameScheme procedureNameScheme = new ProcedureNameScheme(
+        isStatic: false,
+        isExtensionMember: false,
+        extensionName: null,
+        libraryReference: referencesFrom != null
+            ? referencesFromIndexed.library.reference
+            : parent.library.reference);
+
     Constructor constructorReference;
     Reference toStringReference;
     Reference indexGetterReference;
@@ -210,6 +243,8 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         charOffset,
         charOffset,
+        instanceFieldNameScheme,
+        isInstanceMember: true,
         fieldGetterReference: indexGetterReference,
         fieldSetterReference: indexSetterReference);
     members["_name"] = new SourceFieldBuilder(
@@ -221,6 +256,8 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         charOffset,
         charOffset,
+        instanceFieldNameScheme,
+        isInstanceMember: true,
         fieldGetterReference: _nameGetterReference,
         fieldSetterReference: _nameSetterReference);
     ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
@@ -251,6 +288,8 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         charOffset,
         charOffset,
+        staticFieldNameScheme,
+        isInstanceMember: false,
         fieldGetterReference: valuesGetterReference,
         fieldSetterReference: valuesSetterReference);
     members["values"] = valuesBuilder;
@@ -263,8 +302,8 @@ class EnumBuilder extends SourceClassBuilder {
         0,
         stringType,
         "toString",
-        null,
-        null,
+        /* typeVariables = */ null,
+        /* formals = */ null,
         ProcedureKind.Method,
         parent,
         charOffset,
@@ -272,9 +311,11 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charEndOffset,
         toStringReference,
-        null,
+        /* tearOffReference = */ null,
         AsyncMarker.Sync,
-        /* isExtensionInstanceMember = */ false);
+        procedureNameScheme,
+        isExtensionMember: false,
+        isInstanceMember: true);
     members["toString"] = toStringBuilder;
     String className = name;
     if (enumConstantInfos != null) {
@@ -329,6 +370,8 @@ class EnumBuilder extends SourceClassBuilder {
             parent,
             enumConstantInfo.charOffset,
             enumConstantInfo.charOffset,
+            staticFieldNameScheme,
+            isInstanceMember: false,
             fieldGetterReference: getterReference,
             fieldSetterReference: setterReference);
         members[name] = fieldBuilder..next = existing;
@@ -395,8 +438,15 @@ class EnumBuilder extends SourceClassBuilder {
     nameFieldBuilder.build(libraryBuilder);
     Field nameField = nameFieldBuilder.field;
     ProcedureBuilder toStringBuilder = firstMemberNamed("toString");
-    toStringBuilder.body = new ReturnStatement(
-        new PropertyGet(new ThisExpression(), nameField.name, nameField));
+    if (libraryBuilder
+        .loader.target.backendTarget.supportsNewMethodInvocationEncoding) {
+      toStringBuilder.body = new ReturnStatement(new InstanceGet(
+          InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
+          interfaceTarget: nameField, resultType: nameField.type));
+    } else {
+      toStringBuilder.body = new ReturnStatement(
+          new PropertyGet(new ThisExpression(), nameField.name, nameField));
+    }
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo enumConstantInfo in enumConstantInfos) {

@@ -51,9 +51,9 @@ class FooActions extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → void {
-  let final self::FooActions* #t1 = new self::FooActions::•() in let final self::Bar* #t2 = new self::Bar::•() in #t1.{self::FooActions::foo}.{self::ActionDispatcher::call}(#t2);
-  new self::FooActions::•().{self::FooActions::foo}.{self::ActionDispatcher::call}(new self::Bar::•());
-  new self::FooActions::•().{self::FooActions::foo}.{self::ActionDispatcher::call}(new self::Bar::•());
+  let final self::FooActions* #t1 = new self::FooActions::•() in let final self::Bar* #t2 = new self::Bar::•() in #t1.{self::FooActions::foo}{self::ActionDispatcher<self::Bar*>*}.{self::ActionDispatcher::call}(#t2){([self::Bar*]) →* void};
+  new self::FooActions::•().{self::FooActions::foo}{self::ActionDispatcher<self::Bar*>*}.{self::ActionDispatcher::call}(new self::Bar::•()){([self::Bar*]) →* void};
+  new self::FooActions::•().{self::FooActions::foo}{self::ActionDispatcher<self::Bar*>*}.{self::ActionDispatcher::call}(new self::Bar::•()){([self::Bar*]) →* void};
 }
 
 constants  {

@@ -14,6 +14,9 @@
 #    should be the path to an external test. The external test will not be run,
 #    but the existence of the file will be verified.
 #
+#    Multiple scripts can start with a `// @dart=` annotation to enforce the
+#    language version used for the example code.
+#
 # Note that it can be hard or impossible to write an example that only gives the
 # specific error. To allow for this, one can specify
 # "exampleAllowMoreCodes: true" which filters out every message with a
@@ -147,6 +150,9 @@ ConstEvalTruncateError:
 ConstEvalNonNull:
   template: "Constant expression must be non-null."
 
+ConstEvalGetterNotFound:
+  template: "Variable get not found: '#nameOKEmpty'"
+
 ConstEvalInvalidMethodInvocation:
   template: "The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
@@ -188,7 +194,7 @@ ConstEvalDeferredLibrary:
   tip: >
     Try moving the constant from the deferred library, or removing 'deferred'
     from the import.
-  analyzerCode: NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY
+  analyzerCode: INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
 
 ConstEvalFreeTypeParameter:
   template: "The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed."
@@ -215,6 +221,12 @@ ConstEvalExtension:
 
 ConstEvalUnevaluated:
   template: "Couldn't evaluate constant expression."
+
+ConstEvalUnhandledCoreException:
+  template: "Unhandled core exception: #stringOKEmpty"
+
+ConstEvalUnhandledException:
+  template: "Unhandled exception: #constant"
 
 NotConstantExpression:
   template: "#string is not a constant expression."
@@ -588,12 +600,20 @@ AbstractClassMember:
   tip: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
   analyzerCode: ParserErrorCode.ABSTRACT_CLASS_MEMBER
   script:
-    - "abstract class C {abstract C.c();}"
-    - "abstract class C {abstract m();}"
-    - "abstract class C {abstract get m;}"
-    - "abstract class C {abstract set m(int x);}"
-    - "abstract class C {abstract var f;}"
-    - "abstract class C {abstract static var f;}"
+    - |
+      abstract class C {abstract C.c();}
+    - |
+      abstract class C {abstract m();}
+    - |
+      abstract class C {abstract get m;}
+    - |
+      abstract class C {abstract set m(int x);}
+    - |
+      // @dart=2.9
+      abstract class C {abstract var f;}
+    - |
+      // @dart=2.9
+      abstract class C {abstract static var f;}
 
 AbstractExternalField:
   index: 110
@@ -720,8 +740,11 @@ ConstFactory:
   template: "Only redirecting factory constructors can be declared to be 'const'."
   tip: "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target."
   analyzerCode: ParserErrorCode.CONST_FACTORY
-  script:
-    - "class C { const factory C() {} }"
+  script: |
+    class C {
+      const factory C() => const C.internal();
+      const C.internal();
+    }
 
 ConstFactoryRedirectionToNonConst:
   template: "Constant factory constructor can't delegate to a non-constant constructor."
@@ -762,8 +785,11 @@ TypeBeforeFactory:
   template: "Factory constructors cannot have a return type."
   tip: "Try removing the type appearing before 'factory'."
   analyzerCode: ParserErrorCode.TYPE_BEFORE_FACTORY
-  script:
-    - "class C { T factory C() { return null; } }"
+  script: |
+    class C {
+      T factory C() { return new C.constructor(); }
+      C.constructor();
+    }
 
 ConstConstructorWithBody:
   template: "A const constructor can't have a body."
@@ -828,7 +854,9 @@ ExternalField:
   tip: "Try removing the keyword 'external', or replacing the field by an external getter and/or setter."
   analyzerCode: ParserErrorCode.EXTERNAL_FIELD
   script:
-    - "class C { external var f; }"
+    - |
+      // @dart=2.9
+      class C { external var f; }
 
 
 ExternalFieldInitializer:
@@ -885,10 +913,10 @@ RedirectingConstructorWithAnotherInitializer:
   # also ASSERT_IN_REDIRECTING_CONSTRUCTOR
   analyzerCode: FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
   script:
-    - "class C { int x; C(); C.bad() : x = 5, this(); }"
-    - "class C { int x; C(); C.bad() : this(), x = 5; }"
-    - "class C { int x; C(); C.bad() : assert(true), this(); }"
-    - "class C { int x; C(); C.bad() : this(), assert(true); }"
+    - "class C { int? x; C(); C.bad() : x = 5, this(); }"
+    - "class C { int? x; C(); C.bad() : this(), x = 5; }"
+    - "class C { int? x; C(); C.bad() : assert(true), this(); }"
+    - "class C { int? x; C(); C.bad() : this(), assert(true); }"
 
 SuperInitializerNotLast:
   template: "Can't have initializers after 'super'."
@@ -1575,10 +1603,20 @@ ConstructorWithTypeParameters:
   analyzerCode: ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR
   tip: "Try removing the type parameters."
   script:
-    - "class C { C<T>() {} }"
-    - "class C { C.foo<T>() {} }"
-    - "class C { factory C<T>() => null; }"
-    - "class C { factory C.foo<T>() => null; }"
+    - >-
+      class C { C<T>() {} }
+    - >-
+      class C { C.foo<T>() {} }
+    - >-
+      class C {
+        factory C<T>() => new C.internal();
+        C.internal();
+      }
+    - >-
+      class C {
+        factory C.foo<T>() => new C.internal();
+        C.internal();
+      }
 
 ConstructorWithTypeArguments:
   template: "A constructor invocation can't have type arguments on the constructor name."
@@ -1593,9 +1631,18 @@ ConstructorWithWrongName:
   analyzerCode: ParserErrorCode.INVALID_CONSTRUCTOR_NAME
   index: 102
   script:
-    - "class A { B.foo() {} }"
-    - "class A { factory B() => null; }"
-    - "class A { factory B.foo() => null; }"
+    - >-
+      class A { B.foo() {} }
+    - >-
+      class A {
+        factory B() => new A.internal();
+        A.internal();
+      }
+    - >-
+      class A {
+        factory B.foo() => new A.internal();
+        A.internal();
+      }
 
 ConstructorWithWrongNameContext:
   template: "The name of the enclosing class is '#name'."
@@ -1749,6 +1796,20 @@ NotAPrefixInTypeAnnotation:
         class C<T> {
           T.String field;
         }
+
+FunctionUsedAsDec:
+  template: "'Function' is a built-in identifier, could not used as a #name name."
+  script:
+    - class Function {}
+    - extension Function on int {}
+    - mixin Function {}
+
+FunctionAsTypeParameter:
+  template: "'Function' is a built-in identifier, could not used as a type identifier."
+  script:
+    - class C<Function> {}
+    - mixin A<Function> {}
+    - extension A<Function> on List<Function> {}
 
 UnresolvedPrefixInTypeAnnotation:
   template: "'#name.#name2' can't be used as a type because '#name' isn't defined."
@@ -2379,6 +2440,7 @@ InvalidGetterSetterTypeBothInheritedGetter:
 InvalidGetterSetterTypeLegacy:
   template: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
   script: |
+    // @dart=2.9
     abstract class A {
       String get property;
       void set property(int i);
@@ -2387,6 +2449,7 @@ InvalidGetterSetterTypeLegacy:
 InvalidGetterSetterTypeGetterInheritedLegacy:
   template: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
   script: |
+    // @dart=2.9
     abstract class A {
       String get property;
     }
@@ -2397,6 +2460,7 @@ InvalidGetterSetterTypeGetterInheritedLegacy:
 InvalidGetterSetterTypeFieldInheritedLegacy:
   template: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'."
   script: |
+    // @dart=2.9
     abstract class A {
       final String property;
       A(this.property);
@@ -2408,6 +2472,7 @@ InvalidGetterSetterTypeFieldInheritedLegacy:
 InvalidGetterSetterTypeSetterInheritedGetterLegacy:
   template: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
   script: |
+    // @dart=2.9
     abstract class A {
       void set property(int i);
     }
@@ -2418,6 +2483,7 @@ InvalidGetterSetterTypeSetterInheritedGetterLegacy:
 InvalidGetterSetterTypeSetterInheritedFieldLegacy:
   template: "The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
   script: |
+    // @dart=2.9
     abstract class A {
       void set property(int i);
     }
@@ -2429,6 +2495,7 @@ InvalidGetterSetterTypeSetterInheritedFieldLegacy:
 InvalidGetterSetterTypeBothInheritedFieldLegacy:
   template: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
   script: |
+    // @dart=2.9
     abstract class A {
       final String property;
       A(this.property);
@@ -2441,6 +2508,7 @@ InvalidGetterSetterTypeBothInheritedFieldLegacy:
 InvalidGetterSetterTypeBothInheritedGetterLegacy:
   template: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
   script: |
+    // @dart=2.9
     abstract class A {
       String get property;
     }
@@ -2488,8 +2556,9 @@ AnnotationOnTypeArgument:
 
 AnnotationOnFunctionTypeTypeVariable:
   template: "A type variable on a function type can't have annotations."
-  script:
-    - "main() { Function<@Object() T>() x; }"
+  script: |
+     // @dart=2.13
+     main() { Function<@Object() T>() x; }
 
 ExpectedEnumBody:
   template: "Expected a enum body, but got '#lexeme'."
@@ -2535,8 +2604,8 @@ ExternalConstructorWithInitializer:
   template: "An external constructor can't have any initializers."
   analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER
   script:
-    - "class C { int x; external C() : x = 1; }"
-    - "class C { int x; external C.foo() : x = 1; }"
+    - "class C { int? x; external C() : x = 1; }"
+    - "class C { int? x; external C.foo() : x = 1; }"
 
 ExternalTypedef:
   index: 76
@@ -2578,7 +2647,9 @@ TypedefTypeVariableNotConstructorCause:
 TypedefNullableType:
   template: "Can't create typedef from nullable type."
   configuration: nnbd-strong
-  script: typedef F = void Function()?;
+  script: |
+    // @dart=2.12
+    typedef F = void Function()?;
 
 TypedefUnaliasedTypeCause:
   template: "This is the type denoted by the type alias."
@@ -2846,6 +2917,7 @@ DuplicatedDeclarationSyntheticCause:
 # Use this message when a duplicated declaration is used.
 DuplicatedDeclarationUse:
   template: "Can't use '#name' because it is declared more than once."
+  exampleAllowMoreCodes: true
   script:
     - main.dart: |
         // This test can't pass as tests must produce only one error message.
@@ -2865,6 +2937,18 @@ DuplicatedDeclarationUse:
         class C {}
       lib2.dart: |
         class C {}
+    - main.dart: |
+        class C {
+          method() {}
+          method() {}
+        }
+        main() => new C().method();
+    - main.dart: |
+        class C {
+          method() {}
+          method() {}
+        }
+        var f = new C().method();
 
 DuplicatedNamePreviouslyUsed:
   template: "Can't declare '#name' because it was already used in this scope."
@@ -2898,8 +2982,8 @@ MemberWithSameNameAsClass:
     - "class C { get C => 42; }"
     - "class C { set C(x) {} }"
     - "class C { set C(x) => 42; }"
-    - "class C { int C; }"
-    - "class C { int A, B, C, D, E; }"
+    - "class C { int? C; }"
+    - "class C { int? A, B, C, D, E; }"
 
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."
@@ -2951,18 +3035,32 @@ OperatorMinusParameterMismatch:
 SupertypeIsIllegal:
   template: "The type '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
+  script: |
+
+
+    class C extends dynamic {}
 
 SupertypeIsIllegalAliased:
   template: "The type '#name' which is an alias of '#type' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
+  script: |
+    typedef F = void Function();
+    class C extends F {}
 
 SupertypeIsNullableAliased:
   template: "The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable."
   analyzerCode: EXTENDS_NON_CLASS
+  experiments: nonfunction-type-aliases
+  script: |
+    class A {}
+    typedef B = A?;
+    class C extends B {}
 
 SupertypeIsTypeVariable:
   template: "The type variable '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
+  script: |
+    class C<T> extends T {}
 
 PartOfLibraryNameMismatch:
   template: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
@@ -3033,7 +3131,8 @@ SwitchExpressionNotAssignable:
   template: "Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression."
   analyzerCode: SWITCH_EXPRESSION_NOT_ASSIGNABLE
   script:
-    - >-
+    - |
+      // @dart=2.9
       void f() {
         switch (42) {
           case "foo": break;
@@ -3046,6 +3145,13 @@ SwitchExpressionNotAssignableCause:
 
 SwitchExpressionNotSubtype:
   template: "Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression."
+  script:
+    - |
+      void f() {
+        switch (42) {
+          case "foo": break;
+        }
+      }
 
 SwitchHasCaseAfterDefault:
   index: 16
@@ -3107,14 +3213,14 @@ TypeVariableInStaticContext:
     - |
       class C<T> {
         static staticMethod() {
-          List<T> t = null;
+          List<T>? t = null;
           return t;
         }
       }
     - |
       class C<T> {
         static staticMethod() {
-          T t = null;
+          T? t = null;
           return t;
         }
       }
@@ -3132,13 +3238,13 @@ TypeVariableInConstantContext:
     - |
       class C<T> {
         instanceMethod() {
-          return const <T>[null];
+          return const <T>[];
         }
       }
     - |
       class C<T> {
         instanceMethod() {
-          return const <List<T>>[null];
+          return const <List<T>>[];
         }
       }
 
@@ -3509,8 +3615,7 @@ UndefinedGetter:
   analyzerCode: UNDEFINED_GETTER
   script: >
     class C {}
-    main() {
-      C c;
+    test(C c) {
       print(c.foo);
     }
 
@@ -3520,8 +3625,7 @@ UndefinedSetter:
   analyzerCode: UNDEFINED_SETTER
   script: >
     class C {}
-    main() {
-      C c;
+    test(C c) {
       c.foo = 0;
     }
 
@@ -3531,8 +3635,7 @@ UndefinedMethod:
   analyzerCode: UNDEFINED_METHOD
   script: >
     class C {}
-    main() {
-      C c;
+    test(C c) {
       c.foo();
     }
 
@@ -3542,8 +3645,7 @@ UndefinedOperator:
   analyzerCode: UNDEFINED_METHOD
   script: >
     class C {}
-    main() {
-      C c;
+    test(C c) {
       c + 0;
     }
 
@@ -3927,6 +4029,7 @@ GenericFunctionTypeInBound:
   template: "Type variables can't have generic function types in their bounds."
   analyzerCode: GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND
   script: |
+    // @dart=2.13
     class Hest<X extends Y Function<Y>(Y)> {}
 
 VoidExpression:
@@ -3947,7 +4050,9 @@ ReturnWithoutExpression:
   template: "Must explicitly return a value from a non-void function."
   severity: WARNING
   analyzerCode: RETURN_WITHOUT_VALUE
-  declaration: "int foo() { return; }"
+  script: |
+    // @dart=2.9
+    int foo() { return; }
 
 ReturnWithoutExpressionSync:
   template: "A value must be explicitly returned from a non-void function."
@@ -4025,6 +4130,7 @@ InvokeNonFunction:
   template: "'#name' isn't a function or method and can't be invoked."
   analyzerCode: INVOCATION_OF_NON_FUNCTION
   script: |
+    // @dart=2.9
     class Foo {
       int f;
     }
@@ -4100,8 +4206,8 @@ IncompatibleRedirecteeFunctionType:
       }
     - >-
       class A {
-        factory A.f({int x}) = A.g;
-        A.g({int y}) { }
+        factory A.f({int? x}) = A.g;
+        A.g({int? y}) { }
       }
     - >-
       class A {
@@ -4159,7 +4265,7 @@ IncorrectTypeArgumentInReturnType:
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
     class A<T extends num> {}
-    A<String> foo() => null;
+    A<String> foo() => throw '';
 
 IncorrectTypeArgumentInferred:
   template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
@@ -4216,22 +4322,27 @@ GenericFunctionTypeUsedAsActualTypeArgument:
   tip: "Try using a non-generic function type."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
   script:
-    - >-
-      typedef F = List<T> Function<T>(T);
+    - |
+      // @dart=2.13
+      typedef F = Class<T> Function<T>(T);
+      class Class<T> {}
       main() {
-        List<F> list1;
+        Class<F> class1;
       }
-    - >-
-      typedef F = List<T> Function<T>(T);
+    - |
+      // @dart=2.13
+      typedef F = Class<T> Function<T>(T);
+      class Class<T> {}
       main() {
-        new List<F>();
+        Class<F>();
       }
 
 GenericFunctionTypeInferredAsActualTypeArgument:
   template: "Generic function type '#type' inferred as a type argument."
   tip: "Try providing a non-generic function type explicitly."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
-  script:
+  script: |
+    // @dart=2.13
     foo<X>(X x) => null;
     bar<Y>(Y y) => null;
     main() { foo(bar); }
@@ -4289,7 +4400,7 @@ FfiTypeMismatch:
 
 FfiEmptyStruct:
   # Used by dart:ffi
-  template: "Struct '#name' is empty. Empty structs are undefined behavior."
+  template: "#string '#name' is empty. Empty structs and unions are undefined behavior."
   external: test/ffi_test.dart
 
 FfiTypeInvalid:
@@ -4299,12 +4410,12 @@ FfiTypeInvalid:
 
 FfiFieldNull:
   # Used by dart:ffi
-  template: "Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct`."
+  template: "Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`."
   external: test/ffi_test.dart
 
 FfiFieldAnnotation:
   # Used by dart:ffi
-  template: "Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields."
+  template: "Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields."
   external: test/ffi_test.dart
 
 FfiFieldNoAnnotation:
@@ -4315,7 +4426,7 @@ FfiFieldNoAnnotation:
 FfiFieldCyclic:
   # Used by dart:ffi
   template: |
-    Struct '#name' contains itself. Cycle elements:
+    #string '#name' contains itself. Cycle elements:
     #names
   external: test/ffi_test.dart
 
@@ -4362,7 +4473,7 @@ FfiSizeAnnotationDimensions:
 
 FfiStructGeneric:
   # Used by dart:ffi
-  template: "Struct '#name' should not be generic."
+  template: "#string '#name' should not be generic."
   external: test/ffi_test.dart
 
 FfiDartTypeMismatch:
@@ -4390,6 +4501,21 @@ FfiExceptionalReturnNull:
   template: "Exceptional return value must not be null."
   external: test/ffi_test.dart
 
+FfiExpectedConstantArg:
+  # Used by dart:ffi
+  template: "Argument '#name' must be a constant."
+  external: test/ffi_test.dart
+
+FfiLeafCallMustNotTakeHandle:
+  # Used by dart:ffi
+  template: "FFI leaf call must not have Handle argument types."
+  external: test/ffi_test.dart
+
+FfiLeafCallMustNotReturnHandle:
+  # Used by dart:ffi
+  template: "FFI leaf call must not have Handle return type."
+  external: test/ffi_test.dart
+
 SpreadTypeMismatch:
   template: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
   script:
@@ -4400,7 +4526,7 @@ SpreadTypeMismatch:
       }
     - |
       main() {
-        int Function() a = null;
+        int Function() a = () => 42;
         var b = [...a];
       }
 
@@ -4443,7 +4569,7 @@ SpreadMapEntryTypeMismatch:
       }
     - |
       main() {
-        int Function() a = null;
+        int Function() a = () => 42;
         var b = <dynamic, dynamic>{...a};
       }
 
@@ -4534,6 +4660,11 @@ NonNullAwareSpreadIsNull:
     main() {
       <int>[...null];
     }
+
+NonPositiveArrayDimensions:
+  # Used by dart:ffi
+  template: "Array dimensions must be positive numbers."
+  external: test/ffi_test.dart
 
 InvalidTypeVariableInSupertype:
   template: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."
@@ -5049,3 +5180,10 @@ CompilingWithoutSoundNullSafety:
   script: |
     // @dart=2.9
     main() {}
+
+DeprecateDartExt:
+  template: "Dart native extensions are deprecated and will be removed in the 2.15 release of Dart SDK."
+  tip: "Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)"
+  severity: INFO
+  script: |
+    import 'dart-ext:foo.dart';

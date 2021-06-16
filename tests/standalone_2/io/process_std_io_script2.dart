@@ -5,6 +5,8 @@
 // Utility script to echo strings in various formats to stdout or
 // stderr.
 
+// @dart = 2.9
+
 import "dart:convert";
 import "dart:io";
 

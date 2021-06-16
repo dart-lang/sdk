@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that we report a compile-time error when a type parameter conflicts
 // with an instance or static member with the same name.
 

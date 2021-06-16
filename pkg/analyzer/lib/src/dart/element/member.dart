@@ -519,6 +519,9 @@ abstract class Member implements Element {
   bool get hasSealed => _declaration.hasSealed;
 
   @override
+  bool get hasUseResult => _declaration.hasUseResult;
+
+  @override
   bool get hasVisibleForTemplate => _declaration.hasVisibleForTemplate;
 
   @override
@@ -841,7 +844,7 @@ class ParameterMember extends VariableMember
 
   @override
   List<ParameterElement> get parameters {
-    DartType type = this.type;
+    final type = this.type;
     if (type is FunctionType) {
       return type.parameters;
     }

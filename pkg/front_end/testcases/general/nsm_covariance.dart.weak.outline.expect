@@ -57,13 +57,13 @@ class D3 extends core::Object implements nsm::A<core::int*>, nsm::B {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder method _method1(core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d) → void
-    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b, c, d]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b, c, d]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method2({core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d}) → void
-    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b, #c: c, #d: d})));
+    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b, #c: c, #d: d}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method3(covariant core::int* a, generic-covariant-impl core::int* b) → void
-    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method4({covariant core::int* a, generic-covariant-impl core::int* b}) → void
-    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b})));
+    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b}))){(core::Invocation*) →* dynamic};
 }
 class D4 extends core::Object implements nsm::B, nsm::A<core::int*> {
   synthetic constructor •() → self::D4*
@@ -81,13 +81,13 @@ class D4 extends core::Object implements nsm::B, nsm::A<core::int*> {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder method _method1(core::int* x, covariant core::int* y, generic-covariant-impl core::int* z, covariant generic-covariant-impl core::int* w) → void
-    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y, z, w]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y, z, w]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method2({core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d}) → void
-    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b, #c: c, #d: d})));
+    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b, #c: c, #d: d}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method3(covariant core::int* x, generic-covariant-impl core::int* y) → void
-    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method4({covariant core::int* a, generic-covariant-impl core::int* b}) → void
-    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b})));
+    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b}))){(core::Invocation*) →* dynamic};
 }
 static method main() → dynamic
   ;
@@ -184,13 +184,13 @@ class C3 extends core::Object implements nsm::A<core::int*>, nsm::B {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder method _method1(core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d) → void
-    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b, c, d]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b, c, d]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method2({core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d}) → void
-    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b, #c: c, #d: d})));
+    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b, #c: c, #d: d}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method3(covariant core::int* a, generic-covariant-impl core::int* b) → void
-    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[a, b]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method4({covariant core::int* a, generic-covariant-impl core::int* b}) → void
-    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b})));
+    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b}))){(core::Invocation*) →* dynamic};
 }
 class C4 extends core::Object implements nsm::B, nsm::A<core::int*> {
   synthetic constructor •() → nsm::C4*
@@ -208,13 +208,13 @@ class C4 extends core::Object implements nsm::B, nsm::A<core::int*> {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder method _method1(core::int* x, covariant core::int* y, generic-covariant-impl core::int* z, covariant generic-covariant-impl core::int* w) → void
-    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y, z, w]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y, z, w]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method2({core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d}) → void
-    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b, #c: c, #d: d})));
+    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method2, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b, #c: c, #d: d}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method3(covariant core::int* x, generic-covariant-impl core::int* y) → void
-    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method3, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x, y]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method _method4({covariant core::int* a, generic-covariant-impl core::int* b}) → void
-    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b})));
+    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#_method4, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#a: a, #b: b}))){(core::Invocation*) →* dynamic};
 }
 
 

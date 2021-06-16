@@ -21,9 +21,9 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-typedef A<unrelated X extends core::int = core::int> = core::String;
-typedef B<unrelated X extends core::int = core::int> = core::String;
-typedef C<X extends core::int = core::int> = X;
+typedef A<unrelated X extends core::int> = core::String;
+typedef B<unrelated X extends core::int> = core::String;
+typedef C<X extends core::int> = X;
 static method foo() → dynamic
   ;
 static method main() → dynamic

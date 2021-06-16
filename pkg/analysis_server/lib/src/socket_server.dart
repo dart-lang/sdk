@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -18,11 +16,11 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 
 abstract class AbstractSocketServer {
-  AbstractAnalysisServer get analysisServer;
+  AbstractAnalysisServer? get analysisServer;
 
   AnalysisServerOptions get analysisServerOptions;
 
-  DiagnosticServer get diagnosticServer;
+  DiagnosticServer? get diagnosticServer;
 }
 
 /// Instances of the class [SocketServer] implement the common parts of
@@ -38,15 +36,15 @@ class SocketServer implements AbstractSocketServer {
 
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
   final InstrumentationService instrumentationService;
-  final RequestStatisticsHelper requestStatistics;
+  final RequestStatisticsHelper? requestStatistics;
   @override
-  final DiagnosticServer diagnosticServer;
-  final DetachableFileSystemManager detachableFileSystemManager;
+  final DiagnosticServer? diagnosticServer;
+  final DetachableFileSystemManager? detachableFileSystemManager;
 
   /// The analysis server that was created when a client established a
   /// connection, or `null` if no such connection has yet been established.
   @override
-  AnalysisServer analysisServer;
+  AnalysisServer? analysisServer;
 
   SocketServer(
       this.analysisServerOptions,
@@ -73,7 +71,7 @@ class SocketServer implements AbstractSocketServer {
     var resourceProvider = PhysicalResourceProvider(
         stateLocation: analysisServerOptions.cacheFolder);
 
-    analysisServer = AnalysisServer(
+    var server = analysisServer = AnalysisServer(
       serverChannel,
       resourceProvider,
       analysisServerOptions,
@@ -85,6 +83,6 @@ class SocketServer implements AbstractSocketServer {
       detachableFileSystemManager: detachableFileSystemManager,
       enableBazelWatcher: true,
     );
-    detachableFileSystemManager?.setAnalysisServer(analysisServer);
+    detachableFileSystemManager?.setAnalysisServer(server);
   }
 }

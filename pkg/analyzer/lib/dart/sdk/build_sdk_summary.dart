@@ -116,7 +116,6 @@ class _Builder {
       );
     }
     return bundleBuilder.finish(
-      astBytes: linkResult.astBytes,
       resolutionBytes: linkResult.resolutionBytes,
       sdk: PackageBundleSdk(
         languageVersionMajor: languageVersion.major,
@@ -136,9 +135,15 @@ class _Builder {
 
     CompilationUnit definingUnit = _parse(source);
     inputUnits.add(
-      LinkInputUnit(null, source, false, definingUnit),
+      LinkInputUnit(
+        partDirectiveIndex: null,
+        source: source,
+        isSynthetic: false,
+        unit: definingUnit,
+      ),
     );
 
+    var partDirectiveIndex = 0;
     for (Directive directive in definingUnit.directives) {
       if (directive is NamespaceDirective) {
         String libUri = directive.uri.stringValue!;
@@ -149,13 +154,22 @@ class _Builder {
         Source partSource = context.sourceFactory.resolveUri(source, partUri)!;
         CompilationUnit partUnit = _parse(partSource);
         inputUnits.add(
-          LinkInputUnit(partUri, partSource, false, partUnit),
+          LinkInputUnit(
+            partUriStr: partUri,
+            partDirectiveIndex: partDirectiveIndex++,
+            source: partSource,
+            isSynthetic: false,
+            unit: partUnit,
+          ),
         );
       }
     }
 
     inputLibraries.add(
-      LinkInputLibrary(source, inputUnits),
+      LinkInputLibrary(
+        source: source,
+        units: inputUnits,
+      ),
     );
   }
 

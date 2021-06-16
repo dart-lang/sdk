@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -35,7 +33,6 @@ class AddMissingRequiredArgumentTest extends FixProcessorTest {
   Future<void> test_constructor_flutter_children() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required List<Widget> children});
@@ -47,7 +44,6 @@ build() {
 ''');
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required List<Widget> children});
@@ -62,7 +58,6 @@ build() {
   Future<void> test_constructor_flutter_hasTrailingComma() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required int a, @required int b});
@@ -74,7 +69,6 @@ build() {
 ''');
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required int a, @required int b});
@@ -337,7 +331,6 @@ main() {
   Future<void> test_param_child() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required String foo, @required Widget child});
@@ -351,7 +344,6 @@ build() {
 ''');
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required String foo, @required Widget child});
@@ -369,7 +361,6 @@ build() {
   Future<void> test_param_children() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required String foo, @required List<Widget> children});
@@ -383,7 +374,6 @@ build() {
 ''');
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required String foo, @required List<Widget> children});

@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -73,6 +72,34 @@ import 'package:test/b.dart';
 
 class C extends B {
   C(A a) : super(a);
+}
+''');
+  }
+
+  Future<void> test_lint_sortConstructorsFirst() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await resolveTestCode('''
+class A {
+  A(this.field);
+
+  int field;
+}
+class B extends A {
+  int existingField;
+  void existingMethod() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  A(this.field);
+
+  int field;
+}
+class B extends A {
+  B(int field) : super(field);
+
+  int existingField;
+  void existingMethod() {}
 }
 ''');
   }

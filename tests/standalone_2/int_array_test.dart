@@ -4,6 +4,8 @@
 //
 // Dart test program for testing native int arrays.
 
+// @dart = 2.9
+
 // Library tag to be able to run in html test framework.
 library IntArrayTest;
 

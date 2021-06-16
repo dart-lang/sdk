@@ -3,23 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A container that is either [T1] or [T2].
-class Either2<T1 extends Object, T2 extends Object> {
-  final T1? _t1;
-  final T2? _t2;
+class Either2<T1, T2> {
+  final int _which;
+  final Object? _value;
 
   Either2.t1(T1 t1)
-      : _t1 = t1,
-        _t2 = null;
+      : _which = 1,
+        _value = t1;
 
   Either2.t2(T2 t2)
-      : _t1 = null,
-        _t2 = t2;
+      : _which = 2,
+        _value = t2;
 
   T map<T>(T Function(T1) f1, T Function(T2) f2) {
-    if (_t1 != null) {
-      return f1(_t1!);
+    if (_which == 1) {
+      return f1(_value as T1);
     } else {
-      return f2(_t2!);
+      return f2(_value as T2);
     }
   }
 

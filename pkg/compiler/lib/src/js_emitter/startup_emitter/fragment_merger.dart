@@ -7,7 +7,6 @@ import '../../common_elements.dart' show ElementEnvironment;
 import '../../deferred_load.dart'
     show ImportDescription, OutputUnit, OutputUnitData, deferredPartFileName;
 import '../../elements/entities.dart';
-import '../../deferred_load.dart' show OutputUnit;
 import '../../js/js.dart' as js;
 import '../../options.dart';
 import '../model.dart';
@@ -165,7 +164,8 @@ class PreFragment {
   final Set<PreFragment> predecessors = {};
   FinalizedFragment finalizedFragment;
   int size = 0;
-  bool shouldInterleave = true;
+  // TODO(joshualitt): interleave dynamically when it makes sense.
+  bool shouldInterleave = false;
 
   PreFragment(
       this.outputFileName, EmittedOutputUnit emittedOutputUnit, this.size) {

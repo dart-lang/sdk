@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Verifies behavior with a static getter, but no field and no setter.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Example {

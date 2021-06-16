@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -51,20 +50,29 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     // update declaration
     {
       var prefix = element.prefix;
-      SourceEdit edit;
+      SourceEdit? edit;
       if (newName.isEmpty) {
+        // We should not get `prefix == null` because we check in
+        // `checkNewName` that the new name is different.
+        if (prefix == null) {
+          return;
+        }
         var node = _findNode();
-        var uriEnd = node.uri.end;
-        var prefixEnd = element.prefixOffset + prefix.nameLength;
-        edit = newSourceEdit_range(
-            range.startOffsetEndOffset(uriEnd, prefixEnd), '');
+        if (node != null) {
+          var uriEnd = node.uri.end;
+          var prefixEnd = prefix.nameOffset + prefix.nameLength;
+          edit = newSourceEdit_range(
+              range.startOffsetEndOffset(uriEnd, prefixEnd), '');
+        }
       } else {
         if (prefix == null) {
           var node = _findNode();
-          var uriEnd = node.uri.end;
-          edit = newSourceEdit_range(SourceRange(uriEnd, 0), ' as $newName');
+          if (node != null) {
+            var uriEnd = node.uri.end;
+            edit = newSourceEdit_range(SourceRange(uriEnd, 0), ' as $newName');
+          }
         } else {
-          var offset = element.prefixOffset;
+          var offset = prefix.nameOffset;
           var length = prefix.nameLength;
           edit = newSourceEdit_range(SourceRange(offset, length), newName);
         }
@@ -97,10 +105,14 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   }
 
   /// Return the [ImportDirective] node that corresponds to the [element].
-  ImportDirective _findNode() {
+  ImportDirective? _findNode() {
     var library = element.library;
     var path = library.source.fullName;
-    var unit = session.getParsedUnit(path).unit;
+    var unitResult = session.getParsedUnit2(path);
+    if (unitResult is! ParsedUnitResult) {
+      return null;
+    }
+    var unit = unitResult.unit;
     var index = library.imports.indexOf(element);
     return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
@@ -108,9 +120,13 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   /// If the given [reference] is before an interpolated [SimpleIdentifier] in
   /// an [InterpolationExpression] without surrounding curly brackets, return
   /// it. Otherwise return `null`.
-  SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
-    var source = reference.element.source;
-    var unit = session.getParsedUnit(source.fullName).unit;
+  SimpleIdentifier? _getInterpolationIdentifier(SourceReference reference) {
+    var source = reference.element.source!;
+    var unitResult = session.getParsedUnit2(source.fullName);
+    if (unitResult is! ParsedUnitResult) {
+      return null;
+    }
+    var unit = unitResult.unit;
     var nodeLocator = NodeLocator(reference.range.offset);
     var node = nodeLocator.searchWithin(unit);
     if (node is SimpleIdentifier) {

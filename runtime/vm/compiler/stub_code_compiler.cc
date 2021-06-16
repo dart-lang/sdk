@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/runtime_api.h"
+#include "vm/flags.h"
 #include "vm/globals.h"
 
 // For `StubCodeCompiler::GenerateAllocateUnhandledExceptionStub`
@@ -18,7 +19,6 @@
 #define __ assembler->
 
 namespace dart {
-
 namespace compiler {
 
 intptr_t StubCodeCompiler::WordOffsetFromFpToCpuRegister(
@@ -358,7 +358,7 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   __ CompareObject(scratch2_reg, Object::null_object());
   // If the arguments are null, then unwrapping gives dynamic, a top type.
   __ BranchIf(EQUAL, &is_top_type, compiler::Assembler::kNearJump);
-  __ LoadField(
+  __ LoadCompressedField(
       scratch1_reg,
       compiler::FieldAddress(
           scratch2_reg, compiler::target::TypeArguments::type_at_offset(0)));
@@ -457,7 +457,7 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     // If the arguments are null, then unwrapping gives the dynamic type,
     // which can take null.
     __ BranchIf(EQUAL, &is_assignable);
-    __ LoadField(
+    __ LoadCompressedField(
         kCurrentTypeReg,
         compiler::FieldAddress(
             kScratchReg, compiler::target::TypeArguments::type_at_offset(0)));
@@ -482,10 +482,11 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
       __ BranchIf(EQUAL, &is_assignable, Assembler::kNearJump);
       // Resolve the type parameter to its instantiated type and loop.
       __ LoadFieldFromOffset(kIndexReg, kCurrentTypeReg,
-                             target::TypeParameter::index_offset(), kTwoBytes);
-      __ LoadIndexedPayload(kCurrentTypeReg, tav,
-                            target::TypeArguments::types_offset(), kIndexReg,
-                            TIMES_WORD_SIZE);
+                             target::TypeParameter::index_offset(),
+                             kUnsignedByte);
+      __ LoadIndexedCompressed(kCurrentTypeReg, tav,
+                               target::TypeArguments::types_offset(),
+                               kIndexReg);
       __ Jump(&check_null_assignable);
     };
 
@@ -597,10 +598,11 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
     // Resolve the type parameter to its instantiated type and tail call the
     // instantiated type's TTS.
     __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                           target::TypeParameter::index_offset(), kTwoBytes);
-    __ LoadIndexedPayload(TypeTestABI::kScratchReg, tav,
-                          target::TypeArguments::types_offset(),
-                          TypeTestABI::kScratchReg, TIMES_WORD_SIZE);
+                           target::TypeParameter::index_offset(),
+                           kUnsignedByte);
+    __ LoadIndexedCompressed(TypeTestABI::kScratchReg, tav,
+                             target::TypeArguments::types_offset(),
+                             TypeTestABI::kScratchReg);
     __ Jump(FieldAddress(
         TypeTestABI::kScratchReg,
         target::AbstractType::type_test_stub_entry_point_offset()));
@@ -754,6 +756,100 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 #undef GENERATE_BREAKPOINT_STUB
 #endif  // !defined(TARGET_ARCH_IA32)
 
+// Called for inline allocation of closure.
+// Input (preserved):
+//   AllocateClosureABI::kFunctionReg: closure function.
+// Output:
+//   AllocateClosureABI::kResultReg: new allocated Closure object.
+// Clobbered:
+//   AllocateClosureABI::kScratchReg
+void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
+  const intptr_t instance_size =
+      target::RoundedAllocationSize(target::Closure::InstanceSize());
+  __ EnsureHasClassIdInDEBUG(kFunctionCid, AllocateClosureABI::kFunctionReg,
+                             AllocateClosureABI::kScratchReg);
+  __ EnsureHasClassIdInDEBUG(kContextCid, AllocateClosureABI::kContextReg,
+                             AllocateClosureABI::kScratchReg,
+                             /*can_be_null=*/true);
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label slow_case;
+    __ Comment("Inline allocation of uninitialized closure");
+#if defined(DEBUG)
+    // Need to account for the debug checks added by StoreToSlotNoBarrier.
+    const auto distance = Assembler::kFarJump;
+#else
+    const auto distance = Assembler::kNearJump;
+#endif
+    __ TryAllocateObject(kClosureCid, instance_size, &slow_case, distance,
+                         AllocateClosureABI::kResultReg,
+                         AllocateClosureABI::kScratchReg);
+
+    __ Comment("Inline initialization of allocated closure");
+    // Put null in the scratch register for initializing most boxed fields.
+    // We initialize the fields in offset order below.
+    // Since the TryAllocateObject above did not go to the slow path, we're
+    // guaranteed an object in new space here, and thus no barriers are needed.
+    __ LoadObject(AllocateClosureABI::kScratchReg, NullObject());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_instantiator_type_arguments());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_function_type_arguments());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_delayed_type_arguments());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kFunctionReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_function());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kContextReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_context());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_hash());
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
+    if (FLAG_precompiled_mode) {
+      // Set the closure entry point in precompiled mode, either to the function
+      // entry point in bare instructions mode or to 0 otherwise (to catch
+      // misuse). This overwrites the scratch register, but there are no more
+      // boxed fields.
+      if (FLAG_use_bare_instructions) {
+        __ LoadFromSlot(AllocateClosureABI::kScratchReg,
+                        AllocateClosureABI::kFunctionReg,
+                        Slot::Function_entry_point());
+      } else {
+        __ LoadImmediate(AllocateClosureABI::kScratchReg, 0);
+      }
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_entry_point());
+    }
+#endif
+
+    // AllocateClosureABI::kResultReg: new object.
+    __ Ret();
+
+    __ Bind(&slow_case);
+  }
+
+  __ Comment("Closure allocation via runtime");
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Space on the stack for the return value.
+  __ PushRegister(AllocateClosureABI::kFunctionReg);
+  __ PushRegister(AllocateClosureABI::kContextReg);
+  __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
+  __ PopRegister(AllocateClosureABI::kContextReg);
+  __ PopRegister(AllocateClosureABI::kFunctionReg);
+  __ PopRegister(AllocateClosureABI::kResultReg);
+  ASSERT(target::WillAllocateNewOrRememberedObject(instance_size));
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  __ LeaveStubFrame();
+
+  // AllocateClosureABI::kResultReg: new object
+  __ Ret();
+}
+
 // The UnhandledException class lives in the VM isolate, so it cannot cache
 // an allocation stub for itself. Instead, we cache it in the stub code list.
 void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(
@@ -888,8 +984,42 @@ void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateUnknownDartCodeStub(Assembler* assembler) {
+  // Enter frame to include caller into the backtrace.
+  __ EnterStubFrame();
   __ Breakpoint();  // Marker stub.
 }
+
+void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
+  __ Breakpoint();
+}
+
+#define EMIT_BOX_ALLOCATION(Name)                                              \
+  void StubCodeCompiler::GenerateAllocate##Name##Stub(Assembler* assembler) {  \
+    Label call_runtime;                                                        \
+    if (!FLAG_use_slow_path && FLAG_inline_alloc) {                            \
+      __ TryAllocate(compiler::Name##Class(), &call_runtime,                   \
+                     Assembler::kNearJump, AllocateBoxABI::kResultReg,         \
+                     AllocateBoxABI::kTempReg);                                \
+      __ Ret();                                                                \
+    }                                                                          \
+    __ Bind(&call_runtime);                                                    \
+    __ EnterStubFrame();                                                       \
+    __ PushObject(NullObject()); /* Make room for result. */                   \
+    __ CallRuntime(kAllocate##Name##RuntimeEntry, 0);                          \
+    __ PopRegister(AllocateBoxABI::kResultReg);                                \
+    __ LeaveStubFrame();                                                       \
+    __ Ret();                                                                  \
+  }
+
+EMIT_BOX_ALLOCATION(Mint)
+EMIT_BOX_ALLOCATION(Double)
+EMIT_BOX_ALLOCATION(Float32x4)
+EMIT_BOX_ALLOCATION(Float64x2)
+EMIT_BOX_ALLOCATION(Int32x4)
+
+#undef EMIT_BOX_ALLOCATION
 
 }  // namespace compiler
 

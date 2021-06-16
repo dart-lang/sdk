@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 
@@ -29,7 +27,15 @@ abstract class ConstantIntFolder {
     }
   }
 
+  /// Returns `true` of [constant] is an integer value.
   bool isInt(Constant constant);
+
+  /// Returns the value of [constant] as an [int], of `null` [constant] is
+  /// not an integer value.
+  ///
+  /// This method must return a non-null value iff `isInt(constant)` returns
+  /// `true`.
+  int? asInt(Constant constant);
 
   Constant makeIntConstant(int value, {bool unsigned: false});
 
@@ -43,7 +49,7 @@ abstract class ConstantIntFolder {
 
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
-  AbortConstant _checkOperands(
+  AbortConstant? _checkOperands(
       Expression node, String op, num left, num right) {
     if ((op == '<<' || op == '>>' || op == '>>>') && right < 0) {
       return evaluator.createErrorConstant(node,
@@ -62,6 +68,14 @@ class VmConstantIntFolder extends ConstantIntFolder {
 
   @override
   bool isInt(Constant constant) => constant is IntConstant;
+
+  @override
+  int? asInt(Constant constant) {
+    if (constant is IntConstant) {
+      return constant.value;
+    }
+    return null;
+  }
 
   @override
   IntConstant makeIntConstant(int value, {bool unsigned: false}) {
@@ -87,7 +101,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
       Expression node, String op, IntConstant left, IntConstant right) {
     int a = left.value;
     int b = right.value;
-    AbortConstant error = _checkOperands(node, op, a, b);
+    AbortConstant? error = _checkOperands(node, op, a, b);
     if (error != null) return error;
     switch (op) {
       case '+':
@@ -161,6 +175,14 @@ class JsConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
+  int? asInt(Constant constant) {
+    if (constant is DoubleConstant && _valueIsInteger(constant.value)) {
+      return constant.value.toInt();
+    }
+    return null;
+  }
+
+  @override
   DoubleConstant makeIntConstant(int value, {bool unsigned: false}) {
     double doubleValue = value.toDouble();
     // Invalid assert: assert(doubleValue.toInt() == value);
@@ -192,7 +214,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
       Expression node, String op, DoubleConstant left, DoubleConstant right) {
     double a = left.value;
     double b = right.value;
-    AbortConstant error = _checkOperands(node, op, a, b);
+    AbortConstant? error = _checkOperands(node, op, a, b);
     if (error != null) return error;
     switch (op) {
       case '+':

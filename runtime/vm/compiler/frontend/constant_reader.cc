@@ -10,6 +10,10 @@ namespace kernel {
 #define Z (zone_)
 #define H (translation_helper_)
 
+// Note: If changing how the constants are saved in the binary (and thus how
+// they are read here) be aware that there's also some reading going on in
+// KernelLoader::ReadVMAnnotations which then also has to be updated!
+
 ConstantReader::ConstantReader(KernelReaderHelper* helper,
                                ActiveClass* active_class)
     : helper_(helper),
@@ -70,7 +74,7 @@ ObjectPtr ConstantReader::ReadAnnotations() {
   return H.Canonicalize(metadata_values);
 }
 
-InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
+InstancePtr ConstantReader::ReadConstant(intptr_t constant_index) {
   ASSERT(!H.constants().IsNull());
   ASSERT(!H.constants_table().IsNull());  // raw bytes
 
@@ -83,31 +87,30 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   {
     SafepointMutexLocker ml(
         H.thread()->isolate_group()->kernel_constants_mutex());
-    KernelConstantsMap constant_map(H.info().constants());
-    result_ ^= constant_map.GetOrNull(constant_offset);
-    ASSERT(constant_map.Release().ptr() == H.info().constants());
+    const auto& constants_array = Array::Handle(Z, H.info().constants());
+    ASSERT(constant_index < constants_array.Length());
+    result_ ^= constants_array.At(constant_index);
   }
 
   // On miss, evaluate, and insert value.
-  if (result_.IsNull()) {
+  if (result_.ptr() == Object::sentinel().ptr()) {
     LeaveCompilerScope cs(H.thread());
-    result_ = ReadConstantInternal(constant_offset);
+    result_ = ReadConstantInternal(constant_index);
     SafepointMutexLocker ml(
         H.thread()->isolate_group()->kernel_constants_mutex());
-    KernelConstantsMap constant_map(H.info().constants());
-    auto insert = constant_map.InsertNewOrGetValue(constant_offset, result_);
-    ASSERT(insert == result_.ptr());
-    H.info().set_constants(constant_map.Release());  // update!
+    const auto& constants_array = Array::Handle(Z, H.info().constants());
+    ASSERT(constant_index < constants_array.Length());
+    constants_array.SetAt(constant_index, result_);
   }
   return result_.ptr();
 }
 
-bool ConstantReader::IsInstanceConstant(intptr_t constant_offset,
+bool ConstantReader::IsInstanceConstant(intptr_t constant_index,
                                         const Class& clazz) {
-  // Get reader directly into raw bytes of constant table.
+  // Get reader directly into raw bytes of constant table/constant mapping.
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
-  reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
-  reader.SetOffset(reader.ReaderOffset() + constant_offset);
+  NavigateToIndex(&reader, constant_index);
+
   // Peek for an instance of the given clazz.
   if (reader.ReadByte() == kInstanceConstant) {
     const NameIndex index = reader.ReadCanonicalNameReference();
@@ -116,12 +119,39 @@ bool ConstantReader::IsInstanceConstant(intptr_t constant_offset,
   return false;
 }
 
-InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
-  // Get reader directly into raw bytes of constant table.
+intptr_t ConstantReader::NumConstants() {
+  ASSERT(!H.constants_table().IsNull());
+  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  return NumConstants(&reader);
+}
+
+intptr_t ConstantReader::NumConstants(KernelReaderHelper* reader) {
+  // Get reader directly into raw bytes of constant table/constant mapping.
+  // Get the length of the constants (at the end of the mapping).
+  reader->SetOffset(reader->ReaderSize() - 4);
+  return reader->ReadUInt32();
+}
+
+intptr_t ConstantReader::NavigateToIndex(KernelReaderHelper* reader,
+                                         intptr_t constant_index) {
+  const intptr_t num_constants = NumConstants(reader);
+
+  // Get the binary offset of the constant at the wanted index.
+  reader->SetOffset(reader->ReaderSize() - 4 - (num_constants * 4) +
+                    (constant_index * 4));
+  const intptr_t constant_offset = reader->ReadUInt32();
+
+  reader->SetOffset(constant_offset);
+
+  return constant_offset;
+}
+
+InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
+  // Get reader directly into raw bytes of constant table/constant mapping.
   bool null_safety = H.thread()->isolate_group()->null_safety();
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
-  reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
-  reader.SetOffset(reader.ReaderOffset() + constant_offset);
+  const intptr_t constant_offset = NavigateToIndex(&reader, constant_index);
+
   // No function types returned as part of any types built should reference
   // free parent type args, ensured by clearing the enclosing function type.
   ActiveEnclosingFunctionScope scope(active_class_, nullptr);
@@ -221,9 +251,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       for (intptr_t j = 0; j < length; ++j) {
         // Recurse into lazily evaluating all "sub" constants
         // needed to evaluate the current constant.
-        const intptr_t entry_offset = reader.ReadUInt();
-        ASSERT(entry_offset < constant_offset);  // DAG!
-        constant = ReadConstant(entry_offset);
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        constant = ReadConstant(entry_index);
         array.SetAt(j, constant);
       }
       instance = array.ptr();
@@ -273,9 +303,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
             reader.ReadCanonicalNameReference());
         // Recurse into lazily evaluating all "sub" constants
         // needed to evaluate the current constant.
-        const intptr_t entry_offset = reader.ReadUInt();
-        ASSERT(entry_offset < constant_offset);  // DAG!
-        constant = ReadConstant(entry_offset);
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        constant = ReadConstant(entry_index);
         instance.SetField(field, constant);
       }
       break;
@@ -283,9 +313,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
     case kPartialInstantiationConstant: {
       // Recurse into lazily evaluating the "sub" constant
       // needed to evaluate the current constant.
-      const intptr_t entry_offset = reader.ReadUInt();
-      ASSERT(entry_offset < constant_offset);  // DAG!
-      const auto& constant = Instance::Handle(Z, ReadConstant(entry_offset));
+      const intptr_t entry_index = reader.ReadUInt();
+      ASSERT(entry_index < constant_offset);  // DAG!
+      const auto& constant = Instance::Handle(Z, ReadConstant(entry_index));
       ASSERT(!constant.IsNull());
 
       // Build type from the raw bytes (needs temporary translator).

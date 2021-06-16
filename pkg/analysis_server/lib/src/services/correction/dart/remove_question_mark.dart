@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,6 +11,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveQuestionMark extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_QUESTION_MARK;
 
   @override
@@ -20,17 +24,17 @@ class RemoveQuestionMark extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is VariableDeclaration) {
-      var parent = node.parent;
+    AstNode? targetNode = node;
+    if (targetNode is VariableDeclaration) {
+      var parent = targetNode.parent;
       if (parent is VariableDeclarationList) {
-        node = parent.type;
+        targetNode = parent.type;
       } else {
         return;
       }
     }
-    if (node is TypeName) {
-      var questionMark = node.question;
+    if (targetNode is TypeName) {
+      var questionMark = targetNode.question;
       if (questionMark == null) {
         return;
       }

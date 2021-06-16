@@ -781,6 +781,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleTypeArgumentApplication(Token openAngleBracket) {
+    listener?.handleTypeArgumentApplication(openAngleBracket);
+  }
+
+  @override
   void endHide(Token hideKeyword) {
     listener?.endHide(hideKeyword);
   }
@@ -1447,6 +1452,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     listener?.handleNativeFunctionBodySkipped(nativeToken, semicolon);
+  }
+
+  @override
+  void handleNewAsIdentifier(Token token) {
+    listener?.handleNewAsIdentifier(token);
   }
 
   @override

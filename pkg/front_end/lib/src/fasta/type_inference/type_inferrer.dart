@@ -4,18 +4,12 @@
 
 // @dart = 2.9
 
-import 'dart:core' hide MapEntry;
-import 'dart:core' as core;
+import 'dart:core';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-
-import 'package:front_end/src/fasta/kernel/internal_ast.dart';
-import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
-import 'package:front_end/src/testing/id_extractor.dart';
-import 'package:front_end/src/testing/id_testing_utils.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -35,16 +29,19 @@ import '../../base/instrumentation.dart'
 
 import '../../base/nnbd_mode.dart';
 
+import '../../testing/id_extractor.dart';
+import '../../testing/id_testing_utils.dart';
+
 import '../builder/constructor_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
 
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/inference_visitor.dart';
-
+import '../kernel/internal_ast.dart';
 import '../kernel/invalid_type.dart';
-
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import '../names.dart';
@@ -54,17 +51,11 @@ import '../problems.dart' show internalProblem, unexpected, unhandled;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'inference_helper.dart' show InferenceHelper;
-
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
-
+import 'type_demotion.dart';
 import 'type_inference_engine.dart';
-
-import 'type_promotion.dart' show TypePromoter;
-
 import 'type_schema.dart' show isKnown, UnknownType;
-
 import 'type_schema_elimination.dart' show greatestClosure;
-
 import 'type_schema_environment.dart'
     show
         getNamedParameterType,
@@ -123,10 +114,6 @@ enum MethodContravarianceCheckKind {
 abstract class TypeInferrer {
   SourceLibraryBuilder get library;
 
-  /// Gets the [TypePromoter] that can be used to perform type promotion within
-  /// this method body or initializer.
-  TypePromoter get typePromoter;
-
   /// Gets the [TypeSchemaEnvironment] being used for type inference.
   TypeSchemaEnvironment get typeSchemaEnvironment;
 
@@ -183,9 +170,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final TypeInferenceEngine engine;
 
-  @override
-  final TypePromoter typePromoter;
-
   final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
       DartType> flowAnalysis;
 
@@ -227,10 +211,13 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
-        typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
-        flowAnalysis = new FlowAnalysis(
-            new TypeOperationsCfe(engine.typeSchemaEnvironment),
-            assignedVariables);
+        flowAnalysis = library.isNonNullableByDefault
+            ? new FlowAnalysis(
+                new TypeOperationsCfe(engine.typeSchemaEnvironment),
+                assignedVariables)
+            : new FlowAnalysis.legacy(
+                new TypeOperationsCfe(engine.typeSchemaEnvironment),
+                assignedVariables);
 
   CoreTypes get coreTypes => engine.coreTypes;
 
@@ -290,15 +277,14 @@ class TypeInferrerImpl implements TypeInferrer {
   /// promoted, to be used when reporting an error for a larger expression
   /// containing [receiver].  [node] is the containing tree node.
   List<LocatedMessage> getWhyNotPromotedContext(
-      Expression receiver,
       Map<DartType, NonPromotionReason> whyNotPromoted,
       TreeNode node,
       bool Function(DartType) typeFilter) {
     List<LocatedMessage> context;
     if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
       _WhyNotPromotedVisitor whyNotPromotedVisitor =
-          new _WhyNotPromotedVisitor(this, receiver);
-      for (core.MapEntry<DartType, NonPromotionReason> entry
+          new _WhyNotPromotedVisitor(this);
+      for (MapEntry<DartType, NonPromotionReason> entry
           in whyNotPromoted.entries) {
         if (!typeFilter(entry.key)) continue;
         LocatedMessage message = entry.value.accept(whyNotPromotedVisitor);
@@ -317,7 +303,17 @@ class TypeInferrerImpl implements TypeInferrer {
           if (args.isNotEmpty) {
             nonPromotionReasonText += '(${args.join(', ')})';
           }
-          dataForTesting.flowAnalysisResult.nonPromotionReasons[node] =
+          TreeNode origNode = node;
+          while (origNode is VariableGet &&
+              origNode.variable.name == null &&
+              origNode.variable.initializer != null) {
+            // This is a read of a synthetic variable, presumably from a "let".
+            // Find the original expression.
+            // TODO(johnniwinther): add a general solution for getting the
+            // original node for testing.
+            origNode = (origNode as VariableGet).variable.initializer;
+          }
+          dataForTesting.flowAnalysisResult.nonPromotionReasons[origNode] =
               nonPromotionReasonText;
         }
         // Note: this will always pick the first viable reason (only).  I
@@ -479,7 +475,8 @@ class TypeInferrerImpl implements TypeInferrer {
       Template<Message Function(DartType, DartType, bool)>
           nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType, bool)>
-          nullabilityPartErrorTemplate}) {
+          nullabilityPartErrorTemplate,
+      Map<DartType, NonPromotionReason> Function() whyNotPromoted}) {
     assert(contextType != null);
 
     // [errorTemplate], [nullabilityErrorTemplate], and
@@ -608,6 +605,7 @@ class TypeInferrerImpl implements TypeInferrer {
                     declaredContextType ?? contextType,
                     isNonNullableByDefault));
           } else {
+            whyNotPromoted ??= flowAnalysis?.whyNotPromoted(expression);
             result = _wrapUnassignableExpression(
                 expression,
                 expressionType,
@@ -615,8 +613,7 @@ class TypeInferrerImpl implements TypeInferrer {
                 nullabilityErrorTemplate.withArguments(expressionType,
                     declaredContextType ?? contextType, isNonNullableByDefault),
                 context: getWhyNotPromotedContext(
-                    expression,
-                    flowAnalysis?.whyNotPromoted(expression)(),
+                    whyNotPromoted?.call(),
                     expression,
                     (type) => typeSchemaEnvironment.isSubtypeOf(type,
                         contextType, SubtypeCheckMode.withNullabilities)));
@@ -2374,6 +2371,11 @@ class TypeInferrerImpl implements TypeInferrer {
           new InstrumentationValueForTypeArgs(inferredTypes));
       arguments.types.clear();
       arguments.types.addAll(inferredTypes);
+      if (dataForTesting != null) {
+        assert(arguments.fileOffset != TreeNode.noOffset);
+        dataForTesting.typeInferenceResult.inferredTypeArguments[arguments] =
+            inferredTypes;
+      }
     }
     List<DartType> positionalArgumentTypes = [];
     List<NamedType> namedArgumentTypes = [];
@@ -2452,7 +2454,7 @@ class TypeInferrerImpl implements TypeInferrer {
     return new SuccessfulInferenceResult(inferredType, calleeType);
   }
 
-  DartType inferLocalFunction(FunctionNode function, DartType typeContext,
+  FunctionType inferLocalFunction(FunctionNode function, DartType typeContext,
       int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = false;
     if (returnContext == null) {
@@ -2564,6 +2566,10 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation?.record(uriForInstrumentation, formal.fileOffset,
             'type', new InstrumentationValueForType(inferredType));
         formal.type = demoteTypeInLibrary(inferredType, library.library);
+        if (dataForTesting != null) {
+          dataForTesting.typeInferenceResult.inferredVariableTypes[formal] =
+              formal.type;
+        }
       }
 
       if (isNonNullableByDefault) {
@@ -2826,7 +2832,6 @@ class TypeInferrerImpl implements TypeInferrer {
         //     void Function() get call => () {};
         //   }
         List<LocatedMessage> context = getWhyNotPromotedContext(
-            receiver,
             flowAnalysis?.whyNotPromoted(receiver)(),
             staticInvocation,
             (type) => !type.isPotentiallyNullable);
@@ -2858,7 +2863,6 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression replacement = result.applyResult(staticInvocation);
       if (!isTopLevel && target.isNullable) {
         List<LocatedMessage> context = getWhyNotPromotedContext(
-            receiver,
             flowAnalysis?.whyNotPromoted(receiver)(),
             staticInvocation,
             (type) => !type.isPotentiallyNullable);
@@ -2943,12 +2947,12 @@ class TypeInferrerImpl implements TypeInferrer {
       expression ??= new FunctionInvocation(
           target.isNullableCallFunction
               ? FunctionAccessKind.Nullable
-              : (inferredFunctionType == unknownFunction
+              : (identical(inferredFunctionType, unknownFunction)
                   ? FunctionAccessKind.Function
                   : FunctionAccessKind.FunctionType),
           receiver,
           arguments,
-          functionType: inferredFunctionType == unknownFunction
+          functionType: identical(inferredFunctionType, unknownFunction)
               ? null
               : inferredFunctionType)
         ..fileOffset = fileOffset;
@@ -2972,7 +2976,6 @@ class TypeInferrerImpl implements TypeInferrer {
     Expression replacement = result.applyResult(expression);
     if (!isTopLevel && target.isNullableCallFunction) {
       List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver,
           flowAnalysis?.whyNotPromoted(receiver)(),
           expression,
           (type) => !type.isPotentiallyNullable);
@@ -3147,7 +3150,6 @@ class TypeInferrerImpl implements TypeInferrer {
     replacement = result.applyResult(replacement);
     if (!isTopLevel && target.isNullable) {
       List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver,
           flowAnalysis?.whyNotPromoted(receiver)(),
           expression,
           (type) => !type.isPotentiallyNullable);
@@ -3308,7 +3310,6 @@ class TypeInferrerImpl implements TypeInferrer {
       //     void Function() get foo => () {};
       //   }
       List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver,
           flowAnalysis?.whyNotPromoted(receiver)(),
           invocationResult.expression,
           (type) => !type.isPotentiallyNullable);
@@ -3465,8 +3466,8 @@ class TypeInferrerImpl implements TypeInferrer {
           new PropertyGet(originalReceiver, originalName, originalTarget)
             ..fileOffset = fileOffset;
     }
-    flowAnalysis.propertyGet(
-        originalPropertyGet, originalReceiver, originalName.text, calleeType);
+    flowAnalysis.propertyGet(originalPropertyGet, originalReceiver,
+        originalName.text, originalTarget, calleeType);
     Expression propertyGet = originalPropertyGet;
     if (receiver is! ThisExpression &&
         calleeType is! DynamicType &&
@@ -3518,11 +3519,8 @@ class TypeInferrerImpl implements TypeInferrer {
       //   }
       // TODO(paulberry): would it be better to report NullableMethodCallError
       // in this scenario?
-      List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver,
-          whyNotPromoted(),
-          invocationResult.expression,
-          (type) => !type.isPotentiallyNullable);
+      List<LocatedMessage> context = getWhyNotPromotedContext(whyNotPromoted(),
+          invocationResult.expression, (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
           templateNullableExpressionCallError.withArguments(
@@ -3853,7 +3851,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
     flowAnalysis.thisOrSuperPropertyGet(
-        expression, expression.name.name, inferredType);
+        expression, expression.name.text, member, inferredType);
     return new ExpressionInferenceResult(inferredType, expression);
   }
 
@@ -4040,10 +4038,26 @@ class TypeInferrerImpl implements TypeInferrer {
 
   Member _getInterfaceMember(
       Class class_, Name name, bool setter, int charOffset) {
-    Member member = engine.hierarchyBuilder.getCombinedMemberSignatureKernel(
-        class_, name, setter, charOffset, library);
+    ClassMember classMember = engine.hierarchyBuilder
+        .getInterfaceClassMember(class_, name, setter: setter);
+    if (classMember != null) {
+      if (classMember.isStatic) {
+        classMember = null;
+      } else if (classMember.isDuplicate) {
+        if (!isTopLevel) {
+          library.addProblem(
+              templateDuplicatedDeclarationUse.withArguments(name.text),
+              charOffset,
+              name.text.length,
+              helper.uri);
+        }
+        classMember = null;
+      }
+    }
+    Member member = classMember?.getMember(engine.hierarchyBuilder);
     if (member == null && library.isPatch) {
-      // TODO(dmitryas): Hack for parts.
+      // TODO(johnniwinther): Injected members are currently not included
+      // in the class hierarchy builder.
       member ??=
           classHierarchy.getInterfaceMember(class_, name, setter: setter);
     }
@@ -4644,6 +4658,17 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   }
 }
 
+/// The result of inference of a property get expression.
+class PropertyGetInferenceResult {
+  /// The main inference result.
+  final ExpressionInferenceResult expressionInferenceResult;
+
+  /// The property that was looked up, or `null` if no property was found.
+  final Member member;
+
+  PropertyGetInferenceResult(this.expressionInferenceResult, this.member);
+}
+
 /// The result of an expression inference.
 class ExpressionInferenceResult {
   /// The inferred type of the expression.
@@ -5134,13 +5159,11 @@ class _WhyNotPromotedVisitor
             DartType> {
   final TypeInferrerImpl inferrer;
 
-  final Expression receiver;
-
   Member propertyReference;
 
   DartType propertyType;
 
-  _WhyNotPromotedVisitor(this.inferrer, this.receiver);
+  _WhyNotPromotedVisitor(this.inferrer);
 
   @override
   LocatedMessage visitDemoteViaExplicitWrite(
@@ -5158,26 +5181,16 @@ class _WhyNotPromotedVisitor
 
   @override
   LocatedMessage visitPropertyNotPromoted(PropertyNotPromoted reason) {
-    Member member;
-    Expression receiver = this.receiver;
-    if (receiver is InstanceGet) {
-      member = receiver.interfaceTarget;
-    } else if (receiver is SuperPropertyGet) {
-      member = receiver.interfaceTarget;
-    } else if (receiver is StaticInvocation) {
-      member = receiver.target;
-    } else if (receiver is PropertyGet) {
-      member = receiver.interfaceTarget;
-    } else {
-      assert(false, 'Unrecognized receiver: ${receiver.runtimeType}');
-    }
-    if (member != null) {
+    Object member = reason.propertyMember;
+    if (member is Member) {
       propertyReference = member;
       propertyType = reason.staticType;
       return templateFieldNotPromoted
           .withArguments(reason.propertyName, reason.documentationLink)
           .withLocation(member.fileUri, member.fileOffset, noLength);
     } else {
+      assert(member == null,
+          'Unrecognized property member: ${member.runtimeType}');
       return null;
     }
   }

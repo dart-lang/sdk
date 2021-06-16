@@ -1,0 +1,11 @@
+import "package:expect/expect.dart";
+
+const var1 = finallyThrow(0);
+const var2 = finallyThrow(1);
+int finallyThrow(int x) {}
+const var3 = unhandledThrow(0);
+const var4 = unhandledThrow("string");
+int unhandledThrow(dynamic x) {}
+const var5 = unhandledThrow2();
+int unhandledThrow2() {}
+main() {}

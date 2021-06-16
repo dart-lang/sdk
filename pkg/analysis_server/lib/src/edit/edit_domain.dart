@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
@@ -74,21 +72,17 @@ bool test_simulateRefactoringReset_afterInitialConditions = false;
 /// Instances of the class [EditDomainHandler] implement a [RequestHandler]
 /// that handles requests in the edit domain.
 class EditDomainHandler extends AbstractRequestHandler {
-  /// The [SearchEngine] for this server.
-  SearchEngine searchEngine;
-
   /// The workspace for rename refactorings.
-  RefactoringWorkspace refactoringWorkspace;
+  RefactoringWorkspace? refactoringWorkspace;
 
   /// The object used to manage uncompleted refactorings.
-  _RefactoringManager refactoringManager;
+  _RefactoringManager? refactoringManager;
 
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
   EditDomainHandler(AnalysisServer server) : super(server) {
-    searchEngine = server.searchEngine;
     refactoringWorkspace =
-        RefactoringWorkspace(server.driverMap.values, searchEngine);
+        RefactoringWorkspace(server.driverMap.values, server.searchEngine);
     _newRefactoringManager();
   }
 
@@ -106,7 +100,7 @@ class EditDomainHandler extends AbstractRequestHandler {
 
       var workspace = DartChangeWorkspace(server.currentSessions);
       var processor = BulkFixProcessor(server.instrumentationService, workspace,
-          useConfigFiles: params.inTestMode);
+          useConfigFiles: params.inTestMode ?? false);
 
       var collection = AnalysisContextCollectionImpl(
         includedPaths: params.included,
@@ -156,8 +150,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       return Response.formatInvalidFile(request);
     }
 
-    var start = params.selectionOffset;
-    var length = params.selectionLength;
+    int? start = params.selectionOffset;
+    int? length = params.selectionLength;
 
     // No need to preserve 0,0 selection
     if (start == 0 && length == 0) {
@@ -219,7 +213,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     } else {
       pluginFutures = server.pluginManager.broadcastRequest(
         requestParams,
-        contextRoot: driver.analysisContext.contextRoot,
+        contextRoot: driver.analysisContext!.contextRoot,
       );
     }
 
@@ -279,13 +273,13 @@ class EditDomainHandler extends AbstractRequestHandler {
     } else {
       pluginFutures = server.pluginManager.broadcastRequest(
         requestParams,
-        contextRoot: driver.analysisContext.contextRoot,
+        contextRoot: driver.analysisContext!.contextRoot,
       );
     }
     //
     // Compute fixes associated with server-generated errors.
     //
-    List<AnalysisErrorFixes> errorFixesList;
+    List<AnalysisErrorFixes>? errorFixesList;
     while (errorFixesList == null) {
       try {
         errorFixesList = await _computeServerErrorFixes(request, file, offset);
@@ -322,7 +316,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    SourceChange change;
+    SourceChange? change;
 
     var result = await server.getResolvedUnit(file);
     if (result != null) {
@@ -333,7 +327,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       );
       var processor = PostfixCompletionProcessor(context);
       var completion = await processor.compute();
-      change = completion?.change;
+      change = completion.change;
     }
     change ??= SourceChange('', edits: []);
 
@@ -350,7 +344,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    SourceChange change;
+    SourceChange? change;
 
     var result = await server.getResolvedUnit(file);
     if (result != null) {
@@ -367,7 +361,7 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   @override
-  Response handleRequest(Request request) {
+  Response? handleRequest(Request request) {
     try {
       var requestName = request.method;
       if (requestName == EDIT_REQUEST_FORMAT) {
@@ -433,14 +427,16 @@ class EditDomainHandler extends AbstractRequestHandler {
     var result = await server.getResolvedUnit(file);
     if (result == null) {
       server.sendResponse(Response.importElementsInvalidFile(request));
+      return;
     }
     var libraryUnit = result.libraryElement.definingCompilationUnit;
-    if (libraryUnit != result.unit.declaredElement) {
+    if (libraryUnit != result.unit!.declaredElement) {
       // The file in the request is a part of a library. We need to pass the
       // defining compilation unit to the computer, not the part.
       result = await server.getResolvedUnit(libraryUnit.source.fullName);
       if (result == null) {
         server.sendResponse(Response.importElementsInvalidFile(request));
+        return;
       }
     }
     //
@@ -516,8 +512,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     var fileStamp = -1;
-    var code = result.content;
-    var unit = result.unit;
+    var code = result.content!;
+    var unit = result.unit!;
     var errors = result.errors;
     // check if there are scan/parse errors in the file
     var numScanParseErrors = _getNumberOfScanParseErrors(errors);
@@ -584,6 +580,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       return errorFixesList;
     }
     var driver = server.getAnalysisDriver(file);
+    if (driver == null) {
+      return errorFixesList;
+    }
     var session = driver.currentSession;
     var sourceFactory = driver.sourceFactory;
     var errors = analyzeAnalysisOptions(
@@ -598,8 +597,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(
-            session, file, null, true, content, lineInfo, false, null, errors);
+        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
+            Uri.file(file), true, content, lineInfo, false, null, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -628,13 +627,16 @@ class EditDomainHandler extends AbstractRequestHandler {
           var context = DartFixContextImpl(
               server.instrumentationService, workspace, result, error, (name) {
             var tracker = server.declarationsTracker;
+            if (tracker == null) {
+              return const [];
+            }
             var provider = TopLevelDeclarationsProvider(tracker);
             return provider.get(
               result.session.analysisContext,
-              result.path,
+              result.path!,
               name,
             );
-          });
+          }, extensionCache: server.getExtensionCacheFor(result));
 
           List<Fix> fixes;
           try {
@@ -648,7 +650,7 @@ error: $error
 error.errorCode: ${error.errorCode}
 ''';
             throw CaughtExceptionWithFiles(exception, stackTrace, {
-              file: result.content,
+              file: result.content!,
               'parameters': parametersFile,
             });
           }
@@ -681,11 +683,12 @@ error.errorCode: ${error.errorCode}
     }
     var document =
         parseFragment(content, container: MANIFEST_TAG, generateSpans: true);
-    if (document == null) {
+    var validator = ManifestValidator(manifestFile.createSource());
+    var driver = server.getAnalysisDriver(file);
+    if (driver == null) {
       return errorFixesList;
     }
-    var validator = ManifestValidator(manifestFile.createSource());
-    var session = server.getAnalysisDriver(file).currentSession;
+    var session = driver.currentSession;
     var errors = validator.validate(content, true);
     for (var error in errors) {
       var generator = ManifestFixGenerator(error, content, document);
@@ -693,8 +696,8 @@ error.errorCode: ${error.errorCode}
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(
-            session, file, null, true, content, lineInfo, false, null, errors);
+        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
+            Uri.file(file), true, content, lineInfo, false, null, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -716,14 +719,18 @@ error.errorCode: ${error.errorCode}
     if (content == null) {
       return errorFixesList;
     }
-    var sourceFactory = server.getAnalysisDriver(file).sourceFactory;
+    var driver = server.getAnalysisDriver(file);
+    if (driver == null) {
+      return errorFixesList;
+    }
+    var sourceFactory = driver.sourceFactory;
     var pubspec = _getOptions(sourceFactory, content);
     if (pubspec == null) {
       return errorFixesList;
     }
     var validator =
         PubspecValidator(server.resourceProvider, pubspecFile.createSource());
-    var session = server.getAnalysisDriver(file).currentSession;
+    var session = driver.currentSession;
     var errors = validator.validate(pubspec.nodes);
     for (var error in errors) {
       var generator = PubspecFixGenerator(error, content, pubspec);
@@ -731,8 +738,8 @@ error.errorCode: ${error.errorCode}
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(
-            session, file, null, true, content, lineInfo, false, null, errors);
+        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
+            Uri.file(file), true, content, lineInfo, false, null, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -775,7 +782,7 @@ offset: $offset
 length: $length
       ''';
         throw CaughtExceptionWithFiles(exception, stackTrace, {
-          file: result.content,
+          file: result.content!,
           'parameters': parametersFile,
         });
       }
@@ -821,6 +828,7 @@ length: $length
     // add refactoring kinds
     var kinds = <RefactoringKind>[];
     // Check nodes.
+    final searchEngine = server.searchEngine;
     {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
@@ -858,9 +866,10 @@ length: $length
             }
           }
           // try RENAME
-          {
-            var renameRefactoring =
-                RenameRefactoring(refactoringWorkspace, resolvedUnit, element);
+          final refactoringWorkspace = this.refactoringWorkspace;
+          if (refactoringWorkspace != null) {
+            var renameRefactoring = RenameRefactoring.create(
+                refactoringWorkspace, resolvedUnit, element);
             if (renameRefactoring != null) {
               kinds.add(RefactoringKind.RENAME);
             }
@@ -873,7 +882,7 @@ length: $length
     server.sendResponse(result.toResponse(request.id));
   }
 
-  YamlMap _getOptions(SourceFactory sourceFactory, String content) {
+  YamlMap? _getOptions(SourceFactory sourceFactory, String content) {
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);
     try {
       return optionsProvider.getOptionsFromString(content);
@@ -883,6 +892,10 @@ length: $length
   }
 
   Response _getRefactoring(Request request) {
+    final refactoringManager = this.refactoringManager;
+    if (refactoringManager == null) {
+      return Response.unsupportedFeature(request.id, 'Search is not enabled.');
+    }
     if (refactoringManager.hasPendingRequest) {
       refactoringManager.cancel();
       _newRefactoringManager();
@@ -893,12 +906,15 @@ length: $length
 
   /// Initializes [refactoringManager] with a new instance.
   void _newRefactoringManager() {
-    refactoringManager = _RefactoringManager(server, refactoringWorkspace);
+    final refactoringWorkspace = this.refactoringWorkspace;
+    if (refactoringWorkspace != null) {
+      refactoringManager = _RefactoringManager(server, refactoringWorkspace);
+    }
   }
 
   /// Return the contents of the [file], or `null` if the file does not exist or
   /// cannot be read.
-  String _safelyRead(File file) {
+  String? _safelyRead(File file) {
     try {
       return file.readAsStringSync();
     } on FileSystemException {
@@ -933,20 +949,20 @@ class _RefactoringManager {
   final AnalysisServer server;
   final RefactoringWorkspace refactoringWorkspace;
   final SearchEngine searchEngine;
-  StreamSubscription subscriptionToReset;
+  StreamSubscription? subscriptionToReset;
 
-  RefactoringKind kind;
-  String file;
-  int offset;
-  int length;
-  Refactoring refactoring;
-  RefactoringFeedback feedback;
-  RefactoringStatus initStatus;
-  RefactoringStatus optionsStatus;
-  RefactoringStatus finalStatus;
+  RefactoringKind? kind;
+  String? file;
+  int? offset;
+  int? length;
+  Refactoring? refactoring;
+  RefactoringFeedback? feedback;
+  late RefactoringStatus initStatus;
+  late RefactoringStatus optionsStatus;
+  late RefactoringStatus finalStatus;
 
-  Request request;
-  EditGetRefactoringResult result;
+  Request? request;
+  EditGetRefactoringResult? result;
 
   _RefactoringManager(this.server, this.refactoringWorkspace)
       : searchEngine = refactoringWorkspace.searchEngine {
@@ -975,8 +991,9 @@ class _RefactoringManager {
 
   /// Cancels processing of the current request and cleans up.
   void cancel() {
-    if (request != null) {
-      server.sendResponse(Response.refactoringRequestCancelled(request));
+    var currentRequest = request;
+    if (currentRequest != null) {
+      server.sendResponse(Response.refactoringRequestCancelled(currentRequest));
       request = null;
     }
     _reset();
@@ -985,20 +1002,18 @@ class _RefactoringManager {
   void getRefactoring(Request _request) {
     // prepare for processing the request
     request = _request;
-    result = EditGetRefactoringResult(
+    final result = this.result = EditGetRefactoringResult(
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
     // process the request
     var params = EditGetRefactoringParams.fromRequest(_request);
     var file = params.file;
 
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+    if (server.sendResponseErrorIfInvalidFilePath(_request, file)) {
       return;
     }
 
-    if (params.kind != null) {
-      server.options.analytics
-          ?.sendEvent('refactor', params.kind.name.toLowerCase());
-    }
+    server.options.analytics
+        ?.sendEvent('refactor', params.kind.name.toLowerCase());
 
     runZonedGuarded(() async {
       await _init(params.kind, file, params.offset, params.length);
@@ -1031,6 +1046,7 @@ class _RefactoringManager {
         throw 'A simulated refactoring exception - final.';
       }
       // validation and create change
+      final refactoring = this.refactoring!;
       finalStatus = await refactoring.checkFinalConditions();
       _checkForReset_afterFinalConditions();
       if (_hasFatalError) {
@@ -1086,6 +1102,99 @@ class _RefactoringManager {
     }
   }
 
+  Future<void> _createRefactoringFromKind(
+      String file, int offset, int length) async {
+    if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+        var element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is PropertyAccessorElement) {
+            refactoring = ConvertGetterToMethodRefactoring(
+                searchEngine, resolvedUnit.session, element);
+          }
+        }
+      }
+    } else if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+        var element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is ExecutableElement) {
+            refactoring = ConvertMethodToGetterRefactoring(
+                searchEngine, resolvedUnit.session, element);
+          }
+        }
+      }
+    } else if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        refactoring = ExtractLocalRefactoring(resolvedUnit, offset, length);
+        feedback = ExtractLocalVariableFeedback(<String>[], <int>[], <int>[],
+            coveringExpressionOffsets: <int>[],
+            coveringExpressionLengths: <int>[]);
+      }
+    } else if (kind == RefactoringKind.EXTRACT_METHOD) {
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        refactoring = ExtractMethodRefactoring(
+            searchEngine, resolvedUnit, offset, length);
+        feedback = ExtractMethodFeedback(offset, length, '', <String>[], false,
+            <RefactoringMethodParameter>[], <int>[], <int>[]);
+      }
+    } else if (kind == RefactoringKind.EXTRACT_WIDGET) {
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        refactoring = ExtractWidgetRefactoring(
+            searchEngine, resolvedUnit, offset, length);
+        feedback = ExtractWidgetFeedback();
+      }
+    } else if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        refactoring = InlineLocalRefactoring(
+          searchEngine,
+          resolvedUnit,
+          offset,
+        );
+      }
+    } else if (kind == RefactoringKind.INLINE_METHOD) {
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        refactoring = InlineMethodRefactoring(
+          searchEngine,
+          resolvedUnit,
+          offset,
+        );
+      }
+    } else if (kind == RefactoringKind.MOVE_FILE) {
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        refactoring = MoveFileRefactoring(
+            server.resourceProvider, refactoringWorkspace, resolvedUnit, file);
+      }
+    } else if (kind == RefactoringKind.RENAME) {
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+        var element = server.getElementOfNode(node);
+        if (node != null && element != null) {
+          final renameElement =
+              RenameRefactoring.getElementToRename(node, element);
+          if (renameElement != null) {
+            // do create the refactoring
+            refactoring = RenameRefactoring.create(
+                refactoringWorkspace, resolvedUnit, renameElement.element);
+            feedback = RenameFeedback(
+                renameElement.offset, renameElement.length, 'kind', 'oldName');
+          }
+        }
+      }
+    }
+  }
+
   /// Initializes this context to perform a refactoring with the specified
   /// parameters. The existing [Refactoring] is reused or created as needed.
   Future _init(
@@ -1108,102 +1217,8 @@ class _RefactoringManager {
       throw 'A simulated refactoring exception - init.';
     }
     // create a new Refactoring instance
-    if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
-        if (element != null) {
-          if (element is ExecutableElement) {
-            refactoring = ConvertGetterToMethodRefactoring(
-                searchEngine, resolvedUnit.session, element);
-          }
-        }
-      }
-    }
-    if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
-        if (element != null) {
-          if (element is ExecutableElement) {
-            refactoring = ConvertMethodToGetterRefactoring(
-                searchEngine, resolvedUnit.session, element);
-          }
-        }
-      }
-    }
-    if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        refactoring = ExtractLocalRefactoring(resolvedUnit, offset, length);
-        feedback = ExtractLocalVariableFeedback(<String>[], <int>[], <int>[],
-            coveringExpressionOffsets: <int>[],
-            coveringExpressionLengths: <int>[]);
-      }
-    }
-    if (kind == RefactoringKind.EXTRACT_METHOD) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        refactoring = ExtractMethodRefactoring(
-            searchEngine, resolvedUnit, offset, length);
-        feedback = ExtractMethodFeedback(offset, length, '', <String>[], false,
-            <RefactoringMethodParameter>[], <int>[], <int>[]);
-      }
-    }
-    if (kind == RefactoringKind.EXTRACT_WIDGET) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        refactoring = ExtractWidgetRefactoring(
-            searchEngine, resolvedUnit, offset, length);
-        feedback = ExtractWidgetFeedback();
-      }
-    }
-    if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        refactoring = InlineLocalRefactoring(
-          searchEngine,
-          resolvedUnit,
-          offset,
-        );
-      }
-    }
-    if (kind == RefactoringKind.INLINE_METHOD) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        refactoring = InlineMethodRefactoring(
-          searchEngine,
-          resolvedUnit,
-          offset,
-        );
-      }
-    }
-    if (kind == RefactoringKind.MOVE_FILE) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        refactoring = MoveFileRefactoring(
-            server.resourceProvider, refactoringWorkspace, resolvedUnit, file);
-      }
-    }
-    if (kind == RefactoringKind.RENAME) {
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
-        if (node != null && element != null) {
-          final renameElement =
-              RenameRefactoring.getElementToRename(node, element);
-
-          // do create the refactoring
-          refactoring = RenameRefactoring(
-              refactoringWorkspace, resolvedUnit, renameElement.element);
-          feedback = RenameFeedback(
-              renameElement.offset, renameElement.length, 'kind', 'oldName');
-        }
-      }
-    }
+    await _createRefactoringFromKind(file, offset, length);
+    final refactoring = this.refactoring;
     if (refactoring == null) {
       initStatus = RefactoringStatus.fatal('Unable to create a refactoring');
       return;
@@ -1212,8 +1227,7 @@ class _RefactoringManager {
     initStatus = await refactoring.checkInitialConditions();
     _checkForReset_afterInitialConditions();
     if (refactoring is ExtractLocalRefactoring) {
-      ExtractLocalRefactoring refactoring = this.refactoring;
-      ExtractLocalVariableFeedback feedback = this.feedback;
+      final feedback = this.feedback as ExtractLocalVariableFeedback;
       feedback.names = refactoring.names;
       feedback.offsets = refactoring.offsets;
       feedback.lengths = refactoring.lengths;
@@ -1221,35 +1235,27 @@ class _RefactoringManager {
           refactoring.coveringExpressionOffsets;
       feedback.coveringExpressionLengths =
           refactoring.coveringExpressionLengths;
-    }
-    if (refactoring is ExtractMethodRefactoring) {
-      ExtractMethodRefactoring refactoring = this.refactoring;
-      ExtractMethodFeedback feedback = this.feedback;
+    } else if (refactoring is ExtractMethodRefactoring) {
+      final feedback = this.feedback as ExtractMethodFeedback;
       feedback.canCreateGetter = refactoring.canCreateGetter;
       feedback.returnType = refactoring.returnType;
       feedback.names = refactoring.names;
       feedback.parameters = refactoring.parameters;
       feedback.offsets = refactoring.offsets;
       feedback.lengths = refactoring.lengths;
-    }
-    if (refactoring is InlineLocalRefactoring) {
-      InlineLocalRefactoring refactoring = this.refactoring;
+    } else if (refactoring is InlineLocalRefactoring) {
       if (!initStatus.hasFatalError) {
         feedback = InlineLocalVariableFeedback(
-            refactoring.variableName, refactoring.referenceCount);
+            refactoring.variableName ?? '', refactoring.referenceCount);
       }
-    }
-    if (refactoring is InlineMethodRefactoring) {
-      InlineMethodRefactoring refactoring = this.refactoring;
+    } else if (refactoring is InlineMethodRefactoring) {
       if (!initStatus.hasFatalError) {
         feedback = InlineMethodFeedback(
-            refactoring.methodName, refactoring.isDeclaration,
+            refactoring.methodName ?? '', refactoring.isDeclaration,
             className: refactoring.className);
       }
-    }
-    if (refactoring is RenameRefactoring) {
-      RenameRefactoring refactoring = this.refactoring;
-      RenameFeedback feedback = this.feedback;
+    } else if (refactoring is RenameRefactoring) {
+      final feedback = this.feedback as RenameFeedback;
       feedback.elementKindName = refactoring.elementKindName;
       feedback.oldName = refactoring.oldName;
     }
@@ -1278,10 +1284,15 @@ class _RefactoringManager {
 
   void _sendResultResponse() {
     // ignore if was cancelled
+    final request = this.request;
     if (request == null) {
       return;
     }
     // set feedback
+    final result = this.result;
+    if (result == null) {
+      return;
+    }
     result.feedback = feedback;
     // set problems
     result.initialProblems = initStatus.problems;
@@ -1290,54 +1301,42 @@ class _RefactoringManager {
     // send the response
     server.sendResponse(result.toResponse(request.id));
     // done with this request
-    request = null;
-    result = null;
+    this.request = null;
+    this.result = null;
   }
 
   RefactoringStatus _setOptions(EditGetRefactoringParams params) {
+    final refactoring = this.refactoring;
     if (refactoring is ExtractLocalRefactoring) {
-      ExtractLocalRefactoring extractRefactoring = refactoring;
-      ExtractLocalVariableOptions extractOptions = params.options;
-      extractRefactoring.name = extractOptions.name;
-      extractRefactoring.extractAll = extractOptions.extractAll;
-      return extractRefactoring.checkName();
-    }
-    if (refactoring is ExtractMethodRefactoring) {
-      ExtractMethodRefactoring extractRefactoring = refactoring;
-      ExtractMethodOptions extractOptions = params.options;
-      extractRefactoring.createGetter = extractOptions.createGetter;
-      extractRefactoring.extractAll = extractOptions.extractAll;
-      extractRefactoring.name = extractOptions.name;
-      if (extractOptions.parameters != null) {
-        extractRefactoring.parameters = extractOptions.parameters;
-      }
-      extractRefactoring.returnType = extractOptions.returnType;
-      return extractRefactoring.checkName();
-    }
-    if (refactoring is ExtractWidgetRefactoring) {
-      ExtractWidgetRefactoring extractRefactoring = refactoring;
-      ExtractWidgetOptions extractOptions = params.options;
-      extractRefactoring.name = extractOptions.name;
-      return extractRefactoring.checkName();
-    }
-    if (refactoring is InlineMethodRefactoring) {
-      InlineMethodRefactoring inlineRefactoring = refactoring;
-      InlineMethodOptions inlineOptions = params.options;
-      inlineRefactoring.deleteSource = inlineOptions.deleteSource;
-      inlineRefactoring.inlineAll = inlineOptions.inlineAll;
+      var extractOptions = params.options as ExtractLocalVariableOptions;
+      refactoring.name = extractOptions.name;
+      refactoring.extractAll = extractOptions.extractAll;
+      return refactoring.checkName();
+    } else if (refactoring is ExtractMethodRefactoring) {
+      var extractOptions = params.options as ExtractMethodOptions;
+      refactoring.createGetter = extractOptions.createGetter;
+      refactoring.extractAll = extractOptions.extractAll;
+      refactoring.name = extractOptions.name;
+      refactoring.parameters = extractOptions.parameters;
+      refactoring.returnType = extractOptions.returnType;
+      return refactoring.checkName();
+    } else if (refactoring is ExtractWidgetRefactoring) {
+      var extractOptions = params.options as ExtractWidgetOptions;
+      refactoring.name = extractOptions.name;
+      return refactoring.checkName();
+    } else if (refactoring is InlineMethodRefactoring) {
+      var inlineOptions = params.options as InlineMethodOptions;
+      refactoring.deleteSource = inlineOptions.deleteSource;
+      refactoring.inlineAll = inlineOptions.inlineAll;
       return RefactoringStatus();
-    }
-    if (refactoring is MoveFileRefactoring) {
-      MoveFileRefactoring moveRefactoring = refactoring;
-      MoveFileOptions moveOptions = params.options;
-      moveRefactoring.newFile = moveOptions.newFile;
+    } else if (refactoring is MoveFileRefactoring) {
+      var moveOptions = params.options as MoveFileOptions;
+      refactoring.newFile = moveOptions.newFile;
       return RefactoringStatus();
-    }
-    if (refactoring is RenameRefactoring) {
-      RenameRefactoring renameRefactoring = refactoring;
-      RenameOptions renameOptions = params.options;
-      renameRefactoring.newName = renameOptions.newName;
-      return renameRefactoring.checkNewName();
+    } else if (refactoring is RenameRefactoring) {
+      var renameOptions = params.options as RenameOptions;
+      refactoring.newName = renameOptions.newName;
+      return refactoring.checkNewName();
     }
     return RefactoringStatus();
   }

@@ -243,7 +243,8 @@ class SimpleIdentifierResolver {
     } else if (element is TypeParameterElement) {
       staticType = _typeProvider.typeType;
     } else if (element is VariableElement) {
-      staticType = _resolver.localVariableTypeProvider.getType(node);
+      staticType = _resolver.localVariableTypeProvider
+          .getType(node, isRead: node.inGetterContext());
     } else if (element is PrefixElement) {
       var parent = node.parent;
       if (parent is PrefixedIdentifier && parent.prefix == node ||
@@ -252,6 +253,8 @@ class SimpleIdentifierResolver {
       }
       staticType = _typeProvider.dynamicType;
     } else if (element is DynamicElementImpl) {
+      staticType = _typeProvider.typeType;
+    } else if (element is NeverElementImpl) {
       staticType = _typeProvider.typeType;
     } else {
       staticType = DynamicTypeImpl.instance;

@@ -229,6 +229,17 @@
       "exclude": []
     },
     {
+      "name": "parser_equivalence",
+      "kind": "Chain",
+      "source": "test/parser_equivalence_suite.dart",
+      "path": "parser_testcases/",
+      "status": "parser_testcases/parser_equivalence.status",
+      "pattern": [
+        "\\.equivalence_info$"
+      ],
+      "exclude": []
+    },
+    {
       "name": "parser_all",
       "kind": "Chain",
       "source": "test/parser_all_suite.dart",

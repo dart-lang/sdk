@@ -277,7 +277,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
     _source.addAll(new CastMap<K, V, SK, SV>(other));
   }
 
-  V remove(Object? key) => _source.remove(key) as V;
+  V? remove(Object? key) => _source.remove(key) as V?;
 
   void clear() {
     _source.clear();

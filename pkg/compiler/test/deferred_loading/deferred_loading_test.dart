@@ -109,8 +109,11 @@ class Tags {
   static const String closure = 'closure_unit';
   static const String constants = 'constants';
   static const String type = 'type_unit';
-  static const String steps = 'steps';
-  static const String outputUnits = 'output_units';
+  // The below tags appear in a single block comment in the main file.
+  // To keep them appearing in sequential order we prefix characters.
+  static const String preFragments = 'a_pre_fragments';
+  static const String finalizedFragments = 'b_finalized_fragments';
+  static const String steps = 'c_steps';
 }
 
 class OutputUnitDataComputer extends DataComputer<Features> {
@@ -158,10 +161,8 @@ class OutputUnitDataComputer extends DataComputer<Features> {
         compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
     Set<OutputUnit> omittedOutputUnits =
         compiler.backendStrategy.emitterTask.emitter.omittedOutputUnits;
-    Map<String, List<PreFragment>> preFragmentMap =
-        buildPreFragmentMap(fragmentsToLoad, preDeferredFragments);
-    PreFragmentsIrComputer(
-            compiler.reporter, actualMap, preFragmentMap, omittedOutputUnits)
+    PreFragmentsIrComputer(compiler.reporter, actualMap, preDeferredFragments,
+            fragmentsToLoad, omittedOutputUnits)
         .computeForLibrary(node);
   }
 
@@ -171,13 +172,15 @@ class OutputUnitDataComputer extends DataComputer<Features> {
 }
 
 class PreFragmentsIrComputer extends IrDataExtractor<Features> {
-  final Map<String, List<PreFragment>> _preFragmentMap;
+  final List<PreFragment> _preDeferredFragments;
+  final Map<String, List<FinalizedFragment>> _fragmentsToLoad;
   final Set<OutputUnit> _omittedOutputUnits;
 
   PreFragmentsIrComputer(
       DiagnosticReporter reporter,
       Map<Id, ActualData<Features>> actualMap,
-      this._preFragmentMap,
+      this._preDeferredFragments,
+      this._fragmentsToLoad,
       this._omittedOutputUnits)
       : super(reporter, actualMap);
 
@@ -187,51 +190,82 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
     Features features = new Features();
     if (!name.startsWith('main')) return features;
 
+    // First build a list of pre fragments and their dependencies.
     int index = 1;
+    Map<FinalizedFragment, int> finalizedFragmentIndices = {};
     Map<PreFragment, int> preFragmentIndices = {};
     Map<int, PreFragment> reversePreFragmentIndices = {};
-    _preFragmentMap.forEach((loadId, preFragments) {
-      List<String> preFragmentNeeds = [];
-      for (var preFragment in preFragments) {
-        if (!preFragmentIndices.containsKey(preFragment)) {
-          preFragmentIndices[preFragment] = index;
-          reversePreFragmentIndices[index++] = preFragment;
-        }
-        preFragmentNeeds.add('f${preFragmentIndices[preFragment]}');
+    Map<int, FinalizedFragment> reverseFinalizedFragmentIndices = {};
+    for (var preFragment in _preDeferredFragments) {
+      if (!preFragmentIndices.containsKey(preFragment)) {
+        var finalizedFragment = preFragment.finalizedFragment;
+        preFragmentIndices[preFragment] = index;
+        finalizedFragmentIndices[finalizedFragment] = index;
+        reversePreFragmentIndices[index] = preFragment;
+        reverseFinalizedFragmentIndices[index] = finalizedFragment;
+        index++;
       }
-      features.addElement(
-          Tags.steps, '$loadId=(${preFragmentNeeds.join(', ')})');
-    });
+    }
 
     for (int i = 1; i < index; i++) {
       var preFragment = reversePreFragmentIndices[i];
-      List<int> needs = [];
+      List<String> needs = [];
       List<OutputUnit> supplied = [];
-      List<int> usedBy = [];
+      List<String> usedBy = [];
       for (var dependent in preFragment.successors) {
         if (preFragmentIndices.containsKey(dependent)) {
-          usedBy.add(preFragmentIndices[dependent]);
+          usedBy.add('p${preFragmentIndices[dependent]}');
         }
       }
 
       for (var dependency in preFragment.predecessors) {
         if (preFragmentIndices.containsKey(dependency)) {
-          needs.add(preFragmentIndices[dependency]);
+          needs.add('p${preFragmentIndices[dependency]}');
         }
       }
 
       for (var emittedOutputUnit in preFragment.emittedOutputUnits) {
-        var outputUnit = emittedOutputUnit.outputUnit;
-        if (!_omittedOutputUnits.contains(outputUnit)) {
-          supplied.add(outputUnit);
+        supplied.add(emittedOutputUnit.outputUnit);
+      }
+
+      var suppliedString = '[${supplied.map(outputUnitString).join(', ')}]';
+      features.addElement(Tags.preFragments,
+          'p$i: {units: $suppliedString, usedBy: $usedBy, needs: $needs}');
+    }
+
+    // Now dump finalized fragments and load ids.
+    for (int i = 1; i < index; i++) {
+      var finalizedFragment = reverseFinalizedFragmentIndices[i];
+      List<String> supplied = [];
+
+      for (var codeFragment in finalizedFragment.codeFragments) {
+        List<String> outputUnitStrings = [];
+        for (var outputUnit in codeFragment.outputUnits) {
+          if (!_omittedOutputUnits.contains(outputUnit)) {
+            outputUnitStrings.add(outputUnitString(outputUnit));
+          }
+        }
+        if (outputUnitStrings.isNotEmpty) {
+          supplied.add(outputUnitStrings.join('+'));
         }
       }
+
       if (supplied.isNotEmpty) {
-        var suppliedString = '[${supplied.map(outputUnitString).join(', ')}]';
-        features.addElement(Tags.outputUnits,
-            'f$i: {units: $suppliedString, usedBy: $usedBy, needs: $needs}');
+        var suppliedString = '[${supplied.join(', ')}]';
+        features.addElement(Tags.finalizedFragments, 'f$i: $suppliedString');
       }
     }
+
+    _fragmentsToLoad.forEach((loadId, finalizedFragments) {
+      List<String> finalizedFragmentNeeds = [];
+      for (var finalizedFragment in finalizedFragments) {
+        assert(finalizedFragmentIndices.containsKey(finalizedFragment));
+        finalizedFragmentNeeds
+            .add('f${finalizedFragmentIndices[finalizedFragment]}');
+      }
+      features.addElement(
+          Tags.steps, '$loadId=(${finalizedFragmentNeeds.join(', ')})');
+    });
 
     return features;
   }

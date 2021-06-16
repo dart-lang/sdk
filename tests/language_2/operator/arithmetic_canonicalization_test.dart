@@ -4,6 +4,8 @@
 // Test canonicalization of simple arithmetic equivalences.
 // VMOptions=--optimization-counter-threshold=20 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

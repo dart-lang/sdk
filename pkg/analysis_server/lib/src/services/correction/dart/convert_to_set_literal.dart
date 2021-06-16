@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -17,6 +16,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ConvertToSetLiteral extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SET_LITERAL;
+
+  @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SET_LITERAL;
@@ -62,8 +67,8 @@ class ConvertToSetLiteral extends CorrectionProducer {
       var name = creation.constructorName.name;
       var constructorTypeArguments =
           creation.constructorName.type.typeArguments;
-      TypeArgumentList elementTypeArguments;
-      SourceRange elementsRange;
+      TypeArgumentList? elementTypeArguments;
+      SourceRange? elementsRange;
       if (name == null) {
         // Handle an invocation of the default constructor `Set()`.
       } else if (name.name == 'from' || name.name == 'of') {
@@ -111,7 +116,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
 
   /// Return the invocation of `List.toSet` that is to be converted, or `null`
   /// if the cursor is not inside a invocation of `List.toSet`.
-  MethodInvocation _findInvocationOfToSet() {
+  MethodInvocation? _findInvocationOfToSet() {
     var invocation = node.thisOrAncestorOfType<MethodInvocation>();
     if (invocation == null ||
         node.offset > invocation.argumentList.offset ||
@@ -124,12 +129,23 @@ class ConvertToSetLiteral extends CorrectionProducer {
 
   /// Return the invocation of a `Set` constructor that is to be converted, or
   /// `null` if the cursor is not inside the invocation of a constructor.
-  InstanceCreationExpression _findSetCreation() {
+  InstanceCreationExpression? _findSetCreation() {
     var creation = node.thisOrAncestorOfType<InstanceCreationExpression>();
+    if (creation == null) {
+      return null;
+    }
+
+    if (node.offset > creation.argumentList.offset) {
+      return null;
+    }
+
+    var type = creation.staticType;
+    if (type is! InterfaceType) {
+      return null;
+    }
+
     // TODO(brianwilkerson) Consider also accepting uses of LinkedHashSet.
-    if (creation == null ||
-        node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.setElement) {
+    if (type.element != typeProvider.setElement) {
       return null;
     }
     return creation;
@@ -139,7 +155,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
   /// element that would cause a set to be inferred.
   bool _hasUnambiguousElement(InstanceCreationExpression creation) {
     var arguments = creation.argumentList.arguments;
-    if (arguments == null || arguments.isEmpty) {
+    if (arguments.isEmpty) {
       return false;
     }
     return _listHasUnambiguousElement(arguments[0]);
@@ -147,7 +163,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
 
   /// Return `true` if the [element] is sufficient to lexically make the
   /// enclosing literal a set literal rather than a map.
-  bool _isUnambiguousElement(CollectionElement element) {
+  bool _isUnambiguousElement(CollectionElement? element) {
     if (element is ForElement) {
       return _isUnambiguousElement(element.body);
     } else if (element is IfElement) {
@@ -176,7 +192,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
   /// Return `true` if a set would be inferred if the literal replacing the
   /// instance [creation] did not have explicit type arguments.
   bool _setWouldBeInferred(InstanceCreationExpression creation) {
-    var parent = creation.parent;
+    var parent = creation.parent!;
     if (parent is VariableDeclaration) {
       var parent2 = parent.parent;
       if (parent2 is VariableDeclarationList &&
@@ -185,7 +201,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
       }
     } else if (parent.parent is InvocationExpression) {
       var parameterElement = creation.staticParameterElement;
-      if (parameterElement?.type?.element == typeProvider.setElement) {
+      if (parameterElement?.type.element == typeProvider.setElement) {
         return true;
       }
     }

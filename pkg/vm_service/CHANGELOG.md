@@ -1,5 +1,14 @@
 # Changelog
 
+## 7.1.0
+- Update to version `3.46` of the spec.
+- Move `sourcePosition` properties into `ClassRef`, `FieldRef`, and `FuncRef`.
+
+## 7.0.0
+- *breaking bug fix*: Fixed issue where response parsing could fail for `Context`.
+- Add support for `setBreakpointState` RPC and updated `Breakpoint` class to include
+  `enabled` property.
+
 ## 6.2.0
 - Added support for `getHttpProfile` and `clearHttpProfile` `dart:io` service extensions.
 

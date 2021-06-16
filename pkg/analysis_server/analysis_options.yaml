@@ -17,6 +17,7 @@ linter:
   rules:
     - await_only_futures
     - avoid_single_cascade_in_expression_statements
+    - depend_on_referenced_packages
     - empty_statements
     - iterable_contains_unrelated_type
     - list_remove_unrelated_type

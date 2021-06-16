@@ -2,16 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime != none ]
-LibTest/core/Uri/hasEmptyPath_A01_t01: RuntimeError
-LibTest/core/Uri/parse_A05_t01: RuntimeError
-
 [ $system == windows ]
 LibTest/io/Stdin/readByteSync_A01_t01: Skip # Issue 43645
 LibTest/io/Stdin/readByteSync_A01_t02: Skip # Issue 43645
-
-[ $compiler != dart2js && $runtime != none && $runtime != vm && !$checked ]
-LibTest/async/Future/catchError_A03_t05: RuntimeError
 
 [ $mode == debug && $runtime == dart_precompiled ]
 LibTest/collection/ListBase/ListBase_class_A01_t03: SkipSlow # Very slow compilation in debug mode.

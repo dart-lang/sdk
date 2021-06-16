@@ -7,5 +7,5 @@ static field () →* core::int* x = () → core::int* {
   return y;
 };
 static method main() → dynamic {
-  core::print(self::x.call());
+  core::print(self::x(){() →* core::int*});
 }

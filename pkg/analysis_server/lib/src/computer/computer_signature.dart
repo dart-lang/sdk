@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
@@ -16,66 +15,55 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 /// [CompilationUnit].
 class DartUnitSignatureComputer {
   final DartdocDirectiveInfo _dartdocInfo;
-  final AstNode _node;
-  ArgumentList _argumentList;
+  final AstNode? _node;
+  late ArgumentList _argumentList;
+  final bool _isNonNullableByDefault;
   DartUnitSignatureComputer(
       this._dartdocInfo, CompilationUnit _unit, int _offset)
-      : _node = NodeLocator(_offset).searchWithin(_unit);
+      : _node = NodeLocator(_offset).searchWithin(_unit),
+        _isNonNullableByDefault = _unit.isNonNullableByDefault;
 
   /// The [ArgumentList] node located by [compute].
   ArgumentList get argumentList => _argumentList;
 
   bool get offsetIsValid => _node != null;
 
+  // Return the closest argument list surrounding the [_node].
   /// Returns the computed signature information, maybe `null`.
-  AnalysisGetSignatureResult compute() {
-    if (_node == null) {
+  AnalysisGetSignatureResult? compute() {
+    var argumentList = _findArgumentList();
+    if (argumentList == null) {
       return null;
     }
-
-    // Find the closest argument list.
-    var argsNode = _node;
-    while (argsNode != null && !(argsNode is ArgumentList)) {
-      // Certain nodes don't make sense to search above for an argument list
-      // (for example when inside a function epxression).
-      if (argsNode is FunctionExpression) {
-        return null;
-      }
-      argsNode = argsNode.parent;
-    }
-
-    if (argsNode == null) {
-      return null;
-    }
-
-    final args = argsNode;
-    String name;
-    ExecutableElement execElement;
-    final parent = args.parent;
+    String? name;
+    ExecutableElement? execElement;
+    final parent = argumentList.parent;
     if (parent is MethodInvocation) {
       name = parent.methodName.name;
       var element = ElementLocator.locate(parent);
       execElement = element is ExecutableElement ? element : null;
     } else if (parent is InstanceCreationExpression) {
       name = parent.constructorName.type.name.name;
-      if (parent.constructorName.name != null) {
-        name += '.${parent.constructorName.name.name}';
+      var constructorName = parent.constructorName.name;
+      if (constructorName != null) {
+        name += '.${constructorName.name}';
       }
-      execElement = ElementLocator.locate(parent) as ExecutableElement;
+      execElement = ElementLocator.locate(parent) as ExecutableElement?;
     }
 
-    if (execElement == null) {
+    if (name == null || execElement == null) {
       return null;
     }
 
-    _argumentList = args;
+    _argumentList = argumentList;
 
     final parameters =
         execElement.parameters.map((p) => _convertParam(p)).toList();
 
     return AnalysisGetSignatureResult(name, parameters,
         dartdoc: DartUnitHoverComputer.computeDocumentation(
-            _dartdocInfo, execElement));
+                _dartdocInfo, execElement)
+            ?.full);
   }
 
   ParameterInfo _convertParam(ParameterElement param) {
@@ -88,7 +76,20 @@ class DartUnitSignatureComputer {
                     ? ParameterKind.REQUIRED_NAMED
                     : ParameterKind.REQUIRED_POSITIONAL,
         param.displayName,
-        param.type.getDisplayString(withNullability: false),
+        param.type.getDisplayString(withNullability: _isNonNullableByDefault),
         defaultValue: param.defaultValueCode);
+  }
+
+  ArgumentList? _findArgumentList() {
+    var node = _node;
+    while (node != null && node is! ArgumentList) {
+      // Certain nodes don't make sense to search above for an argument list
+      // (for example when inside a function expression).
+      if (node is FunctionExpression) {
+        return null;
+      }
+      node = node.parent;
+    }
+    return node as ArgumentList?;
   }
 }

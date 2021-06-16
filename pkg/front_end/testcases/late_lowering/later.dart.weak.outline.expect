@@ -34,14 +34,14 @@ class B extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
   get x() → core::int {
-    if(!this.{self::B::_#B#x#isSet}) {
+    if(!this.{self::B::_#B#x#isSet}{core::bool}) {
       final core::int #t2 = 42;
-      if(this.{self::B::_#B#x#isSet})
+      if(this.{self::B::_#B#x#isSet}{core::bool})
         throw new _in::LateError::fieldADI("x");
       this.{self::B::_#B#x} = #t2;
       this.{self::B::_#B#x#isSet} = true;
     }
-    return let final core::int? #t3 = this.{self::B::_#B#x} in #t3{core::int};
+    return let final core::int? #t3 = this.{self::B::_#B#x}{core::int?} in #t3{core::int};
   }
 }
 class C extends core::Object {

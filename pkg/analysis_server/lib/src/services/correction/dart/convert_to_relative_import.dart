@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -19,6 +17,12 @@ class ConvertToRelativeImport extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_RELATIVE_IMPORT;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_RELATIVE_IMPORT;
 
   @override
@@ -26,18 +30,16 @@ class ConvertToRelativeImport extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is StringLiteral) {
-      node = node.parent;
+    var targetNode = node;
+    if (targetNode is StringLiteral) {
+      targetNode = targetNode.parent!;
     }
-    if (node is! ImportDirective) {
+    if (targetNode is! ImportDirective) {
       return;
     }
 
-    ImportDirective importDirective = node;
-
     // Ignore if invalid URI.
-    if (importDirective.uriSource == null) {
+    if (targetNode.uriSource == null) {
       return;
     }
 
@@ -49,7 +51,11 @@ class ConvertToRelativeImport extends CorrectionProducer {
 
     Uri importUri;
     try {
-      importUri = Uri.parse(importDirective.uriContent);
+      var uriContent = targetNode.uriContent;
+      if (uriContent == null) {
+        return;
+      }
+      importUri = Uri.parse(uriContent);
     } on FormatException {
       return;
     }
@@ -75,9 +81,10 @@ class ConvertToRelativeImport extends CorrectionProducer {
       from: path.dirname(sourceUri.path),
     );
 
+    final node_final = targetNode;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-        range.node(importDirective.uri).getExpanded(-1),
+        range.node(node_final.uri).getExpanded(-1),
         relativePath,
       );
     });

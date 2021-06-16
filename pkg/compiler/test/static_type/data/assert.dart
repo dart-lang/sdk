@@ -20,25 +20,25 @@ main() {
 }
 
 assert1(Class c) {
-  assert(/*Class*/ c /*invoke: [Class]->bool*/ != null);
+  assert(/*Class*/ c != null);
   /*Class*/ c.next;
 }
 
 assert2(Class c) {
-  assert(/*Class*/ c /*invoke: [Class]->bool*/ == null);
+  assert(/*Class*/ c == null);
   /*Class*/ c.next;
 }
 
 assert3(Class c) {
   bool b;
-  assert(/*Class*/ c /*invoke: [Class]->bool*/ != null);
+  assert(/*Class*/ c != null);
   if (/*bool*/ b) return;
   /*Class*/ c.next;
 }
 
 assert4(Class c) {
   bool b;
-  assert(/*Class*/ c /*invoke: [Class]->bool*/ == null);
+  assert(/*Class*/ c == null);
   if (/*bool*/ b) return;
   /*Class*/ c.next;
 }

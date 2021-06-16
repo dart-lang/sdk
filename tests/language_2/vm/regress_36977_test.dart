@@ -7,6 +7,8 @@
 // Regression test, reduced case found by DartFuzz that crashed DBC register
 // allocator (https://github.com/dart-lang/sdk/issues/36977).
 
+// @dart = 2.9
+
 // [NNBD non-migrated]: This test contains dozens and dozens of static errors
 // under NNBD. Migrating the test to fix those errors significantly changes the
 // code under test in ways that are likely to invalidate it.

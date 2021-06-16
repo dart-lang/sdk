@@ -164,7 +164,7 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
 void JitCallSpecializer::VisitStoreInstanceField(
     StoreInstanceFieldInstr* instr) {
-  if (instr->IsUnboxedStore()) {
+  if (instr->IsUnboxedDartFieldStore()) {
     // Determine if this field should be unboxed based on the usage of getter
     // and setter functions: The heuristic requires that the setter has a
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.

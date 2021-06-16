@@ -2,27 +2,27 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/function_type_parameter.dart:9:20: Error: A type variable on a function type can't have annotations.
+// pkg/front_end/testcases/general/function_type_parameter.dart:11:20: Error: A type variable on a function type can't have annotations.
 // void Function<@A() T>(T)? f;
 //                    ^
 //
-// pkg/front_end/testcases/general/function_type_parameter.dart:11:32: Error: A type variable on a function type can't have annotations.
+// pkg/front_end/testcases/general/function_type_parameter.dart:13:32: Error: A type variable on a function type can't have annotations.
 // typedef F = void Function<@A() T>(T);
 //                                ^
 //
-// pkg/front_end/testcases/general/function_type_parameter.dart:17:33: Error: A type variable on a function type can't have annotations.
+// pkg/front_end/testcases/general/function_type_parameter.dart:19:33: Error: A type variable on a function type can't have annotations.
 // void method2(void Function<@A() T>(T) f) {}
 //                                 ^
 //
-// pkg/front_end/testcases/general/function_type_parameter.dart:19:42: Error: A type variable on a function type can't have annotations.
+// pkg/front_end/testcases/general/function_type_parameter.dart:21:42: Error: A type variable on a function type can't have annotations.
 // class Class<T extends void Function<@A() S>(S)> {}
 //                                          ^
 //
-// pkg/front_end/testcases/general/function_type_parameter.dart:19:13: Error: Type variables can't have generic function types in their bounds.
+// pkg/front_end/testcases/general/function_type_parameter.dart:21:13: Error: Type variables can't have generic function types in their bounds.
 // class Class<T extends void Function<@A() S>(S)> {}
 //             ^
 //
-// pkg/front_end/testcases/general/function_type_parameter.dart:24:22: Error: A type variable on a function type can't have annotations.
+// pkg/front_end/testcases/general/function_type_parameter.dart:26:22: Error: A type variable on a function type can't have annotations.
 //   void Function<@A() T>(T)? f;
 //                      ^
 //
@@ -56,5 +56,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///function_type_parameter.dart:
-- A. (from org-dartlang-testcase:///function_type_parameter.dart:6:9)
+- A. (from org-dartlang-testcase:///function_type_parameter.dart:8:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

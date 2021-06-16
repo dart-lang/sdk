@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Client for secure_bad_certificate_test, that runs in a subprocess.
 // The test verifies that the client bad certificate callback works.
 

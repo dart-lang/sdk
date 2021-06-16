@@ -75,7 +75,8 @@ main() {
     expect(name, anyOf(allExtensions), reason: 'unknown extension');
     var canvas = new CanvasElement();
     var context = canvas.getContext3d();
-    var supportedExtensions = context.getSupportedExtensions()!;
+    expect(context, isNotNull);
+    var supportedExtensions = context!.getSupportedExtensions()!;
     if (supportedExtensions.contains(name)) {
       var extension = context.getExtension(name);
       expect(extension, isNotNull);

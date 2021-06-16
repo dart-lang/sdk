@@ -106,11 +106,6 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-#if HOST_OS_IOS
-  // Thread CPU time appears unreliable on iOS, sometimes incorrectly reporting
-  // no time elapsed.
-  return -1;
-#else
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info_data;
   thread_basic_info_t info = &info_data;
@@ -124,7 +119,6 @@ int64_t OS::GetCurrentThreadCPUMicros() {
   thread_cpu_micros += info->user_time.microseconds;
   thread_cpu_micros += info->system_time.microseconds;
   return thread_cpu_micros;
-#endif
 }
 
 int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {

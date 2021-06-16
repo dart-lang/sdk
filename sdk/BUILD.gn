@@ -139,6 +139,10 @@ _platform_sdk_snapshots = [
     "../utils/dds:dds",
   ],
   [
+    "frontend_server",
+    "../utils/kernel-service:frontend_server",
+  ],
+  [
     "pub",
     "../utils/pub",
   ],
@@ -168,10 +172,6 @@ _full_sdk_snapshots = _platform_sdk_snapshots + [
                         [
                           "kernel_worker",
                           "../utils/bazel:kernel_worker",
-                        ],
-                        [
-                          "frontend_server",
-                          "../utils/kernel-service:frontend_server",
                         ],
                       ]
 
@@ -252,6 +252,18 @@ copy_tree_specs += [
   },
 ]
 
+# This rule copies the pre-built DevTools application to
+# bin/resources/devtools/
+copy_tree_specs += [
+  {
+    target = "copy_prebuilt_devtools"
+    visibility = [ ":create_common_sdk" ]
+    source = "../third_party/devtools/web"
+    dest = "$root_out_dir/dart-sdk/bin/resources/devtools"
+    ignore_patterns = "{}"
+  },
+]
+
 # This loop generates rules to copy libraries to lib/
 foreach(library, _full_sdk_libraries) {
   copy_tree_specs += [
@@ -264,19 +276,6 @@ foreach(library, _full_sdk_libraries) {
       source = "lib/$library"
       dest = "$root_out_dir/dart-sdk/lib/$library"
       ignore_patterns = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
-    },
-  ]
-}
-
-if (is_win) {
-  copy_tree_specs += [
-    {
-      target = "copy_7zip"
-      visibility = [ ":create_common_sdk" ]
-      deps = [ ":copy_libraries" ]
-      source = "../third_party/7zip"
-      dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
-      ignore_patterns = ".svn"
     },
   ]
 }
@@ -659,20 +658,10 @@ group("copy_dev_compiler_sdk") {
 }
 
 # This rule copies header files to include/
-copy("copy_headers") {
+group("copy_headers") {
   visibility = [ ":create_common_sdk" ]
-  sources = [
-    "../runtime/include/dart_api.h",
-    "../runtime/include/dart_api_dl.c",
-    "../runtime/include/dart_api_dl.h",
-    "../runtime/include/dart_native_api.h",
-    "../runtime/include/dart_tools_api.h",
-    "../runtime/include/dart_version.h",
-    "../runtime/include/internal/dart_api_dl_impl.h",
-  ]
 
-  # Some magic to recover the folder structure inside the include folder.
-  outputs = [ "$root_out_dir/dart-sdk/include/{{source_root_relative_dir}}/../../{{source_file_part}}" ]
+  deps = [ "../runtime/include:copy_headers" ]
 }
 
 # This rule copies libraries.json files to lib/
@@ -811,6 +800,7 @@ group("create_common_sdk") {
     ":copy_libraries_dart",
     ":copy_libraries_specification",
     ":copy_license",
+    ":copy_prebuilt_devtools",
     ":copy_readme",
     ":copy_vm_dill_files",
     ":write_dartdoc_options",
@@ -822,10 +812,6 @@ group("create_common_sdk") {
   # dart2native script (since there is no AOT compiler/runtime available)
   if (dart_target_arch != "ia32") {
     public_deps += [ ":copy_dart2native" ]
-  }
-
-  if (is_win) {
-    public_deps += [ ":copy_7zip" ]
   }
 }
 

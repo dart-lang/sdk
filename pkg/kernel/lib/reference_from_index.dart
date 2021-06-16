@@ -46,7 +46,7 @@ abstract class IndexedContainer {
   }
 
   void _addProcedure(Procedure procedure) {
-    Name name = procedure.name!;
+    Name name = procedure.name;
     if (procedure.isSetter) {
       assert(_setterReferences[name] == null);
       _setterReferences[name] = procedure.reference;
@@ -62,7 +62,7 @@ abstract class IndexedContainer {
   void _addFields(List<Field> fields) {
     for (int i = 0; i < fields.length; i++) {
       Field field = fields[i];
-      Name name = field.name!;
+      Name name = field.name;
       assert(_getterReferences[name] == null);
       _getterReferences[name] = field.getterReference;
       if (field.hasSetter) {
@@ -116,12 +116,12 @@ class IndexedClass extends IndexedContainer {
   IndexedClass._(Class c, this.library) {
     for (int i = 0; i < c.constructors.length; i++) {
       Constructor constructor = c.constructors[i];
-      _constructors[constructor.name!] = constructor;
+      _constructors[constructor.name] = constructor;
     }
     for (int i = 0; i < c.procedures.length; i++) {
       Procedure procedure = c.procedures[i];
       if (procedure.isFactory) {
-        _constructors[procedure.name!] = procedure;
+        _constructors[procedure.name] = procedure;
       } else {
         _addProcedure(procedure);
       }

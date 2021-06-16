@@ -115,6 +115,13 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       instance_size = InstructionsSection::InstanceSize(section_size);
       break;
     }
+    case kInstructionsTableCid: {
+      const InstructionsTablePtr raw_instructions_table =
+          static_cast<const InstructionsTablePtr>(this);
+      intptr_t length = raw_instructions_table->untag()->length_;
+      instance_size = InstructionsTable::InstanceSize(length);
+      break;
+    }
     case kContextCid: {
       const ContextPtr raw_context = static_cast<const ContextPtr>(this);
       intptr_t num_variables = raw_context->untag()->num_variables_;
@@ -173,7 +180,7 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     case kTypeArgumentsCid: {
       const TypeArgumentsPtr raw_array =
           static_cast<const TypeArgumentsPtr>(this);
-      intptr_t array_length = Smi::Value(raw_array->untag()->length_);
+      intptr_t array_length = Smi::Value(raw_array->untag()->length());
       instance_size = TypeArguments::InstanceSize(array_length);
       break;
     }
@@ -380,7 +387,7 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
                                           ObjectPointerVisitor* visitor) {
   intptr_t class_id = GetClassId();
-  if (class_id < kNumPredefinedCids) {
+  if ((class_id != kInstanceCid) && (class_id < kNumPredefinedCids)) {
     VisitPointersPredefined(visitor, class_id);
     return;
   }
@@ -565,7 +572,9 @@ COMPRESSED_VISITOR(MirrorReference)
 COMPRESSED_VISITOR(UserTag)
 REGULAR_VISITOR(SubtypeTestCache)
 COMPRESSED_VISITOR(LoadingUnit)
-VARIABLE_VISITOR(TypeArguments, Smi::Value(raw_obj->untag()->length_))
+COMPRESSED_VISITOR(TypeParameters)
+VARIABLE_COMPRESSED_VISITOR(TypeArguments,
+                            Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
 VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
 VARIABLE_VISITOR(Context, raw_obj->untag()->num_variables_)
@@ -575,6 +584,7 @@ VARIABLE_COMPRESSED_VISITOR(
     TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
+VARIABLE_VISITOR(InstructionsTable, raw_obj->untag()->length_)
 NULL_VISITOR(Mint)
 NULL_VISITOR(Double)
 NULL_VISITOR(Float32x4)

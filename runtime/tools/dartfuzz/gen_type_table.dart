@@ -19,13 +19,12 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:args/args.dart';
-
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:args/args.dart';
 
 import 'gen_util.dart';
 
@@ -40,50 +39,50 @@ final int operatorCountThreshold = 2;
 // Map type to a list of constructors names with a list of constructor
 // parameter types.
 Map<String, Map<String, List<String>>> constructors =
-    new Map<String, Map<String, List<String>>>();
+    <String, Map<String, List<String>>>{};
 
 // Map type to a list of assignment operators with a set of the
 // assignable right hand side types.
 Map<String, Map<String, Set<String>>> assignOps =
-    new Map<String, Map<String, Set<String>>>();
+    <String, Map<String, Set<String>>>{};
 
 // Map type to a list of binary operators with set of the respective
 // types for the first and second operand.
 Map<String, Map<String, Set<List<String>>>> binOps =
-    new Map<String, Map<String, Set<List<String>>>>();
+    <String, Map<String, Set<List<String>>>>{};
 
 // Map type to a list of available unary operators.
-Map<String, Set<String>> uniOps = new Map<String, Set<String>>();
+Map<String, Set<String>> uniOps = <String, Set<String>>{};
 
 //
 // Type grouping.
 //
 
 // All Set<E> types: SET_INT, SET_STRING, etc.
-Set<String> setTypes = new Set<String>();
+Set<String> setTypes = <String>{};
 
 // All Map<K, V> types: MAP_INT_STRING, MAP_DOUBLE_BOOL, etc.
-Set<String> mapTypes = new Set<String>();
+Set<String> mapTypes = <String>{};
 
 // All List<E> types: LIST_INT, LIST_STRING, etc.
-Set<String> listTypes = new Set<String>();
+Set<String> listTypes = <String>{};
 
 // All floating point types: DOUBLE, SET_DOUBLE, MAP_X_DOUBLE, etc.
-Set<String> fpTypes = new Set<String>();
+Set<String> fpTypes = <String>{};
 
 // All iterable types: Set types + List types.
 // These can be used in for(x in <iterable type>),
 // therefore Map is not included.
-Set<String> iterableTypes1 = new Set<String>();
+Set<String> iterableTypes1 = <String>{};
 
 // All trivially indexable types: Map types and List types.
 // Elements of these can be written and read by [], unlike Set
 // which uses getElementAt to access individual elements
-Set<String> indexableTypes = new Set<String>();
+Set<String> indexableTypes = <String>{};
 
 // Complex types: Collection types instantiated with nested argument
 // e.g Map<List<>, >.
-Set<String> complexTypes = new Set<String>();
+Set<String> complexTypes = <String>{};
 
 //
 // Type relations.
@@ -91,20 +90,20 @@ Set<String> complexTypes = new Set<String>();
 
 // Map type to the resulting type when subscripted.
 // Example: List<String> subscripts to String.
-Map<String, String> subscriptsTo = new Map<String, String>();
+Map<String, String> subscriptsTo = <String, String>{};
 
 // Map type to a Set of types that contain it as an element.
 // Example: String is element of List<String> and Map<int, String>
-Map<String, Set<String>> elementOf = new Map<String, Set<String>>();
+Map<String, Set<String>> elementOf = <String, Set<String>>{};
 
 // Map type to a Set of types that contain it as an indexable element.
 // Same as element of, but without Set types.
-Map<String, Set<String>> indexableElementOf = new Map<String, Set<String>>();
+Map<String, Set<String>> indexableElementOf = <String, Set<String>>{};
 
 // Map type to type required as index.
 // Example: List<String> is indexed by int,
 // Map<String, double> indexed by String.
-Map<String, String> indexedBy = new Map<String, String>();
+Map<String, String> indexedBy = <String, String>{};
 
 //
 // Interface relationships.
@@ -112,12 +111,12 @@ Map<String, String> indexedBy = new Map<String, String>();
 
 // Map Interface type to Set of types that implement it.
 // Example: interface num is implemented by int and double.
-Map<String, Set<String>> interfaceRels = new Map<String, Set<String>>();
+Map<String, Set<String>> interfaceRels = <String, Set<String>>{};
 
 // Convert analyzer's displayName to constant name used by dartfuzz.
 // Example: Set<int, String> -> SET_INT_STRING
 String getConstName(String displayName) {
-  String constName = displayName;
+  var constName = displayName;
   constName = constName.replaceAll('<', '_');
   constName = constName.replaceAll('>', '');
   constName = constName.replaceAll(', ', '_');
@@ -140,7 +139,7 @@ bool shouldFilterType(String typName, {bool fp = true, bool flatTp = false}) {
 // filter criteria.
 bool shouldFilterParameterList(List<String> parameters,
     {bool fp = true, bool flatTp = false}) {
-  for (String parameter in parameters) {
+  for (var parameter in parameters) {
     if (shouldFilterType(parameter, fp: fp, flatTp: flatTp)) {
       return true;
     }
@@ -153,8 +152,8 @@ bool shouldFilterParameterList(List<String> parameters,
 // pass the filter criteria.
 Set<List<String>> filterParameterList(Set<List<String>> parameterList,
     {bool fp = true, bool flatTp = false}) {
-  Set<List<String>> filteredParams = <List<String>>{};
-  for (List<String> parameters in parameterList) {
+  var filteredParams = <List<String>>{};
+  for (var parameters in parameterList) {
     if (!shouldFilterParameterList(parameters, fp: fp, flatTp: flatTp)) {
       filteredParams.add(parameters);
     }
@@ -165,8 +164,8 @@ Set<List<String>> filterParameterList(Set<List<String>> parameterList,
 // Filter a set of parameters according to their type.
 Set<String> filterParameterSet(Set<String> parameterSet,
     {bool fp = true, bool flatTp = false}) {
-  Set<String> filteredParams = <String>{};
-  for (String parameter in parameterSet) {
+  var filteredParams = <String>{};
+  for (var parameter in parameterSet) {
     if (!shouldFilterType(parameter, fp: fp, flatTp: flatTp)) {
       filteredParams.add(parameter);
     }
@@ -180,9 +179,9 @@ Map<String, Set<List<String>>> filterOperatorMapSetList(
     Map<String, Set<List<String>>> operators,
     {bool fp = true,
     bool flatTp = false}) {
-  Map<String, Set<List<String>>> filteredOps = <String, Set<List<String>>>{};
+  var filteredOps = <String, Set<List<String>>>{};
   operators.forEach((op, parameterList) {
-    Set<List<String>> filteredParams =
+    var filteredParams =
         filterParameterList(parameterList, fp: fp, flatTp: flatTp);
     if (filteredParams.isNotEmpty) {
       filteredOps[op] = filteredParams;
@@ -197,7 +196,7 @@ Map<String, List<String>> filterOperatorMapList(
     Map<String, List<String>> operators,
     {bool fp = true,
     bool flatTp = false}) {
-  Map<String, List<String>> filteredOps = <String, List<String>>{};
+  var filteredOps = <String, List<String>>{};
   operators.forEach((op, parameterList) {
     if (!shouldFilterParameterList(parameterList, fp: fp, flatTp: flatTp)) {
       filteredOps[op] = parameterList;
@@ -212,9 +211,9 @@ Map<String, Set<String>> filterOperatorMapSet(
     Map<String, Set<String>> operators,
     {bool fp = true,
     bool flatTp = false}) {
-  Map<String, Set<String>> filteredOps = <String, Set<String>>{};
+  var filteredOps = <String, Set<String>>{};
   operators.forEach((op, parameterSet) {
-    Set<String> filteredParams =
+    var filteredParams =
         filterParameterSet(parameterSet, fp: fp, flatTp: flatTp);
     if (filteredParams.isNotEmpty) {
       filteredOps[op] = filteredParams;
@@ -228,14 +227,12 @@ Map<String, Map<String, Set<List<String>>>> filterTypesMap4(
     Map<String, Map<String, Set<List<String>>>> types,
     {bool fp = true,
     bool flatTp = false}) {
-  Map<String, Map<String, Set<List<String>>>> filteredTypes =
-      <String, Map<String, Set<List<String>>>>{};
+  var filteredTypes = <String, Map<String, Set<List<String>>>>{};
   types.forEach((baseType, ops) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
       return true;
     }
-    Map<String, Set<List<String>>> filteredOps =
-        filterOperatorMapSetList(ops, fp: fp, flatTp: flatTp);
+    var filteredOps = filterOperatorMapSetList(ops, fp: fp, flatTp: flatTp);
     if (filteredOps.isNotEmpty) {
       filteredTypes[baseType] = filteredOps;
     }
@@ -247,30 +244,29 @@ Map<String, Map<String, Set<List<String>>>> filterTypesMap4(
 void printTypeMap4(
     String name, Map<String, Map<String, Set<List<String>>>> types,
     {bool fp = true, bool flatTp = false}) {
-  final bool subclass = !fp || flatTp;
-  final String prefix = "${subclass ? "DartType." : ""}";
-  print("  static const Map<DartType, Map<String, " +
-      "Set<List<DartType>>>> ${name} = {");
-  Map<String, Map<String, Set<List<String>>>> filteredTypes =
-      filterTypesMap4(types, fp: fp, flatTp: flatTp);
+  final subclass = !fp || flatTp;
+  final prefix = "${subclass ? "DartType." : ""}";
+  print('  static const Map<DartType, Map<String, '
+      'Set<List<DartType>>>> $name = {');
+  var filteredTypes = filterTypesMap4(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
     var ops = filteredTypes[baseType];
-    print("    ${prefix}${baseType}: {");
+    print('    $prefix$baseType: {');
     for (var op in ops.keys.toList()..sort()) {
       var paramTypeL = ops[op];
-      print("      '${op}': {");
+      print("      '$op': {");
       for (var paramTypes in paramTypeL) {
-        stdout.write("          [");
-        for (String paramType in paramTypes) {
-          stdout.write("${prefix}${paramType}, ");
+        stdout.write('          [');
+        for (var paramType in paramTypes) {
+          stdout.write('$prefix$paramType, ');
         }
-        print("],");
+        print('],');
       }
-      print("        },");
+      print('        },');
     }
-    print("    },");
+    print('    },');
   }
-  print("  };");
+  print('  };');
 }
 
 // Filter map of type to map of operators as used for assignment operators.
@@ -278,14 +274,12 @@ Map<String, Map<String, Set<String>>> filterTypesMap3Set(
     Map<String, Map<String, Set<String>>> types,
     {bool fp = true,
     bool flatTp = false}) {
-  Map<String, Map<String, Set<String>>> filteredTypes =
-      <String, Map<String, Set<String>>>{};
+  var filteredTypes = <String, Map<String, Set<String>>>{};
   types.forEach((baseType, ops) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
       return true;
     }
-    Map<String, Set<String>> filteredOps =
-        filterOperatorMapSet(ops, fp: fp, flatTp: flatTp);
+    var filteredOps = filterOperatorMapSet(ops, fp: fp, flatTp: flatTp);
     if (filteredOps.isNotEmpty) {
       filteredTypes[baseType] = filteredOps;
     }
@@ -296,27 +290,26 @@ Map<String, Map<String, Set<String>>> filterTypesMap3Set(
 // Print map of type to map of operators as used for assignment operators.
 void printTypeMap3Set(String name, Map<String, Map<String, Set<String>>> types,
     {bool fp = true, bool flatTp = false}) {
-  final bool subclass = !fp || flatTp;
-  final String prefix = "${subclass ? "DartType." : ""}";
-  print("  static const Map<DartType, " +
-      "Map<String, Set<DartType>>> ${name} = {");
+  final subclass = !fp || flatTp;
+  final prefix = "${subclass ? "DartType." : ""}";
+  print(
+      '  static const Map<DartType, ' 'Map<String, Set<DartType>>> $name = {');
 
-  Map<String, Map<String, Set<String>>> filteredTypes =
-      filterTypesMap3Set(types, fp: fp, flatTp: flatTp);
+  var filteredTypes = filterTypesMap3Set(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
     var ops = filteredTypes[baseType];
-    print("    ${prefix}${baseType}: {");
+    print('    $prefix$baseType: {');
     for (var op in ops.keys.toList()) {
       var paramTypes = ops[op];
-      stdout.write("      '${op}': {");
-      for (String paramType in paramTypes.toList()..sort()) {
-        stdout.write("${prefix}${paramType}, ");
+      stdout.write("      '$op': {");
+      for (var paramType in paramTypes.toList()..sort()) {
+        stdout.write('$prefix$paramType, ');
       }
-      print("}, ");
+      print('}, ');
     }
-    print("    },");
+    print('    },');
   }
-  print("  };");
+  print('  };');
 }
 
 // Filter map of type to map of operators as used for constructors.
@@ -324,14 +317,12 @@ Map<String, Map<String, List<String>>> filterTypesMap3(
     Map<String, Map<String, List<String>>> types,
     {bool fp = true,
     bool flatTp = false}) {
-  Map<String, Map<String, List<String>>> filteredTypes =
-      <String, Map<String, List<String>>>{};
+  var filteredTypes = <String, Map<String, List<String>>>{};
   types.forEach((baseType, ops) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
       return true;
     }
-    Map<String, List<String>> filteredOps =
-        filterOperatorMapList(ops, fp: fp, flatTp: flatTp);
+    var filteredOps = filterOperatorMapList(ops, fp: fp, flatTp: flatTp);
     if (filteredOps.isNotEmpty) {
       filteredTypes[baseType] = filteredOps;
     }
@@ -342,36 +333,36 @@ Map<String, Map<String, List<String>>> filterTypesMap3(
 // Print map of type to map of operators as used for constructors.
 void printTypeMap3(String name, Map<String, Map<String, List<String>>> types,
     {bool fp = true, bool flatTp = false}) {
-  final bool subclass = !fp || flatTp;
-  final String prefix = "${subclass ? "DartType." : ""}";
-  print("  static const Map<DartType, Map<String, " +
-      "List<DartType>>> ${name} = {");
+  final subclass = !fp || flatTp;
+  final prefix = "${subclass ? "DartType." : ""}";
+  print(
+      '  static const Map<DartType, Map<String, ' 'List<DartType>>> $name = {');
   var filteredTypes = filterTypesMap3(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
     var ops = filteredTypes[baseType];
-    print("    ${prefix}${baseType}: {");
+    print('    $prefix$baseType: {');
     for (var op in ops.keys.toList()..sort()) {
       var paramTypes = ops[op];
-      stdout.write("      '${op}': [");
-      for (String paramType in paramTypes.toList()) {
-        stdout.write("${prefix}${paramType}, ");
+      stdout.write("      '$op': [");
+      for (var paramType in paramTypes.toList()) {
+        stdout.write('$prefix$paramType, ');
       }
-      print("], ");
+      print('], ');
     }
-    print("    },");
+    print('    },');
   }
-  print("  };");
+  print('  };');
 }
 
 // Filter map of type collection name to set of types.
 Map<String, Set<String>> filterTypesMap2(Map<String, Set<String>> types,
     {bool fp = true, bool flatTp = false}) {
-  Map<String, Set<String>> filteredTypes = <String, Set<String>>{};
+  var filteredTypes = <String, Set<String>>{};
   types.forEach((baseType, parameterSet) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
       return true;
     }
-    Set<String> filteredParams =
+    var filteredParams =
         filterParameterSet(parameterSet, fp: fp, flatTp: flatTp);
     if (filteredParams.isNotEmpty) {
       filteredTypes[baseType] = filteredParams;
@@ -383,25 +374,25 @@ Map<String, Set<String>> filterTypesMap2(Map<String, Set<String>> types,
 // Print map of type collection name to set of types.
 void printTypeMap2(String name, Map<String, Set<String>> types,
     {bool fp = true, bool flatTp = false}) {
-  final bool subclass = !fp || flatTp;
-  final String prefix = "${subclass ? "DartType." : ""}";
-  print("  static const Map<DartType, Set<DartType>> ${name} = {");
+  final subclass = !fp || flatTp;
+  final prefix = "${subclass ? "DartType." : ""}";
+  print('  static const Map<DartType, Set<DartType>> $name = {');
   var filteredTypes = filterTypesMap2(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
     var paramTypes = filteredTypes[baseType];
-    stdout.write("    ${prefix}${baseType}: { ");
-    for (String paramType in paramTypes.toList()..sort()) {
-      stdout.write("${prefix}${paramType}, ");
+    stdout.write('    $prefix$baseType: { ');
+    for (var paramType in paramTypes.toList()..sort()) {
+      stdout.write('$prefix$paramType, ');
     }
-    print("},");
+    print('},');
   }
-  print("  };");
+  print('  };');
 }
 
 // Filter map of type to type.
 Map<String, String> filterTypesMap1(Map<String, String> types,
     {bool fp = true, bool flatTp = false}) {
-  Map<String, String> filteredTypes = <String, String>{};
+  var filteredTypes = <String, String>{};
   types.forEach((baseType, paramType) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
       return true;
@@ -417,22 +408,21 @@ Map<String, String> filterTypesMap1(Map<String, String> types,
 // Print map of type to type.
 void printTypeMap1(String name, Map<String, String> types,
     {bool fp = true, bool flatTp = false}) {
-  final bool subclass = !fp || flatTp;
-  final String prefix = "${subclass ? "DartType." : ""}";
-  print("  static const Map<DartType, DartType> ${name} = {");
+  final subclass = !fp || flatTp;
+  final prefix = "${subclass ? "DartType." : ""}";
+  print('  static const Map<DartType, DartType> $name = {');
   var filteredTypes = filterTypesMap1(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
     var paramType = filteredTypes[baseType];
-    print("    ${prefix}"
-        "${baseType}: ${prefix}${paramType}, ");
+    print('    $prefix$baseType: $prefix$paramType, ');
   }
-  print("  };");
+  print('  };');
 }
 
 // Filter set of types.
 Set<String> filterTypesSet(Set<String> choices,
     {bool fp = true, bool flatTp = false}) {
-  Set<String> filteredTypes = {};
+  var filteredTypes = <String>{};
   filteredTypes.addAll(choices);
   if (!fp) {
     filteredTypes = filteredTypes.difference(fpTypes);
@@ -446,20 +436,20 @@ Set<String> filterTypesSet(Set<String> choices,
 // Print set of types.
 void printTypeSet(String name, Set<String> types,
     {bool fp = true, bool flatTp = false}) {
-  final bool subclass = !fp || flatTp;
-  final String prefix = "${subclass ? "DartType." : ""}";
-  stdout.write("  static const Set<DartType> ${name} = {");
-  for (String typName in filterTypesSet(types, fp: fp, flatTp: flatTp).toList()
+  final subclass = !fp || flatTp;
+  final prefix = "${subclass ? "DartType." : ""}";
+  stdout.write('  static const Set<DartType> $name = {');
+  for (var typName in filterTypesSet(types, fp: fp, flatTp: flatTp).toList()
     ..sort()) {
-    stdout.write("${prefix}$typName, ");
+    stdout.write('$prefix$typName, ');
   }
-  print("};");
+  print('};');
 }
 
 // Filter map to type to set of operators as used for unitary operators.
 Map<String, Set<String>> filterTypeMapSet(Map<String, Set<String>> types,
     {bool fp = true, bool flatTp = false}) {
-  Map<String, Set<String>> filteredTypes = <String, Set<String>>{};
+  var filteredTypes = <String, Set<String>>{};
   types.forEach((baseType, params) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
       return true;
@@ -472,43 +462,46 @@ Map<String, Set<String>> filterTypeMapSet(Map<String, Set<String>> types,
 // Print map to type to set of operators as used for unitary operators.
 void printTypeMapSet(String name, Map<String, Set<String>> types,
     {bool fp = true, bool flatTp = false}) {
-  final bool subclass = !fp || flatTp;
-  final String prefix = "${subclass ? "DartType." : ""}";
-  print("  static const Map<DartType, Set<String>> $name = {");
+  final subclass = !fp || flatTp;
+  final prefix = "${subclass ? "DartType." : ""}";
+  print('  static const Map<DartType, Set<String>> $name = {');
   var filteredTypes = filterTypeMapSet(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
     var paramTypes = filteredTypes[baseType].toList()..sort();
-    print("    ${prefix}${baseType}: {" + paramTypes.join(", ") + "},");
+    print('    $prefix$baseType: {' + paramTypes.join(', ') + '},');
   }
-  print("  };");
+  print('  };');
 }
 
 // Print all generated and collected types, operators and type collections.
 void printTypeTable(Set<InterfaceType> allTypes,
     {bool fp = true, bool flatTp = false}) {
-  final bool subclass = !fp || flatTp;
+  final subclass = !fp || flatTp;
   if (!subclass) {
-    print("""
+    print('''
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // @dart = 2.9
+// ignore_for_file: annotate_overrides
+// ignore_for_file: unused_element
+// ignore_for_file: unused_field
 
 /// Class that represents some common Dart types.
 ///
 /// NOTE: this code has been generated automatically.
-///""");
+///''');
   }
 
-  String className = 'DartType${fp ? "" : "NoFp"}${flatTp ? "FlatTp" : ""}';
+  var className = 'DartType${fp ? "" : "NoFp"}${flatTp ? "FlatTp" : ""}';
 
   print('class $className'
       '${subclass ? " extends DartType" : ""} {');
-  print("  final String name;");
+  print('  final String name;');
   if (!subclass) {
-    print("  const DartType._withName(this.name);");
-    print("""
+    print('  const DartType._withName(this.name);');
+    print('''
   factory $className.fromDartConfig(
       {bool enableFp = false, bool disableNesting =
     false}) {
@@ -521,13 +514,13 @@ void printTypeTable(Set<InterfaceType> allTypes,
     } else {
       return DartTypeNoFpFlatTp();
     }
-  }""");
+  }''');
   } else {
     print('  const $className'
         '._withName(this.name) : super._withName(name);');
   }
 
-  print("""
+  print('''
   const $className() : name = null;
   static bool isListType(DartType tp) {
     return DartType._listTypes.contains(tp);
@@ -657,19 +650,19 @@ void printTypeTable(Set<InterfaceType> allTypes,
     return _allTypes;
   }
 
-""");
+''');
 
-  print("  static const VOID = const " + "DartType._withName(\"void\");");
-  Set<String> instTypes = {};
+  print("  static const VOID = DartType._withName('void');");
+  var instTypes = <String>{};
 
   // Generate one static DartType instance for all instantiable types.
   // TODO (felih): maybe add void type?
   allTypes.forEach((baseType) {
-    String constName = getConstName(baseType.displayName);
+    var constName = getConstName(baseType.displayName);
     instTypes.add(constName);
     if (!subclass) {
-      print("  static const ${constName} = const " +
-          "DartType._withName(\"${baseType.displayName}\");");
+      print('  static const $constName = '
+          "DartType._withName('${baseType.displayName}');");
     }
   });
 
@@ -677,146 +670,146 @@ void printTypeTable(Set<InterfaceType> allTypes,
     // Generate one static DartType instance for all non instantiable types.
     // These are required to resolve interface relations, but should not be
     // used directly to generate dart programs.
-    print("");
-    print("  // NON INSTANTIABLE" "");
+    print('');
+    print('  // NON INSTANTIABLE' '');
     interfaceRels.keys.forEach((constName) {
       if (instTypes.contains(constName)) return true;
-      print("  static const ${constName} = const " +
-          "DartType._withName(\"__${constName}\");");
+      print('  static const $constName = '
+          "DartType._withName('__$constName');");
     });
   }
 
   // Generate a list of all instantiable types.
-  print("");
-  print("""
+  print('');
+  print('''
   // All types extracted from analyzer.
-  static const _allTypes = {""");
+  static const _allTypes = {''');
   filterTypesSet(instTypes, fp: fp, flatTp: flatTp).forEach((constName) {
-    print("    ${subclass ? "DartType." : ""}${constName},");
+    print("    ${subclass ? "DartType." : ""}$constName,");
   });
-  print("  };");
+  print('  };');
 
-  print("");
-  print("""
-  // All List<E> types: LIST_INT, LIST_STRING, etc.""");
-  printTypeSet("_listTypes", listTypes, fp: fp, flatTp: flatTp);
+  print('');
+  print('''
+  // All List<E> types: LIST_INT, LIST_STRING, etc.''');
+  printTypeSet('_listTypes', listTypes, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
-  // All Set types: SET_INT, SET_STRING, etc.""");
-  printTypeSet("_setTypes", setTypes, fp: fp, flatTp: flatTp);
+  print('');
+  print('''
+  // All Set types: SET_INT, SET_STRING, etc.''');
+  printTypeSet('_setTypes', setTypes, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
-  // All Map<K, V> types: MAP_INT_STRING, MAP_DOUBLE_BOOL, etc.""");
-  printTypeSet("_mapTypes", mapTypes, fp: fp, flatTp: flatTp);
+  print('');
+  print('''
+  // All Map<K, V> types: MAP_INT_STRING, MAP_DOUBLE_BOOL, etc.''');
+  printTypeSet('_mapTypes', mapTypes, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
-  // All collection types: list, map and set types.""");
-  printTypeSet("_collectionTypes", {...listTypes, ...setTypes, ...mapTypes},
+  print('');
+  print('''
+  // All collection types: list, map and set types.''');
+  printTypeSet('_collectionTypes', {...listTypes, ...setTypes, ...mapTypes},
       fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
-  // All growable types: list, map, set and string types.""");
+  print('');
+  print('''
+  // All growable types: list, map, set and string types.''');
   printTypeSet(
-      "_growableTypes", {...listTypes, ...setTypes, ...mapTypes, 'STRING'},
+      '_growableTypes', {...listTypes, ...setTypes, ...mapTypes, 'STRING'},
       fp: fp, flatTp: flatTp);
 
   if (!subclass) {
-    print("");
+    print('');
     print(
-        "  // All floating point types: DOUBLE, SET_DOUBLE, MAP_X_DOUBLE, etc.");
-    printTypeSet("_fpTypes", fpTypes);
+        '  // All floating point types: DOUBLE, SET_DOUBLE, MAP_X_DOUBLE, etc.');
+    printTypeSet('_fpTypes', fpTypes);
   }
 
-  print("");
-  print("""
+  print('');
+  print('''
   // All trivially indexable types: Map types and List types.
   // Elements of these can be written and read by [], unlike Set
-  // which uses getElementAt to access individual elements.""");
-  printTypeSet("_indexableTypes", indexableTypes, fp: fp, flatTp: flatTp);
+  // which uses getElementAt to access individual elements.''');
+  printTypeSet('_indexableTypes', indexableTypes, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
+  print('');
+  print('''
   // Map type to the resulting type when subscripted.
-  // Example: List<String> subscripts to String.""");
-  printTypeMap1("_subscriptsTo", subscriptsTo, fp: fp, flatTp: flatTp);
+  // Example: List<String> subscripts to String.''');
+  printTypeMap1('_subscriptsTo', subscriptsTo, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
+  print('');
+  print('''
   // Map type to type required as index.
   // Example: List<String> is indexed by int,
-  // Map<String, double> indexed by String.""");
-  printTypeMap1("_indexedBy", indexedBy, fp: fp, flatTp: flatTp);
+  // Map<String, double> indexed by String.''');
+  printTypeMap1('_indexedBy', indexedBy, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
+  print('');
+  print('''
   // Map type to a Set of types that contain it as an element.
-  // Example: String is element of List<String> and Map<int, String>""");
-  printTypeMap2("_elementOf", elementOf, fp: fp, flatTp: flatTp);
+  // Example: String is element of List<String> and Map<int, String>''');
+  printTypeMap2('_elementOf', elementOf, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
+  print('');
+  print('''
   // Map type to a Set of types that contain it as an indexable element.
-  // Same as element of, but without Set types.""");
-  printTypeMap2("_indexableElementOf", indexableElementOf,
+  // Same as element of, but without Set types.''');
+  printTypeMap2('_indexableElementOf', indexableElementOf,
       fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
+  print('');
+  print('''
   // All iterable types: Set types + List types.
   // These can be used in for(x in <iterable type>),
-  // therefore Map is not included.""");
-  printTypeSet("_iterableTypes1", iterableTypes1, fp: fp, flatTp: flatTp);
+  // therefore Map is not included.''');
+  printTypeSet('_iterableTypes1', iterableTypes1, fp: fp, flatTp: flatTp);
 
   if (!subclass) {
-    print("");
-    print("""
+    print('');
+    print('''
   // Complex types: Collection types instantiated with nested argument
-  // e.g Map<List<>, >.""");
-    printTypeSet("_complexTypes", complexTypes);
+  // e.g Map<List<>, >.''');
+    printTypeSet('_complexTypes', complexTypes);
   }
 
-  print("");
-  print("""
+  print('');
+  print('''
   // Map Interface type to Set of types that implement it.
-  // Example: interface num is implemented by int and double.""");
-  printTypeMap2("_interfaceRels", interfaceRels, fp: fp, flatTp: flatTp);
+  // Example: interface num is implemented by int and double.''');
+  printTypeMap2('_interfaceRels', interfaceRels, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
+  print('');
+  print('''
   // Map type to a list of constructors names with a list of constructor
-  // parameter types.""");
-  printTypeMap3("_constructors", constructors, fp: fp, flatTp: flatTp);
+  // parameter types.''');
+  printTypeMap3('_constructors', constructors, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
+  print('');
+  print('''
   // Map type to a list of binary operators with set of the respective
-  // types for the first and second operand.""");
-  printTypeMap4("_binOps", binOps, fp: fp, flatTp: flatTp);
+  // types for the first and second operand.''');
+  printTypeMap4('_binOps', binOps, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
-  // Map type to a list of available unary operators.""");
-  printTypeMapSet("_uniOps", uniOps, fp: fp, flatTp: flatTp);
+  print('');
+  print('''
+  // Map type to a list of available unary operators.''');
+  printTypeMapSet('_uniOps', uniOps, fp: fp, flatTp: flatTp);
 
-  print("");
-  print("""
+  print('');
+  print('''
   // Map type to a list of assignment operators with a set of the
-  // assignable right hand side types.""");
-  printTypeMap3Set("_assignOps", assignOps, fp: fp, flatTp: flatTp);
+  // assignable right hand side types.''');
+  printTypeMap3Set('_assignOps', assignOps, fp: fp, flatTp: flatTp);
 
-  print("}");
-  print("");
+  print('}');
+  print('');
 }
 
 // Returns true if type can be set and get via [].
 bool isIndexable(InterfaceType tp) {
-  bool isIndexable = false;
+  var isIndexable = false;
   for (var method in tp.methods) {
-    if (method.name == "[]") {
+    if (method.name == '[]') {
       isIndexable = true;
       break;
     }
@@ -839,12 +832,12 @@ bool isInterfaceOf(String iTypName, String typName) {
 // also so that dartfuzz can efficiently filter floating point types from the
 // interface relations.
 Set<List<String>> filterOperator(Set<List<String>> op) {
-  Set<List<String>> newOp = new Set<List<String>>();
+  var newOp = <List<String>>{};
   if (op.length < 2) return op;
-  for (List<String> params1 in op) {
-    bool keep = false;
-    for (List<String> params2 in op) {
-      for (int k = 0; k < params1.length; ++k) {
+  for (var params1 in op) {
+    var keep = false;
+    for (var params2 in op) {
+      for (var k = 0; k < params1.length; ++k) {
         if (!isInterfaceOf(params2[k], params1[k])) {
           keep = true;
           break;
@@ -861,10 +854,10 @@ Set<List<String>> filterOperator(Set<List<String>> op) {
 
 // See comment on filterOpterator.
 void filterOperators(Set<InterfaceType> allTypes) {
-  for (InterfaceType tp in allTypes) {
-    String typName = getConstName(tp.displayName);
+  for (var tp in allTypes) {
+    var typName = getConstName(tp.displayName);
     if (!binOps.containsKey(typName)) continue;
-    for (String op in binOps[typName].keys) {
+    for (var op in binOps[typName].keys) {
       binOps[typName][op] = filterOperator(binOps[typName][op]);
     }
   }
@@ -891,7 +884,7 @@ bool isExcludedMethod(InterfaceType tp, MethodElement method) {
 //          int: {'~', '-'},
 // Does not recurse into interfaces and superclasses of tp.
 void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
-  for (MethodElement method in tp.methods) {
+  for (var method in tp.methods) {
     // If the method is manually excluded, skip it.
     if (isExcludedMethod(tp, method)) continue;
 
@@ -908,7 +901,7 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
     if (method.name.startsWith('[]')) continue;
     if (method.isOperator) {
       // TODO (felih): Include support for type 'dynamic'.
-      bool skip = false;
+      var skip = false;
       for (var p in method.parameters) {
         if (getConstName(p.type.displayName) == 'DYNAMIC') {
           skip = true;
@@ -919,23 +912,24 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
       if (method.parameters.length == 1) {
         // Get binary operators.
 
-        String retTypName = getConstName(method.returnType.displayName);
-        binOps[retTypName] ??= new Map<String, Set<List<String>>>();
-        binOps[retTypName][method.name] ??= new Set<List<String>>();
+        var retTypName = getConstName(method.returnType.displayName);
+        binOps[retTypName] ??= <String, Set<List<String>>>{};
+        binOps[retTypName][method.name] ??= <List<String>>{};
 
-        String rhsTypName = getConstName(method.parameters[0].type.displayName);
+        var rhsTypName = getConstName(method.parameters[0].type.displayName);
 
         // TODO (felih): no hashing for List<String> ?
         // if i remove this test i will get duplicates even though it is a Set.
-        bool present = false;
-        for (List<String> o in binOps[retTypName][method.name]) {
+        var present = false;
+        for (var o in binOps[retTypName][method.name]) {
           if (o[0] == typName && o[1] == rhsTypName) {
             present = true;
             break;
           }
         }
-        if (!present)
+        if (!present) {
           binOps[retTypName][method.name].add([typName, rhsTypName]);
+        }
 
         // Add some assignment operators corresponding to the binary operators.
         // Example: for '+' add '+='.
@@ -943,15 +937,15 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
         // can not be used to derive assignment operators in this way, e.g.
         // <= is not a valid assignment operator for bool types.
         if (retTypName != 'BOOL') {
-          assignOps[retTypName] ??= new Map<String, Set<String>>();
-          String ao = method.name + '=';
-          assignOps[retTypName][ao] ??= new Set<String>();
+          assignOps[retTypName] ??= <String, Set<String>>{};
+          var ao = method.name + '=';
+          assignOps[retTypName][ao] ??= <String>{};
           assignOps[retTypName][ao].add(rhsTypName);
         }
       } else {
         // Get unary operators.
-        uniOps[typName] ??= new Set<String>();
-        String uo = method.name;
+        uniOps[typName] ??= <String>{};
+        var uo = method.name;
         // Hack: remove unary from operator so that the operator name can be
         // used directly for source code generation.
         if (uo.startsWith('unary')) uo = '-';
@@ -966,54 +960,54 @@ void getOperators(Set<InterfaceType> allTypes) {
   // Set of types that can be constructed directly from literals and do
   // not need special constructors (e.g. List<int> = [1, 2] as opposed to
   // Int8List int8list = Int8List.fromList([1, 2]) ).
-  Set<String> fromLiteral = new Set<String>();
+  var fromLiteral = <String>{};
 
   // getOperatorsForTyp uses a heuristic to detect which types can be
   // constructed from a literal, but the heuristic misses the String type
   // so we have to add it manually.
   fromLiteral.add('STRING');
   // Get binary, unary and assignment operators.
-  for (InterfaceType tp in allTypes) {
-    String typName = getConstName(tp.displayName);
+  for (var tp in allTypes) {
+    var typName = getConstName(tp.displayName);
     // Manually add basic assignment operators which each type supports.
-    assignOps[typName] ??= new Map<String, Set<String>>();
+    assignOps[typName] ??= <String, Set<String>>{};
     assignOps[typName]['='] = {typName};
     assignOps[typName]['??='] = {typName};
     getOperatorsForTyp(typName, tp, fromLiteral);
   }
 
   // Add some static ops not extractable from dart:core/typed_data.
-  for (String typName in binOps.keys) {
-    binOps[typName] ??= new Map<String, Set<List<String>>>();
+  for (var typName in binOps.keys) {
+    binOps[typName] ??= <String, Set<List<String>>>{};
     binOps[typName]['??'] = {
       [typName, typName],
     };
   }
-  binOps['BOOL'] ??= new Map<String, Set<List<String>>>();
+  binOps['BOOL'] ??= <String, Set<List<String>>>{};
   binOps['BOOL']['&&'] = {
     ['BOOL', 'BOOL'],
   };
   binOps['BOOL']['||'] = {
     ['BOOL', 'BOOL'],
   };
-  uniOps['BOOL'] ??= new Set<String>();
+  uniOps['BOOL'] ??= <String>{};
   uniOps['BOOL'].add('\'!\'');
 
   // Get constructors.
-  for (InterfaceType tp in allTypes) {
-    String typName = getConstName(tp.displayName);
+  for (var tp in allTypes) {
+    var typName = getConstName(tp.displayName);
     // Skip types that are constructable from a literal.
     if (fromLiteral.contains(typName)) {
       continue;
     }
-    for (ConstructorElement constructor in tp.constructors) {
+    for (var constructor in tp.constructors) {
       if (shouldFilterConstructor(tp, constructor)) continue;
-      List<String> params = new List<String>();
-      bool canConstruct = true;
+      var params = <String>[];
+      var canConstruct = true;
       for (var p in constructor.parameters) {
-        String tstr = getConstName(p.type.displayName);
-        if (tstr == "DYNAMIC" || tstr == "OBJECT") {
-          tstr = "INT";
+        var tstr = getConstName(p.type.displayName);
+        if (tstr == 'DYNAMIC' || tstr == 'OBJECT') {
+          tstr = 'INT';
         } else if (!allTypes.contains(p.type)) {
           // Exclude constructors that have an unsupported parameter type.
           canConstruct = false;
@@ -1025,7 +1019,7 @@ void getOperators(Set<InterfaceType> allTypes) {
       }
       if (!canConstruct) continue;
 
-      constructors[typName] ??= new Map<String, List<String>>();
+      constructors[typName] ??= <String, List<String>>{};
       constructors[typName][constructor.name] = params;
     }
   }
@@ -1052,37 +1046,38 @@ bool shouldFilterConstructor(InterfaceType tp, ConstructorElement cons) {
 // as well as precision type attributes.
 void analyzeTypes(Set<InterfaceType> allTypes) {
   // Extract basic floating point types.
-  for (InterfaceType tp in allTypes) {
+  for (var tp in allTypes) {
     if (tp.displayName.contains('Float') ||
         tp.displayName.contains('float') ||
         tp.displayName.contains('double') ||
-        tp.displayName.contains('Double'))
+        tp.displayName.contains('Double')) {
       fpTypes.add(getConstName(tp.displayName));
+    }
   }
 
   // Analyze all types to extract information useful for dart code generation.
-  for (InterfaceType tp in allTypes) {
+  for (var tp in allTypes) {
     final typName = getConstName(tp.displayName);
 
     // Find topmost interface type, e.g. List<int> is interface for Int8List.
-    InterfaceType iTyp = tp;
-    while (iTyp.typeArguments.isEmpty && !iTyp.interfaces.isEmpty) {
+    var iTyp = tp;
+    while (iTyp.typeArguments.isEmpty && iTyp.interfaces.isNotEmpty) {
       iTyp = tp.interfaces[0];
     }
 
     // Group current type with their respective type group.
-    if (iTyp.name == "Set") setTypes.add(typName);
-    if (iTyp.name == "List") listTypes.add(typName);
-    if (iTyp.name == "Map") mapTypes.add(typName);
+    if (iTyp.name == 'Set') setTypes.add(typName);
+    if (iTyp.name == 'List') listTypes.add(typName);
+    if (iTyp.name == 'Map') mapTypes.add(typName);
 
     if (iTyp.typeArguments.length == 1) {
       // Analyze Array, List and Set types.
-      String argName = getConstName(iTyp.typeArguments[0].displayName);
+      var argName = getConstName(iTyp.typeArguments[0].displayName);
       subscriptsTo[typName] = argName;
-      elementOf[argName] ??= new Set<String>();
+      elementOf[argName] ??= <String>{};
       elementOf[argName].add(typName);
       if (isIndexable(iTyp)) {
-        indexableElementOf[argName] ??= new Set<String>();
+        indexableElementOf[argName] ??= <String>{};
         indexableElementOf[argName].add(typName);
         indexedBy[typName] = 'INT';
         indexableTypes.add(typName);
@@ -1094,12 +1089,12 @@ void analyzeTypes(Set<InterfaceType> allTypes) {
     } else if (iTyp.typeArguments.length == 2) {
       if (isIndexable(iTyp)) {
         // Analyze Map and MapEntry types.
-        String argName0 = getConstName(iTyp.typeArguments[0].displayName);
-        String argName1 = getConstName(iTyp.typeArguments[1].displayName);
+        var argName0 = getConstName(iTyp.typeArguments[0].displayName);
+        var argName1 = getConstName(iTyp.typeArguments[1].displayName);
         subscriptsTo[typName] = argName1;
-        elementOf[argName1] ??= new Set<String>();
+        elementOf[argName1] ??= <String>{};
         elementOf[argName1].add(typName);
-        indexableElementOf[argName1] ??= new Set<String>();
+        indexableElementOf[argName1] ??= <String>{};
         indexableElementOf[argName1].add(typName);
         indexedBy[typName] = argName0;
         indexableTypes.add(typName);
@@ -1124,14 +1119,15 @@ void getParameterizedTypes(
   // Out: types with no parameters.
   for (var tp in allTypes) {
     if (tp.typeArguments.length == 1 &&
-        (tp.typeArguments[0].name == 'E' || tp.typeArguments[0].name == 'T'))
+        (tp.typeArguments[0].name == 'E' || tp.typeArguments[0].name == 'T')) {
       pTypes1.add(tp);
-    else if (tp.typeArguments.length == 2 &&
+    } else if (tp.typeArguments.length == 2 &&
         tp.typeArguments[0].name == 'K' &&
-        tp.typeArguments[1].name == 'V')
+        tp.typeArguments[1].name == 'V') {
       pTypes2.add(tp);
-    else
+    } else {
       iTypes.add(tp);
+    }
   }
 }
 
@@ -1145,15 +1141,15 @@ Set<InterfaceType> instantiatePTypes(
     Set<InterfaceType> iTypes, // Types with no parameters.
     {double maxNew = 10000.0}) {
   // Maximum number of newly generated types.
-  Set<InterfaceType> newITypes = new Set<InterfaceType>();
+  var newITypes = <InterfaceType>{};
 
   // Calculate the total number of new types if all combinations were used.
-  int nNew = pTypes1.length * iTypes.length +
+  var nNew = pTypes1.length * iTypes.length +
       pTypes2.length * iTypes.length * iTypes.length;
   // Calculate how many generated types have to be skipped in order to stay
   // under the maximum number set for generating new types (maxNew).
-  double step = maxNew / nNew;
-  double cntr = 0.0;
+  var step = maxNew / nNew;
+  var cntr = 0.0;
 
   // Instantiate List and Set types.
   pTypes1.forEach((pType) {
@@ -1169,7 +1165,7 @@ Set<InterfaceType> instantiatePTypes(
         nullabilitySuffix: NullabilitySuffix.star,
       );
       newITypes.add(ptx);
-      if (iType.typeArguments.length >= 1) {
+      if (iType.typeArguments.isNotEmpty) {
         complexTypes.add(getConstName(ptx.displayName));
       }
     });
@@ -1190,8 +1186,8 @@ Set<InterfaceType> instantiatePTypes(
           nullabilitySuffix: NullabilitySuffix.star,
         );
         newITypes.add(ptx);
-        if (iType1.typeArguments.length >= 1 ||
-            iType2.typeArguments.length >= 1) {
+        if (iType1.typeArguments.isNotEmpty ||
+            iType2.typeArguments.isNotEmpty) {
           complexTypes.add(getConstName(ptx.displayName));
         }
       });
@@ -1206,18 +1202,18 @@ Set<InterfaceType> instantiateAllTypes(
     Set<InterfaceType> allTypes, Set<String> iTypeFilter, int depth,
     {double maxNew = 10000.0}) {
   // Types with one parameter (List, Set).
-  Set<InterfaceType> pTypes1 = new Set<InterfaceType>();
+  var pTypes1 = <InterfaceType>{};
   // Types with two parameters (Map).
-  Set<InterfaceType> pTypes2 = new Set<InterfaceType>();
+  var pTypes2 = <InterfaceType>{};
   // Types with no parameters or parameters of which have already been
   // instantiated.
-  Set<InterfaceType> iTypes = new Set<InterfaceType>();
+  var iTypes = <InterfaceType>{};
   // Fill type sets with respective parameter types.
   getParameterizedTypes(allTypes, pTypes1, pTypes2, iTypes);
 
   // Filter the list of zero parameter types to exclude
   // complex types like Int8List.
-  Set<InterfaceType> filteredITypes = {};
+  var filteredITypes = <InterfaceType>{};
   for (var iType in iTypes) {
     if (iTypeFilter.contains(iType.displayName)) {
       filteredITypes.add(iType);
@@ -1230,8 +1226,8 @@ Set<InterfaceType> instantiateAllTypes(
   // round or instantiation.
   // Each iteration constructs more nested types like
   // Map<Map<int, int>, List<int>>.
-  for (int i = 0; i < depth + 1; ++i) {
-    double mn = max(1, maxNew / (depth + 1));
+  for (var i = 0; i < depth + 1; ++i) {
+    var mn = max(1, maxNew / (depth + 1));
     filteredITypes = filteredITypes
         .union(instantiatePTypes(pTypes1, pTypes2, filteredITypes, maxNew: mn));
   }
@@ -1243,7 +1239,7 @@ Set<InterfaceType> instantiateAllTypes(
 // count the number of operators and
 // check if the type can be constructed from a literal.
 int countOperators(ClassElement ce) {
-  int no = 0;
+  var no = 0;
   ce.methods.forEach((method) {
     if (method.isOperator) {
       no++;
@@ -1256,7 +1252,7 @@ int countOperators(ClassElement ce) {
         (method.name == 'castFrom' || method.name == 'parse')) {
       no += 100;
     }
-    for (InterfaceType ci in ce.interfaces) {
+    for (var ci in ce.interfaces) {
       no += countOperators(ci.element);
     }
   });
@@ -1264,40 +1260,42 @@ int countOperators(ClassElement ce) {
 }
 
 // Analyze typed_data and core libraries to extract data types.
-void getDataTypes(Set<InterfaceType> allTypes, String dartTop) async {
-  final AnalysisSession session = GenUtil.createAnalysisSession(dartTop);
+Future<void> getDataTypes(Set<InterfaceType> allTypes, String dartTop) async {
+  final session = GenUtil.createAnalysisSession(dartTop);
 
   // Visit libraries for type table generation.
   await visitLibraryAtUri(session, 'dart:typed_data', allTypes);
   await visitLibraryAtUri(session, 'dart:core', allTypes);
 }
 
-visitLibraryAtUri(
+Future<void> visitLibraryAtUri(
     AnalysisSession session, String uri, Set<InterfaceType> allTypes) async {
-  String libPath = session.uriConverter.uriToPath(Uri.parse(uri));
-  ResolvedLibraryResult result = await session.getResolvedLibrary(libPath);
-  if (result.state != ResultState.VALID) {
-    throw new StateError('Unable to resolve "$uri"');
+  var libPath = session.uriConverter.uriToPath(Uri.parse(uri));
+  var result = await session.getResolvedLibrary2(libPath);
+  if (result is ResolvedLibraryResult) {
+    visitLibrary(result.element, allTypes);
+  } else {
+    throw StateError('Unable to resolve "$uri"');
   }
-  visitLibrary(result.element, allTypes);
 }
 
-visitLibrary(LibraryElement library, Set<InterfaceType> allTypes) async {
+void visitLibrary(LibraryElement library, Set<InterfaceType> allTypes) {
   // This uses the element model to traverse the code. The element model
   // represents the semantic structure of the code. A library consists of
   // one or more compilation units.
-  for (CompilationUnitElement unit in library.units) {
+  for (var unit in library.units) {
     visitCompilationUnit(unit, allTypes);
   }
 }
 
-visitCompilationUnit(CompilationUnitElement unit, Set<InterfaceType> allTypes) {
+void visitCompilationUnit(
+    CompilationUnitElement unit, Set<InterfaceType> allTypes) {
   // Each compilation unit contains elements for all of the top-level
   // declarations in a single file, such as variables, functions, and
   // classes. Note that `types` only returns classes. You can use
   // `mixins` to visit mixins, `enums` to visit enum, `functionTypeAliases`
   // to visit typedefs, etc.
-  for (ClassElement classElement in unit.types) {
+  for (var classElement in unit.types) {
     if (classElement.isPublic) {
       // Hack: Filter out some difficult types, abstract types and types that
       // have methods with abstract type parameters.
@@ -1338,9 +1336,9 @@ visitCompilationUnit(CompilationUnitElement unit, Set<InterfaceType> allTypes) {
 
 // Get all interface implemented by type.
 Set<String> getInterfaces(InterfaceType tp) {
-  Set<String> iTypes = new Set<String>();
-  for (InterfaceType iTyp in tp.interfaces) {
-    String ifTypName = getConstName(iTyp.displayName);
+  var iTypes = <String>{};
+  for (var iTyp in tp.interfaces) {
+    var ifTypName = getConstName(iTyp.displayName);
     iTypes.add(ifTypName);
     iTypes = iTypes.union(getInterfaces(iTyp));
   }
@@ -1349,18 +1347,18 @@ Set<String> getInterfaces(InterfaceType tp) {
 
 // Get interface and inheritance relationships for all types.
 void getInterfaceRels(Set<InterfaceType> allTypes) {
-  for (InterfaceType tp in allTypes) {
-    String typName = getConstName(tp.displayName);
-    for (String ifTypName in getInterfaces(tp)) {
-      interfaceRels[ifTypName] ??= new Set<String>();
+  for (var tp in allTypes) {
+    var typName = getConstName(tp.displayName);
+    for (var ifTypName in getInterfaces(tp)) {
+      interfaceRels[ifTypName] ??= <String>{};
       interfaceRels[ifTypName].add(typName);
       if (ifTypName.contains('ITERABLE')) {
         iterableTypes1.add(typName);
       }
     }
-    for (InterfaceType it in tp.element.allSupertypes) {
-      String ifTypName = getConstName(it.displayName);
-      interfaceRels[ifTypName] ??= new Set<String>();
+    for (var it in tp.element.allSupertypes) {
+      var ifTypName = getConstName(it.displayName);
+      interfaceRels[ifTypName] ??= <String>{};
       interfaceRels[ifTypName].add(typName);
     }
   }
@@ -1368,32 +1366,32 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
   // add it to the relation list so that we can
   // do tp1 = oneof(interfaceRels[tp2]) in dartfuzz with a chance of
   // tp1 == tp1.
-  for (InterfaceType tp in allTypes) {
-    String typName = getConstName(tp.displayName);
+  for (var tp in allTypes) {
+    var typName = getConstName(tp.displayName);
     if (interfaceRels.containsKey(typName)) {
       interfaceRels[typName].add(typName);
     }
   }
 }
 
-main(List<String> arguments) async {
-  final parser = new ArgParser()
+void main(List<String> arguments) async {
+  final parser = ArgParser()
     ..addOption('dart-top', help: 'explicit value for \$DART_TOP')
     ..addOption('depth',
-        help: 'Nesting depth, e.g. List<String> is depth 0, ' +
-            'List<List<String>>' +
-            'is depth 1. Remark: dart type tables grow ' +
-            'exponentially with this, ' +
-            'therefore types with higher nesting ' +
+        help: 'Nesting depth, e.g. List<String> is depth 0, '
+            'List<List<String>>'
+            'is depth 1. Remark: dart type tables grow '
+            'exponentially with this, '
+            'therefore types with higher nesting '
             'depth are partially filtered.',
         defaultsTo: '1');
   try {
     final results = parser.parse(arguments);
-    int depth = int.parse(results['depth']);
-    Set<InterfaceType> allTypes = new Set<InterfaceType>();
+    var depth = int.parse(results['depth']);
+    var allTypes = <InterfaceType>{};
     // Filter types to instantiate parameterized types with, this excludes
     // complex types like Int8List (might be added later).
-    Set<String> iTypeFilter = {'int', 'bool', 'double', 'String'};
+    var iTypeFilter = <String>{'int', 'bool', 'double', 'String'};
     // Extract basic types from dart::core and dart::typed_data.
     await getDataTypes(allTypes, results['dart-top']);
     // Instantiate parameterized types like List<E>.

@@ -28,11 +28,11 @@ extension A2 on self::A1* {
   tearoff method4 = self::A2|get#method4;
 }
 static method A2|method2(lowered final self::A1* #this) → void
-  return #this.{self::A1::method1}();
+  return #this.{self::A1::method1}(){() →* void};
 static method A2|get#method2(lowered final self::A1* #this) → () →* void
   return () → void => self::A2|method2(#this);
 static method A2|method3(lowered final self::A1* #this) → core::Object*
-  return #this.{self::A1::field};
+  return #this.{self::A1::field}{core::Object*};
 static method A2|get#method3(lowered final self::A1* #this) → () →* core::Object*
   return () → core::Object* => self::A2|method3(#this);
 static method A2|method4(lowered final self::A1* #this, core::Object* o) → void {

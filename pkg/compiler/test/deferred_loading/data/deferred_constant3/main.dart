@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
- output_units=[
-  f1: {units: [1{l1}], usedBy: [], needs: []},
-  f2: {units: [2{l2}], usedBy: [], needs: []}],
- steps=[
+ a_pre_fragments=[
+  p1: {units: [1{l1}], usedBy: [], needs: []},
+  p2: {units: [2{l2}], usedBy: [], needs: []}],
+ b_finalized_fragments=[
+  f1: [1{l1}],
+  f2: [2{l2}]],
+ c_steps=[
   l1=(f1),
   l2=(f2)]
 */

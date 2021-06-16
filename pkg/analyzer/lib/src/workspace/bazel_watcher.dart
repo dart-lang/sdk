@@ -33,7 +33,7 @@ class BazelFilePoller {
   final List<String> _candidates;
 
   /// The time of last modification of the file under [_validPath].
-  int? _lastModified;
+  _TimestampAndLength? _lastModified;
 
   /// The resource provider used for polling the files.
   final ResourceProvider _provider;
@@ -47,7 +47,7 @@ class BazelFilePoller {
   /// Checks if the file corresponding to the watched path has changed and
   /// returns the event or `null` if nothing changed.
   WatchEvent? poll() {
-    int? modified;
+    _TimestampAndLength? modified;
     if (_validPath == null) {
       var info = _pollAll();
       if (info != null) {
@@ -72,6 +72,7 @@ class BazelFilePoller {
     } else if (_lastModified != null && modified != _lastModified) {
       result = WatchEvent(ChangeType.MODIFY, _validPath!);
     }
+
     _lastModified = modified;
     return result;
   }
@@ -107,10 +108,23 @@ class BazelFilePoller {
 
   /// Returns the modified time of the path or `null` if the file does not
   /// exist.
-  int? _pollOne(String path) {
+  _TimestampAndLength? _pollOne(String path) {
     try {
-      var file = _provider.getFile(path);
-      return file.modificationStamp;
+      // This might seem a bit convoluted but is necessary to deal with a
+      // symlink to a directory (e.g., `bazel-bin`).
+      var resource = _provider.getResource(
+          _provider.getResource(path).resolveSymbolicLinksSync().path);
+      if (resource is File) {
+        var timestamp = resource.modificationStamp;
+        var length = resource.lengthSync;
+        return _TimestampAndLength(timestamp, length);
+      } else if (resource is Folder) {
+        // `ResourceProvider` doesn't currently support getting timestamps of a
+        // folder, so we use a dummy value here. But it's still useful: this
+        // will correctly generate `ADD` or `REMOVE` events (we'll be just
+        // unable to generate any `CHANGE` events).
+        return _TimestampAndLength(0, 0);
+      }
     } on FileSystemException catch (_) {
       // File doesn't exist, so return null.
       return null;
@@ -403,7 +417,7 @@ class BazelWatcherStopWatching implements BazelWatcherMessage {
 
 class FileInfo {
   String path;
-  int modified;
+  _TimestampAndLength modified;
   FileInfo(this.path, this.modified);
 }
 
@@ -433,7 +447,10 @@ abstract class PollTrigger {
 /// target of a symlink.
 class _BazelInvocationWatcher implements PollTrigger {
   /// Determines how often do we check for `command.log` changes.
-  static const _pollInterval = Duration(seconds: 1);
+  ///
+  /// Note that on some systems the granularity is about 1s, so let's set this
+  /// to some greater value just to be safe we don't miss any updates.
+  static const _pollInterval = Duration(seconds: 2);
 
   /// To confirm that a build finished, we check for these messages in the
   /// `command.log`.
@@ -461,8 +478,8 @@ class _BazelInvocationWatcher implements PollTrigger {
   void cancel() => _timer.cancel();
 
   bool _buildFinished(String contents) {
-    // Only look at the last 100 characters.
-    var offset = max(0, contents.length - 100);
+    // Only look at the last 1024 characters.
+    var offset = max(0, contents.length - 1024);
     return _buildCompletedMsgs.any((msg) => contents.contains(msg, offset));
   }
 
@@ -545,4 +562,37 @@ class _PerWorkspaceData {
   final StreamSubscription<Object> pollSubscription;
 
   _PerWorkspaceData(this.trigger, this.pollSubscription);
+}
+
+/// Stores the timestamp of a file and its length.
+///
+/// This turns out to be important for tracking files that change a lot, like
+/// the `command.log` that we use to detect the finished build.  Bazel writes to
+/// the file continuously and because the resolution of a timestamp is pretty
+/// low, it's quite possible to receive the same timestamp even though the file
+/// has changed.  We use its length to remedy that.  It's not perfect (for that
+/// we'd have to compute the hash), but it should be reasonable trade-off (to
+/// avoid any performance impact from reading and hashing the file).
+class _TimestampAndLength {
+  final int timestamp;
+  final int length;
+  _TimestampAndLength(this.timestamp, this.length);
+
+  @override
+  int get hashCode =>
+      // We don't really need to compute hashes, just check the equality. But
+      // throw in case someone expects this to work.
+      throw UnimplementedError(
+          '_TimestampAndLength.hashCode has not been implemented yet');
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _TimestampAndLength) return false;
+    return timestamp == other.timestamp && length == other.length;
+  }
+
+  // For debugging only.
+  @override
+  String toString() =>
+      '_TimestampAndLength(timestamp=$timestamp, length=$length)';
 }

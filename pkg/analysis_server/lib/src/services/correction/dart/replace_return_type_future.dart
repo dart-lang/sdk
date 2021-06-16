@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -18,7 +16,10 @@ class ReplaceReturnTypeFuture extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // prepare the existing type
     var typeName = node.thisOrAncestorOfType<TypeAnnotation>();
-    var typeProvider = this.typeProvider;
+    if (typeName == null) {
+      return;
+    }
+
     await builder.addDartFileEdit(file, (builder) {
       builder.replaceTypeWithFuture(typeName, typeProvider);
     });

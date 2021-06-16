@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart version of two-argument Ackermann-Peter function.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

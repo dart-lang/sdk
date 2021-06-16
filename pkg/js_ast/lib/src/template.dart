@@ -268,7 +268,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) {
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
-      if (value is String) return new LiteralString('"$value"');
+      if (value is String) return LiteralString(value);
       throw error(
           'Interpolated value #$nameOrPosition is not a selector: $value');
     };
@@ -659,7 +659,29 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  Instantiator visitArrowFunction(ArrowFunction node) {
+    List<Instantiator> paramMakers = node.params.map(visitSplayable).toList();
+    Instantiator makeBody = visit(node.body);
+    // TODO(sra): Avoid copying params if no interpolation or forced copying.
+    return (arguments) {
+      List<Parameter> params = <Parameter>[];
+      for (Instantiator instantiator in paramMakers) {
+        var result = instantiator(arguments);
+        if (result is Iterable) {
+          params.addAll(result);
+        } else {
+          params.add(result);
+        }
+      }
+      // Either a Block or Expression.
+      Node body = makeBody(arguments);
+      return new ArrowFunction(params, body);
+    };
+  }
+
   Instantiator visitDeferredExpression(DeferredExpression node) => same(node);
+
+  Instantiator visitDeferredStatement(DeferredStatement node) => same(node);
 
   Instantiator visitDeferredNumber(DeferredNumber node) => same(node);
 
@@ -738,6 +760,14 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     Instantiator makeValue = visit(node.value);
     return (arguments) {
       return new Property(makeName(arguments), makeValue(arguments));
+    };
+  }
+
+  Instantiator visitMethodDefinition(MethodDefinition node) {
+    Instantiator makeName = visit(node.name);
+    Instantiator makeFunction = visit(node.function);
+    return (arguments) {
+      return new MethodDefinition(makeName(arguments), makeFunction(arguments));
     };
   }
 

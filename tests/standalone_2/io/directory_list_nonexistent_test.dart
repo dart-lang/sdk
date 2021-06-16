@@ -7,6 +7,8 @@
 // TODO(7157): Merge this test into directory_test.dart testListNonExistent()
 // when it no longer crashes on Windows, when issue 7157 is resolved.
 
+// @dart = 2.9
+
 import "dart:io";
 
 import "package:async_helper/async_helper.dart";

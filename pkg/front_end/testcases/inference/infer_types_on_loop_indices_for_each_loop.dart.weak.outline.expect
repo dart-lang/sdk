@@ -17,7 +17,7 @@ class Foo extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Bar<T extends core::Iterable<core::String*>* = core::Iterable<core::String*>*> extends core::Object {
+class Bar<T extends core::Iterable<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     ;
   method foo(generic-covariant-impl self::Bar::T* t) → void

@@ -620,6 +620,8 @@ class NativeType {
   const NativeType();
 }
 
+class Handle extends NativeType {}
+
 class Void extends NativeType {}
 
 class Int8 extends NativeType {
@@ -670,12 +672,18 @@ class Pointer<T extends NativeType> extends NativeType {
       [Object exceptionalReturn]) {}
 }
 
+final Pointer<Never> nullptr = Pointer.fromAddress(0);
+
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
-  external DF asFunction<DF extends Function>();
+  external DF asFunction<DF extends Function>({bool isLeaf:false});
 }
 
-class Struct extends NativeType {}
+class _Compound extends NativeType {}
+
+class Struct extends _Compound {}
+
+class Union extends _Compound {}
 
 class Packed {
   final int memberAlignment;
@@ -683,11 +691,13 @@ class Packed {
   const Packed(this.memberAlignment);
 }
 
-abstract class DynamicLibrary {}
+abstract class DynamicLibrary {
+  external factory DynamicLibrary.open(String name);
+}
 
 extension DynamicLibraryExtension on DynamicLibrary {
   external F lookupFunction<T extends Function, F extends Function>(
-      String symbolName);
+      String symbolName, {bool isLeaf:false});
 }
 
 abstract class NativeFunction<T extends Function> extends NativeType {}

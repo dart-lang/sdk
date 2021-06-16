@@ -16,9 +16,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
-DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
-DECLARE_FLAG(bool, use_slow_path);
 
 DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
@@ -812,11 +810,11 @@ void Assembler::LoadFromOffset(Register dest,
                                int32_t offset,
                                OperandSize sz) {
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
-    ldr(dest, Address(base, offset, Address::Offset, sz), sz);
+    LoadFromOffset(dest, Address(base, offset, Address::Offset, sz), sz);
   } else {
     ASSERT(base != TMP2);
     AddImmediate(TMP2, base, offset);
-    ldr(dest, Address(TMP2), sz);
+    LoadFromOffset(dest, Address(TMP2), sz);
   }
 }
 
@@ -856,11 +854,11 @@ void Assembler::StoreToOffset(Register src,
                               OperandSize sz) {
   ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
-    str(src, Address(base, offset, Address::Offset, sz), sz);
+    StoreToOffset(src, Address(base, offset, Address::Offset, sz), sz);
   } else {
     ASSERT(src != TMP2);
     AddImmediate(TMP2, base, offset);
-    str(src, Address(TMP2), sz);
+    StoreToOffset(src, Address(TMP2), sz);
   }
 }
 
@@ -929,7 +927,24 @@ void Assembler::LoadCompressed(Register dest, const Address& slot) {
   ldr(dest, slot);
 #else
   ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
-  add(dest, dest, Operand(HEAP_BASE));
+  add(dest, dest, Operand(HEAP_BITS, LSL, 32));
+#endif
+}
+
+void Assembler::LoadCompressedFromOffset(Register dest,
+                                         Register base,
+                                         int32_t offset) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  LoadFromOffset(dest, base, offset);
+#else
+  if (Address::CanHoldOffset(offset, Address::Offset, kFourBytes)) {
+    ldr(dest, Address(base, offset), kUnsignedFourBytes);  // Zero-extension.
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset);
+    ldr(dest, Address(base, 0), kUnsignedFourBytes);  // Zero-extension.
+  }
+  add(dest, dest, Operand(HEAP_BITS, LSL, 32));
 #endif
 }
 
@@ -1056,7 +1071,7 @@ void Assembler::StoreBarrier(Register object,
       kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
-  tst(TMP, Operand(BARRIER_MASK));
+  tst(TMP, Operand(HEAP_BITS, LSR, 32));
   b(&done, ZERO);
 
   if (spill_lr) {
@@ -1124,7 +1139,7 @@ void Assembler::StoreIntoArray(Register object,
       kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
-  tst(TMP, Operand(BARRIER_MASK));
+  tst(TMP, Operand(HEAP_BITS, LSR, 32));
   b(&done, ZERO);
   if (spill_lr) {
     SPILLS_LR_TO_FRAME(Push(LR));
@@ -1327,6 +1342,25 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   }
 }
 
+void Assembler::EnsureHasClassIdInDEBUG(intptr_t cid,
+                                        Register src,
+                                        Register scratch,
+                                        bool can_be_null) {
+#if defined(DEBUG)
+  Comment("Check that object in register has cid %" Pd "", cid);
+  Label matches;
+  LoadClassIdMayBeSmi(scratch, src);
+  CompareImmediate(scratch, cid);
+  BranchIf(EQUAL, &matches, Assembler::kNearJump);
+  if (can_be_null) {
+    CompareImmediate(scratch, kNullCid);
+    BranchIf(EQUAL, &matches, Assembler::kNearJump);
+  }
+  Breakpoint();
+  Bind(&matches);
+#endif
+}
+
 // Frame entry and exit.
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
@@ -1362,11 +1396,13 @@ void Assembler::RestoreCodePointer() {
 }
 
 void Assembler::RestorePinnedRegisters() {
-  ldr(BARRIER_MASK,
+  ldr(HEAP_BITS,
       compiler::Address(THR, target::Thread::write_barrier_mask_offset()));
+  LslImmediate(HEAP_BITS, HEAP_BITS, 32);
   ldr(NULL_REG, compiler::Address(THR, target::Thread::object_null_offset()));
 #if defined(DART_COMPRESSED_POINTERS)
-  ldr(HEAP_BASE, compiler::Address(THR, target::Thread::heap_base_offset()));
+  ldr(TMP, compiler::Address(THR, target::Thread::heap_base_offset()));
+  orr(HEAP_BITS, HEAP_BITS, Operand(TMP, LSR, 32));
 #endif
 }
 
@@ -1502,7 +1538,7 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   LeaveFrame();
 }
 
-void Assembler::EnterSafepoint(Register state) {
+void Assembler::EnterFullSafepoint(Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
 
@@ -1518,10 +1554,10 @@ void Assembler::EnterSafepoint(Register state) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldxr(state, addr);
-  cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
+  cmp(state, Operand(target::Thread::full_safepoint_state_unacquired()));
   b(&slow_path, NE);
 
-  movz(state, Immediate(target::Thread::safepoint_state_acquired()), 0);
+  movz(state, Immediate(target::Thread::full_safepoint_state_acquired()), 0);
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
@@ -1555,13 +1591,13 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   StoreToOffset(tmp, THR, target::Thread::execution_state_offset());
 
   if (enter_safepoint) {
-    EnterSafepoint(tmp);
+    EnterFullSafepoint(tmp);
   }
 }
 
-void Assembler::ExitSafepoint(Register state) {
+void Assembler::ExitFullSafepoint(Register state) {
   // We generate the same number of instructions whether or not the slow-path is
-  // forced, for consistency with EnterSafepoint.
+  // forced, for consistency with EnterFullSafepoint.
   Register addr = TMP2;
   ASSERT(addr != state);
 
@@ -1574,10 +1610,10 @@ void Assembler::ExitSafepoint(Register state) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldxr(state, addr);
-  cmp(state, Operand(target::Thread::safepoint_state_acquired()));
+  cmp(state, Operand(target::Thread::full_safepoint_state_acquired()));
   b(&slow_path, NE);
 
-  movz(state, Immediate(target::Thread::safepoint_state_unacquired()), 0);
+  movz(state, Immediate(target::Thread::full_safepoint_state_unacquired()), 0);
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
@@ -1596,13 +1632,16 @@ void Assembler::ExitSafepoint(Register state) {
 void Assembler::TransitionNativeToGenerated(Register state,
                                             bool exit_safepoint) {
   if (exit_safepoint) {
-    ExitSafepoint(state);
+    ExitFullSafepoint(state);
   } else {
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
+    ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
+    LoadImmediate(state, target::Thread::full_safepoint_state_acquired());
     ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
+    and_(TMP, TMP, Operand(state));
     Label ok;
-    tbz(&ok, TMP, target::Thread::safepoint_state_inside_bit());
+    cbz(&ok, TMP);
     Breakpoint();
     Bind(&ok);
 #endif
@@ -1840,45 +1879,48 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 }
 #endif  // !PRODUCT
 
-void Assembler::TryAllocate(const Class& cls,
-                            Label* failure,
-                            Register instance_reg,
-                            Register top_reg,
-                            bool tag_result) {
+void Assembler::TryAllocateObject(intptr_t cid,
+                                  intptr_t instance_size,
+                                  Label* failure,
+                                  JumpDistance distance,
+                                  Register instance_reg,
+                                  Register temp_reg) {
   ASSERT(failure != NULL);
-  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
+  ASSERT(instance_size != 0);
+  ASSERT(instance_reg != temp_reg);
+  ASSERT(temp_reg != kNoRegister);
+  ASSERT(Utils::IsAligned(instance_size,
+                          target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    const classid_t cid = target::Class::GetId(cls);
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, /*temp_reg=*/top_reg, failure));
-
-    const Register kEndReg = TMP;
-
-    // instance_reg: potential next object start.
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure));
     RELEASE_ASSERT((target::Thread::top_offset() + target::kWordSize) ==
                    target::Thread::end_offset());
-    ldp(instance_reg, kEndReg,
+    ldp(instance_reg, temp_reg,
         Address(THR, target::Thread::top_offset(), Address::PairOffset));
+    // instance_reg: current top (next object start).
+    // temp_reg: heap end
 
     // TODO(koda): Protect against unsigned overflow here.
-    AddImmediate(top_reg, instance_reg, instance_size);
-    cmp(kEndReg, Operand(top_reg));
-    b(failure, LS);  // Unsigned lower or equal.
+    AddImmediate(instance_reg, instance_size);
+    // instance_reg: potential top (next object start).
+    // fail if heap end unsigned less than or equal to new heap top.
+    cmp(temp_reg, Operand(instance_reg));
+    b(failure, LS);
 
-    // Successfully allocated the object, now update top to point to
+    // Successfully allocated the object, now update temp to point to
     // next object start and store the class in the class field of object.
-    str(top_reg, Address(THR, target::Thread::top_offset()));
+    str(instance_reg, Address(THR, target::Thread::top_offset()));
+    // Move instance_reg back to the start of the object and tag it.
+    AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
 
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    LoadImmediate(TMP, tags);
-    StoreToOffset(TMP, instance_reg, target::Object::tags_offset());
-
-    if (tag_result) {
-      AddImmediate(instance_reg, kHeapObjectTag);
-    }
+    LoadImmediate(temp_reg, tags);
+    StoreToOffset(temp_reg,
+                  FieldAddress(instance_reg, target::Object::tags_offset()));
   } else {
     b(failure);
   }

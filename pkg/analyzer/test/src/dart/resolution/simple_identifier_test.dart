@@ -96,6 +96,19 @@ class C<T> {
     assertType(identifier, 'void Function<U>(S, U)');
   }
 
+  test_never_implicitCore() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  Never;
+}
+''');
+    assertSimpleIdentifier(
+      findNode.simple('Never;'),
+      element: neverElement,
+      type: 'Type',
+    );
+  }
+
   test_tearOff_function_topLevel() async {
     await assertNoErrorsInCode('''
 void foo(int a) {}

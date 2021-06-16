@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Tests the functionality of object properties with the js_util library. For
 // js_util tests with HTML objects see tests/lib/html/js_util_test.dart.
 
@@ -48,6 +50,11 @@ class ExampleTypedLiteral {
 
   external get a;
   external get b;
+}
+
+class ExampleTearoff {
+  int x = 3;
+  foo() => x;
 }
 
 String _getBarWithSideEffect() {
@@ -252,6 +259,8 @@ main() {
       js_util.setProperty(f, 'a', 100);
       expect(f.a, equals(100));
       expect(js_util.getProperty(f, 'a'), equals(100));
+      js_util.setProperty(f, 'a', null);
+      expect(f.a, equals(null));
 
       expect(js_util.getProperty(f, 'list') is List, isTrue);
       js_util.setProperty(f, 'list', [8]);
@@ -260,6 +269,23 @@ main() {
 
       js_util.setProperty(f, 'newProperty', 'new');
       expect(js_util.getProperty(f, 'newProperty'), equals('new'));
+
+      // Using a variable for the property value.
+      var num = 4;
+      js_util.setProperty(f, 'a', num);
+      expect(f.a, equals(num));
+      var str = 'bar';
+      js_util.setProperty(f, 'a', str);
+      expect(f.a, equals(str));
+      var b = false;
+      js_util.setProperty(f, 'a', b);
+      expect(f.a, equals(b));
+      var list = [2, 4, 6];
+      js_util.setProperty(f, 'a', list);
+      expect(f.a, equals(list));
+      var fn = allowInterop(dartFunction);
+      js_util.setProperty(f, 'a', fn);
+      expect(f.a, equals(fn));
     });
 
     test('typed literal', () {
@@ -314,6 +340,17 @@ main() {
       String bar = _getBarWithSideEffect();
       js_util.setProperty(f, bar, 'baz');
       expect(js_util.getProperty(f, bar), equals('baz'));
+      js_util.setProperty(f, _getBarWithSideEffect(), 'mumble');
+      expect(js_util.getProperty(f, bar), equals('mumble'));
+
+      // Set property to a function call.
+      js_util.setProperty(f, 'a', dartFunction());
+      String expected = dartFunction();
+      expect(f.a, equals(expected));
+
+      // Using a tearoff as the property value
+      js_util.setProperty(f, 'tearoff', allowInterop(ExampleTearoff().foo));
+      expect(js_util.callMethod(f, 'tearoff', []), equals(3));
     });
   });
 

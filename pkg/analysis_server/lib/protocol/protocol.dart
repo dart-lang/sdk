@@ -46,7 +46,7 @@ class Notification {
   Map<String, Object> toJson() {
     var jsonObject = <String, Object>{};
     jsonObject[EVENT] = event;
-    var params = this.params;
+    final params = this.params;
     if (params != null) {
       jsonObject[PARAMS] = params;
     }
@@ -114,7 +114,7 @@ class Request {
     if (params.isNotEmpty) {
       jsonObject[PARAMS] = params;
     }
-    var clientRequestTime = this.clientRequestTime;
+    final clientRequestTime = this.clientRequestTime;
     if (clientRequestTime != null) {
       jsonObject[CLIENT_REQUEST_TIME] = clientRequestTime;
     }
@@ -270,7 +270,7 @@ abstract class RequestHandler {
   /// this handler, return `null` so that other handlers will be given a chance
   /// to handle it. Otherwise, return the response that should be passed back to
   /// the client.
-  Response handleRequest(Request request);
+  Response? handleRequest(Request request);
 }
 
 /// A response to a request.
@@ -505,11 +505,11 @@ class Response {
   Map<String, Object> toJson() {
     var jsonObject = <String, Object>{};
     jsonObject[ID] = id;
-    var error = this.error;
+    final error = this.error;
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
     }
-    var result = this.result;
+    final result = this.result;
     if (result != null) {
       jsonObject[RESULT] = result;
     }

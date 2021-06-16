@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/program_visitor.h"
 
 #include "vm/closure_functions_cache.h"
@@ -289,7 +291,6 @@ void ProgramVisitor::WalkProgram(Zone* zone,
   walker.VisitWorklist();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 // A base class for deduplication of objects. T is the type of canonical objects
 // being stored, whereas S is a trait appropriate for a DirectChainedHashMap
 // based set containing those canonical objects.
@@ -468,7 +469,7 @@ class StackMapEntry : public ZoneAllocated {
 
   static const intptr_t kHashBits = 30;
 
-  intptr_t Hashcode() {
+  uword Hash() {
     if (hash_ != 0) return hash_;
     uint32_t hash = 0;
     hash = CombineHashes(hash, spill_slot_bit_count_);
@@ -485,16 +486,16 @@ class StackMapEntry : public ZoneAllocated {
     return hash_;
   }
 
-  bool Equals(const StackMapEntry* other) const {
-    if (spill_slot_bit_count_ != other->spill_slot_bit_count_ ||
-        non_spill_slot_bit_count_ != other->non_spill_slot_bit_count_) {
+  bool Equals(const StackMapEntry& other) const {
+    if (spill_slot_bit_count_ != other.spill_slot_bit_count_ ||
+        non_spill_slot_bit_count_ != other.non_spill_slot_bit_count_) {
       return false;
     }
     // Since we ensure that bits in the payload that are not part of the
     // actual stackmap data are cleared, we can just compare payloads by byte
     // instead of calling IsObject for each bit.
     NoSafepointScope scope;
-    return memcmp(PayloadData(), other->PayloadData(), PayloadLength()) == 0;
+    return memcmp(PayloadData(), other.PayloadData(), PayloadLength()) == 0;
   }
 
   // Encodes this StackMapEntry to the given array of bytes and returns the
@@ -555,8 +556,8 @@ class StackMapEntryKeyIntValueTrait {
 
   static Key KeyOf(Pair kv) { return kv.key; }
   static Value ValueOf(Pair kv) { return kv.value; }
-  static intptr_t Hashcode(Key key) { return key->Hashcode(); }
-  static bool IsKeyEqual(Pair kv, Key key) { return key->Equals(kv.key); }
+  static uword Hash(Key key) { return key->Hash(); }
+  static bool IsKeyEqual(Pair kv, Key key) { return key->Equals(*kv.key); }
 };
 
 typedef DirectChainedHashMap<StackMapEntryKeyIntValueTrait> StackMapEntryIntMap;
@@ -739,7 +740,7 @@ class PcDescriptorsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Length(); }
+  static inline uword Hash(Key key) { return Utils::WordHash(key->Length()); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -786,7 +787,7 @@ class TypedDataKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->CanonicalizeHash(); }
+  static inline uword Hash(Key key) { return key->CanonicalizeHash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->CanonicalizeEquals(*key);
@@ -876,7 +877,7 @@ class UnlinkedCallKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hashcode(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -938,6 +939,68 @@ void ProgramVisitor::DedupUnlinkedCalls(Zone* zone,
     WalkProgram(zone, isolate_group, &deduper);
   }
 }
+
+void ProgramVisitor::PruneSubclasses(Zone* zone, IsolateGroup* isolate_group) {
+  class PruneSubclassesVisitor : public ClassVisitor {
+   public:
+    explicit PruneSubclassesVisitor(Zone* zone)
+        : ClassVisitor(),
+          old_implementors_(GrowableObjectArray::Handle(zone)),
+          new_implementors_(GrowableObjectArray::Handle(zone)),
+          implementor_(Class::Handle(zone)),
+          old_subclasses_(GrowableObjectArray::Handle(zone)),
+          new_subclasses_(GrowableObjectArray::Handle(zone)),
+          subclass_(Class::Handle(zone)),
+          null_list_(GrowableObjectArray::Handle(zone)) {}
+
+    void VisitClass(const Class& klass) {
+      old_implementors_ = klass.direct_implementors_unsafe();
+      if (!old_implementors_.IsNull()) {
+        new_implementors_ = GrowableObjectArray::New();
+        for (intptr_t i = 0; i < old_implementors_.Length(); i++) {
+          implementor_ ^= old_implementors_.At(i);
+          if (implementor_.id() != kIllegalCid) {
+            new_implementors_.Add(implementor_);
+          }
+        }
+        if (new_implementors_.Length() == 0) {
+          klass.set_direct_implementors(null_list_);
+        } else {
+          klass.set_direct_implementors(new_implementors_);
+        }
+      }
+
+      old_subclasses_ = klass.direct_subclasses_unsafe();
+      if (!old_subclasses_.IsNull()) {
+        new_subclasses_ = GrowableObjectArray::New();
+        for (intptr_t i = 0; i < old_subclasses_.Length(); i++) {
+          subclass_ ^= old_subclasses_.At(i);
+          if (subclass_.id() != kIllegalCid) {
+            new_subclasses_.Add(subclass_);
+          }
+        }
+        if (new_subclasses_.Length() == 0) {
+          klass.set_direct_subclasses(null_list_);
+        } else {
+          klass.set_direct_subclasses(new_subclasses_);
+        }
+      }
+    }
+
+   private:
+    GrowableObjectArray& old_implementors_;
+    GrowableObjectArray& new_implementors_;
+    Class& implementor_;
+    GrowableObjectArray& old_subclasses_;
+    GrowableObjectArray& new_subclasses_;
+    Class& subclass_;
+    GrowableObjectArray& null_list_;
+  };
+
+  PruneSubclassesVisitor visitor(zone);
+  SafepointWriteRwLocker ml(Thread::Current(), isolate_group->program_lock());
+  WalkProgram(zone, isolate_group, &visitor);
+}
 #endif  // defined(DART_PRECOMPILER)
 
 class CodeSourceMapKeyValueTrait {
@@ -951,9 +1014,9 @@ class CodeSourceMapKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     ASSERT(!key->IsNull());
-    return key->Length();
+    return Utils::WordHash(key->Length());
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -1001,9 +1064,9 @@ class ArrayKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     ASSERT(!key->IsNull());
-    return key->Length();
+    return Utils::WordHash(key->Length());
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -1125,7 +1188,7 @@ class InstructionsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -1157,7 +1220,7 @@ class CodeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Size(); }
+  static inline uword Hash(Key key) { return Utils::WordHash(key->Size()); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     // In AOT, disabled code objects should not be considered for deduplication.
@@ -1287,10 +1350,8 @@ void ProgramVisitor::DedupInstructions(Zone* zone,
   DedupInstructionsVisitor visitor(zone);
   WalkProgram(zone, isolate_group, &visitor);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void ProgramVisitor::Dedup(Thread* thread) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
   auto const isolate_group = thread->isolate_group();
   StackZone stack_zone(thread);
   HANDLESCOPE(thread);
@@ -1304,6 +1365,7 @@ void ProgramVisitor::Dedup(Thread* thread) {
 #if defined(DART_PRECOMPILER)
   DedupCatchEntryMovesMaps(zone, isolate_group);
   DedupUnlinkedCalls(zone, isolate_group);
+  PruneSubclasses(zone, isolate_group);
 #endif
   DedupCodeSourceMaps(zone, isolate_group);
   DedupLists(zone, isolate_group);
@@ -1331,7 +1393,6 @@ void ProgramVisitor::Dedup(Thread* thread) {
 
     DedupInstructions(zone, isolate_group);
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 #if defined(DART_PRECOMPILER)
@@ -1497,6 +1558,8 @@ uint32_t ProgramVisitor::Hash(Thread* thread) {
   return visitor.hash();
 }
 
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
 
 }  // namespace dart
+
+#endif  // defined(DART_PRECOMPILED_RUNTIME)

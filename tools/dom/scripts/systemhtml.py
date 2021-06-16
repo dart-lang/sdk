@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -2024,7 +2024,9 @@ class Dart2JSBackend(HtmlDartGenerator):
                                                                                 -
                                                                                 1]
                     else:
-                        print "ERROR: Arguments exceede 20 - please fix Python code to handle more."
+                        print(
+                            "ERROR: Arguments exceede 20 - please fix Python code to handle more."
+                        )
                 self._members_emitter.Emit(
                     '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) =>\n'
                     '      promiseToFuture(JS("", "#.$JSNAME($HASH_STR)", this$CALLING_PARAMS));\n',

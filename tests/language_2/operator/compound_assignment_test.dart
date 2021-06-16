@@ -4,6 +4,8 @@
 // Tests that lhs of a compound assignment is executed only once.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Indexed {

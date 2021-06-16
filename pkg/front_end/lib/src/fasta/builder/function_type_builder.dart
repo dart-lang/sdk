@@ -18,6 +18,8 @@ import 'package:kernel/ast.dart'
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
+import '../source/source_library_builder.dart';
+
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -131,14 +133,14 @@ class FunctionTypeBuilder extends TypeBuilder {
     return buildSupertype(library, charOffset, fileUri);
   }
 
-  FunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
+  FunctionTypeBuilder clone(
+      List<TypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
     List<TypeVariableBuilder> clonedTypeVariables;
     if (typeVariables != null) {
       clonedTypeVariables =
-          new List<TypeVariableBuilder>.filled(typeVariables.length, null);
-      for (int i = 0; i < clonedTypeVariables.length; i++) {
-        clonedTypeVariables[i] = typeVariables[i].clone(newTypes);
-      }
+          contextLibrary.copyTypeVariables(typeVariables, contextDeclaration);
     }
     List<FormalParameterBuilder> clonedFormals;
     if (formals != null) {
@@ -146,11 +148,12 @@ class FunctionTypeBuilder extends TypeBuilder {
           new List<FormalParameterBuilder>.filled(formals.length, null);
       for (int i = 0; i < clonedFormals.length; i++) {
         FormalParameterBuilder formal = formals[i];
-        clonedFormals[i] = formal.clone(newTypes);
+        clonedFormals[i] =
+            formal.clone(newTypes, contextLibrary, contextDeclaration);
       }
     }
     FunctionTypeBuilder newType = new FunctionTypeBuilder(
-        returnType?.clone(newTypes),
+        returnType?.clone(newTypes, contextLibrary, contextDeclaration),
         clonedTypeVariables,
         clonedFormals,
         nullabilityBuilder,

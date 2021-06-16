@@ -11,21 +11,23 @@
 //
 //     -N: run benchmarks N times, defaults to once.
 
-import '../../ListCopy/dart/ListCopy.dart' as lib_ListCopy;
-import '../../BigIntParsePrint/dart/BigIntParsePrint.dart'
+// ignore_for_file: library_prefixes
+
+import '../../BigIntParsePrint/dart2/BigIntParsePrint.dart'
     as lib_BigIntParsePrint;
-import '../../MD5/dart/md5.dart' as lib_MD5;
-import '../../RuntimeType/dart/RuntimeType.dart' as lib_RuntimeType;
-import '../../SHA1/dart/sha1.dart' as lib_SHA1;
-import '../../SHA256/dart/sha256.dart' as lib_SHA256;
-import '../../SkeletalAnimation/dart/SkeletalAnimation.dart'
+import '../../ListCopy/dart2/ListCopy.dart' as lib_ListCopy;
+import '../../MD5/dart2/md5.dart' as lib_MD5;
+import '../../RuntimeType/dart2/RuntimeType.dart' as lib_RuntimeType;
+import '../../SHA1/dart2/sha1.dart' as lib_SHA1;
+import '../../SHA256/dart2/sha256.dart' as lib_SHA256;
+import '../../SkeletalAnimation/dart2/SkeletalAnimation.dart'
     as lib_SkeletalAnimation;
-import '../../SkeletalAnimationSIMD/dart/SkeletalAnimationSIMD.dart'
+import '../../SkeletalAnimationSIMD/dart2/SkeletalAnimationSIMD.dart'
     as lib_SkeletalAnimationSIMD;
-import '../../TypedDataDuplicate/dart/TypedDataDuplicate.dart'
+import '../../TypedDataDuplicate/dart2/TypedDataDuplicate.dart'
     as lib_TypedDataDuplicate;
-import '../../Utf8Decode/dart/Utf8Decode.dart' as lib_Utf8Decode;
-import '../../Utf8Encode/dart/Utf8Encode.dart' as lib_Utf8Encode;
+import '../../Utf8Decode/dart2/Utf8Decode.dart' as lib_Utf8Decode;
+import '../../Utf8Encode/dart2/Utf8Encode.dart' as lib_Utf8Encode;
 
 final Map<String, Function()> benchmarks = {
   'ListCopy': lib_ListCopy.main,
@@ -41,13 +43,13 @@ final Map<String, Function()> benchmarks = {
   'Utf8Encode': () => lib_Utf8Encode.main([]),
 };
 
-main(List<String> originalArguments) {
-  List<String> args = List.of(originalArguments);
+void main(List<String> originalArguments) {
+  final List<String> args = List.of(originalArguments);
 
   int repeats = 1;
 
   for (final arg in args.toList()) {
-    int count = int.tryParse(arg);
+    final int count = int.tryParse(arg);
     if (count != null && count < 0) {
       repeats = 0 - count;
       args.remove(arg);

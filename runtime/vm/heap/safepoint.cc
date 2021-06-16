@@ -12,41 +12,33 @@ namespace dart {
 
 DEFINE_FLAG(bool, trace_safepoint, false, "Trace Safepoint logic.");
 
-SafepointOperationScope::SafepointOperationScope(Thread* T)
-    : ThreadStackResource(T) {
+SafepointOperationScope::SafepointOperationScope(Thread* T,
+                                                 SafepointLevel level)
+    : ThreadStackResource(T), level_(level) {
   ASSERT(T != nullptr && T->isolate_group() != nullptr);
 
-  SafepointHandler* handler = T->isolate_group()->safepoint_handler();
-  ASSERT(handler != NULL);
-
-  // Signal all threads to get to a safepoint and wait for them to
-  // get to a safepoint.
-  handler->SafepointThreads(T);
+  auto handler = T->isolate_group()->safepoint_handler();
+  handler->SafepointThreads(T, level_);
 }
 
 SafepointOperationScope::~SafepointOperationScope() {
   Thread* T = thread();
   ASSERT(T != nullptr && T->isolate_group() != nullptr);
 
-  // Resume all threads which are blocked for the safepoint operation.
-  SafepointHandler* handler = T->isolate_group()->safepoint_handler();
-  ASSERT(handler != NULL);
-  handler->ResumeThreads(T);
+  auto handler = T->isolate_group()->safepoint_handler();
+  handler->ResumeThreads(T, level_);
 }
 
 ForceGrowthSafepointOperationScope::ForceGrowthSafepointOperationScope(
-    Thread* T)
-    : ThreadStackResource(T) {
+    Thread* T,
+    SafepointLevel level)
+    : ThreadStackResource(T), level_(level) {
   ASSERT(T != NULL);
   IsolateGroup* IG = T->isolate_group();
   ASSERT(IG != NULL);
 
-  SafepointHandler* handler = IG->safepoint_handler();
-  ASSERT(handler != NULL);
-
-  // Signal all threads to get to a safepoint and wait for them to
-  // get to a safepoint.
-  handler->SafepointThreads(T);
+  auto handler = IG->safepoint_handler();
+  handler->SafepointThreads(T, level_);
 
   // N.B.: Change growth policy inside the safepoint to prevent racy access.
   Heap* heap = IG->heap();
@@ -64,10 +56,8 @@ ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
   Heap* heap = IG->heap();
   heap->SetGrowthControlState(current_growth_controller_state_);
 
-  // Resume all threads which are blocked for the safepoint operation.
-  SafepointHandler* handler = IG->safepoint_handler();
-  ASSERT(handler != NULL);
-  handler->ResumeThreads(T);
+  auto handler = IG->safepoint_handler();
+  handler->ResumeThreads(T, level_);
 
   if (current_growth_controller_state_) {
     ASSERT(T->CanCollectGarbage());
@@ -82,87 +72,131 @@ ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
 
 SafepointHandler::SafepointHandler(IsolateGroup* isolate_group)
     : isolate_group_(isolate_group),
-      safepoint_lock_(),
-      number_threads_not_at_safepoint_(0),
-      safepoint_operation_count_(0),
-      owner_(NULL) {}
+      handlers_{
+          {isolate_group, SafepointLevel::kGC},
+          {isolate_group, SafepointLevel::kGCAndDeopt},
+      } {}
 
 SafepointHandler::~SafepointHandler() {
-  ASSERT(owner_ == NULL);
-  ASSERT(safepoint_operation_count_ == 0);
-  isolate_group_ = NULL;
+  for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
+    ASSERT(handlers_[level].owner_ == nullptr);
+  }
 }
 
-void SafepointHandler::SafepointThreads(Thread* T) {
+void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
   ASSERT(T->no_safepoint_scope_depth() == 0);
   ASSERT(T->execution_state() == Thread::kThreadInVM);
+  ASSERT(T->current_safepoint_level() >= level);
 
   {
-    // First grab the threads list lock for this isolate
-    // and check if a safepoint is already in progress. This
-    // ensures that two threads do not start a safepoint operation
-    // at the same time.
-    MonitorLocker sl(threads_lock());
+    MonitorLocker tl(threads_lock());
 
-    // Now check to see if a safepoint operation is already in progress
-    // for this isolate, block if an operation is in progress.
-    while (SafepointInProgress()) {
-      // If we are recursively invoking a Safepoint operation then we
-      // just increment the count and return, otherwise we wait for the
-      // safepoint operation to be done.
-      if (owner_ == T) {
-        increment_safepoint_operation_count();
-        return;
-      }
-      sl.WaitWithSafepointCheck(T);
+    // Allow recursive deopt safepoint operation.
+    if (handlers_[level].owner_ == T) {
+      handlers_[level].operation_count_++;
+      // If we own this safepoint level already we have to own the lower levels
+      // as well.
+      AssertWeOwnLowerLevelSafepoints(T, level);
+      return;
     }
 
-    // Set safepoint in progress state by this thread.
-    SetSafepointInProgress(T);
+    // This level of nesting is not allowed (this thread cannot own lower levels
+    // and then later try acquire higher levels).
+    AssertWeDoNotOwnLowerLevelSafepoints(T, level);
 
-    // Go over the active thread list and ensure that all threads active
-    // in the isolate reach a safepoint.
-    Thread* current = isolate_group()->thread_registry()->active_list();
-    while (current != NULL) {
-      MonitorLocker tl(current->thread_lock());
-      if (!current->BypassSafepoints()) {
-        if (current == T) {
-          current->SetAtSafepoint(true);
-        } else {
-          uint32_t state = current->SetSafepointRequested(true);
-          if (!Thread::IsAtSafepoint(state)) {
-            // Thread is not already at a safepoint so try to
-            // get it to a safepoint and wait for it to check in.
-            if (current->IsMutatorThread()) {
-              current->ScheduleInterruptsLocked(Thread::kVMInterrupt);
-            }
-            MonitorLocker sl(&safepoint_lock_);
-            ++number_threads_not_at_safepoint_;
-          }
+    // Mark this thread at safepoint and possibly notify waiting threads.
+    {
+      MonitorLocker tl(T->thread_lock());
+      EnterSafepointLocked(T, &tl);
+    }
+
+    // Wait until other safepoint operations are done & mark us as owning
+    // the safepoint - so no other thread can.
+    while (handlers_[level].SafepointInProgress()) {
+      tl.Wait();
+    }
+    handlers_[level].SetSafepointInProgress(T);
+
+    // Ensure a thread is at a safepoint or notify it to get to one.
+    handlers_[level].NotifyThreadsToGetToSafepointLevel(T);
+  }
+
+  // Now wait for all threads that are not already at a safepoint to check-in.
+  handlers_[level].WaitUntilThreadsReachedSafepointLevel();
+
+  AcquireLowerLevelSafepoints(T, level);
+}
+
+void SafepointHandler::AssertWeOwnLowerLevelSafepoints(Thread* T,
+                                                       SafepointLevel level) {
+  for (intptr_t lower_level = level - 1; lower_level >= 0; --lower_level) {
+    RELEASE_ASSERT(handlers_[lower_level].owner_ == T);
+  }
+}
+
+void SafepointHandler::AssertWeDoNotOwnLowerLevelSafepoints(
+    Thread* T,
+    SafepointLevel level) {
+  for (intptr_t lower_level = level - 1; lower_level >= 0; --lower_level) {
+    RELEASE_ASSERT(handlers_[lower_level].owner_ != T);
+  }
+}
+
+void SafepointHandler::LevelHandler::NotifyThreadsToGetToSafepointLevel(
+    Thread* T) {
+  ASSERT(num_threads_not_parked_ == 0);
+  for (auto current = isolate_group()->thread_registry()->active_list();
+       current != nullptr; current = current->next()) {
+    MonitorLocker tl(current->thread_lock());
+    if (!current->BypassSafepoints() && current != T) {
+      const uint32_t state = current->SetSafepointRequested(level_, true);
+      if (!Thread::IsAtSafepoint(level_, state)) {
+        // Send OOB message to get it to safepoint.
+        if (current->IsMutatorThread()) {
+          current->ScheduleInterruptsLocked(Thread::kVMInterrupt);
         }
+        MonitorLocker sl(&parked_lock_);
+        num_threads_not_parked_++;
       }
-      current = current->next();
     }
   }
-  // Now wait for all threads that are not already at a safepoint to check-in.
+}
+
+void SafepointHandler::ResumeThreads(Thread* T, SafepointLevel level) {
   {
-    MonitorLocker sl(&safepoint_lock_);
-    intptr_t num_attempts = 0;
-    while (number_threads_not_at_safepoint_ > 0) {
-      Monitor::WaitResult retval = sl.Wait(1000);
-      if (retval == Monitor::kTimedOut) {
-        num_attempts += 1;
-        if (FLAG_trace_safepoint && num_attempts > 10) {
-          // We have been waiting too long, start logging this as we might
-          // have an issue where a thread is not checking in for a safepoint.
-          for (Thread* current =
-                   isolate_group()->thread_registry()->active_list();
-               current != NULL; current = current->next()) {
-            if (!current->IsAtSafepoint()) {
-              OS::PrintErr("Attempt:%" Pd
-                           " waiting for thread %s to check in\n",
-                           num_attempts, current->os_thread()->name());
-            }
+    MonitorLocker sl(threads_lock());
+
+    ASSERT(handlers_[level].SafepointInProgress());
+    ASSERT(handlers_[level].owner_ == T);
+    AssertWeOwnLowerLevelSafepoints(T, level);
+
+    // We allow recursive safepoints.
+    if (handlers_[level].operation_count_ > 1) {
+      handlers_[level].operation_count_--;
+      return;
+    }
+
+    ReleaseLowerLevelSafepoints(T, level);
+    handlers_[level].NotifyThreadsToContinue(T);
+    handlers_[level].ResetSafepointInProgress(T);
+    sl.NotifyAll();
+  }
+  ExitSafepointUsingLock(T);
+}
+
+void SafepointHandler::LevelHandler::WaitUntilThreadsReachedSafepointLevel() {
+  MonitorLocker sl(&parked_lock_);
+  intptr_t num_attempts = 0;
+  while (num_threads_not_parked_ > 0) {
+    Monitor::WaitResult retval = sl.Wait(1000);
+    if (retval == Monitor::kTimedOut) {
+      num_attempts += 1;
+      if (FLAG_trace_safepoint && num_attempts > 10) {
+        for (auto current = isolate_group()->thread_registry()->active_list();
+             current != nullptr; current = current->next()) {
+          if (!current->IsAtSafepoint(level_)) {
+            OS::PrintErr("Attempt:%" Pd " waiting for thread %s to check in\n",
+                         num_attempts, current->os_thread()->name());
           }
         }
       }
@@ -170,80 +204,96 @@ void SafepointHandler::SafepointThreads(Thread* T) {
   }
 }
 
-void SafepointHandler::ResumeThreads(Thread* T) {
-  // First resume all the threads which are blocked for the safepoint
-  // operation.
-  MonitorLocker sl(threads_lock());
-
-  // First check if we are in a recursive safepoint operation, in that case
-  // we just decrement safepoint_operation_count and return.
-  ASSERT(SafepointInProgress());
-  if (safepoint_operation_count() > 1) {
-    decrement_safepoint_operation_count();
-    return;
+void SafepointHandler::AcquireLowerLevelSafepoints(Thread* T,
+                                                   SafepointLevel level) {
+  MonitorLocker tl(threads_lock());
+  ASSERT(handlers_[level].owner_ == T);
+  for (intptr_t lower_level = level - 1; lower_level >= 0; --lower_level) {
+    while (handlers_[lower_level].SafepointInProgress()) {
+      tl.Wait();
+    }
+    handlers_[lower_level].SetSafepointInProgress(T);
+    ASSERT(handlers_[lower_level].owner_ == T);
   }
-  Thread* current = isolate_group()->thread_registry()->active_list();
-  while (current != NULL) {
+}
+
+void SafepointHandler::ReleaseLowerLevelSafepoints(Thread* T,
+                                                   SafepointLevel level) {
+  for (intptr_t lower_level = 0; lower_level < level; ++lower_level) {
+    handlers_[lower_level].ResetSafepointInProgress(T);
+  }
+}
+
+void SafepointHandler::LevelHandler::NotifyThreadsToContinue(Thread* T) {
+  for (auto current = isolate_group()->thread_registry()->active_list();
+       current != nullptr; current = current->next()) {
     MonitorLocker tl(current->thread_lock());
-    if (!current->BypassSafepoints()) {
-      if (current == T) {
-        current->SetAtSafepoint(false);
-      } else {
-        uint32_t state = current->SetSafepointRequested(false);
-        if (Thread::IsBlockedForSafepoint(state)) {
-          tl.Notify();
+    if (!current->BypassSafepoints() && current != T) {
+      bool resume = false;
+      for (intptr_t lower_level = level_; lower_level >= 0; --lower_level) {
+        if (Thread::IsBlockedForSafepoint(current->SetSafepointRequested(
+                static_cast<SafepointLevel>(lower_level), false))) {
+          resume = true;
         }
       }
+      if (resume) {
+        tl.Notify();
+      }
     }
-    current = current->next();
   }
-  // Now reset the safepoint_in_progress_ state and notify all threads
-  // that are waiting to enter the isolate or waiting to start another
-  // safepoint operation.
-  ResetSafepointInProgress(T);
-  sl.NotifyAll();
 }
 
 void SafepointHandler::EnterSafepointUsingLock(Thread* T) {
   MonitorLocker tl(T->thread_lock());
-  T->SetAtSafepoint(true);
-  if (T->IsSafepointRequested()) {
-    MonitorLocker sl(&safepoint_lock_);
-    ASSERT(number_threads_not_at_safepoint_ > 0);
-    number_threads_not_at_safepoint_ -= 1;
-    sl.Notify();
-  }
+  EnterSafepointLocked(T, &tl);
 }
 
 void SafepointHandler::ExitSafepointUsingLock(Thread* T) {
   MonitorLocker tl(T->thread_lock());
   ASSERT(T->IsAtSafepoint());
-  while (T->IsSafepointRequested()) {
-    T->SetBlockedForSafepoint(true);
-    tl.Wait();
-    T->SetBlockedForSafepoint(false);
-  }
-  T->SetAtSafepoint(false);
+  ExitSafepointLocked(T, &tl);
+  ASSERT(!T->IsSafepointRequestedLocked());
 }
 
 void SafepointHandler::BlockForSafepoint(Thread* T) {
   ASSERT(!T->BypassSafepoints());
   MonitorLocker tl(T->thread_lock());
-  if (T->IsSafepointRequested()) {
-    T->SetAtSafepoint(true);
-    {
-      MonitorLocker sl(&safepoint_lock_);
-      ASSERT(number_threads_not_at_safepoint_ > 0);
-      number_threads_not_at_safepoint_ -= 1;
-      sl.Notify();
-    }
-    while (T->IsSafepointRequested()) {
-      T->SetBlockedForSafepoint(true);
-      tl.Wait();
-      T->SetBlockedForSafepoint(false);
-    }
-    T->SetAtSafepoint(false);
+  // This takes into account the safepoint level the thread can participate in.
+  if (T->IsSafepointRequestedLocked()) {
+    EnterSafepointLocked(T, &tl);
+    ExitSafepointLocked(T, &tl);
+    ASSERT(!T->IsSafepointRequestedLocked());
   }
+}
+
+void SafepointHandler::EnterSafepointLocked(Thread* T, MonitorLocker* tl) {
+  T->SetAtSafepoint(true);
+
+  for (intptr_t level = T->current_safepoint_level(); level >= 0; --level) {
+    if (T->IsSafepointLevelRequestedLocked(
+            static_cast<SafepointLevel>(level))) {
+      handlers_[level].NotifyWeAreParked(T);
+    }
+  }
+}
+
+void SafepointHandler::LevelHandler::NotifyWeAreParked(Thread* T) {
+  ASSERT(owner_ != nullptr);
+  MonitorLocker sl(&parked_lock_);
+  ASSERT(num_threads_not_parked_ > 0);
+  num_threads_not_parked_ -= 1;
+  if (num_threads_not_parked_ == 0) {
+    sl.Notify();
+  }
+}
+
+void SafepointHandler::ExitSafepointLocked(Thread* T, MonitorLocker* tl) {
+  while (T->IsSafepointRequestedLocked()) {
+    T->SetBlockedForSafepoint(true);
+    tl->Wait();
+    T->SetBlockedForSafepoint(false);
+  }
+  T->SetAtSafepoint(false);
 }
 
 }  // namespace dart

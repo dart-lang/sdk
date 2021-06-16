@@ -16,7 +16,7 @@ import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
     show DillLibraryBuilder;
 
-import 'package:kernel/ast.dart' hide Combinator, MapEntry;
+import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -93,9 +93,10 @@ import '../kernel/kernel_builder.dart'
 
 import '../kernel/type_algorithms.dart'
     show
+        NonSimplicityIssue,
         calculateBounds,
         computeTypeVariableBuilderVariance,
-        findGenericFunctionTypes,
+        findUnaliasedGenericFunctionTypes,
         getInboundReferenceIssuesInType,
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables,
@@ -312,6 +313,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableNonfunctionTypeAliasesInLibrary;
   bool _enableNonNullableInLibrary;
   Version _enableNonNullableVersionInLibrary;
+  Version _enableConstructorTearoffsVersionInLibrary;
   bool _enableTripleShiftInLibrary;
   bool _enableExtensionMethodsInLibrary;
   bool _enableGenericMetadataInLibrary;
@@ -348,6 +350,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       _enableNonNullableVersionInLibrary ??= loader.target
           .getExperimentEnabledVersionInLibrary(
               ExperimentalFlag.nonNullable, _packageUri ?? importUri);
+
+  Version get enableConstructorTearoffsVersionInLibrary =>
+      _enableConstructorTearoffsVersionInLibrary ??= loader.target
+          .getExperimentEnabledVersionInLibrary(
+              ExperimentalFlag.constructorTearoffs, _packageUri ?? importUri);
 
   bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??=
       loader.target.isExperimentEnabledInLibraryByVersion(
@@ -715,6 +722,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     String nativePath;
     const String nativeExtensionScheme = "dart-ext:";
     if (uri.startsWith(nativeExtensionScheme)) {
+      addProblem(messageDeprecateDartExt, charOffset, noLength, fileUri);
       String strippedUri = uri.substring(nativeExtensionScheme.length);
       if (strippedUri.startsWith("package")) {
         resolvedUri = resolve(this.importUri, strippedUri,
@@ -1029,7 +1037,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
-          getterReference: getterReference));
+          getterReference: getterReference,
+          fileUri: library.fileUri));
     }
 
     return library;
@@ -1463,6 +1472,48 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset));
   }
 
+  void _checkBadFunctionParameter(List<TypeVariableBuilder> typeVariables) {
+    if (typeVariables == null || typeVariables.isEmpty) {
+      return;
+    }
+
+    for (TypeVariableBuilder type in typeVariables) {
+      if (type.name == "Function") {
+        addProblem(messageFunctionAsTypeParameter, type.charOffset,
+            type.name.length, type.fileUri);
+      }
+    }
+  }
+
+  void _checkBadFunctionDeclUse(
+      String className, TypeParameterScopeKind kind, int charOffset) {
+    String decType;
+    switch (kind) {
+      case TypeParameterScopeKind.classDeclaration:
+        decType = "class";
+        break;
+      case TypeParameterScopeKind.mixinDeclaration:
+        decType = "mixin";
+        break;
+      case TypeParameterScopeKind.extensionDeclaration:
+        decType = "extension";
+        break;
+      default:
+        break;
+    }
+    if (className != "Function") {
+      return;
+    }
+    if (decType == "class" && importUri.scheme == "dart") {
+      // Allow declaration of class Function in the sdk.
+      return;
+    }
+    if (decType != null) {
+      addProblem(templateFunctionUsedAsDec.withArguments(decType), charOffset,
+          className?.length, fileUri);
+    }
+  }
+
   /// Add a problem that might not be reported immediately.
   ///
   /// Problems will be issued after source information has been added.
@@ -1572,6 +1623,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int nameOffset,
       int endOffset,
       int supertypeOffset) {
+    _checkBadFunctionDeclUse(className, kind, nameOffset);
+    _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
@@ -1804,6 +1857,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startOffset,
       int nameOffset,
       int endOffset) {
+    _checkBadFunctionDeclUse(
+        extensionName, TypeParameterScopeKind.extensionDeclaration, nameOffset);
+    _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     TypeParameterScopeBuilder declaration = endNestedDeclaration(
         TypeParameterScopeKind.extensionDeclaration, extensionName)
@@ -1835,7 +1891,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         nameOffset,
         endOffset,
         referenceFrom);
-
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
         checkTypeVariables(typeVariables, extensionBuilder);
@@ -2020,12 +2075,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             List<TypeBuilder> newTypes = <TypeBuilder>[];
             if (supertype is NamedTypeBuilder && supertype.arguments != null) {
               for (int i = 0; i < supertype.arguments.length; ++i) {
-                supertype.arguments[i] = supertype.arguments[i].clone(newTypes);
+                supertype.arguments[i] = supertype.arguments[i]
+                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
               }
             }
             if (mixin is NamedTypeBuilder && mixin.arguments != null) {
               for (int i = 0; i < mixin.arguments.length; ++i) {
-                mixin.arguments[i] = mixin.arguments[i].clone(newTypes);
+                mixin.arguments[i] = mixin.arguments[i]
+                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
               }
             }
             for (TypeBuilder newType in newTypes) {
@@ -2152,17 +2209,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             hasInitializer: hasInitializer,
             isFinal: (modifiers & finalMask) != 0,
             isStatic: isTopLevel || (modifiers & staticMask) != 0);
-    final bool isInstanceMember = currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.classDeclaration &&
+    final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
+            TypeParameterScopeKind.library &&
         (modifiers & staticMask) == 0;
     String className;
     if (isInstanceMember) {
       className = currentTypeParameterScopeBuilder.name;
     }
-    final bool isExtension = currentTypeParameterScopeBuilder.kind ==
+    final bool isExtensionMember = currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.extensionDeclaration;
     String extensionName;
-    if (isExtension) {
+    if (isExtensionMember) {
       extensionName = currentTypeParameterScopeBuilder.name;
     }
 
@@ -2172,56 +2229,50 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Reference lateIsSetSetterReference;
     Reference lateGetterReference;
     Reference lateSetterReference;
+
+    FieldNameScheme fieldNameScheme = new FieldNameScheme(
+        isInstanceMember: isInstanceMember,
+        className: className,
+        isExtensionMember: isExtensionMember,
+        extensionName: extensionName,
+        libraryReference: referencesFrom?.reference ?? library.reference);
     if (referencesFrom != null) {
-      String nameToLookup = SourceFieldBuilder.createFieldName(
-          FieldNameType.Field, name,
-          isInstanceMember: isInstanceMember,
-          className: className,
-          isExtensionMethod: isExtension,
-          extensionName: extensionName,
-          isSynthesized: fieldIsLateWithLowering);
       IndexedContainer indexedContainer =
           _currentClassReferencesFromIndexed ?? referencesFromIndexed;
-      Name nameToLookupName = new Name(nameToLookup, indexedContainer.library);
+      Name nameToLookupName = fieldNameScheme.getName(FieldNameType.Field, name,
+          isSynthesized: fieldIsLateWithLowering);
       fieldGetterReference =
           indexedContainer.lookupGetterReference(nameToLookupName);
       fieldSetterReference =
           indexedContainer.lookupSetterReference(nameToLookupName);
       if (fieldIsLateWithLowering) {
-        String lateIsSetName = SourceFieldBuilder.createFieldName(
+        Name lateIsSetNameName = fieldNameScheme.getName(
             FieldNameType.IsSetField, name,
-            isInstanceMember: isInstanceMember,
-            className: className,
-            isExtensionMethod: isExtension,
-            extensionName: extensionName,
             isSynthesized: fieldIsLateWithLowering);
-        Name lateIsSetNameName =
-            new Name(lateIsSetName, indexedContainer.library);
         lateIsSetGetterReference =
             indexedContainer.lookupGetterReference(lateIsSetNameName);
         lateIsSetSetterReference =
             indexedContainer.lookupSetterReference(lateIsSetNameName);
-        lateGetterReference = indexedContainer.lookupGetterReference(new Name(
-            SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
-                isInstanceMember: isInstanceMember,
-                className: className,
-                isExtensionMethod: isExtension,
-                extensionName: extensionName,
-                isSynthesized: fieldIsLateWithLowering),
-            indexedContainer.library));
-        lateSetterReference = indexedContainer.lookupSetterReference(new Name(
-            SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
-                isInstanceMember: isInstanceMember,
-                className: className,
-                isExtensionMethod: isExtension,
-                extensionName: extensionName,
-                isSynthesized: fieldIsLateWithLowering),
-            indexedContainer.library));
+        lateGetterReference = indexedContainer.lookupGetterReference(
+            fieldNameScheme.getName(FieldNameType.Getter, name,
+                isSynthesized: fieldIsLateWithLowering));
+        lateSetterReference = indexedContainer.lookupSetterReference(
+            fieldNameScheme.getName(FieldNameType.Setter, name,
+                isSynthesized: fieldIsLateWithLowering));
       }
     }
 
-    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(metadata, type,
-        name, modifiers, isTopLevel, this, charOffset, charEndOffset,
+    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
+        metadata,
+        type,
+        name,
+        modifiers,
+        isTopLevel,
+        this,
+        charOffset,
+        charEndOffset,
+        fieldNameScheme,
+        isInstanceMember: isInstanceMember,
         fieldGetterReference: fieldGetterReference,
         fieldSetterReference: fieldSetterReference,
         lateIsSetGetterReference: lateIsSetGetterReference,
@@ -2312,10 +2363,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       String nativeMethodName,
       AsyncMarker asyncModifier,
-      {bool isTopLevel,
-      bool isExtensionInstanceMember}) {
-    assert(isTopLevel != null);
-    assert(isExtensionInstanceMember != null);
+      {bool isInstanceMember,
+      bool isExtensionMember}) {
+    assert(isInstanceMember != null);
+    assert(isExtensionMember != null);
+    assert(!isExtensionMember ||
+        currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.extensionDeclaration);
+    String extensionName =
+        isExtensionMember ? currentTypeParameterScopeBuilder.name : null;
+    ProcedureNameScheme procedureNameScheme = new ProcedureNameScheme(
+        isExtensionMember: isExtensionMember,
+        extensionName: extensionName,
+        isStatic: !isInstanceMember,
+        libraryReference: referencesFrom?.reference ?? library.reference);
 
     if (returnType == null) {
       if (kind == ProcedureKind.Operator &&
@@ -2328,52 +2389,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Reference procedureReference;
     Reference tearOffReference;
     if (referencesFrom != null) {
+      Name nameToLookup = procedureNameScheme.getName(kind, name);
       if (_currentClassReferencesFromIndexed != null) {
         if (kind == ProcedureKind.Setter) {
-          procedureReference =
-              _currentClassReferencesFromIndexed.lookupSetterReference(
-                  new Name(name, _currentClassReferencesFromIndexed.library));
+          procedureReference = _currentClassReferencesFromIndexed
+              .lookupSetterReference(nameToLookup);
         } else {
-          procedureReference =
-              _currentClassReferencesFromIndexed.lookupGetterReference(
-                  new Name(name, _currentClassReferencesFromIndexed.library));
+          procedureReference = _currentClassReferencesFromIndexed
+              .lookupGetterReference(nameToLookup);
         }
       } else {
-        if (currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionDeclaration) {
-          bool extensionIsStatic = (modifiers & staticMask) != 0;
-          String nameToLookup = SourceProcedureBuilder.createProcedureName(
-              true,
-              extensionIsStatic,
-              kind,
-              currentTypeParameterScopeBuilder.name,
-              name);
-          if (extensionIsStatic && kind == ProcedureKind.Setter) {
-            procedureReference = referencesFromIndexed.lookupSetterReference(
-                new Name(nameToLookup, referencesFromIndexed.library));
-          } else {
-            procedureReference = referencesFromIndexed.lookupGetterReference(
-                new Name(nameToLookup, referencesFromIndexed.library));
-          }
-          if (kind == ProcedureKind.Method) {
-            String tearOffNameToLookup =
-                SourceProcedureBuilder.createProcedureName(
-                    true,
-                    false,
-                    ProcedureKind.Getter,
-                    currentTypeParameterScopeBuilder.name,
-                    name);
-            tearOffReference = referencesFromIndexed.lookupGetterReference(
-                new Name(tearOffNameToLookup, referencesFromIndexed.library));
-          }
+        if (kind == ProcedureKind.Setter &&
+            // Extension instance setters are encoded as methods.
+            !(isExtensionMember && isInstanceMember)) {
+          procedureReference =
+              referencesFromIndexed.lookupSetterReference(nameToLookup);
         } else {
-          if (kind == ProcedureKind.Setter) {
-            procedureReference = referencesFromIndexed.lookupSetterReference(
-                new Name(name, referencesFromIndexed.library));
-          } else {
-            procedureReference = referencesFromIndexed.lookupGetterReference(
-                new Name(name, referencesFromIndexed.library));
-          }
+          procedureReference =
+              referencesFromIndexed.lookupGetterReference(nameToLookup);
+        }
+        if (isExtensionMember && kind == ProcedureKind.Method) {
+          tearOffReference = referencesFromIndexed.lookupGetterReference(
+              procedureNameScheme.getName(ProcedureKind.Getter, name));
         }
       }
     }
@@ -2393,8 +2430,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         procedureReference,
         tearOffReference,
         asyncModifier,
-        isExtensionInstanceMember,
-        nativeMethodName);
+        procedureNameScheme,
+        isExtensionMember: isExtensionMember,
+        isInstanceMember: isInstanceMember,
+        nativeMethodName: nativeMethodName);
     checkTypeVariables(typeVariables, procedureBuilder);
     addBuilder(name, procedureBuilder, charOffset,
         getterReference: procedureReference);
@@ -2434,6 +2473,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name;
     }
 
+    ProcedureNameScheme procedureNameScheme = new ProcedureNameScheme(
+        isExtensionMember: false,
+        extensionName: null,
+        isStatic: true,
+        libraryReference: referencesFrom != null
+            ? (_currentClassReferencesFromIndexed ?? referencesFromIndexed)
+                .library
+                .reference
+            : library.reference);
+
     Reference reference = _currentClassReferencesFromIndexed
         ?.lookupConstructor(
             new Name(procedureName, _currentClassReferencesFromIndexed.library))
@@ -2457,6 +2506,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOpenParenOffset,
           charEndOffset,
           reference,
+          procedureNameScheme,
           nativeMethodName,
           redirectionTarget);
     } else {
@@ -2479,8 +2529,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           reference,
           null,
           asyncModifier,
-          /* isExtensionInstanceMember = */ false,
-          nativeMethodName);
+          procedureNameScheme,
+          isExtensionMember: false,
+          isInstanceMember: false,
+          nativeMethodName: nativeMethodName);
     }
 
     TypeParameterScopeBuilder savedDeclaration =
@@ -2680,7 +2732,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     } else {
       unhandled("${declaration.runtimeType}", "buildBuilder",
           declaration.charOffset, declaration.fileUri);
-      return;
     }
   }
 
@@ -2911,7 +2962,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (TypeVariableBuilder variable in original) {
       TypeVariableBuilder newVariable = new TypeVariableBuilder(
           variable.name, this, variable.charOffset, variable.fileUri,
-          bound: variable.bound?.clone(newTypes),
+          bound: variable.bound?.clone(newTypes, this, declaration),
           isExtensionTypeParameter: isExtensionTypeParameter,
           variableVariance:
               variable.parameter.isLegacyCovariant ? null : variable.variance);
@@ -3028,6 +3079,91 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
+  /// Reports an error on generic function types used as bounds
+  ///
+  /// The function recursively searches for all generic function types in
+  /// [typeVariable.bound] and checks the bounds of type variables of the found
+  /// types for being generic function types.  Additionally, the function checks
+  /// [typeVariable.bound] for being a generic function type.  Returns `true` if
+  /// any errors were reported.
+  bool _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
+      TypeVariableBuilder typeVariable) {
+    if (enableGenericMetadataInLibrary) return false;
+
+    bool hasReportedErrors = false;
+    hasReportedErrors =
+        _reportGenericFunctionTypeAsBoundIfNeeded(typeVariable) ||
+            hasReportedErrors;
+    hasReportedErrors = _recursivelyReportGenericFunctionTypesAsBoundsForType(
+            typeVariable.bound) ||
+        hasReportedErrors;
+    return hasReportedErrors;
+  }
+
+  /// Reports an error on generic function types used as bounds
+  ///
+  /// The function recursively searches for all generic function types in
+  /// [typeBuilder] and checks the bounds of type variables of the found types
+  /// for being generic function types.  Returns `true` if any errors were
+  /// reported.
+  bool _recursivelyReportGenericFunctionTypesAsBoundsForType(
+      TypeBuilder typeBuilder) {
+    if (enableGenericMetadataInLibrary) return false;
+
+    List<FunctionTypeBuilder> genericFunctionTypeBuilders =
+        <FunctionTypeBuilder>[];
+    findUnaliasedGenericFunctionTypes(typeBuilder,
+        result: genericFunctionTypeBuilders);
+    bool hasReportedErrors = false;
+    for (FunctionTypeBuilder genericFunctionTypeBuilder
+        in genericFunctionTypeBuilders) {
+      assert(
+          genericFunctionTypeBuilder.typeVariables != null,
+          "Function 'findUnaliasedGenericFunctionTypes' "
+          "returned a function type without type variables.");
+      for (TypeVariableBuilder typeVariable
+          in genericFunctionTypeBuilder.typeVariables) {
+        hasReportedErrors =
+            _reportGenericFunctionTypeAsBoundIfNeeded(typeVariable) ||
+                hasReportedErrors;
+      }
+    }
+    return hasReportedErrors;
+  }
+
+  /// Reports an error if [typeVariable.bound] is a generic function type
+  ///
+  /// Returns `true` if any errors were reported.
+  bool _reportGenericFunctionTypeAsBoundIfNeeded(
+      TypeVariableBuilder typeVariable) {
+    if (enableGenericMetadataInLibrary) return false;
+
+    TypeBuilder bound = typeVariable.bound;
+    bool isUnaliasedGenericFunctionType = bound is FunctionTypeBuilder &&
+        bound.typeVariables != null &&
+        bound.typeVariables.isNotEmpty;
+    bool isAliasedGenericFunctionType = false;
+    if (bound is NamedTypeBuilder) {
+      TypeDeclarationBuilder declaration = bound.declaration;
+      // TODO(dmitryas): Unalias beyond the first layer for the check.
+      if (declaration is TypeAliasBuilder) {
+        TypeBuilder rhsType = declaration.type;
+        if (rhsType is FunctionTypeBuilder &&
+            rhsType.typeVariables != null &&
+            rhsType.typeVariables.isNotEmpty) {
+          isAliasedGenericFunctionType = true;
+        }
+      }
+    }
+
+    if (isUnaliasedGenericFunctionType || isAliasedGenericFunctionType) {
+      addProblem(messageGenericFunctionTypeInBound, typeVariable.charOffset,
+          typeVariable.name.length, typeVariable.fileUri);
+      return true;
+    }
+    return false;
+  }
+
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
@@ -3039,16 +3175,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool haveErroneousBounds = false;
       if (!inErrorRecovery) {
         if (!enableGenericMetadataInLibrary) {
-          for (int i = 0; i < variables.length; ++i) {
-            TypeVariableBuilder variable = variables[i];
-            List<TypeBuilder> genericFunctionTypes = <TypeBuilder>[];
-            findGenericFunctionTypes(variable.bound,
-                result: genericFunctionTypes);
-            if (genericFunctionTypes.length > 0) {
-              haveErroneousBounds = true;
-              addProblem(messageGenericFunctionTypeInBound, variable.charOffset,
-                  variable.name.length, variable.fileUri);
-            }
+          for (TypeVariableBuilder variable in variables) {
+            haveErroneousBounds =
+                _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
+                        variable) ||
+                    haveErroneousBounds;
           }
         }
 
@@ -3083,24 +3214,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return variables.length;
     }
 
-    void reportIssues(List<Object> issues) {
-      for (int i = 0; i < issues.length; i += 3) {
-        TypeDeclarationBuilder declaration = issues[i];
-        Message message = issues[i + 1];
-        List<LocatedMessage> context = issues[i + 2];
-
-        addProblem(message, declaration.charOffset, declaration.name.length,
-            declaration.fileUri,
-            context: context);
+    void reportIssues(List<NonSimplicityIssue> issues) {
+      for (NonSimplicityIssue issue in issues) {
+        addProblem(issue.message, issue.declaration.charOffset,
+            issue.declaration.name.length, issue.declaration.fileUri,
+            context: issue.context);
       }
     }
 
     for (Builder declaration in libraryDeclaration.members.values) {
       if (declaration is ClassBuilder) {
         {
-          List<Object> issues = getNonSimplicityIssuesForDeclaration(
-              declaration,
-              performErrorRecovery: true);
+          List<NonSimplicityIssue> issues =
+              getNonSimplicityIssuesForDeclaration(declaration,
+                  performErrorRecovery: true);
           reportIssues(issues);
           count += computeDefaultTypesForVariables(declaration.typeVariables,
               inErrorRecovery: issues.isNotEmpty);
@@ -3122,9 +3249,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
             if (formals != null && formals.isNotEmpty) {
               for (FormalParameterBuilder formal in formals) {
-                List<Object> issues =
+                List<NonSimplicityIssue> issues =
                     getInboundReferenceIssuesInType(formal.type);
                 reportIssues(issues);
+                _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                    formal.type);
               }
             }
           });
@@ -3136,10 +3265,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (member.formals != null && member.formals.isNotEmpty) {
               for (FormalParameterBuilder formal in member.formals) {
                 issues.addAll(getInboundReferenceIssuesInType(formal.type));
+                _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                    formal.type);
               }
             }
             if (member.returnType != null) {
               issues.addAll(getInboundReferenceIssuesInType(member.returnType));
+              _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                  member.returnType);
             }
             reportIssues(issues);
             count += computeDefaultTypesForVariables(member.typeVariables,
@@ -3151,27 +3284,33 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (fieldType != null) {
               List<Object> issues = getInboundReferenceIssuesInType(fieldType);
               reportIssues(issues);
+              _recursivelyReportGenericFunctionTypesAsBoundsForType(fieldType);
             }
           }
         });
       } else if (declaration is TypeAliasBuilder) {
-        List<Object> issues = getNonSimplicityIssuesForDeclaration(declaration,
+        List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
+            declaration,
             performErrorRecovery: true);
         issues.addAll(getInboundReferenceIssuesInType(declaration.type));
         reportIssues(issues);
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
+        _recursivelyReportGenericFunctionTypesAsBoundsForType(declaration.type);
       } else if (declaration is FunctionBuilder) {
         List<Object> issues =
             getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
         if (declaration.formals != null && declaration.formals.isNotEmpty) {
           for (FormalParameterBuilder formal in declaration.formals) {
             issues.addAll(getInboundReferenceIssuesInType(formal.type));
+            _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
           }
         }
         if (declaration.returnType != null) {
           issues
               .addAll(getInboundReferenceIssuesInType(declaration.returnType));
+          _recursivelyReportGenericFunctionTypesAsBoundsForType(
+              declaration.returnType);
         }
         reportIssues(issues);
         count += computeDefaultTypesForVariables(declaration.typeVariables,
@@ -3192,16 +3331,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (member.formals != null && member.formals.isNotEmpty) {
               for (FormalParameterBuilder formal in member.formals) {
                 issues.addAll(getInboundReferenceIssuesInType(formal.type));
+                _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                    formal.type);
               }
             }
             if (member.returnType != null) {
               issues.addAll(getInboundReferenceIssuesInType(member.returnType));
+              _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                  member.returnType);
             }
             reportIssues(issues);
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
+          } else if (member is FieldBuilder) {
+            if (member.type != null) {
+              _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                  member.type);
+            }
           } else {
-            assert(member is FieldBuilder,
+            throw new StateError(
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
@@ -3210,6 +3358,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           List<Object> issues =
               getInboundReferenceIssuesInType(declaration.type);
           reportIssues(issues);
+          _recursivelyReportGenericFunctionTypesAsBoundsForType(
+              declaration.type);
         }
       } else {
         assert(
@@ -3230,6 +3380,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           declaration.formals.isNotEmpty) {
         for (FormalParameterBuilder formal in declaration.formals) {
           reportIssues(getInboundReferenceIssuesInType(formal.type));
+          _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
         }
       }
     }
@@ -3422,7 +3573,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType superBoundedAttempt,
       DartType superBoundedAttemptInverted}) {
     List<LocatedMessage> context;
-    if (typeParameter != null && typeParameter.fileOffset != -1) {
+    // Skip reporting location for function-type type parameters as it's a
+    // limitation of Kernel.
+    if (typeParameter != null &&
+        typeParameter.fileOffset != -1 &&
+        typeParameter.parent != null) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
       (context ??= <LocatedMessage>[]).add(

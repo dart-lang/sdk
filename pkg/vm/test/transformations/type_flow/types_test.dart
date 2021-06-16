@@ -54,9 +54,11 @@ main() {
   final CoreTypes coreTypes = new CoreTypes(component);
 
   test('types-builder', () {
-    final Class c1 = new Class(name: 'C1');
-    final Class c2 =
-        new Class(name: 'C2', typeParameters: [new TypeParameter('E')]);
+    final Class c1 = new Class(name: 'C1', fileUri: dummyUri);
+    final Class c2 = new Class(
+        name: 'C2',
+        typeParameters: [new TypeParameter('E')],
+        fileUri: dummyUri);
 
     final TypesBuilder tb = new TestTypeHierarchy(coreTypes, {}, {});
     final tfc1 = tb.getTFClass(c1);
@@ -100,10 +102,10 @@ main() {
   test('union-intersection', () {
     // T1 <: T3, T2 <: T3
 
-    final c1 = new Class(name: 'T1');
-    final c2 = new Class(name: 'T2');
-    final c3 = new Class(name: 'T3');
-    final c4 = new Class(name: 'T4');
+    final c1 = new Class(name: 'T1', fileUri: dummyUri);
+    final c2 = new Class(name: 'T2', fileUri: dummyUri);
+    final c3 = new Class(name: 'T3', fileUri: dummyUri);
+    final c4 = new Class(name: 'T4', fileUri: dummyUri);
 
     final tfc1 = new TFClass(1, c1);
     final tfc2 = new TFClass(2, c2);
@@ -291,9 +293,9 @@ main() {
   });
 
   test('hashcode-equals', () {
-    final c1 = new Class(name: 'C1');
-    final c2 = new Class(name: 'C2');
-    final c3 = new Class(name: 'C3');
+    final c1 = new Class(name: 'C1', fileUri: dummyUri);
+    final c2 = new Class(name: 'C2', fileUri: dummyUri);
+    final c3 = new Class(name: 'C3', fileUri: dummyUri);
 
     final tfc1 = new TFClass(1, c1);
     final tfc2 = new TFClass(2, c2);

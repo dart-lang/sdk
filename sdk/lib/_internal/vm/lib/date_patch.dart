@@ -17,6 +17,7 @@ class DateTime {
   static int _timeZoneOffsetInSecondsForClampedSeconds(int secondsSinceEpoch)
       native "DateTime_timeZoneOffsetInSeconds";
 
+  // Daylight-savings independent adjustment for the local time zone.
   static int _localTimeZoneAdjustmentInSeconds()
       native "DateTime_localTimeZoneAdjustmentInSeconds";
 
@@ -304,47 +305,19 @@ class DateTime {
         millisecond * Duration.microsecondsPerMillisecond +
         microsecond;
 
-    // Since [_timeZoneOffsetInSeconds] will crash if the input is far out of
-    // the valid range we do a preliminary test that weeds out values that can
-    // not become valid even with timezone adjustments.
-    // The timezone adjustment is always less than a day, so adding a security
-    // margin of one day should be enough.
-    if (microsecondsSinceEpoch.abs() >
-        _maxMillisecondsSinceEpoch * 1000 + Duration.microsecondsPerDay) {
-      return null;
-    }
-
     if (!isUtc) {
-      // Note that we can't literally follow the ECMAScript spec (which this
-      // code is based on), because it leads to incorrect computations at
-      // the DST transition points.
-      //
-      // See V8's comment here:
-      // https://github.com/v8/v8/blob/089dd7d2447d6eaf57c8ba6d8f37957f3a269777/src/date.h#L118
+      // Since [_timeZoneOffsetInSeconds] will crash if the input is far out of
+      // the valid range we do a preliminary test that weeds out values that can
+      // not become valid even with timezone adjustments.
+      // The timezone adjustment is always less than a day, so adding a security
+      // margin of one day should be enough.
+      if (microsecondsSinceEpoch.abs() >
+          _maxMillisecondsSinceEpoch * Duration.microsecondsPerMillisecond +
+              Duration.microsecondsPerDay) {
+        return null;
+      }
 
-      // We need to remove the local timezone adjustment before asking for the
-      // correct zone offset.
-      int adjustment =
-          _localTimeZoneAdjustmentInSeconds() * Duration.microsecondsPerSecond;
-      // The adjustment is independent of the actual date and of the daylight
-      // saving time. It is positive east of the Prime Meridian and negative
-      // west of it, e.g. -28800 sec for America/Los_Angeles timezone.
-
-      // We remove one hour to ensure that we have the correct offset at
-      // DST transitioning points. This is a temporary solution and only
-      // correct in timezones that shift for exactly one hour.
-      adjustment += Duration.microsecondsPerHour;
-      int zoneOffset =
-          _timeZoneOffsetInSeconds(microsecondsSinceEpoch - adjustment);
-
-      // The zoneOffset depends on the actual date and reflects any daylight
-      // saving time and/or historical deviation relative to UTC time.
-      // It is positive east of the Prime Meridian and negative west of it,
-      // e.g. -25200 sec for America/Los_Angeles timezone during DST.
-      microsecondsSinceEpoch -= zoneOffset * Duration.microsecondsPerSecond;
-      // The resulting microsecondsSinceEpoch value is therefore the calculated
-      // UTC value decreased by a (positive if east of GMT) timezone adjustment
-      // and decreased by typically one hour if DST is in effect.
+      microsecondsSinceEpoch -= _toLocalTimeOffset(microsecondsSinceEpoch);
     }
     if (microsecondsSinceEpoch.abs() >
         _maxMillisecondsSinceEpoch * Duration.microsecondsPerMillisecond) {
@@ -442,5 +415,109 @@ class DateTime {
   static String _timeZoneName(int microsecondsSinceEpoch) {
     int equivalentSeconds = _equivalentSeconds(microsecondsSinceEpoch);
     return _timeZoneNameForClampedSeconds(equivalentSeconds);
+  }
+
+  /// Finds the local time corresponding to a UTC date and time.
+  ///
+  /// The [microsecondsSinceEpoch] represents a particular
+  /// calendar date and clock time in UTC.
+  /// This methods returns a (usually different) point in time
+  /// where the local time had the same calendar date and clock
+  /// time (if such a time exists, otherwise it finds the "best"
+  /// substitute).
+  ///
+  /// A valid result is a point in time `microsecondsSinceEpoch - offset`
+  /// where the local time zone offset is `+offset`.
+  ///
+  /// In some cases there are two valid results, due to a time zone
+  /// change setting the clock back (for example exiting from daylight
+  /// saving time). In that case, we return the *earliest* valid result.
+  ///
+  /// In some cases there are no valid results, due to a time zone
+  /// change setting the clock forward (for example entering daylight
+  /// saving time). In that case, we return the time which would have
+  /// been correct in the earlier time zone (so asking for 2:30 AM
+  /// when clocks move directly from 2:00 to 3:00 will give the
+  /// time that *would have been* 2:30 in the earlier time zone,
+  /// which is now 3:30 in the local time zone).
+  ///
+  /// Returns the point in time as a number of microseconds since epoch.
+  static int _toLocalTimeOffset(int microsecondsSinceEpoch) {
+    // Argument is the UTC time corresponding to the desired
+    // calendar date/wall time.
+    // We now need to find an UTC time where the difference
+    // from `microsecondsSinceEpoch` is the same as the
+    // local time offset at that time. That is, we want to
+    // find `adjustment` in microseconds such that:
+    //
+    //  _timeZoneOffsetInSeconds(microsecondsSinceEpoch - offset)
+    //      * Duration.microsecondsPerSecond == offset
+    //
+    // Such an offset might not exist, if that wall time
+    // is skipped when a time zone change moves the clock forwards.
+    // In that case we pick a time after the switch which would be
+    // correct in the previous time zone.
+    // Also, there might be more than one solution if a time zone
+    // change moves the clock backwards and the same wall clock
+    // time occurs twice in the same day.
+    // In that case we pick the one in the time zone prior to
+    // the switch.
+
+    // Start with the time zone at the current microseconds since
+    // epoch. It's within one day of the real time we're looking for.
+
+    int offset = _timeZoneOffsetInSeconds(microsecondsSinceEpoch) *
+        Duration.microsecondsPerSecond;
+
+    // If offset is 0 (we're right around the UTC+0, and)
+    // we have found one solution.
+    if (offset != 0) {
+      // If not, try to find an actual solution in the time zone
+      // we just discovered.
+      int offset2 = _timeZoneOffsetInSeconds(microsecondsSinceEpoch - offset) *
+          Duration.microsecondsPerSecond;
+      if (offset2 != offset) {
+        // Also not a solution. We have found a second time zone
+        // within the same day. We assume that's all there are.
+        // Try again with the new time zone.
+        int offset3 =
+            _timeZoneOffsetInSeconds(microsecondsSinceEpoch - offset2) *
+                Duration.microsecondsPerSecond;
+        // Either offset3 is a solution (equal to offset2),
+        // or we have found two different time zones and no solution.
+        // In the latter case we choose the lower offset (latter time).
+        return (offset2 <= offset3 ? offset2 : offset3);
+      }
+      // We have found one solution and one time zone.
+      offset = offset2;
+    }
+    // Try to see if there is an earlier time zone which also
+    // has a solution.
+    // Pretends time zone changes are always at most two hours.
+    // (Double daylight saving happened, fx, in part of Canada in 1988).
+    int offset4 = _timeZoneOffsetInSeconds(microsecondsSinceEpoch -
+            offset -
+            2 * Duration.microsecondsPerHour) *
+        Duration.microsecondsPerSecond;
+    if (offset4 > offset) {
+      // The time zone at the earlier time had a greater
+      // offset, so it's possible that the desired wall clock
+      // occurs in that time zone too.
+      if (offset4 == offset + 2 * Duration.microsecondsPerHour) {
+        // A second and earlier solution, so use that.
+        return offset4;
+      }
+      // The time zone differs one hour earlier, but not by one
+      // hour, so check again in that time zone.
+      int offset5 = _timeZoneOffsetInSeconds(microsecondsSinceEpoch - offset4) *
+          Duration.microsecondsPerSecond;
+      if (offset5 == offset4) {
+        // Found a second solution earlier than the first solution, so use that.
+        return offset4;
+      }
+    }
+    // Did not find a solution in the earlier time
+    // zone, so just use the original result.
+    return offset;
   }
 }

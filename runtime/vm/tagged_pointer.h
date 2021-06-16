@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_TAGGED_POINTER_H_
 #define RUNTIME_VM_TAGGED_POINTER_H_
 
+#include <type_traits>
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/class_id.h"
@@ -218,6 +219,22 @@ inline std::ostream& operator<<(std::ostream& os, const ObjectPtr& obj) {
 }
 #endif
 
+template <typename T, typename Enable = void>
+struct is_uncompressed_ptr : std::false_type {};
+template <typename T>
+struct is_uncompressed_ptr<
+    T,
+    typename std::enable_if<std::is_base_of<ObjectPtr, T>::value, void>::type>
+    : std::true_type {};
+template <typename T, typename Enable = void>
+struct is_compressed_ptr : std::false_type {};
+
+template <typename T, typename Enable = void>
+struct base_ptr_type {
+  using type =
+      typename std::enable_if<is_uncompressed_ptr<T>::value, ObjectPtr>::type;
+};
+
 #if !defined(DART_COMPRESSED_POINTERS)
 typedef ObjectPtr CompressedObjectPtr;
 #define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
@@ -247,6 +264,20 @@ class CompressedObjectPtr {
  protected:
   uint32_t compressed_pointer_;
 };
+
+template <typename T>
+struct is_compressed_ptr<
+    T,
+    typename std::enable_if<std::is_base_of<CompressedObjectPtr, T>::value,
+                            void>::type> : std::true_type {};
+template <typename T>
+struct base_ptr_type<
+    T,
+    typename std::enable_if<std::is_base_of<CompressedObjectPtr, T>::value,
+                            void>::type> {
+  using type = CompressedObjectPtr;
+};
+
 #define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
   class Compressed##klass##Ptr : public Compressed##base##Ptr {                \
    public:                                                                     \
@@ -300,6 +331,7 @@ DEFINE_TAGGED_POINTER(Code, Object)
 DEFINE_TAGGED_POINTER(ObjectPool, Object)
 DEFINE_TAGGED_POINTER(Instructions, Object)
 DEFINE_TAGGED_POINTER(InstructionsSection, Object)
+DEFINE_TAGGED_POINTER(InstructionsTable, Object)
 DEFINE_TAGGED_POINTER(PcDescriptors, Object)
 DEFINE_TAGGED_POINTER(CodeSourceMap, Object)
 DEFINE_TAGGED_POINTER(CompressedStackMaps, Object)
@@ -323,6 +355,7 @@ DEFINE_TAGGED_POINTER(UnwindError, Error)
 DEFINE_TAGGED_POINTER(Instance, Object)
 DEFINE_TAGGED_POINTER(LibraryPrefix, Instance)
 DEFINE_TAGGED_POINTER(TypeArguments, Instance)
+DEFINE_TAGGED_POINTER(TypeParameters, Object)
 DEFINE_TAGGED_POINTER(AbstractType, Instance)
 DEFINE_TAGGED_POINTER(Type, AbstractType)
 DEFINE_TAGGED_POINTER(FunctionType, AbstractType)

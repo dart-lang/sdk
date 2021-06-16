@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
@@ -45,6 +43,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_map_from_it
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
@@ -110,6 +109,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_operator.dar
 import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
@@ -165,10 +165,8 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
-import 'package:meta/meta.dart';
 
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
@@ -210,45 +208,53 @@ class FixInFileProcessor {
     var workspace = context.workspace;
     var resolveResult = context.resolveResult;
 
-    var generators = _getGenerators(
-        error.errorCode,
-        CorrectionProducerContext(
-          dartFixContext: context,
-          diagnostic: error,
-          resolvedResult: resolveResult,
-          selectionOffset: context.error.offset,
-          selectionLength: context.error.length,
-          workspace: workspace,
-        ));
+    var correctionContext = CorrectionProducerContext.create(
+      dartFixContext: context,
+      diagnostic: error,
+      resolvedResult: resolveResult,
+      selectionOffset: context.error.offset,
+      selectionLength: context.error.length,
+      workspace: workspace,
+    );
+    if (correctionContext == null) {
+      return const <Fix>[];
+    }
+
+    var generators = _getGenerators(error.errorCode, correctionContext);
 
     var fixes = <Fix>[];
     for (var generator in generators) {
-      var fixState = FixState(workspace);
-      for (var error in errors) {
-        var fixContext = DartFixContextImpl(
-          instrumentationService,
-          workspace,
-          resolveResult,
-          error,
-          (name) => [],
+      if (generator().canBeAppliedToFile) {
+        _FixState fixState = _EmptyFixState(
+          ChangeBuilder(workspace: workspace),
         );
-        await _fixError(fixContext, fixState, generator(), error);
-      }
-      var sourceChange = fixState.builder.sourceChange;
-      if (sourceChange.edits.isNotEmpty) {
-        var fixKind = fixState.fixKind;
-        if (fixState.fixCount > 1) {
-          sourceChange.message = fixKind.message;
-          fixes.add(Fix(fixKind, sourceChange));
+        for (var error in errors) {
+          var fixContext = DartFixContextImpl(
+            instrumentationService,
+            workspace,
+            resolveResult,
+            error,
+            (name) => [],
+            extensionCache: context.extensionCache,
+          );
+          fixState = await _fixError(fixContext, fixState, generator(), error);
+        }
+        if (fixState is _NotEmptyFixState) {
+          var sourceChange = fixState.builder.sourceChange;
+          if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
+            var fixKind = fixState.fixKind;
+            sourceChange.message = fixKind.message;
+            fixes.add(Fix(fixKind, sourceChange));
+          }
         }
       }
     }
     return fixes;
   }
 
-  Future<void> _fixError(DartFixContext fixContext, FixState fixState,
+  Future<_FixState> _fixError(DartFixContext fixContext, _FixState fixState,
       CorrectionProducer producer, AnalysisError diagnostic) async {
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
@@ -257,10 +263,8 @@ class FixInFileProcessor {
       selectionLength: diagnostic.length,
       workspace: fixContext.workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
-      return;
+    if (context == null) {
+      return fixState;
     }
 
     producer.configure(context);
@@ -268,816 +272,288 @@ class FixInFileProcessor {
     try {
       var localBuilder = fixState.builder.copy();
       await producer.compute(localBuilder);
-      fixState.builder = localBuilder;
+
+      var multiFixKind = producer.multiFixKind;
+      if (multiFixKind == null) {
+        return fixState;
+      }
+
       // todo (pq): consider discarding the change if the producer's fixKind
       // doesn't match a previously cached one.
-      fixState.fixKind = producer.multiFixKind;
-      fixState.fixCount++;
+      return _NotEmptyFixState(
+        builder: localBuilder,
+        fixKind: multiFixKind,
+        fixCount: fixState.fixCount + 1,
+      );
     } on ConflictingEditException {
       // If a conflicting edit was added in [compute], then the [localBuilder]
       // is discarded and we revert to the previous state of the builder.
+      return fixState;
     }
   }
 
   List<ProducerGenerator> _getGenerators(
       ErrorCode errorCode, CorrectionProducerContext context) {
-    var producers = <ProducerGenerator>[];
     if (errorCode is LintCode) {
-      var fixInfos = FixProcessor.lintProducerMap[errorCode.name] ?? [];
-      for (var fixInfo in fixInfos) {
-        if (fixInfo.canBeAppliedToFile) {
-          producers.addAll(fixInfo.generators);
-        }
-      }
+      return FixProcessor.lintProducerMap[errorCode.name] ?? [];
     } else {
-      var fixInfos = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
-      for (var fixInfo in fixInfos) {
-        if (fixInfo.canBeAppliedToFile) {
-          producers.addAll(fixInfo.generators);
-        }
-      }
       // todo (pq): consider support for multiGenerators
+      return FixProcessor.nonLintProducerMap[errorCode] ?? [];
     }
-    return producers;
   }
-}
-
-class FixInfo {
-  final bool canBeAppliedToFile;
-  final bool canBeBulkApplied;
-  final List<ProducerGenerator> generators;
-  const FixInfo({
-    @required this.canBeAppliedToFile,
-    @required this.canBeBulkApplied,
-    @required this.generators,
-  });
 }
 
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
-  /// todo (pq): to replace nonLintProducerMap.
-  static const Map<ErrorCode, List<FixInfo>> nonLintProducerMap2 = {
-    CompileTimeErrorCode.NON_BOOL_CONDITION: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          AddNeNull.newInstance,
-        ],
-      ),
-    ],
-    HintCode.TYPE_CHECK_IS_NOT_NULL: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          UseNotEqNull.newInstance,
-        ],
-      ),
-    ],
-    HintCode.TYPE_CHECK_IS_NULL: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          UseEqEqNull.newInstance,
-        ],
-      ),
-    ],
-    CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          ReplaceBooleanWithBool.newInstance,
-        ],
-      ),
-    ],
-    HintCode.UNNECESSARY_CAST: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          RemoveUnnecessaryCast.newInstance,
-        ],
-      ),
-    ],
-    HintCode.UNUSED_IMPORT: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          RemoveUnusedImport.newInstance,
-        ],
-      ),
-    ],
-    StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
-      FixInfo(
-        // todo (pq): consider adding
-        canBeAppliedToFile: false,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveNonNullAssertion.newInstance,
-        ],
-      ),
-    ],
-  };
-
-  /// A map from the names of lint rules to a list of generators used to create
-  /// the correction producers used to build fixes for those diagnostics. The
-  /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
-  static const Map<String, List<FixInfo>> lintProducerMap = {
+  /// A map from the names of lint rules to a list of the generators that are
+  /// used to create correction producers. The generators are then used to build
+  /// fixes for those diagnostics. The generators used for non-lint diagnostics
+  /// are in the [nonLintProducerMap].
+  static const Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          AddReturnType.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      AddReturnType.newInstance,
     ],
     LintNames.always_require_non_null_named_parameters: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddRequired.newInstance,
-        ],
-      )
+      AddRequired.newInstance,
     ],
     LintNames.always_specify_types: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          AddTypeAnnotation.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      AddTypeAnnotation.newInstance,
     ],
     LintNames.annotate_overrides: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddOverride.newInstance,
-        ],
-      )
+      AddOverride.newInstance,
     ],
     LintNames.avoid_annotating_with_dynamic: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveTypeAnnotation.newInstance,
-        ],
-      )
+      RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_empty_else: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveEmptyElse.newInstance,
-        ],
-      )
+      RemoveEmptyElse.newInstance,
+    ],
+    LintNames.avoid_function_literals_in_foreach_calls: [
+      ConvertForEachToForLoop.newInstance,
     ],
     LintNames.avoid_init_to_null: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveInitializer.newInstance,
-        ],
-      )
+      RemoveInitializer.newInstance,
     ],
     LintNames.avoid_private_typedef_functions: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          InlineTypedef.newInstance,
-        ],
-      )
+      InlineTypedef.newInstance,
     ],
     LintNames.avoid_redundant_argument_values: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveArgument.newInstance,
-        ],
-      )
+      RemoveArgument.newInstance,
     ],
     LintNames.avoid_relative_lib_imports: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToPackageImport.newInstance,
-        ],
-      )
+      ConvertToPackageImport.newInstance,
     ],
     LintNames.avoid_return_types_on_setters: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveTypeAnnotation.newInstance,
-        ],
-      )
+      RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_returning_null_for_future: [
-      FixInfo(
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          AddAsync.newInstance,
-          WrapInFuture.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      AddAsync.newInstance,
+      WrapInFuture.newInstance,
+    ],
+    LintNames.avoid_returning_null_for_void: [
+      RemoveReturnedValue.newInstance,
     ],
     LintNames.avoid_single_cascade_in_expression_statements: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          // TODO(brianwilkerson) This fix should be applied to some non-lint
-          //  diagnostics and should also be available as an assist.
-          ReplaceCascadeWithDot.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) This fix should be applied to some non-lint
+      //  diagnostics and should also be available as an assist.
+      ReplaceCascadeWithDot.newInstance,
     ],
     LintNames.avoid_types_as_parameter_names: [
-      FixInfo(
-        canBeAppliedToFile: false,
-        canBeBulkApplied: false,
-        generators: [
-          ConvertToOnType.newInstance,
-        ],
-      )
+      ConvertToOnType.newInstance,
     ],
     LintNames.avoid_types_on_closure_parameters: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithIdentifier.newInstance,
-          RemoveTypeAnnotation.newInstance,
-        ],
-      )
+      ReplaceWithIdentifier.newInstance,
+      RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_unused_constructor_parameters: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        canBeBulkApplied: false,
-        generators: [
-          RemoveUnusedParameter.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      RemoveUnusedParameter.newInstance,
     ],
     LintNames.await_only_futures: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveAwait.newInstance,
-        ],
-      )
+      RemoveAwait.newInstance,
     ],
     LintNames.curly_braces_in_flow_control_structures: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          UseCurlyBraces.newInstance,
-        ],
-      )
+      UseCurlyBraces.newInstance,
     ],
     LintNames.diagnostic_describe_all_properties: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddDiagnosticPropertyReference.newInstance,
-        ],
-      )
+      AddDiagnosticPropertyReference.newInstance,
     ],
     LintNames.directives_ordering: [
-      FixInfo(
-        canBeAppliedToFile: false, // Fix will sort all directives.
-        canBeBulkApplied: false,
-        generators: [
-          OrganizeImports.newInstance,
-        ],
-      )
+      OrganizeImports.newInstance,
     ],
     LintNames.empty_catches: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveEmptyCatch.newInstance,
-        ],
-      )
+      RemoveEmptyCatch.newInstance,
     ],
     LintNames.empty_constructor_bodies: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveEmptyConstructorBody.newInstance,
-        ],
-      )
+      RemoveEmptyConstructorBody.newInstance,
     ],
     LintNames.empty_statements: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveEmptyStatement.newInstance,
-          ReplaceWithBrackets.newInstance,
-        ],
-      )
+      RemoveEmptyStatement.newInstance,
+      ReplaceWithBrackets.newInstance,
     ],
     LintNames.hash_and_equals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          CreateMethod.equalsOrHashCode,
-        ],
-      )
+      CreateMethod.equalsOrHashCode,
     ],
     LintNames.no_duplicate_case_values: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveDuplicateCase.newInstance,
-        ],
-      )
+      RemoveDuplicateCase.newInstance,
     ],
     LintNames.non_constant_identifier_names: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RenameToCamelCase.newInstance,
-        ],
-      )
+      RenameToCamelCase.newInstance,
     ],
     LintNames.null_closures: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceNullWithClosure.newInstance,
-        ],
-      )
+      ReplaceNullWithClosure.newInstance,
     ],
     LintNames.omit_local_variable_types: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithVar.newInstance,
-        ],
-      )
+      ReplaceWithVar.newInstance,
     ],
     LintNames.prefer_adjacent_string_concatenation: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveOperator.newInstance,
-        ],
-      )
+      RemoveOperator.newInstance,
     ],
     LintNames.prefer_collection_literals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToListLiteral.newInstance,
-          ConvertToMapLiteral.newInstance,
-          ConvertToSetLiteral.newInstance,
-        ],
-      )
+      ConvertToListLiteral.newInstance,
+      ConvertToMapLiteral.newInstance,
+      ConvertToSetLiteral.newInstance,
     ],
     LintNames.prefer_conditional_assignment: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithConditionalAssignment.newInstance,
-        ],
-      )
+      ReplaceWithConditionalAssignment.newInstance,
     ],
     LintNames.prefer_const_constructors: [
-      FixInfo(
-        canBeAppliedToFile: false,
-        // Can produce results incompatible w/ `unnecessary_const`
-        canBeBulkApplied: false,
-        generators: [
-          AddConst.newInstance,
-          ReplaceNewWithConst.newInstance,
-        ],
-      )
+      AddConst.toInvocation,
+      ReplaceNewWithConst.newInstance,
     ],
     LintNames.prefer_const_constructors_in_immutables: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddConst.newInstance,
-        ],
-      )
+      AddConst.toDeclaration,
     ],
     LintNames.prefer_const_declarations: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceFinalWithConst.newInstance,
-        ],
-      )
+      ReplaceFinalWithConst.newInstance,
     ],
     LintNames.prefer_contains: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToContains.newInstance,
-        ],
-      )
+      ConvertToContains.newInstance,
     ],
     LintNames.prefer_equal_for_default_values: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceColonWithEquals.newInstance,
-        ],
-      )
+      ReplaceColonWithEquals.newInstance,
     ],
     LintNames.prefer_expression_function_bodies: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          ConvertToExpressionFunctionBody.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      ConvertToExpressionFunctionBody.newInstance,
     ],
     LintNames.prefer_final_fields: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          MakeFinal.newInstance,
-        ],
-      )
+      MakeFinal.newInstance,
     ],
     LintNames.prefer_final_in_for_each: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          MakeFinal.newInstance,
-        ],
-      )
+      MakeFinal.newInstance,
     ],
     LintNames.prefer_final_locals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          MakeFinal.newInstance,
-        ],
-      )
+      MakeFinal.newInstance,
     ],
     LintNames.prefer_for_elements_to_map_fromIterable: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertMapFromIterableToForLiteral.newInstance,
-        ],
-      )
+      ConvertMapFromIterableToForLiteral.newInstance,
     ],
     LintNames.prefer_generic_function_type_aliases: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToGenericFunctionSyntax.newInstance,
-        ],
-      )
+      ConvertToGenericFunctionSyntax.newInstance,
     ],
     LintNames.prefer_if_elements_to_conditional_expressions: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertConditionalExpressionToIfElement.newInstance,
-        ],
-      )
+      ConvertConditionalExpressionToIfElement.newInstance,
     ],
     LintNames.prefer_is_empty: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithIsEmpty.newInstance,
-        ],
-      )
+      ReplaceWithIsEmpty.newInstance,
     ],
     LintNames.prefer_is_not_empty: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          UseIsNotEmpty.newInstance,
-        ],
-      )
+      UseIsNotEmpty.newInstance,
     ],
     LintNames.prefer_if_null_operators: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToIfNull.newInstance,
-        ],
-      )
+      ConvertToIfNull.newInstance,
     ],
     LintNames.prefer_inlined_adds: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertAddAllToSpread.newInstance,
-          InlineInvocation.newInstance,
-        ],
-      )
+      ConvertAddAllToSpread.newInstance,
+      InlineInvocation.newInstance,
     ],
     LintNames.prefer_int_literals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToIntLiteral.newInstance,
-        ],
-      )
+      ConvertToIntLiteral.newInstance,
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          ReplaceWithInterpolation.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      ReplaceWithInterpolation.newInstance,
     ],
-    // todo (pq): note this is not in lintProducerMap
     LintNames.prefer_is_not_operator: [
-      FixInfo(
-        // todo (pq): consider enabling
-        canBeAppliedToFile: false,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertIntoIsNot.newInstance,
-        ],
-      )
+      ConvertIntoIsNot.newInstance,
     ],
     LintNames.prefer_iterable_whereType: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToWhereType.newInstance,
-        ],
-      )
+      ConvertToWhereType.newInstance,
     ],
     LintNames.prefer_null_aware_operators: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToNullAware.newInstance,
-        ],
-      )
+      ConvertToNullAware.newInstance,
     ],
     LintNames.prefer_relative_imports: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToRelativeImport.newInstance,
-        ],
-      )
+      ConvertToRelativeImport.newInstance,
     ],
     LintNames.prefer_single_quotes: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToSingleQuotes.newInstance,
-        ],
-      )
+      ConvertToSingleQuotes.newInstance,
     ],
     LintNames.prefer_spread_collections: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertAddAllToSpread.newInstance,
-        ],
-      )
+      ConvertAddAllToSpread.newInstance,
     ],
     LintNames.slash_for_doc_comments: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertDocumentationIntoLine.newInstance,
-        ],
-      )
+      ConvertDocumentationIntoLine.newInstance,
     ],
     LintNames.sort_child_properties_last: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          SortChildPropertyLast.newInstance,
-        ],
-      )
+      SortChildPropertyLast.newInstance,
     ],
     LintNames.type_annotate_public_apis: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          AddTypeAnnotation.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      AddTypeAnnotation.newInstance,
     ],
     LintNames.type_init_formals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveTypeAnnotation.newInstance,
-        ],
-      )
+      RemoveTypeAnnotation.newInstance,
     ],
     LintNames.unawaited_futures: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddAwait.newInstance,
-        ],
-      )
+      AddAwait.newInstance,
     ],
     LintNames.unnecessary_brace_in_string_interps: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveInterpolationBraces.newInstance,
-        ],
-      )
+      RemoveInterpolationBraces.newInstance,
     ],
     LintNames.unnecessary_const: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveUnnecessaryConst.newInstance,
-        ],
-      )
+      RemoveUnnecessaryConst.newInstance,
     ],
     LintNames.unnecessary_final: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceFinalWithVar.newInstance,
-        ],
-      )
+      ReplaceFinalWithVar.newInstance,
     ],
     LintNames.unnecessary_lambdas: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithTearOff.newInstance,
-        ],
-      )
+      ReplaceWithTearOff.newInstance,
     ],
     LintNames.unnecessary_new: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveUnnecessaryNew.newInstance,
-        ],
-      )
+      RemoveUnnecessaryNew.newInstance,
     ],
     LintNames.unnecessary_null_in_if_null_operators: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveIfNullOperator.newInstance,
-        ],
-      )
+      RemoveIfNullOperator.newInstance,
     ],
     LintNames.unnecessary_nullable_for_final_variable_declarations: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveQuestionMark.newInstance,
-        ],
-      )
+      RemoveQuestionMark.newInstance,
     ],
     LintNames.unnecessary_overrides: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveMethodDeclaration.newInstance,
-        ],
-      )
+      RemoveMethodDeclaration.newInstance,
     ],
     LintNames.unnecessary_parenthesis: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveUnnecessaryParentheses.newInstance,
-        ],
-      )
+      RemoveUnnecessaryParentheses.newInstance,
     ],
     LintNames.unnecessary_string_interpolations: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveUnnecessaryStringInterpolation.newInstance,
-        ],
-      )
+      RemoveUnnecessaryStringInterpolation.newInstance,
     ],
     LintNames.unnecessary_this: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveThisExpression.newInstance,
-        ],
-      )
+      RemoveThisExpression.newInstance,
     ],
     LintNames.use_full_hex_values_for_flutter_colors: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          ReplaceWithEightDigitHex.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      ReplaceWithEightDigitHex.newInstance,
     ],
     LintNames.use_function_type_syntax_for_parameters: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToGenericFunctionSyntax.newInstance,
-        ],
-      )
+      ConvertToGenericFunctionSyntax.newInstance,
     ],
     LintNames.use_rethrow_when_possible: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          UseRethrow.newInstance,
-        ],
-      )
+      UseRethrow.newInstance,
     ],
   };
 
@@ -1166,6 +642,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
       DataDriven.newInstance,
+      ImportLibrary.forExtensionMember,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
@@ -1178,6 +655,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
       DataDriven.newInstance,
+      ImportLibrary.forExtensionMember,
       ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],
@@ -1185,9 +663,13 @@ class FixProcessor extends BaseProcessor {
       ChangeArgumentName.newInstance,
       DataDriven.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_OPERATOR: [
+      ImportLibrary.forExtensionMember,
+    ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
-      // TODO(brianwilkerson) Support ImportLibrary
+      // TODO(brianwilkerson) Support ImportLibrary for non-extension members.
+      ImportLibrary.forExtensionMember,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
       DataDriven.newInstance,
@@ -1215,9 +697,10 @@ class FixProcessor extends BaseProcessor {
     ],
   };
 
-  /// A map from error codes to a list of generators used to create the
-  /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the [lintProducerMap].
+  /// A map from error codes to a list of the generators that are used to create
+  /// correction producers. The generators are then used to build fixes for
+  /// those diagnostics. The generators used for lint rules are in the
+  /// [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.newInstance,
@@ -1725,27 +1208,31 @@ class FixProcessor extends BaseProcessor {
     return fixes;
   }
 
-  Future<Fix> computeFix() async {
+  Future<Fix?> computeFix() async {
     await _addFromProducers();
     fixes.sort(Fix.SORT_BY_RELEVANCE);
     return fixes.isNotEmpty ? fixes.first : null;
   }
 
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List<Object> args, bool importsOnly = false}) {
-    if (builder == null) return;
+  void _addFixFromBuilder(ChangeBuilder builder, CorrectionProducer producer) {
     var change = builder.sourceChange;
-    if (change.edits.isEmpty && !importsOnly) {
+    if (change.edits.isEmpty) {
       return;
     }
+
+    var kind = producer.fixKind;
+    if (kind == null) {
+      return;
+    }
+
     change.id = kind.id;
-    change.message = formatList(kind.message, args);
+    change.message = formatList(kind.message, producer.fixArguments);
     fixes.add(Fix(kind, change));
   }
 
   Future<void> _addFromProducers() async {
     var error = fixContext.error;
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       dartFixContext: fixContext,
       diagnostic: error,
       resolvedResult: resolvedResult,
@@ -1753,9 +1240,7 @@ class FixProcessor extends BaseProcessor {
       selectionLength: fixContext.error.length,
       workspace: workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
+    if (context == null) {
       return;
     }
 
@@ -1765,8 +1250,7 @@ class FixProcessor extends BaseProcessor {
           workspace: context.workspace, eol: context.utils.endOfLine);
       try {
         await producer.compute(builder);
-        _addFixFromBuilder(builder, producer.fixKind,
-            args: producer.fixArguments);
+        _addFixFromBuilder(builder, producer);
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding a fix based on the producer
         // and (b) logging the exception.
@@ -1776,18 +1260,14 @@ class FixProcessor extends BaseProcessor {
 
     var errorCode = error.errorCode;
     if (errorCode is LintCode) {
-      var fixes = lintProducerMap[errorCode.name] ?? [];
-      for (var fix in fixes) {
-        for (var generator in fix.generators) {
-          await compute(generator());
-        }
+      var generators = lintProducerMap[errorCode.name] ?? [];
+      for (var generator in generators) {
+        await compute(generator());
       }
     } else {
-      var generators = nonLintProducerMap[errorCode];
-      if (generators != null) {
-        for (var generator in generators) {
-          await compute(generator());
-        }
+      var generators = nonLintProducerMap[errorCode] ?? [];
+      for (var generator in generators) {
+        await compute(generator());
       }
       var multiGenerators = nonLintMultiProducerMap[errorCode];
       if (multiGenerators != null) {
@@ -1803,11 +1283,37 @@ class FixProcessor extends BaseProcessor {
   }
 }
 
+/// [_FixState] that is still empty.
+class _EmptyFixState implements _FixState {
+  @override
+  final ChangeBuilder builder;
+
+  _EmptyFixState(this.builder);
+
+  @override
+  int get fixCount => 0;
+}
+
 /// State associated with producing fix-all-in-file fixes.
-class FixState {
-  ChangeBuilder builder;
-  FixKind fixKind;
-  int fixCount = 0;
-  FixState(ChangeWorkspace workspace)
-      : builder = ChangeBuilder(workspace: workspace);
+abstract class _FixState {
+  ChangeBuilder get builder;
+
+  int get fixCount;
+}
+
+/// [_FixState] that has a fix, so knows its kind.
+class _NotEmptyFixState implements _FixState {
+  @override
+  final ChangeBuilder builder;
+
+  final FixKind fixKind;
+
+  @override
+  final int fixCount;
+
+  _NotEmptyFixState({
+    required this.builder,
+    required this.fixKind,
+    required this.fixCount,
+  });
 }

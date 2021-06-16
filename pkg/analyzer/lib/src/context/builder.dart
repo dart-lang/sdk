@@ -13,7 +13,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
-import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -57,10 +57,6 @@ class ContextBuilder {
   /// they can be shared across contexts.
   final DartSdkManager sdkManager;
 
-  /// The cache containing the contents of overlaid files. If this builder will
-  /// be used to build analysis drivers, set the [fileContentOverlay] instead.
-  final ContentCache? contentCache;
-
   /// The options used by the context builder.
   final ContextBuilderOptions builderOptions;
 
@@ -77,10 +73,6 @@ class ContextBuilder {
   /// The byte store used by any analysis drivers created through this interface.
   late final ByteStore byteStore;
 
-  /// The file content overlay used by analysis drivers. If this builder will be
-  /// used to build analysis contexts, set the [contentCache] instead.
-  FileContentOverlay? fileContentOverlay;
-
   /// Whether any analysis driver created through this interface should support
   /// indexing and search.
   bool enableIndex = false;
@@ -92,14 +84,18 @@ class ContextBuilder {
 
   /// Initialize a newly created builder to be ready to build a context rooted in
   /// the directory with the given [rootDirectoryPath].
-  ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache,
+  ContextBuilder(this.resourceProvider, this.sdkManager,
       {ContextBuilderOptions? options})
       : builderOptions = options ?? ContextBuilderOptions();
 
   /// Return an analysis driver that is configured correctly to analyze code in
   /// the directory with the given [path].
-  AnalysisDriver buildDriver(ContextRoot contextRoot, Workspace workspace,
-      {void Function(AnalysisOptionsImpl)? updateAnalysisOptions}) {
+  AnalysisDriver buildDriver(
+    ContextRoot contextRoot,
+    Workspace workspace, {
+    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    FileContentCache? fileContentCache,
+  }) {
     String path = contextRoot.root;
 
     var options = getAnalysisOptions(path, workspace, contextRoot: contextRoot);
@@ -118,15 +114,13 @@ class ContextBuilder {
     final sf =
         createSourceFactoryFromWorkspace(workspace, summaryData: summaryData);
 
-    AnalysisDriver driver = AnalysisDriver(
-      analysisDriverScheduler,
-      performanceLog,
-      resourceProvider,
-      byteStore,
-      fileContentOverlay,
-      contextRoot,
-      sf,
-      options,
+    AnalysisDriver driver = AnalysisDriver.tmp1(
+      scheduler: analysisDriverScheduler,
+      logger: performanceLog,
+      resourceProvider: resourceProvider,
+      byteStore: byteStore,
+      sourceFactory: sf,
+      analysisOptions: options,
       packages: createPackageMap(
         resourceProvider: resourceProvider,
         options: builderOptions,
@@ -135,6 +129,7 @@ class ContextBuilder {
       enableIndex: enableIndex,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
+      fileContentCache: fileContentCache,
     );
 
     declareVariablesInDriver(driver);

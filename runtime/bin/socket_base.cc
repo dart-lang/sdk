@@ -34,7 +34,8 @@ int SocketAddress::GetType() {
   }
 }
 
-intptr_t SocketAddress::GetAddrLength(const RawAddr& addr) {
+intptr_t SocketAddress::GetAddrLength(const RawAddr& addr,
+                                      bool unnamed_unix_socket) {
   ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6) ||
          (addr.ss.ss_family == AF_UNIX));
   switch (addr.ss.ss_family) {
@@ -42,8 +43,26 @@ intptr_t SocketAddress::GetAddrLength(const RawAddr& addr) {
       return sizeof(struct sockaddr_in6);
     case AF_INET:
       return sizeof(struct sockaddr_in);
-    case AF_UNIX:
-      return sizeof(struct sockaddr_un);
+    case AF_UNIX: {
+      // For an abstract UNIX socket, trailing null bytes in the name are
+      // meaningful. That is, the bytes '\0/tmp/dbus-xxxx' are a different name
+      // than '\0/tmp/dbus-xxxx\0\0\0...'. The length of the address structure
+      // passed to connect() etc. tells those calls how many bytes of the name
+      // to look at. Therefore, when computing the length of the address in
+      // this case, any trailing null bytes are trimmed.
+      // TODO(dart:io): Support abstract UNIX socket addresses that have
+      // trailing null bytes on purpose.
+      // https://github.com/dart-lang/sdk/issues/46158
+      intptr_t nulls = 0;
+      if (!unnamed_unix_socket && addr.un.sun_path[0] == '\0') {
+        intptr_t i = sizeof(addr.un.sun_path) - 1;
+        while (addr.un.sun_path[i] == '\0') {
+          nulls++;
+          i--;
+        }
+      }
+      return sizeof(struct sockaddr_un) - nulls;
+    }
     default:
       UNREACHABLE();
       return 0;

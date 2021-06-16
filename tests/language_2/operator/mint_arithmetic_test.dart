@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Test arithmetic on 64-bit integers.

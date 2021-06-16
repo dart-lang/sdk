@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
@@ -13,12 +11,21 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class OrganizeImports extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  // The fix is to sort all the directives, which will already fix all of the
+  // diagnostics in the file, so there's no value in providing a separate
+  // fix-all option to the user.
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.ORGANIZE_IMPORTS;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var organizer =
-        ImportOrganizer(resolvedResult.content, unit, resolvedResult.errors);
+        ImportOrganizer(resolvedResult.content!, unit, resolvedResult.errors);
     // todo (pq): consider restructuring organizer to allow a passed-in change
     //  builder
     for (var edit in organizer.organize()) {

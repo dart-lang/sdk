@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_async_test.dart' as add_async;
@@ -45,6 +43,7 @@ import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
+import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
@@ -84,6 +83,7 @@ import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
 import 'fix_in_file_test.dart' as fix_in_file;
+import 'fix_processor_map_test.dart' as fix_processor_map;
 import 'fix_test.dart' as fix;
 import 'import_async_test.dart' as import_async;
 import 'import_library_prefix_test.dart' as import_library_prefix;
@@ -126,6 +126,7 @@ import 'remove_parameters_in_getter_declaration_test.dart'
 import 'remove_parentheses_in_getter_invocation_test.dart'
     as remove_parentheses_in_getter_invocation;
 import 'remove_question_mark_test.dart' as remove_question_mark;
+import 'remove_returned_value_test.dart' as remove_returned_value;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
@@ -213,6 +214,7 @@ void main() {
     convert_documentation_into_line.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
+    convert_for_each_to_for_loop.main();
     convert_into_expression_body.main();
     convert_to_contains.main();
     convert_to_for_element.main();
@@ -250,6 +252,7 @@ void main() {
     extend_class_for_mixin.main();
     fix.main();
     fix_in_file.main();
+    fix_processor_map.main();
     import_async.main();
     import_library_prefix.main();
     import_library_project.main();
@@ -288,6 +291,7 @@ void main() {
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();
     remove_question_mark.main();
+    remove_returned_value.main();
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();

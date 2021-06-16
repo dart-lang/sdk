@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library test.generics_substitution;
 
 import 'dart:mirrors';
@@ -36,18 +38,15 @@ main() {
   Symbol t(ClassMirror cm) =>
       (cm.declarations[#t] as MethodMirror).returnType.simpleName;
 
-  Expect.equals(#T, r(genericDecl.superclass));
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
+
   Expect.equals(#int, s(genericDecl.superclass));
-  Expect.equals(#T, t(genericDecl));
 
   Expect.equals(#String, r(genericOfString.superclass));
   Expect.equals(#int, s(genericOfString.superclass));
   Expect.equals(#String, t(genericOfString));
 
-  Expect.equals(#R, r(superGenericDecl));
-  Expect.equals(#S, s(superGenericDecl));
-
-  Expect.equals(#T, r(superOfTAndInt));
   Expect.equals(#int, s(superOfTAndInt));
 
   Expect.equals(#String, r(superOfStringAndInt));

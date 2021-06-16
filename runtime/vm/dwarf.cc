@@ -14,6 +14,11 @@ namespace dart {
 
 #if defined(DART_PRECOMPILER)
 
+DEFINE_FLAG(bool,
+            resolve_dwarf_paths,
+            false,
+            "Resolve script URIs to absolute or relative file paths in DWARF");
+
 DEFINE_FLAG(charp,
             write_code_comments_as_synthetic_source_to,
             nullptr,
@@ -254,6 +259,8 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   stream->uleb128(DW_FORM_addr);
   stream->uleb128(DW_AT_high_pc);
   stream->uleb128(DW_FORM_addr);
+  stream->uleb128(DW_AT_artificial);
+  stream->uleb128(DW_FORM_flag);
   stream->uleb128(0);
   stream->uleb128(0);  // End of attributes.
 
@@ -383,6 +390,8 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
     stream->OffsetFromSymbol(asm_name, 0);
     // DW_AT_high_pc
     stream->OffsetFromSymbol(asm_name, code.Size());
+    // DW_AT_artificial
+    stream->u1(function.is_visible() ? 0 : 1);
 
     InliningNode* node = ExpandInliningTree(code);
     if (node != NULL) {
@@ -718,6 +727,29 @@ void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
   }
 }
 
+static constexpr char kResolvedFileRoot[] = "file:///";
+static constexpr intptr_t kResolvedFileRootLen = sizeof(kResolvedFileRoot) - 1;
+static constexpr char kResolvedSdkRoot[] = "org-dartlang-sdk:///sdk/";
+static constexpr intptr_t kResolvedSdkRootLen = sizeof(kResolvedSdkRoot) - 1;
+
+static const char* ConvertResolvedURI(const char* str) {
+  const intptr_t len = strlen(str);
+  if (len > kResolvedFileRootLen &&
+      strncmp(str, kResolvedFileRoot, kResolvedFileRootLen) == 0) {
+#if defined(HOST_OS_WINDOWS)
+    return str + kResolvedFileRootLen;  // Strip off the entire prefix.
+#else
+    return str + kResolvedFileRootLen - 1;  // Leave a '/' on the front.
+#endif
+  }
+  if (len > kResolvedSdkRootLen &&
+      strncmp(str, kResolvedSdkRoot, kResolvedSdkRootLen) == 0) {
+    // Leave "sdk/" as a prefix in the returned path.
+    return str + (kResolvedSdkRootLen - 4);
+  }
+  return nullptr;
+}
+
 void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
   // 6.2.4 The Line Number Program Header
 
@@ -762,8 +794,25 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
   String& uri = String::Handle(zone_);
   for (intptr_t i = 0; i < scripts_.length(); i++) {
     const Script& script = *(scripts_[i]);
-    uri = script.url();
-    auto const uri_cstr = Deobfuscate(uri.ToCString());
+    if (FLAG_resolve_dwarf_paths) {
+      uri = script.resolved_url();
+      // Strictly enforce this to catch unresolvable cases.
+      if (uri.IsNull()) {
+        FATAL("no resolved URI for Script %s available", script.ToCString());
+      }
+    } else {
+      uri = script.url();
+    }
+    ASSERT(!uri.IsNull());
+    auto uri_cstr = Deobfuscate(uri.ToCString());
+    if (FLAG_resolve_dwarf_paths) {
+      auto const converted_cstr = ConvertResolvedURI(uri_cstr);
+      // Strictly enforce this to catch inconvertable cases.
+      if (converted_cstr == nullptr) {
+        FATAL("cannot convert resolved URI %s", uri_cstr);
+      }
+      uri_cstr = converted_cstr;
+    }
     RELEASE_ASSERT(strlen(uri_cstr) != 0);
 
     stream->string(uri_cstr);  // NOLINT

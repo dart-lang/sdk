@@ -25,6 +25,7 @@ import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+import '../../../generated/test_support.dart';
 import 'context_collection_resolution_caching.dart';
 import 'resolution.dart';
 
@@ -189,7 +190,7 @@ abstract class ContextResolutionTest
   Future<ResolvedUnitResult> resolveFile(String path) async {
     var analysisContext = contextFor(pathForContextSelection ?? path);
     var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(path);
+    return await session.getResolvedUnit2(path) as ResolvedUnitResult;
   }
 
   @mustCallSuper
@@ -346,19 +347,69 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 }
 
 class PubspecYamlFileConfig {
+  final String? name;
   final String? sdkVersion;
+  final List<PubspecYamlFileDependency> dependencies;
 
-  PubspecYamlFileConfig({this.sdkVersion});
+  PubspecYamlFileConfig({
+    this.name,
+    this.sdkVersion,
+    this.dependencies = const [],
+  });
 
   String toContent() {
     var buffer = StringBuffer();
+
+    if (name != null) {
+      buffer.writeln('name: $name');
+    }
 
     if (sdkVersion != null) {
       buffer.writeln('environment:');
       buffer.writeln("  sdk: '$sdkVersion'");
     }
 
+    if (dependencies.isNotEmpty) {
+      buffer.writeln('dependencies:');
+      for (var dependency in dependencies) {
+        buffer.writeln('  ${dependency.name}: ${dependency.version}');
+      }
+    }
+
     return buffer.toString();
+  }
+}
+
+class PubspecYamlFileDependency {
+  final String name;
+  final String version;
+
+  PubspecYamlFileDependency({
+    required this.name,
+    this.version = 'any',
+  });
+}
+
+mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
+  Future<void> assertErrorsWithNoImplicitCasts(
+    String code,
+    List<ExpectedError> expectedErrorsWhenImplicitCastsDisabled,
+  ) async {
+    newFile(testFilePath, content: code);
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    disposeAnalysisContextCollection();
+
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        implicitCasts: false,
+      ),
+    );
+
+    await resolveTestFile();
+    assertErrorsInResult(expectedErrorsWhenImplicitCastsDisabled);
   }
 }
 

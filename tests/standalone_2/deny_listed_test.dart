@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test checking that static/instance field shadowing do not conflict.
 
+// @dart = 2.9
+
 // Test that certain interfaces/classes are denylisted from being
 // implemented or extended (VM corelib only).
 

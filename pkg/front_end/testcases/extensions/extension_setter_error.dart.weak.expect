@@ -37,7 +37,7 @@ static method error() → dynamic {
                                         ^" in genericClass as{TypeError} self::GenericClass<core::double*>* in let final Null #t3 = null in let final void #t4 = self::GenericExtension|set#setter<core::double*>(#t1, #t3) in #t3);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual)) {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }

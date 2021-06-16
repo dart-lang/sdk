@@ -1,0 +1,13 @@
+import "package:expect/expect.dart";
+
+const var1 = fn();
+void fn() {}
+const var2 = fn2();
+void fn2() {}
+const var3 = fn3();
+int? fn3() => null;
+const var4 = fn4();
+int? fn4() {}
+const var5 = fn5();
+int fn5() {}
+void main() {}

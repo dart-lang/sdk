@@ -1,0 +1,27 @@
+import "package:expect/expect.dart";
+
+class A {
+  const A(this.y);
+  final int y;
+}
+
+class B extends A {
+  const B(int x) : super(x);
+}
+
+class C extends A {
+  const C() : super(100);
+  @override
+  final int y = 2;
+}
+
+const var1 = fn();
+const var2 = fn2();
+const var3 = const A(1).y;
+const var4 = fn4();
+const var5 = fn5();
+int fn() => const A(1).y;
+int fn2() {}
+int fn4() => const B(1).y;
+int fn5() => const C().y;
+void main() {}

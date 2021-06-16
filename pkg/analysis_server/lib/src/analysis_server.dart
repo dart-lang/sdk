@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
@@ -48,8 +46,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/status.dart' as nd;
+import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
+import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -76,7 +74,7 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// A list of the request handlers used to handle the requests sent to this
   /// server.
-  List<RequestHandler> handlers;
+  late List<RequestHandler> handlers;
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = HashSet<ServerService>();
@@ -98,23 +96,24 @@ class AnalysisServer extends AbstractAnalysisServer {
   WidgetDescriptions flutterWidgetDescriptions = WidgetDescriptions();
 
   /// The [Completer] that completes when analysis is complete.
-  Completer _onAnalysisCompleteCompleter;
+  Completer<void>? _onAnalysisCompleteCompleter;
 
   /// The controller that is notified when analysis is started.
-  StreamController<bool> _onAnalysisStartedController;
+  final StreamController<bool> _onAnalysisStartedController =
+      StreamController.broadcast();
 
   /// If the "analysis.analyzedFiles" notification is currently being subscribed
   /// to (see [generalAnalysisServices]), and at least one such notification has
   /// been sent since the subscription was enabled, the set of analyzed files
   /// that was delivered in the most recently sent notification.  Otherwise
   /// `null`.
-  Set<String> prevAnalyzedFiles;
+  Set<String>? prevAnalyzedFiles;
 
   /// The controller for [onAnalysisSetChanged].
   final StreamController _onAnalysisSetChangedController =
       StreamController.broadcast(sync: true);
 
-  final DetachableFileSystemManager detachableFileSystemManager;
+  final DetachableFileSystemManager? detachableFileSystemManager;
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
@@ -130,9 +129,9 @@ class AnalysisServer extends AbstractAnalysisServer {
     DartSdkManager sdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
-    http.Client httpClient,
-    RequestStatisticsHelper requestStatistics,
-    DiagnosticServer diagnosticServer,
+    http.Client? httpClient,
+    RequestStatisticsHelper? requestStatistics,
+    DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
     bool enableBazelWatcher = false,
@@ -155,11 +154,9 @@ class AnalysisServer extends AbstractAnalysisServer {
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
     analysisDriverScheduler.start();
 
-    _onAnalysisStartedController = StreamController.broadcast();
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
-        performanceAfterStartup = ServerPerformance();
-        performance = performanceAfterStartup;
+        performance = performanceAfterStartup = ServerPerformance();
       });
     });
     var notification =
@@ -181,15 +178,15 @@ class AnalysisServer extends AbstractAnalysisServer {
   }
 
   /// The analytics instance; note, this object can be `null`.
-  telemetry.Analytics get analytics => options.analytics;
+  telemetry.Analytics? get analytics => options.analytics;
 
   /// The [Future] that completes when analysis is complete.
-  Future get onAnalysisComplete {
+  Future<void> get onAnalysisComplete {
     if (isAnalysisComplete()) {
       return Future.value();
     }
-    _onAnalysisCompleteCompleter ??= Completer();
-    return _onAnalysisCompleteCompleter.future;
+    var completer = _onAnalysisCompleteCompleter ??= Completer<void>();
+    return completer.future;
   }
 
   /// The stream that is notified when the analysis set is changed - this might
@@ -217,7 +214,7 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// Return the cached analysis result for the file with the given [path].
   /// If there is no cached result, return `null`.
-  ResolvedUnitResult getCachedResolvedUnit(String path) {
+  ResolvedUnitResult? getCachedResolvedUnit(String path) {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
@@ -247,9 +244,7 @@ class AnalysisServer extends AbstractAnalysisServer {
         } catch (exception, stackTrace) {
           var error =
               RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
-          if (stackTrace != null) {
-            error.stackTrace = stackTrace.toString();
-          }
+          error.stackTrace = stackTrace.toString();
           var response = Response(request.id, error: error);
           channel.sendResponse(response);
           return;
@@ -338,19 +333,20 @@ class AnalysisServer extends AbstractAnalysisServer {
     exceptions.add(ServerException(
       message,
       exception,
-      stackTrace is StackTrace ? stackTrace : null,
+      stackTrace is StackTrace ? stackTrace : StackTrace.current,
       fatal,
     ));
   }
 
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
-  void sendStatusNotificationNew(nd.AnalysisStatus status) {
+  void sendStatusNotificationNew(analysis.AnalysisStatus status) {
     if (status.isAnalyzing) {
       _onAnalysisStartedController.add(true);
     }
-    if (_onAnalysisCompleteCompleter != null && !status.isAnalyzing) {
-      _onAnalysisCompleteCompleter.complete();
+    var onAnalysisCompleteCompleter = _onAnalysisCompleteCompleter;
+    if (onAnalysisCompleteCompleter != null && !status.isAnalyzing) {
+      onAnalysisCompleteCompleter.complete();
       _onAnalysisCompleteCompleter = null;
     }
     // Perform on-idle actions.
@@ -391,7 +387,8 @@ class AnalysisServer extends AbstractAnalysisServer {
     try {
       contextManager.setRoots(includedPaths, excludedPaths);
     } on UnimplementedError catch (e) {
-      throw RequestFailure(Response.unsupportedFeature(requestId, e.message));
+      throw RequestFailure(Response.unsupportedFeature(
+          requestId, e.message ?? 'Unsupported feature.'));
     }
     analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
   }
@@ -451,11 +448,10 @@ class AnalysisServer extends AbstractAnalysisServer {
 
     pubApi.close();
 
-    if (options.analytics != null) {
-      options.analytics
-          .waitForLastPing(timeout: Duration(milliseconds: 200))
-          .then((_) {
-        options.analytics.close();
+    var analytics = options.analytics;
+    if (analytics != null) {
+      analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
+        analytics.close();
       });
     }
 
@@ -476,7 +472,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     _onAnalysisSetChangedController.add(null);
     changes.forEach((file, change) {
       // Prepare the old overlay contents.
-      String oldContents;
+      String? oldContents;
       try {
         if (resourceProvider.hasOverlay(file)) {
           oldContents = resourceProvider.getFile(file).readAsStringSync();
@@ -484,7 +480,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       } catch (_) {}
 
       // Prepare the new contents.
-      String newContents;
+      String? newContents;
       if (change is AddContentOverlay) {
         newContents = change.content;
       } else if (change is ChangeContentOverlay) {
@@ -604,27 +600,27 @@ class AnalysisServer extends AbstractAnalysisServer {
 
 /// Various IDE options.
 class AnalysisServerOptions {
-  String newAnalysisDriverLog;
+  String? newAnalysisDriverLog;
 
-  String clientId;
-  String clientVersion;
+  String? clientId;
+  String? clientVersion;
 
   /// Base path where to cache data.
-  String cacheFolder;
+  String? cacheFolder;
 
   /// The analytics instance; note, this object can be `null`, and should be
   /// accessed via a null-aware operator.
-  telemetry.Analytics analytics;
+  telemetry.Analytics? analytics;
 
   /// The crash report sender instance; note, this object can be `null`, and
   /// should be accessed via a null-aware operator.
-  CrashReportSender crashReportSender;
+  CrashReportSender? crashReportSender;
 
   /// An optional set of configuration overrides specified by the SDK.
   ///
   /// These overrides can provide new values for configuration settings, and are
   /// generally used in specific SDKs (like the internal google3 one).
-  SdkConfiguration configurationOverrides;
+  SdkConfiguration? configurationOverrides;
 
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
@@ -644,7 +640,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
-  NotificationManager get _notificationManager =>
+  AbstractNotificationManager get _notificationManager =>
       analysisServer.notificationManager;
 
   @override
@@ -681,14 +677,16 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void listenAnalysisDriver(nd.AnalysisDriver analysisDriver) {
+  void listenAnalysisDriver(analysis.AnalysisDriver analysisDriver) {
     analysisDriver.results.listen((result) {
-      var path = result.path;
+      var path = result.path!;
       filesToFlush.add(path);
       if (analysisServer.isAnalyzed(path)) {
         _notificationManager.recordAnalysisErrors(NotificationManager.serverId,
             path, server.doAnalysisError_listFromEngine(result));
       }
+      analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
+      analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
       var unit = result.unit;
       if (unit != null) {
         if (analysisServer._hasAnalysisServiceSubscription(
@@ -844,7 +842,7 @@ class ServerPerformance {
   int slowRequestCount = 0;
 
   /// Log timing information for a request.
-  void logRequestTiming(int clientRequestTime) {
+  void logRequestTiming(int? clientRequestTime) {
     ++requestCount;
     if (clientRequestTime != null) {
       var latency = DateTime.now().millisecondsSinceEpoch - clientRequestTime;

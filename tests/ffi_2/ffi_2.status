@@ -5,8 +5,17 @@
 [ $builder_tag == msan ]
 vmspecific_handle_test: Skip # https://dartbug.com/42314
 
+[ $compiler == app_jitk ]
+vmspecific_leaf_call_test: Skip # https://dartbug.com/46125: Snapshot fails to generate.
+
+[ $mode == debug ]
+function_callbacks_structs_by_value_generated_test: Pass, Slow
+
 [ $system == android ]
 *: Pass, Slow # https://github.com/dart-lang/sdk/issues/38489
+
+[ $arch == arm && $system == linux ]
+function_callbacks_structs_by_value_test: Slow # QEMU https://dartbug.com/45007
 
 [ $compiler != dart2analyzer && $compiler != fasta && $runtime != dart_precompiled && $runtime != vm ]
 *: SkipByDesign # FFI is a VM-only feature. (This test suite is part of the default set.)

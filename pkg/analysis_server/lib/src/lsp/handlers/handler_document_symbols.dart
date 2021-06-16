@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -16,7 +14,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
 class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
-    Either2<List<DocumentSymbol>, List<SymbolInformation>>> {
+    Either2<List<DocumentSymbol>, List<SymbolInformation>>?> {
   DocumentSymbolHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_documentSymbol;
@@ -26,9 +24,10 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
       DocumentSymbolParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>>>
+  Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>?>>
       handle(DocumentSymbolParams params, CancellationToken token) async {
-    if (!isDartDocument(params.textDocument)) {
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null || !isDartDocument(params.textDocument)) {
       return success(
         Either2<List<DocumentSymbol>, List<SymbolInformation>>.t2([]),
       );
@@ -37,7 +36,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
     return unit.mapResult(
-        (unit) => _getSymbols(server.clientCapabilities, path.result, unit));
+        (unit) => _getSymbols(clientCapabilities, path.result, unit));
   }
 
   DocumentSymbol _asDocumentSymbol(
@@ -45,41 +44,49 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     LineInfo lineInfo,
     Outline outline,
   ) {
+    final codeRange = toRange(lineInfo, outline.codeOffset, outline.codeLength);
+    final nameLocation = outline.element.location;
+    final nameRange = nameLocation != null
+        ? toRange(lineInfo, nameLocation.offset, nameLocation.length)
+        : null;
     return DocumentSymbol(
       name: toElementName(outline.element),
       detail: outline.element.parameters,
       kind: elementKindToSymbolKind(supportedKinds, outline.element.kind),
       deprecated: outline.element.isDeprecated,
-      range: toRange(lineInfo, outline.codeOffset, outline.codeLength),
-      selectionRange: toRange(lineInfo, outline.element.location.offset,
-          outline.element.location.length),
+      range: codeRange,
+      selectionRange: nameRange ?? codeRange,
       children: outline.children
           ?.map((child) => _asDocumentSymbol(supportedKinds, lineInfo, child))
-          ?.toList(),
+          .toList(),
     );
   }
 
-  SymbolInformation _asSymbolInformation(
-    String containerName,
+  SymbolInformation? _asSymbolInformation(
+    String? containerName,
     Set<SymbolKind> supportedKinds,
     String documentUri,
     LineInfo lineInfo,
     Outline outline,
   ) {
+    final location = outline.element.location;
+    if (location == null) {
+      return null;
+    }
+
     return SymbolInformation(
       name: toElementName(outline.element),
       kind: elementKindToSymbolKind(supportedKinds, outline.element.kind),
       deprecated: outline.element.isDeprecated,
       location: Location(
         uri: documentUri,
-        range: toRange(lineInfo, outline.element.location.offset,
-            outline.element.location.length),
+        range: toRange(lineInfo, location.offset, location.length),
       ),
       containerName: containerName,
     );
   }
 
-  ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>> _getSymbols(
+  ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>?> _getSymbols(
     LspClientCapabilities capabilities,
     String path,
     ResolvedUnitResult unit,
@@ -90,12 +97,16 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     if (capabilities.hierarchicalSymbols) {
       // Return a tree of DocumentSymbol only if the client shows explicit support
       // for it.
+      final children = outline.children;
+      if (children == null) {
+        return success(null);
+      }
       return success(
         Either2<List<DocumentSymbol>, List<SymbolInformation>>.t1(
-          outline?.children
-              ?.map((child) => _asDocumentSymbol(
+          children
+              .map((child) => _asDocumentSymbol(
                   capabilities.documentSymbolKinds, unit.lineInfo, child))
-              ?.toList(),
+              .toList(),
         ),
       );
     } else {
@@ -105,20 +116,23 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
 
       // Adds a symbol and it's children recursively, supplying the parent
       // name as required by SymbolInformation.
-      void addSymbol(Outline outline, {String parentName}) {
-        allSymbols.add(_asSymbolInformation(
+      void addSymbol(Outline outline, {String? parentName}) {
+        final symbol = _asSymbolInformation(
           parentName,
           capabilities.documentSymbolKinds,
           documentUri,
           unit.lineInfo,
           outline,
-        ));
+        );
+        if (symbol != null) {
+          allSymbols.add(symbol);
+        }
         outline.children?.forEach(
           (c) => addSymbol(c, parentName: outline.element.name),
         );
       }
 
-      outline?.children?.forEach(addSymbol);
+      outline.children?.forEach(addSymbol);
 
       return success(
         Either2<List<DocumentSymbol>, List<SymbolInformation>>.t2(allSymbols),

@@ -598,15 +598,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
 
   @override
   void handleEqualsNull(ir.EqualsNull node, ir.DartType expressionType) {
-    // TODO(johnniwinther): Remove this after the new method invocation has landed
-    // stably. This is only included to make the transition a no-op.
-    if (node.fileOffset < node.expression.fileOffset) {
-      // Hack to detect `null == o`.
-      expressionType = const ir.NullType();
-    }
-    ClassRelation relation = computeClassRelationFromType(expressionType);
-    registerDynamicInvocation(
-        expressionType, relation, ir.Name.equalsName, 1, const [], const []);
     registerNullLiteral();
   }
 

@@ -5,7 +5,7 @@
 # Note: if you edit this file, you must also edit libraries.json in this
 # directory:
 #
-#     python ./tools/yaml2json.py sdk/lib/vmservice_libraries.yaml sdk/lib/vmservice_libraries.json
+#     python3 ./tools/yaml2json.py sdk/lib/vmservice_libraries.yaml sdk/lib/vmservice_libraries.json
 #
 # We currently have several different files that needs to be updated when
 # changing libraries, sources, and patch files.  See

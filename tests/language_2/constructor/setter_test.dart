@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that setters are not invokable in the initializer list.
 
+// @dart = 2.9
+
 class A {
   A() : a = 499; /*@compile-error=unspecified*/
 

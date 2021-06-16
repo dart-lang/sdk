@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -147,7 +148,8 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
         instrumentation: _InstrumentationClient(this),
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
-    var result = await session.getResolvedUnit(sourcePath);
+    var result =
+        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
     source = result.unit.declaredElement.source;
     findNode = FindNode(content, result.unit);
     migration.prepareInput(result);

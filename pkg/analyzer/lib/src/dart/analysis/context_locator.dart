@@ -35,14 +35,12 @@ class ContextLocatorImpl implements ContextLocator {
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
-  /// TODO(scheglov) Remove [overrideWorkspace] when DAS uses collection.
   @override
   List<ContextRoot> locateRoots({
     required List<String> includedPaths,
     List<String>? excludedPaths,
     String? optionsFile,
     String? packagesFile,
-    Workspace? overrideWorkspace,
   }) {
     //
     // Compute the list of folders and files that are to be included.

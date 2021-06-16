@@ -14,7 +14,7 @@ import self as self2;
 import "dart:core" as core;
 
 static field core::int y;
-static method foo<T extends core::num = core::num>(self2::foo::T t1, self2::foo::T t2) → self2::foo::T
+static method foo<T extends core::num>(self2::foo::T t1, self2::foo::T t2) → self2::foo::T
   ;
 static method baz(core::int? v) → dynamic
   ;

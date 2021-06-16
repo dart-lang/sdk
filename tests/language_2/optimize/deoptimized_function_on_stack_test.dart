@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=10
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // This is a test for deoptimization infrastructure and to reproduce the

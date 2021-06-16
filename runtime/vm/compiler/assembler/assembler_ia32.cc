@@ -14,9 +14,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, inline_alloc);
-DECLARE_FLAG(bool, use_slow_path);
-
 namespace compiler {
 
 class DirectCallRelocation : public AssemblerFixup {
@@ -180,6 +177,12 @@ void Assembler::movb(Register dst, const Address& src) {
   // If we ever want to purposefully have those undefined, remove this.
   // TODO(dartbug.com/40210): Allow this.
   FATAL("Use movzxb or movsxb instead.");
+}
+
+void Assembler::movb(const Address& dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x88);
+  EmitOperand(src, dst);
 }
 
 void Assembler::movb(const Address& dst, ByteRegister src) {
@@ -1774,8 +1777,28 @@ void Assembler::LoadFromOffset(Register reg,
       return movsxw(reg, address);
     case kUnsignedTwoBytes:
       return movzxw(reg, address);
+    case kUnsignedFourBytes:
     case kFourBytes:
       return movl(reg, address);
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+void Assembler::StoreToOffset(Register reg,
+                              const Address& address,
+                              OperandSize sz) {
+  switch (sz) {
+    case kByte:
+    case kUnsignedByte:
+      return movb(address, reg);
+    case kTwoBytes:
+    case kUnsignedTwoBytes:
+      return movw(address, reg);
+    case kFourBytes:
+    case kUnsignedFourBytes:
+      return movl(address, reg);
     default:
       UNREACHABLE();
       break;
@@ -2223,24 +2246,24 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
-void Assembler::EnterSafepoint(Register scratch) {
+void Assembler::EnterFullSafepoint(Register scratch) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
 
-  // Compare and swap the value at Thread::safepoint_state from unacquired to
-  // acquired. On success, jump to 'success'; otherwise, fallthrough.
+  // Compare and swap the value at Thread::safepoint_state from unacquired
+  // to acquired. On success, jump to 'success'; otherwise, fallthrough.
   Label done, slow_path;
   if (FLAG_use_slow_path) {
     jmp(&slow_path);
   }
 
   pushl(EAX);
-  movl(EAX, Immediate(target::Thread::safepoint_state_unacquired()));
-  movl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
+  movl(EAX, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  movl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
   LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
   movl(scratch, EAX);
   popl(EAX);
-  cmpl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
+  cmpl(scratch, Immediate(target::Thread::full_safepoint_state_unacquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -2273,29 +2296,29 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
        Immediate(target::Thread::native_execution_state()));
 
   if (enter_safepoint) {
-    EnterSafepoint(scratch);
+    EnterFullSafepoint(scratch);
   }
 }
 
-void Assembler::ExitSafepoint(Register scratch) {
+void Assembler::ExitFullSafepoint(Register scratch) {
   ASSERT(scratch != EAX);
   // We generate the same number of instructions whether or not the slow-path is
-  // forced, for consistency with EnterSafepoint.
+  // forced, for consistency with EnterFullSafepoint.
 
-  // Compare and swap the value at Thread::safepoint_state from acquired to
-  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  // Compare and swap the value at Thread::safepoint_state from acquired
+  // to unacquired. On success, jump to 'success'; otherwise, fallthrough.
   Label done, slow_path;
   if (FLAG_use_slow_path) {
     jmp(&slow_path);
   }
 
   pushl(EAX);
-  movl(EAX, Immediate(target::Thread::safepoint_state_acquired()));
-  movl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
+  movl(EAX, Immediate(target::Thread::full_safepoint_state_acquired()));
+  movl(scratch, Immediate(target::Thread::full_safepoint_state_unacquired()));
   LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
   movl(scratch, EAX);
   popl(EAX);
-  cmpl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
+  cmpl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -2312,12 +2335,12 @@ void Assembler::ExitSafepoint(Register scratch) {
 void Assembler::TransitionNativeToGenerated(Register scratch,
                                             bool exit_safepoint) {
   if (exit_safepoint) {
-    ExitSafepoint(scratch);
+    ExitFullSafepoint(scratch);
   } else {
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movl(scratch, Address(THR, target::Thread::safepoint_state_offset()));
-    andl(scratch, Immediate(1 << target::Thread::safepoint_state_inside_bit()));
+    andl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
     Label ok;
     j(ZERO, &ok);
     Breakpoint();
@@ -2497,20 +2520,21 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 }
 #endif  // !PRODUCT
 
-void Assembler::TryAllocate(const Class& cls,
-                            Label* failure,
-                            JumpDistance distance,
-                            Register instance_reg,
-                            Register temp_reg) {
+void Assembler::TryAllocateObject(intptr_t cid,
+                                  intptr_t instance_size,
+                                  Label* failure,
+                                  JumpDistance distance,
+                                  Register instance_reg,
+                                  Register temp_reg) {
   ASSERT(failure != NULL);
-  ASSERT(temp_reg != kNoRegister);
-  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
+  ASSERT(instance_size != 0);
+  ASSERT(Utils::IsAligned(instance_size,
+                          target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    const classid_t cid = target::Class::GetId(cls);
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, distance));
     movl(instance_reg, Address(THR, target::Thread::top_offset()));
     addl(instance_reg, Immediate(instance_size));
@@ -2799,6 +2823,25 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
     LoadClassIdMayBeSmi(result, object);
     SmiTag(result);
   }
+}
+
+void Assembler::EnsureHasClassIdInDEBUG(intptr_t cid,
+                                        Register src,
+                                        Register scratch,
+                                        bool can_be_null) {
+#if defined(DEBUG)
+  Comment("Check that object in register has cid %" Pd "", cid);
+  Label matches;
+  LoadClassIdMayBeSmi(scratch, src);
+  CompareImmediate(scratch, cid);
+  BranchIf(EQUAL, &matches, Assembler::kNearJump);
+  if (can_be_null) {
+    CompareImmediate(scratch, kNullCid);
+    BranchIf(EQUAL, &matches, Assembler::kNearJump);
+  }
+  Breakpoint();
+  Bind(&matches);
+#endif
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

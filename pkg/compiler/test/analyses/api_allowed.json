@@ -1,75 +1,13 @@
 {
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_number.dart": {
-    "Dynamic invocation of '[]'.": 5,
-    "Dynamic invocation of '<'.": 4,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of '<='.": 1,
-    "Dynamic invocation of '>'.": 2
+    "Dynamic invocation of '[]'.": 5
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_helper.dart": {
-    "Dynamic invocation of '[]'.": 3,
-    "Dynamic access of 'isNaN'.": 3,
-    "Dynamic invocation of '<='.": 2,
-    "Dynamic invocation of '-'.": 3,
-    "Dynamic invocation of '&'.": 1,
-    "Dynamic invocation of '>>'.": 1,
-    "Dynamic invocation of '<'.": 2,
-    "Dynamic invocation of '+'.": 1,
-    "Dynamic invocation of '>'.": 1,
     "Dynamic access of 'length'.": 1
   },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/string_helper.dart": {
-    "Dynamic invocation of '<'.": 1,
-    "Dynamic invocation of '+'.": 1,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of 'substring'.": 7,
-    "Dynamic invocation of 'allMatches'.": 3,
-    "Dynamic access of 'isNotEmpty'.": 1,
-    "Dynamic invocation of '_js_helper::_execGlobal'.": 1,
-    "Dynamic access of 'start'.": 1,
-    "Dynamic access of 'end'.": 1,
-    "Dynamic invocation of 'call'.": 13,
-    "Dynamic access of 'length'.": 3,
-    "Dynamic invocation of 'codeUnitAt'.": 2,
-    "Dynamic invocation of '[]'.": 1,
-    "Dynamic access of 'iterator'.": 2,
-    "Dynamic invocation of 'replaceRange'.": 2
-  },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/linked_hash_map.dart": {
-    "Dynamic access of '_js_helper::_length'.": 2,
-    "Dynamic access of '_js_helper::_modifications'.": 4,
-    "Dynamic invocation of 'containsKey'.": 1,
-    "Dynamic access of '_js_helper::_first'.": 2
-  },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/native_helper.dart": {
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '[]'.": 1
-  },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/regexp_helper.dart": {
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of '-'.": 1
-  },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/native_typed_data.dart": {
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of '>='.": 1
-  },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/async_patch.dart": {
-    "Dynamic invocation of '-'.": 1,
     "Dynamic access of 'iterator'.": 1,
-    "Dynamic invocation of 'call'.": 1,
     "Dynamic invocation of 'then'.": 1
-  },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/collection_patch.dart": {
-    "Dynamic access of 'dart.collection::_length'.": 2,
-    "Dynamic invocation of 'dart.collection::_computeKeys'.": 2,
-    "Dynamic invocation of 'containsKey'.": 2,
-    "Dynamic access of 'dart.collection::_keys'.": 2,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic access of 'dart.collection::_modifications'.": 5,
-    "Dynamic access of 'dart.collection::_map'.": 4,
-    "Dynamic access of 'dart.collection::_elements'.": 1,
-    "Dynamic access of 'dart.collection::_first'.": 1
   },
   "org-dartlang-sdk:///lib/html/dart2js/html_dart2js.dart": {
     "Dynamic access of 'style'.": 1,
@@ -177,11 +115,12 @@
     "Dynamic access of 'connectionInfo'.": 4,
     "Dynamic access of 'localPort'.": 1,
     "Dynamic access of 'remoteAddress'.": 2,
-    "Dynamic access of 'address'.": 3,
+    "Dynamic access of 'address'.": 4,
     "Dynamic access of 'remotePort'.": 2,
     "Dynamic access of 'message'.": 3,
     "Dynamic invocation of 'call'.": 1,
     "Dynamic invocation of 'destroy'.": 2,
+    "Dynamic access of 'type'.": 1,
     "Dynamic invocation of 'setOption'.": 1,
     "Dynamic access of 'host'.": 2,
     "Dynamic access of 'port'.": 2,

@@ -24,6 +24,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 part 'crypto.dart';
+part 'embedder_config.dart';
 part 'http_date.dart';
 part 'http_headers.dart';
 part 'http_impl.dart';
@@ -1720,8 +1721,10 @@ abstract class HttpClient {
 
   /**
    * Sets the function to be called when a site is requesting
-   * authentication. The URL requested and the security realm from the
-   * server are passed in the arguments [url] and [realm].
+   * authentication.
+   *
+   * The URL requested, the authentication scheme and the security realm
+   * from the server are passed in the arguments [url], [scheme] and [realm].
    *
    * The function returns a [Future] which should complete when the
    * authentication has been resolved. If credentials cannot be
@@ -1741,7 +1744,7 @@ abstract class HttpClient {
    * of a failed request, or issues due to missing request payload on retried
    * request.
    */
-  void set authenticate(Future<bool> f(Uri url, String scheme, String realm)?);
+  void set authenticate(Future<bool> f(Uri url, String scheme, String? realm)?);
 
   /**
    * Add credentials to be used for authorizing HTTP requests.
@@ -1837,9 +1840,11 @@ abstract class HttpClient {
 
   /**
    * Sets the function to be called when a proxy is requesting
-   * authentication. Information on the proxy in use and the security
-   * realm for the authentication are passed in the arguments [host],
-   * [port] and [realm].
+   * authentication.
+   *
+   * Information on the proxy in use, the authentication scheme
+   * and the security realm for the authentication
+   * are passed in the arguments [host], [port], [scheme] and [realm].
    *
    * The function returns a [Future] which should complete when the
    * authentication has been resolved. If credentials cannot be
@@ -1853,7 +1858,7 @@ abstract class HttpClient {
    * continue normally.
    */
   void set authenticateProxy(
-      Future<bool> f(String host, int port, String scheme, String realm)?);
+      Future<bool> f(String host, int port, String scheme, String? realm)?);
 
   /**
    * Add credentials to be used for authorizing HTTP proxies.

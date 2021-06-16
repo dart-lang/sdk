@@ -10,13 +10,13 @@ import 'dart:math' show max, min;
 
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart' hide MapEntry;
+import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart';
+import 'package:kernel/src/dart_type_equivalence.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/src/dart_type_equivalence.dart';
-import 'package:source_span/source_span.dart' show SourceLocation;
 import 'package:path/path.dart' as p;
+import 'package:source_span/source_span.dart' show SourceLocation;
 
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/js_utils.dart' as js_ast;
@@ -93,6 +93,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// The class that is emitting its signature information, otherwise null.
   Class _classEmittingSignatures;
+
+  /// True when a class is emitting a deferred class hierarchy.
+  bool _emittingDeferredType = false;
 
   /// The current element being loaded.
   /// We can use this to determine if we're loading top-level code or not:
@@ -859,22 +862,46 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return;
     }
 
-    js_ast.Expression emitDeferredType(DartType t) {
-      assert(isKnownDartTypeImplementor(t));
-      if (t is InterfaceType) {
-        _declareBeforeUse(t.classNode);
-        if (t.typeArguments.isNotEmpty) {
-          return _emitGenericClassType(
-              t, t.typeArguments.map(emitDeferredType));
+    js_ast.Expression emitDeferredType(DartType t,
+        {bool emitNullability = true}) {
+      js_ast.Expression _emitDeferredType(DartType t,
+          {bool emitNullability = true}) {
+        if (t is InterfaceType) {
+          _declareBeforeUse(t.classNode);
+          if (t.typeArguments.isNotEmpty) {
+            var typeRep = _emitGenericClassType(
+                t, t.typeArguments.map(_emitDeferredType));
+            return emitNullability
+                ? _emitNullabilityWrapper(typeRep, t.declaredNullability)
+                : typeRep;
+          }
+          return _emitInterfaceType(t, emitNullability: emitNullability);
+        } else if (t is FutureOrType) {
+          var normalizedType = _normalizeFutureOr(t);
+          if (normalizedType is FutureOrType) {
+            _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
+            var typeRep = _emitFutureOrTypeWithArgument(
+                _emitDeferredType(normalizedType.typeArgument));
+            return emitNullability
+                ? _emitNullabilityWrapper(
+                    typeRep, normalizedType.declaredNullability)
+                : typeRep;
+          }
+          return _emitDeferredType(normalizedType,
+              emitNullability: emitNullability);
+        } else if (t is TypeParameterType) {
+          return _emitTypeParameterType(t, emitNullability: emitNullability);
         }
-        return _emitInterfaceType(t, emitNullability: false);
-      } else if (t is FutureOrType) {
-        _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
-        return _emitFutureOrTypeWithArgument(emitDeferredType(t.typeArgument));
-      } else if (t is TypeParameterType) {
-        return _emitTypeParameterType(t, emitNullability: false);
+        return _emitType(t);
       }
-      return _emitType(t);
+
+      assert(isKnownDartTypeImplementor(t));
+      var savedEmittingDeferredType = _emittingDeferredType;
+      _emittingDeferredType = true;
+      var deferredClassRep =
+          _emitDeferredType(t, emitNullability: emitNullability);
+      _emittingDeferredType = savedEmittingDeferredType;
+      return deferredClassRep;
     }
 
     bool shouldDefer(InterfaceType t) {
@@ -921,7 +948,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     js_ast.Expression getBaseClass(int count) {
       var base = emitDeferredType(
-          c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable));
+          c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable),
+          emitNullability: false);
       while (--count >= 0) {
         base = js.call('#.__proto__', [base]);
       }
@@ -995,7 +1023,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var originalSupertype = supertype;
       deferredSupertypes.add(() => runtimeStatement('setBaseClass(#, #)', [
             getBaseClass(isMixinAliasClass(c) ? 0 : mixinApplications.length),
-            emitDeferredType(originalSupertype),
+            emitDeferredType(originalSupertype, emitNullability: false),
           ]));
       // Refers to 'supertype' without type parameters. We remove these from
       // the 'extends' clause for generics for cyclic dependencies and append
@@ -1015,7 +1043,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       var m = c.mixedInType.asInterfaceType;
       var deferMixin = shouldDefer(m);
-      var mixinClass = deferMixin ? emitDeferredType(m) : emitClassRef(m);
+      var mixinClass = deferMixin
+          ? emitDeferredType(m, emitNullability: false)
+          : emitClassRef(m);
       var classExpr = deferMixin ? getBaseClass(0) : className;
 
       var mixinApplication =
@@ -1087,7 +1117,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (shouldDefer(mixinType)) {
         deferredSupertypes.add(() => runtimeStatement('applyMixin(#, #)', [
               getBaseClass(mixinApplications.length - i),
-              emitDeferredType(mixinType)
+              emitDeferredType(mixinType, emitNullability: false)
             ]));
       } else {
         body.add(runtimeStatement(
@@ -2612,12 +2642,35 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     var nameExpr = _emitTopLevelName(p);
+    var jsName = _safeFunctionNameForSafari(p.name.text, fn);
     body.add(js.statement('# = #',
-        [nameExpr, js_ast.NamedFunction(_emitTemporaryId(p.name.text), fn)]));
+        [nameExpr, js_ast.NamedFunction(_emitTemporaryId(jsName), fn)]));
 
     _currentUri = savedUri;
     _staticTypeContext.leaveMember(p);
     return js_ast.Statement.from(body);
+  }
+
+  /// Choose a safe name for [fn].
+  ///
+  /// Most of the time we use [candidateName], except if the name collides
+  /// with a parameter name and the function contains default parameter values.
+  ///
+  /// In ES6, functions containing default parameter values, which DDC
+  /// generates when Dart uses positional optional parameters, cannot have
+  /// two parameters with the same name. Because we have a similar restriction
+  /// in Dart, this is not normally an issue we need to pay attention to.
+  /// However, a bug in Safari makes it a syntax error to have the function
+  /// name overlap with the parameter names as well. This rename works around
+  /// such bug (dartbug.com/43520).
+  static String _safeFunctionNameForSafari(
+      String candidateName, js_ast.Fun fn) {
+    if (fn.params.any((p) => p is js_ast.DestructuredVariable)) {
+      while (fn.params.any((a) => a.parameterName == candidateName)) {
+        candidateName = '$candidateName\$';
+      }
+    }
+    return candidateName;
   }
 
   js_ast.Expression _emitFunctionTagged(js_ast.Expression fn, FunctionType type,
@@ -2698,16 +2751,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           ? visitNullType(const NullType())
           : _emitNullabilityWrapper(runtimeCall('Never'), type.nullability);
 
-  /// Normalizes `FutureOr` types and emits the normalized version.
-  js_ast.Expression _normalizeFutureOr(FutureOrType futureOr) {
+  /// Normalizes `FutureOr` types.
+  ///
+  /// Any changes to the normalization logic here should be mirrored in the
+  /// classes.dart runtime library method named `normalizeFutureOr`.
+  DartType _normalizeFutureOr(FutureOrType futureOr) {
     var typeArgument = futureOr.typeArgument;
     if (typeArgument is DynamicType) {
       // FutureOr<dynamic> --> dynamic
-      return visitDynamicType(typeArgument);
+      return typeArgument;
     }
     if (typeArgument is VoidType) {
       // FutureOr<void> --> void
-      return visitVoidType(typeArgument);
+      return typeArgument;
     }
 
     if (typeArgument is InterfaceType &&
@@ -2722,23 +2778,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           : legacy
               ? Nullability.legacy
               : Nullability.nonNullable;
-      return _emitInterfaceType(
-          typeArgument.withDeclaredNullability(nullability));
+      return typeArgument.withDeclaredNullability(nullability);
     } else if (typeArgument is NeverType) {
       // FutureOr<Never> --> Future<Never>
-      return _emitInterfaceType(InterfaceType(
-          _coreTypes.futureClass, futureOr.nullability, [typeArgument]));
+      return InterfaceType(
+          _coreTypes.futureClass, futureOr.nullability, [typeArgument]);
     } else if (typeArgument is NullType) {
       // FutureOr<Null> --> Future<Null>?
-      return _emitInterfaceType(InterfaceType(
-          _coreTypes.futureClass, Nullability.nullable, [typeArgument]));
+      return InterfaceType(
+          _coreTypes.futureClass, Nullability.nullable, [typeArgument]);
     } else if (futureOr.declaredNullability == Nullability.nullable &&
         typeArgument.nullability == Nullability.nullable) {
       // FutureOr<T?>? --> FutureOr<T?>
-      return _emitFutureOrType(
-          futureOr.withDeclaredNullability(Nullability.nonNullable));
+      return futureOr.withDeclaredNullability(Nullability.nonNullable);
     }
-    return _emitFutureOrType(futureOr);
+    return futureOr;
   }
 
   @override
@@ -2750,8 +2804,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       type.onType.accept(this);
 
   @override
-  js_ast.Expression visitFutureOrType(FutureOrType type) =>
-      _normalizeFutureOr(type);
+  js_ast.Expression visitFutureOrType(FutureOrType type) {
+    var normalizedType = _normalizeFutureOr(type);
+    return normalizedType is FutureOrType
+        ? _emitFutureOrType(normalizedType)
+        : normalizedType.accept(this);
+  }
 
   /// Emits the representation of [type].
   ///
@@ -2909,7 +2967,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _currentClass != null && identical(_currentClass, _classEmittingExtends);
 
   bool get _cacheTypes =>
-      !_emittingClassExtends && !_emittingClassSignatures ||
+      !_emittingDeferredType &&
+          !_emittingClassExtends &&
+          !_emittingClassSignatures ||
       _currentFunction != null;
 
   js_ast.Expression _emitGenericClassType(
@@ -6080,7 +6140,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return member is Procedure &&
         !member.isAccessor &&
         !member.isFactory &&
-        !_isInForeignJS &&
+        !(_isInForeignJS && isBuildingSdk) &&
         !usesJSInterop(member) &&
         _reifyFunctionType(member.function);
   }

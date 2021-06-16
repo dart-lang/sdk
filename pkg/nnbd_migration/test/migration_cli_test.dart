@@ -832,6 +832,31 @@ int? f() => null
     expect(output, isNot(contains('package:bar/bar.dart')));
   }
 
+  test_lifecycle_import_lib_from_test() async {
+    Map<String, String> makeProject({bool migrated = false}) {
+      return simpleProject(migrated: migrated)
+        ..['test/foo.dart'] = '''
+import '../lib/test.dart';
+''';
+    }
+
+    var projectContents = makeProject();
+    var projectDir = createProjectDir(projectContents);
+    var cli = _createCli();
+    var cliRunner =
+        cli.decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    bool applyHookCalled = false;
+    cli._onApplyHook = () {
+      expect(applyHookCalled, false);
+      applyHookCalled = true;
+      // Changes should have been made
+      assertProjectContents(projectDir, makeProject(migrated: true));
+    };
+    await cliRunner.run();
+    assertNormalExit(cliRunner);
+    expect(applyHookCalled, true);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44118')
   test_lifecycle_issue_44118() async {
     var projectContents = simpleProject(sourceText: '''
@@ -1269,6 +1294,32 @@ int f() => null;
           jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
       expect(summaryData['changes']['byPath'],
           isNot(contains('lib${separator}test.dart')));
+    });
+  }
+
+  test_lifecycle_preview_rerun_with_ignore_errors() async {
+    var origSourceText = 'void f(int i) {}';
+    var projectContents = simpleProject(sourceText: origSourceText);
+    var projectDir = createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, ['--ignore-errors', projectDir],
+        (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      resourceProvider.getFile(testPath).writeAsStringSync('void f(int? i) {}');
+      // We haven't rerun, so getting the file details from the server should
+      // still yield the original source text, with informational space.
+      expect(await getSourceFromServer(uri, testPath), 'void f(int  i) {}');
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      var body = jsonDecode(response.body);
+      expect(body['success'], isTrue);
+      expect(body['errors'], isNull);
+      // Now that we've rerun, the server should yield the new source text
+      expect(await getSourceFromServer(uri, testPath), 'void f(int?  i) {}');
     });
   }
 

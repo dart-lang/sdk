@@ -772,9 +772,10 @@ class KernelTarget extends TargetImplementation {
             initializers: <Initializer>[initializer],
             isSynthetic: true,
             isConst: isConst,
-            reference: referenceFrom?.reference)
-          ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault
-          ..fileUri = cls.fileUri,
+            reference: referenceFrom?.reference,
+            fileUri: cls.fileUri)
+          ..isNonNullableByDefault =
+              cls.enclosingLibrary.isNonNullableByDefault,
         // If the constructor is constant, the default values must be part of
         // the outline expressions. We pass on the original constructor and
         // cloned function nodes to ensure that the default values are computed
@@ -801,7 +802,8 @@ class KernelTarget extends TargetImplementation {
                 returnType: makeConstructorReturnType(enclosingClass)),
             name: new Name(""),
             isSynthetic: true,
-            reference: referenceFrom?.reference)
+            reference: referenceFrom?.reference,
+            fileUri: enclosingClass.fileUri)
           ..isNonNullableByDefault =
               enclosingClass.enclosingLibrary.isNonNullableByDefault);
   }
@@ -1266,7 +1268,7 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Evaluated constants");
 
     backendTarget.performTransformationsOnProcedure(
-        loader.coreTypes, loader.hierarchy, procedure,
+        loader.coreTypes, loader.hierarchy, procedure, environmentDefines,
         logger: (String msg) => ticker.logMs(msg));
   }
 

@@ -232,7 +232,7 @@ dependencies:
 name: sample
 dependencies:
   foo:
-    git:      
+    git:
       url: git@github.com:foo/foo.git
       path: path/to/foo
 ''');
@@ -244,7 +244,7 @@ name: sample
 version: 0.1.0
 dependencies:
   foo:
-    git:      
+    git:
       url: git@github.com:foo/foo.git
       path: path/to/foo
 ''', [PubspecWarningCode.INVALID_DEPENDENCY]);
@@ -257,7 +257,7 @@ version: 0.1.0
 publish_to: none
 dependencies:
   foo:
-    git:      
+    git:
       url: git@github.com:foo/foo.git
       path: path/to/foo
 ''');
@@ -291,7 +291,7 @@ dependencies:
 name: sample
 dependencies:
   foo:
-    path: 
+    path:
      - baz
 ''');
   }
@@ -425,7 +425,7 @@ name: sample
 version: 0.1.0
 dev_dependencies:
   foo:
-    git:      
+    git:
       url: git@github.com:foo/foo.git
       path: path/to/foo
 ''');

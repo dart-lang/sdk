@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -148,6 +146,19 @@ var c = '${a}bc';
 ''');
   }
 
+  Future<void> test_variable_stringInterpolation_runTogether_letter() async {
+    await resolveTestCode(r'''
+String f(String s) {
+  return s + 'and $s';
+}
+''');
+    await assertHasFix(r'''
+String f(String s) {
+  return '${s}and $s';
+}
+''');
+  }
+
   Future<void> test_variable_stringLiteral_noRuntogther() async {
     await resolveTestCode('''
 var a = 'a';
@@ -159,7 +170,20 @@ var c = '$a b';
 ''');
   }
 
-  Future<void> test_variable_stringLiteral_runtogther() async {
+  Future<void> test_variable_stringLiteral_runTogether_digit() async {
+    await resolveTestCode('''
+String f(String s) {
+  return s + '1';
+}
+''');
+    await assertHasFix(r'''
+String f(String s) {
+  return '${s}1';
+}
+''');
+  }
+
+  Future<void> test_variable_stringLiteral_runTogether_variable() async {
     await resolveTestCode('''
 var a = 'a';
 var c = a + 'b';

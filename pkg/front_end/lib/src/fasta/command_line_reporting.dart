@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Provides a default implementation of the report and format methods of
 /// [CompilerContext] that are suitable for command-line tools. The methods in
 /// this library aren't intended to be called directly, instead, one should use
@@ -46,7 +44,7 @@ const bool hideWarnings = false;
 /// command-line tool. This includes source snippets and - in the colorized
 /// version - different colors based on [severity].
 PlainAndColorizedString format(LocatedMessage message, Severity severity,
-    {Location location, Map<Uri, Source> uriToSource}) {
+    {Location? location, Map<Uri, Source>? uriToSource}) {
   try {
     int length = message.length;
     if (length < 1) {
@@ -54,7 +52,7 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
       // empty names.
       length = 1;
     }
-    String prefix = severityPrefixes[severity];
+    String? prefix = severityPrefixes[severity];
     String messageTextTmp =
         prefix == null ? message.message : "$prefix: ${message.message}";
     if (message.tip != null) {
@@ -87,13 +85,13 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
 
     if (message.uri != null) {
       String path =
-          relativizeUri(Uri.base, translateSdk(message.uri), isWindows);
+          relativizeUri(Uri.base, translateSdk(message.uri!), isWindows);
       int offset = message.charOffset;
-      location ??= (offset == -1 ? null : getLocation(message.uri, offset));
+      location ??= (offset == -1 ? null : getLocation(message.uri!, offset));
       if (location?.line == TreeNode.noOffset) {
         location = null;
       }
-      String sourceLine = getSourceLine(location, uriToSource);
+      String? sourceLine = getSourceLine(location, uriToSource);
       return new PlainAndColorizedString(
         formatErrorMessage(
             sourceLine, location, length, path, messageTextPlain),
@@ -115,9 +113,9 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
   }
 }
 
-String formatErrorMessage(String sourceLine, Location location,
+String formatErrorMessage(String? sourceLine, Location? location,
     int squigglyLength, String path, String messageText) {
-  if (sourceLine == null) {
+  if (sourceLine == null || location == null) {
     sourceLine = "";
   } else if (sourceLine.isNotEmpty) {
     // TODO(askesc): Much more could be done to indent properly in the
@@ -167,7 +165,6 @@ bool isHidden(Severity severity) {
     case Severity.ignored:
       return true;
   }
-  return unhandled("$severity", "isHidden", -1, null);
 }
 
 /// Are problems of [severity] fatal? That is, should the compiler terminate
@@ -188,7 +185,6 @@ bool shouldThrowOn(Severity severity) {
     case Severity.context:
       return false;
   }
-  return unhandled("$severity", "shouldThrowOn", -1, null);
 }
 
 bool isCompileTimeError(Severity severity) {

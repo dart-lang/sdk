@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
@@ -23,9 +21,10 @@ void main() {
 
 @reflectiveTest
 class PubspecGeneratorTest extends YamlGeneratorTest {
-  MockHttpClient httpClient;
+  late MockHttpClient httpClient;
 
-  PubPackageService pubPackageService;
+  late PubPackageService pubPackageService;
+
   @override
   String get fileName => 'pubspec.yaml';
 
@@ -49,6 +48,17 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
     getCompletions('^');
     assertSuggestion('flutter: ');
     assertSuggestion('name: ');
+  }
+
+  void test_emptyPreviousSibling() {
+    // Ensure handling of nulls does not pick up nulls from previous siblings
+    getCompletions('''
+flutter:
+  assets:
+  fonts:
+    ^
+''');
+    assertSuggestion('family: ');
   }
 
   void test_environment() {
@@ -280,6 +290,8 @@ flutter:
   }
 
   void test_packageName() async {
+    /// Sample package name list JSON in the same format as the API:
+    /// https://pub.dev/api/package-name-completion-data
     const samplePackageList = '''
   { "packages": ["one", "two", "three"] }
   ''';

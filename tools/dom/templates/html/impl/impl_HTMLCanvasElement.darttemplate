@@ -21,7 +21,7 @@ $!MEMBERS
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  gl.RenderingContext getContext3d({alpha: true, depth: true, stencil: false,
+  gl.RenderingContext$NULLABLE getContext3d({alpha: true, depth: true, stencil: false,
     antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false}) {
 
     var options = {
@@ -36,7 +36,7 @@ $!MEMBERS
     if (context == null) {
       context = getContext('experimental-webgl', options);
     }
-    return context $#NULLSAFECAST(as gl.RenderingContext);
+    return context $#NULLSAFECAST(as gl.RenderingContext$NULLABLE);
   }
 
   /**

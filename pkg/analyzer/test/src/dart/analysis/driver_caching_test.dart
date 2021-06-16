@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:test/test.dart';
@@ -144,6 +145,66 @@ void f() {
     _assertNoLinkedCycles();
   }
 
+  test_lint_dependOnReferencedPackage_update_pubspec_addDependency() async {
+    useEmptyByteStore();
+
+    var aaaPackageRootPath = '$packagesRootPath/aaa';
+    newFile('$aaaPackageRootPath/lib/a.dart', content: '');
+
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaPackageRootPath),
+    );
+
+    // Configure with the lint.
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(lints: ['depend_on_referenced_packages']),
+    );
+
+    // Configure without dependencies, but with a (required) name.
+    // So, the lint rule will be activated.
+    writeTestPackagePubspecYamlFile(
+      PubspecYamlFileConfig(
+        name: 'my_test',
+        dependencies: [],
+      ),
+    );
+
+    newFile(testFilePath, content: r'''
+// ignore:unused_import
+import 'package:aaa/a.dart';
+''');
+
+    // We don't have a dependency on `package:aaa`, so there is a lint.
+    _assertHasLintReported(
+      await _computeTestFileErrors(),
+      'depend_on_referenced_packages',
+    );
+
+    // The summary for the library was linked.
+    _assertContainsLinkedCycle({testFilePath}, andClear: true);
+
+    // We will recreate it with new pubspec.yaml content.
+    // But we will reuse the byte store, so can reuse summaries.
+    disposeAnalysisContextCollection();
+
+    // Add dependency on `package:aaa`.
+    writeTestPackagePubspecYamlFile(
+      PubspecYamlFileConfig(
+        name: 'my_test',
+        dependencies: [
+          PubspecYamlFileDependency(name: 'aaa'),
+        ],
+      ),
+    );
+
+    // With dependency on `package:aaa` added, no lint is reported.
+    expect(await _computeTestFileErrors(), isEmpty);
+
+    // Lints don't affect summaries, nothing should be linked.
+    _assertNoLinkedCycles();
+  }
+
   test_lints() async {
     useEmptyByteStore();
 
@@ -203,5 +264,18 @@ void f() {
 
   void _assertNoLinkedCycles() {
     expect(_linkedCycles, isEmpty);
+  }
+
+  /// Note that we intentionally use this method, we don't want to use
+  /// [resolveFile] instead. Resolving a file will force to produce its
+  /// resolved AST, and as a result to recompute the errors.
+  ///
+  /// But this method is used to check returning errors from the cache, or
+  /// recomputing when the cache key is expected to be different.
+  Future<List<AnalysisError>> _computeTestFileErrors() async {
+    var errorsResult = await contextFor(testFilePath)
+        .currentSession
+        .getErrors2(testFilePath) as ErrorsResult;
+    return errorsResult.errors;
   }
 }

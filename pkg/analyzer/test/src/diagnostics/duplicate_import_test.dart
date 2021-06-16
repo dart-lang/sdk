@@ -63,7 +63,6 @@ class B {}''');
 library L;
 import 'lib1.dart';
 import 'lib1.dart' hide A;
-A a = A();
 B b = B();
 ''');
 
@@ -75,12 +74,13 @@ B b = B();
     newFile('$testPackageLibPath/lib1.dart', content: r'''
 library lib1;
 class A {}
-class B {}''');
+class B {}
+''');
 
     newFile('$testPackageLibPath/lib2.dart', content: r'''
 library L;
 import 'lib1.dart';
-import 'lib1.dart' show A;
+import 'lib1.dart' show A; // ignore: unnecessary_import
 A a = A();
 B b = B();
 ''');

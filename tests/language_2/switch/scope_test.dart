@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that a new scope is introduced for each switch case.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class SwitchScopeTest {

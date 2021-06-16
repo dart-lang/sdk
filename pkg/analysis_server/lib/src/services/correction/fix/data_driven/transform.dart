@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override.dart';
-import 'package:meta/meta.dart';
 
 /// A description of a set of changes to a single element of the API.
 class Transform {
@@ -31,17 +28,17 @@ class Transform {
   /// Initialize a newly created transform to describe a transformation of the
   /// [element].
   Transform(
-      {@required this.title,
-      this.date,
-      @required this.bulkApply,
-      @required this.element,
-      @required this.changesSelector});
+      {required this.title,
+      required this.date,
+      required this.bulkApply,
+      required this.element,
+      required this.changesSelector});
 
   /// Return `true` if this transform can be applied to fix an issue related to
   /// an element that matches the given [matcher]. The flag [applyingBulkFixes]
   /// indicates whether the transforms are being applied in the context of a
   /// bulk fix.
-  bool appliesTo(ElementMatcher matcher, {@required bool applyingBulkFixes}) {
+  bool appliesTo(ElementMatcher matcher, {required bool applyingBulkFixes}) {
     if (applyingBulkFixes && !bulkApply) {
       return false;
     }

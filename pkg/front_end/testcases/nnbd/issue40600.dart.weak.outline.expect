@@ -20,13 +20,13 @@ class A<X extends core::Object? = dynamic> extends core::Object {
 class C<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T%>
     ;
-  method baz<generic-covariant-impl X extends FutureOr<self::C::T%> = FutureOr<self::C::T%>>(generic-covariant-impl FutureOr<self::C::T%>x) → FutureOr<self::C::T%>
+  method baz<generic-covariant-impl X extends FutureOr<self::C::T%>>(generic-covariant-impl FutureOr<self::C::T%>x) → FutureOr<self::C::T%>
     ;
 }
 class D<T extends core::Object? = dynamic> extends self::C<self::D::T%> {
   synthetic constructor •() → self::D<self::D::T%>
     ;
-  method baz<generic-covariant-impl X extends FutureOr<self::D::T%> = FutureOr<self::D::T%>>(generic-covariant-impl FutureOr<self::D::T%>x) → FutureOr<self::D::T%>
+  method baz<generic-covariant-impl X extends FutureOr<self::D::T%>>(generic-covariant-impl FutureOr<self::D::T%>x) → FutureOr<self::D::T%>
     ;
 }
 static method main() → dynamic

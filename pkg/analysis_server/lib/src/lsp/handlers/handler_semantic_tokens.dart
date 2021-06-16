@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -18,7 +16,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 abstract class AbstractSemanticTokensHandler<T>
-    extends MessageHandler<T, SemanticTokens>
+    extends MessageHandler<T, SemanticTokens?>
     with LspPluginRequestHandlerMixin {
   AbstractSemanticTokensHandler(LspAnalysisServer server) : super(server);
 
@@ -28,17 +26,18 @@ abstract class AbstractSemanticTokensHandler<T>
   }
 
   Future<List<SemanticTokenInfo>> getServerResult(
-      String path, SourceRange range) async {
+      String path, SourceRange? range) async {
     final result = await server.getResolvedUnit(path);
-    if (result?.state == ResultState.VALID) {
-      final computer = DartUnitHighlightsComputer(result.unit, range: range);
+    final unit = result?.unit;
+    if (result?.state == ResultState.VALID && unit != null) {
+      final computer = DartUnitHighlightsComputer(unit, range: range);
       return computer.computeSemanticTokens();
     }
     return [];
   }
 
   Iterable<SemanticTokenInfo> _filter(
-      Iterable<SemanticTokenInfo> tokens, SourceRange range) {
+      Iterable<SemanticTokenInfo> tokens, SourceRange? range) {
     if (range == null) {
       return tokens;
     }
@@ -48,9 +47,9 @@ abstract class AbstractSemanticTokensHandler<T>
             token.offset > range.end));
   }
 
-  Future<ErrorOr<SemanticTokens>> _handleImpl(
+  Future<ErrorOr<SemanticTokens?>> _handleImpl(
       TextDocumentIdentifier textDocument, CancellationToken token,
-      {Range range}) async {
+      {Range? range}) async {
     final path = pathOfDoc(textDocument);
 
     return path.mapResult((path) async {
@@ -61,7 +60,7 @@ abstract class AbstractSemanticTokensHandler<T>
         return success(null);
       }
 
-      return toSourceRange(lineInfo, range).mapResult((range) async {
+      return toSourceRangeNullable(lineInfo, range).mapResult((range) async {
         final serverTokens = await getServerResult(path, range);
         final pluginHighlightRegions =
             getPluginResults(path).expand((results) => results).toList();
@@ -125,7 +124,7 @@ class SemanticTokensFullHandler
       SemanticTokensParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SemanticTokens>> handle(
+  Future<ErrorOr<SemanticTokens?>> handle(
           SemanticTokensParams params, CancellationToken token) =>
       _handleImpl(params.textDocument, token);
 }
@@ -142,7 +141,7 @@ class SemanticTokensRangeHandler
       SemanticTokensRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SemanticTokens>> handle(
+  Future<ErrorOr<SemanticTokens?>> handle(
           SemanticTokensRangeParams params, CancellationToken token) =>
       _handleImpl(params.textDocument, token, range: params.range);
 }

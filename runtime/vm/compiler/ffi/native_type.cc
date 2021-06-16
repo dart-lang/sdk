@@ -162,10 +162,9 @@ static bool ContainsHomogenuousFloatsInternal(const NativeTypes& types);
 
 // Keep consistent with
 // pkg/vm/lib/transformations/ffi_definitions.dart:StructLayout:_calculateLayout.
-NativeCompoundType& NativeCompoundType::FromNativeTypes(
-    Zone* zone,
-    const NativeTypes& members,
-    intptr_t member_packing) {
+NativeStructType& NativeStructType::FromNativeTypes(Zone* zone,
+                                                    const NativeTypes& members,
+                                                    intptr_t member_packing) {
   intptr_t offset = 0;
 
   const intptr_t kAtLeast1ByteAligned = 1;
@@ -211,8 +210,37 @@ NativeCompoundType& NativeCompoundType::FromNativeTypes(
   }
   const intptr_t size = Utils::RoundUp(offset, alignment_field);
 
-  return *new (zone) NativeCompoundType(members, member_offsets, size,
-                                        alignment_field, alignment_stack);
+  return *new (zone) NativeStructType(members, member_offsets, size,
+                                      alignment_field, alignment_stack);
+}
+
+// Keep consistent with
+// pkg/vm/lib/transformations/ffi_definitions.dart:StructLayout:_calculateLayout.
+NativeUnionType& NativeUnionType::FromNativeTypes(Zone* zone,
+                                                  const NativeTypes& members) {
+  intptr_t size = 0;
+
+  const intptr_t kAtLeast1ByteAligned = 1;
+  // If this union is nested in a struct, it should be aligned to the
+  // largest alignment of its members.
+  intptr_t alignment_field = kAtLeast1ByteAligned;
+  // If this union is passed on the stack, it should be aligned to the largest
+  // alignment of its members when passing those members on the stack.
+  intptr_t alignment_stack = kAtLeast1ByteAligned;
+
+  for (intptr_t i = 0; i < members.length(); i++) {
+    const NativeType& member = *members[i];
+    const intptr_t member_size = member.SizeInBytes();
+    const intptr_t member_align_field = member.AlignmentInBytesField();
+    const intptr_t member_align_stack = member.AlignmentInBytesStack();
+    size = Utils::Maximum(size, member_size);
+    alignment_field = Utils::Maximum(alignment_field, member_align_field);
+    alignment_stack = Utils::Maximum(alignment_stack, member_align_stack);
+  }
+  size = Utils::RoundUp(size, alignment_field);
+
+  return *new (zone)
+      NativeUnionType(members, size, alignment_field, alignment_stack);
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
@@ -371,6 +399,11 @@ NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
 
   // User-defined structs.
   const auto& cls = Class::Handle(zone, type.type_class());
+  const auto& superClass = Class::Handle(zone, cls.SuperClass());
+  const bool is_struct = String::Handle(zone, superClass.UserVisibleName())
+                             .Equals(Symbols::Struct());
+  ASSERT(is_struct || String::Handle(zone, superClass.UserVisibleName())
+                          .Equals(Symbols::Union()));
 
   auto& pragmas = Object::Handle(zone);
   Library::FindPragma(dart::Thread::Current(), /*only_core=*/false, cls,
@@ -454,8 +487,12 @@ NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
     }
   }
 
-  return NativeCompoundType::FromNativeTypes(zone, field_native_types,
+  if (is_struct) {
+    return NativeStructType::FromNativeTypes(zone, field_native_types,
                                              member_packing);
+  } else {
+    return NativeUnionType::FromNativeTypes(zone, field_native_types);
+  }
 }
 #endif
 
@@ -560,7 +597,8 @@ void NativeArrayType::PrintTo(BaseTextBuffer* f,
 void NativeCompoundType::PrintTo(BaseTextBuffer* f,
                                  bool multi_line,
                                  bool verbose) const {
-  f->AddString("Compound(");
+  PrintCompoundType(f);
+  f->AddString("(");
   f->Printf("size: %" Pd "", SizeInBytes());
   if (verbose) {
     f->Printf(", field alignment: %" Pd ", ", AlignmentInBytesField());
@@ -577,7 +615,7 @@ void NativeCompoundType::PrintTo(BaseTextBuffer* f,
           f->AddString(", ");
         }
       }
-      f->Printf("%" Pd ": ", member_offsets_[i]);
+      PrintMemberOffset(f, i);
       members_[i]->PrintTo(f);
     }
     if (multi_line) {
@@ -589,6 +627,19 @@ void NativeCompoundType::PrintTo(BaseTextBuffer* f,
   if (multi_line) {
     f->AddString("\n");
   }
+}
+
+void NativeStructType::PrintCompoundType(BaseTextBuffer* f) const {
+  f->AddString("Struct");
+}
+
+void NativeUnionType::PrintCompoundType(BaseTextBuffer* f) const {
+  f->AddString("Union");
+}
+
+void NativeStructType::PrintMemberOffset(BaseTextBuffer* f,
+                                         intptr_t member_index) const {
+  f->Printf("%" Pd ": ", member_offsets_[member_index]);
 }
 
 #if !defined(FFI_UNIT_TESTS)
@@ -617,10 +668,18 @@ intptr_t NativeArrayType::NumPrimitiveMembersRecursive() const {
   return element_type_.NumPrimitiveMembersRecursive() * length_;
 }
 
-intptr_t NativeCompoundType::NumPrimitiveMembersRecursive() const {
+intptr_t NativeStructType::NumPrimitiveMembersRecursive() const {
   intptr_t count = 0;
   for (intptr_t i = 0; i < members_.length(); i++) {
     count += members_[i]->NumPrimitiveMembersRecursive();
+  }
+  return count;
+}
+
+intptr_t NativeUnionType::NumPrimitiveMembersRecursive() const {
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < members_.length(); i++) {
+    count = Utils::Maximum(count, members_[i]->NumPrimitiveMembersRecursive());
   }
   return count;
 }
@@ -695,7 +754,7 @@ bool NativeArrayType::ContainsOnlyFloats(Range range) const {
   return true;
 }
 
-bool NativeCompoundType::ContainsOnlyFloats(Range range) const {
+bool NativeStructType::ContainsOnlyFloats(Range range) const {
   const auto this_range = Range::StartAndEnd(0, SizeInBytes());
   ASSERT(this_range.Contains(range));
 
@@ -716,6 +775,21 @@ bool NativeCompoundType::ContainsOnlyFloats(Range range) const {
     if (member_range.After(range)) {
       // None of the remaining members fits the range.
       break;
+    }
+  }
+  return true;
+}
+
+bool NativeUnionType::ContainsOnlyFloats(Range range) const {
+  for (intptr_t i = 0; i < members_.length(); i++) {
+    const auto& member = *members_[i];
+    const intptr_t member_size = member.SizeInBytes();
+    const auto member_range = Range::StartAndLength(0, member_size);
+    if (member_range.Overlaps(range)) {
+      const auto member_range_clipped = member_range.Intersect(range);
+      if (!member.ContainsOnlyFloats(member_range_clipped)) {
+        return false;
+      }
     }
   }
   return true;
@@ -767,11 +841,21 @@ bool NativeArrayType::ContainsUnalignedMembers(intptr_t offset) const {
   return false;
 }
 
-bool NativeCompoundType::ContainsUnalignedMembers(intptr_t offset) const {
+bool NativeStructType::ContainsUnalignedMembers(intptr_t offset) const {
   for (intptr_t i = 0; i < members_.length(); i++) {
     const auto& member = *members_.At(i);
     const intptr_t member_offset = member_offsets_.At(i);
     if (member.ContainsUnalignedMembers(offset + member_offset)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool NativeUnionType::ContainsUnalignedMembers(intptr_t offset) const {
+  for (intptr_t i = 0; i < members_.length(); i++) {
+    const auto& member = *members_.At(i);
+    if (member.ContainsUnalignedMembers(offset)) {
       return true;
     }
   }

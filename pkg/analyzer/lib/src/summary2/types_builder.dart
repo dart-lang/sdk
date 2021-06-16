@@ -15,7 +15,41 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
+
+/// Return `true` if [type] can be used as a class.
+bool _isInterfaceTypeClass(InterfaceType type) {
+  if (type.element.isMixin) {
+    return false;
+  }
+  return _isInterfaceTypeInterface(type);
+}
+
+/// Return `true` if [type] can be used as an interface or a mixin.
+bool _isInterfaceTypeInterface(InterfaceType type) {
+  if (type.element.isEnum) {
+    return false;
+  }
+  if (type.isDartCoreFunction || type.isDartCoreNull) {
+    return false;
+  }
+  if (type.nullabilitySuffix == NullabilitySuffix.question) {
+    return false;
+  }
+  return true;
+}
+
+List<InterfaceType> _toInterfaceTypeList(List<TypeName>? nodeList) {
+  if (nodeList != null) {
+    return nodeList
+        .map((e) => e.type)
+        .whereType<InterfaceType>()
+        .where(_isInterfaceTypeInterface)
+        .toList();
+  }
+  return const [];
+}
 
 class NodesToBuildType {
   final List<AstNode> declarations = [];
@@ -31,23 +65,38 @@ class NodesToBuildType {
 }
 
 class TypesBuilder {
+  final Linker _linker;
+
+  TypesBuilder(this._linker);
+
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
   VoidTypeImpl get _voidType => VoidTypeImpl.instance;
 
   /// Build types for all type annotations, and set types for declarations.
   void build(NodesToBuildType nodes) {
-    DefaultTypesBuilder().build(nodes.declarations);
+    DefaultTypesBuilder(_linker).build(nodes.declarations);
 
     for (var builder in nodes.typeBuilders) {
       builder.build();
     }
 
-    _MixinsInference().perform(nodes.declarations);
+    // TODO(scheglov) generalize
+    _linker.elementNodes.forEach((element, node) {
+      if (element is GenericFunctionTypeElementImpl &&
+          node is GenericFunctionType) {
+        element.returnType = node.returnType?.type ?? _dynamicType;
+      }
+      if (element is TypeParameterElementImpl && node is TypeParameter) {
+        element.bound = node.bound?.type;
+      }
+    });
 
     for (var declaration in nodes.declarations) {
       _declaration(declaration);
     }
+
+    _MixinsInference(_linker).perform(nodes.declarations);
   }
 
   FunctionType _buildFunctionType(
@@ -68,9 +117,50 @@ class TypesBuilder {
     );
   }
 
-  void _classDeclaration(ClassDeclaration node) {}
+  void _classDeclaration(ClassDeclaration node) {
+    var element = node.declaredElement as ClassElementImpl;
 
-  void _classTypeAlias(ClassTypeAlias node) {}
+    var extendsClause = node.extendsClause;
+    if (extendsClause != null) {
+      var type = extendsClause.superclass.type;
+      if (type is InterfaceType && _isInterfaceTypeClass(type)) {
+        element.supertype = type;
+      } else {
+        element.supertype = _objectType(element);
+      }
+    } else if (element.library.isDartCore && element.name == 'Object') {
+      element.setModifier(Modifier.DART_CORE_OBJECT, true);
+    } else {
+      element.supertype = _objectType(element);
+    }
+
+    element.mixins = _toInterfaceTypeList(
+      node.withClause?.mixinTypes,
+    );
+
+    element.interfaces = _toInterfaceTypeList(
+      node.implementsClause?.interfaces,
+    );
+  }
+
+  void _classTypeAlias(ClassTypeAlias node) {
+    var element = node.declaredElement as ClassElementImpl;
+
+    var superType = node.superclass.type;
+    if (superType is InterfaceType && _isInterfaceTypeInterface(superType)) {
+      element.supertype = superType;
+    } else {
+      element.supertype = _objectType(element);
+    }
+
+    element.mixins = _toInterfaceTypeList(
+      node.withClause.mixinTypes,
+    );
+
+    element.interfaces = _toInterfaceTypeList(
+      node.implementsClause?.interfaces,
+    );
+  }
 
   void _declaration(AstNode node) {
     if (node is ClassDeclaration) {
@@ -97,7 +187,7 @@ class TypesBuilder {
     } else if (node is FunctionTypedFormalParameter) {
       _functionTypedFormalParameter(node);
     } else if (node is GenericTypeAlias) {
-      // TODO(scheglov) ???
+      _genericTypeAlias(node);
     } else if (node is MethodDeclaration) {
       var returnType = node.returnType?.type;
       if (returnType == null) {
@@ -112,7 +202,7 @@ class TypesBuilder {
       var element = node.declaredElement as ExecutableElementImpl;
       element.returnType = returnType;
     } else if (node is MixinDeclaration) {
-      // TODO(scheglov) ???
+      _mixinDeclaration(node);
     } else if (node is SimpleFormalParameter) {
       var element = node.declaredElement as ParameterElementImpl;
       element.type = node.type?.type ?? _dynamicType;
@@ -128,9 +218,13 @@ class TypesBuilder {
     }
   }
 
-  void _extensionDeclaration(ExtensionDeclaration node) {}
+  void _extensionDeclaration(ExtensionDeclaration node) {
+    var element = node.declaredElement as ExtensionElementImpl;
+    element.extendedType = node.extendedType.typeOrThrow;
+  }
 
   void _fieldFormalParameter(FieldFormalParameter node) {
+    var element = node.declaredElement as FieldFormalParameterElementImpl;
     var parameterList = node.parameters;
     if (parameterList != null) {
       var type = _buildFunctionType(
@@ -139,10 +233,8 @@ class TypesBuilder {
         parameterList,
         _nullability(node, node.question != null),
       );
-      var element = node.declaredElement as ParameterElementImpl;
       element.type = type;
     } else {
-      var element = node.declaredElement as ParameterElementImpl;
       element.type = node.type?.type ?? _dynamicType;
     }
   }
@@ -154,10 +246,10 @@ class TypesBuilder {
   }
 
   void _functionTypeAlias(FunctionTypeAlias node) {
-    var returnTypeNode = node.returnType;
-    var element = node.declaredElement as TypeAliasElement;
+    var element = node.declaredElement as TypeAliasElementImpl;
     var function = element.aliasedElement as GenericFunctionTypeElementImpl;
-    function.returnType = returnTypeNode?.type ?? _dynamicType;
+    function.returnType = node.returnType?.type ?? _dynamicType;
+    element.aliasedType = function.type;
   }
 
   void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
@@ -171,9 +263,39 @@ class TypesBuilder {
     element.type = type;
   }
 
+  void _genericTypeAlias(GenericTypeAlias node) {
+    var element = node.declaredElement as TypeAliasElementImpl;
+    var featureSet = element.library.featureSet;
+
+    var typeNode = node.type;
+    if (featureSet.isEnabled(Feature.nonfunction_type_aliases)) {
+      element.aliasedType = typeNode.typeOrThrow;
+    } else if (typeNode is GenericFunctionType) {
+      element.aliasedType = typeNode.typeOrThrow;
+    } else {
+      element.aliasedType = _errorFunctionType();
+    }
+  }
+
   bool _isNonNullableByDefault(AstNode node) {
     var unit = node.thisOrAncestorOfType<CompilationUnit>();
     return unit!.featureSet.isEnabled(Feature.non_nullable);
+  }
+
+  void _mixinDeclaration(MixinDeclaration node) {
+    var element = node.declaredElement as MixinElementImpl;
+
+    var constraints = _toInterfaceTypeList(
+      node.onClause?.superclassConstraints,
+    );
+    if (constraints.isEmpty) {
+      constraints = [_objectType(element)];
+    }
+    element.superclassConstraints = constraints;
+
+    element.interfaces = _toInterfaceTypeList(
+      node.implementsClause?.interfaces,
+    );
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
@@ -196,6 +318,21 @@ class TypesBuilder {
     return node.typeParameters
         .map<TypeParameterElement>((p) => p.declaredElement!)
         .toList();
+  }
+
+  /// The [FunctionType] to use when a function type is expected for a type
+  /// alias, but the actual provided type annotation is not a function type.
+  static FunctionTypeImpl _errorFunctionType() {
+    return FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: const [],
+      returnType: DynamicTypeImpl.instance,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  static InterfaceType _objectType(ClassElementImpl element) {
+    return element.library.typeProvider.objectType;
   }
 }
 
@@ -319,7 +456,7 @@ class _MixinInference {
   }
 
   InterfaceType _interfaceType(DartType type) {
-    if (type is InterfaceType && !type.element.isEnum) {
+    if (type is InterfaceType && _isInterfaceTypeInterface(type)) {
       return type;
     }
     return typeSystem.typeProvider.objectType;
@@ -328,11 +465,15 @@ class _MixinInference {
 
 /// Performs mixin inference for all declarations.
 class _MixinsInference {
+  final Linker _linker;
+
+  _MixinsInference(this._linker);
+
   void perform(List<AstNode> declarations) {
     for (var node in declarations) {
       if (node is ClassDeclaration || node is ClassTypeAlias) {
         var element = (node as Declaration).declaredElement as ClassElementImpl;
-        element.linkedMixinInferenceCallback = _callbackWhenRecursion;
+        element.mixinInferenceCallback = _callbackWhenRecursion;
       }
     }
 
@@ -348,25 +489,33 @@ class _MixinsInference {
   ///
   /// This is an error. So, we return the empty list, and break the loop.
   List<InterfaceType> _callbackWhenLoop(ClassElementImpl element) {
-    element.linkedMixinInferenceCallback = null;
+    element.mixinInferenceCallback = null;
     return <InterfaceType>[];
   }
 
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
   List<InterfaceType>? _callbackWhenRecursion(ClassElementImpl element) {
-    _inferDeclaration(element.linkedNode!);
+    var node = _linker.getLinkingNode(element);
+    if (node != null) {
+      _inferDeclaration(node);
+    }
     // The inference was successful, let the element return actual mixins.
     return null;
   }
 
   void _infer(ClassElementImpl element, WithClause? withClause) {
-    element.linkedMixinInferenceCallback = _callbackWhenLoop;
-    try {
-      var featureSet = _unitFeatureSet(element);
-      _MixinInference(element, featureSet).perform(withClause);
-    } finally {
-      element.linkedMixinInferenceCallback = null;
+    if (withClause != null) {
+      element.mixinInferenceCallback = _callbackWhenLoop;
+      try {
+        var featureSet = element.library.featureSet;
+        _MixinInference(element, featureSet).perform(withClause);
+      } finally {
+        element.mixinInferenceCallback = null;
+        element.mixins = _toInterfaceTypeList(
+          withClause.mixinTypes,
+        );
+      }
     }
   }
 
@@ -392,10 +541,5 @@ class _MixinsInference {
         sessionImpl.classHierarchy.remove(element);
       }
     }
-  }
-
-  static FeatureSet _unitFeatureSet(ClassElementImpl element) {
-    var unit = element.linkedNode!.parent as CompilationUnit;
-    return unit.featureSet;
   }
 }

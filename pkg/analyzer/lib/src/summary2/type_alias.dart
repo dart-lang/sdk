@@ -10,15 +10,15 @@ class TypeAliasSelfReferenceFinder {
   /// Check typedefs and mark the ones having self references.
   void perform(Linker linker) {
     for (var builder in linker.builders.values) {
-      for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit!.declarations) {
+      for (var linkingUnit in builder.units) {
+        for (var node in linkingUnit.node.declarations) {
           if (node is FunctionTypeAlias) {
-            var finder = _Finder(node);
+            var finder = _Finder(linker, node);
             finder.functionTypeAlias(node);
             var element = node.declaredElement as TypeAliasElementImpl;
             element.hasSelfReference = finder.hasSelfReference;
           } else if (node is GenericTypeAlias) {
-            var finder = _Finder(node);
+            var finder = _Finder(linker, node);
             finder.genericTypeAlias(node);
             var element = node.declaredElement as TypeAliasElementImpl;
             element.hasSelfReference = finder.hasSelfReference;
@@ -30,11 +30,12 @@ class TypeAliasSelfReferenceFinder {
 }
 
 class _Finder {
+  final Linker linker;
   final AstNode self;
   final Set<AstNode> visited = Set.identity();
   bool hasSelfReference = false;
 
-  _Finder(this.self);
+  _Finder(this.linker, this.self);
 
   void functionTypeAlias(FunctionTypeAlias node) {
     _typeParameterList(node.typeParameters);
@@ -86,10 +87,12 @@ class _Finder {
 
     if (node is TypeName) {
       var element = node.name.staticElement;
-      if (element is ElementImpl &&
-          element.enclosingElement != null &&
-          element.linkedContext!.isLinking) {
-        var typeNode = element.linkedNode;
+      if (element is! ElementImpl) {
+        return;
+      }
+
+      var typeNode = linker.getLinkingNode(element);
+      if (typeNode != null) {
         if (typeNode == self) {
           hasSelfReference = true;
           return;

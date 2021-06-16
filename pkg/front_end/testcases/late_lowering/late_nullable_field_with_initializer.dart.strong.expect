@@ -49,36 +49,36 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   method lateInstanceFieldInit() → core::int?
     return 16;
   get lateInstanceField() → core::int? {
-    if(!this.{self::Class::_#Class#lateInstanceField#isSet}) {
-      this.{self::Class::_#Class#lateInstanceField} = this.{self::Class::lateInstanceFieldInit}();
+    if(!this.{self::Class::_#Class#lateInstanceField#isSet}{core::bool}) {
+      this.{self::Class::_#Class#lateInstanceField} = this.{self::Class::lateInstanceFieldInit}(){() → core::int?};
       this.{self::Class::_#Class#lateInstanceField#isSet} = true;
     }
-    return this.{self::Class::_#Class#lateInstanceField};
+    return this.{self::Class::_#Class#lateInstanceField}{core::int?};
   }
   set lateInstanceField(core::int? #t3) → void {
     this.{self::Class::_#Class#lateInstanceField#isSet} = true;
     this.{self::Class::_#Class#lateInstanceField} = #t3;
   }
   method lateGenericInstanceFieldInit() → self::Class::T?
-    return this.{self::Class::field};
+    return this.{self::Class::field}{self::Class::T?};
   get lateGenericInstanceField() → self::Class::T? {
-    if(!this.{self::Class::_#Class#lateGenericInstanceField#isSet}) {
-      this.{self::Class::_#Class#lateGenericInstanceField} = this.{self::Class::lateGenericInstanceFieldInit}();
+    if(!this.{self::Class::_#Class#lateGenericInstanceField#isSet}{core::bool}) {
+      this.{self::Class::_#Class#lateGenericInstanceField} = this.{self::Class::lateGenericInstanceFieldInit}(){() → self::Class::T?};
       this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     }
-    return this.{self::Class::_#Class#lateGenericInstanceField};
+    return this.{self::Class::_#Class#lateGenericInstanceField}{self::Class::T?};
   }
   set lateGenericInstanceField(generic-covariant-impl self::Class::T? #t4) → void {
     this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     this.{self::Class::_#Class#lateGenericInstanceField} = #t4;
   }
   method instanceMethod(generic-covariant-impl self::Class::T? value) → dynamic {
-    self::expect(16, this.{self::Class::lateInstanceField});
+    self::expect(16, this.{self::Class::lateInstanceField}{core::int?});
     this.{self::Class::lateInstanceField} = 17;
-    self::expect(17, this.{self::Class::lateInstanceField});
-    self::expect(this.{self::Class::field}, this.{self::Class::lateGenericInstanceField});
+    self::expect(17, this.{self::Class::lateInstanceField}{core::int?});
+    self::expect(this.{self::Class::field}{self::Class::T?}, this.{self::Class::lateGenericInstanceField}{self::Class::T?});
     this.{self::Class::lateGenericInstanceField} = value;
-    self::expect(value, this.{self::Class::lateGenericInstanceField});
+    self::expect(value, this.{self::Class::lateGenericInstanceField}{self::Class::T?});
   }
 }
 extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
@@ -152,16 +152,16 @@ static method main() → dynamic {
   self::Class::lateStaticField1 = 88;
   self::expect(88, self::Class::lateStaticField1);
   self::Class::staticMethod();
-  new self::Class::•<core::int?>(null).{self::Class::instanceMethod}(0);
-  new self::Class::•<core::int?>(0).{self::Class::instanceMethod}(null);
-  new self::Class::•<core::int>(null).{self::Class::instanceMethod}(0);
-  new self::Class::•<core::int>(0).{self::Class::instanceMethod}(null);
+  new self::Class::•<core::int?>(null).{self::Class::instanceMethod}(0){(core::int?) → dynamic};
+  new self::Class::•<core::int?>(0).{self::Class::instanceMethod}(null){(core::int?) → dynamic};
+  new self::Class::•<core::int>(null).{self::Class::instanceMethod}(0){(core::int?) → dynamic};
+  new self::Class::•<core::int>(0).{self::Class::instanceMethod}(null){(core::int?) → dynamic};
   self::expect(87, self::Extension|lateExtensionField1);
   self::Extension|lateExtensionField1 = 88;
   self::expect(88, self::Extension|lateExtensionField1);
   self::Extension|staticMethod();
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }

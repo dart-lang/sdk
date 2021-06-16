@@ -46,9 +46,9 @@ import 'package:js/js.dart';
   _isObject(1),
   _isString(1),
   _isTop(1),
+  _setArrayType(2),
   findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
+  instanceType(1)],
  type=[
   inst:Closure,
   inst:JSArray<dynamic>,
@@ -75,9 +75,7 @@ import 'package:js/js.dart';
 external set foo(void Function(String, File) f);
 
 /*member: _doStuff:
- dynamic=[
-  File.==,
-  File.name],
+ dynamic=[File.name],
  static=[
   Rti._bind(1),
   Rti._eval(1),

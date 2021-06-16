@@ -163,6 +163,9 @@ void Heap::AllocatedExternal(intptr_t size, Space space) {
   }
 
   if (old_space_.ReachedHardThreshold()) {
+    if (last_gc_was_old_space_) {
+      CollectNewSpaceGarbage(Thread::Current(), kFull);
+    }
     CollectGarbage(kMarkSweep, kExternal);
   } else {
     CheckStartConcurrentMarking(Thread::Current(), kExternal);
@@ -222,7 +225,8 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
       heap_(isolate_group()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
-  isolate_group()->safepoint_handler()->SafepointThreads(thread);
+  isolate_group()->safepoint_handler()->SafepointThreads(thread,
+                                                         SafepointLevel::kGC);
 
   {
     // It's not safe to iterate over old space when concurrent marking or
@@ -273,7 +277,8 @@ HeapIterationScope::~HeapIterationScope() {
     ml.NotifyAll();
   }
 
-  isolate_group()->safepoint_handler()->ResumeThreads(thread());
+  isolate_group()->safepoint_handler()->ResumeThreads(thread(),
+                                                      SafepointLevel::kGC);
 }
 
 void HeapIterationScope::IterateObjects(ObjectVisitor* visitor) const {
@@ -353,7 +358,7 @@ void Heap::HintFreed(intptr_t size) {
 
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
-  SafepointOperationScope safepoint_operation(thread);
+  GcSafepointOperationScope safepoint_operation(thread);
 
   // Check if we want to collect new-space first, because if we want to collect
   // both new-space and old-space, the new-space collection should run first
@@ -420,7 +425,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     return;
   }
   {
-    SafepointOperationScope safepoint_operation(thread);
+    GcSafepointOperationScope safepoint_operation(thread);
     RecordBeforeGC(kScavenge, reason);
     VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
                                                 : VMTag::kGCNewSpaceTagId);
@@ -444,7 +449,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
     return;
   }
   {
-    SafepointOperationScope safepoint_operation(thread);
+    GcSafepointOperationScope safepoint_operation(thread);
     RecordBeforeGC(kScavenge, reason);
     {
       VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
@@ -484,7 +489,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     return;
   }
   {
-    SafepointOperationScope safepoint_operation(thread);
+    GcSafepointOperationScope safepoint_operation(thread);
     thread->isolate_group()->ForEachIsolate(
         [&](Isolate* isolate) {
           // Discard regexp backtracking stacks to further reduce memory usage.
@@ -885,6 +890,17 @@ void Heap::SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val) {
   } else {
     ASSERT(raw_obj->IsSmiOrOldObject());
     old_weak_tables_[sel]->SetValue(raw_obj, val);
+  }
+}
+
+intptr_t Heap::SetWeakEntryIfNonExistent(ObjectPtr raw_obj,
+                                         WeakSelector sel,
+                                         intptr_t val) {
+  if (!raw_obj->IsSmiOrOldObject()) {
+    return new_weak_tables_[sel]->SetValueIfNonExistent(raw_obj, val);
+  } else {
+    ASSERT(raw_obj->IsSmiOrOldObject());
+    return old_weak_tables_[sel]->SetValueIfNonExistent(raw_obj, val);
   }
 }
 

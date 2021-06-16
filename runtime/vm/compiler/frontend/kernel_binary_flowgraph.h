@@ -137,7 +137,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   intptr_t PeekArgumentsCount();
 
   // See BaseFlowGraphBuilder::MakeTemporary.
-  LocalVariable* MakeTemporary();
+  LocalVariable* MakeTemporary(const char* suffix = nullptr);
+  Fragment DropTemporary(LocalVariable** variable);
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
   Function& FindMatchingFunction(const Class& klass,
@@ -208,7 +209,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment AllocateObject(TokenPosition position,
                           const Class& klass,
                           intptr_t argument_count);
-  Fragment AllocateObject(const Class& klass, const Function& closure_function);
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& context_slots);
   Fragment LoadNativeField(const Slot& field);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
@@ -274,7 +274,13 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildVariableSetImpl(TokenPosition position,
                                 intptr_t variable_kernel_position);
   Fragment BuildPropertyGet(TokenPosition* position);
+  Fragment BuildInstanceGet(TokenPosition* position);
+  Fragment BuildDynamicGet(TokenPosition* position);
+  Fragment BuildInstanceTearOff(TokenPosition* position);
+  Fragment BuildFunctionTearOff(TokenPosition* position);
   Fragment BuildPropertySet(TokenPosition* position);
+  Fragment BuildInstanceSet(TokenPosition* position);
+  Fragment BuildDynamicSet(TokenPosition* position);
   Fragment BuildAllocateInvocationMirrorCall(TokenPosition position,
                                              const String& name,
                                              intptr_t num_type_arguments,
@@ -286,7 +292,11 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildSuperPropertySet(TokenPosition* position);
   Fragment BuildStaticGet(TokenPosition* position);
   Fragment BuildStaticSet(TokenPosition* position);
-  Fragment BuildMethodInvocation(TokenPosition* position);
+  Fragment BuildMethodInvocation(TokenPosition* position, Tag tag);
+  Fragment BuildLocalFunctionInvocation(TokenPosition* position);
+  Fragment BuildFunctionInvocation(TokenPosition* position);
+  Fragment BuildEqualsCall(TokenPosition* position);
+  Fragment BuildEqualsNull(TokenPosition* position);
   Fragment BuildSuperMethodInvocation(TokenPosition* position);
   Fragment BuildStaticInvocation(TokenPosition* position);
   Fragment BuildConstructorInvocation(TokenPosition* position);
@@ -340,15 +350,21 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildTryFinally();
   Fragment BuildYieldStatement();
   Fragment BuildVariableDeclaration();
-  Fragment BuildFunctionDeclaration();
+  Fragment BuildFunctionDeclaration(intptr_t offset);
   Fragment BuildFunctionNode(TokenPosition parent_position,
-                             StringIndex name_index);
+                             StringIndex name_index,
+                             bool has_valid_annotation,
+                             bool has_pragma,
+                             intptr_t func_decl_offset);
 
-  // Build build FG for '_asFunctionInternal'. Reads an Arguments from the
+  // Build flow graph for '_nativeEffect'.
+  Fragment BuildNativeEffect();
+
+  // Build FG for '_asFunctionInternal'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting closure.
   Fragment BuildFfiAsFunctionInternal();
 
-  // Build build FG for '_nativeCallbackFunction'. Reads an Arguments from the
+  // Build FG for '_nativeCallbackFunction'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting Function object.
   Fragment BuildFfiNativeCallbackFunction();
 

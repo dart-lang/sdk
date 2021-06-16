@@ -1,0 +1,211 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue45834.dart:7:10: Error: Type variables can't have generic function types in their bounds.
+// class A1<X extends Function<T>()> {
+//          ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:8:15: Error: Type variables can't have generic function types in their bounds.
+//   A1(Function<X extends Function<T>()>() f);
+//               ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:9:17: Error: Type variables can't have generic function types in their bounds.
+//   bar1(Function<X extends Function<T>()>() f) {}
+//                 ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:10:12: Error: Type variables can't have generic function types in their bounds.
+//   Function<X extends Function<T>()>() bar2() => throw 42;
+//            ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:11:12: Error: Type variables can't have generic function types in their bounds.
+//   Function<X extends Function<T>()>() get baz1 => throw 42;
+//            ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:13:12: Error: Type variables can't have generic function types in their bounds.
+//   Function<X extends Function<T>()>() quux1 = throw 42;
+//            ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:14:19: Error: Type variables can't have generic function types in their bounds.
+//   static Function<X extends Function<T>()>() quux2 = throw 42;
+//                   ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:12:26: Error: Type variables can't have generic function types in their bounds.
+//   void set qux1(Function<X extends Function<T>()>() value) {}
+//                          ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:17:10: Error: Type variables can't have generic function types in their bounds.
+// class A2<X extends void Function<Y extends Function<T>()>()> {}
+//          ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:17:34: Error: Type variables can't have generic function types in their bounds.
+// class A2<X extends void Function<Y extends Function<T>()>()> {}
+//                                  ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:22:15: Error: Type variables can't have generic function types in their bounds.
+// foo1(Function<X extends Function<T>()>() f) {}
+//               ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:24:10: Error: Type variables can't have generic function types in their bounds.
+// Function<X extends Function<T>()>() foo3() => throw 42;
+//          ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:26:10: Error: Type variables can't have generic function types in their bounds.
+// Function<X extends Function<T>()>() get corge1 => throw 42;
+//          ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:28:10: Error: Type variables can't have generic function types in their bounds.
+// Function<X extends Function<T>()>() quuz1 = throw 42;
+//          ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:30:28: Error: Type variables can't have generic function types in their bounds.
+// typedef F1 = void Function<X extends void Function<T>()>();
+//                            ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:32:12: Error: Type variables can't have generic function types in their bounds.
+// typedef F3<X extends Function<T>()> = Function();
+//            ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:33:12: Error: Type variables can't have generic function types in their bounds.
+// typedef F4<X extends Function<Y extends Function<T>()>()> = Function();
+//            ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:33:31: Error: Type variables can't have generic function types in their bounds.
+// typedef F4<X extends Function<Y extends Function<T>()>()> = Function();
+//                               ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:39:14: Error: Type variables can't have generic function types in their bounds.
+// extension E1<X extends Function<T>()> on B1 {
+//              ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:40:17: Error: Type variables can't have generic function types in their bounds.
+//   bar3(Function<X extends Function<T>()>() f) {}
+//                 ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:41:12: Error: Type variables can't have generic function types in their bounds.
+//   Function<X extends Function<T>()>() bar4() => throw 42;
+//            ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:42:12: Error: Type variables can't have generic function types in their bounds.
+//   Function<X extends Function<T>()>() get baz2 => throw 42;
+//            ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:44:19: Error: Type variables can't have generic function types in their bounds.
+//   static Function<X extends Function<T>()>() quux3 = throw 42;
+//                   ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:43:26: Error: Type variables can't have generic function types in their bounds.
+//   void set qux2(Function<X extends Function<T>()>() value) {}
+//                          ^
+//
+// pkg/front_end/testcases/general/issue45834.dart:27:27: Error: Type variables can't have generic function types in their bounds.
+// void set grault1(Function<X extends Function<T>()>() value) {}
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F1 = <X extends <T extends core::Object* = dynamic>() →* void = dynamic>() →* void;
+typedef F2 = <X extends (<T extends core::Object* = dynamic>() →* void) →* dynamic = dynamic>() →* void;
+typedef F3<unrelated X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic> = () →* dynamic;
+typedef F4<unrelated X extends <Y extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic = dynamic> = () →* dynamic;
+typedef F5<unrelated X extends (<Y extends (<T extends core::Object* = dynamic>() →* dynamic) →* dynamic = dynamic>() →* dynamic) →* dynamic> = () →* dynamic;
+class A1<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic> extends core::Object {
+  field <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic quux1 = throw 42;
+  static field <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic quux2 = throw 42;
+  constructor •(<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic f) → self::A1<self::A1::X*>*
+    : super core::Object::•()
+    ;
+  method bar1(<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic f) → dynamic {}
+  method bar2() → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+    return throw 42;
+  get baz1() → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+    return throw 42;
+  set qux1(<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class A2<X extends <Y extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* void = dynamic> extends core::Object {
+  synthetic constructor •() → self::A2<self::A2::X*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class A3<X extends (<Y extends (<T extends core::Object* = dynamic>() →* dynamic) →* dynamic = dynamic>() →* void) →* dynamic> extends core::Object {
+  synthetic constructor •() → self::A3<self::A3::X*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B1 extends core::Object {
+  synthetic constructor •() → self::B1*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension E1<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic> on self::B1* {
+  method bar3 = self::E1|bar3;
+  tearoff bar3 = self::E1|get#bar3;
+  method bar4 = self::E1|bar4;
+  tearoff bar4 = self::E1|get#bar4;
+  get baz2 = self::E1|get#baz2;
+  static field quux3 = self::E1|quux3;
+  set qux2 = self::E1|set#qux2;
+}
+static field <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic quuz1 = throw 42;
+static field <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic E1|quux3 = throw 42;
+static method foo1(<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic f) → dynamic {}
+static method foo2(<X extends (<T extends core::Object* = dynamic>() →* dynamic) →* dynamic = dynamic>() →* dynamic f) → dynamic {}
+static method foo3() → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+  return throw 42;
+static method foo4() → <X extends (<T extends core::Object* = dynamic>() →* dynamic) →* dynamic = dynamic>() →* dynamic
+  return throw 42;
+static get corge1() → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+  return throw 42;
+static set grault1(<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic value) → void {}
+static method E1|bar3<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this, <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic f) → dynamic {}
+static method E1|get#bar3<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → (<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic) →* dynamic
+  return (<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic f) → dynamic => self::E1|bar3<self::E1|get#bar3::X*>(#this, f);
+static method E1|bar4<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+  return throw 42;
+static method E1|get#bar4<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → () →* <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+  return () → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic => self::E1|bar4<self::E1|get#bar4::X*>(#this);
+static method E1|get#baz2<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this) → <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic
+  return throw 42;
+static method E1|set#qux2<X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>(lowered final self::B1* #this, <X extends <T extends core::Object* = dynamic>() →* dynamic = dynamic>() →* dynamic value) → void {}
+static method main() → dynamic {}

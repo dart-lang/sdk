@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
@@ -38,18 +36,20 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/status.dart' as nd;
+import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
+import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
+import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart';
@@ -59,11 +59,11 @@ import 'package:watcher/watcher.dart';
 /// them.
 class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
-  LspClientCapabilities _clientCapabilities;
+  LspClientCapabilities? _clientCapabilities;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
-  LspInitializationOptions _initializationOptions;
+  LspInitializationOptions? _initializationOptions;
 
   /// Configuration for the workspace from the client. This is similar to
   /// initializationOptions but can be updated dynamically rather than set
@@ -76,7 +76,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// The workspace for rename refactorings. Should be accessed through the
   /// refactoringWorkspace getter to be automatically created (lazily).
-  RefactoringWorkspace _refactoringWorkspace;
+  RefactoringWorkspace? _refactoringWorkspace;
 
   /// The versions of each document known to the server (keyed by path), used to
   /// send back to the client for server-initiated edits so that the client can
@@ -87,7 +87,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// not known.
   final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
 
-  ServerStateMessageHandler messageHandler;
+  late ServerStateMessageHandler messageHandler;
 
   int nextRequestId = 1;
 
@@ -95,8 +95,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Capabilities of the server. Will be null prior to initialization as
   /// the server capabilities depend on the client capabilities.
-  ServerCapabilities capabilities;
-  ServerCapabilitiesComputer capabilitiesComputer;
+  ServerCapabilities? capabilities;
+  late ServerCapabilitiesComputer capabilitiesComputer;
 
   LspPerformance performanceStats = LspPerformance();
 
@@ -104,13 +104,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// automatically.
   bool willExit = false;
 
-  StreamSubscription _pluginChangeSubscription;
+  StreamSubscription? _pluginChangeSubscription;
 
   /// The current workspace folders provided by the client. Used as analysis roots.
   final _workspaceFolders = <String>{};
 
   /// A progress reporter for analysis status.
-  ProgressReporter analyzingProgressReporter;
+  ProgressReporter? analyzingProgressReporter;
 
   /// The number of times contexts have been created/recreated.
   @visibleForTesting
@@ -125,8 +125,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     DartSdkManager sdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
-    http.Client httpClient,
-    DiagnosticServer diagnosticServer,
+    http.Client? httpClient,
+    DiagnosticServer? diagnosticServer,
     // Disable to avoid using this in unit tests.
     bool enableBazelWatcher = false,
   }) : super(
@@ -157,16 +157,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
-  LspClientCapabilities get clientCapabilities => _clientCapabilities;
+  LspClientCapabilities? get clientCapabilities => _clientCapabilities;
 
   Future<void> get exited => channel.closed;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
-  LspInitializationOptions get initializationOptions => _initializationOptions;
+  LspInitializationOptions get initializationOptions =>
+      _initializationOptions as LspInitializationOptions;
 
   @override
-  LspNotificationManager get notificationManager => super.notificationManager;
+  LspNotificationManager get notificationManager =>
+      super.notificationManager as LspNotificationManager;
 
   @override
   set pluginManager(PluginManager value) {
@@ -202,7 +204,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Fetches configuration from the client (if supported) and then sends
   /// register/unregister requests for any supported/enabled dynamic registrations.
   Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
-    if (clientCapabilities.configuration) {
+    if (clientCapabilities?.configuration ?? false) {
       // Fetch all configuration we care about from the client. This is just
       // "dart" for now, but in future this may be extended to include
       // others (for example "flutter").
@@ -243,8 +245,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Return the LineInfo for the file with the given [path]. The file is
   /// analyzed in one of the analysis drivers to which the file was added,
   /// otherwise in the first driver, otherwise `null` is returned.
-  LineInfo getLineInfo(String path) {
-    return getAnalysisDriver(path)?.getFileSync(path)?.lineInfo;
+  LineInfo? getLineInfo(String path) {
+    var result = getAnalysisDriver(path)?.getFileSync2(path);
+    return result is FileResult ? result.lineInfo : null;
   }
 
   /// Gets the version of a document known to the server, returning a
@@ -263,16 +266,22 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     _initializationOptions = LspInitializationOptions(initializationOptions);
 
     performanceAfterStartup = ServerPerformance();
-    performance = performanceAfterStartup;
+    performance = performanceAfterStartup!;
   }
 
   /// Handles a response from the client by invoking the completer that the
   /// outbound request created.
   void handleClientResponse(ResponseMessage message) {
-    // The ID from the client is an Either2<num, String>, though it's not valid
-    // for it to be a string because it should match a request we sent to the
-    // client (and we always use numeric IDs for outgoing requests).
-    message.id.map(
+    // The ID from the client is an Either2<num, String>?, though it's not valid
+    // for it to be a null or a string because it should match a request we sent
+    // to the client (and we always use numeric IDs for outgoing requests).
+    final id = message.id;
+    if (id == null) {
+      showErrorMessageToUser('Unexpected response with no ID!');
+      return;
+    }
+
+    id.map(
       (id) {
         // It's possible that even if we got a numeric ID that it's not valid.
         // If it's not in our completers list (which is a list of the
@@ -366,7 +375,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     exceptions.add(ServerException(
       message,
       exception,
-      stackTrace is StackTrace ? stackTrace : null,
+      stackTrace is StackTrace ? stackTrace : StackTrace.current,
       false,
     ));
 
@@ -399,8 +408,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   ///
   /// If the result of applying the edits is already known, [newContent] can be
   /// set to avoid doing that calculation twice.
-  void onOverlayUpdated(String path, Iterable<plugin.SourceEdit> edits,
-      {String newContent}) {
+  void onOverlayUpdated(String path, List<plugin.SourceEdit> edits,
+      {String? newContent}) {
     assert(resourceProvider.hasOverlay(path));
     if (newContent == null) {
       final oldContent = resourceProvider.getFile(path).readAsStringSync();
@@ -507,7 +516,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     completers[requestId] = completer;
 
     channel.sendRequest(RequestMessage(
-      id: Either2<num, String>.t1(requestId),
+      id: Either2<int, String>.t1(requestId),
       method: method,
       params: params,
       jsonrpc: jsonRpcVersion,
@@ -534,11 +543,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
-  Future<void> sendStatusNotification(nd.AnalysisStatus status) async {
+  Future<void> sendStatusNotification(analysis.AnalysisStatus status) async {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
-    if (clientCapabilities.workDoneProgress != true) {
+    if (clientCapabilities?.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
         method: CustomMethods.analyzerStatus,
         params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
@@ -555,7 +564,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       if (analyzingProgressReporter != null) {
         // Do not null this out until after end completes, otherwise we may try
         // to create a new token before it's really completed.
-        await analyzingProgressReporter.end();
+        await analyzingProgressReporter?.end();
         analyzingProgressReporter = null;
       }
     }
@@ -634,8 +643,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // TODO(dantup): This is currently case-sensitive!
 
     _workspaceFolders
-      ..addAll(addedPaths ?? const [])
-      ..removeAll(removedPaths ?? const []);
+      ..addAll(addedPaths)
+      ..removeAll(removedPaths);
 
     _refreshAnalysisRoots();
   }
@@ -658,17 +667,22 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final contextLocator = ContextLocator(resourceProvider: resourceProvider);
     final roots = contextLocator.locateRoots(includedPaths: openFiles);
 
-    // For files in folders that don't have pubspecs, a root would be
-    // produced for the root of the drive which we do not want, so filter those out.
-    roots.removeWhere((root) => root.root.isRoot);
-
-    // Find any files that are no longer covered by roots because of the above
-    // removal.
-    final additionalFiles =
-        openFiles.where((file) => !roots.any((root) => root.isAnalyzed(file)));
+    var packages = <String>{};
+    var additionalFiles = <String>[];
+    for (var file in openFiles) {
+      var package = roots
+          .where((root) => root.isAnalyzed(file))
+          .map((root) => root.workspace.findPackageFor(file)?.root)
+          .firstWhereOrNull((p) => p != null);
+      if (package != null && !resourceProvider.getFolder(package).isRoot) {
+        packages.add(package);
+      } else {
+        additionalFiles.add(file);
+      }
+    }
 
     return [
-      ...roots.map((root) => root.root.path),
+      ...packages,
       ...additionalFiles,
     ];
   }
@@ -801,37 +815,38 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void listenAnalysisDriver(nd.AnalysisDriver analysisDriver) {
-    analysisServer.declarationsTracker
-        ?.addContext(analysisDriver.analysisContext);
+  void listenAnalysisDriver(analysis.AnalysisDriver analysisDriver) {
+    // TODO(dantup): Is this required, or covered by
+    // addContextsToDeclarationsTracker? The original server does not appear to
+    // have an equivalent call.
+    final analysisContext = analysisDriver.analysisContext;
+    if (analysisContext != null) {
+      analysisServer.declarationsTracker?.addContext(analysisContext);
+    }
 
-    final supportedDiagnosticTags =
-        analysisServer.clientCapabilities.diagnosticTags;
     analysisDriver.results.listen((result) {
       var path = result.path;
+      if (path == null) {
+        // This shouldn't occur - result.path is marked with a TODO to become
+        // non-nullable.
+        return;
+      }
       filesToFlush.add(path);
       if (analysisServer.isAnalyzed(path)) {
-        final serverErrors = protocol.mapEngineErrors(
-            result,
-            result.errors.where(_shouldSendDiagnostic).toList(),
-            (result, error, [severity]) => toDiagnostic(
-                  result,
-                  error,
-                  supportedTags: supportedDiagnosticTags,
-                  errorSeverity: severity,
-                ));
-
-        analysisServer.publishDiagnostics(result.path, serverErrors);
+        final serverErrors = protocol.doAnalysisError_listFromEngine(result);
+        recordAnalysisErrors(path, serverErrors);
       }
-      if (result.unit != null) {
+      analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
+      analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
+      final unit = result.unit;
+      if (unit != null) {
         if (analysisServer.shouldSendClosingLabelsFor(path)) {
-          final labels =
-              DartUnitClosingLabelsComputer(result.lineInfo, result.unit)
-                  .compute()
-                  .map((l) => toClosingLabel(result.lineInfo, l))
-                  .toList();
+          final labels = DartUnitClosingLabelsComputer(result.lineInfo, unit)
+              .compute()
+              .map((l) => toClosingLabel(result.lineInfo, l))
+              .toList();
 
-          analysisServer.publishClosingLabels(result.path, labels);
+          analysisServer.publishClosingLabels(path, labels);
         }
         if (analysisServer.shouldSendOutlineFor(path)) {
           final outline = DartUnitOutlineComputer(
@@ -839,12 +854,12 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             withBasicFlutter: true,
           ).compute();
           final lspOutline = toOutline(result.lineInfo, outline);
-          analysisServer.publishOutline(result.path, lspOutline);
+          analysisServer.publishOutline(path, lspOutline);
         }
         if (analysisServer.shouldSendFlutterOutlineFor(path)) {
           final outline = FlutterOutlineComputer(result).compute();
           final lspOutline = toFlutterOutline(result.lineInfo, outline);
-          analysisServer.publishFlutterOutline(result.path, lspOutline);
+          analysisServer.publishFlutterOutline(path, lspOutline);
         }
       }
     });
@@ -854,12 +869,13 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {
+    final errorsToSend = errors.where(_shouldSendError).toList();
     filesToFlush.add(path);
     analysisServer.notificationManager
-        .recordAnalysisErrors(NotificationManager.serverId, path, errors);
+        .recordAnalysisErrors(NotificationManager.serverId, path, errorsToSend);
   }
 
-  bool _shouldSendDiagnostic(AnalysisError error) =>
-      error.errorCode.type != ErrorType.TODO ||
+  bool _shouldSendError(protocol.AnalysisError error) =>
+      error.code != ErrorType.TODO.name.toLowerCase() ||
       analysisServer.clientConfiguration.showTodos;
 }

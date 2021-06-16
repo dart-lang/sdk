@@ -14,36 +14,14 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'test_support.dart';
-
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ContentCacheTest);
     defineReflectiveTests(DartUriResolverTest);
     defineReflectiveTests(ErrorSeverityTest);
     defineReflectiveTests(FileBasedSourceTest);
     defineReflectiveTests(ResolveRelativeUriTest);
     defineReflectiveTests(UriKindTest);
   });
-}
-
-@reflectiveTest
-class ContentCacheTest {
-  test_setContents() async {
-    Source source = TestSource();
-    ContentCache cache = ContentCache();
-    expect(cache.getContents(source), isNull);
-    expect(cache.getModificationStamp(source), isNull);
-    String contents = "library lib;";
-    expect(cache.setContents(source, contents), isNull);
-    expect(cache.getContents(source), contents);
-    expect(cache.getModificationStamp(source), isNotNull);
-    expect(cache.setContents(source, contents), contents);
-    expect(cache.setContents(source, null), contents);
-    expect(cache.getContents(source), isNull);
-    expect(cache.getModificationStamp(source), isNull);
-    expect(cache.setContents(source, null), isNull);
-  }
 }
 
 @reflectiveTest

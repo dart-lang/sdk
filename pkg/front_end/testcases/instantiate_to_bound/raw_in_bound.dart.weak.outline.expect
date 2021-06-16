@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::num* = core::num*> extends core::Object {
+class A<T extends core::num*> extends core::Object {
   synthetic constructor •() → self::A<self::A::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -16,7 +16,7 @@ class A<T extends core::num* = core::num*> extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class B<T extends self::A<core::num*>* = self::A<core::num*>*> extends core::Object {
+class B<T extends self::A<core::num*>*> extends core::Object {
   synthetic constructor •() → self::B<self::B::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

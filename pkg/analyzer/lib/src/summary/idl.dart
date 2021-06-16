@@ -495,6 +495,10 @@ abstract class DiagnosticMessage extends base.SummaryClass {
   /// source range associated with this message.
   @Id(3)
   int get offset;
+
+  /// The URL of the message, if any.
+  @Id(4)
+  String get url;
 }
 
 /// Information about the Dartdoc directives in an [AvailableFile].
@@ -666,7 +670,11 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   @Id(5)
   List<int> get lineStarts;
 
-  /// URI of the `part of` directive.
+  /// The library name of the `part of my.name;` directive.
+  @Id(8)
+  String get partOfName;
+
+  /// URI of the `part of 'uri';` directive.
   @Id(7)
   String get partOfUri;
 

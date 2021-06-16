@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that type parameter can be passed as a type argument in a definition of
 // a local variable, and that this local variable is correctly constructed.
 

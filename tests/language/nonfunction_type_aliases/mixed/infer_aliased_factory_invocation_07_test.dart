@@ -4,9 +4,8 @@
 // @dart = 2.9
 // Requirements=nnbd-weak
 
-// SharedOptions=--enable-experiment=nonfunction-type-aliases
 
-import 'infer_aliased_factory_invocation_06_lib.dart';
+import 'infer_aliased_factory_invocation_07_lib.dart';
 
 Type typeOf<X>() => X;
 

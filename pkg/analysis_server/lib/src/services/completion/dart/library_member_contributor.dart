@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -29,10 +27,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
         // determined (e.g. detached part file or source change).
         if (containingLibrary != null) {
           var imports = containingLibrary.imports;
-          if (imports != null) {
-            _buildSuggestions(request, builder, elem, imports);
-            return;
-          }
+          _buildSuggestions(request, builder, elem, imports);
         }
       }
     }
@@ -45,7 +40,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
       List<ImportElement> imports) {
     var parent = request.target.containingNode.parent;
     var typesOnly = parent is TypeName;
-    var isConstructor = parent.parent is ConstructorName;
+    var isConstructor = parent?.parent is ConstructorName;
     for (var importElem in imports) {
       if (importElem.prefix?.name == elem.name) {
         var library = importElem.importedLibrary;

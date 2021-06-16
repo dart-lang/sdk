@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=1000 --max-polymorphic-checks=1 --no-background-compilation
 
+// @dart = 2.9
+
 // Test correct loop invariant code motion and type propagation from is-checks
 // and null-comparisons.
 

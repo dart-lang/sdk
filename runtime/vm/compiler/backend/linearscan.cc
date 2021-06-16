@@ -463,11 +463,8 @@ void LiveRange::Print() {
   THR_Print("  live range v%" Pd " [%" Pd ", %" Pd ") in ", vreg(), Start(),
             End());
   assigned_location().Print();
-  if (spill_slot_.HasStackIndex()) {
-    const intptr_t stack_slot =
-        -compiler::target::frame_layout.VariableIndexForFrameSlot(
-            spill_slot_.stack_index());
-    THR_Print(" allocated spill slot: %" Pd "", stack_slot);
+  if (!spill_slot_.IsInvalid() && !spill_slot_.IsConstant()) {
+    THR_Print(" assigned spill slot: %s", spill_slot_.ToCString());
   }
   THR_Print("\n");
 
@@ -645,7 +642,14 @@ void FlowGraphAllocator::BuildLiveRanges() {
   GraphEntryInstr* graph_entry = flow_graph_.graph_entry();
   for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
     Definition* defn = (*graph_entry->initial_definitions())[i];
-    ASSERT(!defn->HasPairRepresentation());
+    if (defn->HasPairRepresentation()) {
+      // The lower bits are pushed after the higher bits
+      LiveRange* range = GetLiveRange(ToSecondPairVreg(defn->ssa_temp_index()));
+      range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
+      range->DefineAt(graph_entry->start_pos());
+      ProcessInitialDefinition(defn, range, graph_entry,
+                               /*second_location_for_definition=*/true);
+    }
     LiveRange* range = GetLiveRange(defn->ssa_temp_index());
     range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
     range->DefineAt(graph_entry->start_pos());
@@ -727,8 +731,9 @@ void FlowGraphAllocator::ProcessInitialDefinition(
   } else {
     ConstantInstr* constant = defn->AsConstant();
     ASSERT(constant != NULL);
-    range->set_assigned_location(Location::Constant(constant));
-    range->set_spill_slot(Location::Constant(constant));
+    const intptr_t pair_index = second_location_for_definition ? 1 : 0;
+    range->set_assigned_location(Location::Constant(constant, pair_index));
+    range->set_spill_slot(Location::Constant(constant, pair_index));
   }
   AssignSafepoints(defn, range);
   range->finger()->Initialize(range);
@@ -826,7 +831,11 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
 
     ConstantInstr* constant = val->definition()->AsConstant();
     if (constant != NULL) {
-      move->set_src(Location::Constant(constant));
+      move->set_src(Location::Constant(constant, /*pair_index*/ 0));
+      if (val->definition()->HasPairRepresentation()) {
+        move = parallel_move->MoveOperandsAt(move_index++);
+        move->set_src(Location::Constant(constant, /*pair_index*/ 1));
+      }
       continue;
     }
 
@@ -2230,16 +2239,28 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     }
   }
 
-  TRACE_ALLOC(THR_Print("assigning free register "));
-  TRACE_ALLOC(MakeRegisterLocation(candidate).Print());
-  TRACE_ALLOC(THR_Print(" to v%" Pd "\n", unallocated->vreg()));
-
   if (free_until != kMaxPosition) {
     // There was an intersection. Split unallocated.
     TRACE_ALLOC(THR_Print("  splitting at %" Pd "\n", free_until));
     LiveRange* tail = unallocated->SplitAt(free_until);
     AddToUnallocated(tail);
+
+    // If unallocated represents a constant value and does not have
+    // any uses then avoid using a register for it.
+    if (unallocated->first_use() == NULL) {
+      if (unallocated->vreg() >= 0) {
+        LiveRange* parent = GetLiveRange(unallocated->vreg());
+        if (parent->spill_slot().IsConstant()) {
+          Spill(unallocated);
+          return true;
+        }
+      }
+    }
   }
+
+  TRACE_ALLOC(THR_Print("  assigning free register "));
+  TRACE_ALLOC(MakeRegisterLocation(candidate).Print());
+  TRACE_ALLOC(THR_Print(" to v%" Pd "\n", unallocated->vreg()));
 
   registers_[candidate]->Add(unallocated);
   unallocated->set_assigned_location(MakeRegisterLocation(candidate));
@@ -2929,7 +2950,10 @@ void FlowGraphAllocator::CollectRepresentations() {
     Definition* def = (*initial_definitions)[i];
     value_representations_[def->ssa_temp_index()] =
         RepresentationForRange(def->representation());
-    ASSERT(!def->HasPairRepresentation());
+    if (def->HasPairRepresentation()) {
+      value_representations_[ToSecondPairVreg(def->ssa_temp_index())] =
+          RepresentationForRange(def->representation());
+    }
   }
 
   for (BlockIterator it = flow_graph_.reverse_postorder_iterator(); !it.Done();

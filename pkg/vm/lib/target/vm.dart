@@ -63,7 +63,7 @@ class VmTarget extends Target {
       !flags.forceNoExplicitGetterCallsForTesting;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => false;
+  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   String get name => 'vm';
@@ -159,7 +159,7 @@ class VmTarget extends Target {
     } else {
       // TODO(jensj/dacoharkes): We can probably limit the transformations to
       // libraries that transitivley depend on dart:ffi.
-      final ffiTransformerData = transformFfiDefinitions.transformLibraries(
+      transformFfiDefinitions.transformLibraries(
           component,
           coreTypes,
           hierarchy,
@@ -167,14 +167,8 @@ class VmTarget extends Target {
           diagnosticReporter,
           referenceFromIndex,
           changedStructureNotifier);
-      transformFfiUseSites.transformLibraries(
-          component,
-          coreTypes,
-          hierarchy,
-          libraries,
-          diagnosticReporter,
-          ffiTransformerData,
-          referenceFromIndex);
+      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
+          libraries, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi annotations");
     }
 
@@ -196,10 +190,15 @@ class VmTarget extends Target {
 
   @override
   void performTransformationsOnProcedure(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      Procedure procedure,
+      Map<String, String> environmentDefines,
       {void logger(String msg)}) {
+    bool productMode = environmentDefines["dart.vm.product"] == "true";
     transformAsync.transformProcedure(
-        new TypeEnvironment(coreTypes, hierarchy), procedure);
+        new TypeEnvironment(coreTypes, hierarchy), procedure,
+        productMode: productMode);
     logger?.call("Transformed async functions");
 
     lowering.transformProcedure(
@@ -229,9 +228,9 @@ class VmTarget extends Target {
           new StaticInvocation(
               coreTypes.mapUnmodifiable,
               new Arguments([
-                new MapLiteral(new List<MapEntry>.from(
+                new MapLiteral(new List<MapLiteralEntry>.from(
                     arguments.named.map((NamedExpression arg) {
-                  return new MapEntry(
+                  return new MapLiteralEntry(
                       new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
                       arg.value)
                     ..fileOffset = arg.fileOffset;

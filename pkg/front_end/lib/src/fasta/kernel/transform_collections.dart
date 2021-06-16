@@ -459,7 +459,7 @@ class CollectionTransformer extends Transformer {
   }
 
   void _translateEntry(
-      MapEntry entry,
+      MapLiteralEntry entry,
       InterfaceType receiverType,
       DartType keyType,
       DartType valueType,
@@ -480,7 +480,7 @@ class CollectionTransformer extends Transformer {
     }
   }
 
-  void _addNormalEntry(MapEntry entry, InterfaceType receiverType,
+  void _addNormalEntry(MapLiteralEntry entry, InterfaceType receiverType,
       VariableDeclaration result, List<Statement> body) {
     body.add(_createExpressionStatement(_createIndexSet(entry.fileOffset,
         _createVariableGet(result), receiverType, entry.key, entry.value)));
@@ -574,7 +574,7 @@ class CollectionTransformer extends Transformer {
       List<Statement> body) {
     Expression value = entry.expression.accept<TreeNode>(this);
 
-    final DartType entryType = new InterfaceType(_mapEntryClass,
+    final InterfaceType entryType = new InterfaceType(_mapEntryClass,
         _currentLibrary.nonNullable, <DartType>[keyType, valueType]);
     final bool typeMatches = entry.entryType != null &&
         _typeEnvironment.isSubtypeOf(
@@ -596,22 +596,23 @@ class CollectionTransformer extends Transformer {
     VariableDeclaration variable;
     Statement loopBody;
     if (!typeMatches) {
-      variable = _createForInVariable(
-          entry.fileOffset,
-          new InterfaceType(_mapEntryClass, _currentLibrary.nonNullable,
-              <DartType>[const DynamicType(), const DynamicType()]));
+      final InterfaceType variableType = new InterfaceType(
+          _mapEntryClass,
+          _currentLibrary.nonNullable,
+          <DartType>[const DynamicType(), const DynamicType()]);
+      variable = _createForInVariable(entry.fileOffset, variableType);
       VariableDeclaration keyVar = _createVariable(
           _createImplicitAs(
               entry.expression.fileOffset,
-              _createGetKey(
-                  entry.expression.fileOffset, _createVariableGet(variable)),
+              _createGetKey(entry.expression.fileOffset,
+                  _createVariableGet(variable), variableType),
               keyType),
           keyType);
       VariableDeclaration valueVar = _createVariable(
           _createImplicitAs(
               entry.expression.fileOffset,
-              _createGetValue(
-                  entry.expression.fileOffset, _createVariableGet(variable)),
+              _createGetValue(entry.expression.fileOffset,
+                  _createVariableGet(variable), variableType),
               valueType),
           valueType);
       loopBody = _createBlock(<Statement>[
@@ -630,13 +631,13 @@ class CollectionTransformer extends Transformer {
           entry.expression.fileOffset,
           _createVariableGet(result),
           receiverType,
-          _createGetKey(
-              entry.expression.fileOffset, _createVariableGet(variable)),
-          _createGetValue(
-              entry.expression.fileOffset, _createVariableGet(variable))));
+          _createGetKey(entry.expression.fileOffset,
+              _createVariableGet(variable), entryType),
+          _createGetValue(entry.expression.fileOffset,
+              _createVariableGet(variable), entryType)));
     }
     Statement statement = _createForInStatement(entry.fileOffset, variable,
-        _createGetEntries(entry.fileOffset, value), loopBody);
+        _createGetEntries(entry.fileOffset, value, receiverType), loopBody);
 
     if (entry.isNullAware) {
       statement = _createIf(
@@ -741,7 +742,7 @@ class CollectionTransformer extends Transformer {
     // If there were no control-flow entries we are done.
     if (i == node.entries.length) return node;
 
-    MapLiteral makeLiteral(int fileOffset, List<MapEntry> entries) {
+    MapLiteral makeLiteral(int fileOffset, List<MapLiteralEntry> entries) {
       return _createMapLiteral(
           fileOffset, node.keyType, node.valueType, entries,
           isConst: true);
@@ -749,13 +750,14 @@ class CollectionTransformer extends Transformer {
 
     // Build a concatenation node.
     List<Expression> parts = [];
-    List<MapEntry> currentPart = i > 0 ? node.entries.sublist(0, i) : null;
+    List<MapLiteralEntry> currentPart =
+        i > 0 ? node.entries.sublist(0, i) : null;
 
     DartType collectionType = _typeEnvironment.mapType(
         node.keyType, node.valueType, _currentLibrary.nonNullable);
 
     for (; i < node.entries.length; ++i) {
-      MapEntry entry = node.entries[i];
+      MapLiteralEntry entry = node.entries[i];
       if (entry is SpreadMapEntry) {
         if (currentPart != null) {
           parts.add(makeLiteral(node.fileOffset, currentPart));
@@ -789,7 +791,7 @@ class CollectionTransformer extends Transformer {
         unhandled("${entry.runtimeType}", "_translateConstMap",
             entry.fileOffset, getFileUri(entry));
       } else {
-        currentPart ??= <MapEntry>[];
+        currentPart ??= <MapLiteralEntry>[];
         currentPart.add(entry.accept<TreeNode>(this));
       }
     }
@@ -846,7 +848,7 @@ class CollectionTransformer extends Transformer {
   }
 
   MapLiteral _createMapLiteral(int fileOffset, DartType keyType,
-      DartType valueType, List<MapEntry> entries,
+      DartType valueType, List<MapLiteralEntry> entries,
       {bool isConst: false}) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
@@ -1002,25 +1004,55 @@ class CollectionTransformer extends Transformer {
     return new IfStatement(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
-  PropertyGet _createGetKey(int fileOffset, Expression receiver) {
+  Expression _createGetKey(
+      int fileOffset, Expression receiver, InterfaceType entryType) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new PropertyGet(receiver, new Name('key'), _mapEntryKey)
-      ..fileOffset = fileOffset;
+    if (useNewMethodInvocationEncoding) {
+      DartType resultType = Substitution.fromInterfaceType(entryType)
+          .substituteType(_mapEntryKey.type);
+      return new InstanceGet(
+          InstanceAccessKind.Instance, receiver, new Name('key'),
+          interfaceTarget: _mapEntryKey, resultType: resultType)
+        ..fileOffset = fileOffset;
+    } else {
+      return new PropertyGet(receiver, new Name('key'), _mapEntryKey)
+        ..fileOffset = fileOffset;
+    }
   }
 
-  PropertyGet _createGetValue(int fileOffset, Expression receiver) {
+  Expression _createGetValue(
+      int fileOffset, Expression receiver, InterfaceType entryType) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new PropertyGet(receiver, new Name('value'), _mapEntryValue)
-      ..fileOffset = fileOffset;
+    if (useNewMethodInvocationEncoding) {
+      DartType resultType = Substitution.fromInterfaceType(entryType)
+          .substituteType(_mapEntryValue.type);
+      return new InstanceGet(
+          InstanceAccessKind.Instance, receiver, new Name('value'),
+          interfaceTarget: _mapEntryValue, resultType: resultType)
+        ..fileOffset = fileOffset;
+    } else {
+      return new PropertyGet(receiver, new Name('value'), _mapEntryValue)
+        ..fileOffset = fileOffset;
+    }
   }
 
-  PropertyGet _createGetEntries(int fileOffset, Expression receiver) {
+  Expression _createGetEntries(
+      int fileOffset, Expression receiver, InterfaceType mapType) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new PropertyGet(receiver, new Name('entries'), _mapEntries)
-      ..fileOffset = fileOffset;
+    if (useNewMethodInvocationEncoding) {
+      DartType resultType = Substitution.fromInterfaceType(mapType)
+          .substituteType(_mapEntries.getterType);
+      return new InstanceGet(
+          InstanceAccessKind.Instance, receiver, new Name('entries'),
+          interfaceTarget: _mapEntries, resultType: resultType)
+        ..fileOffset = fileOffset;
+    } else {
+      return new PropertyGet(receiver, new Name('entries'), _mapEntries)
+        ..fileOffset = fileOffset;
+    }
   }
 
   ForStatement _createForStatement(

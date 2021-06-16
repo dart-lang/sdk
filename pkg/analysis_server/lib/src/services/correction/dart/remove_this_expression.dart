@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,6 +11,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveThisExpression extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_THIS_EXPRESSION;
 
   @override
@@ -20,7 +24,7 @@ class RemoveThisExpression extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is ConstructorFieldInitializer) {
       var thisKeyword = node.thisKeyword;
       if (thisKeyword != null) {
@@ -34,10 +38,13 @@ class RemoveThisExpression extends CorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startEnd(node, node.operator));
       });
-    } else if (node is MethodInvocation && node.target is ThisExpression) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.startEnd(node, node.operator));
-      });
+    } else if (node is MethodInvocation) {
+      var operator = node.operator;
+      if (node.target is ThisExpression && operator != null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(range.startEnd(node, operator));
+        });
+      }
     }
   }
 

@@ -123,7 +123,7 @@ class G {}
 ''');
     checkElementText(library, r'''
 class alias C extends D with E, F, G {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -144,7 +144,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 abstract class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -168,7 +168,7 @@ class E {}
  * Docs
  */
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -192,7 +192,7 @@ class E {}
 /// b
 /// cc
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -216,7 +216,7 @@ class E {}''');
  * Docs
  */
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -234,7 +234,7 @@ class C<C1> {}
 ''');
     checkElementText(library, r'''
 class alias Z extends A with B<int>, C<double> {
-  synthetic Z() = A;
+  synthetic Z() : super();
 }
 class A {
 }
@@ -253,7 +253,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded class alias C<T extends C<dynamic>> extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -272,7 +272,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 class alias C<T> extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -291,7 +291,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -301,7 +301,8 @@ class E {
   }
 
   test_class_alias_with_const_constructors() async {
-    addLibrarySource('/a.dart', '''
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
 class Base {
   const Base._priv();
   const Base();
@@ -313,26 +314,44 @@ import "a.dart";
 class M {}
 class MixinApp = Base with M;
 ''');
-    checkElementText(library, r'''
-import 'a.dart';
+    checkElementText(
+        library,
+        r'''
+import 'package:test/a.dart';
 class M {
 }
 class alias MixinApp extends Base with M {
-  synthetic const MixinApp() = Base;
-  synthetic const MixinApp.named() = Base.named;
+  synthetic const MixinApp();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        staticElement: package:test/a.dart::@class::Base::@constructor::•
+  synthetic const MixinApp.named();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        constructorName: SimpleIdentifier
+          staticElement: package:test/a.dart::@class::Base::@constructor::named
+          staticType: null
+          token: named
+        staticElement: package:test/a.dart::@class::Base::@constructor::named
 }
-''');
+''',
+        withResolvedAst: true);
   }
 
   test_class_alias_with_forwarding_constructors() async {
     addLibrarySource('/a.dart', '''
 class Base {
+  bool x = true;
   Base._priv();
   Base();
   Base.noArgs();
   Base.requiredArg(x);
   Base.positionalArg([bool x = true]);
+  Base.positionalArg2([this.x = true]);
   Base.namedArg({int x = 42});
+  Base.namedArg2({this.x = true});
   factory Base.fact() => Base();
   factory Base.fact2() = Base.noArgs;
 }
@@ -347,11 +366,24 @@ import 'a.dart';
 class M {
 }
 class alias MixinApp extends Base with M {
-  synthetic MixinApp() = Base;
-  synthetic MixinApp.noArgs() = Base.noArgs;
-  synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
-  synthetic MixinApp.positionalArg([bool x = true]) = Base.positionalArg;
-  synthetic MixinApp.namedArg({int x: 42}) = Base.namedArg;
+  synthetic MixinApp() : super();
+  synthetic MixinApp.noArgs() : super.
+        noArgs/*location: a.dart;Base;noArgs*/();
+  synthetic MixinApp.requiredArg(dynamic x) : super.
+        requiredArg/*location: a.dart;Base;requiredArg*/(
+        x/*location: test.dart;MixinApp;requiredArg;x*/);
+  synthetic MixinApp.positionalArg([bool x = true]) : super.
+        positionalArg/*location: a.dart;Base;positionalArg*/(
+        x/*location: test.dart;MixinApp;positionalArg;x*/);
+  synthetic MixinApp.positionalArg2([final bool x = true]) : super.
+        positionalArg2/*location: a.dart;Base;positionalArg2*/(
+        x/*location: test.dart;MixinApp;positionalArg2;x*/);
+  synthetic MixinApp.namedArg({int x: 42}) : super.
+        namedArg/*location: a.dart;Base;namedArg*/(
+        x/*location: test.dart;MixinApp;namedArg;x*/);
+  synthetic MixinApp.namedArg2({final bool x: true}) : super.
+        namedArg2/*location: a.dart;Base;namedArg2*/(
+        x/*location: test.dart;MixinApp;namedArg2;x*/);
 }
 ''');
   }
@@ -371,7 +403,10 @@ class Base<T> {
 class M {
 }
 class alias MixinApp extends Base<dynamic> with M {
-  synthetic MixinApp.ctor(dynamic t, List<dynamic> l) = Base<T>.ctor;
+  synthetic MixinApp.ctor(dynamic t, List<dynamic> l) : super.
+        ctor/*location: test.dart;Base;ctor*/(
+        t/*location: test.dart;MixinApp;ctor;t*/,
+        l/*location: test.dart;MixinApp;ctor;l*/);
 }
 ''');
   }
@@ -391,7 +426,10 @@ class Base<T> {
 class M {
 }
 class alias MixinApp<U> extends Base<List<U>> with M {
-  synthetic MixinApp.ctor(List<U> t, List<List<U>> l) = Base<T>.ctor;
+  synthetic MixinApp.ctor(List<U> t, List<List<U>> l) : super.
+        ctor/*location: test.dart;Base;ctor*/(
+        t/*location: test.dart;MixinApp;ctor;t*/,
+        l/*location: test.dart;MixinApp;ctor;l*/);
 }
 ''');
   }
@@ -408,7 +446,7 @@ class E {
 }''');
     checkElementText(library, r'''
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -490,7 +528,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -500,7 +538,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -510,7 +548,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -525,7 +563,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic Function(double) this.x/*(double b)*/);
+  C(final dynamic Function(double) this.x/*(double b)*/);
 }
 ''');
   }
@@ -540,7 +578,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(int Function(double) this.x/*(double b)*/);
+  C(final int Function(double) this.x/*(double b)*/);
 }
 ''');
   }
@@ -555,7 +593,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic Function() f;
-  C(List<U> Function<T, U>(T) this.f/*(T t)*/);
+  C(final List<U> Function<T, U>(T) this.f/*<T, U>*//*(T t)*/);
 }
 ''');
   }
@@ -568,7 +606,7 @@ class C {
 class C {
   int x;
   String x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -579,7 +617,7 @@ class C {
         await checkLibrary('class C { C(this.x); }', allowErrors: true);
     checkElementText(library, r'''
 class C {
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -590,7 +628,7 @@ class C {
     checkElementText(library, r'''
 class C {
   num x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -600,7 +638,7 @@ class C {
     checkElementText(library, r'''
 class C {
   num x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -610,7 +648,7 @@ class C {
     checkElementText(library, r'''
 class C {
   num x;
-  C(num this.x);
+  C(final num this.x);
 }
 ''');
   }
@@ -620,7 +658,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -630,7 +668,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -640,7 +678,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -650,7 +688,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C({int this.x});
+  C({final int this.x});
 }
 ''');
   }
@@ -660,7 +698,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C({int this.x: 42});
+  C({final int this.x: 42});
 }
 ''');
   }
@@ -670,7 +708,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C([int this.x]);
+  C([final int this.x]);
 }
 ''');
   }
@@ -680,7 +718,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C([int this.x = 42]);
+  C([final int this.x = 42]);
 }
 ''');
   }
@@ -948,6 +986,28 @@ class C {
 ''');
   }
 
+  test_class_field_final_withSetter() async {
+    var library = await checkLibrary(r'''
+class A {
+  final int foo;
+  A(this.foo);
+  set foo(int newValue) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  final int foo;
+  synthetic int get foo {}
+  void set foo(int newValue) {}
+  A(final int this.foo);
+}
+''',
+        withSyntheticFields: true,
+        withSyntheticAccessors: true);
+  }
+
   test_class_field_implicit_type() async {
     var library = await checkLibrary('class C { var x; }');
     checkElementText(library, r'''
@@ -964,6 +1024,36 @@ class C {
   late dynamic x;
 }
 ''');
+  }
+
+  test_class_field_inheritedContextType_double() async {
+    var library = await checkLibrary('''
+abstract class A {
+  const A();
+  double get foo;
+}
+class B extends A {
+  const B();
+  final foo = 2;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  double get foo;
+  const A();
+}
+class B extends A {
+  final double foo;
+    constantInitializer
+      IntegerLiteral
+        literal: 2
+        staticType: double
+  const B();
+}
+''',
+        withResolvedAst: true);
   }
 
   test_class_field_static() async {
@@ -1089,11 +1179,15 @@ class C {
 
   test_class_getter_static() async {
     var library = await checkLibrary('class C { static int get x => null; }');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 class C {
+  synthetic static int x;
   static int get x {}
 }
-''');
+''',
+        withSyntheticFields: true);
   }
 
   test_class_getters() async {
@@ -1111,15 +1205,19 @@ class C {
     var library = await checkLibrary('''
 class C {
   int get x => 0;
-  void set x(int value) {} 
-}
-''');
-    checkElementText(library, r'''
-class C {
-  int get x {}
   void set x(int value) {}
 }
 ''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  synthetic int x;
+  int get x {}
+  void set x(int value) {}
+}
+''',
+        withSyntheticFields: true);
   }
 
   test_class_implicitField_setterFirst() async {
@@ -1129,12 +1227,16 @@ class C {
   int get x => 0;
 }
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 class C {
+  synthetic int x;
   void set x(int value) {}
   int get x {}
 }
-''');
+''',
+        withSyntheticFields: true);
   }
 
   test_class_interfaces() async {
@@ -1149,6 +1251,22 @@ class C implements D, E {
 class D {
 }
 class E {
+}
+''');
+  }
+
+  test_class_interfaces_Function() async {
+    var library = await checkLibrary('''
+class A {}
+class B {}
+class C implements A, Function, B {}
+''');
+    checkElementText(library, r'''
+class A {
+}
+class B {
+}
+class C implements A, B {
 }
 ''');
   }
@@ -2122,7 +2240,7 @@ class CommentAroundAnnotation/*codeOffset=261, codeLength=57*/ {
 class A {}
 
 class B {}
-    
+
 class Raw = Object with A, B;
 
 /// Comment 1.
@@ -2154,34 +2272,34 @@ class A/*codeOffset=0, codeLength=10*/ {
 }
 class B/*codeOffset=12, codeLength=10*/ {
 }
-class alias Raw/*codeOffset=28, codeLength=29*/ extends Object with A, B {
-  synthetic const Raw() = Object;
+class alias Raw/*codeOffset=24, codeLength=29*/ extends Object with A, B {
+  synthetic const Raw() : super();
 }
 /// Comment 1.
 /// Comment 2.
-class alias HasDocComment/*codeOffset=59, codeLength=69*/ extends Object with A, B {
-  synthetic const HasDocComment() = Object;
+class alias HasDocComment/*codeOffset=55, codeLength=69*/ extends Object with A, B {
+  synthetic const HasDocComment() : super();
 }
 @Object()
-class alias HasAnnotation/*codeOffset=130, codeLength=49*/ extends Object with A, B {
-  synthetic const HasAnnotation() = Object;
-}
-/// Comment 1.
-/// Comment 2.
-@Object()
-class alias AnnotationThenComment/*codeOffset=181, codeLength=87*/ extends Object with A, B {
-  synthetic const AnnotationThenComment() = Object;
+class alias HasAnnotation/*codeOffset=126, codeLength=49*/ extends Object with A, B {
+  synthetic const HasAnnotation() : super();
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
-class alias CommentThenAnnotation/*codeOffset=270, codeLength=87*/ extends Object with A, B {
-  synthetic const CommentThenAnnotation() = Object;
+class alias AnnotationThenComment/*codeOffset=177, codeLength=87*/ extends Object with A, B {
+  synthetic const AnnotationThenComment() : super();
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+class alias CommentThenAnnotation/*codeOffset=266, codeLength=87*/ extends Object with A, B {
+  synthetic const CommentThenAnnotation() : super();
 }
 /// Comment 2.
 @Object()
-class alias CommentAroundAnnotation/*codeOffset=374, codeLength=74*/ extends Object with A, B {
-  synthetic const CommentAroundAnnotation() = Object;
+class alias CommentAroundAnnotation/*codeOffset=370, codeLength=74*/ extends Object with A, B {
+  synthetic const CommentAroundAnnotation() : super();
 }
 ''',
         withCodeRanges: true,
@@ -2394,13 +2512,13 @@ class C {
 
   int withoutInit;
 
-  int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3; 
+  int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
 }
 ''');
     checkElementText(
         library,
         r'''
-class C/*codeOffset=0, codeLength=116*/ {
+class C/*codeOffset=0, codeLength=115*/ {
   int withInit/*codeOffset=12, codeLength=16*/;
   int withoutInit/*codeOffset=33, codeLength=15*/;
   int multiWithInit/*codeOffset=53, codeLength=21*/;
@@ -2722,7 +2840,7 @@ int withInit = 1 + 2 * 3;
 
 int withoutInit;
 
-int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3; 
+int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
 ''');
     checkElementText(
         library,
@@ -2881,7 +2999,7 @@ const int b;
         writeType: dynamic
       staticType: int
 ''',
-      withFullyResolvedAst: true,
+      withResolvedAst: true,
     );
   }
 
@@ -2910,14 +3028,14 @@ const int a;
             staticType: int Function()
             token: abs
           operator: ..
-          staticInvokeType: null
+          staticInvokeType: int Function()
           staticType: int
       staticType: int
       target: IntegerLiteral
         literal: 0
         staticType: int
 ''',
-      withFullyResolvedAst: true,
+      withResolvedAst: true,
     );
   }
 
@@ -2954,8 +3072,8 @@ const Object y = const C.named(0);
     checkElementText(library, '''
 class C<T> {
   final T t;
-  const C(T this.t);
-  const C.named(T this.t);
+  const C(final T this.t);
+  const C.named(final T this.t);
 }
 const Object x = const
         C/*location: test.dart;C*/(0);
@@ -3031,7 +3149,7 @@ const int c;
         staticType: List<int>
         token: a
 ''',
-      withFullyResolvedAst: true,
+      withResolvedAst: true,
     );
   }
 
@@ -3806,8 +3924,10 @@ const int b;
         staticElement: self::@function::f
         staticType: T Function<T>(T)
         token: f
-      staticInvokeType: null
+      staticInvokeType: int Function(int)
       staticType: int
+      typeArgumentTypes
+        int
       typeArguments: TypeArgumentList
         arguments
           TypeName
@@ -3817,8 +3937,12 @@ const int b;
               token: int
             type: int
 T f(T a) {}
+  typeParameters
+    T
+      bound: null
+      defaultType: null
 ''',
-      withFullyResolvedAst: true,
+      withResolvedAst: true,
     );
   }
 
@@ -3833,7 +3957,7 @@ int foo() => 42;
     checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x:
+  const C({final dynamic this.x:
         foo/*location: test.dart;foo*/});
 }
 int foo() {}
@@ -3850,7 +3974,7 @@ class C {
     checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x: 1 + 2});
+  const C({final dynamic this.x: 1 + 2});
 }
 ''');
   }
@@ -3865,7 +3989,7 @@ class C {
     checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C([dynamic this.x = 1 + 2]);
+  const C([final dynamic this.x = 1 + 2]);
 }
 ''');
   }
@@ -3921,7 +4045,7 @@ const int b;
       writeElement: self::@getter::a
       writeType: dynamic
 ''',
-      withFullyResolvedAst: true,
+      withResolvedAst: true,
     );
   }
 
@@ -3949,7 +4073,66 @@ const int b;
       staticElement: <null>
       staticType: int
 ''',
-      withFullyResolvedAst: true,
+      withResolvedAst: true,
+    );
+  }
+
+  test_const_prefixExpression_class_unaryMinus() async {
+    var library = await checkLibrary(r'''
+const a = 0;
+const b = -a;
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    PrefixExpression
+      operand: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: int
+        token: a
+      operator: -
+      staticElement: dart:core::@class::int::@method::unary-
+      staticType: int
+''',
+      withResolvedAst: true,
+    );
+  }
+
+  test_const_prefixExpression_extension_unaryMinus() async {
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
+extension E on Object {
+  int operator -() => 0;
+}
+const a = const Object();
+''');
+    var library = await checkLibrary('''
+import 'a.dart';
+const b = -a;
+''');
+    checkElementText(
+      library,
+      r'''
+import 'package:test/a.dart';
+const int b;
+  constantInitializer
+    PrefixExpression
+      operand: SimpleIdentifier
+        staticElement: package:test/a.dart::@getter::a
+        staticType: Object
+        token: a
+      operator: -
+      staticElement: package:test/a.dart::@extension::E::@method::unary-
+      staticType: int
+''',
+      withResolvedAst: true,
     );
   }
 
@@ -3981,7 +4164,7 @@ const int b;
       writeElement: self::@getter::a
       writeType: dynamic
 ''',
-      withFullyResolvedAst: true,
+      withResolvedAst: true,
     );
   }
 
@@ -4579,7 +4762,7 @@ const List<int?> b;
             token: a
       staticType: List<int?>
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_const_topLevel_parenthesis() async {
@@ -4953,7 +5136,7 @@ class A {
       ConstructorFieldInitializer
         equals: =
         expression: SimpleIdentifier
-          staticElement: f@41
+          staticElement: self::@class::A::@constructor::•::@parameter::f
           staticType: int
           token: f
         fieldName: SimpleIdentifier
@@ -4966,7 +5149,7 @@ class A {
         staticType: int
 }
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_constructor_initializers_field_withParameter() async {
@@ -5036,7 +5219,7 @@ class B extends A {
         staticElement: self::@class::A::@constructor::•
 }
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_constructor_initializers_superInvocation_named() async {
@@ -5142,7 +5325,7 @@ class A {
         staticElement: self::@class::A::@constructor::•
 }
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_constructor_initializers_thisInvocation_named() async {
@@ -5815,7 +5998,7 @@ class X {
 typedef F<T> = void Function(T v);
 class X {
   final void Function(dynamic) f;
-  const X({void Function(dynamic) this.f:
+  const X({final void Function(dynamic) this.f:
         defaultF/*location: test.dart;defaultF*/});
 }
 void defaultF<T>(T v) {}
@@ -5863,7 +6046,7 @@ void f(dynamic Function({dynamic a}) g) {}
             token: int
           type: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_defaultValue_methodMember_legacy() async {
@@ -5893,7 +6076,7 @@ void f([int* Function(dynamic, dynamic)* compare]) {}
         substitution: {}
       staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_defaultValue_refersToExtension_method_inside() async {
@@ -6162,10 +6345,10 @@ class A {
 class B {
 }
 class alias X extends A with M {
-  synthetic X() = A;
+  synthetic X() : super();
 }
 class alias X extends B with M {
-  synthetic X() = B;
+  synthetic X() : super();
 }
 mixin M on Object {
 }
@@ -6438,7 +6621,7 @@ class C extends Object with M {
   dynamic foo() {}
 }
 class alias D extends Object with M {
-  synthetic const D() = Object;
+  synthetic const D() : super();
 }
 ''');
   }
@@ -6992,7 +7175,7 @@ class C {
     checkElementText(library, r'''
 class C extends D {
   int v;
-  C(int this.v);
+  C(final int this.v);
 }
 abstract class D {
   int get v;
@@ -7068,7 +7251,7 @@ const int a;
       literal: 0
       staticType: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_field_inferred_type_static_implicit_initialized() async {
@@ -7241,7 +7424,7 @@ class C2 {
   C2();
 }
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_function_async() async {
@@ -7338,6 +7521,40 @@ f() => 0;
 ''');
     var f = library.definingCompilationUnit.functions.single;
     expect(f.hasImplicitReturnType, isTrue);
+  }
+
+  test_function_parameter_fieldFormal() async {
+    var library = await checkLibrary('''
+void f(int this.a) {}
+''');
+    checkElementText(library, r'''
+void f(final int this.a) {}
+''');
+  }
+
+  test_function_parameter_fieldFormal_default() async {
+    var library = await checkLibrary('''
+void f({int this.a: 42}) {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f({final int this.a}) {}
+  a
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withResolvedAst: true);
+  }
+
+  test_function_parameter_fieldFormal_functionTyped() async {
+    var library = await checkLibrary('''
+void f(int this.a(int b)) {}
+''');
+    checkElementText(library, r'''
+void f(final int Function(int) this.a/*(int b)*/) {}
+''');
   }
 
   test_function_parameter_final() async {
@@ -7768,6 +7985,470 @@ int Function(int, String) v;
 ''');
   }
 
+  test_genericFunction_asTypeArgument_ofAnnotation_class() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+@A<int Function(String a)>()
+class B {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+class B {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+      element: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: dynamic}
+      name: SimpleIdentifier
+        staticElement: self::@class::A
+        staticType: null
+        token: A
+      typeArguments: TypeArgumentList
+        arguments
+          GenericFunctionType
+            declaredElement: GenericFunctionTypeElement
+              parameters
+                a
+                  kind: required positional
+                  type: String
+              returnType: int
+              type: int Function(String)
+            functionKeyword: Function
+            parameters: FormalParameterList
+              parameters
+                SimpleFormalParameter
+                  declaredElement: a@-1
+                  declaredElementType: String
+                  identifier: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: a
+                  type: TypeName
+                    name: SimpleIdentifier
+                      staticElement: dart:core::@class::String
+                      staticType: null
+                      token: String
+                    type: String
+            returnType: TypeName
+              name: SimpleIdentifier
+                staticElement: dart:core::@class::int
+                staticType: null
+                token: int
+              type: int
+            type: int Function(String)
+''',
+        withResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_ofAnnotation_topLevelVariable() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+@A<int Function(String a)>()
+var v = 0;
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+int v;
+  metadata
+    Annotation
+      arguments: ArgumentList
+      element: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: dynamic}
+      name: SimpleIdentifier
+        staticElement: self::@class::A
+        staticType: null
+        token: A
+      typeArguments: TypeArgumentList
+        arguments
+          GenericFunctionType
+            declaredElement: GenericFunctionTypeElement
+              parameters
+                a
+                  kind: required positional
+                  type: String
+              returnType: int
+              type: int Function(String)
+            functionKeyword: Function
+            parameters: FormalParameterList
+              parameters
+                SimpleFormalParameter
+                  declaredElement: a@-1
+                  declaredElementType: String
+                  identifier: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: a
+                  type: TypeName
+                    name: SimpleIdentifier
+                      staticElement: dart:core::@class::String
+                      staticType: null
+                      token: String
+                    type: String
+            returnType: TypeName
+              name: SimpleIdentifier
+                staticElement: dart:core::@class::int
+                staticType: null
+                token: int
+              type: int
+            type: int Function(String)
+''',
+        withResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_parameters_optionalNamed() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+const v = A<String Function({int? a})>();
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+const A<String Function({int? a})> v;
+  constantInitializer
+    InstanceCreationExpression
+      argumentList: ArgumentList
+      constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: String Function({int? a})}
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: self::@class::A
+            staticType: null
+            token: A
+          type: A<String Function({int? a})>
+          typeArguments: TypeArgumentList
+            arguments
+              GenericFunctionType
+                declaredElement: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: optional named
+                      type: int?
+                  returnType: String
+                  type: String Function({int? a})
+                functionKeyword: Function
+                parameters: FormalParameterList
+                  parameters
+                    DefaultFormalParameter
+                      declaredElement: a@-1
+                      declaredElementType: int?
+                      identifier: SimpleIdentifier
+                        staticElement: <null>
+                        staticType: null
+                        token: a
+                      parameter: SimpleFormalParameter
+                        declaredElement: a@-1
+                        declaredElementType: int?
+                        identifier: SimpleIdentifier
+                          staticElement: <null>
+                          staticType: null
+                          token: a
+                        type: TypeName
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::int
+                            staticType: null
+                            token: int
+                          type: int?
+                returnType: TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::String
+                    staticType: null
+                    token: String
+                  type: String
+                type: String Function({int? a})
+      staticType: A<String Function({int? a})>
+''',
+        withResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_parameters_optionalPositional() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+const v = A<String Function([int? a])>();
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+const A<String Function([int?])> v;
+  constantInitializer
+    InstanceCreationExpression
+      argumentList: ArgumentList
+      constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: String Function([int?])}
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: self::@class::A
+            staticType: null
+            token: A
+          type: A<String Function([int?])>
+          typeArguments: TypeArgumentList
+            arguments
+              GenericFunctionType
+                declaredElement: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: optional positional
+                      type: int?
+                  returnType: String
+                  type: String Function([int?])
+                functionKeyword: Function
+                parameters: FormalParameterList
+                  parameters
+                    DefaultFormalParameter
+                      declaredElement: a@-1
+                      declaredElementType: int?
+                      identifier: SimpleIdentifier
+                        staticElement: <null>
+                        staticType: null
+                        token: a
+                      parameter: SimpleFormalParameter
+                        declaredElement: a@-1
+                        declaredElementType: int?
+                        identifier: SimpleIdentifier
+                          staticElement: <null>
+                          staticType: null
+                          token: a
+                        type: TypeName
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::int
+                            staticType: null
+                            token: int
+                          type: int?
+                returnType: TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::String
+                    staticType: null
+                    token: String
+                  type: String
+                type: String Function([int?])
+      staticType: A<String Function([int?])>
+''',
+        withResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_parameters_requiredNamed() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+const v = A<String Function({required int a})>();
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+const A<String Function({required int a})> v;
+  constantInitializer
+    InstanceCreationExpression
+      argumentList: ArgumentList
+      constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: String Function({required int a})}
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: self::@class::A
+            staticType: null
+            token: A
+          type: A<String Function({required int a})>
+          typeArguments: TypeArgumentList
+            arguments
+              GenericFunctionType
+                declaredElement: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: required named
+                      type: int
+                  returnType: String
+                  type: String Function({required int a})
+                functionKeyword: Function
+                parameters: FormalParameterList
+                  parameters
+                    DefaultFormalParameter
+                      declaredElement: a@-1
+                      declaredElementType: int
+                      identifier: SimpleIdentifier
+                        staticElement: <null>
+                        staticType: null
+                        token: a
+                      parameter: SimpleFormalParameter
+                        declaredElement: a@-1
+                        declaredElementType: int
+                        identifier: SimpleIdentifier
+                          staticElement: <null>
+                          staticType: null
+                          token: a
+                        requiredKeyword: required
+                        type: TypeName
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::int
+                            staticType: null
+                            token: int
+                          type: int
+                returnType: TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::String
+                    staticType: null
+                    token: String
+                  type: String
+                type: String Function({required int a})
+      staticType: A<String Function({required int a})>
+''',
+        withResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_parameters_requiredPositional() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+const v = A<String Function(int a)>();
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+const A<String Function(int)> v;
+  constantInitializer
+    InstanceCreationExpression
+      argumentList: ArgumentList
+      constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: String Function(int)}
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: self::@class::A
+            staticType: null
+            token: A
+          type: A<String Function(int)>
+          typeArguments: TypeArgumentList
+            arguments
+              GenericFunctionType
+                declaredElement: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: required positional
+                      type: int
+                  returnType: String
+                  type: String Function(int)
+                functionKeyword: Function
+                parameters: FormalParameterList
+                  parameters
+                    SimpleFormalParameter
+                      declaredElement: a@-1
+                      declaredElementType: int
+                      identifier: SimpleIdentifier
+                        staticElement: <null>
+                        staticType: null
+                        token: a
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int
+                        type: int
+                returnType: TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::String
+                    staticType: null
+                    token: String
+                  type: String
+                type: String Function(int)
+      staticType: A<String Function(int)>
+''',
+        withResolvedAst: true);
+  }
+
+  test_genericFunction_boundOf_typeParameter_ofMixin() async {
+    var library = await checkLibrary(r'''
+mixin B<X extends void Function()> {}
+''');
+    checkElementText(library, r'''
+mixin B<X extends void Function() = void Function()> on Object {
+}
+''');
+  }
+
+  test_genericFunction_typeArgument_ofSuperclass_ofClassAlias() async {
+    var library = await checkLibrary(r'''
+class A<T> {}
+mixin M {}
+class B = A<void Function()> with M;
+''');
+    checkElementText(library, r'''
+class A<T> {
+}
+class alias B extends A<void Function()> with M {
+  synthetic B() : super();
+}
+mixin M on Object {
+}
+''');
+  }
+
   test_genericFunction_typeParameter_asTypedefArgument() async {
     var library = await checkLibrary(r'''
 typedef F1 = Function<V1>(F2<V1>);
@@ -7813,6 +8494,26 @@ notSimplyBounded typedef F<X extends dynamic Function()> = dynamic Function(dyna
 ''');
   }
 
+  test_getter_async() async {
+    var library = await checkLibrary(r'''
+Future<int> get foo async => 0;
+''');
+    checkElementText(library, r'''
+Future<int> get foo async {}
+''');
+  }
+
+  test_getter_asyncStar() async {
+    var library = await checkLibrary(r'''
+import 'dart:async';
+Stream<int> get foo async* {}
+''');
+    checkElementText(library, r'''
+import 'dart:async';
+Stream<int> get foo async* {}
+''');
+  }
+
   test_getter_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -7848,6 +8549,15 @@ abstract class D {
 ''');
   }
 
+  test_getter_syncStar() async {
+    var library = await checkLibrary(r'''
+Iterator<int> get foo sync* {}
+''');
+    checkElementText(library, r'''
+Iterator<int> get foo sync* {}
+''');
+  }
+
   test_getters() async {
     var library = await checkLibrary('int get x => null; get y => null;');
     checkElementText(library, r'''
@@ -7867,7 +8577,7 @@ const x = C.named(42);
     checkElementText(library, r'''
 class C {
   final Object x;
-  const C.named(Object this.x);
+  const C.named(final Object this.x);
 }
 const C x =
         C/*location: test.dart;C*/.
@@ -8010,6 +8720,16 @@ class B extends A {
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
+  }
+
+  test_import_dartCore_explicit() async {
+    var library = await checkLibrary('''
+import 'dart:core';
+import 'dart:math';
+''');
+    expect(library.imports, hasLength(2));
+    expect(library.imports[0].uri, 'dart:core');
+    expect(library.imports[1].uri, 'dart:math');
   }
 
   test_import_dartCore_implicit() async {
@@ -9144,7 +9864,7 @@ class C {
         staticElement: package:test/a.dart::@class::A
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_invalid_annotation_unprefixed_constructor() async {
@@ -9181,7 +9901,7 @@ class C {
         staticElement: package:test/a.dart::@class::A::@constructor::named
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_invalid_importPrefix_asTypeArgument() async {
@@ -9257,7 +9977,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int foo;
-  void set bar(dynamic this.foo) {}
+  void set bar(final dynamic this.foo) {}
 }
 ''');
   }
@@ -9270,7 +9990,7 @@ class C {
 ''');
     checkElementText(library, r'''
 class C {
-  void set x(dynamic this.x) {}
+  void set x(final dynamic this.x) {}
 }
 ''');
   }
@@ -9481,7 +10201,7 @@ class main {
         await checkLibrary('class main = C with D; class C {} class D {}');
     checkElementText(library, r'''
 class alias main extends C with D {
-  synthetic main() = C;
+  synthetic main() : super();
 }
 class C {
 }
@@ -9596,6 +10316,41 @@ class C {
 ''');
   }
 
+  test_metadata_class_field_first() async {
+    var library = await checkLibrary(r'''
+const a = 0;
+class C {
+  @a
+  int x = 0;
+}
+''');
+    // Check metadata without asking any other properties.
+    var x = _elementOfDefiningUnit(library, ['@class', 'C', '@field', 'x'])
+        as FieldElement;
+    expect(x.metadata, hasLength(1));
+    // Check details.
+    checkElementText(
+        library,
+        r'''
+class C {
+  int x;
+    metadata
+      Annotation
+        element: self::@getter::a
+        name: SimpleIdentifier
+          staticElement: self::@getter::a
+          staticType: null
+          token: a
+}
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+''',
+        withResolvedAst: true);
+  }
+
   test_metadata_class_scope() async {
     var library = await checkLibrary(r'''
 const foo = 0;
@@ -9649,7 +10404,7 @@ const int foo;
       literal: 0
       staticType: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_classDeclaration() async {
@@ -9678,7 +10433,7 @@ const dynamic b = null;
 @
         a/*location: test.dart;a?*/
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -9726,7 +10481,7 @@ class C {
         staticElement: self::@class::A::@constructor::named
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_named_generic_inference() async {
@@ -9778,7 +10533,7 @@ class C {
           substitution: {T: int}
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_named_generic_typeArguments() async {
@@ -9828,7 +10583,7 @@ class C {
               token: int
             type: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_named_generic_typeArguments_disabledGenericMetadata() async {
@@ -9877,7 +10632,7 @@ class C {
               token: int
             type: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_named_prefixed() async {
@@ -9923,7 +10678,7 @@ class C {
         staticElement: package:test/foo.dart::@class::A
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_named_prefixed_generic_inference() async {
@@ -9974,7 +10729,7 @@ class C {
         staticElement: package:test/foo.dart::@class::A
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_named_prefixed_generic_typeArguments() async {
@@ -10029,7 +10784,7 @@ class C {
               token: int
             type: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_named_synthetic_ofClassAlias_generic() async {
@@ -10052,7 +10807,15 @@ class A {
   const A.named();
 }
 class alias C extends A with B {
-  synthetic const C.named() = A.named;
+  synthetic const C.named();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        constructorName: SimpleIdentifier
+          staticElement: self::@class::A::@constructor::named
+          staticType: null
+          token: named
+        staticElement: self::@class::A::@constructor::named
 }
   typeParameters
     T
@@ -10085,7 +10848,7 @@ class D {
 mixin B on Object {
 }
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_unnamed() async {
@@ -10118,7 +10881,7 @@ class C {
         staticType: null
         token: A
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_unnamed_generic_inference() async {
@@ -10158,7 +10921,7 @@ class C {
         staticType: null
         token: A
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_unnamed_generic_typeArguments() async {
@@ -10202,7 +10965,7 @@ class C {
               token: int
             type: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_unnamed_prefixed() async {
@@ -10237,7 +11000,7 @@ class C {
         staticElement: package:test/foo.dart::@class::A
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
@@ -10282,7 +11045,7 @@ class C {
         staticElement: package:test/foo.dart::@class::A
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_typeArguments() async {
@@ -10331,7 +11094,7 @@ class C {
               token: int
             type: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_unnamed_synthetic_ofClassAlias_generic() async {
@@ -10354,7 +11117,11 @@ class A {
   const A();
 }
 class alias C extends A with B {
-  synthetic const C() = A;
+  synthetic const C();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        staticElement: self::@class::A::@constructor::•
 }
   typeParameters
     T
@@ -10375,7 +11142,7 @@ class D {
 mixin B on Object {
 }
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_constructor_call_with_args() async {
@@ -10441,7 +11208,7 @@ const int a;
       literal: 42
       staticType: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_enumConstantDeclaration_instanceCreation() async {
@@ -10494,10 +11261,10 @@ enum E {
 }
 class A {
   final dynamic value;
-  const A(dynamic this.value);
+  const A(final dynamic this.value);
 }
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_enumDeclaration() async {
@@ -10524,7 +11291,7 @@ const int a;
       literal: 42
       staticType: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_exportDirective() async {
@@ -10591,7 +11358,7 @@ const int foo;
       literal: 0
       staticType: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_extensionDeclaration() async {
@@ -10638,7 +11405,7 @@ class C {
 class C {
   dynamic x;
   C(@
-        a/*location: test.dart;a?*/ dynamic this.x);
+        a/*location: test.dart;a?*/ final dynamic this.x);
 }
 const dynamic a = null;
 ''');
@@ -10651,7 +11418,7 @@ const dynamic a = null;
 class C {
   dynamic x;
   C([@
-        a/*location: test.dart;a?*/ dynamic this.x = null]);
+        a/*location: test.dart;a?*/ final dynamic this.x = null]);
 }
 const dynamic a = null;
 ''');
@@ -10738,12 +11505,15 @@ const dynamic b = null;
   }
 
   test_metadata_importDirective() async {
-    addLibrarySource('/foo.dart', 'const b = 0;');
-    var library = await checkLibrary('@a import "foo.dart"; const a = b;');
+    var library = await checkLibrary('''
+@a
+import "dart:math";
+const a = 0;
+''');
     checkElementText(
         library,
         '''
-import 'foo.dart';
+import 'dart:math';
   metadata
     Annotation
       element: self::@getter::a
@@ -10753,12 +11523,11 @@ import 'foo.dart';
         token: a
 const int a;
   constantInitializer
-    SimpleIdentifier
-      staticElement: ${toUriStr('/foo.dart')}::@getter::b
+    IntegerLiteral
+      literal: 0
       staticType: int
-      token: b
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_importDirective_hasShow() async {
@@ -10785,7 +11554,97 @@ const int a;
       literal: 0
       staticType: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
+  }
+
+  test_metadata_inAliasedElement_formalParameter() async {
+    var library = await checkLibrary('''
+const a = 42;
+typedef F = void Function(@a int first)
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(int first);
+  aliasedElement
+    parameters
+      first
+        metadata
+          Annotation
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withResolvedAst: true);
+  }
+
+  test_metadata_inAliasedElement_formalParameter2() async {
+    var library = await checkLibrary('''
+const a = 42;
+typedef F = void Function(int foo(@a int bar))
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(int Function(int) foo);
+  aliasedElement
+    parameters
+      foo
+          parameters
+            bar
+              metadata
+                Annotation
+                  element: self::@getter::a
+                  name: SimpleIdentifier
+                    staticElement: self::@getter::a
+                    staticType: null
+                    token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withResolvedAst: true);
+  }
+
+  test_metadata_inAliasedElement_typeParameter() async {
+    var library = await checkLibrary('''
+const a = 42;
+typedef F = void Function<@a T>(int first)
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(int first);
+  aliasedElement
+    typeParameters
+      T
+        bound: null
+        defaultType: null
+        metadata
+          Annotation
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a
+    parameters
+      first
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withResolvedAst: true);
   }
 
   test_metadata_invalid_classDeclaration() async {
@@ -10939,7 +11798,7 @@ const int foo;
       literal: 0
       staticType: int
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_mixinDeclaration() async {
@@ -10959,6 +11818,648 @@ mixin M on Object {
 const dynamic a = null;
 const dynamic b = null;
 ''');
+  }
+
+  test_metadata_offsets_onClass() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+class A<@foo T> {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+}
+  metadata
+    Annotation
+      atSign.offset: 16
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 17
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 17
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+      metadata
+        Annotation
+          atSign.offset: 29
+          element: self::@getter::foo
+          name: SimpleIdentifier
+            offset: 30
+            staticElement: self::@getter::foo
+            staticType: null
+            token: foo
+              offset: 30
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onClassConstructor() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+class A {
+  @foo
+  A(@foo int a);
+}
+''');
+    // TODO(scheglov) Enhance to show metadata on formal parameters?
+    checkElementText(
+        library,
+        r'''
+class A {
+  A(int a);
+    metadata
+      Annotation
+        atSign.offset: 28
+        element: self::@getter::foo
+        name: SimpleIdentifier
+          offset: 29
+          staticElement: self::@getter::foo
+          staticType: null
+          token: foo
+            offset: 29
+}
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onClassGetter() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+class A {
+  @foo
+  int get getter => 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  int get getter {}
+    metadata
+      Annotation
+        atSign.offset: 28
+        element: self::@getter::foo
+        name: SimpleIdentifier
+          offset: 29
+          staticElement: self::@getter::foo
+          staticType: null
+          token: foo
+            offset: 29
+}
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onClassMethod() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+class A {
+  @foo
+  void method<@foo T>(@foo int a) {}
+}
+''');
+    // TODO(scheglov) Enhance to show metadata on formal parameters?
+    checkElementText(
+        library,
+        r'''
+class A {
+  void method(int a) {}
+    typeParameters
+      T
+        bound: null
+        defaultType: null
+        metadata
+          Annotation
+            atSign.offset: 47
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              offset: 48
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo
+                offset: 48
+    metadata
+      Annotation
+        atSign.offset: 28
+        element: self::@getter::foo
+        name: SimpleIdentifier
+          offset: 29
+          staticElement: self::@getter::foo
+          staticType: null
+          token: foo
+            offset: 29
+}
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onClassSetter() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+class A {
+  @foo
+  set setter(@foo int a) {}
+}
+''');
+    // TODO(scheglov) Enhance to show metadata on formal parameters?
+    checkElementText(
+        library,
+        r'''
+class A {
+  void set setter(int a) {}
+    metadata
+      Annotation
+        atSign.offset: 28
+        element: self::@getter::foo
+        name: SimpleIdentifier
+          offset: 29
+          staticElement: self::@getter::foo
+          staticType: null
+          token: foo
+            offset: 29
+}
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onClassTypeAlias() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+class A {}
+mixin M {}
+
+@foo
+class B<@foo T> = A with M;
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+}
+class alias B extends A with M {
+  synthetic B();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        staticElement: self::@class::A::@constructor::•
+}
+  metadata
+    Annotation
+      atSign.offset: 39
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 40
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 40
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+      metadata
+        Annotation
+          atSign.offset: 52
+          element: self::@getter::foo
+          name: SimpleIdentifier
+            offset: 53
+            staticElement: self::@getter::foo
+            staticType: null
+            token: foo
+              offset: 53
+mixin M on Object {
+}
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onEnum() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+enum E {
+  @foo e1,
+  e2,
+  @foo e3,
+}
+''');
+    checkElementText(
+        library,
+        r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E e1;
+    metadata
+      Annotation
+        atSign.offset: 32
+        element: self::@getter::foo
+        name: SimpleIdentifier
+          offset: 33
+          staticElement: self::@getter::foo
+          staticType: null
+          token: foo
+            offset: 33
+  static const E e2;
+  static const E e3;
+    metadata
+      Annotation
+        atSign.offset: 49
+        element: self::@getter::foo
+        name: SimpleIdentifier
+          offset: 50
+          staticElement: self::@getter::foo
+          staticType: null
+          token: foo
+            offset: 50
+  String toString() {}
+}
+  metadata
+    Annotation
+      atSign.offset: 16
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 17
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 17
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onExtension() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+extension E<@foo T> on List<T> {}
+''');
+    checkElementText(
+        library,
+        r'''
+extension E on List<T> {
+}
+  metadata
+    Annotation
+      atSign.offset: 16
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 17
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 17
+  typeParameters
+    T
+      bound: null
+      defaultType: null
+      metadata
+        Annotation
+          atSign.offset: 33
+          element: self::@getter::foo
+          name: SimpleIdentifier
+            offset: 34
+            staticElement: self::@getter::foo
+            staticType: null
+            token: foo
+              offset: 34
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onFieldDeclaration() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+class A {
+  @foo
+  static isNotConst = 1;
+
+  @foo
+  static const isConst = 2;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  static int isNotConst;
+    metadata
+      Annotation
+        atSign.offset: 28
+        element: self::@getter::foo
+        name: SimpleIdentifier
+          offset: 29
+          staticElement: self::@getter::foo
+          staticType: null
+          token: foo
+            offset: 29
+  static const int isConst;
+    metadata
+      Annotation
+        atSign.offset: 61
+        element: self::@getter::foo
+        name: SimpleIdentifier
+          offset: 62
+          staticElement: self::@getter::foo
+          staticType: null
+          token: foo
+            offset: 62
+    constantInitializer
+      IntegerLiteral
+        literal: 2
+          offset: 91
+        staticType: int
+}
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onMixin() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+mixin A<@foo T> {}
+''');
+    checkElementText(
+        library,
+        r'''
+mixin A on Object {
+}
+  metadata
+    Annotation
+      atSign.offset: 16
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 17
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 17
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+      metadata
+        Annotation
+          atSign.offset: 29
+          element: self::@getter::foo
+          name: SimpleIdentifier
+            offset: 30
+            staticElement: self::@getter::foo
+            staticType: null
+            token: foo
+              offset: 30
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onUnitFunction() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+void f<@foo T>(@foo int a) {}
+''');
+    // TODO(scheglov) Enhance to show metadata on formal parameters?
+    checkElementText(
+        library,
+        r'''
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+void f(int a) {}
+  typeParameters
+    T
+      bound: null
+      defaultType: null
+      metadata
+        Annotation
+          atSign.offset: 28
+          element: self::@getter::foo
+          name: SimpleIdentifier
+            offset: 29
+            staticElement: self::@getter::foo
+            staticType: null
+            token: foo
+              offset: 29
+  metadata
+    Annotation
+      atSign.offset: 16
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 17
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 17
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onUnitGetter() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+int get getter => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+int get getter {}
+  metadata
+    Annotation
+      atSign.offset: 16
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 17
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 17
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onUnitSetter() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+set setter(@foo int a) {}
+''');
+    // TODO(scheglov) Enhance to show metadata on formal parameters?
+    checkElementText(
+        library,
+        r'''
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+void set setter(int a) {}
+  metadata
+    Annotation
+      atSign.offset: 16
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 17
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 17
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
+  }
+
+  test_metadata_offsets_onUnitVariable() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+var isNotConst = 1;
+
+@foo
+const isConst = 2;
+''');
+    checkElementText(
+        library,
+        r'''
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+        offset: 12
+      staticType: int
+int isNotConst;
+  metadata
+    Annotation
+      atSign.offset: 16
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 17
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 17
+const int isConst;
+  metadata
+    Annotation
+      atSign.offset: 42
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        offset: 43
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo
+          offset: 43
+  constantInitializer
+    IntegerLiteral
+      literal: 2
+        offset: 63
+      staticType: int
+''',
+        withResolvedAst: true,
+        withResolvedAstOffsets: true);
   }
 
   test_metadata_partDirective() async {
@@ -11036,6 +12537,19 @@ const dynamic a = null;
 ''');
   }
 
+  test_metadata_simpleFormalParameter_unit_setter() async {
+    var library = await checkLibrary('''
+const a = null;
+
+set foo(@a int x) {}
+''');
+    checkElementText(library, r'''
+const dynamic a = null;
+void set foo(@
+        a/*location: test.dart;a?*/ int x) {}
+''');
+  }
+
   test_metadata_simpleFormalParameter_withDefault() async {
     var library = await checkLibrary('const a = null; f([@a x = null]) {}');
     checkElementText(library, r'''
@@ -11076,7 +12590,7 @@ class E {}''');
 class alias C<@
         a/*location: test.dart;a?*/
 T> extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -11104,6 +12618,37 @@ typedef F<@
 T> = dynamic Function();
 const dynamic a = null;
 ''');
+  }
+
+  test_metadata_unit_topLevelVariable_first() async {
+    var library = await checkLibrary(r'''
+const a = 0;
+@a
+int x = 0;
+''');
+    // Check metadata without asking any other properties.
+    var x = _elementOfDefiningUnit(library, ['@variable', 'x'])
+        as TopLevelVariableElement;
+    expect(x.metadata, hasLength(1));
+    // Check details.
+    checkElementText(
+        library,
+        r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+int x;
+  metadata
+    Annotation
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a
+''',
+        withResolvedAst: true);
   }
 
   test_metadata_value_class_staticField() async {
@@ -11143,7 +12688,7 @@ class C {
         staticElement: self::@class::A::@getter::x
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_value_enum_constant() async {
@@ -11182,7 +12727,7 @@ class C {
         staticElement: self::@enum::E::@getter::b
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_value_extension_staticField() async {
@@ -11222,7 +12767,7 @@ extension E on int {
         staticType: int
 }
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_metadata_value_prefix_extension_staticField() async {
@@ -11263,7 +12808,7 @@ class C {
         staticElement: package:test/foo.dart::@extension::E
         staticType: null
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_method_documented() async {
@@ -11683,6 +13228,218 @@ A v;
 ''');
   }
 
+  test_nameOffset_class_constructor() async {
+    var library = await checkLibrary(r'''
+class A {
+  A();
+  A.named();
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  A[nameOffset: 12]();
+  A.named[periodOffset: 20][nameOffset: 21][nameEnd: 26]();
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_constructor_parameter() async {
+    var library = await checkLibrary(r'''
+class A {
+  A(int a);
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  A[nameOffset: 12](int a@18);
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_field() async {
+    var library = await checkLibrary(r'''
+class A {
+  int foo = 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  int foo@16;
+  synthetic int get foo@16 {}
+  synthetic void set foo@16(int _foo@16) {}
+}
+''',
+        withOffsets: true,
+        withSyntheticAccessors: true);
+  }
+
+  test_nameOffset_class_getter() async {
+    var library = await checkLibrary(r'''
+class A {
+  int get foo => 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  int get foo@20 {}
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_method() async {
+    var library = await checkLibrary(r'''
+class A {
+  void foo<T>(int a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  void foo@17<T@21>(int a@28) {}
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_setter() async {
+    var library = await checkLibrary(r'''
+class A {
+  set foo(int x) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  void set foo@16(int x@24) {}
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_typeParameter() async {
+    var library = await checkLibrary(r'''
+class A<T> {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6<T@8> {
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_extension_typeParameter() async {
+    var library = await checkLibrary(r'''
+extension E<T> on int {}
+''');
+    checkElementText(
+        library,
+        r'''
+extension E@10<T@12> on int {
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_function_functionTypedFormal_parameter() async {
+    var library = await checkLibrary(r'''
+void f(void f<U>(int a)) {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f@5(void Function<U>(int) f@12/*<U@14>*//*(int a@21)*/) {}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_function_functionTypedFormal_parameter2() async {
+    var library = await checkLibrary(r'''
+void f({required void f<U>(int a)}) {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f@5({void Function<U>(int) f@22/*<U@24>*//*(int a@31)*/}) {}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_function_typeParameter() async {
+    var library = await checkLibrary(r'''
+void f<T>() {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f@5<T@7>() {}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_functionTypeAlias_typeParameter() async {
+    var library = await checkLibrary(r'''
+typedef void F<T>();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F@13<T@15> = void Function();
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_genericTypeAlias_typeParameter() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = void Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F@8<T@10> = void Function();
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_mixin_typeParameter() async {
+    var library = await checkLibrary(r'''
+mixin M<T> {}
+''');
+    checkElementText(
+        library,
+        r'''
+mixin M@6<T@8> on Object {
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_unit_getter() async {
+    var library = await checkLibrary(r'''
+int get foo => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+int get foo@8 {}
+''',
+        withOffsets: true);
+  }
+
   test_nested_generic_functions_in_generic_class_with_function_typed_params() async {
     var library = await checkLibrary('''
 class C<T, U> {
@@ -12052,6 +13809,15 @@ class C {
 ''');
   }
 
+  test_parameter_typeParameters() async {
+    var library = await checkLibrary(r'''
+void f(T a<T, U>(U u)) {}
+''');
+    checkElementText(library, r'''
+void f(T Function<T, U>(U) a/*<T, U>*//*(U u)*/) {}
+''');
+  }
+
   test_parameterTypeNotInferred_constructor() async {
     // Strong mode doesn't do type inference on constructor parameters, so it's
     // ok that we don't store inferred type info for them in summaries.
@@ -12082,8 +13848,8 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C.positional([dynamic this.x = 1]);
-  C.named({dynamic this.x: 1});
+  C.positional([final dynamic this.x = 1]);
+  C.named({final dynamic this.x: 1});
 }
 ''');
   }
@@ -12490,10 +14256,43 @@ class B {
     checkElementText(library, r'''
 class A<T> {
   T value;
-  A(T this.value);
+  A(final T this.value);
 }
 class B {
   A<String> a;
+}
+''');
+  }
+
+  test_type_inference_field_depends_onFieldFormal_withMixinApp() async {
+    var library = await checkLibrary('''
+class A<T> {
+  T value;
+
+  A(this.value);
+}
+
+class B<T> = A<T> with M;
+
+class C {
+  var a = new B(42);
+}
+
+mixin M {}
+''');
+    checkElementText(library, r'''
+class A<T> {
+  T value;
+  A(final T this.value);
+}
+class alias B<T> extends A<T> with M {
+  synthetic B(final T value) : super(
+        value/*location: test.dart;B;;value*/);
+}
+class C {
+  B<int> a;
+}
+mixin M on Object {
 }
 ''');
   }
@@ -12508,7 +14307,7 @@ class A<T> {
     checkElementText(library, r'''
 class A<T> {
   int f;
-  A(int this.f);
+  A(final int this.f);
 }
 ''');
   }
@@ -12595,10 +14394,25 @@ class B extends A {
 }
 class C<T extends A = A> {
   final T f;
-  const C(T this.f);
+  const C(final T this.f);
 }
 final B b;
 final C<B> c;
+''');
+  }
+
+  test_type_inference_using_extension_getter() async {
+    var library = await checkLibrary('''
+extension on String {
+  int get foo => 0;
+}
+var v = 'a'.foo;
+''');
+    checkElementText(library, '''
+extension  on String {
+  int get foo {}
+}
+int v;
 ''');
   }
 
@@ -13024,6 +14838,18 @@ dynamic c;
 import 'dart:core' as core;
 dynamic c;
 ''');
+  }
+
+  test_typeAlias_parameter_typeParameters() async {
+    var library = await checkLibrary(r'''
+typedef void F(T a<T, U>(U u));
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(T Function<T, U>(U) a/*<covariant T, covariant U>*//*(U u)*/);
+''',
+        withTypeParameterVariance: true);
   }
 
   test_typeAlias_typeParameters_variance_function_contravariant() async {
@@ -13912,6 +15738,19 @@ notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 ''');
   }
 
+  test_typedef_parameter_hasImplicitType() async {
+    var library = await checkLibrary(r'''
+typedef void F(int a, b, [int c, d]);
+''');
+    var F = library.definingCompilationUnit.typeAliases.single;
+    var function = F.aliasedElement as GenericFunctionTypeElement;
+    // TODO(scheglov) Use better textual presentation with all information.
+    expect(function.parameters[0].hasImplicitType, false);
+    expect(function.parameters[1].hasImplicitType, true);
+    expect(function.parameters[2].hasImplicitType, false);
+    expect(function.parameters[3].hasImplicitType, true);
+  }
+
   test_typedef_parameter_parameters() async {
     var library = await checkLibrary('typedef F(g(x, y));');
     checkElementText(library, r'''
@@ -14075,6 +15914,52 @@ notSimplyBounded typedef F<T extends U* = Null*, U> = U* Function(T* t);
 dynamic f() {}
 dynamic g() {}
 ''');
+  }
+
+  test_unit_implicitVariable_getterFirst() async {
+    var library = await checkLibrary('''
+int get x => 0;
+void set x(int value) {}
+''');
+    checkElementText(
+        library,
+        r'''
+synthetic int x;
+int get x {}
+void set x(int value) {}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_unit_implicitVariable_setterFirst() async {
+    var library = await checkLibrary('''
+void set x(int value) {}
+int get x => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+synthetic int x;
+void set x(int value) {}
+int get x {}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_unit_variable_final_withSetter() async {
+    var library = await checkLibrary(r'''
+final int foo = 0;
+set foo(int newValue) {}
+''');
+    checkElementText(
+        library,
+        r'''
+final int foo;
+synthetic int get foo {}
+void set foo(int newValue) {}
+''',
+        withSyntheticFields: true,
+        withSyntheticAccessors: true);
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {
@@ -14250,7 +16135,7 @@ class C {
         staticType: null
         token: foo
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_unresolved_annotation_simpleIdentifier_multiplyDefined() async {
@@ -14278,7 +16163,7 @@ class C {
         staticType: null
         token: v
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
@@ -14455,10 +16340,10 @@ void set x(int _) {}
         as PropertyAccessorElementImpl;
     var variable = getter.variable as TopLevelVariableElementImpl;
     expect(variable, isNotNull);
-    expect(variable.isFinal, isTrue);
+    expect(variable.isFinal, isFalse);
     expect(variable.getter, same(getter));
     expect('${variable.type}', 'int');
-    expect(variable, same(_elementOfDefiningUnit(library, ['@field', 'x'])));
+    expect(variable, same(_elementOfDefiningUnit(library, ['@variable', 'x'])));
   }
 
   test_variable_implicit_type() async {
@@ -14695,7 +16580,7 @@ const A<int> a;
           type: A<int>
       staticType: A<int>
 ''',
-        withFullyResolvedAst: true);
+        withResolvedAst: true);
   }
 
   test_variables() async {
@@ -14724,7 +16609,12 @@ int j;
     var reference = unit.reference!;
     names.forEach((name) => reference = reference.getChild(name));
 
-    var elementFactory = unit.linkedContext!.elementFactory;
+    var element = reference.element;
+    if (element != null) {
+      return element;
+    }
+
+    var elementFactory = library.linkedData!.elementFactory;
     return elementFactory.elementOfReference(reference)!;
   }
 }

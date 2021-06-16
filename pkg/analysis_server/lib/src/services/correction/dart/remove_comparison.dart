@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -31,10 +29,10 @@ class RemoveComparison extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! BinaryExpression) {
+    var binaryExpression = node;
+    if (binaryExpression is! BinaryExpression) {
       return;
     }
-    var binaryExpression = node as BinaryExpression;
     var parent = binaryExpression.parent;
     if (parent is AssertInitializer && _conditionIsTrue) {
       var constructor = parent.parent as ConstructorDeclaration;
@@ -55,10 +53,10 @@ class RemoveComparison extends CorrectionProducer {
     } else if (parent is BinaryExpression) {
       if (parent.operator.type == TokenType.AMPERSAND_AMPERSAND &&
           _conditionIsTrue) {
-        await _removeOperatorAndOperand(builder, parent, node);
+        await _removeOperatorAndOperand(builder, parent, binaryExpression);
       } else if (parent.operator.type == TokenType.BAR_BAR &&
           _conditionIsFalse) {
-        await _removeOperatorAndOperand(builder, parent, node);
+        await _removeOperatorAndOperand(builder, parent, binaryExpression);
       }
     } else if (parent is IfStatement) {
       if (parent.elseStatement == null && _conditionIsTrue) {

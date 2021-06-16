@@ -10,10 +10,10 @@ class C extends core::Object {
   get x() → dynamic
     return null;
   method test() → void {
-    dynamic v1 = this.{self::C::x};
-    dynamic v2 = this.{self::C::x};
-    dynamic v3 = this.{self::C::y};
-    dynamic v4 = this.{self::C::y};
+    dynamic v1 = this.{self::C::x}{dynamic};
+    dynamic v2 = this.{self::C::x}{dynamic};
+    dynamic v3 = this.{self::C::y}{dynamic};
+    dynamic v4 = this.{self::C::y}{dynamic};
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -27,8 +27,8 @@ class C extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test(self::C* c, dynamic d) → void {
-  dynamic v1 = c.{self::C::x};
-  dynamic v2 = c.{self::C::y};
-  dynamic v3 = d.x;
+  dynamic v1 = c.{self::C::x}{dynamic};
+  dynamic v2 = c.{self::C::y}{dynamic};
+  dynamic v3 = d{dynamic}.x;
 }
 static method main() → dynamic {}

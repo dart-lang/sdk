@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,6 +12,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class UseIsNotEmpty extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.USE_IS_NOT_EMPTY;
 
   @override
@@ -21,10 +25,10 @@ class UseIsNotEmpty extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! PrefixExpression) {
+    var prefixExpression = node;
+    if (prefixExpression is! PrefixExpression) {
       return;
     }
-    PrefixExpression prefixExpression = node;
     var negation = prefixExpression.operator;
     if (negation.type != TokenType.BANG) {
       return;

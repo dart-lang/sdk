@@ -1,11 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2016 The Dart project authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 import time
@@ -64,7 +63,7 @@ def ToCommandLine(gn_args):
             return '%s=%d' % (key, value)
         return '%s="%s"' % (key, value)
 
-    return [merge(x, y) for x, y in gn_args.iteritems()]
+    return [merge(x, y) for x, y in gn_args.items()]
 
 
 def HostCpuForArch(arch):
@@ -164,7 +163,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         # Tell Crashpad's BUILD files which checkout layout to use.
         gn_args['crashpad_dependencies'] = 'dart'
 
-    if arch != HostCpuForArch(arch):
+    if DartTargetCpuForArch(arch) != HostCpuForArch(arch):
         # Training an app-jit snapshot under a simulator is slow. Use script
         # snapshots instead.
         gn_args['dart_snapshot_kind'] = 'kernel'
@@ -175,6 +174,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     # Linux and Windows.
     if gn_args['target_os'] in ['linux', 'win']:
         gn_args['dart_use_fallback_root_certificates'] = True
+
+    gn_args['bssl_use_clang_integrated_as'] = True
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and

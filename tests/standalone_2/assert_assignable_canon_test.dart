@@ -4,6 +4,8 @@
 //
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 abstract class A<T extends A<T>> {
   @pragma('vm:prefer-inline')
   f(x) => new R<T>(x);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -36,12 +34,12 @@ void main() {
 
 @reflectiveTest
 class BuiltInPluginInfoTest with ResourceProviderMixin, _ContextRoot {
-  TestNotificationManager notificationManager;
-  BuiltInPluginInfo plugin;
+  late TestNotificationManager notificationManager;
+  late BuiltInPluginInfo plugin;
 
   void setUp() {
     notificationManager = TestNotificationManager();
-    plugin = BuiltInPluginInfo(null, 'test plugin', notificationManager,
+    plugin = BuiltInPluginInfo((_) {}, 'test plugin', notificationManager,
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -105,11 +103,11 @@ class BuiltInPluginInfoTest with ResourceProviderMixin, _ContextRoot {
 
 @reflectiveTest
 class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
-  TestNotificationManager notificationManager;
+  late TestNotificationManager notificationManager;
   String pluginPath = '/pluginDir';
   String executionPath = '/pluginDir/bin/plugin.dart';
   String packagesPath = '/pluginDir/.packages';
-  DiscoveredPluginInfo plugin;
+  late DiscoveredPluginInfo plugin;
 
   void setUp() {
     notificationManager = TestNotificationManager();
@@ -130,7 +128,7 @@ class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
     expect(plugin.contextRoots, [contextRoot1]);
     var sentRequests = channel.sentRequests;
     expect(sentRequests, hasLength(1));
-    List<Map> roots = sentRequests[0].params['roots'];
+    var roots = sentRequests[0].params['roots'] as List<Map>;
     expect(roots[0]['optionsFile'], optionsFile.path);
   }
 
@@ -188,7 +186,7 @@ class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
 @reflectiveTest
 class PluginManagerFromDiskTest extends PluginTestSupport {
   String byteStorePath = '/byteStore';
-  PluginManager manager;
+  late PluginManager manager;
 
   @override
   void setUp() {
@@ -447,10 +445,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 
 @reflectiveTest
 class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
-  String byteStorePath;
-  String sdkPath;
-  TestNotificationManager notificationManager;
-  PluginManager manager;
+  late String byteStorePath;
+  late String sdkPath;
+  late TestNotificationManager notificationManager;
+  late PluginManager manager;
 
   void setUp() {
     byteStorePath = resourceProvider.convertPath('/byteStore');
@@ -500,7 +498,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     newFolder('/workspaceRoot/bazel-bin');
     newFolder('/workspaceRoot/bazel-genfiles');
 
-    String newPackage(String packageName, [List<String> dependencies]) {
+    String newPackage(String packageName, [List<String>? dependencies]) {
       var packageRoot =
           newFolder('/workspaceRoot/third_party/dart/$packageName').path;
       newFile('$packageRoot/lib/$packageName.dart');
@@ -579,13 +577,13 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
 
 @reflectiveTest
 class PluginSessionTest with ResourceProviderMixin {
-  TestNotificationManager notificationManager;
-  String pluginPath;
-  String executionPath;
-  String packagesPath;
-  String sdkPath;
-  PluginInfo plugin;
-  PluginSession session;
+  late TestNotificationManager notificationManager;
+  late String pluginPath;
+  late String executionPath;
+  late String packagesPath;
+  late String sdkPath;
+  late PluginInfo plugin;
+  late PluginSession session;
 
   void setUp() {
     notificationManager = TestNotificationManager();
@@ -655,7 +653,7 @@ class PluginSessionTest with ResourceProviderMixin {
   Future<void> test_start_running() async {
     TestServerCommunicationChannel(session);
     try {
-      await session.start(null, '');
+      await session.start('', '');
       fail('Expected a StateError to be thrown');
     } on StateError {
       // Expected behavior
@@ -677,12 +675,12 @@ class PluginSessionTest with ResourceProviderMixin {
 /// A class designed to be used as a superclass for test classes that define
 /// tests that require plugins to be created on disk.
 abstract class PluginTestSupport {
-  PhysicalResourceProvider resourceProvider;
-  TestNotificationManager notificationManager;
+  late PhysicalResourceProvider resourceProvider;
+  late TestNotificationManager notificationManager;
 
   /// The content to be used for the '.packages' file, or `null` if the content
   /// has not yet been computed.
-  String _packagesFileContent;
+  String? _packagesFileContent;
 
   void setUp() {
     resourceProvider = PhysicalResourceProvider.INSTANCE;
@@ -705,9 +703,9 @@ abstract class PluginTestSupport {
   /// The [test] function will be passed the path of the directory that was
   /// created.
   Future<void> withPlugin(
-      {String content,
-      String pluginName,
-      Future<void> Function(String) test}) async {
+      {String? content,
+      String? pluginName,
+      required Future<void> Function(String) test}) async {
     var tempDirectory =
         io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
     try {
@@ -752,9 +750,9 @@ abstract class PluginTestSupport {
   /// The [test] function will be passed the path of the directory that was
   /// created.
   Future<void> withPubspecPlugin(
-      {String content,
-      String pluginName,
-      Future<void> Function(String) test}) async {
+      {String? content,
+      String? pluginName,
+      required Future<void> Function(String) test}) async {
     var tempDirectory =
         io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
     try {
@@ -850,13 +848,14 @@ class MinimalPlugin extends ServerPlugin {
 
   /// Return the content to be used for the '.packages' file.
   String _getPackagesFileContent() {
-    if (_packagesFileContent == null) {
+    var packagesFileContent = _packagesFileContent;
+    if (packagesFileContent == null) {
       var sdkPackagesFile = io.File(_sdkPackagesPath());
       var sdkPackageMap = sdkPackagesFile.readAsLinesSync();
-      _packagesFileContent =
+      packagesFileContent = _packagesFileContent =
           _convertPackageMap(path.dirname(sdkPackagesFile.path), sdkPackageMap);
     }
-    return _packagesFileContent;
+    return packagesFileContent;
   }
 
   /// Return the content to be used for the 'pubspec.yaml' file.
@@ -926,9 +925,9 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void listen(void Function(Response) onResponse,
-      void Function(Notification) onNotification,
-      {void Function(dynamic) onError, void Function() onDone}) {
+  void listen(void Function(Response response) onResponse,
+      void Function(Notification notification) onNotification,
+      {void Function(dynamic error)? onError, void Function()? onDone}) {
     fail('Unexpected invocation of listen');
   }
 

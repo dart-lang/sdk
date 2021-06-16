@@ -27,10 +27,6 @@ class LineSplitter extends StreamTransformerBase<String, String> {
   /// (`0 <= start <= end <= lines.length`).
   static Iterable<String> split(String lines, [int start = 0, int? end]) sync* {
     end = RangeError.checkValidRange(start, end, lines.length);
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (end == null) {
-      throw RangeError("Invalid range");
-    }
     var sliceStart = start;
     var char = 0;
     for (var i = start; i < end; i++) {

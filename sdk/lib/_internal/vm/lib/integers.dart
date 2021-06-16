@@ -204,25 +204,18 @@ abstract class _IntegerImplementation implements int {
     if (other is double) {
       const int MAX_EXACT_INT_TO_DOUBLE = 9007199254740992; // 2^53.
       const int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
-      const bool limitIntsTo64Bits = ((1 << 64) == 0);
-      if (limitIntsTo64Bits) {
-        // With integers limited to 64 bits, double.toInt() clamps
-        // double value to fit into the MIN_INT64..MAX_INT64 range.
-        // Check if the double value is outside of this range.
-        // This check handles +/-infinity as well.
-        const double minInt64AsDouble = -9223372036854775808.0;
-        // MAX_INT64 is not precisely representable in doubles, so
-        // check against (MAX_INT64 + 1).
-        const double maxInt64Plus1AsDouble = 9223372036854775808.0;
-        if (other < minInt64AsDouble) {
-          return GREATER;
-        } else if (other >= maxInt64Plus1AsDouble) {
-          return LESS;
-        }
-      } else {
-        if (other.isInfinite) {
-          return other.isNegative ? GREATER : LESS;
-        }
+      // With int limited to 64 bits, double.toInt() clamps
+      // double value to fit into the MIN_INT64..MAX_INT64 range.
+      // Check if the double value is outside of this range.
+      // This check handles +/-infinity as well.
+      const double minInt64AsDouble = -9223372036854775808.0;
+      // MAX_INT64 is not precisely representable in doubles, so
+      // check against (MAX_INT64 + 1).
+      const double maxInt64Plus1AsDouble = 9223372036854775808.0;
+      if (other < minInt64AsDouble) {
+        return GREATER;
+      } else if (other >= maxInt64Plus1AsDouble) {
+        return LESS;
       }
       if (other.isNaN) {
         return LESS;
@@ -337,7 +330,7 @@ abstract class _IntegerImplementation implements int {
     final bool isNegative = this < 0;
     int value = isNegative ? -this : this;
     if (value < 0) {
-      // With integers limited to 64 bits, the value
+      // With int limited to 64 bits, the value
       // MIN_INT64 = -0x8000000000000000 overflows at negation:
       // -MIN_INT64 == MIN_INT64, so it requires special handling.
       return _minInt64ToRadixString(radix);
@@ -368,7 +361,7 @@ abstract class _IntegerImplementation implements int {
       value = -value;
       length = 1;
       if (value < 0) {
-        // With integers limited to 64 bits, the value
+        // With int limited to 64 bits, the value
         // MIN_INT64 = -0x8000000000000000 overflows at negation:
         // -MIN_INT64 == MIN_INT64, so it requires special handling.
         return _minInt64ToRadixString(radix);

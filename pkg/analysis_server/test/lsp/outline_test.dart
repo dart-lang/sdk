@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -33,11 +31,11 @@ class OutlineTest extends AbstractLspAnalysisServerTest {
 
     expect(outlineBeforeChange, isNotNull);
     expect(outlineBeforeChange.children, hasLength(1));
-    expect(outlineBeforeChange.children[0].element.name, equals('A'));
+    expect(outlineBeforeChange.children![0].element.name, equals('A'));
 
     expect(outlineAfterChange, isNotNull);
     expect(outlineAfterChange.children, hasLength(1));
-    expect(outlineAfterChange.children[0].element.name, equals('B'));
+    expect(outlineAfterChange.children![0].element.name, equals('B'));
   }
 
   Future<void> test_extensions() async {
@@ -53,8 +51,8 @@ extension on String {}
 
     expect(outline, isNotNull);
     expect(outline.children, hasLength(2));
-    expect(outline.children[0].element.name, equals('StringExtensions'));
-    expect(outline.children[1].element.name, equals('<unnamed extension>'));
+    expect(outline.children![0].element.name, equals('StringExtensions'));
+    expect(outline.children![1].element.name, equals('<unnamed extension>'));
   }
 
   Future<void> test_initial() async {
@@ -88,7 +86,7 @@ class A {
     expect(outline.children, hasLength(1));
 
     // class A
-    final classA = outline.children[0];
+    final classA = outline.children![0];
     expect(classA.element.name, equals('A'));
     expect(classA.element.kind, equals('CLASS'));
     expect(
@@ -109,7 +107,7 @@ class A {
     expect(classA.children, hasLength(2));
 
     // b()
-    final methodB = classA.children[0];
+    final methodB = classA.children![0];
     expect(methodB.element.name, equals('b'));
     expect(methodB.element.kind, equals('METHOD'));
     expect(
@@ -130,7 +128,7 @@ class A {
     expect(methodB.children, hasLength(1));
 
     // c()
-    final methodC = methodB.children[0];
+    final methodC = methodB.children![0];
     expect(methodC.element.name, equals('c'));
     expect(methodC.element.kind, equals('FUNCTION'));
     expect(
@@ -154,7 +152,7 @@ class A {
     expect(methodC.children, isNull);
 
     // num get d
-    final fieldD = classA.children[1];
+    final fieldD = classA.children![1];
     expect(fieldD.element.name, equals('d'));
     expect(fieldD.element.kind, equals('GETTER'));
     expect(

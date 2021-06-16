@@ -26,9 +26,9 @@ class WebSocketClient extends Client {
     socket.done.then((_) => close());
   }
 
-  disconnect() {
+  Future<void> disconnect() async {
     if (socket != null) {
-      socket.close();
+      await socket.close();
     }
   }
 
@@ -102,8 +102,8 @@ class HttpRequestClient extends Client {
   HttpRequestClient(this.request, VMService service)
       : super(service, sendEvents: false);
 
-  disconnect() {
-    request.response.close();
+  Future<void> disconnect() async {
+    await request.response.close();
     close();
   }
 

@@ -128,7 +128,6 @@ typedef G3 = T Function<T>(S Function<S>(S, T));
 typedef G4 = S Function<T>(S, T) Function<S>(S);
 typedef G5 = S Function<S, T>(S, T);
 
-typedef Weird = Function Function<Function>(
-    Function Function<Function>(Function));
+typedef Weird = X Function<X>(X Function<X>(X));
 
 RegExp re(String source) => RegExp(source);

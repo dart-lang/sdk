@@ -4,6 +4,8 @@
 // Dart test program for testing throw statement
 // VMOptions=--old_gen_heap_size=512
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Helper1 {

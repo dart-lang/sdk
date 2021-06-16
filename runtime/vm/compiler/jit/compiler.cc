@@ -386,7 +386,7 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     function.SetWasCompiled(true);
   } else if (optimized()) {
     // We cannot execute generated code while installing code.
-    ASSERT(Thread::Current()->IsAtSafepoint() ||
+    ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt) ||
            (Thread::Current()->IsMutatorThread() &&
             IsolateGroup::Current()->ContainsOnlyOneIsolate()));
     // We are validating our CHA / field guard / ... assumptions. To prevent
@@ -704,7 +704,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
         FLAG_trace_compiler || (FLAG_trace_optimizing_compiler && optimized);
-    Timer per_compile_timer(trace_compiler, "Compilation time");
+    Timer per_compile_timer;
     per_compile_timer.Start();
 
     ParsedFunction* parsed_function = new (zone)
@@ -1203,7 +1203,7 @@ void BackgroundCompiler::Run() {
 bool BackgroundCompiler::EnqueueCompilation(const Function& function) {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
   SafepointMonitorLocker ml_done(&done_monitor_);
   if (disabled_depth_ > 0) return false;
@@ -1239,7 +1239,7 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 void BackgroundCompiler::Stop() {
   Thread* thread = Thread::Current();
   ASSERT(thread->isolate() == nullptr || thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
   SafepointMonitorLocker ml_done(&done_monitor_);
   StopLocked(thread, &ml_done);
@@ -1262,7 +1262,7 @@ void BackgroundCompiler::StopLocked(Thread* thread,
 void BackgroundCompiler::Enable() {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
   SafepointMonitorLocker ml_done(&done_monitor_);
   disabled_depth_--;
@@ -1274,7 +1274,7 @@ void BackgroundCompiler::Enable() {
 void BackgroundCompiler::Disable() {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!thread->IsAtSafepoint());
+  ASSERT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
 
   SafepointMonitorLocker ml_done(&done_monitor_);
   disabled_depth_++;

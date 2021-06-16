@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -23,30 +21,30 @@ class ConvertToOnType extends CorrectionProducer {
     var exceptionParameter = node;
     if (exceptionParameter is SimpleIdentifier) {
       var catchClause = exceptionParameter.parent;
-      if (catchClause is CatchClause &&
-          catchClause.exceptionType == null &&
-          catchClause.exceptionParameter == exceptionParameter) {
-        var exceptionTypeName = exceptionParameter.name;
-        fixArguments.add(exceptionTypeName);
-        await builder.addDartFileEdit(file, (builder) {
-          if (catchClause.stackTraceParameter != null) {
-            builder.addSimpleReplacement(
-              range.startStart(
-                catchClause.catchKeyword,
-                catchClause.stackTraceParameter,
-              ),
-              'on $exceptionTypeName catch (_, ',
-            );
-          } else {
-            builder.addSimpleReplacement(
-              range.startEnd(
-                catchClause.catchKeyword,
-                catchClause.rightParenthesis,
-              ),
-              'on $exceptionTypeName',
-            );
-          }
-        });
+      if (catchClause is CatchClause) {
+        var catchKeyword = catchClause.catchKeyword;
+        var rightParenthesis = catchClause.rightParenthesis;
+        if (catchKeyword != null &&
+            catchClause.exceptionType == null &&
+            catchClause.exceptionParameter == exceptionParameter &&
+            rightParenthesis != null) {
+          var exceptionTypeName = exceptionParameter.name;
+          fixArguments.add(exceptionTypeName);
+          await builder.addDartFileEdit(file, (builder) {
+            var stackTraceParameter = catchClause.stackTraceParameter;
+            if (stackTraceParameter != null) {
+              builder.addSimpleReplacement(
+                range.startStart(catchKeyword, stackTraceParameter),
+                'on $exceptionTypeName catch (_, ',
+              );
+            } else {
+              builder.addSimpleReplacement(
+                range.startEnd(catchKeyword, rightParenthesis),
+                'on $exceptionTypeName',
+              );
+            }
+          });
+        }
       }
     }
   }

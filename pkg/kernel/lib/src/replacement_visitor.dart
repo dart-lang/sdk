@@ -24,9 +24,9 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       //   instantiate_to_bound/non_simple_class_parametrized_typedef_cycle
       // fails with this.
       DartType? newBound = typeParameter.bound
-          ?.accept1(this, Variance.combine(variance, Variance.invariant));
+          .accept1(this, Variance.combine(variance, Variance.invariant));
       DartType? newDefaultType = typeParameter.defaultType
-          ?.accept1(this, Variance.combine(variance, Variance.invariant));
+          .accept1(this, Variance.combine(variance, Variance.invariant));
       if (newBound != null || newDefaultType != null) {
         newTypeParameters ??= node.typeParameters.toList(growable: false);
         newTypeParameters[i] = new TypeParameter(
@@ -48,7 +48,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
           Substitution.fromPairs(node.typeParameters, typeParameterTypes);
       for (int i = 0; i < newTypeParameters.length; i++) {
         newTypeParameters[i].bound =
-            substitution.substituteType(newTypeParameters[i].bound!);
+            substitution.substituteType(newTypeParameters[i].bound);
       }
     }
 

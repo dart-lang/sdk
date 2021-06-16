@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -54,7 +52,7 @@ class TransformSetManager {
   /// Read the [file] and parse the content. Return the transform set that was
   /// parsed, or `null` if the file doesn't exist, isn't readable, or if the
   /// content couldn't be parsed.
-  TransformSet _loadTransformSet(File file) {
+  TransformSet? _loadTransformSet(File file) {
     try {
       // TODO(brianwilkerson) Consider caching the transform sets.
       var content = file.readAsStringSync();

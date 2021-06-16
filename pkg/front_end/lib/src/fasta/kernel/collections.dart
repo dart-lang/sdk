@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.collections;
 
 import 'package:kernel/ast.dart';
@@ -45,13 +43,15 @@ mixin ControlFlowElement on Expression {
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.defaultExpression(this, arg);
 
-  /// Returns this control flow element as a [MapEntry], or `null` if this
-  /// control flow element cannot be converted into a [MapEntry].
+  /// Returns this control flow element as a [MapLiteralEntry], or `null` if
+  /// this control flow element cannot be converted into a [MapLiteralEntry].
   ///
-  /// [onConvertForElement] is called when a [ForElement] or [ForInElement] is
-  /// converted to a [ForMapEntry] or [ForInMapEntry], respectively.
+  /// [onConvertElement] is called when a [ForElement], [ForInElement], or
+  /// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
+  /// [IfMapEntry], respectively.
   // TODO(johnniwinther): Merge this with [convertToMapEntry].
-  MapEntry toMapEntry(void onConvertForElement(TreeNode from, TreeNode to));
+  MapLiteralEntry? toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to));
 }
 
 /// A spread element in a list or set literal.
@@ -63,37 +63,44 @@ class SpreadElement extends Expression with ControlFlowElement {
   ///
   /// It is set during type inference and is used to add appropriate type casts
   /// during the desugaring.
-  DartType elementType;
+  DartType? elementType;
 
-  SpreadElement(this.expression, this.isNullAware) {
-    expression?.parent = this;
+  SpreadElement(this.expression, {required this.isNullAware})
+      // ignore: unnecessary_null_comparison
+      : assert(expression != null),
+        // ignore: unnecessary_null_comparison
+        assert(isNullAware != null) {
+    expression.parent = this;
   }
 
   @override
-  void visitChildren(Visitor<Object> v) {
-    expression?.accept(v);
+  void visitChildren(Visitor v) {
+    expression.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
       expression = v.transform(expression);
-      expression?.parent = this;
+      expression.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
-      expression = v.transformOrRemoveExpression(expression);
-      expression?.parent = this;
+      expression = v.transform(expression);
+      expression.parent = this;
     }
   }
 
   @override
-  SpreadMapEntry toMapEntry(
-      void onConvertForElement(TreeNode from, TreeNode to)) {
-    return new SpreadMapEntry(expression, isNullAware)..fileOffset = fileOffset;
+  SpreadMapEntry toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to)) {
+    return new SpreadMapEntry(expression, isNullAware: isNullAware)
+      ..fileOffset = fileOffset;
   }
 
   @override
@@ -115,71 +122,84 @@ class SpreadElement extends Expression with ControlFlowElement {
 class IfElement extends Expression with ControlFlowElement {
   Expression condition;
   Expression then;
-  Expression otherwise;
+  Expression? otherwise;
 
-  IfElement(this.condition, this.then, this.otherwise) {
-    condition?.parent = this;
-    then?.parent = this;
+  IfElement(this.condition, this.then, this.otherwise)
+      // ignore: unnecessary_null_comparison
+      : assert(condition != null),
+        // ignore: unnecessary_null_comparison
+        assert(then != null) {
+    condition.parent = this;
+    then.parent = this;
     otherwise?.parent = this;
   }
 
   @override
-  void visitChildren(Visitor<Object> v) {
-    condition?.accept(v);
-    then?.accept(v);
+  void visitChildren(Visitor v) {
+    condition.accept(v);
+    then.accept(v);
     otherwise?.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (condition != null) {
       condition = v.transform(condition);
-      condition?.parent = this;
+      condition.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (then != null) {
       then = v.transform(then);
-      then?.parent = this;
+      then.parent = this;
     }
     if (otherwise != null) {
-      otherwise = v.transform(otherwise);
+      otherwise = v.transform(otherwise!);
       otherwise?.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (condition != null) {
-      condition = v.transformOrRemoveExpression(condition);
-      condition?.parent = this;
+      condition = v.transform(condition);
+      condition.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (then != null) {
-      then = v.transformOrRemoveExpression(then);
-      then?.parent = this;
+      then = v.transform(then);
+      then.parent = this;
     }
     if (otherwise != null) {
-      otherwise = v.transformOrRemoveExpression(otherwise);
+      otherwise = v.transformOrRemoveExpression(otherwise!);
       otherwise?.parent = this;
     }
   }
 
   @override
-  MapEntry toMapEntry(void onConvertForElement(TreeNode from, TreeNode to)) {
-    MapEntry thenEntry;
+  MapLiteralEntry? toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to)) {
+    MapLiteralEntry? thenEntry;
+    Expression then = this.then;
     if (then is ControlFlowElement) {
       ControlFlowElement thenElement = then;
-      thenEntry = thenElement.toMapEntry(onConvertForElement);
+      thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
     }
     if (thenEntry == null) return null;
-    MapEntry otherwiseEntry;
+    MapLiteralEntry? otherwiseEntry;
+    Expression? otherwise = this.otherwise;
     if (otherwise != null) {
       if (otherwise is ControlFlowElement) {
         ControlFlowElement otherwiseElement = otherwise;
-        otherwiseEntry = otherwiseElement.toMapEntry(onConvertForElement);
+        otherwiseEntry = otherwiseElement.toMapLiteralEntry(onConvertElement);
       }
       if (otherwiseEntry == null) return null;
     }
-    return new IfMapEntry(condition, thenEntry, otherwiseEntry)
+    IfMapEntry result = new IfMapEntry(condition, thenEntry, otherwiseEntry)
       ..fileOffset = fileOffset;
+    onConvertElement(this, result);
+    return result;
   }
 
   @override
@@ -195,7 +215,7 @@ class IfElement extends Expression with ControlFlowElement {
     printer.writeExpression(then);
     if (otherwise != null) {
       printer.write(' else ');
-      printer.writeExpression(otherwise);
+      printer.writeExpression(otherwise!);
     }
   }
 }
@@ -203,36 +223,39 @@ class IfElement extends Expression with ControlFlowElement {
 /// A 'for' element in a list or set literal.
 class ForElement extends Expression with ControlFlowElement {
   final List<VariableDeclaration> variables; // May be empty, but not null.
-  Expression condition; // May be null.
+  Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
   Expression body;
 
-  ForElement(this.variables, this.condition, this.updates, this.body) {
+  ForElement(this.variables, this.condition, this.updates, this.body)
+      // ignore: unnecessary_null_comparison
+      : assert(body != null) {
     setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
-    body?.parent = this;
+    body.parent = this;
   }
 
   @override
-  void visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor v) {
     visitList(variables, v);
     condition?.accept(v);
     visitList(updates, v);
-    body?.accept(v);
+    body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(variables, this);
     if (condition != null) {
-      condition = v.transform(condition);
+      condition = v.transform(condition!);
       condition?.parent = this;
     }
     v.transformList(updates, this);
+    // ignore: unnecessary_null_comparison
     if (body != null) {
       body = v.transform(body);
-      body?.parent = this;
+      body.parent = this;
     }
   }
 
@@ -240,28 +263,31 @@ class ForElement extends Expression with ControlFlowElement {
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformVariableDeclarationList(variables, this);
     if (condition != null) {
-      condition = v.transformOrRemoveExpression(condition);
+      condition = v.transformOrRemoveExpression(condition!);
       condition?.parent = this;
     }
     v.transformExpressionList(updates, this);
+    // ignore: unnecessary_null_comparison
     if (body != null) {
-      body = v.transformOrRemoveExpression(body);
-      body?.parent = this;
+      body = v.transform(body);
+      body.parent = this;
     }
   }
 
   @override
-  MapEntry toMapEntry(void onConvertForElement(TreeNode from, TreeNode to)) {
-    MapEntry bodyEntry;
+  MapLiteralEntry? toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to)) {
+    MapLiteralEntry? bodyEntry;
+    Expression body = this.body;
     if (body is ControlFlowElement) {
       ControlFlowElement bodyElement = body;
-      bodyEntry = bodyElement.toMapEntry(onConvertForElement);
+      bodyEntry = bodyElement.toMapLiteralEntry(onConvertElement);
     }
     if (bodyEntry == null) return null;
     ForMapEntry result =
         new ForMapEntry(variables, condition, updates, bodyEntry)
           ..fileOffset = fileOffset;
-    onConvertForElement(this, result);
+    onConvertElement(this, result);
     return result;
   }
 
@@ -280,105 +306,118 @@ class ForElement extends Expression with ControlFlowElement {
 class ForInElement extends Expression with ControlFlowElement {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
-  Expression syntheticAssignment; // May be null.
-  Statement expressionEffects; // May be null.
+  Expression? syntheticAssignment; // May be null.
+  Statement? expressionEffects; // May be null.
   Expression body;
-  Expression problem; // May be null.
+  Expression? problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
   ForInElement(this.variable, this.iterable, this.syntheticAssignment,
       this.expressionEffects, this.body, this.problem,
-      {this.isAsync: false}) {
-    variable?.parent = this;
-    iterable?.parent = this;
+      {this.isAsync: false})
+      // ignore: unnecessary_null_comparison
+      : assert(variable != null),
+        // ignore: unnecessary_null_comparison
+        assert(iterable != null),
+        // ignore: unnecessary_null_comparison
+        assert(body != null) {
+    variable.parent = this;
+    iterable.parent = this;
     syntheticAssignment?.parent = this;
     expressionEffects?.parent = this;
-    body?.parent = this;
+    body.parent = this;
     problem?.parent = this;
   }
 
-  Statement get prologue => syntheticAssignment != null
-      ? (new ExpressionStatement(syntheticAssignment)
-        ..fileOffset = syntheticAssignment.fileOffset)
+  Statement? get prologue => syntheticAssignment != null
+      ? (new ExpressionStatement(syntheticAssignment!)
+        ..fileOffset = syntheticAssignment!.fileOffset)
       : expressionEffects;
 
-  void visitChildren(Visitor<Object> v) {
-    variable?.accept(v);
-    iterable?.accept(v);
+  void visitChildren(Visitor v) {
+    variable.accept(v);
+    iterable.accept(v);
     syntheticAssignment?.accept(v);
     expressionEffects?.accept(v);
-    body?.accept(v);
+    body.accept(v);
     problem?.accept(v);
   }
 
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
       variable = v.transform(variable);
-      variable?.parent = this;
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (iterable != null) {
       iterable = v.transform(iterable);
-      iterable?.parent = this;
+      iterable.parent = this;
     }
     if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment);
+      syntheticAssignment = v.transform(syntheticAssignment!);
       syntheticAssignment?.parent = this;
     }
     if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects);
+      expressionEffects = v.transform(expressionEffects!);
       expressionEffects?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (body != null) {
       body = v.transform(body);
-      body?.parent = this;
+      body.parent = this;
     }
     if (problem != null) {
-      problem = v.transform(problem);
+      problem = v.transform(problem!);
       problem?.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable);
-      variable?.parent = this;
+      variable = v.transform(variable);
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (iterable != null) {
-      iterable = v.transformOrRemoveExpression(iterable);
-      iterable?.parent = this;
+      iterable = v.transform(iterable);
+      iterable.parent = this;
     }
     if (syntheticAssignment != null) {
-      syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment);
+      syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment!);
       syntheticAssignment?.parent = this;
     }
     if (expressionEffects != null) {
-      expressionEffects = v.transformOrRemoveStatement(expressionEffects);
+      expressionEffects = v.transformOrRemoveStatement(expressionEffects!);
       expressionEffects?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (body != null) {
-      body = v.transformOrRemoveExpression(body);
-      body?.parent = this;
+      body = v.transform(body);
+      body.parent = this;
     }
     if (problem != null) {
-      problem = v.transformOrRemoveExpression(problem);
+      problem = v.transformOrRemoveExpression(problem!);
       problem?.parent = this;
     }
   }
 
   @override
-  MapEntry toMapEntry(void onConvertForElement(TreeNode from, TreeNode to)) {
-    MapEntry bodyEntry;
+  MapLiteralEntry? toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to)) {
+    MapLiteralEntry? bodyEntry;
+    Expression body = this.body;
     if (body is ControlFlowElement) {
-      ControlFlowElement bodyElement = body;
-      bodyEntry = bodyElement.toMapEntry(onConvertForElement);
+      bodyEntry = body.toMapLiteralEntry(onConvertElement);
     }
     if (bodyEntry == null) return null;
     ForInMapEntry result = new ForInMapEntry(variable, iterable,
         syntheticAssignment, expressionEffects, bodyEntry, problem,
         isAsync: isAsync)
       ..fileOffset = fileOffset;
-    onConvertForElement(this, result);
+    onConvertElement(this, result);
     return result;
   }
 
@@ -393,7 +432,7 @@ class ForInElement extends Expression with ControlFlowElement {
   }
 }
 
-mixin ControlFlowMapEntry implements MapEntry {
+mixin ControlFlowMapEntry implements MapLiteralEntry {
   @override
   Expression get key {
     throw new UnsupportedError('ControlFlowMapEntry.key getter');
@@ -440,30 +479,36 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   ///
   /// It is set during type inference and is used to add appropriate type casts
   /// during the desugaring.
-  DartType entryType;
+  DartType? entryType;
 
-  SpreadMapEntry(this.expression, this.isNullAware) {
-    expression?.parent = this;
+  SpreadMapEntry(this.expression, {required this.isNullAware})
+      // ignore: unnecessary_null_comparison
+      : assert(expression != null),
+        // ignore: unnecessary_null_comparison
+        assert(isNullAware != null) {
+    expression.parent = this;
   }
 
   @override
-  void visitChildren(Visitor<Object> v) {
-    expression?.accept(v);
+  void visitChildren(Visitor v) {
+    expression.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
       expression = v.transform(expression);
-      expression?.parent = this;
+      expression.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
-      expression = v.transformOrRemoveExpression(expression);
-      expression?.parent = this;
+      expression = v.transform(expression);
+      expression.parent = this;
     }
   }
 
@@ -481,50 +526,58 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
 /// An 'if' element in a map literal.
 class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression condition;
-  MapEntry then;
-  MapEntry otherwise;
+  MapLiteralEntry then;
+  MapLiteralEntry? otherwise;
 
-  IfMapEntry(this.condition, this.then, this.otherwise) {
-    condition?.parent = this;
-    then?.parent = this;
+  IfMapEntry(this.condition, this.then, this.otherwise)
+      // ignore: unnecessary_null_comparison
+      : assert(condition != null),
+        // ignore: unnecessary_null_comparison
+        assert(then != null) {
+    condition.parent = this;
+    then.parent = this;
     otherwise?.parent = this;
   }
 
   @override
-  void visitChildren(Visitor<Object> v) {
-    condition?.accept(v);
-    then?.accept(v);
+  void visitChildren(Visitor v) {
+    condition.accept(v);
+    then.accept(v);
     otherwise?.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (condition != null) {
       condition = v.transform(condition);
-      condition?.parent = this;
+      condition.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (then != null) {
       then = v.transform(then);
-      then?.parent = this;
+      then.parent = this;
     }
     if (otherwise != null) {
-      otherwise = v.transform(otherwise);
+      otherwise = v.transform(otherwise!);
       otherwise?.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (condition != null) {
-      condition = v.transformOrRemoveExpression(condition);
-      condition?.parent = this;
+      condition = v.transform(condition);
+      condition.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (then != null) {
-      then = v.transformOrRemove(then, dummyMapEntry);
-      then?.parent = this;
+      then = v.transform(then);
+      then.parent = this;
     }
     if (otherwise != null) {
-      otherwise = v.transformOrRemove(otherwise, dummyMapEntry);
+      otherwise = v.transformOrRemove(otherwise!, dummyMapLiteralEntry);
       otherwise?.parent = this;
     }
   }
@@ -543,36 +596,39 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
 /// A 'for' element in a map literal.
 class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   final List<VariableDeclaration> variables; // May be empty, but not null.
-  Expression condition; // May be null.
+  Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
-  MapEntry body;
+  MapLiteralEntry body;
 
-  ForMapEntry(this.variables, this.condition, this.updates, this.body) {
+  ForMapEntry(this.variables, this.condition, this.updates, this.body)
+      // ignore: unnecessary_null_comparison
+      : assert(body != null) {
     setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
-    body?.parent = this;
+    body.parent = this;
   }
 
   @override
-  void visitChildren(Visitor<Object> v) {
+  void visitChildren(Visitor v) {
     visitList(variables, v);
     condition?.accept(v);
     visitList(updates, v);
-    body?.accept(v);
+    body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(variables, this);
     if (condition != null) {
-      condition = v.transform(condition);
+      condition = v.transform(condition!);
       condition?.parent = this;
     }
     v.transformList(updates, this);
+    // ignore: unnecessary_null_comparison
     if (body != null) {
       body = v.transform(body);
-      body?.parent = this;
+      body.parent = this;
     }
   }
 
@@ -580,13 +636,14 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformVariableDeclarationList(variables, this);
     if (condition != null) {
-      condition = v.transformOrRemoveExpression(condition);
+      condition = v.transformOrRemoveExpression(condition!);
       condition?.parent = this;
     }
     v.transformExpressionList(updates, this);
+    // ignore: unnecessary_null_comparison
     if (body != null) {
-      body = v.transformOrRemove(body, dummyMapEntry);
-      body?.parent = this;
+      body = v.transform(body);
+      body.parent = this;
     }
   }
 
@@ -605,89 +662,100 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
 class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
-  Expression syntheticAssignment; // May be null.
-  Statement expressionEffects; // May be null.
-  MapEntry body;
-  Expression problem; // May be null.
+  Expression? syntheticAssignment; // May be null.
+  Statement? expressionEffects; // May be null.
+  MapLiteralEntry body;
+  Expression? problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
   ForInMapEntry(this.variable, this.iterable, this.syntheticAssignment,
       this.expressionEffects, this.body, this.problem,
-      {this.isAsync})
-      : assert(isAsync != null) {
-    variable?.parent = this;
-    iterable?.parent = this;
+      {required this.isAsync})
+      // ignore: unnecessary_null_comparison
+      : assert(iterable != null),
+        // ignore: unnecessary_null_comparison
+        assert(body != null),
+        // ignore: unnecessary_null_comparison
+        assert(isAsync != null) {
+    variable.parent = this;
+    iterable.parent = this;
     syntheticAssignment?.parent = this;
     expressionEffects?.parent = this;
-    body?.parent = this;
+    body.parent = this;
     problem?.parent = this;
   }
 
-  Statement get prologue => syntheticAssignment != null
-      ? (new ExpressionStatement(syntheticAssignment)
-        ..fileOffset = syntheticAssignment.fileOffset)
+  Statement? get prologue => syntheticAssignment != null
+      ? (new ExpressionStatement(syntheticAssignment!)
+        ..fileOffset = syntheticAssignment!.fileOffset)
       : expressionEffects;
 
-  void visitChildren(Visitor<Object> v) {
-    variable?.accept(v);
-    iterable?.accept(v);
+  void visitChildren(Visitor v) {
+    variable.accept(v);
+    iterable.accept(v);
     syntheticAssignment?.accept(v);
     expressionEffects?.accept(v);
-    body?.accept(v);
+    body.accept(v);
     problem?.accept(v);
   }
 
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
       variable = v.transform(variable);
-      variable?.parent = this;
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (iterable != null) {
       iterable = v.transform(iterable);
-      iterable?.parent = this;
+      iterable.parent = this;
     }
     if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment);
+      syntheticAssignment = v.transform(syntheticAssignment!);
       syntheticAssignment?.parent = this;
     }
     if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects);
+      expressionEffects = v.transform(expressionEffects!);
       expressionEffects?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (body != null) {
       body = v.transform(body);
-      body?.parent = this;
+      body.parent = this;
     }
     if (problem != null) {
-      problem = v.transform(problem);
+      problem = v.transform(problem!);
       problem?.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable);
-      variable?.parent = this;
+      variable = v.transform(variable);
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (iterable != null) {
-      iterable = v.transformOrRemoveExpression(iterable);
-      iterable?.parent = this;
+      iterable = v.transform(iterable);
+      iterable.parent = this;
     }
     if (syntheticAssignment != null) {
-      syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment);
+      syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment!);
       syntheticAssignment?.parent = this;
     }
     if (expressionEffects != null) {
-      expressionEffects = v.transformOrRemoveStatement(expressionEffects);
+      expressionEffects = v.transformOrRemoveStatement(expressionEffects!);
       expressionEffects?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (body != null) {
-      body = v.transformOrRemove(body, dummyMapEntry);
-      body?.parent = this;
+      body = v.transform(body);
+      body.parent = this;
     }
     if (problem != null) {
-      problem = v.transformOrRemoveExpression(problem);
+      problem = v.transformOrRemoveExpression(problem!);
       problem?.parent = this;
     }
   }
@@ -707,31 +775,31 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
 /// converted an error reported through [helper] and an invalid expression is
 /// returned.
 ///
-/// [onConvertForMapEntry] is called when a [ForMapEntry] or [ForInMapEntry] is
-/// converted to a [ForElement] or [ForInElement], respectively.
-Expression convertToElement(MapEntry entry, InferenceHelper helper,
-    void onConvertForMapEntry(TreeNode from, TreeNode to)) {
+/// [onConvertMapEntry] is called when a [ForMapEntry], [ForInMapEntry], or
+/// [IfMapEntry] is converted to a [ForElement], [ForInElement], or [IfElement],
+/// respectively.
+Expression convertToElement(MapLiteralEntry entry, InferenceHelper helper,
+    void onConvertMapEntry(TreeNode from, TreeNode to)) {
   if (entry is SpreadMapEntry) {
-    return new SpreadElement(entry.expression, entry.isNullAware)
+    return new SpreadElement(entry.expression, isNullAware: entry.isNullAware)
       ..fileOffset = entry.expression.fileOffset;
   }
   if (entry is IfMapEntry) {
-    return new IfElement(
+    IfElement result = new IfElement(
         entry.condition,
-        convertToElement(entry.then, helper, onConvertForMapEntry),
+        convertToElement(entry.then, helper, onConvertMapEntry),
         entry.otherwise == null
             ? null
-            : convertToElement(entry.otherwise, helper, onConvertForMapEntry))
+            : convertToElement(entry.otherwise!, helper, onConvertMapEntry))
       ..fileOffset = entry.fileOffset;
+    onConvertMapEntry(entry, result);
+    return result;
   }
   if (entry is ForMapEntry) {
-    ForElement result = new ForElement(
-        entry.variables,
-        entry.condition,
-        entry.updates,
-        convertToElement(entry.body, helper, onConvertForMapEntry))
+    ForElement result = new ForElement(entry.variables, entry.condition,
+        entry.updates, convertToElement(entry.body, helper, onConvertMapEntry))
       ..fileOffset = entry.fileOffset;
-    onConvertForMapEntry(entry, result);
+    onConvertMapEntry(entry, result);
     return result;
   }
   if (entry is ForInMapEntry) {
@@ -740,11 +808,11 @@ Expression convertToElement(MapEntry entry, InferenceHelper helper,
         entry.iterable,
         entry.syntheticAssignment,
         entry.expressionEffects,
-        convertToElement(entry.body, helper, onConvertForMapEntry),
+        convertToElement(entry.body, helper, onConvertMapEntry),
         entry.problem,
         isAsync: entry.isAsync)
       ..fileOffset = entry.fileOffset;
-    onConvertForMapEntry(entry, result);
+    onConvertMapEntry(entry, result);
     return result;
   }
   Expression key = entry.key;
@@ -767,7 +835,7 @@ bool isConvertibleToMapEntry(Expression element) {
   if (element is IfElement) {
     return isConvertibleToMapEntry(element.then) &&
         (element.otherwise == null ||
-            isConvertibleToMapEntry(element.otherwise));
+            isConvertibleToMapEntry(element.otherwise!));
   }
   if (element is ForElement) {
     return isConvertibleToMapEntry(element.body);
@@ -778,35 +846,39 @@ bool isConvertibleToMapEntry(Expression element) {
   return false;
 }
 
-/// Convert [element] to a [MapEntry], if possible. If [element] cannot be
-/// converted an error reported through [helper] and a map entry holding an
+/// Convert [element] to a [MapLiteralEntry], if possible. If [element] cannot
+/// be converted an error reported through [helper] and a map entry holding an
 /// invalid expression is returned.
 ///
-/// [onConvertForElement] is called when a [ForElement] or [ForInElement] is
-/// converted to a [ForMapEntry] or [ForInMapEntry], respectively.
-MapEntry convertToMapEntry(Expression element, InferenceHelper helper,
-    void onConvertForElement(TreeNode from, TreeNode to)) {
+/// [onConvertElement] is called when a [ForElement], [ForInElement], or
+/// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
+/// [IfMapEntry], respectively.
+MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
+    void onConvertElement(TreeNode from, TreeNode to)) {
   if (element is SpreadElement) {
-    return new SpreadMapEntry(element.expression, element.isNullAware)
+    return new SpreadMapEntry(element.expression,
+        isNullAware: element.isNullAware)
       ..fileOffset = element.expression.fileOffset;
   }
   if (element is IfElement) {
-    return new IfMapEntry(
+    IfMapEntry result = new IfMapEntry(
         element.condition,
-        convertToMapEntry(element.then, helper, onConvertForElement),
+        convertToMapEntry(element.then, helper, onConvertElement),
         element.otherwise == null
             ? null
-            : convertToMapEntry(element.otherwise, helper, onConvertForElement))
+            : convertToMapEntry(element.otherwise!, helper, onConvertElement))
       ..fileOffset = element.fileOffset;
+    onConvertElement(element, result);
+    return result;
   }
   if (element is ForElement) {
     ForMapEntry result = new ForMapEntry(
         element.variables,
         element.condition,
         element.updates,
-        convertToMapEntry(element.body, helper, onConvertForElement))
+        convertToMapEntry(element.body, helper, onConvertElement))
       ..fileOffset = element.fileOffset;
-    onConvertForElement(element, result);
+    onConvertElement(element, result);
     return result;
   }
   if (element is ForInElement) {
@@ -815,14 +887,14 @@ MapEntry convertToMapEntry(Expression element, InferenceHelper helper,
         element.iterable,
         element.syntheticAssignment,
         element.expressionEffects,
-        convertToMapEntry(element.body, helper, onConvertForElement),
+        convertToMapEntry(element.body, helper, onConvertElement),
         element.problem,
         isAsync: element.isAsync)
       ..fileOffset = element.fileOffset;
-    onConvertForElement(element, result);
+    onConvertElement(element, result);
     return result;
   }
-  return new MapEntry(
+  return new MapLiteralEntry(
       helper.buildProblem(
         templateExpectedAfterButGot.withArguments(':'),
         element.fileOffset,

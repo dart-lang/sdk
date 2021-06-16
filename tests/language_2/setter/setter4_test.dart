@@ -4,6 +4,8 @@
 // Dart test to catch error reporting bugs in class fields declarations.
 // Should be an error because we have a setter overriding a function name.
 
+// @dart = 2.9
+
 class A {
   int a() {
     return 1;

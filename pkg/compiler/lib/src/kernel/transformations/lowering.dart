@@ -5,9 +5,10 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/type_environment.dart'
-    show StaticTypeContext, TypeEnvironment;
+
+import '../../options.dart';
 import 'factory_specializer.dart';
+import 'late_lowering.dart';
 
 /// dart2js-specific lowering transformations and optimizations combined into a
 /// single transformation pass.
@@ -15,42 +16,92 @@ import 'factory_specializer.dart';
 /// Each transformation is applied locally to AST nodes of certain types after
 /// transforming children nodes.
 void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, bool nullSafety) {
-  final transformer = _Lowering(coreTypes, hierarchy, nullSafety);
+    ClassHierarchy hierarchy, CompilerOptions options) {
+  final transformer = _Lowering(coreTypes, hierarchy, options);
   libraries.forEach(transformer.visitLibrary);
+
+  // Do a second pass to remove/replace now-unused nodes.
+
+  // Since the transformer API doesn't visit `Library.additionalExports`, we
+  // have to manually replace references to transformed nodes.
+  libraries.forEach(transformer.transformAdditionalExports);
 }
 
 class _Lowering extends Transformer {
-  final TypeEnvironment env;
-  final bool nullSafety;
   final FactorySpecializer factorySpecializer;
+  final LateLowering _lateLowering;
 
   Member _currentMember;
-  StaticTypeContext _cachedStaticTypeContext;
 
-  _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, this.nullSafety)
-      : env = TypeEnvironment(coreTypes, hierarchy),
-        factorySpecializer = FactorySpecializer(coreTypes, hierarchy);
+  _Lowering(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions _options)
+      : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
+        _lateLowering = LateLowering(coreTypes, _options);
 
-  // ignore: unused_element
-  StaticTypeContext get _staticTypeContext =>
-      _cachedStaticTypeContext ??= StaticTypeContext(_currentMember, env);
-
-  @override
-  defaultMember(Member node) {
-    _currentMember = node;
-    _cachedStaticTypeContext = null;
-
-    final result = super.defaultMember(node);
-
-    _currentMember = null;
-    _cachedStaticTypeContext = null;
-    return result;
+  void transformAdditionalExports(Library node) {
+    _lateLowering.transformAdditionalExports(node);
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  TreeNode defaultMember(Member node) {
+    _currentMember = node;
+    return super.defaultMember(node);
+  }
+
+  @override
+  TreeNode visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
     return factorySpecializer.transformStaticInvocation(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitFunctionNode(FunctionNode node) {
+    _lateLowering.enterFunction();
+    node.transformChildren(this);
+    _lateLowering.exitFunction();
+    return node;
+  }
+
+  @override
+  TreeNode visitVariableDeclaration(VariableDeclaration node) {
+    node.transformChildren(this);
+    return _lateLowering.transformVariableDeclaration(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitVariableGet(VariableGet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformVariableGet(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitVariableSet(VariableSet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformVariableSet(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitField(Field node) {
+    _currentMember = node;
+    node.transformChildren(this);
+    return _lateLowering.transformField(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitFieldInitializer(FieldInitializer node) {
+    node.transformChildren(this);
+    return _lateLowering.transformFieldInitializer(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitStaticGet(StaticGet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformStaticGet(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitStaticSet(StaticSet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformStaticSet(node, _currentMember);
   }
 }

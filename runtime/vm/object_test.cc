@@ -1365,7 +1365,7 @@ ISOLATE_UNIT_TEST_CASE(StringHashConcat) {
   const String& clef = String::Handle(String::FromUTF16(clef_utf16, 2));
   int32_t clef_utf32[] = {0x1D11E};
   EXPECT(clef.Equals(clef_utf32, 1));
-  intptr_t hash32 = String::Hash(String::FromUTF32(clef_utf32, 1));
+  uword hash32 = String::Hash(String::FromUTF32(clef_utf32, 1));
   EXPECT_EQ(hash32, clef.Hash());
   EXPECT_EQ(hash32, String::HashConcat(
                         String::Handle(String::FromUTF16(clef_utf16, 1)),
@@ -2368,75 +2368,6 @@ ISOLATE_UNIT_TEST_CASE(ExternalTypedData) {
   }
 }
 
-static void CheckLinesWithOffset(Zone* zone, const intptr_t offset) {
-  const char* url_chars = "";
-  // Nine lines, mix of \n, \r, \r\n line terminators, lines 3, 4, 7, and 8
-  // are non-empty. Ends with a \r as a double-check that the \r followed by
-  // \n check doesn't go out of bounds.
-  //
-  // Line starts:             1 2 3    4      5 6   7    8    9
-  const char* source_chars = "\n\nxyz\nabc\r\n\n\r\ndef\rghi\r";
-  const String& url = String::Handle(zone, String::New(url_chars));
-  const String& source = String::Handle(zone, String::New(source_chars));
-  const Script& script = Script::Handle(zone, Script::New(url, source));
-  EXPECT(!script.IsNull());
-  EXPECT(script.IsScript());
-  script.SetLocationOffset(offset, 10);
-  auto& str = String::Handle(zone);
-  str = script.GetLine(offset + 1);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 2);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 3);
-  EXPECT_STREQ("xyz", str.ToCString());
-  str = script.GetLine(offset + 4);
-  EXPECT_STREQ("abc", str.ToCString());
-  str = script.GetLine(offset + 5);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 6);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 7);
-  EXPECT_STREQ("def", str.ToCString());
-  str = script.GetLine(offset + 8);
-  EXPECT_STREQ("ghi", str.ToCString());
-  str = script.GetLine(offset + 9);
-  EXPECT_STREQ("", str.ToCString());
-  // Using "column" of \r at end of line for to_column.
-  str = script.GetSnippet(offset + 3, 1, offset + 7, 4);
-  EXPECT_STREQ("xyz\nabc\r\n\n\r\ndef", str.ToCString());
-  // Lines not in the range of (1-based) line indices in the source should
-  // return the empty string.
-  str = script.GetLine(-500);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(0);
-  EXPECT_STREQ("", str.ToCString());
-  if (offset > 0) {
-    str = script.GetLine(1);  // Absolute, not relative to offset.
-    EXPECT_STREQ("", str.ToCString());
-  }
-  if (offset > 2) {
-    str = script.GetLine(3);  // Absolute, not relative to offset.
-    EXPECT_STREQ("", str.ToCString());
-  }
-  str = script.GetLine(offset - 500);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 10);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 10000);
-  EXPECT_STREQ("", str.ToCString());
-  // Snippets not contained within the source should be the null string.
-  str = script.GetSnippet(-1, 1, 2, 2);
-  EXPECT(str.IsNull());
-  str = script.GetSnippet(offset - 1, 1, offset + 2, 2);
-  EXPECT(str.IsNull());
-  str = script.GetSnippet(offset + 5, 15, offset + 6, 2);
-  EXPECT(str.IsNull());
-  str = script.GetSnippet(offset + 20, 1, offset + 30, 1);
-  EXPECT(str.IsNull());
-}
-
 ISOLATE_UNIT_TEST_CASE(Script) {
   {
     const char* url_chars = "builtin:test-case";
@@ -2457,10 +2388,6 @@ ISOLATE_UNIT_TEST_CASE(Script) {
     EXPECT_EQ('n', str.CharAt(10));
     EXPECT_EQ('.', str.CharAt(21));
   }
-
-  CheckLinesWithOffset(Z, 0);
-  CheckLinesWithOffset(Z, 500);
-  CheckLinesWithOffset(Z, 10000);
 
   {
     const char* url_chars = "";
@@ -2644,7 +2571,7 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   const Context& context = Context::Handle(Context::New(0));
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
-  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
+  FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   parent = Function::New(signature, parent_name,
                          UntaggedFunction::kRegularFunction, false, false,
                          false, false, false, cls, TokenPosition::kMinSource);
@@ -2652,12 +2579,17 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
     cls.SetFunctions(functions);
+    cls.Finalize();
   }
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
+  signature = function.signature();
+  signature.set_result_type(Object::dynamic_type());
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  function.set_signature(signature);
   const Closure& closure = Closure::Handle(
       Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
                    function, context));
@@ -3545,7 +3477,7 @@ TEST_CASE(StackTraceFormat) {
            "#3      _bar (%1$s:16:3)\n"
            "#4      MyClass.field (%1$s:25:5)\n"
            "#5      MyClass.foo.fooHelper (%1$s:30:7)\n"
-           "#6      MyClass.foo (%1$s:32:14)\n"
+           "#6      MyClass.foo (%1$s:32:5)\n"
            "#7      new MyClass.<anonymous closure> (%1$s:21:12)\n"
            "#8      new MyClass (%1$s:21:18)\n"
            "#9      main.<anonymous closure> (%1$s:37:14)\n"
@@ -3947,6 +3879,13 @@ static FunctionPtr GetFunction(const Class& cls, const char* name) {
   EXPECT(error == Error::null());
   const Function& result = Function::Handle(Resolver::ResolveDynamicFunction(
       Z, cls, String::Handle(String::New(name))));
+  EXPECT(!result.IsNull());
+  return result.ptr();
+}
+
+static FunctionPtr GetFunction(const Library& lib, const char* name) {
+  const Function& result = Function::Handle(
+      lib.LookupLocalFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.ptr();
 }
@@ -4396,7 +4335,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
 }
 
 ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   Isolate* isolate = Isolate::Current();
 
   // Class reference
@@ -4404,9 +4345,19 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Class& cls = Class::Handle(isolate->group()->object_store()->bool_class());
     cls.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
+
     EXPECT_STREQ(
-        "{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"bool\"}",
+        "{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"bool\","
+        "\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":\"@"
+        "Script\","
+        "\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core\\/bool.dart\","
+        "\"_kind\":\"kernel\"},\"tokenPos\":436,\"endTokenPos\":4432},"
+        "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.core\",\"uri\":\"dart:core\"}}",
         buffer);
   }
   // Function reference
@@ -4419,15 +4370,26 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         Function::Handle(Resolver::ResolveFunction(Z, cls, func_name));
     ASSERT(!func.IsNull());
     func.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Function\",\"fixedId\":true,"
-        "\"id\":\"\",\"name\":\"toString\","
-        "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"bool\"},"
-        "\"_kind\":\"RegularFunction\","
-        "\"static\":false,\"const\":false,"
-        "\"_intrinsic\":false,\"_native\":false}",
+        "{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"toString\",\"owner\":{\"type\":\"@Class\","
+        "\"fixedId\":true,\"id\":\"\",\"name\":\"bool\","
+        "\"location\":{\"type\":\"SourceLocation\","
+        "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+        "\"id\":\"\",\"uri\":\"dart:core\\/bool.dart\","
+        "\"_kind\":\"kernel\"},\"tokenPos\":436,\"endTokenPos\":4432},"
+        "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"_kind\":\"RegularFunction\",\"static\":false,\"const\":false,"
+        "\"_intrinsic\":false,\"_native\":false,"
+        "\"location\":{\"type\":\"SourceLocation\","
+        "\"script\":{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+        "\"uri\":\"dart:core\\/bool.dart\",\"_kind\":\"kernel\"},"
+        "\"tokenPos\":4372,\"endTokenPos\":4430}}",
         buffer);
   }
   // Library reference
@@ -4436,7 +4398,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     Library& lib =
         Library::Handle(isolate->group()->object_store()->core_library());
     lib.PrintJSON(&js, true);
-    ElideJSONSubstring("libraries", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("libraries", json_str, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}",
@@ -4446,16 +4410,20 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   {
     JSONStream js;
     Bool::True().PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"Bool\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"bool\"},"
-        "\"identityHashCode\":0,"
-        "\"kind\":\"Bool\","
-        "\"fixedId\":true,"
-        "\"id\":\"objects\\/bool-true\",\"valueAsString\":\"true\"}",
+        "{\"type\":\"@Instance\",\"_vmType\":\"Bool\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"bool\",\"location\":{"
+        "\"type\":\"SourceLocation\",\"script\":{\"type\":\"@Script\","
+        "\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core\\/bool.dart\",\"_"
+        "kind\":\"kernel\"},\"tokenPos\":436,\"endTokenPos\":4432},\"library\":"
+        "{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\",\"name\":\"dart."
+        "core\",\"uri\":\"dart:core\"}},\"identityHashCode\":0,\"kind\":"
+        "\"Bool\",\"fixedId\":true,\"id\":\"objects\\/bool-true\","
+        "\"valueAsString\":\"true\"}",
         buffer);
   }
   // Smi reference
@@ -4463,18 +4431,21 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Integer& smi = Integer::Handle(Integer::New(7));
     smi.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("_Smi@", buffer, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"Smi\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_Smi\","
-        "\"_vmName\":\"\"},"
-        "\"identityHashCode\":0,"
-        "\"kind\":\"Int\","
-        "\"fixedId\":true,"
-        "\"id\":\"objects\\/int-7\",\"valueAsString\":\"7\"}",
+        "{\"type\":\"@Instance\",\"_vmType\":\"Smi\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_Smi\",\"_vmName\":"
+        "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
+        "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
+        "patch\\/integers.dart\",\"_kind\":\"kernel\"},\"tokenPos\":16466,"
+        "\"endTokenPos\":24948},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"identityHashCode\":0,\"kind\":\"Int\",\"fixedId\":true,\"id\":"
+        "\"objects\\/int-7\",\"valueAsString\":\"7\"}",
         buffer);
   }
   // Mint reference
@@ -4482,17 +4453,22 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Integer& smi = Integer::Handle(Integer::New(Mint::kMinValue));
     smi.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_Mint@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"Mint\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_Mint\",\"_vmName\":\"\"},"
-        "\"identityHashCode\":0,"
-        "\"kind\":\"Int\","
-        "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
+        "{\"type\":\"@Instance\",\"_vmType\":\"Mint\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_Mint\",\"_vmName\":"
+        "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
+        "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
+        "patch\\/integers.dart\",\"_kind\":\"kernel\"},\"tokenPos\":25029,"
+        "\"endTokenPos\":25413},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"identityHashCode\":0,\"kind\":\"Int\",\"id\":\"\",\"valueAsString\":"
+        "\"-9223372036854775808\"}",
         buffer);
   }
   // Double reference
@@ -4500,17 +4476,22 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Double& dub = Double::Handle(Double::New(0.1234));
     dub.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_Double@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"Double\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_Double\",\"_vmName\":\"\"},"
-        "\"identityHashCode\":0,"
-        "\"kind\":\"Double\","
-        "\"id\":\"\",\"valueAsString\":\"0.1234\"}",
+        "{\"type\":\"@Instance\",\"_vmType\":\"Double\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_Double\",\"_vmName\":"
+        "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
+        "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
+        "patch\\/double.dart\",\"_kind\":\"kernel\"},\"tokenPos\":248,"
+        "\"endTokenPos\":12248},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"identityHashCode\":0,\"kind\":\"Double\",\"id\":\"\","
+        "\"valueAsString\":\"0.1234\"}",
         buffer);
   }
   // String reference
@@ -4518,17 +4499,22 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const String& str = String::Handle(String::New("dw"));
     str.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_OneByteString@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"String\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
-        "\"identityHashCode\":0,"
-        "\"kind\":\"String\","
-        "\"id\":\"\",\"length\":2,\"valueAsString\":\"dw\"}",
+        "{\"type\":\"@Instance\",\"_vmType\":\"String\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_OneByteString\",\"_"
+        "vmName\":\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
+        "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
+        "patch\\/string_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":32310,"
+        "\"endTokenPos\":44332},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"identityHashCode\":0,\"kind\":\"String\",\"id\":\"\",\"length\":2,"
+        "\"valueAsString\":\"dw\"}",
         buffer);
   }
   // Array reference
@@ -4536,17 +4522,21 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Array& array = Array::Handle(Array::New(0));
     array.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_List@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"Array\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_List\",\"_vmName\":\"\"},"
-        "\"identityHashCode\":0,"
-        "\"kind\":\"List\","
-        "\"id\":\"\",\"length\":0}",
+        "{\"type\":\"@Instance\",\"_vmType\":\"Array\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_List\",\"_vmName\":"
+        "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
+        "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
+        "patch\\/array.dart\",\"_kind\":\"kernel\"},\"tokenPos\":248,"
+        "\"endTokenPos\":7758},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"identityHashCode\":0,\"kind\":\"List\",\"id\":\"\",\"length\":0}",
         buffer);
   }
   // GrowableObjectArray reference
@@ -4555,18 +4545,22 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     const GrowableObjectArray& array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     array.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_GrowableList@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"GrowableObjectArray\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_GrowableList\","
-        "\"_vmName\":\"\"},"
-        "\"identityHashCode\":0,"
-        "\"kind\":\"List\","
-        "\"id\":\"\",\"length\":0}",
+        "{\"type\":\"@Instance\",\"_vmType\":\"GrowableObjectArray\",\"class\":"
+        "{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_"
+        "GrowableList\",\"_vmName\":\"\",\"location\":{\"type\":"
+        "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+        "\"id\":\"\",\"uri\":\"dart:core-patch\\/growable_array.dart\",\"_"
+        "kind\":\"kernel\"},\"tokenPos\":248,\"endTokenPos\":18485},"
+        "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"identityHashCode\":0,"
+        "\"kind\":\"List\",\"id\":\"\",\"length\":0}",
         buffer);
   }
   // LinkedHashMap reference
@@ -4575,17 +4569,22 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     const LinkedHashMap& array =
         LinkedHashMap::Handle(LinkedHashMap::NewDefault());
     array.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_InternalLinkedHashMap@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"LinkedHashMap\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_InternalLinkedHashMap\",\"_vmName\":\"\"},"
-        "\"identityHashCode\":0,"
-        "\"kind\":\"Map\","
-        "\"id\":\"\","
+        "{\"type\":\"@Instance\",\"_vmType\":\"LinkedHashMap\",\"class\":{"
+        "\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_"
+        "InternalLinkedHashMap\",\"_vmName\":\"\",\"location\":{\"type\":"
+        "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+        "\"id\":\"\",\"uri\":\"dart:collection-patch\\/"
+        "compact_hash.dart\",\"_kind\":\"kernel\"},\"tokenPos\":6399,"
+        "\"endTokenPos\":6786},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.collection\",\"uri\":\"dart:"
+        "collection\"}},\"identityHashCode\":0,\"kind\":\"Map\",\"id\":\"\","
         "\"length\":0}",
         buffer);
   }
@@ -4594,14 +4593,21 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Instance& tag = Instance::Handle(isolate->default_tag());
     tag.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_UserTag@", buffer, buffer);
     EXPECT_SUBSTRING(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"UserTag\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_UserTag\",\"_vmName\":\"\"},"
+        "\"type\":\"@Instance\",\"_vmType\":\"UserTag\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_UserTag\",\"_"
+        "vmName\":\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
+        "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:"
+        "developer-patch\\/profiler.dart\",\"_kind\":\"kernel\"},\"tokenPos\":"
+        "414,\"endTokenPos\":672},\"library\":{\"type\":\"@Library\","
+        "\"fixedId\":true,\"id\":\"\",\"name\":\"dart.developer\",\"uri\":"
+        "\"dart:developer\"}},"
         // Handle non-zero identity hash.
         "\"identityHashCode\":",
         buffer);
@@ -4617,14 +4623,20 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     Instance& type =
         Instance::Handle(isolate->group()->object_store()->bool_type());
     type.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_Type@", buffer, buffer);
     EXPECT_SUBSTRING(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"Type\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_Type\",\"_vmName\":\"\"},"
+        "{\"type\":\"@Instance\",\"_vmType\":\"Type\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_Type\",\"_vmName\":"
+        "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
+        "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
+        "patch\\/type_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":493,"
+        "\"endTokenPos\":898},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         // Handle non-zero identity hash.
         "\"identityHashCode\":",
         buffer);
@@ -4632,23 +4644,31 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"kind\":\"Type\","
         "\"fixedId\":true,\"id\":\"\","
         "\"typeClass\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"bool\"},\"name\":\"bool\"}",
+        "\"name\":\"bool\",\"location\":{\"type\":\"SourceLocation\","
+        "\"script\":{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":"
+        "\"dart:core\\/bool.dart\",\"_kind\":\"kernel\"},\"tokenPos\":436,"
+        "\"endTokenPos\":4432},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"name\":\"bool\"}",
         buffer);
   }
   // Null reference
   {
     JSONStream js;
     Object::null_object().PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
+    ElideJSONSubstring("libraries", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"null\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"Null\"},"
-        "\"kind\":\"Null\","
-        "\"fixedId\":true,"
-        "\"id\":\"objects\\/null\","
-        "\"valueAsString\":\"null\"}",
+        "{\"type\":\"@Instance\",\"_vmType\":\"null\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"Null\",\"location\":{"
+        "\"type\":\"SourceLocation\",\"script\":{\"type\":\"@Script\","
+        "\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core\\/null.dart\",\"_"
+        "kind\":\"kernel\"},\"tokenPos\":925,\"endTokenPos\":1165},\"library\":"
+        "{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\",\"name\":\"dart."
+        "core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\",\"fixedId\":true,"
+        "\"id\":\"objects\\/null\",\"valueAsString\":\"null\"}",
         buffer);
   }
   // Sentinel reference
@@ -4884,6 +4904,27 @@ ISOLATE_UNIT_TEST_CASE(String_EqualsUTF32) {
   const String& str =
       String::Handle(String::FromUTF32(char_codes, ARRAY_SIZE(char_codes)));
   EXPECT(str.Equals(char_codes, ARRAY_SIZE(char_codes)));
+}
+
+TEST_CASE(TypeParameterTypeRef) {
+  // Regression test for issue 82890.
+  const char* kScriptChars =
+      "void foo<T extends C<T>>(T x) {}\n"
+      "void bar<M extends U<M>>(M x) {}\n"
+      "abstract class C<T> {}\n"
+      "abstract class U<T> extends C<T> {}\n";
+  TestCase::LoadTestScript(kScriptChars, NULL);
+  TransitionNativeToVM transition(thread);
+  EXPECT(ClassFinalizer::ProcessPendingClasses());
+  const String& name = String::Handle(String::New(TestCase::url()));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
+  EXPECT(!lib.IsNull());
+
+  const Function& foo = Function::Handle(GetFunction(lib, "foo"));
+  const Function& bar = Function::Handle(GetFunction(lib, "bar"));
+  const TypeParameter& t = TypeParameter::Handle(foo.TypeParameterAt(0));
+  const TypeParameter& m = TypeParameter::Handle(bar.TypeParameterAt(0));
+  EXPECT(!m.IsSubtypeOf(t, Heap::kNew));
 }
 
 }  // namespace dart

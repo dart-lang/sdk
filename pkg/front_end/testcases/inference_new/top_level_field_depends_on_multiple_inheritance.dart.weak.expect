@@ -98,7 +98,7 @@ class H extends self::G {
   method foo() → self::C*
     return new self::C::•();
 }
-static field self::B* x = self::bar().{self::G::foo}();
+static field self::B* x = self::bar().{self::G::foo}(){() →* self::B*};
 static method bar() → self::G*
   return new self::H::•();
 static method main() → dynamic {}

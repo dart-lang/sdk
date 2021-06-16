@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 import 'dart:async';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -21,27 +19,25 @@ import 'stream_manager.dart';
 /// Representation of a single DDS client which manages the connection and
 /// DDS request intercepting / forwarding.
 class DartDevelopmentServiceClient {
-  factory DartDevelopmentServiceClient.fromWebSocket(
+  DartDevelopmentServiceClient.fromWebSocket(
     DartDevelopmentService dds,
     WebSocketChannel ws,
     json_rpc.Peer vmServicePeer,
-  ) =>
-      DartDevelopmentServiceClient._(
-        dds,
-        ws,
-        vmServicePeer,
-      );
+  ) : this._(
+          dds as DartDevelopmentServiceImpl,
+          ws,
+          vmServicePeer,
+        );
 
-  factory DartDevelopmentServiceClient.fromSSEConnection(
+  DartDevelopmentServiceClient.fromSSEConnection(
     DartDevelopmentService dds,
     SseConnection sse,
     json_rpc.Peer vmServicePeer,
-  ) =>
-      DartDevelopmentServiceClient._(
-        dds,
-        sse,
-        vmServicePeer,
-      );
+  ) : this._(
+          dds as DartDevelopmentServiceImpl,
+          sse,
+          vmServicePeer,
+        );
 
   DartDevelopmentServiceClient._(
     this.dds,
@@ -169,7 +165,8 @@ class DartDevelopmentServiceClient {
         (parameters) => {
               'type': 'Size',
               'size': StreamManager
-                  .loggingRepositories[StreamManager.kLoggingStream].bufferSize,
+                  .loggingRepositories[StreamManager.kLoggingStream]!
+                  .bufferSize,
             });
 
     _clientPeer.registerMethod('setLogHistorySize', (parameters) {
@@ -179,7 +176,7 @@ class DartDevelopmentServiceClient {
           "'size' must be greater or equal to zero",
         );
       }
-      StreamManager.loggingRepositories[StreamManager.kLoggingStream]
+      StreamManager.loggingRepositories[StreamManager.kLoggingStream]!
           .resize(size);
       return RPCResponses.success;
     });
@@ -195,8 +192,8 @@ class DartDevelopmentServiceClient {
     });
 
     _clientPeer.registerMethod('getSupportedProtocols', (parameters) async {
-      final Map<String, dynamic> supportedProtocols =
-          await _vmServicePeer.sendRequest('getSupportedProtocols');
+      final Map<String, dynamic> supportedProtocols = (await _vmServicePeer
+          .sendRequest('getSupportedProtocols')) as Map<String, dynamic>;
       final ddsVersion = DartDevelopmentService.protocolVersion.split('.');
       final ddsProtocol = {
         'protocolName': 'DDS',
@@ -291,17 +288,17 @@ class DartDevelopmentServiceClient {
   String get defaultClientName => 'client$_id';
 
   /// The current name associated with this client.
-  String get name => _name;
+  String? get name => _name;
 
   // NOTE: this should not be called directly except from:
   //   - `ClientManager._clearClientName`
   //   - `ClientManager._setClientNameHelper`
-  set name(String n) => _name = n ?? defaultClientName;
-  String _name;
+  set name(String? n) => _name = n ?? defaultClientName;
+  String? _name;
 
   final DartDevelopmentServiceImpl dds;
   final StreamChannel connection;
   final Map<String, String> services = {};
   final json_rpc.Peer _vmServicePeer;
-  json_rpc.Peer _clientPeer;
+  late json_rpc.Peer _clientPeer;
 }

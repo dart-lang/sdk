@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:test/test.dart';
@@ -30,7 +28,6 @@ class SearchResultKindTest {
         SearchResultKind.REFERENCE);
     expect(newSearchResultKind_fromEngine(MatchKind.INVOCATION),
         SearchResultKind.INVOCATION);
-    expect(newSearchResultKind_fromEngine(null), SearchResultKind.UNKNOWN);
   }
 
   void test_fromName() {

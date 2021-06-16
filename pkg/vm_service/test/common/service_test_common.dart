@@ -5,8 +5,9 @@
 library service_test_common;
 
 import 'dart:async';
-import 'package:vm_service/vm_service.dart';
+
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 typedef IsolateTest = Future<void> Function(
     VmService service, IsolateRef isolate);

@@ -29,7 +29,8 @@ Statement createGetterWithInitializer(
     DartType type,
     Expression initializer,
     bool useNewMethodInvocationEncoding,
-    {Expression createVariableRead({bool needsPromotion}),
+    {Expression createVariableRead(bool useNewMethodInvocationEncoding,
+        {bool needsPromotion}),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value),
@@ -64,7 +65,8 @@ Statement createGetterWithInitializer(
             // If [type] is a type variable with undetermined nullability we
             // need to create a read of the field that is promoted to the type
             // variable type.
-            createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
+            createVariableRead(useNewMethodInvocationEncoding,
+                needsPromotion: type.isPotentiallyNonNullable))
           ..fileOffset = fileOffset
       ])
         ..fileOffset = fileOffset;
@@ -73,7 +75,9 @@ Statement createGetterWithInitializer(
       //
       //    return let # = _#field in isSentinel(#) ? _#field = <init> : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
+          createVariableRead(useNewMethodInvocationEncoding,
+              needsPromotion: false)
+            ..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new ReturnStatement(
@@ -98,7 +102,9 @@ Statement createGetterWithInitializer(
       //
       //    return let # = _#field in # == null ? _#field = <init> : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
+          createVariableRead(useNewMethodInvocationEncoding,
+              needsPromotion: false)
+            ..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new ReturnStatement(new Let(
@@ -135,7 +141,8 @@ Statement createGetterWithInitializerWithRecheck(
     DartType type,
     Expression initializer,
     bool useNewMethodInvocationEncoding,
-    {Expression createVariableRead({bool needsPromotion}),
+    {Expression createVariableRead(bool useNewMethodInvocationEncoding,
+        {bool needsPromotion}),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value),
@@ -196,7 +203,8 @@ Statement createGetterWithInitializerWithRecheck(
             // If [type] is a type variable with undetermined nullability we
             // need to create a read of the field that is promoted to the type
             // variable type.
-            createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
+            createVariableRead(useNewMethodInvocationEncoding,
+                needsPromotion: type.isPotentiallyNonNullable))
           ..fileOffset = fileOffset
       ])
         ..fileOffset = fileOffset;
@@ -208,41 +216,43 @@ Statement createGetterWithInitializerWithRecheck(
       //            ? _#field = #2 : throw '...'
       //        : #1;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
+          createVariableRead(useNewMethodInvocationEncoding,
+              needsPromotion: false)
+            ..fileOffset = fileOffset,
           type: type)
         ..fileOffset = fileOffset;
-      return new ReturnStatement(
-          new Let(
-              variable,
-              new ConditionalExpression(
-                  new StaticInvocation(
-                      coreTypes.isSentinelMethod,
-                      new Arguments(<Expression>[
-                        new VariableGet(variable)..fileOffset = fileOffset
-                      ])
-                        ..fileOffset = fileOffset)
-                    ..fileOffset = fileOffset,
-                  new Let(
-                      temp,
-                      new ConditionalExpression(
-                          new StaticInvocation(
-                              coreTypes.isSentinelMethod,
-                              new Arguments(<Expression>[
-                                createVariableRead(needsPromotion: false)
-                                  ..fileOffset = fileOffset
-                              ])
-                                ..fileOffset = fileOffset)
-                            ..fileOffset = fileOffset,
-                          createVariableWrite(
-                              new VariableGet(temp)..fileOffset = fileOffset)
-                            ..fileOffset = fileOffset,
-                          exception,
-                          type)
-                        ..fileOffset = fileOffset),
-                  new VariableGet(variable)..fileOffset = fileOffset,
-                  type)
-                ..fileOffset = fileOffset)
+      return new ReturnStatement(new Let(
+          variable,
+          new ConditionalExpression(
+              new StaticInvocation(
+                  coreTypes.isSentinelMethod,
+                  new Arguments(<Expression>[
+                    new VariableGet(variable)..fileOffset = fileOffset
+                  ])
+                    ..fileOffset = fileOffset)
+                ..fileOffset = fileOffset,
+              new Let(
+                  temp,
+                  new ConditionalExpression(
+                      new StaticInvocation(
+                          coreTypes.isSentinelMethod,
+                          new Arguments(<Expression>[
+                            createVariableRead(useNewMethodInvocationEncoding,
+                                needsPromotion: false)
+                              ..fileOffset = fileOffset
+                          ])
+                            ..fileOffset = fileOffset)
+                        ..fileOffset = fileOffset,
+                      createVariableWrite(
+                          new VariableGet(temp)..fileOffset = fileOffset)
+                        ..fileOffset = fileOffset,
+                      exception,
+                      type)
+                    ..fileOffset = fileOffset),
+              new VariableGet(variable)..fileOffset = fileOffset,
+              type)
             ..fileOffset = fileOffset)
+        ..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
     case IsSetEncoding.useNull:
       // Generate:
@@ -252,7 +262,9 @@ Statement createGetterWithInitializerWithRecheck(
       //            ? _#field = #2 : throw '...'
       //        : #1;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
+          createVariableRead(useNewMethodInvocationEncoding,
+              needsPromotion: false)
+            ..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new ReturnStatement(new Let(
@@ -275,11 +287,13 @@ Statement createGetterWithInitializerWithRecheck(
                   new ConditionalExpression(
                       useNewMethodInvocationEncoding
                           ? (new EqualsNull(
-                              createVariableRead(needsPromotion: false)
+                              createVariableRead(useNewMethodInvocationEncoding,
+                                  needsPromotion: false)
                                 ..fileOffset = fileOffset)
                             ..fileOffset = fileOffset)
                           : new MethodInvocation(
-                              createVariableRead(needsPromotion: false)
+                              createVariableRead(useNewMethodInvocationEncoding,
+                                  needsPromotion: false)
                                 ..fileOffset = fileOffset,
                               equalsName,
                               new Arguments(<Expression>[
@@ -310,7 +324,8 @@ Statement createGetterBodyWithoutInitializer(
     String name,
     DartType type,
     bool useNewMethodInvocationEncoding,
-    {Expression createVariableRead({bool needsPromotion}),
+    {Expression createVariableRead(bool useNewMethodInvocationEncoding,
+        {bool needsPromotion}),
     Expression createIsSetRead(),
     IsSetEncoding isSetEncoding,
     bool forField}) {
@@ -334,7 +349,8 @@ Statement createGetterBodyWithoutInitializer(
       return new ReturnStatement(
           new ConditionalExpression(
               createIsSetRead()..fileOffset = fileOffset,
-              createVariableRead(needsPromotion: type.isPotentiallyNonNullable)
+              createVariableRead(useNewMethodInvocationEncoding,
+                  needsPromotion: type.isPotentiallyNonNullable)
                 ..fileOffset = fileOffset,
               exception,
               type)
@@ -345,7 +361,8 @@ Statement createGetterBodyWithoutInitializer(
       //
       //    return let # = _#field in isSentinel(#) ? throw '...' : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead()..fileOffset = fileOffset,
+          createVariableRead(useNewMethodInvocationEncoding)
+            ..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new ReturnStatement(
@@ -370,7 +387,8 @@ Statement createGetterBodyWithoutInitializer(
       //
       //    return let # = _#field in # == null ? throw '...' : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead()..fileOffset = fileOffset,
+          createVariableRead(useNewMethodInvocationEncoding)
+            ..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new ReturnStatement(new Let(
@@ -455,7 +473,7 @@ Statement createSetterBodyFinal(
     DartType type,
     bool useNewMethodInvocationEncoding,
     {bool shouldReturnValue,
-    Expression createVariableRead(),
+    Expression createVariableRead(bool useNewMethodInvocationEncoding),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value),
@@ -517,8 +535,10 @@ Statement createSetterBodyFinal(
       return new IfStatement(
         new StaticInvocation(
             coreTypes.isSentinelMethod,
-            new Arguments(
-                <Expression>[createVariableRead()..fileOffset = fileOffset])
+            new Arguments(<Expression>[
+              createVariableRead(useNewMethodInvocationEncoding)
+                ..fileOffset = fileOffset
+            ])
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset,
         createReturn(createVariableWrite(
@@ -536,10 +556,13 @@ Statement createSetterBodyFinal(
       //    }
       return new IfStatement(
         useNewMethodInvocationEncoding
-            ? (new EqualsNull(createVariableRead()..fileOffset = fileOffset)
+            ? (new EqualsNull(
+                createVariableRead(useNewMethodInvocationEncoding)
+                  ..fileOffset = fileOffset)
               ..fileOffset = fileOffset)
             : new MethodInvocation(
-                createVariableRead()..fileOffset = fileOffset,
+                createVariableRead(useNewMethodInvocationEncoding)
+                  ..fileOffset = fileOffset,
                 equalsName,
                 new Arguments(
                     <Expression>[new NullLiteral()..fileOffset = fileOffset])

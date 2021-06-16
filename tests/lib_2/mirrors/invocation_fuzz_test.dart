@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test reflectively enumerates all the methods in the system and tries to
 // invoke them with various basic values (nulls, ints, etc). This may result in
 // Dart exceptions or hangs, but should never result in crashes or JavaScript

@@ -1,0 +1,2 @@
+foo(Map<String, String> m) {}
+main() {}

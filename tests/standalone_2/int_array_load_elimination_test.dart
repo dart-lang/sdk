@@ -4,6 +4,8 @@
 //
 // Test correct load elimination for scalar lists.
 
+// @dart = 2.9
+
 // TODO: remove once bug 2264 fixed.
 library int_array_load_elimination;
 

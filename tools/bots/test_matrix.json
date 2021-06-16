@@ -322,6 +322,7 @@
       "xcodebuild/ReleaseSIMARM64C/",
       "xcodebuild/ReleaseX64/",
       "xcodebuild/ReleaseX64C/",
+      "pkg/",
       "samples/",
       "samples_2/",
       "samples-dev/",
@@ -329,6 +330,7 @@
       "third_party/android_tools/sdk/platform-tools/adb",
       "third_party/android_tools/ndk/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-strip",
       "third_party/android_tools/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip",
+      "third_party/devtools/",
       "third_party/webdriver/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -380,6 +382,7 @@
       "pkg/status_file/",
       "pkg/test_runner/",
       "pkg/vm/",
+      "pkg/vm_service/",
       "pkg/vm_snapshot_analysis/",
       "runtime/",
       "sdk/",
@@ -525,7 +528,10 @@
     },
     "dart2js-(linux|mac|win)-chrome": {
       "options": {
-        "use-sdk": true
+        "use-sdk": true,
+        "dart2js-options": [
+          "--no-legacy-javascript"
+        ]
       }
     },
     "dart2js-(linux|mac|win)-chrome-unsound": {
@@ -621,7 +627,8 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
-          "--merge-fragments-threshold=3"
+          "--merge-fragments-threshold=3",
+          "--simple-load-ids"
         ]
       }
     },
@@ -649,7 +656,8 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
-          "--merge-fragments-threshold=3"
+          "--merge-fragments-threshold=3",
+          "--simple-load-ids"
         ]
       }
     },
@@ -714,7 +722,8 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
-          "--merge-fragments-threshold=3"
+          "--merge-fragments-threshold=3",
+          "--simple-load-ids"
         ]
       }
     },
@@ -748,7 +757,8 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
-          "--merge-fragments-threshold=3"
+          "--merge-fragments-threshold=3",
+          "--simple-load-ids"
         ]
       }
     },
@@ -2820,6 +2830,7 @@
           "arguments": [
             "--arch=ia32,x64,arm,arm64",
             "--mode=release",
+            "--check-clean",
             "create_sdk"
           ]
         },
@@ -2857,6 +2868,7 @@
           "arguments": [
             "--arch=x64",
             "--mode=release",
+            "--check-clean",
             "create_sdk"
           ],
           "environment": {
@@ -2917,27 +2929,12 @@
       "steps": [
         {
           "name": "build debian package",
-          "script": "tools/run_debian_build.sh",
+          "script": "tools/linux_dist_support/run_debian_build.sh",
           "arguments": []
         },
         {
           "name": "upload debian packages",
-          "script": "tools/bots/upload_debian_packages.py",
-          "arguments": []
-        }
-      ]
-    },
-    {
-      "builders": [
-        "versionchecker-linux"
-      ],
-      "meta": {
-        "description": "This configuration is used by the versionchecker-builder."
-      },
-      "steps": [
-        {
-          "name": "check version",
-          "script": "tools/bots/version_checker.py",
+          "script": "tools/linux_dist_support/upload_debian_packages.py",
           "arguments": []
         }
       ]
@@ -3099,6 +3096,22 @@
           "arguments": [
             "analyze",
             "runtime/tools/dartfuzz"
+          ]
+        },
+        {
+          "name": "analyze runtime/tests/concurrency/generate_stress_test.dart",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "runtime/tests/concurrency/generate_stress_test.dart"
+          ]
+        },
+        {
+          "name": "analyze runtime/tests/concurrency/run_stress_test_shards.dart",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "runtime/tests/concurrency/run_stress_test_shards.dart"
           ]
         },
         {
@@ -3386,18 +3399,26 @@
       },
       "steps": [
         {
+          "name": "validate pkg/ pubspec files",
+          "script": "tools/sdks/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/package_deps/bin/package_deps.dart"
+          ]
+        },
+        {
+          "name": "validate .dart_tool/package_config.json",
+          "script": "tools/sdks/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/generate_package_config.dart",
+            "--check"
+          ]
+        },
+        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
             "dartdevc_test"
-          ]
-        },
-        {
-          "name": "validate pkg/ pubspec files",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "tools/package_deps/bin/package_deps.dart"
           ]
         },
         {
@@ -3603,7 +3624,11 @@
         {
           "name": "analyze flutter/flutter",
           "script": "tools/bots/flutter/analyze_flutter_flutter.sh"
-        }
+        },
+        {
+          "name": "analyze flutter/plugins",
+          "script": "tools/bots/flutter/analyze_flutter_plugins.sh"
+        }        
       ]
     },
     {
@@ -3699,6 +3724,99 @@
           ],
           "shards": 100,
           "fileset": "fuzzer"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "iso-stress-linux"
+      ],
+      "meta": {
+        "description": "This configuration is used for isolate stress testing."
+      },
+      "steps": [
+        {
+          "name": "Build Dart VM - JIT and AOT",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=x64",
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "Build Dart VM - JIT and AOT (Release TSAN)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "--sanitizer=tsan",
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "Generate Isolate Stress Test",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "runtime/tests/concurrency/generate_stress_test.dart"
+          ]
+        },
+        {
+          "name": "Generate Isolate Stress Test - JIT Dill",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/vm/bin/gen_kernel.dart",
+            "--platform=out/ReleaseX64/vm_platform_strong.dill",
+            "--no-aot",
+            "--no-sound-null-safety",
+            "-o", "runtime/tests/concurrency/generated_stress_test.dart.jit.dill",
+            "runtime/tests/concurrency/generated_stress_test.dart"
+          ]
+        },
+        {
+          "name": "Generate Isolate Stress Test - JIT Dill NNBD",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/vm/bin/gen_kernel.dart",
+            "--platform=out/ReleaseX64/vm_platform_strong.dill",
+            "--no-aot",
+            "-o", "runtime/tests/concurrency/generated_stress_test_nnbd.dart.jit.dill",
+            "runtime/tests/concurrency/generated_stress_test_nnbd.dart"
+          ]
+        },
+        {
+          "name": "Generate Isolate Stress Test - AOT Dill",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/vm/bin/gen_kernel.dart",
+            "--platform=out/ReleaseX64/vm_platform_strong.dill",
+            "--aot",
+            "--no-sound-null-safety",
+            "-o", "runtime/tests/concurrency/generated_stress_test.dart.aot.dill",
+            "runtime/tests/concurrency/generated_stress_test.dart"
+          ]
+        },
+        {
+          "name": "Generate Isolate Stress Test - AOT Dill NNBD",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/vm/bin/gen_kernel.dart",
+            "--platform=out/ReleaseX64/vm_platform_strong.dill",
+            "--aot",
+            "-o", "runtime/tests/concurrency/generated_stress_test_nnbd.dart.aot.dill",
+            "runtime/tests/concurrency/generated_stress_test_nnbd.dart"
+          ]
+        },
+        {
+          "name": "Run Isolate Stress Tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "runtime/tests/concurrency/run_stress_test_shards.dart"
+          ],
+          "shards": 10,
+          "fileset": "vm-kernel"
         }
       ]
     },

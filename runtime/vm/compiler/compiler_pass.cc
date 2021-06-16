@@ -15,11 +15,13 @@
 #include "vm/compiler/backend/redundancy_elimination.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/call_specializer.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/write_barrier_elimination.h"
 #if defined(DART_PRECOMPILER)
 #include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/aot/precompiler.h"
 #endif
+#include "vm/thread.h"
 #include "vm/timeline.h"
 
 #define COMPILER_PASS_REPEAT(Name, Body)                                       \
@@ -207,7 +209,10 @@ void CompilerPass::Run(CompilerPassState* state) const {
     PrintGraph(state, kTraceBefore, round);
     {
       TIMELINE_DURATION(thread, CompilerVerbose, name());
-      repeat = DoBody(state);
+      {
+        COMPILER_TIMINGS_PASS_TIMER_SCOPE(thread, id());
+        repeat = DoBody(state);
+      }
       thread->CheckForSafepoint();
     }
     PrintGraph(state, kTraceAfter, round);

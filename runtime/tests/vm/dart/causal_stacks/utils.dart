@@ -190,6 +190,9 @@ Future futureThen() {
 
 // Helpers:
 
+// Marker to tell the matcher to ignore the rest of the stack.
+const IGNORE_REMAINING_STACK = '#@ IGNORE_REMAINING_STACK #@';
+
 // We want lines that either start with a frame index or an async gap marker.
 final _lineRE = RegExp(r'^(?:#(?<number>\d+)|<asynchronous suspension>)');
 
@@ -235,6 +238,10 @@ Future<void> assertStack(List<String> expects, StackTrace stackTrace,
       printFrameInformation();
       print('Expected line ${i + 1} to be ${expects[i]} but was missing');
       rethrow;
+    }
+    // If we encounter this special marker we ignore the rest of the stack.
+    if (expects[i] == IGNORE_REMAINING_STACK) {
+      return;
     }
     try {
       Expect.isTrue(RegExp(expects[i]).hasMatch(frames[i]));
@@ -301,16 +308,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
     final expected = const <String>[
       r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
       r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
-      r'^#2      _RootZone.runUnary ',
-      r'^#3      _FutureListener.handleValue ',
-      r'^#4      Future._propagateToListeners.handleValueCallback ',
-      r'^#5      Future._propagateToListeners ',
-      // TODO(dart-vm): Figure out why this is inconsistent:
-      r'^#6      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'^#7      _microtaskLoop ',
-      r'^#8      _startMicrotaskLoop ',
-      r'^#9      _runPendingImmediateCallback ',
-      r'^#10     _RawReceivePortImpl._handleMessage ',
+      r'^#2      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(allYield, expected, debugInfoFilename);
     await doTestAwaitThen(allYield, expected, debugInfoFilename);
@@ -329,15 +329,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
     ];
     final postfix = const <String>[
       r'^#9      doTestsNoCausalNoLazy ',
-      r'^#10     _RootZone.runUnary ',
-      r'^#11     _FutureListener.handleValue ',
-      r'^#12     Future._propagateToListeners.handleValueCallback ',
-      r'^#13     Future._propagateToListeners ',
-      r'^#14     Future._addListener.<anonymous closure> ',
-      r'^#15     _microtaskLoop ',
-      r'^#16     _startMicrotaskLoop ',
-      r'^#17     _runPendingImmediateCallback ',
-      r'^#18     _RawReceivePortImpl._handleMessage ',
+      r'^#10     _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await 0; // Don't let the `await do..`s chain together.
     await doTestAwait(
@@ -374,16 +368,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
   {
     final expected = const <String>[
       r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^#1      _RootZone.runUnary ',
-      r'^#2      _FutureListener.handleValue ',
-      r'^#3      Future._propagateToListeners.handleValueCallback ',
-      r'^#4      Future._propagateToListeners ',
-      // TODO(dart-vm): Figure out why this is inconsistent:
-      r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'^#6      _microtaskLoop ',
-      r'^#7      _startMicrotaskLoop ',
-      r'^#8      _runPendingImmediateCallback ',
-      r'^#9      _RawReceivePortImpl._handleMessage ',
+      r'^#1      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(mixedYields, expected, debugInfoFilename);
     await doTestAwaitThen(mixedYields, expected, debugInfoFilename);
@@ -393,16 +380,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
   {
     final expected = const <String>[
       r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^#1      _RootZone.runUnary ',
-      r'^#2      _FutureListener.handleValue ',
-      r'^#3      Future._propagateToListeners.handleValueCallback ',
-      r'^#4      Future._propagateToListeners ',
-      // TODO(dart-vm): Figure out why this is inconsistent:
-      r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'^#6      _microtaskLoop ',
-      r'^#7      _startMicrotaskLoop ',
-      r'^#8      _runPendingImmediateCallback ',
-      r'^#9      _RawReceivePortImpl._handleMessage ',
+      r'^#1      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(syncSuffix, expected, debugInfoFilename);
     await doTestAwaitThen(syncSuffix, expected, debugInfoFilename);
@@ -412,16 +392,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
   {
     final expected = const <String>[
       r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^#1      _RootZone.runUnary ',
-      r'^#2      _FutureListener.handleValue ',
-      r'^#3      Future._propagateToListeners.handleValueCallback ',
-      r'^#4      Future._propagateToListeners ',
-      // TODO(dart-vm): Figure out why this is inconsistent:
-      r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'^#6      _microtaskLoop ',
-      r'^#7      _startMicrotaskLoop ',
-      r'^#8      _runPendingImmediateCallback ',
-      r'^#9      _RawReceivePortImpl._handleMessage ',
+      r'^#1      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(nonAsyncNoStack, expected, debugInfoFilename);
     await doTestAwaitThen(nonAsyncNoStack, expected, debugInfoFilename);
@@ -433,15 +406,8 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
       r'^#0      throwSync \(.+/utils.dart:16(:3)?\)$',
       r'^#1      asyncStarThrowSync \(.+/utils.dart:112(:11)?\)$',
       r'^#2      _RootZone.runUnary \(.+\)$',
-      r'^#3      _FutureListener.handleValue \(.+\)$',
-      r'^#4      Future._propagateToListeners.handleValueCallback \(.+\)$',
-      r'^#5      Future._propagateToListeners \(.+\)$',
-      // TODO(dart-vm): Figure out why this is inconsistent:
-      r'^#6      Future.(_addListener|_prependListeners).<anonymous closure> \(.+\)$',
-      r'^#7      _microtaskLoop \(.+\)$',
-      r'^#8      _startMicrotaskLoop \(.+\)$',
-      r'^#9      _runPendingImmediateCallback \(.+\)$',
-      r'^#10     _RawReceivePortImpl._handleMessage \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(
         awaitEveryAsyncStarThrowSync, expected, debugInfoFilename);
@@ -454,16 +420,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
   {
     final expected = const <String>[
       r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^#1      _RootZone.runUnary ',
-      r'^#2      _FutureListener.handleValue ',
-      r'^#3      Future._propagateToListeners.handleValueCallback ',
-      r'^#4      Future._propagateToListeners ',
-      // TODO(dart-vm): Figure out why this is inconsistent:
-      r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'^#6      _microtaskLoop ',
-      r'^#7      _startMicrotaskLoop ',
-      r'^#8      _runPendingImmediateCallback ',
-      r'^#9      _RawReceivePortImpl._handleMessage ',
+      r'^#1      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(
         awaitEveryAsyncStarThrowAsync, expected, debugInfoFilename);
@@ -476,16 +435,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
   {
     final expected = const <String>[
       r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^#1      _RootZone.runUnary ',
-      r'^#2      _FutureListener.handleValue ',
-      r'^#3      Future._propagateToListeners.handleValueCallback ',
-      r'^#4      Future._propagateToListeners ',
-      // TODO(dart-vm): Figure out why this is inconsistent:
-      r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'^#6      _microtaskLoop ',
-      r'^#7      _startMicrotaskLoop ',
-      r'^#8      _runPendingImmediateCallback ',
-      r'^#9      _RawReceivePortImpl._handleMessage ',
+      r'^#1      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(listenAsyncStarThrowAsync, expected, debugInfoFilename);
     await doTestAwaitThen(
@@ -498,20 +450,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
     final expected = const <String>[
       r'#0      throwSync \(.*/utils.dart:16(:3)?\)$',
       r'#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
-      r'#2      _rootRunUnary ',
-      r'#3      _CustomZone.runUnary ',
-      r'#4      _FutureListener.handleValue ',
-      r'#5      Future._propagateToListeners.handleValueCallback ',
-      r'#6      Future._propagateToListeners ',
-      r'#7      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'#8      _rootRun ',
-      r'#9      _CustomZone.run ',
-      r'#10     _CustomZone.runGuarded ',
-      r'#11     _CustomZone.bindCallbackGuarded.<anonymous closure> ',
-      r'#12     _microtaskLoop ',
-      r'#13     _startMicrotaskLoop ',
-      r'#14     _runPendingImmediateCallback ',
-      r'#15     _RawReceivePortImpl._handleMessage ',
+      r'#2      _rootRunUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(customErrorZone, expected, debugInfoFilename);
     await doTestAwaitThen(customErrorZone, expected, debugInfoFilename);
@@ -521,15 +462,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
   {
     final expected = const <String>[
       r'#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^#1      _RootZone.runUnary ',
-      r'^#2      _FutureListener.handleValue ',
-      r'^#3      Future._propagateToListeners.handleValueCallback ',
-      r'^#4      Future._propagateToListeners ',
-      r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'^#6      _microtaskLoop ',
-      r'^#7      _startMicrotaskLoop ',
-      r'^#8      _runPendingImmediateCallback ',
-      r'^#9      _RawReceivePortImpl._handleMessage ',
+      r'^#1      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(awaitTimeout, expected, debugInfoFilename);
     await doTestAwaitThen(awaitTimeout, expected, debugInfoFilename);
@@ -539,15 +474,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
   {
     final expected = const <String>[
       r'#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^#1      _RootZone.runUnary ',
-      r'^#2      _FutureListener.handleValue ',
-      r'^#3      Future._propagateToListeners.handleValueCallback ',
-      r'^#4      Future._propagateToListeners ',
-      r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'^#6      _microtaskLoop ',
-      r'^#7      _startMicrotaskLoop ',
-      r'^#8      _runPendingImmediateCallback ',
-      r'^#9      _RawReceivePortImpl._handleMessage ',
+      r'^#1      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(awaitWait, expected, debugInfoFilename);
     await doTestAwaitThen(awaitWait, expected, debugInfoFilename);
@@ -557,15 +486,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
   {
     final expected = const <String>[
       r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^#1      _RootZone.runUnary ',
-      r'^#2      _FutureListener.handleValue ',
-      r'^#3      Future._propagateToListeners.handleValueCallback ',
-      r'^#4      Future._propagateToListeners ',
-      r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
-      r'^#6      _microtaskLoop ',
-      r'^#7      _startMicrotaskLoop ',
-      r'^#8      _runPendingImmediateCallback ',
-      r'^#9      _RawReceivePortImpl._handleMessage ',
+      r'^#1      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(futureSyncWhenComplete, expected, debugInfoFilename);
     await doTestAwaitThen(futureSyncWhenComplete, expected, debugInfoFilename);
@@ -577,16 +500,9 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
     final expected = const <String>[
       r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
       r'^#1      futureThen.<anonymous closure> \(.*/utils.dart:187(:5)?\)$',
-      r'^#2      _RootZone.runUnary ',
-      r'^#3      _FutureListener.handleValue ',
-      r'^#4      Future._propagateToListeners.handleValueCallback ',
-      r'^#5      Future._propagateToListeners ',
-      r'^#6      Future._completeWithValue ',
-      r'^#7      Future._asyncCompleteWithValue.<anonymous closure> ',
-      r'^#8      _microtaskLoop ',
-      r'^#9      _startMicrotaskLoop ',
-      r'^#10     _runPendingImmediateCallback ',
-      r'^#11     _RawReceivePortImpl._handleMessage ',
+      r'^#2      _RootZone.runUnary \(.+\)$',
+      // The rest are internal frames which we don't really care about.
+      IGNORE_REMAINING_STACK,
     ];
     await doTestAwait(futureThen, expected, debugInfoFilename);
     await doTestAwaitThen(futureThen, expected, debugInfoFilename);

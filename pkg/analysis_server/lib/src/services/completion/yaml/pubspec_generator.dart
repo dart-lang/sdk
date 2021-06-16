@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
@@ -11,16 +9,47 @@ import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
 /// An object that represents the location of a package name.
-class PubPackageNameProducer extends Producer {
+class PubPackageNameProducer extends KeyValueProducer {
   const PubPackageNameProducer();
+
+  @override
+  Producer producerForKey(String key) => PubPackageVersionProducer(key);
 
   @override
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
-    final cachedPackages = request.pubPackageService.cachedPackages;
-    var relevance = cachedPackages.length;
-    yield* cachedPackages.map((package) =>
-        packageName('${package.packageName}: ', relevance: relevance--));
+    final cachedPackages = request.pubPackageService?.cachedPackages;
+    if (cachedPackages != null) {
+      var relevance = cachedPackages.length;
+      yield* cachedPackages.map((package) =>
+          packageName('${package.packageName}: ', relevance: relevance--));
+    }
+  }
+}
+
+/// An object that represents the location of the version number for a pub
+/// package.
+class PubPackageVersionProducer extends Producer {
+  final String package;
+
+  const PubPackageVersionProducer(this.package);
+
+  @override
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
+    // TOOD(dantup): Consider supporting async completion requests so this
+    // could call packageDetails() (with a short timeout, and pub retries
+    // disabled). A user that explicitly invokes completion in the location
+    // of a version may be prepared to wait a short period for a web request
+    // to get completion versions (this is also the only way for non-LSP
+    // clients to get them, since there are no resolve calls).
+    //
+    // Supporting this will require making the completion async further up.
+    final details = request.pubPackageService?.cachedPackageDetails(package);
+    final version = details?.latestVersion;
+    if (version != null) {
+      yield identifier('^$version');
+    }
   }
 }
 

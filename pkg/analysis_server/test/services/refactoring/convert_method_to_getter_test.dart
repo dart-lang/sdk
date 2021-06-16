@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -21,7 +19,7 @@ void main() {
 @reflectiveTest
 class ConvertMethodToGetterTest extends RefactoringTest {
   @override
-  ConvertMethodToGetterRefactoring refactoring;
+  late ConvertMethodToGetterRefactoring refactoring;
 
   Future<void> test_change_function() async {
     await indexTestUnit('''

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -26,7 +24,7 @@ void computeIncludedSetList(
   var context = tracker.getContext(analysisContext);
   if (context == null) return;
 
-  var librariesObject = context.getLibraries(resolvedUnit.path);
+  var librariesObject = context.getLibraries(resolvedUnit.path!);
 
   var importedUriSet = resolvedUnit.libraryElement.importedLibraries
       .map((importedLibrary) => importedLibrary.source.uri)
@@ -40,8 +38,9 @@ void computeIncludedSetList(
   ) {
     int relevance;
     if (importedUriSet.contains(library.uri)) {
-      relevance = importedRelevance;
-    } else if (library.isDeprecated) {
+      return;
+    }
+    if (library.isDeprecated) {
       relevance = deprecatedRelevance;
     } else {
       relevance = otherwiseRelevance;
@@ -170,11 +169,10 @@ protocol.ElementKind protocolElementKind(DeclarationKind kind) {
     case DeclarationKind.VARIABLE:
       return protocol.ElementKind.TOP_LEVEL_VARIABLE;
   }
-  return protocol.ElementKind.UNKNOWN;
 }
 
 /// Computes the best URI to import [what] into the [unit] library.
-String _getRelativeFileUri(ResolvedUnitResult unit, Uri what) {
+String? _getRelativeFileUri(ResolvedUnitResult unit, Uri what) {
   if (what.scheme == 'file') {
     var pathContext = unit.session.resourceProvider.pathContext;
 
@@ -188,42 +186,37 @@ String _getRelativeFileUri(ResolvedUnitResult unit, Uri what) {
   return null;
 }
 
-protocol.AvailableSuggestion _protocolAvailableSuggestion(
+protocol.AvailableSuggestion? _protocolAvailableSuggestion(
     Declaration declaration) {
   var label = declaration.name;
-  if (declaration.parent != null) {
+  var parent = declaration.parent;
+  if (parent != null) {
     if (declaration.kind == DeclarationKind.CONSTRUCTOR) {
-      label = declaration.parent.name;
+      label = parent.name;
       if (declaration.name.isNotEmpty) {
         label += '.${declaration.name}';
       }
     } else if (declaration.kind == DeclarationKind.ENUM_CONSTANT) {
-      label = '${declaration.parent.name}.${declaration.name}';
+      label = '${parent.name}.${declaration.name}';
     } else if (declaration.kind == DeclarationKind.GETTER &&
         declaration.isStatic) {
-      label = '${declaration.parent.name}.${declaration.name}';
+      label = '${parent.name}.${declaration.name}';
     } else if (declaration.kind == DeclarationKind.FIELD &&
         declaration.isStatic) {
-      label = '${declaration.parent.name}.${declaration.name}';
+      label = '${parent.name}.${declaration.name}';
     } else {
       return null;
     }
   }
 
   String declaringLibraryUri;
-  if (declaration.parent == null) {
+  if (parent == null) {
     declaringLibraryUri = '${declaration.locationLibraryUri}';
   } else {
-    declaringLibraryUri = '${declaration.parent.locationLibraryUri}';
+    declaringLibraryUri = '${parent.locationLibraryUri}';
   }
 
-  List<String> relevanceTags;
-  if (declaration.relevanceTags == null) {
-    relevanceTags = null;
-  } else {
-    relevanceTags = List<String>.from(declaration.relevanceTags);
-    relevanceTags.add(declaration.name);
-  }
+  var relevanceTags = declaration.relevanceTags.toList()..add(declaration.name);
 
   return protocol.AvailableSuggestion(
     label,
@@ -321,12 +314,13 @@ class DeclarationsTrackerData {
 
   /// When the completion domain subscribes for changes, we start redirecting
   /// changes to this listener.
-  void Function(LibraryChange) _listener;
+  void Function(LibraryChange)? _listener;
 
   DeclarationsTrackerData(this._tracker) {
     _tracker.changes.listen((change) {
-      if (_listener != null) {
-        _listener(change);
+      var listener = _listener;
+      if (listener != null) {
+        listener(change);
       } else {
         for (var library in change.changed) {
           _idToLibrary[library.id] = library;
@@ -383,10 +377,10 @@ class _UniqueImportedElements {
   List<int> get uriList => map.keys.map((e) => e.uri).toList();
 
   int indexOf(_UniqueImportedStrings strings, Element element) {
-    var uriStr = '${element.librarySource.uri}';
+    var uriStr = '${element.librarySource!.uri}';
     var wrapper = _ImportedElement(
       strings.indexOf(uriStr),
-      strings.indexOf(element.name),
+      strings.indexOf(element.name!),
     );
     var index = map[wrapper];
     if (index == null) {

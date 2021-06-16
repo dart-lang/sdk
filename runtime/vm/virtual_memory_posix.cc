@@ -46,13 +46,14 @@ uword VirtualMemory::page_size_ = 0;
 
 static void unmap(uword start, uword end);
 
-static void* GenericMapAligned(int prot,
+static void* GenericMapAligned(void* hint,
+                               int prot,
                                intptr_t size,
                                intptr_t alignment,
                                intptr_t allocated_size,
                                int map_flags) {
-  void* address = mmap(nullptr, allocated_size, prot, map_flags, -1, 0);
-  LOG_INFO("mmap(nullptr, 0x%" Px ", %u, ...): %p\n", allocated_size, prot,
+  void* address = mmap(hint, allocated_size, prot, map_flags, -1, 0);
+  LOG_INFO("mmap(%p, 0x%" Px ", %u, ...): %p\n", hint, allocated_size, prot,
            address);
   if (address == MAP_FAILED) {
     return nullptr;
@@ -77,7 +78,7 @@ void VirtualMemory::Init() {
 #if defined(DART_COMPRESSED_POINTERS)
   if (VirtualMemoryCompressedHeap::GetRegion() == nullptr) {
     void* address = GenericMapAligned(
-        PROT_NONE, kCompressedHeapSize, kCompressedHeapAlignment,
+        nullptr, PROT_NONE, kCompressedHeapSize, kCompressedHeapAlignment,
         kCompressedHeapSize + kCompressedHeapAlignment,
         MAP_PRIVATE | MAP_ANONYMOUS);
     if (address == nullptr) {
@@ -200,14 +201,15 @@ static inline int memfd_create(const char* name, unsigned int flags) {
 #endif
 }
 
-static void* MapAligned(int fd,
+static void* MapAligned(void* hint,
+                        int fd,
                         int prot,
                         intptr_t size,
                         intptr_t alignment,
                         intptr_t allocated_size) {
-  void* address = mmap(nullptr, allocated_size, PROT_NONE,
-                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  LOG_INFO("mmap(nullptr, 0x%" Px ", PROT_NONE, ...): %p\n", allocated_size,
+  void* address =
+      mmap(hint, allocated_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  LOG_INFO("mmap(%p, 0x%" Px ", PROT_NONE, ...): %p\n", hint, allocated_size,
            address);
   if (address == MAP_FAILED) {
     return nullptr;
@@ -276,7 +278,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     }
     const int region_prot = PROT_READ | PROT_WRITE;
     void* region_ptr =
-        MapAligned(fd, region_prot, size, alignment, allocated_size);
+        MapAligned(nullptr, fd, region_prot, size, alignment, allocated_size);
     if (region_ptr == nullptr) {
       close(fd);
       return nullptr;
@@ -287,8 +289,9 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     // DUAL_MAPPING_SUPPORTED is false in TARGET_OS_MACOS and hence support
     // for MAP_JIT is not required here.
     const int alias_prot = PROT_READ | PROT_EXEC;
+    void* hint = reinterpret_cast<void*>(&Dart_Initialize);
     void* alias_ptr =
-        MapAligned(fd, alias_prot, size, alignment, allocated_size);
+        MapAligned(hint, fd, alias_prot, size, alignment, allocated_size);
     close(fd);
     if (alias_ptr == nullptr) {
       const uword region_base = reinterpret_cast<uword>(region_ptr);
@@ -318,7 +321,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
       close(fd);
       return nullptr;
     }
-    void* region_ptr = MapAligned(fd, prot, size, alignment, allocated_size);
+    void* region_ptr =
+        MapAligned(nullptr, fd, prot, size, alignment, allocated_size);
     close(fd);
     if (region_ptr == nullptr) {
       return nullptr;
@@ -334,8 +338,18 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     map_flags |= MAP_JIT;
   }
 #endif  // defined(HOST_OS_MACOS)
+
+  void* hint = nullptr;
+  // Some 64-bit microarchitectures store only the low 32-bits of targets as
+  // part of indirect branch prediction, predicting that the target's upper bits
+  // will be same as the call instruction's address. This leads to misprediction
+  // for indirect calls crossing a 4GB boundary. We ask mmap to place our
+  // generated code near the VM binary to avoid this.
+  if (is_executable) {
+    hint = reinterpret_cast<void*>(&Dart_Initialize);
+  }
   void* address =
-      GenericMapAligned(prot, size, alignment, allocated_size, map_flags);
+      GenericMapAligned(hint, prot, size, alignment, allocated_size, map_flags);
   if (address == nullptr) {
     return nullptr;
   }

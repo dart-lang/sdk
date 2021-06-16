@@ -705,7 +705,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Set<ClassBuilder> implemented = new Set<ClassBuilder>();
     for (TypeBuilder type in interfaceBuilders) {
       if (type is NamedTypeBuilder) {
-        int charOffset = -1; // TODO(ahe): Get offset from type.
+        int charOffset = type.charOffset;
         TypeDeclarationBuilder typeDeclaration = type.declaration;
         TypeDeclarationBuilder decl;
         TypeAliasBuilder aliasBuilder; // Non-null if a type alias is used.

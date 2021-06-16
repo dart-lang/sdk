@@ -37,6 +37,7 @@ class Reference {
   ReferenceNodeAccessor? nodeAccessor;
 
   /// The corresponding [AstNode], or `null` if a named container.
+  /// TODO(scheglov) remove it
   AstNode? node;
 
   /// The corresponding [Element], or `null` if a named container.

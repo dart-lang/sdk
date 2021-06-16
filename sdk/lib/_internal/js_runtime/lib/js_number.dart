@@ -329,7 +329,7 @@ class JSNumber extends Interceptor implements double {
     JSNumber result = JS<JSNumber>('JSNumber', r'# % #', this, other);
     if (result == 0) return JS('num', '0'); // Make sure we don't return -0.0.
     if (result > 0) return result;
-    if (JS('num', '#', other) < 0) {
+    if (other < 0) {
       return JS<JSNumber>('JSNumber', '# - #', result, other);
     } else {
       return JS<JSNumber>('JSNumber', '# + #', result, other);
@@ -357,7 +357,7 @@ class JSNumber extends Interceptor implements double {
   }
 
   int _tdivSlow(num other) {
-    var quotient = JS('num', r'# / #', this, other);
+    num quotient = JS('num', r'# / #', this, other);
     if (quotient >= _MIN_INT32 && quotient <= _MAX_INT32) {
       // This path includes -0.0 and +0.0.
       return JS('int', '# | 0', quotient);
@@ -385,7 +385,7 @@ class JSNumber extends Interceptor implements double {
 
   num operator <<(num other) {
     if (other is! num) throw argumentErrorValue(other);
-    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
+    if (other < 0) throw argumentErrorValue(other);
     return _shlPositive(other);
   }
 
@@ -398,14 +398,14 @@ class JSNumber extends Interceptor implements double {
   }
 
   num operator >>(num other) {
-    if (false) _shrReceiverPositive(other);
     if (other is! num) throw argumentErrorValue(other);
-    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
+    if (other < 0) throw argumentErrorValue(other);
+    if (false) _shrReceiverPositive(other);
     return _shrOtherPositive(other);
   }
 
   num _shrOtherPositive(num other) {
-    return JS('num', '#', this) > 0
+    return this > 0
         ? _shrBothPositive(other)
         // For negative numbers we just clamp the shift-by amount.
         // `this` could be negative but not have its 31st bit set.
@@ -415,7 +415,7 @@ class JSNumber extends Interceptor implements double {
   }
 
   num _shrReceiverPositive(num other) {
-    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
+    if (0 > other) throw argumentErrorValue(other);
     return _shrBothPositive(other);
   }
 

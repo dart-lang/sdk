@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:html';
 import 'dart:typed_data';
 import 'dart:web_gl';
@@ -38,6 +40,7 @@ main() {
         var canvas = new CanvasElement();
         var context =
             canvas.getContext('experimental-webgl') as gl.RenderingContext;
+        expect(context, isNotNull);
         var shader = context.createShader(gl.WebGL.VERTEX_SHADER);
         context.shaderSource(shader, 'void main() { }');
         context.compileShader(shader);
@@ -59,7 +62,7 @@ main() {
 
       test('texImage2D', () {
         var canvas = new CanvasElement();
-        gl.RenderingContext context = canvas.getContext3d();
+        var context = canvas.getContext3d();
         var pixels = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
         context.texImage2D(1, 1, 1, 1, 10, 10, 1, 1, pixels);
 
@@ -76,7 +79,7 @@ main() {
 
       test('texSubImage2D', () {
         var canvas = new CanvasElement();
-        gl.RenderingContext context = canvas.getContext3d();
+        var context = canvas.getContext3d();
         var pixels = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
         context.texSubImage2D(1, 1, 1, 1, 1, 10, 10, 1, pixels);
 

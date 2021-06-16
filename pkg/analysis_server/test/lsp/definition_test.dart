@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -198,9 +196,6 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
-  /// Failing due to incorrect range because _DartNavigationCollector._getCodeLocation
-  /// does not handle parts.
-  @failingTest
   Future<void> test_part() async {
     final mainContents = '''
     import 'lib.dart';

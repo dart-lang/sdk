@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class PackedAnnotation extends PubPackageResolutionTest {
-  test_error_1() async {
+  test_error_double() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
@@ -31,7 +31,7 @@ class C extends Struct {
   }
 
   /// Regress test for http://dartbug.com/45498.
-  test_error_2() async {
+  test_error_missing() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
@@ -45,7 +45,7 @@ class C extends Struct {
     ]);
   }
 
-  test_no_error_1() async {
+  test_no_error_struct_no_annotation() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
@@ -55,12 +55,48 @@ class C extends Struct {
 ''');
   }
 
-  test_no_error_2() async {
+  test_no_error_struct_one_annotation() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 
 @Packed(1)
 class C extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+''');
+  }
+
+  /// Doesn't do anything on Unions.
+  test_no_error_union_no_annotation() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+class C extends Union {
+  external Pointer<Uint8> notEmpty;
+}
+''');
+  }
+
+  /// Doesn't do anything on Unions.
+  test_no_error_union_one_annotation() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Packed(1)
+class C extends Union {
+  external Pointer<Uint8> notEmpty;
+}
+''');
+  }
+
+  /// Doesn't do anything on Unions.
+  test_no_error_union_two_annotations() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Packed(1)
+@Packed(1)
+class C extends Union {
   external Pointer<Uint8> notEmpty;
 }
 ''');

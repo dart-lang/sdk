@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -27,27 +25,28 @@ class AddAsync extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     if (isForMissingReturn) {
       var parent = node.parent;
-      DartType returnType;
-      FunctionBody body;
+      FunctionBody? body;
+      DartType? returnType;
       if (parent is FunctionDeclaration) {
-        returnType = parent.declaredElement.returnType;
         body = parent.functionExpression.body;
+        returnType = parent.declaredElement!.returnType;
       } else if (parent is MethodDeclaration) {
-        returnType = parent.declaredElement.returnType;
         body = parent.body;
+        returnType = parent.declaredElement!.returnType;
       }
-      if (body == null) {
+      if (body == null || returnType == null) {
         return;
       }
       if (_isFutureVoid(returnType) && _hasNoReturns(body)) {
+        var final_body = body;
         await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleInsertion(body.offset, 'async ');
+          builder.addSimpleInsertion(final_body.offset, 'async ');
         });
       }
     } else {
       var body = node.thisOrAncestorOfType<FunctionBody>();
       if (body != null && body.keyword == null) {
-        var typeProvider = this.typeProvider;
+        final typeProvider = this.typeProvider;
         await builder.addDartFileEdit(file, (builder) {
           builder.convertFunctionFromSyncToAsync(body, typeProvider);
         });

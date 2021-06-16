@@ -4,9 +4,7 @@
 
 library kernel.ast_to_text;
 
-import 'dart:core' hide MapEntry;
-import 'dart:core' as core show MapEntry;
-
+import 'dart:core';
 import 'dart:convert' show json;
 
 import '../ast.dart';
@@ -120,7 +118,7 @@ String debugQualifiedClassName(Class node) {
 }
 
 String debugMemberName(Member node) {
-  return node.name?.text ?? globalDebuggingNames.nameMember(node);
+  return node.name.text;
 }
 
 String debugQualifiedMemberName(Member node) {
@@ -367,8 +365,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   static final Name emptyName = new Name(emptyNameString);
 
   Name getMemberName(Member node) {
-    if (node.name?.text == '') return emptyName;
-    if (node.name != null) return node.name!;
+    if (node.name.text == '') return emptyName;
+    // ignore: unnecessary_null_comparison
+    if (node.name != null) return node.name;
     return new Name(syntheticNames.nameMember(node));
   }
 
@@ -428,9 +427,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       endLine(":");
       endLine("//");
       for (String s in problemsAsJson) {
-        Map<String, Object> decoded = json.decode(s);
-        List<Object> plainTextFormatted =
-            decoded["plainTextFormatted"] as List<Object>;
+        Map<String, dynamic> decoded = json.decode(s);
+        List<dynamic> plainTextFormatted =
+            decoded["plainTextFormatted"] as List<dynamic>;
         List<String> lines = plainTextFormatted.join("\n").split("\n");
         for (int i = 0; i < lines.length; i++) {
           write("//");
@@ -514,11 +513,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       } else if (node is Field) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name!.text);
+        write(prefix + '::' + node.name.text);
       } else if (node is Procedure) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name!.text);
+        write(prefix + '::' + node.name.text);
       } else if (node is Typedef) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
@@ -1205,13 +1204,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       case ProcedureStubKind.ConcreteForwardingStub:
       case ProcedureStubKind.NoSuchMethodForwarder:
       case ProcedureStubKind.ConcreteMixinStub:
-        writeFunction(node.function!, name: getMemberName(node));
+        writeFunction(node.function, name: getMemberName(node));
         break;
       case ProcedureStubKind.MemberSignature:
       case ProcedureStubKind.AbstractMixinStub:
-        writeFunction(node.function!,
+        writeFunction(node.function,
             name: getMemberName(node), terminateLine: false);
-        if (node.function!.body is ReturnStatement) {
+        if (node.function.body is ReturnStatement) {
           writeSymbol(';');
         }
         writeSymbol(' -> ');
@@ -1240,7 +1239,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
-    writeFunction(node.function!,
+    writeFunction(node.function,
         name: node.name, initializers: node.initializers);
   }
 
@@ -1251,8 +1250,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isConst, 'const');
     writeWord('redirecting_factory');
 
+    // ignore: unnecessary_null_comparison
     if (node.name != null) {
-      writeName(node.name!);
+      writeName(node.name);
     }
     writeTypeParameterList(node.typeParameters);
     writeParameterList(node.positionalParameters, node.namedParameters,
@@ -1337,6 +1337,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('extension');
+    if (node.isExtensionTypeDeclaration) {
+      writeWord('type');
+    }
     writeWord(getExtensionName(node));
     writeTypeParameterList(node.typeParameters);
     writeSpaced('on');
@@ -1655,7 +1658,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       if (!first) {
         writeComma();
       }
-      writeWord('${fieldRef.asField.name!.text}');
+      writeWord('${fieldRef.asField.name.text}');
       writeSymbol(':');
       writeExpression(value);
       first = false;
@@ -1785,7 +1788,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('}');
   }
 
-  visitMapEntry(MapEntry node) {
+  visitMapLiteralEntry(MapLiteralEntry node) {
     writeExpression(node.key);
     writeComma(':');
     writeExpression(node.value);
@@ -2287,8 +2290,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeAnnotationList(node.variable.annotations);
     writeIndentation();
     writeWord('function');
+    // ignore: unnecessary_null_comparison
     if (node.function != null) {
-      writeFunction(node.function!, name: getVariableName(node.variable));
+      writeFunction(node.function, name: getVariableName(node.variable));
     } else {
       writeWord(getVariableName(node.variable));
       endLine('...;');
@@ -2512,10 +2516,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
-    writeType(node.bound!);
-    if (node.defaultType != null) {
+    writeType(node.bound);
+    // ignore: unnecessary_null_comparison
+    if (node.defaultType != node.bound) {
       writeSpaced('=');
-      writeType(node.defaultType!);
+      writeType(node.defaultType);
     }
   }
 
@@ -2632,10 +2637,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
 
     writeSymbol(' {');
-    writeList(node.fieldValues.entries,
-        (core.MapEntry<Reference, Constant> entry) {
+    writeList(node.fieldValues.entries, (MapEntry<Reference, Constant> entry) {
       if (entry.key.node != null) {
-        writeWord('${entry.key.asField.name!.text}');
+        writeWord('${entry.key.asField.name.text}');
       } else {
         writeWord('${entry.key.canonicalName!.name}');
       }

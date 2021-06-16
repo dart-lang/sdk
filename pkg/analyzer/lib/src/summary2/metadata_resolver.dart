@@ -22,10 +22,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
-    node.elementAnnotation = ElementAnnotationImpl(_unitElement);
-
-    var astResolver = AstResolver(_linker, _unitElement, _scope);
-    astResolver.resolve(node, () => node);
+    var annotationElement = node.elementAnnotation;
+    if (annotationElement is ElementAnnotationImpl) {
+      var astResolver = AstResolver(_linker, _unitElement, _scope, node);
+      astResolver.resolveAnnotation(node);
+      annotationElement.element = node.element;
+    }
   }
 
   @override

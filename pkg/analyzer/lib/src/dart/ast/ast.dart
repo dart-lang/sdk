@@ -18,7 +18,6 @@ import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary2/linked_unit_context.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
@@ -721,18 +720,6 @@ class AssignmentExpressionImpl extends ExpressionImpl
       identical(child, _leftHandSide);
 }
 
-abstract class AstLinkedContext {
-  List<ClassMember> get classMembers;
-  int get codeLength;
-  int get codeOffset;
-  bool get isClassWithConstConstructor;
-  List<Directive> get unitDirectives;
-  void applyResolution(LinkedUnitContext unitContext);
-  int getVariableDeclarationCodeLength(VariableDeclaration node);
-  int getVariableDeclarationCodeOffset(VariableDeclaration node);
-  void readDocumentationComment();
-}
-
 /// A node in the AST structure for a Dart program.
 abstract class AstNodeImpl implements AstNode {
   /// The parent of the node, or `null` if the node is the root of an AST
@@ -751,14 +738,14 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   int get length {
-    Token beginToken = this.beginToken;
-    Token endToken = this.endToken;
+    final beginToken = this.beginToken;
+    final endToken = this.endToken;
     return endToken.offset + endToken.length - beginToken.offset;
   }
 
   @override
   int get offset {
-    Token beginToken = this.beginToken;
+    final beginToken = this.beginToken;
     return beginToken.offset;
   }
 
@@ -768,12 +755,16 @@ abstract class AstNodeImpl implements AstNode {
   @override
   AstNode get root {
     AstNode root = this;
-    var parent = this.parent;
-    while (parent != null) {
-      root = parent;
-      parent = root.parent;
+    var rootParent = parent;
+    while (rootParent != null) {
+      root = rootParent;
+      rootParent = root.parent;
     }
     return root;
+  }
+
+  void detachFromParent() {
+    _parent = null;
   }
 
   @override
@@ -1412,7 +1403,6 @@ class ChildEntities
 ///        [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
-    with HasAstLinkedContext
     implements ClassDeclaration {
   /// The 'abstract' keyword, or `null` if the keyword was absent.
   @override
@@ -1656,9 +1646,7 @@ abstract class ClassOrMixinDeclarationImpl
 ///
 ///    mixinApplication ::=
 ///        [TypeName] [WithClause] [ImplementsClause]? ';'
-class ClassTypeAliasImpl extends TypeAliasImpl
-    with HasAstLinkedContext
-    implements ClassTypeAlias {
+class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// The type parameters for the class, or `null` if the class does not have
   /// any type parameters.
   TypeParameterListImpl? _typeParameters;
@@ -2009,11 +1997,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   final FeatureSet featureSet;
 
-  /// Data that is read during loading this node from summary, but is not
-  /// fully applied yet. For example in many cases we don't need the
-  /// documentation comment, and it is expensive to decode strings.
-  Object? summaryData;
-
   /// Initialize a newly created compilation unit to have the given directives
   /// and declarations. The [scriptTag] can be `null` if there is no script tag
   /// in the compilation unit. The list of [directives] can be `null` if there
@@ -2067,7 +2050,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   int get length {
-    Token endToken = this.endToken;
+    final endToken = this.endToken;
     return endToken.offset + endToken.length;
   }
 
@@ -2329,6 +2312,19 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 }
 
+/// This class is used as a marker of constant context for initializers
+/// of constant fields and top-level variables read from summaries.
+class ConstantContextForExpressionImpl extends AstNodeImpl {
+  final ExpressionImpl expression;
+
+  ConstantContextForExpressionImpl(this.expression) {
+    _becomeParentOf(expression);
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// A constructor declaration.
 ///
 ///    constructorDeclaration ::=
@@ -2352,7 +2348,6 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 ///    initializerList ::=
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
 class ConstructorDeclarationImpl extends ClassMemberImpl
-    with HasAstLinkedContext
     implements ConstructorDeclaration {
   /// The token for the 'external' keyword, or `null` if the constructor is not
   /// external.
@@ -2686,6 +2681,50 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   void visitChildren(AstVisitor visitor) {
     _type.accept(visitor);
     _name?.accept(visitor);
+  }
+}
+
+/// An expression representing a reference to a constructor, e.g. the expression
+/// `List.filled` in `var x = List.filled;`.
+///
+/// Objects of this type are not produced directly by the parser (because the
+/// parser cannot tell whether an identifier refers to a type); they are
+/// produced at resolution time.
+class ConstructorReferenceImpl extends ExpressionImpl
+    implements ConstructorReference {
+  ConstructorNameImpl _constructorName;
+
+  ConstructorReferenceImpl(this._constructorName) {
+    _becomeParentOf(_constructorName);
+  }
+
+  @override
+  Token get beginToken => constructorName.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities =>
+      ChildEntities()..add(constructorName);
+
+  @override
+  ConstructorNameImpl get constructorName => _constructorName;
+
+  set constructorName(ConstructorNameImpl value) {
+    _constructorName = _becomeParentOf(value);
+  }
+
+  @override
+  Token get endToken => constructorName.endToken;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitConstructorReference(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    constructorName.accept(visitor);
   }
 }
 
@@ -3210,7 +3249,6 @@ class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 
 /// The declaration of an enum constant.
 class EnumConstantDeclarationImpl extends DeclarationImpl
-    with HasAstLinkedContext
     implements EnumConstantDeclaration {
   /// The name of the constant.
   SimpleIdentifierImpl _name;
@@ -3263,7 +3301,6 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
 ///        metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (',')? '}'
 class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
-    with HasAstLinkedContext
     implements EnumDeclaration {
   /// The 'enum' keyword.
   @override
@@ -3342,7 +3379,6 @@ class EphemeralIdentifier extends SimpleIdentifierImpl {
 ///    exportDirective ::=
 ///        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
 class ExportDirectiveImpl extends NamespaceDirectiveImpl
-    with HasAstLinkedContext
     implements ExportDirective {
   /// Initialize a newly created export directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
@@ -3486,7 +3522,9 @@ abstract class ExpressionImpl extends AstNodeImpl
         child is IfElement ||
         child is ForElement) {
       var parent = child.parent;
-      if (parent is TypedLiteralImpl && parent.constKeyword != null) {
+      if (parent is ConstantContextForExpressionImpl) {
+        return true;
+      } else if (parent is TypedLiteralImpl && parent.constKeyword != null) {
         // Inside an explicitly `const` list or map literal.
         return true;
       } else if (parent is InstanceCreationExpression &&
@@ -3517,7 +3555,7 @@ abstract class ExpressionImpl extends AstNodeImpl
 
   @override
   ParameterElement? get staticParameterElement {
-    var parent = this.parent;
+    final parent = this.parent;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     } else if (parent is IndexExpressionImpl) {
@@ -3655,7 +3693,6 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
-    with HasAstLinkedContext
     implements ExtensionDeclaration {
   @override
   Token extensionKeyword;
@@ -3862,9 +3899,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
 ///
 ///    fieldDeclaration ::=
 ///        'static'? [VariableDeclarationList] ';'
-class FieldDeclarationImpl extends ClassMemberImpl
-    with HasAstLinkedContext
-    implements FieldDeclaration {
+class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   @override
   Token? abstractKeyword;
 
@@ -4007,7 +4042,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    NodeListImpl<Annotation> metadata = this.metadata;
+    final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword != null) {
@@ -4272,14 +4307,9 @@ abstract class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 ///      | [DefaultFormalParameter]
 abstract class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
-  /// Data that is read during loading this node from summary, but is not
-  /// fully applied yet. For example in many cases we don't need the
-  /// documentation comment, and it is expensive to decode strings.
-  Object? summaryData;
-
   @override
   ParameterElement? get declaredElement {
-    var identifier = this.identifier;
+    final identifier = this.identifier;
     if (identifier == null) {
       return null;
     }
@@ -4707,7 +4737,6 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 ///    functionSignature ::=
 ///        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
 class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
-    with HasAstLinkedContext
     implements FunctionDeclaration {
   /// The token representing the 'external' keyword, or `null` if this is not an
   /// external function.
@@ -4991,6 +5020,61 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   bool _extendsNullShorting(Expression child) => identical(child, _function);
 }
 
+/// An expression representing a reference to a function, possibly with type
+/// arguments applied to it, e.g. the expression `print` in `var x = print;`.
+class FunctionReferenceImpl extends ExpressionImpl
+    implements FunctionReference {
+  ExpressionImpl _function;
+
+  TypeArgumentListImpl? _typeArguments;
+
+  @override
+  List<DartType>? typeArgumentTypes;
+
+  FunctionReferenceImpl(this._function, {TypeArgumentListImpl? typeArguments})
+      : _typeArguments = typeArguments {
+    _becomeParentOf(_function);
+    _becomeParentOf(_typeArguments);
+  }
+
+  @override
+  Token get beginToken => function.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities =>
+      ChildEntities()..add(function)..add(typeArguments);
+
+  @override
+  Token get endToken => typeArguments?.endToken ?? function.endToken;
+
+  @override
+  ExpressionImpl get function => _function;
+
+  set function(ExpressionImpl value) {
+    _function = _becomeParentOf(value);
+  }
+
+  @override
+  Precedence get precedence =>
+      typeArguments == null ? function.precedence : Precedence.postfix;
+
+  @override
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
+
+  set typeArguments(TypeArgumentListImpl? value) {
+    _typeArguments = _becomeParentOf(value);
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    function.accept(visitor);
+    typeArguments?.accept(visitor);
+  }
+}
+
 /// A function type alias.
 ///
 ///    functionTypeAlias ::=
@@ -4998,9 +5082,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 ///
 ///    functionPrefix ::=
 ///        [TypeName]? [SimpleIdentifier]
-class FunctionTypeAliasImpl extends TypeAliasImpl
-    with HasAstLinkedContext
-    implements FunctionTypeAlias {
+class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   /// The name of the return type of the function type being defined, or `null`
   /// if no return type was given.
   TypeAnnotationImpl? _returnType;
@@ -5128,7 +5210,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    NodeListImpl<Annotation> metadata = this.metadata;
+    final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword != null) {
@@ -5318,9 +5400,7 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
 ///    functionTypeAlias ::=
 ///        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? =
 ///        [FunctionType] ';'
-class GenericTypeAliasImpl extends TypeAliasImpl
-    with HasAstLinkedContext
-    implements GenericTypeAlias {
+class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   /// The type being defined by the alias.
   TypeAnnotationImpl _type;
 
@@ -5405,10 +5485,6 @@ class GenericTypeAliasImpl extends TypeAliasImpl
     _typeParameters?.accept(visitor);
     _type.accept(visitor);
   }
-}
-
-mixin HasAstLinkedContext {
-  AstLinkedContext? linkedContext;
 }
 
 /// A combinator that restricts the names being imported to those that are not
@@ -5688,7 +5764,6 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
 ///      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier
 //         [Combinator]* ';'
 class ImportDirectiveImpl extends NamespaceDirectiveImpl
-    with HasAstLinkedContext
     implements ImportDirective {
   /// The token representing the 'deferred' keyword, or `null` if the imported
   /// is not deferred.
@@ -5896,7 +5971,7 @@ class IndexExpressionImpl extends ExpressionImpl
   ParameterElement? get _staticParameterElementForIndex {
     Element? element = staticElement;
 
-    var parent = this.parent;
+    final parent = this.parent;
     if (parent is CompoundAssignmentExpression) {
       var assignment = parent as CompoundAssignmentExpression;
       element = assignment.writeElement ?? assignment.readElement;
@@ -5918,7 +5993,7 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   bool inGetterContext() {
     // TODO(brianwilkerson) Convert this to a getter.
-    AstNode parent = this.parent!;
+    final parent = this.parent!;
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent;
       if (identical(assignment.leftHandSide, this) &&
@@ -5932,7 +6007,7 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   bool inSetterContext() {
     // TODO(brianwilkerson) Convert this to a getter.
-    AstNode parent = this.parent!;
+    final parent = this.parent!;
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
@@ -6101,7 +6176,7 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   /// the literal is the child of a negation operation. The literal value itself
   /// will always be positive.
   bool get immediatelyNegated {
-    AstNode parent = this.parent!; // Capture for type propagation.
+    final parent = this.parent!;
     return parent is PrefixExpression &&
         parent.operator.type == TokenType.MINUS;
   }
@@ -6504,11 +6579,6 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   @override
   Token semicolon;
 
-  /// Data that is read during loading this node from summary, but is not
-  /// fully applied yet. For example in many cases we don't need the
-  /// documentation comment, and it is expensive to decode strings.
-  Object? summaryData;
-
   /// Initialize a newly created library directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
@@ -6651,7 +6721,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     if (constKeyword != null) {
       return constKeyword!;
     }
-    var typeArguments = this.typeArguments;
+    final typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
@@ -6780,7 +6850,6 @@ class MapLiteralEntryImpl extends CollectionElementImpl
 ///        [SimpleIdentifier]
 ///      | 'operator' [SimpleIdentifier]
 class MethodDeclarationImpl extends ClassMemberImpl
-    with HasAstLinkedContext
     implements MethodDeclaration {
   /// The token for the 'external' keyword, or `null` if the constructor is not
   /// external.
@@ -7108,7 +7177,6 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 ///        metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
 ///        [RequiresClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
-    with HasAstLinkedContext
     implements MixinDeclaration {
   @override
   Token mixinKeyword;
@@ -7618,7 +7686,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 
   @override
   ParameterKind get kind {
-    var parent = this.parent;
+    final parent = this.parent;
     if (parent is DefaultFormalParameterImpl) {
       return parent.kind;
     }
@@ -8561,7 +8629,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
     if (constKeyword != null) {
       return constKeyword!;
     }
-    var typeArguments = this.typeArguments;
+    final typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
@@ -8690,7 +8758,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    NodeListImpl<Annotation> metadata = this.metadata;
+    final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword != null) {
@@ -8773,7 +8841,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 
   @override
   bool get isQualified {
-    AstNode parent = this.parent!;
+    final parent = this.parent!;
     if (parent is PrefixedIdentifier) {
       return identical(parent.identifier, this);
     } else if (parent is PropertyAccess) {
@@ -9103,6 +9171,20 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
 
   /// Initialize a newly created string interpolation expression.
   StringInterpolationImpl(List<InterpolationElement> elements) {
+    // TODO(scheglov) Replace asserts with appropriately typed parameters.
+    assert(elements.length > 2, 'Expected at last three elements.');
+    assert(
+      elements.first is InterpolationStringImpl,
+      'The first element must be a string.',
+    );
+    assert(
+      elements[1] is InterpolationExpressionImpl,
+      'The second element must be an expression.',
+    );
+    assert(
+      elements.last is InterpolationStringImpl,
+      'The last element must be a string.',
+    );
     _elements._initialize(this, elements);
   }
 
@@ -9133,6 +9215,10 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
   Token get endToken => _elements.endToken!;
 
   @override
+  InterpolationStringImpl get firstString =>
+      elements.first as InterpolationStringImpl;
+
+  @override
   bool get isMultiline => _firstHelper.isMultiline;
 
   @override
@@ -9140,6 +9226,10 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @override
   bool get isSingleQuoted => _firstHelper.isSingleQuoted;
+
+  @override
+  InterpolationStringImpl get lastString =>
+      elements.last as InterpolationStringImpl;
 
   StringLexemeHelper get _firstHelper {
     var lastString = _elements.first as InterpolationString;
@@ -9720,7 +9810,6 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
 ///        ('final' | 'const') type? staticFinalDeclarationList ';'
 ///      | variableDeclaration ';'
 class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
-    with HasAstLinkedContext
     implements TopLevelVariableDeclaration {
   /// The top-level variables being declared.
   VariableDeclarationListImpl _variableList;
@@ -9999,6 +10088,53 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   }
 }
 
+/// An expression representing a type, e.g. the expression `int` in
+/// `var x = int;`.
+///
+/// Objects of this type are not produced directly by the parser (because the
+/// parser cannot tell whether an identifier refers to a type); they are
+/// produced at resolution time.
+///
+/// The `.staticType` getter returns the type of the expression (which will
+/// always be the type `Type`).  To see the type represented by the type literal
+/// use `.typeName.type`.
+class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
+  TypeNameImpl _typeName;
+
+  TypeLiteralImpl(this._typeName) {
+    _becomeParentOf(_typeName);
+  }
+
+  @override
+  Token get beginToken => typeName.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()..add(typeName);
+
+  @override
+  Token get endToken => typeName.endToken;
+
+  @override
+  Precedence get precedence => typeName.typeArguments == null
+      ? typeName.name.precedence
+      : Precedence.postfix;
+
+  @override
+  TypeNameImpl get typeName => _typeName;
+
+  set typeName(TypeNameImpl value) {
+    _typeName = _becomeParentOf(value);
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeLiteral(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeName.accept(visitor);
+  }
+}
+
 /// The name of a type, which can optionally include type arguments.
 ///
 ///    typeName ::=
@@ -10096,11 +10232,6 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   /// The name of the upper bound for legal arguments, or `null` if there is no
   /// explicit upper bound.
   TypeAnnotationImpl? _bound;
-
-  /// Data that is read during loading this node from summary, but is not
-  /// fully applied yet. For example in many cases we don't need the
-  /// documentation comment, and it is expensive to decode strings.
-  Object? summaryData;
 
   /// Initialize a newly created type parameter. Either or both of the [comment]
   /// and [metadata] can be `null` if the parameter does not have the
@@ -10384,19 +10515,19 @@ class VariableDeclarationImpl extends DeclarationImpl
 
   @override
   bool get isConst {
-    var parent = this.parent;
+    final parent = this.parent;
     return parent is VariableDeclarationList && parent.isConst;
   }
 
   @override
   bool get isFinal {
-    var parent = this.parent;
+    final parent = this.parent;
     return parent is VariableDeclarationList && parent.isFinal;
   }
 
   @override
   bool get isLate {
-    var parent = this.parent;
+    final parent = this.parent;
     return parent is VariableDeclarationList && parent.isLate;
   }
 

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks
 
+// @dart = 2.9
+
 // Dart test for function type alias with optional parameters.
 import "package:expect/expect.dart";
 

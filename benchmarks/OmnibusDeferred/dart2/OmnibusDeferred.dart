@@ -11,21 +11,23 @@
 //
 //     -N: run benchmarks N times, defaults to once.
 
-import '../../ListCopy/dart/ListCopy.dart' deferred as lib_ListCopy;
-import '../../BigIntParsePrint/dart/BigIntParsePrint.dart'
+// ignore_for_file: library_prefixes
+
+import '../../BigIntParsePrint/dart2/BigIntParsePrint.dart'
     deferred as lib_BigIntParsePrint;
-import '../../MD5/dart/md5.dart' deferred as lib_MD5;
-import '../../RuntimeType/dart/RuntimeType.dart' deferred as lib_RuntimeType;
-import '../../SHA1/dart/sha1.dart' deferred as lib_SHA1;
-import '../../SHA256/dart/sha256.dart' deferred as lib_SHA256;
-import '../../SkeletalAnimation/dart/SkeletalAnimation.dart'
+import '../../ListCopy/dart2/ListCopy.dart' deferred as lib_ListCopy;
+import '../../MD5/dart2/md5.dart' deferred as lib_MD5;
+import '../../RuntimeType/dart2/RuntimeType.dart' deferred as lib_RuntimeType;
+import '../../SHA1/dart2/sha1.dart' deferred as lib_SHA1;
+import '../../SHA256/dart2/sha256.dart' deferred as lib_SHA256;
+import '../../SkeletalAnimation/dart2/SkeletalAnimation.dart'
     deferred as lib_SkeletalAnimation;
-import '../../SkeletalAnimationSIMD/dart/SkeletalAnimationSIMD.dart'
+import '../../SkeletalAnimationSIMD/dart2/SkeletalAnimationSIMD.dart'
     deferred as lib_SkeletalAnimationSIMD;
-import '../../TypedDataDuplicate/dart/TypedDataDuplicate.dart'
+import '../../TypedDataDuplicate/dart2/TypedDataDuplicate.dart'
     deferred as lib_TypedDataDuplicate;
-import '../../Utf8Decode/dart/Utf8Decode.dart' deferred as lib_Utf8Decode;
-import '../../Utf8Encode/dart/Utf8Encode.dart' deferred as lib_Utf8Encode;
+import '../../Utf8Decode/dart2/Utf8Decode.dart' deferred as lib_Utf8Decode;
+import '../../Utf8Encode/dart2/Utf8Encode.dart' deferred as lib_Utf8Encode;
 
 class Lib {
   final Future Function() load;
@@ -80,20 +82,20 @@ final Map<String, Lib> benchmarks = {
   ),
 };
 
-main(List<String> originalArguments) async {
-  List<String> args = List.of(originalArguments);
+void main(List<String> originalArguments) async {
+  final List<String> args = List.of(originalArguments);
 
   int repeats = 1;
 
   for (final arg in args.toList()) {
-    int count = int.tryParse(arg);
+    final int count = int.tryParse(arg);
     if (count != null && count < 0) {
       repeats = 0 - count;
       args.remove(arg);
     }
   }
 
-  bool preload = args.remove('--preload');
+  final preload = args.remove('--preload');
 
   List<Lib> libs = [];
 
@@ -111,7 +113,9 @@ main(List<String> originalArguments) async {
   if (libs.isEmpty) libs = benchmarks.values.toList();
 
   if (preload) {
-    for (final lib in libs) await lib.load();
+    for (final lib in libs) {
+      await lib.load();
+    }
   }
 
   for (var i = 0; i < repeats; i++) {

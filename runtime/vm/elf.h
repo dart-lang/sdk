@@ -32,7 +32,7 @@ class Elf : public ZoneAllocated {
 
   Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf = nullptr);
 
-  static constexpr intptr_t kPageSize = 4096;
+  static constexpr intptr_t kPageSize = 16 * KB;
   static constexpr uword kNoSectionStart = 0;
 
   bool IsStripped() const { return dwarf_ == nullptr; }

@@ -1,0 +1,47 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1] [@vm.unboxing-info.metadata=()->i]  final field core::int* x;
+}
+class B extends core::Object /*hasConstConstructor*/  {
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 11)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  final field core::int* y;
+}
+class C extends core::Object /*hasConstConstructor*/  {
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 12)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3] [@vm.unboxing-info.metadata=()->i]  final field core::int* z;
+}
+@#C4
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  @#C13
+  method bar() → void {
+    @#C17
+    function bazz() → void {}
+    [@vm.call-site-attributes.metadata=receiverType:void Function()*] bazz(){() →* void};
+  }
+}
+static method main() → dynamic {
+  [@vm.direct-call.metadata=#lib::Foo.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::Foo::•().{self::Foo::bar}(){() →* void};
+}
+constants  {
+  #C1 = "test1"
+  #C2 = 10
+  #C3 = self::A {x:#C2}
+  #C4 = core::pragma {name:#C1, options:#C3}
+  #C5 = "test2"
+  #C6 = 3
+  #C7 = 11
+  #C8 = self::B {y:#C7}
+  #C9 = 4
+  #C10 = "hey"
+  #C11 = <dynamic>[#C6, #C8, #C9, #C10]
+  #C12 = core::_ImmutableMap<core::int*, core::Object*> {_kvPairs:#C11}
+  #C13 = core::pragma {name:#C5, options:#C12}
+  #C14 = "test3"
+  #C15 = 12
+  #C16 = self::C {z:#C15}
+  #C17 = core::pragma {name:#C14, options:#C16}
+}

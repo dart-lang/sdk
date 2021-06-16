@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
@@ -15,6 +13,7 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HoverTest);
+    defineReflectiveTests(HoverWithNullSafetyTest);
   });
 }
 
@@ -37,7 +36,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     await initialAnalysis;
     var hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover!.range, equals(rangeFromMarkers(content)));
     expect(_getStringContents(hover), endsWith('This is shared content.'));
   }
 
@@ -89,7 +88,7 @@ print();
     await openFile(mainFileUri, withoutMarkers(content));
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover!.range, equals(rangeFromMarkers(content)));
     expect(hover.contents, isNotNull);
     final markup = _getMarkupContents(hover);
     expect(markup.kind, equals(MarkupKind.Markdown));
@@ -108,7 +107,7 @@ print();
     await openFile(mainFileUri, withoutMarkers(content));
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover!.range, equals(rangeFromMarkers(content)));
     expect(hover.contents, isNotNull);
     final markup = _getMarkupContents(hover);
     expect(markup.kind, equals(MarkupKind.Markdown));
@@ -151,7 +150,7 @@ print();
     await openFile(mainFileUri, withoutMarkers(content));
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover!.range, equals(rangeFromMarkers(content)));
     expect(hover.contents, isNotNull);
     // Ensure we got PlainText back as the type, even though we're sending the
     // same markdown content.
@@ -172,7 +171,7 @@ print();
     await openFile(mainFileUri, withoutMarkers(content));
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover!.range, equals(rangeFromMarkers(content)));
   }
 
   Future<void> test_string_noDocComment() async {
@@ -192,7 +191,7 @@ String abc
     await openFile(mainFileUri, withoutMarkers(content));
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover!.range, equals(rangeFromMarkers(content)));
     expect(hover.contents, isNotNull);
     expect(_getStringContents(hover), equals(expectedHoverContent));
   }
@@ -210,12 +209,14 @@ String abc
     await initialize();
     await openFile(mainFileUri, withoutMarkers(original));
     var hover = await getHover(mainFileUri, positionFromMarker(original));
-    var contents = _getStringContents(hover);
+    expect(hover, isNotNull);
+    var contents = _getStringContents(hover!);
     expect(contents, contains('Original'));
 
     await replaceFile(222, mainFileUri, withoutMarkers(updated));
     hover = await getHover(mainFileUri, positionFromMarker(updated));
-    contents = _getStringContents(hover);
+    expect(hover, isNotNull);
+    contents = _getStringContents(hover!);
     expect(contents, contains('Updated'));
   }
 
@@ -229,7 +230,7 @@ String abc
     await openFile(mainFileUri, withoutMarkers(content));
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover!.range, equals(rangeFromMarkers(content)));
     expect(hover.contents, isNotNull);
     final contents = _getStringContents(hover);
     expect(contents, contains('This is a string.'));
@@ -245,7 +246,7 @@ String abc
     await initialize();
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
-    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(hover!.range, equals(rangeFromMarkers(content)));
     expect(hover.contents, isNotNull);
     final markup = _getStringContents(hover);
     expect(markup, contains('This is a string.'));
@@ -263,5 +264,33 @@ String abc
       (t1) => t1,
       (t2) => throw 'Hover contents were MarkupContent, not String',
     );
+  }
+}
+
+@reflectiveTest
+class HoverWithNullSafetyTest extends HoverTest {
+  @override
+  String get testPackageLanguageVersion => latestLanguageVersion;
+
+  Future<void> test_nullableTypes() async {
+    final content = '''
+    String? [[a^bc]];
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+String? abc
+```
+*package:test/main.dart*
+    '''
+        .trim();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    expect(_getStringContents(hover), equals(expectedHoverContent));
   }
 }

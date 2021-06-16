@@ -92,7 +92,7 @@ class AstCloner implements AstVisitor<AstNode> {
       if (_lastClonedOffset <= token.offset) {
         _cloneTokens(_nextToClone ?? token, token.offset);
       }
-      return _clonedTokens[token]!;
+      return _clonedTokens[token] ?? _cloneSyntheticToken(token);
     } else {
       return token;
     }
@@ -339,6 +339,10 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNullableToken(node.period), cloneNullableNode(node.name));
 
   @override
+  AstNode visitConstructorReference(ConstructorReference node) => astFactory
+      .constructorReference(constructorName: cloneNode(node.constructorName));
+
+  @override
   ContinueStatement visitContinueStatement(ContinueStatement node) =>
       astFactory.continueStatement(cloneToken(node.continueKeyword),
           cloneNullableNode(node.label), cloneToken(node.semicolon));
@@ -579,6 +583,12 @@ class AstCloner implements AstVisitor<AstNode> {
           FunctionExpressionInvocation node) =>
       astFactory.functionExpressionInvocation(cloneNode(node.function),
           cloneNullableNode(node.typeArguments), cloneNode(node.argumentList));
+
+  @override
+  AstNode visitFunctionReference(FunctionReference node) =>
+      astFactory.functionReference(
+          function: cloneNode(node.function),
+          typeArguments: cloneNullableNode(node.typeArguments));
 
   @override
   FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) =>
@@ -1012,6 +1022,10 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNodeList(node.arguments), cloneToken(node.rightBracket));
 
   @override
+  TypeLiteral visitTypeLiteral(TypeLiteral node) =>
+      astFactory.typeLiteral(typeName: cloneNode(node.typeName));
+
+  @override
   TypeNameImpl visitTypeName(TypeName node) => astFactory.typeName(
       cloneNode(node.name), cloneNullableNode(node.typeArguments),
       question: cloneNullableToken(node.question));
@@ -1075,6 +1089,15 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNullableToken(node.star),
           cloneNode(node.expression),
           cloneToken(node.semicolon));
+
+  /// Clones a synthetic token that isn't linked up to the rest of the token
+  /// list.
+  Token _cloneSyntheticToken(Token token) {
+    assert(token.isSynthetic);
+    assert(token.next == null);
+    assert(token.previous == null);
+    return token.copy();
+  }
 
   /// Clone all token starting from the given [token] up to a token that has
   /// offset greater then [stopAfter], and put mapping from originals to clones
@@ -1450,6 +1473,12 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConstructorReference(ConstructorReference node) {
+    ConstructorReference other = _other as ConstructorReference;
+    return isEqualNodes(node.constructorName, other.constructorName);
+  }
+
+  @override
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement other = _other as ContinueStatement;
     return isEqualTokens(node.continueKeyword, other.continueKeyword) &&
@@ -1719,6 +1748,13 @@ class AstComparator implements AstVisitor<bool> {
     FunctionExpressionInvocation other = _other as FunctionExpressionInvocation;
     return isEqualNodes(node.function, other.function) &&
         isEqualNodes(node.argumentList, other.argumentList);
+  }
+
+  @override
+  bool visitFunctionReference(FunctionReference node) {
+    FunctionReference other = _other as FunctionReference;
+    return isEqualNodes(node.function, other.function) &&
+        isEqualNodes(node.typeArguments, other.typeArguments);
   }
 
   @override
@@ -2236,6 +2272,12 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualTokens(node.leftBracket, other.leftBracket) &&
         _isEqualNodeLists(node.arguments, other.arguments) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
+  bool visitTypeLiteral(TypeLiteral node) {
+    TypeLiteral other = _other as TypeLiteral;
+    return isEqualNodes(node.typeName, other.typeName);
   }
 
   @override
@@ -2961,6 +3003,15 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConstructorReference(covariant ConstructorReferenceImpl node) {
+    if (identical(node.constructorName, _oldNode)) {
+      node.constructorName = _newNode as ConstructorNameImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitContinueStatement(covariant ContinueStatementImpl node) {
     if (identical(node.label, _oldNode)) {
       node.label = _newNode as SimpleIdentifier;
@@ -3267,6 +3318,18 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
       node.argumentList = _newNode as ArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitFunctionReference(covariant FunctionReferenceImpl node) {
+    if (identical(node.function, _oldNode)) {
+      node.function = _newNode as ExpressionImpl;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      node.typeArguments = _newNode as TypeArgumentListImpl;
       return true;
     }
     return visitNode(node);
@@ -3865,6 +3928,15 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitTypedLiteral(covariant TypedLiteralImpl node) {
     if (identical(node.typeArguments, _oldNode)) {
       node.typeArguments = _newNode as TypeArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitTypeLiteral(covariant TypeLiteralImpl node) {
+    if (identical(node.typeName, _oldNode)) {
+      node.typeName = _newNode as TypeNameImpl;
       return true;
     }
     return visitNode(node);

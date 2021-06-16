@@ -23,11 +23,6 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token, Utf8BytesScanner;
 
-import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
-    show Utf8BytesScanner;
-
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
 
@@ -174,29 +169,46 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
 
   String get name => "listener";
 
-  Future<Result<TestDescription>> run(
-      TestDescription description, Context context) {
+  /// Scans the uri, parses it with the test listener and returns it.
+  ///
+  /// Returns null if scanner doesn't return any Token.
+  static ParserTestListenerWithMessageFormatting doListenerParsing(
+      Uri uri, String suiteName, String shortName,
+      {bool addTrace: false, bool annotateLines: false}) {
     List<int> lineStarts = <int>[];
-
-    Token firstToken =
-        scanUri(description.uri, description.shortName, lineStarts: lineStarts);
+    Token firstToken = scanUri(uri, shortName, lineStarts: lineStarts);
 
     if (firstToken == null) {
-      return Future.value(crash(description, StackTrace.current));
+      return null;
     }
 
-    File f = new File.fromUri(description.uri);
+    File f = new File.fromUri(uri);
     List<int> rawBytes = f.readAsBytesSync();
-    Source source =
-        new Source(lineStarts, rawBytes, description.uri, description.uri);
-
-    String shortName = "${context.suiteName}/${description.shortName}";
-
+    Source source = new Source(lineStarts, rawBytes, uri, uri);
+    String shortNameId = "${suiteName}/${shortName}";
     ParserTestListenerWithMessageFormatting parserTestListener =
         new ParserTestListenerWithMessageFormatting(
-            context.addTrace, context.annotateLines, source, shortName);
+            addTrace, annotateLines, source, shortNameId);
     Parser parser = new Parser(parserTestListener);
     parser.parseUnit(firstToken);
+    return parserTestListener;
+  }
+
+  Future<Result<TestDescription>> run(
+      TestDescription description, Context context) {
+    Uri uri = description.uri;
+
+    ParserTestListenerWithMessageFormatting parserTestListener =
+        doListenerParsing(
+      uri,
+      context.suiteName,
+      description.shortName,
+      addTrace: context.addTrace,
+      annotateLines: context.annotateLines,
+    );
+    if (parserTestListener == null) {
+      return Future.value(crash(description, StackTrace.current));
+    }
 
     String errors = "";
     if (parserTestListener.errors.isNotEmpty) {
@@ -205,8 +217,8 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     }
 
     if (doExpects) {
-      return context.match<TestDescription>(".expect",
-          "${errors}${parserTestListener.sb}", description.uri, description);
+      return context.match<TestDescription>(
+          ".expect", "${errors}${parserTestListener.sb}", uri, description);
     } else {
       return new Future.value(new Result<TestDescription>.pass(description));
     }

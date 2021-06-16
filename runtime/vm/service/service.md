@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.44
+# Dart VM Service Protocol 3.46
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.44_ of the Dart VM Service Protocol. This
+This document describes of _version 3.46_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -67,6 +67,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [reloadSources](#reloadsources)
   - [removeBreakpoint](#removebreakpoint)
   - [resume](#resume)
+  - [setBreakpointState](#setbreakpointstate)
   - [setExceptionPauseMode](#setexceptionpausemode)
   - [setFlag](#setflag)
   - [setLibraryDebuggable](#setlibrarydebuggable)
@@ -1305,6 +1306,24 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success), [StepOption](#StepOption).
 
+### setBreakpointState
+
+```
+Breakpoint setBreakpointState(string isolateId,
+                              string breakpointId,
+                              bool enable)
+```
+
+The _setBreakpointState_ RPC allows for breakpoints to be enabled or disabled,
+without requiring for the breakpoint to be completely removed.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+The returned [Breakpoint](#breakpoint) is the updated breakpoint with its new
+values.
+
+See [Breakpoint](#breakpoint).
 ### setExceptionPauseMode
 
 ```
@@ -1457,7 +1476,7 @@ streamId | event types provided
 -------- | -----------
 VM | VMUpdate, VMFlagUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
-Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
+Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
 GC | GC
 Extension | Extension
 Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
@@ -1639,6 +1658,9 @@ class Breakpoint extends Object {
   // A number identifying this breakpoint to the user.
   int breakpointNumber;
 
+  // Is this breakpoint enabled?
+  bool enabled;
+
   // Has this breakpoint been assigned to a specific program location?
   bool resolved;
 
@@ -1665,6 +1687,12 @@ been loaded (i.e. a deferred library).
 class @Class extends @Object {
   // The name of this class.
   string name;
+
+  // The location of this class in the source code.
+  SourceLocation location [optional];
+
+  // The library which contains this class.
+  @Library library;
 }
 ```
 
@@ -1674,6 +1702,12 @@ _@Class_ is a reference to a _Class_.
 class Class extends Object {
   // The name of this class.
   string name;
+
+  // The location of this class in the source code.
+  SourceLocation location [optional];
+
+  // The library which contains this class.
+  @Library library;
 
   // The error which occurred during class finalization, if it exists.
   @Error error [optional];
@@ -1686,12 +1720,6 @@ class Class extends Object {
 
   // Are allocations of this class being traced?
   bool traceAllocations;
-
-  // The library which contains this class.
-  @Library library;
-
-  // The location of this class in the source code.
-  SourceLocation location [optional];
 
   // The superclass of this class, if any.
   @Class super [optional];
@@ -1810,7 +1838,7 @@ class Context extends Object {
   int length;
 
   // The enclosing context for this context.
-  Context parent [optional];
+  @Context parent [optional];
 
   // The variables in this context object.
   ContextElement[] variables;
@@ -2002,6 +2030,7 @@ class Event extends Response {
   //   BreakpointAdded
   //   BreakpointRemoved
   //   BreakpointResolved
+  //   BreakpointUpdated
   Breakpoint breakpoint [optional];
 
   // The list of breakpoints at which we are currently paused
@@ -2199,6 +2228,9 @@ enum EventKind {
   // A breakpoint has been removed.
   BreakpointRemoved,
 
+  // A breakpoint has been updated.
+  BreakpointUpdated,
+
   // A garbage collection event.
   GC,
 
@@ -2272,6 +2304,9 @@ class @Field extends @Object {
 
   // Is this field static?
   bool static;
+
+  // The location of this field in the source code.
+  SourceLocation location [optional];
 }
 ```
 
@@ -2301,12 +2336,12 @@ class Field extends Object {
   // Is this field static?
   bool static;
 
+  // The location of this field in the source code.
+  SourceLocation location [optional];
+
   // The value of this field, if the field is static. If uninitialized,
   // this will take the value of an uninitialized Sentinel.
   @Instance|Sentinel staticValue [optional];
-
-  // The location of this field in the source code.
-  SourceLocation location [optional];
 }
 ```
 
@@ -2375,6 +2410,9 @@ class @Function extends @Object {
 
   // Is this function const?
   bool const;
+
+  // The location of this function in the source code.
+  SourceLocation location [optional];
 }
 ```
 
@@ -3780,7 +3818,7 @@ The _Success_ type is used to indicate that an operation completed successfully.
 
 ```
 class Timeline extends Response {
-  // A list of timeline events. No order is guarenteed for these events; in particular, these events may be unordered with respect to their timestamps.
+  // A list of timeline events. No order is guaranteed for these events; in particular, these events may be unordered with respect to their timestamps.
   TimelineEvent[] traceEvents;
 
   // The start of the period of time in which traceEvents were collected.
@@ -4011,5 +4049,7 @@ version | comments
 3.42 | Added `limit` optional parameter to `getStack` RPC.
 3.43 | Updated heap snapshot format to include identity hash codes. Added `getAllocationTraces` and `setTraceClassAllocation` RPCs, updated `CpuSample` to include `identityHashCode` and `classId` properties, updated `Class` to include `traceAllocations` property.
 3.44 | Added `identityHashCode` property to `@Instance` and `Instance`.
+3.45 | Added `setBreakpointState` RPC and `BreakpointUpdated` event kind.
+3.46 | Moved `sourceLocation` property into reference types for `Class`, `Field`, and `Function`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

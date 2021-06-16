@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A runner that can request code completion at the location of each identifier
@@ -41,11 +39,11 @@ class CompletionRunner {
 
   /// Initialize a newly created completion runner.
   CompletionRunner(
-      {StringSink output,
-      bool printMissing,
-      bool printQuality,
-      bool timing,
-      bool verbose})
+      {StringSink? output,
+      bool? printMissing,
+      bool? printQuality,
+      bool? timing,
+      bool? verbose})
       : output = output ?? NullStringSink(),
         printMissing = printMissing ?? false,
         printQuality = printQuality ?? false,
@@ -82,10 +80,11 @@ class CompletionRunner {
         }
         fileCount++;
         output.write('.');
-        var result = await context.currentSession.getResolvedUnit(path);
-        var content = result.content;
+        var result = await context.currentSession.getResolvedUnit2(path)
+            as ResolvedUnitResult;
+        var content = result.content!;
         var lineInfo = result.lineInfo;
-        var identifiers = _identifiersIn(result.unit);
+        var identifiers = _identifiersIn(result.unit!);
 
         for (var identifier in identifiers) {
           identifierCount++;
@@ -95,7 +94,8 @@ class CompletionRunner {
                 content.substring(identifier.end);
             resourceProvider.setOverlay(path,
                 content: modifiedContent, modificationStamp: stamp++);
-            result = await context.currentSession.getResolvedUnit(path);
+            result = await context.currentSession.getResolvedUnit2(path)
+                as ResolvedUnitResult;
           }
 
           timer.start();
@@ -118,7 +118,7 @@ class CompletionRunner {
             if (index < 0) {
               missingCount++;
               if (printMissing) {
-                CharacterLocation location = lineInfo.getLocation(offset);
+                var location = lineInfo.getLocation(offset);
                 output.writeln('Missing suggestion of "${identifier.name}" at '
                     '$path:${location.lineNumber}:${location.columnNumber}');
                 if (verbose) {

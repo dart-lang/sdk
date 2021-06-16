@@ -168,7 +168,7 @@ struct UriToSourceTableTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->uri->Hash(); }
+  static inline uword Hash(Key key) { return key->uri->Hash(); }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
     // Only compare uri.
@@ -223,15 +223,6 @@ class KernelLoader : public ValueObject {
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,
                                   const LibraryIndex& library_index);
-
-  // Check for the presence of a (possibly const) constructor for the
-  // 'ExternalName' class. If found, returns the name parameter to the
-  // constructor.
-  StringPtr DetectExternalNameCtor();
-
-  // Check for the presence of a (possibly const) constructor for the 'pragma'
-  // class. Returns whether it was found (no details about the type of pragma).
-  bool DetectPragmaCtor();
 
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for generic types.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 abstract class GenericsTest<T, V> implements Map<int, int> {

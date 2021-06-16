@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// This tests HTML validation and sanitization, which is very important
 /// for prevent XSS or other attacks. If you suppress this, or parts of it
 /// please make it a critical bug and bring it to the attention of the

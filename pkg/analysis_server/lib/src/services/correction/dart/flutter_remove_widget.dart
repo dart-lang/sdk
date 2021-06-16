@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -25,7 +23,7 @@ class FlutterRemoveWidget extends CorrectionProducer {
     // Prepare the list of our children.
     var childrenArgument = flutter.findChildrenArgument(widgetCreation);
     if (childrenArgument != null) {
-      var childrenExpression = childrenArgument?.expression;
+      var childrenExpression = childrenArgument.expression;
       if (childrenExpression is ListLiteral &&
           childrenExpression.elements.isNotEmpty) {
         await _removeChildren(

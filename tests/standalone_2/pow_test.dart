@@ -4,6 +4,8 @@
 //
 // Dart test program for testing math's pow.
 
+// @dart = 2.9
+
 library pow_test;
 
 import "package:expect/expect.dart";

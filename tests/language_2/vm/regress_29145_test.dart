@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=-1 --stacktrace-filter=completeError --stress-async-stacks
 
+// @dart = 2.9
+
 // Stress test for async stack traces.
 
 import 'dart:async';

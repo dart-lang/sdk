@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/parser/quote.dart'
+    show analyzeQuote, Quote, firstQuoteLength, lastQuoteLength;
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart' as char;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
     show SemanticTokenTypes, SemanticTokenModifiers;
 import 'package:analysis_server/src/lsp/constants.dart'
-    show CustomSemanticTokenModifiers;
+    show CustomSemanticTokenModifiers, CustomSemanticTokenTypes;
 import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart'
     show SemanticTokenInfo;
 import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart'
@@ -24,7 +27,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 /// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
 class DartUnitHighlightsComputer {
   final CompilationUnit _unit;
-  final SourceRange range;
+  final SourceRange? range;
 
   final _regions = <HighlightRegion>[];
   final _semanticTokens = <SemanticTokenInfo>[];
@@ -57,11 +60,11 @@ class DartUnitHighlightsComputer {
   }
 
   void _addCommentRanges() {
-    var token = _unit.beginToken;
+    Token? token = _unit.beginToken;
     while (token != null) {
-      Token commentToken = token.precedingComments;
+      Token? commentToken = token.precedingComments;
       while (commentToken != null) {
-        HighlightRegionType highlightType;
+        HighlightRegionType? highlightType;
         if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
           if (commentToken.lexeme.startsWith('/**')) {
             highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;
@@ -155,21 +158,31 @@ class DartUnitHighlightsComputer {
     if (element is! ClassElement) {
       return false;
     }
-    ClassElement classElement = element;
     // prepare type
     HighlightRegionType type;
-    if (node.parent is TypeName &&
-        node.parent.parent is ConstructorName &&
-        node.parent.parent.parent is InstanceCreationExpression) {
+    SemanticTokenTypes? semanticType;
+    Set<SemanticTokenModifiers>? semanticModifiers;
+    var parent = node.parent;
+    var grandParent = parent?.parent;
+    if (parent is TypeName &&
+        grandParent is ConstructorName &&
+        grandParent.parent is InstanceCreationExpression) {
       // new Class()
       type = HighlightRegionType.CONSTRUCTOR;
-    } else if (classElement.isEnum) {
+      semanticType = SemanticTokenTypes.class_;
+      semanticModifiers = {CustomSemanticTokenModifiers.constructor};
+    } else if (element.isEnum) {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
     }
     // add region
-    return _addRegion_node(node, type);
+    return _addRegion_node(
+      node,
+      type,
+      semanticTokenType: semanticType,
+      semanticTokenModifiers: semanticModifiers,
+    );
   }
 
   bool _addIdentifierRegion_constructor(SimpleIdentifier node) {
@@ -177,14 +190,21 @@ class DartUnitHighlightsComputer {
     if (element is! ConstructorElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightRegionType.CONSTRUCTOR);
+    return _addRegion_node(
+      node,
+      HighlightRegionType.CONSTRUCTOR,
+      // For semantic tokens, constructor names are coloured like methods but
+      // have a modifier applied.
+      semanticTokenType: SemanticTokenTypes.method,
+      semanticTokenModifiers: {CustomSemanticTokenModifiers.constructor},
+    );
   }
 
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     if (element is LocalVariableElement) {
       var elementType = element.type;
-      if (elementType?.isDynamic == true) {
+      if (elementType.isDynamic) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
             : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
@@ -193,7 +213,7 @@ class DartUnitHighlightsComputer {
     }
     if (element is ParameterElement) {
       var elementType = element.type;
-      if (elementType?.isDynamic == true) {
+      if (elementType.isDynamic) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
             : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
@@ -207,11 +227,11 @@ class DartUnitHighlightsComputer {
     var element = node.writeOrReadElement;
     if (element is FieldFormalParameterElement) {
       if (node.parent is FieldFormalParameter) {
-        element = (element as FieldFormalParameterElement).field;
+        element = element.field;
       }
     }
     // prepare type
-    HighlightRegionType type;
+    HighlightRegionType? type;
     if (element is FieldElement) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.isEnum) {
@@ -283,13 +303,12 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // getter or setter
-    var propertyAccessorElement = element as PropertyAccessorElement;
     var isTopLevel = element.enclosingElement is CompilationUnitElement;
     HighlightRegionType type;
-    if (propertyAccessorElement.isGetter) {
+    if (element.isGetter) {
       if (isTopLevel) {
         type = HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION;
-      } else if (propertyAccessorElement.isStatic) {
+      } else if (element.isStatic) {
         type = HighlightRegionType.STATIC_GETTER_DECLARATION;
       } else {
         type = HighlightRegionType.INSTANCE_GETTER_DECLARATION;
@@ -297,7 +316,7 @@ class DartUnitHighlightsComputer {
     } else {
       if (isTopLevel) {
         type = HighlightRegionType.TOP_LEVEL_SETTER_DECLARATION;
-      } else if (propertyAccessorElement.isStatic) {
+      } else if (element.isStatic) {
         type = HighlightRegionType.STATIC_SETTER_DECLARATION;
       } else {
         type = HighlightRegionType.INSTANCE_SETTER_DECLARATION;
@@ -347,8 +366,7 @@ class DartUnitHighlightsComputer {
     if (element is! MethodElement) {
       return false;
     }
-    var methodElement = element as MethodElement;
-    var isStatic = methodElement.isStatic;
+    var isStatic = element.isStatic;
     // OK
     HighlightRegionType type;
     if (node.inDeclarationContext()) {
@@ -443,9 +461,10 @@ class DartUnitHighlightsComputer {
     int offset,
     int length,
     HighlightRegionType type, {
-    SemanticTokenTypes semanticTokenType,
-    Set<SemanticTokenModifiers> semanticTokenModifiers,
+    SemanticTokenTypes? semanticTokenType,
+    Set<SemanticTokenModifiers>? semanticTokenModifiers,
   }) {
+    final range = this.range;
     if (range != null) {
       final end = offset + length;
       // Skip token if it ends before the range of starts after the range.
@@ -470,8 +489,8 @@ class DartUnitHighlightsComputer {
   bool _addRegion_node(
     AstNode node,
     HighlightRegionType type, {
-    SemanticTokenTypes semanticTokenType,
-    Set<SemanticTokenModifiers> semanticTokenModifiers,
+    SemanticTokenTypes? semanticTokenType,
+    Set<SemanticTokenModifiers>? semanticTokenModifiers,
   }) {
     var offset = node.offset;
     var length = node.length;
@@ -493,10 +512,10 @@ class DartUnitHighlightsComputer {
   }
 
   void _addRegion_token(
-    Token token,
+    Token? token,
     HighlightRegionType type, {
-    SemanticTokenTypes semanticTokenType,
-    Set<SemanticTokenModifiers> semanticTokenModifiers,
+    SemanticTokenTypes? semanticTokenType,
+    Set<SemanticTokenModifiers>? semanticTokenModifiers,
   }) {
     if (token != null) {
       var offset = token.offset;
@@ -816,6 +835,31 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    if (computer._computeSemanticTokens) {
+      // Interpolation expressions may include uncolored code, but clients may
+      // be providing their own basic coloring for strings that would leak
+      // into those uncolored parts so we mark them up to allow the client to
+      // reset the coloring if required.
+      //
+      // Using the String token type with a modifier would work for VS Code but
+      // would cause other editors that don't know about the modifier (and also
+      // do not have their own local coloring) to color the tokens as a string,
+      // which is exactly what we'd like to avoid).
+
+      computer._addRegion_node(
+        node,
+        // The HighlightRegionType here is not used because of the
+        // computer._computeSemanticTokens check above.
+        HighlightRegionType.LITERAL_STRING,
+        semanticTokenType: CustomSemanticTokenTypes.source,
+        semanticTokenModifiers: {CustomSemanticTokenModifiers.interpolation},
+      );
+    }
+    super.visitInterpolationExpression(node);
+  }
+
+  @override
   void visitInterpolationString(InterpolationString node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
     super.visitInterpolationString(node);
@@ -955,6 +999,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
+    if (computer._computeSemanticTokens) {
+      _addRegions_stringEscapes(node);
+    }
     super.visitSimpleStringLiteral(node);
   }
 
@@ -1065,6 +1112,100 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       var end = star != null ? star.end : keyword.end;
       computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN,
           semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
+    }
+  }
+
+  void _addRegions_stringEscapes(SimpleStringLiteral node) {
+    final string = node.literal.lexeme;
+    final quote = analyzeQuote(string);
+    final startIndex = firstQuoteLength(string, quote);
+    final endIndex = string.length - lastQuoteLength(quote);
+    switch (quote) {
+      case Quote.Single:
+      case Quote.Double:
+      case Quote.MultiLineSingle:
+      case Quote.MultiLineDouble:
+        _findEscapes(node, startIndex: startIndex, endIndex: endIndex,
+            listener: (offset, end) {
+          final length = end - offset;
+          computer._addRegion(node.offset + offset, length,
+              HighlightRegionType.VALID_STRING_ESCAPE);
+        });
+        break;
+      case Quote.RawSingle:
+      case Quote.RawDouble:
+      case Quote.RawMultiLineSingle:
+      case Quote.RawMultiLineDouble:
+        // Raw strings don't have escape characters.
+        break;
+    }
+  }
+
+  /// Finds escaped regions within a string between [startIndex] and [endIndex],
+  /// calling [listener] for each found region.
+  void _findEscapes(
+    SimpleStringLiteral node, {
+    required int startIndex,
+    required int endIndex,
+    required void Function(int offset, int end) listener,
+  }) {
+    final string = node.literal.lexeme;
+    final codeUnits = string.codeUnits;
+    final length = string.length;
+
+    bool isBackslash(int i) => i <= length && codeUnits[i] == char.$BACKSLASH;
+    bool isHexEscape(int i) => i <= length && codeUnits[i] == char.$x;
+    bool isUnicodeHexEscape(int i) => i <= length && codeUnits[i] == char.$u;
+    bool isOpenBrace(int i) =>
+        i <= length && codeUnits[i] == char.$OPEN_CURLY_BRACKET;
+    bool isCloseBrace(int i) =>
+        i <= length && codeUnits[i] == char.$CLOSE_CURLY_BRACKET;
+    int? numHexDigits(int i, {required int min, required int max}) {
+      var numHexDigits = 0;
+      for (var j = i; j < math.min(i + max, length); j++) {
+        if (!char.isHexDigit(codeUnits[j])) {
+          break;
+        }
+        numHexDigits++;
+      }
+      return numHexDigits >= min ? numHexDigits : null;
+    }
+
+    for (var i = startIndex; i < endIndex;) {
+      if (isBackslash(i)) {
+        final backslashOffset = i++;
+        // All escaped characters are a single character except for:
+        // `\uXXXX` or `\u{XX?X?X?X?X?}` for Unicode hex escape.
+        // `\xXX` for hex escape.
+        if (isHexEscape(i)) {
+          // Expect exactly 2 hex digits.
+          final numDigits = numHexDigits(i + 1, min: 2, max: 2);
+          if (numDigits != null) {
+            i += 1 + numDigits;
+            listener(backslashOffset, i);
+          }
+        } else if (isUnicodeHexEscape(i) && isOpenBrace(i + 1)) {
+          // Expect 1-6 hex digits followed by '}'.
+          final numDigits = numHexDigits(i + 2, min: 1, max: 6);
+          if (numDigits != null && isCloseBrace(i + 2 + numDigits)) {
+            i += 2 + numDigits + 1;
+            listener(backslashOffset, i);
+          }
+        } else if (isUnicodeHexEscape(i)) {
+          // Expect exactly 4 hex digits.
+          final numDigits = numHexDigits(i + 1, min: 4, max: 4);
+          if (numDigits != null) {
+            i += 1 + numDigits;
+            listener(backslashOffset, i);
+          }
+        } else {
+          i++;
+          // Single-character escape.
+          listener(backslashOffset, i);
+        }
+      } else {
+        i++;
+      }
     }
   }
 }

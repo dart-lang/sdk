@@ -8,7 +8,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
-extension Utf8InPool on String {
+extension Utf8InArena on String {
   /// Convert a [String] to a Utf8-encoded null-terminated C string.
   ///
   /// If 'string' contains NULL bytes, the converted string will be truncated

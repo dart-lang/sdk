@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 // This transformation annotates call sites with the receiver type.
 // This is done to avoid reimplementing [Expression.getStaticType] in
 // C++.
@@ -19,8 +21,9 @@ import '../metadata/call_site_attributes.dart';
 
 CallSiteAttributesMetadataRepository addRepositoryTo(Component component) {
   return component.metadata.putIfAbsent(
-      CallSiteAttributesMetadataRepository.repositoryTag,
-      () => new CallSiteAttributesMetadataRepository());
+          CallSiteAttributesMetadataRepository.repositoryTag,
+          () => new CallSiteAttributesMetadataRepository())
+      as CallSiteAttributesMetadataRepository;
 }
 
 void transformLibraries(Component component, List<Library> libraries,
@@ -33,7 +36,7 @@ void transformLibraries(Component component, List<Library> libraries,
 class AnnotateWithStaticTypes extends RecursiveVisitor {
   final CallSiteAttributesMetadataRepository _metadata;
   final TypeEnvironment env;
-  StaticTypeContext _staticTypeContext;
+  StaticTypeContext? _staticTypeContext;
 
   AnnotateWithStaticTypes(
       Component component, CoreTypes coreTypes, ClassHierarchy hierarchy)
@@ -49,12 +52,26 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
 
   void annotateWithType(TreeNode node, Expression receiver) {
     _metadata.mapping[node] = new CallSiteAttributesMetadata(
-        receiverType: receiver.getStaticType(_staticTypeContext));
+        receiverType: receiver.getStaticType(_staticTypeContext!));
+  }
+
+  void annotateWithFunctionType(TreeNode node, FunctionType type) {
+    _metadata.mapping[node] =
+        new CallSiteAttributesMetadata(receiverType: type);
   }
 
   @override
   visitPropertySet(PropertySet node) {
     super.visitPropertySet(node);
+
+    if (hasGenericCovariantParameters(node.interfaceTarget)) {
+      annotateWithType(node, node.receiver);
+    }
+  }
+
+  @override
+  visitInstanceSet(InstanceSet node) {
+    super.visitInstanceSet(node);
 
     if (hasGenericCovariantParameters(node.interfaceTarget)) {
       annotateWithType(node, node.receiver);
@@ -73,6 +90,46 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
     }
   }
 
+  @override
+  visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
+
+    // TODO(34162): We don't need to save the type here for calls, just whether
+    // or not it's a statically-checked call.
+    if (hasGenericCovariantParameters(node.interfaceTarget)) {
+      annotateWithType(node, node.receiver);
+    }
+  }
+
+  @override
+  visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    super.visitLocalFunctionInvocation(node);
+
+    // TODO(34162): We don't need to save the type here for calls, just whether
+    // or not it's a statically-checked call.
+    annotateWithFunctionType(node, node.functionType);
+  }
+
+  @override
+  visitFunctionInvocation(FunctionInvocation node) {
+    super.visitFunctionInvocation(node);
+
+    // TODO(34162): We don't need to save the type here for calls, just whether
+    // or not it's a statically-checked call.
+    annotateWithType(node, node.receiver);
+  }
+
+  @override
+  visitEqualsCall(EqualsCall node) {
+    super.visitEqualsCall(node);
+
+    // TODO(34162): We don't need to save the type here for calls, just whether
+    // or not it's a statically-checked call.
+    if (hasGenericCovariantParameters(node.interfaceTarget)) {
+      annotateWithType(node, node.left);
+    }
+  }
+
   /// Return [true] if the given list of [VariableDeclaration] contains
   /// any annotated with generic-covariant-impl.
   static bool containsGenericCovariantImpl(List<VariableDeclaration> decls) =>
@@ -80,7 +137,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
 
   /// Returns [true] if the given [member] has any parameters annotated with
   /// generic-covariant-impl attribute.
-  static bool hasGenericCovariantParameters(Member member) {
+  static bool hasGenericCovariantParameters(Member? member) {
     if (member is Procedure) {
       return containsGenericCovariantImpl(
               member.function.positionalParameters) ||

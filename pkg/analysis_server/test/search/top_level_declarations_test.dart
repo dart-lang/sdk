@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -20,14 +18,15 @@ void main() {
 @reflectiveTest
 class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
   void assertHasDeclaration(ElementKind kind, String name) {
-    result = findTopLevelResult(kind, name);
+    var result = findTopLevelResult(kind, name);
     if (result == null) {
       fail('Not found: kind=$kind name="$name"\nin\n' + results.join('\n'));
     }
+    this.result = result;
   }
 
   void assertNoDeclaration(ElementKind kind, String name) {
-    result = findTopLevelResult(kind, name);
+    var result = findTopLevelResult(kind, name);
     if (result != null) {
       fail('Unexpected: kind=$kind name="$name"\nin\n' + results.join('\n'));
     }
@@ -44,7 +43,7 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     return waitForSearchResults();
   }
 
-  SearchResult findTopLevelResult(ElementKind kind, String name) {
+  SearchResult? findTopLevelResult(ElementKind kind, String name) {
     for (var result in results) {
       var element = result.path[0];
       if (element.kind == kind && element.name == name) {

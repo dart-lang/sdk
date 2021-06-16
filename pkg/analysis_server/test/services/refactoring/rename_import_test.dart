@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,11 +20,6 @@ class RenameImportTest extends RenameRefactoringTest {
     await indexTestUnit("import 'dart:async' as test;");
     _createRefactoring("import 'dart:");
     expect(refactoring.oldName, 'test');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Import prefix name must not be null.');
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
@@ -39,6 +32,22 @@ class RenameImportTest extends RenameRefactoringTest {
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_sameName_empty() async {
+    await indexTestUnit('''
+import 'dart:math';
+void f(Random r) {}
+''');
+
+    _createRefactoring("import 'dart:math");
+
+    refactoring.newName = '';
+    assertRefactoringStatus(
+      refactoring.checkNewName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'The new name must be different than the current name.',
+    );
   }
 
   Future<void> test_createChange_add() async {

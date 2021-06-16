@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -245,8 +246,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
-  DecoratedType getOrComputeElementType(Element element,
-      {DecoratedType targetType}) {
+  ///
+  /// [node] is used as the AST node for the edge origin if any graph edges need
+  /// to be created.  [targetType], if provided, indicates the type of the
+  /// target (receiver) for a method, getter, or setter invocation.
+  /// [targetExpression], if provided, is the expression for the target
+  /// (receiver) for a method, getter, or setter invocation.
+  DecoratedType getOrComputeElementType(AstNode node, Element element,
+      {DecoratedType targetType, Expression targetExpression}) {
     Map<TypeParameterElement, DecoratedType> substitution;
     Element baseElement = element.declaration;
     if (targetType != null) {
@@ -262,19 +269,65 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         assert(enclosingElement is ExtensionElement);
         final extensionElement = enclosingElement as ExtensionElement;
-        final extendedType =
-            _typeSystem.resolveToBound(extensionElement.extendedType);
-        if (extendedType is InterfaceType) {
-          if (extensionElement.typeParameters.isNotEmpty) {
-            substitution = _decoratedClassHierarchy
-                .asInstanceOf(targetType, extendedType.element)
-                .asSubstitution;
+        // The semantics of calling an extension method or extension property
+        // are essentially the same as calling a static function where the
+        // receiver is passed as an invisible `this` parameter whose type is the
+        // extension's "on" type.  If the extension declaration has type
+        // parameters, they behave like inferred type parameters of the static
+        // function.
+        //
+        // So what we need to do is (1) create a set of DecoratedTypes to
+        // represent the inferred types of the type parameters, (2) ensure that
+        // the receiver type is assignable to "on" type (with those decorated
+        // types substituted into it), and (3) substitute those decorated types
+        // into the declared type of the extension method or extension property,
+        // so that the caller will match up parameter types and the return type
+        // appropriately.
+        //
+        // Taking each step in turn:
+        // (1) create a set of decorated types to represent the inferred types
+        // of the type parameters.  Note that we must make sure each of these
+        // types satisfies its associated bound.
+        var typeParameters = extensionElement.typeParameters;
+        if (typeParameters.isNotEmpty) {
+          var preMigrationSubstitution = (element as Member).substitution.map;
+          substitution = {};
+          var target = NullabilityNodeTarget.text('extension');
+          for (int i = 0; i < typeParameters.length; i++) {
+            var typeParameter = typeParameters[i];
+            var decoratedTypeArgument = DecoratedType.forImplicitType(
+                typeProvider,
+                preMigrationSubstitution[typeParameter],
+                _graph,
+                target.typeArgument(i));
+            substitution[typeParameter] = decoratedTypeArgument;
+            var edgeOrigin =
+                InferredTypeParameterInstantiationOrigin(source, node);
+            _checkAssignment(edgeOrigin, FixReasonTarget.root,
+                source: decoratedTypeArgument,
+                destination:
+                    _variables.decoratedTypeParameterBound(typeParameter),
+                hard: true);
           }
-        } else {
-          // TODO(srawlins): Handle generic typedef. Others?
-          _unimplemented(
-              null, 'Extension on $extendedType (${extendedType.runtimeType}');
         }
+        // (2) ensure that the receiver type is assignable to "on" type (with
+        // those decorated types substituted into it)
+        var onType = _variables.decoratedElementType(extensionElement);
+        if (substitution != null) {
+          onType = onType.substitute(substitution);
+        }
+        _checkAssignment(InferredTypeParameterInstantiationOrigin(source, node),
+            FixReasonTarget.root,
+            source: targetType,
+            destination: onType,
+            hard: targetExpression == null ||
+                _postDominatedLocals.isReferenceInScope(targetExpression));
+        // (3) substitute those decorated types into the declared type of the
+        // extension method or extension property, so that the caller will match
+        // up parameter types and the return type appropriately.
+        //
+        // There's nothing more we need to do here.  The substitution below
+        // will do the job.
       }
     }
     DecoratedType decoratedBaseType;
@@ -510,8 +563,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _dispatch(rightOperand);
         return _makeNullableDynamicType(node);
       } else {
-        var calleeType =
-            getOrComputeElementType(callee, targetType: targetType);
+        var calleeType = getOrComputeElementType(node, callee,
+            targetType: targetType, targetExpression: leftOperand);
         assert(calleeType.positionalParameters.isNotEmpty); // TODO(paulberry)
         _handleAssignment(rightOperand,
             destinationType: calleeType.positionalParameters[0]);
@@ -727,7 +780,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       ConstructorFieldInitializer node) {
     _fieldsNotInitializedByConstructor.remove(node.fieldName.staticElement);
     _handleAssignment(node.expression,
-        destinationType: getOrComputeElementType(node.fieldName.staticElement));
+        destinationType:
+            getOrComputeElementType(node, node.fieldName.staticElement));
     return null;
   }
 
@@ -756,12 +810,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // be reached.
         _requiredHintedParameters.add(node.declaredElement);
       } else {
-        _graph.makeNullable(getOrComputeElementType(node.declaredElement).node,
+        _graph.makeNullable(
+            getOrComputeElementType(node, node.declaredElement).node,
             OptionalFormalParameterOrigin(source, node));
       }
     } else {
       _handleAssignment(defaultValue,
-          destinationType: getOrComputeElementType(node.declaredElement),
+          destinationType: getOrComputeElementType(node, node.declaredElement),
           fromDefaultValue: true);
     }
     return null;
@@ -1077,7 +1132,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // so that we don't unnecessarily propagate nullabilities everywhere?
       result = _makeNullableDynamicType(node);
     } else {
-      var calleeType = getOrComputeElementType(callee, targetType: targetType);
+      var calleeType = getOrComputeElementType(node, callee,
+          targetType: targetType, targetExpression: target);
       // TODO(paulberry): substitute if necessary
       _handleAssignment(node.index,
           destinationType: calleeType.positionalParameters[0]);
@@ -1142,7 +1198,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         nullabilityNode, InstanceCreationOrigin(source, node));
     var createdType = DecoratedType(node.staticType, nullabilityNode,
         typeArguments: decoratedTypeArguments);
-    var calleeType = getOrComputeElementType(callee, targetType: createdType);
+    var calleeType =
+        getOrComputeElementType(node, callee, targetType: createdType);
     for (var i = 0; i < decoratedTypeArguments.length; ++i) {
       _checkAssignment(parameterEdgeOrigins?.elementAt(i),
           FixReasonTarget.root.typeArgument(i),
@@ -1281,7 +1338,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // type of `X`.
       calleeType = targetType;
     } else if (callee != null) {
-      calleeType = getOrComputeElementType(callee, targetType: targetType);
+      calleeType = getOrComputeElementType(node, callee,
+          targetType: targetType, targetExpression: target);
       if (callee is PropertyAccessorElement) {
         calleeType = calleeType.returnType;
       }
@@ -1380,8 +1438,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // so that we don't unnecessarily propagate nullabilities everywhere?
         writeType = _makeNullableDynamicType(node);
       } else {
-        var calleeType =
-            getOrComputeElementType(callee, targetType: targetType);
+        var calleeType = getOrComputeElementType(node, callee,
+            targetType: targetType, targetExpression: operand);
         writeType = _fixNumericTypes(calleeType.returnType, node.staticType);
       }
       if (operand is SimpleIdentifier) {
@@ -1425,8 +1483,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // so that we don't unnecessarily propagate nullabilities everywhere?
         staticType = _makeNullableDynamicType(node);
       } else {
-        var calleeType =
-            getOrComputeElementType(callee, targetType: targetType);
+        var calleeType = getOrComputeElementType(node, callee,
+            targetType: targetType, targetExpression: operand);
         if (isIncrementOrDecrement) {
           staticType = _fixNumericTypes(calleeType.returnType, node.staticType);
         } else {
@@ -1585,7 +1643,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var promotedType = _flowAnalysis.variableRead(node, staticElement);
         if (promotedType != null) return promotedType;
       }
-      var type = getOrComputeElementType(staticElement);
+      var type = getOrComputeElementType(node, staticElement);
       if (!node.inDeclarationContext() &&
           node.inGetterContext() &&
           !_lateHintedLocals.contains(staticElement) &&
@@ -1600,13 +1658,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (staticElement.enclosingElement is ClassElement) {
         targetType = _thisOrSuper(node);
       }
-      result = getOrComputeElementType(staticElement, targetType: targetType);
+      result =
+          getOrComputeElementType(node, staticElement, targetType: targetType);
     } else if (staticElement is PropertyAccessorElement) {
       if (staticElement.enclosingElement is ClassElement) {
         targetType = _thisOrSuper(node);
       }
       var elementType =
-          getOrComputeElementType(staticElement, targetType: targetType);
+          getOrComputeElementType(node, staticElement, targetType: targetType);
       result = staticElement.isGetter
           ? elementType.returnType
           : elementType.positionalParameters[0];
@@ -1619,7 +1678,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       result = _makeNullableVoidType(node);
     } else if (staticElement.enclosingElement is ClassElement &&
         (staticElement.enclosingElement as ClassElement).isEnum) {
-      result = getOrComputeElementType(staticElement);
+      result = getOrComputeElementType(node, staticElement);
     } else {
       // TODO(paulberry)
       _unimplemented(node,
@@ -1694,7 +1753,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var createdType = DecoratedType(callee.returnType, nullabilityNode,
         typeArguments: typeArguments);
-    var calleeType = getOrComputeElementType(callee, targetType: createdType);
+    var calleeType =
+        getOrComputeElementType(node, callee, targetType: createdType);
     var constructorTypeParameters = callee.enclosingElement.typeParameters;
 
     _handleInvocationArguments(
@@ -1852,6 +1912,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       typeName.visitChildren(this);
+      // If the type name is followed by a `/*!*/` comment, it is considered to
+      // apply to the type and not to the "as" expression.  In order to prevent
+      // a future call to _handleNullCheck from interpreting it as applying to
+      // the "as" expression, we need to store the `/*!*/` comment in
+      // _nullCheckHints.
+      var token = typeName.endToken;
+      _nullCheckHints[token] = getPostfixHint(token);
       typeNameVisited(
           typeName); // Note this has been visited to TypeNameTracker.
       return null;
@@ -1983,8 +2050,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           '(${expression.toSource()}) offset=${expression.offset}');
     }
     var origin = _makeEdgeOrigin(sourceType, expression);
-    var hard = _postDominatedLocals.isReferenceInScope(expression) ||
-        expression.unParenthesized is AsExpression;
+    var hard = _shouldUseHardEdge(expression);
     var edge = _graph.makeNonNullable(sourceType.node, origin,
         hard: hard, guards: _guards);
     if (origin is ExpressionChecksOrigin) {
@@ -2205,11 +2271,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _dispatch(AstNode node, {bool skipNullCheckHint = false}) {
     try {
       var type = node?.accept(this);
-      if (!skipNullCheckHint &&
-          node is Expression &&
-          // A /*!*/ hint following an AsExpression should be interpreted as a
-          // nullability hint for the type, not a null-check hint.
-          node is! AsExpression) {
+      if (!skipNullCheckHint && node is Expression) {
         type = _handleNullCheckHint(node, type);
       }
       return type;
@@ -2315,7 +2377,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       if (destinationLocalVariable != null) {
         _dispatch(destinationExpression);
-        destinationType = getOrComputeElementType(destinationLocalVariable);
+        destinationType = getOrComputeElementType(
+            destinationExpression, destinationLocalVariable);
       } else {
         destinationType = _dispatch(destinationExpression);
       }
@@ -2346,16 +2409,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               FixReasonTarget.root,
               source: destinationType,
               destination: _createNonNullableType(compoundOperatorInfo),
-              hard: _postDominatedLocals
-                  .isReferenceInScope(assignmentExpression.leftHandSide));
+              hard: _shouldUseHardEdge(assignmentExpression.leftHandSide));
           DecoratedType compoundOperatorType = getOrComputeElementType(
-              compoundOperatorMethod,
-              targetType: destinationType);
+              compoundOperatorInfo, compoundOperatorMethod,
+              targetType: destinationType,
+              targetExpression: compoundOperatorInfo.leftHandSide);
           assert(compoundOperatorType.positionalParameters.isNotEmpty);
           _checkAssignment(edgeOrigin, FixReasonTarget.root,
               source: sourceType,
               destination: compoundOperatorType.positionalParameters[0],
-              hard: _postDominatedLocals.isReferenceInScope(expression),
+              hard: _shouldUseHardEdge(expression),
               sourceIsFunctionLiteral: expression is FunctionExpression);
           sourceType = _fixNumericTypes(
               compoundOperatorType.returnType, compoundOperatorInfo.staticType);
@@ -2390,13 +2453,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             return methodInvocationType.withNode(newNode);
           };
         } else {
-          var unwrappedExpression = expression.unParenthesized;
-          var hard = (questionAssignNode == null &&
-                  _postDominatedLocals.isReferenceInScope(expression)) ||
-              // An edge from a cast should be hard, so that the cast type
-              // annotation is appropriately made nullable according to the
-              // destination type.
-              unwrappedExpression is AsExpression;
+          var hard = _shouldUseHardEdge(expression,
+              isConditionallyExecuted: questionAssignNode != null);
           _checkAssignment(edgeOrigin, FixReasonTarget.root,
               source: sourceType,
               destination: destinationType,
@@ -2997,7 +3055,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           nullabilityNode, CallTearOffOrigin(source, node));
       calleeType = targetType.withNode(nullabilityNode);
     } else if (callee != null) {
-      calleeType = getOrComputeElementType(callee, targetType: targetType);
+      calleeType = getOrComputeElementType(node, callee,
+          targetType: targetType, targetExpression: target);
     }
     if (calleeType == null) {
       // Dynamic dispatch.
@@ -3051,10 +3110,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if ((callee is MethodElement || callee is PropertyAccessorElement) &&
         callee.enclosingElement is ExtensionElement) {
       // Extension methods can be called on a `null` target, when the `on` type
-      // of the extension is nullable.
-      return _handleAssignment(target,
-          destinationType:
-              _variables.decoratedElementType(callee.enclosingElement));
+      // of the extension is nullable.  Note: we don't need to check whether the
+      // target type is assignable to the extended type; that is done in
+      // [getOrComputeElementType].
+      return _dispatch(target);
     } else {
       return _checkExpressionNotNull(target);
     }
@@ -3201,6 +3260,37 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _graph.connect(node, leftNode, origin);
     _graph.connect(node, rightNode, origin);
     return node;
+  }
+
+  /// Determines whether uses of [expression] should cause hard edges to be
+  /// created in the nullability graph.
+  ///
+  /// If [isConditionallyExecuted] is `true`, that indicates that [expression]
+  /// appears in a context where it might not get executed (e.g. on the RHS of
+  /// a `??=`).
+  bool _shouldUseHardEdge(Expression expression,
+      {bool isConditionallyExecuted = false}) {
+    expression = expression.unParenthesized;
+    if (expression is ListLiteral || expression is SetOrMapLiteral) {
+      // List, set, and map literals have either explicit or implicit type
+      // arguments.  If supplying a nullable type for one of these type
+      // arguments would lead to an error (e.g. `f(<int?>[])` where `f` requires
+      // a `List<int>`), then we should use a hard edge, to ensure that the
+      // migrated type argument will be non-nullable.
+      return true;
+    } else if (expression is AsExpression) {
+      // "as" expressions have an explicit type.  If making this type nullable
+      // would lead to an error (e.g. `f(x as int?)` where `f` requires an
+      // `int`),then we should use a hard edge, to ensure that the migrated type
+      // will be non-nullable.
+      return true;
+    }
+    // For other expressions, we should use a hard edge only if (a) the
+    // expression is unconditionally executed, and (b) the expression is a
+    // reference to a local variable or parameter and it post-dominates the
+    // declaration of that local variable or parameter.
+    return !isConditionallyExecuted &&
+        _postDominatedLocals.isReferenceInScope(expression);
   }
 
   DecoratedType _thisOrSuper(Expression node) {
@@ -3376,7 +3466,8 @@ mixin _AssignmentChecker {
     _checkAssignment_recursion(origin, edgeTarget,
         source: source,
         destination: destination,
-        sourceIsFunctionLiteral: sourceIsFunctionLiteral);
+        sourceIsFunctionLiteral: sourceIsFunctionLiteral,
+        hard: hard);
   }
 
   /// Does the recursive part of [_checkAssignment], visiting all of the types
@@ -3386,7 +3477,8 @@ mixin _AssignmentChecker {
   void _checkAssignment_recursion(EdgeOrigin origin, FixReasonTarget edgeTarget,
       {@required DecoratedType source,
       @required DecoratedType destination,
-      bool sourceIsFunctionLiteral = false}) {
+      bool sourceIsFunctionLiteral = false,
+      bool hard = false}) {
     var sourceType = source.type;
     var destinationType = destination.type;
     assert(_typeSystem.isSubtypeOf(sourceType, destinationType));
@@ -3491,7 +3583,7 @@ mixin _AssignmentChecker {
         _checkAssignment(origin, edgeTarget.typeArgument(i),
             source: rewrittenSource.typeArguments[i],
             destination: destination.typeArguments[i],
-            hard: false,
+            hard: hard,
             checkable: false);
       }
     } else if (sourceType is FunctionType && destinationType is FunctionType) {

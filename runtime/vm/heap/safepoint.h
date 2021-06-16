@@ -17,12 +17,36 @@ namespace dart {
 // all threads to a safepoint. At the end of the operation all the threads are
 // resumed.
 class SafepointOperationScope : public ThreadStackResource {
- public:
-  explicit SafepointOperationScope(Thread* T);
+ protected:
+  SafepointOperationScope(Thread* T, SafepointLevel level);
   ~SafepointOperationScope();
 
  private:
+  SafepointLevel level_;
+
   DISALLOW_COPY_AND_ASSIGN(SafepointOperationScope);
+};
+
+// Gets all mutators to a safepoint where GC is allowed.
+class GcSafepointOperationScope : public SafepointOperationScope {
+ public:
+  explicit GcSafepointOperationScope(Thread* T)
+      : SafepointOperationScope(T, SafepointLevel::kGC) {}
+  ~GcSafepointOperationScope() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(GcSafepointOperationScope);
+};
+
+// Gets all mutators to a safepoint where GC and Deopt is allowed.
+class DeoptSafepointOperationScope : public SafepointOperationScope {
+ public:
+  explicit DeoptSafepointOperationScope(Thread* T)
+      : SafepointOperationScope(T, SafepointLevel::kGCAndDeopt) {}
+  ~DeoptSafepointOperationScope() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DeoptSafepointOperationScope);
 };
 
 // A stack based scope that can be used to perform an operation after getting
@@ -30,10 +54,11 @@ class SafepointOperationScope : public ThreadStackResource {
 // resumed. Allocations in the scope will force heap growth.
 class ForceGrowthSafepointOperationScope : public ThreadStackResource {
  public:
-  explicit ForceGrowthSafepointOperationScope(Thread* T);
+  ForceGrowthSafepointOperationScope(Thread* T, SafepointLevel level);
   ~ForceGrowthSafepointOperationScope();
 
  private:
+  SafepointLevel level_;
   bool current_growth_controller_state_;
 
   DISALLOW_COPY_AND_ASSIGN(ForceGrowthSafepointOperationScope);
@@ -48,65 +73,105 @@ class SafepointHandler {
 
   void EnterSafepointUsingLock(Thread* T);
   void ExitSafepointUsingLock(Thread* T);
-
   void BlockForSafepoint(Thread* T);
 
-  bool IsOwnedByTheThread(Thread* thread) { return owner_ == thread; }
+  bool IsOwnedByTheThread(Thread* thread) {
+    for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
+      if (handlers_[level].owner_ == thread) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool AnySafepointInProgress() {
+    for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
+      if (handlers_[level].SafepointInProgress()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
  private:
-  void SafepointThreads(Thread* T);
-  void ResumeThreads(Thread* T);
+  class LevelHandler {
+   public:
+    LevelHandler(IsolateGroup* isolate_group, SafepointLevel level)
+        : isolate_group_(isolate_group), level_(level) {}
+
+    bool SafepointInProgress() const {
+      ASSERT(threads_lock()->IsOwnedByCurrentThread());
+      ASSERT((operation_count_ > 0) == (owner_ != nullptr));
+      return ((operation_count_ > 0) && (owner_ != NULL));
+    }
+    void SetSafepointInProgress(Thread* T) {
+      ASSERT(threads_lock()->IsOwnedByCurrentThread());
+      ASSERT(owner_ == NULL);
+      ASSERT(operation_count_ == 0);
+      operation_count_ = 1;
+      owner_ = T;
+    }
+    void ResetSafepointInProgress(Thread* T) {
+      ASSERT(threads_lock()->IsOwnedByCurrentThread());
+      ASSERT(owner_ == T);
+      ASSERT(operation_count_ == 1);
+      operation_count_ = 0;
+      owner_ = NULL;
+    }
+    void NotifyWeAreParked(Thread* T);
+
+    IsolateGroup* isolate_group() const { return isolate_group_; }
+    Monitor* threads_lock() const { return isolate_group_->threads_lock(); }
+
+   private:
+    friend class SafepointHandler;
+
+    // Helper methods for [SafepointThreads]
+    void NotifyThreadsToGetToSafepointLevel(Thread* T);
+    void WaitUntilThreadsReachedSafepointLevel();
+
+    // Helper methods for [ResumeThreads]
+    void NotifyThreadsToContinue(Thread* T);
+
+    IsolateGroup* isolate_group_;
+    SafepointLevel level_;
+
+    // Monitor used by thread initiating a safepoint operation to track threads
+    // not at a safepoint and wait for these threads to reach a safepoint.
+    Monitor parked_lock_;
+
+    // If a safepoint operation is currently in progress, this field contains
+    // the thread that initiated the safepoint operation, otherwise it is NULL.
+    Thread* owner_ = nullptr;
+
+    // The number of nested safepoint operations currently held.
+    int32_t operation_count_ = 0;
+
+    // Count the number of threads the currently in-progress safepoint operation
+    // is waiting for to check-in.
+    int32_t num_threads_not_parked_ = 0;
+  };
+
+  void SafepointThreads(Thread* T, SafepointLevel level);
+  void ResumeThreads(Thread* T, SafepointLevel level);
+
+  // Helper methods for [SafepointThreads]
+  void AssertWeOwnLowerLevelSafepoints(Thread* T, SafepointLevel level);
+  void AssertWeDoNotOwnLowerLevelSafepoints(Thread* T, SafepointLevel level);
+  void AcquireLowerLevelSafepoints(Thread* T, SafepointLevel level);
+
+  // Helper methods for [ResumeThreads]
+  void ReleaseLowerLevelSafepoints(Thread* T, SafepointLevel level);
+
+  void EnterSafepointLocked(Thread* T, MonitorLocker* tl);
+  void ExitSafepointLocked(Thread* T, MonitorLocker* tl);
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
   Monitor* threads_lock() const { return isolate_group_->threads_lock(); }
-  bool SafepointInProgress() const {
-    ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    return ((safepoint_operation_count_ > 0) && (owner_ != NULL));
-  }
-  void SetSafepointInProgress(Thread* T) {
-    ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    ASSERT(owner_ == NULL);
-    ASSERT(safepoint_operation_count_ == 0);
-    safepoint_operation_count_ = 1;
-    owner_ = T;
-  }
-  void ResetSafepointInProgress(Thread* T) {
-    ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    ASSERT(owner_ == T);
-    ASSERT(safepoint_operation_count_ == 1);
-    safepoint_operation_count_ = 0;
-    owner_ = NULL;
-  }
-  int32_t safepoint_operation_count() const {
-    ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    return safepoint_operation_count_;
-  }
-  void increment_safepoint_operation_count() {
-    ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    ASSERT(safepoint_operation_count_ < kMaxInt32);
-    safepoint_operation_count_ += 1;
-  }
-  void decrement_safepoint_operation_count() {
-    ASSERT(threads_lock()->IsOwnedByCurrentThread());
-    ASSERT(safepoint_operation_count_ > 0);
-    safepoint_operation_count_ -= 1;
-  }
 
   IsolateGroup* isolate_group_;
 
-  // Monitor used by thread initiating a safepoint operation to track threads
-  // not at a safepoint and wait for these threads to reach a safepoint.
-  Monitor safepoint_lock_;
-  int32_t number_threads_not_at_safepoint_;
-
-  // Count that indicates if a safepoint operation is currently in progress
-  // and also tracks the number of recursive safepoint operations on the
-  // same thread.
-  int32_t safepoint_operation_count_;
-
-  // If a safepoint operation is currently in progress, this field contains
-  // the thread that initiated the safepoint operation, otherwise it is NULL.
-  Thread* owner_;
+  LevelHandler handlers_[SafepointLevel::kNumLevels];
 
   friend class Isolate;
   friend class IsolateGroup;
@@ -186,7 +251,7 @@ class TransitionGeneratedToVM : public TransitionSafepointState {
     // We do the more expensive operation of blocking the thread
     // only if a safepoint is requested.
     if (T->IsSafepointRequested()) {
-      handler()->BlockForSafepoint(T);
+      T->BlockForSafepoint();
     }
   }
 
@@ -291,10 +356,8 @@ class TransitionVMToGenerated : public TransitionSafepointState {
     ASSERT(thread()->execution_state() == Thread::kThreadInGenerated);
     thread()->set_execution_state(Thread::kThreadInVM);
     // Fast check to see if a safepoint is requested or not.
-    // We do the more expensive operation of blocking the thread
-    // only if a safepoint is requested.
     if (thread()->IsSafepointRequested()) {
-      handler()->BlockForSafepoint(thread());
+      thread()->BlockForSafepoint();
     }
   }
 

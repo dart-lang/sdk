@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 
@@ -17,7 +15,7 @@ class LibraryPrefixContributor extends DartCompletionContributor {
       return;
     }
 
-    var imports = request.libraryElement.imports;
+    var imports = request.libraryElement?.imports;
     if (imports == null) {
       return;
     }

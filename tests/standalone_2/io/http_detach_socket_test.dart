@@ -7,6 +7,8 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import "dart:io";
@@ -110,14 +112,13 @@ void testClientDetachSocket() {
       socket.listen((data) => body.write(new String.fromCharCodes(data)),
           onDone: () {
         List<String> lines = body.toString().split("\r\n");
-        Expect.equals(6, lines.length);
+        Expect.equals(5, lines.length);
         Expect.equals("GET / HTTP/1.1", lines[0]);
-        Expect.equals("", lines[4]);
-        Expect.equals("Some data", lines[5]);
-        lines.sort(); // Lines 1-3 becomes 3-5 in a fixed order.
+        Expect.equals("", lines[3]);
+        Expect.equals("Some data", lines[4]);
+        lines.sort(); // Lines 1-2 becomes 3-4 in a fixed order.
         Expect.equals("accept-encoding: gzip", lines[3]);
-        Expect.equals("content-length: 0", lines[4]);
-        Expect.equals("host: 127.0.0.1:${port}", lines[5]);
+        Expect.equals("host: 127.0.0.1:${port}", lines[4]);
         socket.close();
       });
       server.close();

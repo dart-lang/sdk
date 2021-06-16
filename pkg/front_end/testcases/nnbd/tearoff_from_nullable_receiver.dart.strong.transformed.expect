@@ -54,7 +54,7 @@ class C extends core::Object {
 }
 static method functionContext(() → core::int f) → dynamic {}
 static method nullableFunctionContext(() →? core::int f) → dynamic {}
-static method foo<T extends self::C? = self::C?>(self::C? c, self::foo::T% t, self::foo::T? nt) → dynamic {
+static method foo<T extends self::C?>(self::C? c, self::foo::T% t, self::foo::T? nt) → dynamic {
   self::functionContext(let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:14:24: Error: Can't tear off method 'call' from a potentially null value.
   functionContext(null as C?); // Error.
                        ^" in let Null #t2 = null in #t2.==(null) ?{() → core::int} #t2 as{TypeError} () → core::int : #t2{() → core::int});
@@ -80,9 +80,9 @@ static method foo<T extends self::C? = self::C?>(self::C? c, self::foo::T% t, se
   nullableFunctionContext(nt); // Error.
                           ^" in nt as{TypeError,ForNonNullableByDefault} () →? core::int);
 }
-static method bar<T extends self::C = self::C>(self::C c, self::bar::T t) → dynamic {
-  self::functionContext(let final self::C #t10 = c in #t10.==(null) ?{() → core::int} null : #t10.{self::C::call});
-  self::nullableFunctionContext(let final self::C #t11 = c in #t11.==(null) ?{() → core::int} null : #t11.{self::C::call});
+static method bar<T extends self::C>(self::C c, self::bar::T t) → dynamic {
+  self::functionContext(let final self::C #t10 = c in #t10 == null ?{() → core::int} null : #t10.{self::C::call});
+  self::nullableFunctionContext(let final self::C #t11 = c in #t11 == null ?{() → core::int} null : #t11.{self::C::call});
   self::functionContext(let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:27:19: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()'.
   functionContext(t); // Shouldn't result in a compile-time error.
                   ^" in t as{TypeError,ForNonNullableByDefault} () → core::int);

@@ -9,25 +9,12 @@ class FrequencyBasedNamer extends Namer
     implements jsAst.TokenFinalizer {
   @override
   _FieldNamingRegistry fieldRegistry;
-  List<TokenName> tokens = <TokenName>[];
+  List<TokenName> tokens = [];
 
-  Map<NamingScope, TokenScope> _tokenScopes =
-      new Maplet<NamingScope, TokenScope>();
-
-  // Some basic settings for smaller names
-  @override
-  String get isolateName => 'I';
-  @override
-  String get isolatePropertiesName => 'p';
-  @override
-  bool get shouldMinify => true;
+  Map<NamingScope, TokenScope> _tokenScopes = {};
 
   @override
   String get genericInstantiationPrefix => r'$I';
-
-  @override
-  jsAst.Name get staticsPropertyName =>
-      _staticsPropertyName ??= getFreshName(instanceScope, 'static');
 
   FrequencyBasedNamer(JClosedWorld closedWorld, FixedNames fixedNames)
       : super(closedWorld, fixedNames) {
@@ -94,7 +81,7 @@ class TokenScope {
   List<int> _nextName = [$a];
   final Set<String> illegalNames;
 
-  TokenScope([this.illegalNames = const ImmutableEmptySet()]);
+  TokenScope([this.illegalNames = const {}]);
 
   /// Increments the letter at [pos] in the current name. Also takes care of
   /// overflows to the left. Returns the carry bit, i.e., it returns `true`

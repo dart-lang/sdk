@@ -1077,9 +1077,8 @@ void FUNCTION_NAME(Socket_SetOption)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   int64_t option = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
-  int64_t protocol = DartUtils::GetInt64ValueCheckRange(
-      Dart_GetNativeArgument(args, 2), SocketAddress::TYPE_IPV4,
-      SocketAddress::TYPE_IPV6);
+  intptr_t protocol = static_cast<intptr_t>(
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2)));
   switch (option) {
     case 0:  // TCP_NODELAY.
       result = SocketBase::SetNoDelay(

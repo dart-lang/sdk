@@ -26,6 +26,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// @dart = 2.9
+
 /**
  * @fileoverview Check that various regexp constructs work as intended.
  * Particularly those regexps that use ^ and $.

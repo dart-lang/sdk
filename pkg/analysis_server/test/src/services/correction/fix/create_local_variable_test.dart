@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
@@ -79,6 +77,17 @@ main() {
   foo(bar);
 }
 ''');
+  }
+
+  @failingTest
+  Future<void> test_propertyAccess() async {
+    // We should not offer to define a local variable named 'g'.
+    await resolveTestCode('''
+void f(String s) {
+  s.g;
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_read_typeAssignment() async {

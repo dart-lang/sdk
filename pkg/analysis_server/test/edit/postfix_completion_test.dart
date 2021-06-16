@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
@@ -22,7 +20,7 @@ void main() {
 
 @reflectiveTest
 class PostfixCompletionTest extends AbstractAnalysisTest {
-  SourceChange change;
+  late SourceChange change;
 
   @override
   void setUp() {
@@ -69,7 +67,7 @@ main() {
     );
   }
 
-  void _assertHasChange(String message, String expectedCode, [Function cmp]) {
+  void _assertHasChange(String message, String expectedCode, [Function? cmp]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
         var resultCode =
@@ -77,12 +75,12 @@ main() {
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
           int offset = cmp(resultCode);
-          expect(change.selection.offset, offset);
+          expect(change.selection!.offset, offset);
         }
       } else {
         if (cmp != null) {
           int offset = cmp(testCode);
-          expect(change.selection.offset, offset);
+          expect(change.selection!.offset, offset);
         }
       }
       return;

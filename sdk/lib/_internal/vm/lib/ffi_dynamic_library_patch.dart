@@ -30,6 +30,9 @@ class DynamicLibrary {
   Pointer<T> lookup<T extends NativeType>(String symbolName)
       native "Ffi_dl_lookup";
 
+  @patch
+  bool providesSymbol(String symbolName) native "Ffi_dl_providesSymbol";
+
   // TODO(dacoharkes): Expose this to users, or extend Pointer?
   // https://github.com/dart-lang/sdk/issues/35881
   int getHandle() native "Ffi_dl_getHandle";
@@ -52,7 +55,7 @@ class DynamicLibrary {
 
 extension DynamicLibraryExtension on DynamicLibrary {
   @patch
-  DS lookupFunction<NS extends Function, DS extends Function>(
-          String symbolName) =>
+  DS lookupFunction<NS extends Function, DS extends Function>(String symbolName,
+          {bool isLeaf: false}) =>
       throw UnsupportedError("The body is inlined in the frontend.");
 }

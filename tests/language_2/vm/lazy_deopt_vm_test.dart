@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-filter=foo --deoptimize_every=10 --optimization-counter-threshold=10  --no-background-compilation
 
+// @dart = 2.9
+
 // Test that lazy deoptimization on stack checks does not damage unoptimized
 // frame.
 

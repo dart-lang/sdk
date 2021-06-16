@@ -38,12 +38,12 @@ static method main() → dynamic {
   dynamic c0 = new self::Class::•();
   core::Object* c1 = new self::Class::•();
   self::Class* c2 = new self::Class::•();
-  self::expect(123, c0.method());
+  self::expect(123, c0{dynamic}.method());
   self::expect(87, self::Extension|method(c1));
   self::expect(42, self::ClassExtension|method(c2));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual)) {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }

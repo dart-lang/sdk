@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -45,7 +43,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  State<MyWidget> createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {
@@ -73,7 +71,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget<T> extends StatefulWidget {
   @override
-  _MyWidgetState<T> createState() => _MyWidgetState<T>();
+  State<MyWidget<T>> createState() => _MyWidgetState<T>();
 }
 
 class _MyWidgetState<T> extends State<MyWidget<T>> {
@@ -137,7 +135,7 @@ class MyWidget extends StatefulWidget {
   }
 
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  State<MyWidget> createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {
@@ -196,7 +194,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  State<MyWidget> createState() => _MyWidgetState();
 
   static String get staticGetter1 => '';
 
@@ -274,7 +272,7 @@ class MyWidget extends StatefulWidget {
   MyWidget(this.instanceField1);
 
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  State<MyWidget> createState() => _MyWidgetState();
 
   static void staticMethod1() {
     print('static 1');
@@ -307,6 +305,34 @@ class _MyWidgetState extends State<MyWidget> {
 
   void instanceMethod2() {
     print('instance 2');
+  }
+}
+''');
+  }
+
+  Future<void> test_noExtraUnderscore() async {
+    await resolveTestCode(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/_MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''');
+    await assertHasAssist(r'''
+import 'package:flutter/material.dart';
+
+class _MyWidget extends StatefulWidget {
+  @override
+  State<_MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<_MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }
 ''');
@@ -371,7 +397,7 @@ class MyWidget extends StatefulWidget {
   const MyWidget(this.aaa, this.bbb);
 
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  State<MyWidget> createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {
@@ -406,7 +432,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  State<MyWidget> createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {

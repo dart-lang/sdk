@@ -9,9 +9,11 @@
 //
 //     -N: run benchmarks N times, defaults to once.
 
-import '../../ListCopy/dart/ListCopy.dart' deferred as lib_ListCopy;
+// ignore_for_file: library_prefixes
+
 import '../../BigIntParsePrint/dart/BigIntParsePrint.dart'
     deferred as lib_BigIntParsePrint;
+import '../../ListCopy/dart/ListCopy.dart' deferred as lib_ListCopy;
 import '../../MD5/dart/md5.dart' deferred as lib_MD5;
 import '../../RuntimeType/dart/RuntimeType.dart' deferred as lib_RuntimeType;
 import '../../SHA1/dart/sha1.dart' deferred as lib_SHA1;
@@ -78,20 +80,20 @@ final Map<String, Lib> benchmarks = {
   ),
 };
 
-main(List<String> originalArguments) async {
-  List<String> args = List.of(originalArguments);
+void main(List<String> originalArguments) async {
+  final List<String> args = List.of(originalArguments);
 
   int repeats = 1;
 
   for (final arg in args.toList()) {
-    int? count = int.tryParse(arg);
+    final int? count = int.tryParse(arg);
     if (count != null && count < 0) {
       repeats = 0 - count;
       args.remove(arg);
     }
   }
 
-  bool preload = args.remove('--preload');
+  final preload = args.remove('--preload');
 
   List<Lib> libs = [];
 
@@ -109,7 +111,9 @@ main(List<String> originalArguments) async {
   if (libs.isEmpty) libs = benchmarks.values.toList();
 
   if (preload) {
-    for (final lib in libs) await lib.load();
+    for (final lib in libs) {
+      await lib.load();
+    }
   }
 
   for (var i = 0; i < repeats; i++) {

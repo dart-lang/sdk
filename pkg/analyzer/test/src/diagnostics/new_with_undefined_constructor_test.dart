@@ -62,4 +62,52 @@ f() {
       error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 35, 4),
     ]);
   }
+
+  test_private_named() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  A._named() {}
+}
+''');
+    await assertErrorsInCode(r'''
+import 'a.dart';
+void f() {
+  new A._named();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 36, 6),
+    ]);
+  }
+
+  test_private_named_genericClass_noTypeArguments() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  A._named() {}
+}
+''');
+    await assertErrorsInCode(r'''
+import 'a.dart';
+void f() {
+  new A._named();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 36, 6),
+    ]);
+  }
+
+  test_private_named_genericClass_withTypeArguments() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  A._named() {}
+}
+''');
+    await assertErrorsInCode(r'''
+import 'a.dart';
+void f() {
+  new A<int>._named();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 41, 6),
+    ]);
+  }
 }

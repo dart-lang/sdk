@@ -62,6 +62,16 @@ class WeakTable {
     return SetValueExclusive(key, val);
   }
 
+  intptr_t SetValueIfNonExistent(ObjectPtr key, intptr_t val) {
+    MutexLocker ml(&mutex_);
+    const auto old_value = GetValueExclusive(key);
+    if (old_value == kNoValue) {
+      SetValueExclusive(key, val);
+      return val;
+    }
+    return old_value;
+  }
+
   // The following "exclusive" methods must only be called from call sites
   // which are known to have exclusive access to the weak table.
   //
@@ -193,9 +203,7 @@ class WeakTable {
 
   void Rehash();
 
-  static intptr_t Hash(ObjectPtr key) {
-    return static_cast<uintptr_t>(key) * 92821;
-  }
+  static uword Hash(ObjectPtr key) { return static_cast<uword>(key) * 92821; }
 
   Mutex mutex_;
 

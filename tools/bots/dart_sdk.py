@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -72,7 +72,6 @@ def CreateAndUploadSDKZip(arch, sdk_path):
     FileDelete(sdk_zip)
     CreateZip(sdk_path, sdk_zip)
     DartArchiveUploadSDKs(BUILD_OS, arch, sdk_zip)
-
 
 
 def DartArchiveUploadSDKs(system, arch, sdk_zip):
@@ -171,26 +170,12 @@ def GsutilExists(gsu_path):
 
 
 def CreateZip(directory, target_file):
-    if 'win' in BUILD_OS:
-        CreateZipWindows(directory, target_file)
-    else:
-        CreateZipPosix(directory, target_file)
-
-
-def CreateZipPosix(directory, target_file):
-    with utils.ChangedWorkingDirectory(os.path.dirname(directory)):
-        command = ['zip', '-yrq9', target_file, os.path.basename(directory)]
-        Run(command)
-
-
-def CreateZipWindows(directory, target_file):
-    with utils.ChangedWorkingDirectory(os.path.dirname(directory)):
-        zip_win = os.path.join(bot_utils.DART_DIR, 'third_party', '7zip', '7za')
-        command = [
-            zip_win, 'a', '-tzip', target_file,
-            os.path.basename(directory)
-        ]
-        Run(command)
+    root = os.path.dirname(directory)
+    base = os.path.basename(directory)
+    f = shutil.make_archive(target_file, 'zip', root, base)
+    # make_archive will appened '.zip' to the filename, so we have to rename
+    # to avoid having it being '.zip.zip'
+    shutil.move(f, target_file)
 
 
 def FileDelete(f):
@@ -233,8 +218,8 @@ def DartArchiveFile(local_path, remote_path, checksum_files=False):
 
 
 def Run(command, env=None):
-    print "Running %s" % ' '.join(command)
-    print "Environment %s" % env
+    print("Running %s" % ' '.join(command))
+    print("Environment %s" % env)
     sys.stdout.flush()
     exit_code = subprocess.call(command)
     if exit_code != 0:

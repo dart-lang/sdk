@@ -19,7 +19,7 @@ class Foo extends core::Object implements pri::Bar {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder method /* from org-dartlang-testcase:///private_method_tearoff_lib.dart */ _f() → void
-    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_f, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_f, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
 }
 class Baz extends self::Foo {
   synthetic constructor •() → self::Baz*

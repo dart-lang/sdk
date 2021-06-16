@@ -41,6 +41,10 @@ import 'package:meta/meta_meta.dart';
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   static const String _TO_INT_METHOD_NAME = "toInt";
 
+  static final Map<String, TargetKind> _targetKindsByName = {
+    for (final kind in TargetKind.values) kind.toString(): kind,
+  };
+
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
   ClassElementImpl? _enclosingClass;
@@ -98,7 +102,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     required DeclaredVariables declaredVariables,
     required AnalysisOptions analysisOptions,
     required WorkspacePackage? workspacePackage,
-  })   : _nullType = typeProvider.nullType,
+  })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
         _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
         _strictInference =
@@ -338,6 +342,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    var element = node.declaredElement as ConstructorElementImpl;
     if (!_isNonNullableByDefault && node.declaredElement!.isFactory) {
       if (node.body is BlockFunctionBody) {
         // Check the block for a return statement, if not, create the hint.
@@ -349,7 +354,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     _checkStrictInferenceInParameters(node.parameters,
         body: node.body, initializers: node.initializers);
-    super.visitConstructorDeclaration(node);
+    _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
+    try {
+      super.visitConstructorDeclaration(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
   }
 
   @override
@@ -362,12 +372,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     _deprecatedVerifier.exportDirective(node);
     _checkForInternalExport(node);
+    _checkForUseOfNativeExtension(node);
     super.visitExportDirective(node);
   }
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _checkForReturnOfDoNotStore(node.expression);
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      _checkForReturnOfDoNotStore(node.expression);
+    }
     super.visitExpressionFunctionBody(node);
   }
 
@@ -406,8 +419,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               field.name,
               [field.name, overriddenElement!.enclosingElement.name]);
         }
-
-        _checkForAssignmentOfDoNotStore(field.initializer);
+        if (!_invalidAccessVerifier._inTestDirectory) {
+          _checkForAssignmentOfDoNotStore(field.initializer);
+        }
       }
     } finally {
       _deprecatedVerifier.popInDeprecated();
@@ -512,6 +526,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     _invalidAccessVerifier.verifyImport(node);
     _checkForImportOfLegacyLibraryIntoNullSafe(node);
+    _checkForUseOfNativeExtension(node);
     super.visitImportDirective(node);
   }
 
@@ -650,7 +665,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    _checkForReturnOfDoNotStore(node.expression);
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      _checkForReturnOfDoNotStore(node.expression);
+    }
     super.visitReturnStatement(node);
   }
 
@@ -678,8 +695,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
 
-    for (var decl in node.variables.variables) {
-      _checkForAssignmentOfDoNotStore(decl.initializer);
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      for (var decl in node.variables.variables) {
+        _checkForAssignmentOfDoNotStore(decl.initializer);
+      }
     }
 
     try {
@@ -1376,6 +1395,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
+  void _checkForUseOfNativeExtension(UriBasedDirective node) {
+    var uri = node.uriContent;
+    if (uri == null) {
+      return;
+    }
+    if (uri.startsWith('dart-ext:')) {
+      _errorReporter.reportErrorForNode(HintCode.USE_OF_NATIVE_EXTENSION, node);
+    }
+  }
+
   void _checkRequiredParameter(FormalParameterList node) {
     final requiredParameters =
         node.parameters.where((p) => p.declaredElement?.hasRequired == true);
@@ -1571,6 +1600,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } else if (target is FunctionTypeAlias || target is GenericTypeAlias) {
       return kinds.contains(TargetKind.typedefType) ||
           kinds.contains(TargetKind.type);
+    } else if (target is TopLevelVariableDeclaration) {
+      return kinds.contains(TargetKind.topLevelVariable);
     }
     return false;
   }
@@ -1596,9 +1627,23 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (annotation.isTarget) {
         var value = annotation.computeConstantValue()!;
         var kinds = <TargetKind>{};
+
         for (var kindObject in value.getField('kinds')!.toSetValue()!) {
+          // We can't directly translate the index from the analyzed TargetKind
+          // constant to TargetKinds.values because the analyzer from the SDK
+          // may have been compiled with a different version of pkg:meta.
           var index = kindObject.getField('index')!.toIntValue()!;
-          kinds.add(TargetKind.values[index]);
+          var targetKindClass =
+              (kindObject.type as InterfaceType).element as EnumElementImpl;
+          // Instead, map constants to their TargetKind by comparing getter
+          // names.
+          var getter = targetKindClass.constants[index];
+          var name = 'TargetKind.${getter.name}';
+
+          var foundTargetKind = _targetKindsByName[name];
+          if (foundTargetKind != null) {
+            kinds.add(foundTargetKind);
+          }
         }
         return kinds;
       }
@@ -1964,40 +2009,6 @@ class _UsedParameterVisitor extends RecursiveAstVisitor<void> {
     }
     if (_parameters.contains(element)) {
       _usedParameters.add(element as ParameterElement);
-    }
-  }
-}
-
-extension on TargetKind {
-  /// Return a user visible string used to describe this target kind.
-  String get displayString {
-    switch (this) {
-      case TargetKind.classType:
-        return 'classes';
-      case TargetKind.enumType:
-        return 'enums';
-      case TargetKind.extension:
-        return 'extensions';
-      case TargetKind.field:
-        return 'fields';
-      case TargetKind.function:
-        return 'top-level functions';
-      case TargetKind.library:
-        return 'libraries';
-      case TargetKind.getter:
-        return 'getters';
-      case TargetKind.method:
-        return 'methods';
-      case TargetKind.mixinType:
-        return 'mixins';
-      case TargetKind.parameter:
-        return 'parameters';
-      case TargetKind.setter:
-        return 'setters';
-      case TargetKind.type:
-        return 'types (classes, enums, mixins, or typedefs)';
-      case TargetKind.typedefType:
-        return 'typedefs';
     }
   }
 }

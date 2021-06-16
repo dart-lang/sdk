@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/src/lsp/mapping.dart' as lsp;
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -72,6 +70,22 @@ class MappingTest extends AbstractLspAnalysisServerTest {
       server.ElementKind.CLASS,
     );
     expect(result, isNull);
+  }
+
+  void test_relevanceToSortText() {
+    // The expected order is the same as from the highest relevance.
+    final expectedOrder =
+        [999999, 1000, 100, 1, 0].map(lsp.relevanceToSortText).toList();
+
+    // Test with inputs in both directions to ensure the results are actually
+    // unique and sorted.
+    final results1 =
+        [999999, 1000, 100, 1, 0].map(lsp.relevanceToSortText).toList()..sort();
+    final results2 =
+        [0, 1, 100, 1000, 999999].map(lsp.relevanceToSortText).toList()..sort();
+
+    expect(results1, equals(expectedOrder));
+    expect(results2, equals(expectedOrder));
   }
 
   Future<void> test_tabStopsInSnippets_contains() async {

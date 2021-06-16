@@ -14,6 +14,10 @@ class X extends core::Object implements self::A {
 }
 [@vm.inferred-type.metadata=#lib::X?]static field self::A* a = new self::X::•();
 static method main() → void {
-  core::print([@vm.direct-call.metadata=#lib::X.targetPlatform??] [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] [@vm.inferred-type.metadata=#lib::X?] self::a.{self::A::targetPlatform});
+  core::print([@vm.direct-call.metadata=#lib::X.targetPlatform??] [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] [@vm.inferred-type.metadata=#lib::X?] self::a.{self::A::targetPlatform}{core::int*});
   core::print(#C2);
+}
+constants  {
+  #C1 = 1
+  #C2 = self::A {targetPlatform:#C1}
 }

@@ -144,7 +144,7 @@ class Foo extends core::Object /*hasConstConstructor*/  {
   final field core::int* x;
   final field core::int* y;
   const constructor •(core::int* x) → self::Foo*
-    : self::Foo::x = x, self::Foo::y = "hello".{core::String::length}, super core::Object::•()
+    : self::Foo::x = x, self::Foo::y = "hello".{core::String::length}{core::int*}, super core::Object::•()
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -230,7 +230,7 @@ class ConstClassWithFinalFields1 extends core::Object /*hasConstConstructor*/  {
 }
 class ConstClassWithFinalFields2 extends core::Object /*hasConstConstructor*/  {
   final field core::int* y = 1;
-  final field dynamic z1 = this.{self::ConstClassWithFinalFields2::y};
+  final field dynamic z1 = this.{self::ConstClassWithFinalFields2::y}{core::int*};
   final field core::int* z2 = self::x;
   const constructor •() → self::ConstClassWithFinalFields2*
     : super core::Object::•()
@@ -251,8 +251,8 @@ static const field core::bool* hasBarEnv = const core::bool::hasEnvironment("bar
 static const field core::bool* barFromEnvOrNull = const core::bool::fromEnvironment("bar", defaultValue: null);
 static const field core::bool* notBarFromEnvOrNull = !self::barFromEnvOrNull;
 static const field core::bool* conditionalOnNull = self::barFromEnvOrNull ?{core::bool*} true : false;
-static const field core::bool* nullAwareOnNullTrue = let final core::bool* #t2 = self::barFromEnvOrNull in #t2.{core::Object::==}(null) ?{core::bool*} true : #t2;
-static const field core::bool* nullAwareOnNullFalse = let final core::bool* #t3 = self::barFromEnvOrNull in #t3.{core::Object::==}(null) ?{core::bool*} false : #t3;
+static const field core::bool* nullAwareOnNullTrue = let final core::bool* #t2 = self::barFromEnvOrNull in #t2 == null ?{core::bool*} true : #t2;
+static const field core::bool* nullAwareOnNullFalse = let final core::bool* #t3 = self::barFromEnvOrNull in #t3 == null ?{core::bool*} false : #t3;
 static const field core::bool* andOnFalse = self::nullAwareOnNullFalse && self::nullAwareOnNullTrue;
 static const field core::bool* andOnFalse2 = self::nullAwareOnNullTrue && self::nullAwareOnNullFalse;
 static const field core::bool* andOnNull = self::barFromEnvOrNull && true;
@@ -281,25 +281,25 @@ static const field core::bool* bazTrueFromEnv = const core::bool::fromEnvironmen
 static const field core::bool* bazFalseFromEnv = const core::bool::fromEnvironment("bazFalse");
 static const field core::bool* trueBool = true;
 static const field core::bool* falseBool = false;
-static const field core::bool* binaryOnBoolCaret = self::trueBool.{core::bool::^}(self::falseBool);
-static const field core::bool* binaryOnBoolAmpersand = self::trueBool.{core::bool::&}(self::falseBool);
-static const field core::bool* binaryOnBoolBar = self::trueBool.{core::bool::|}(self::falseBool);
-static const field core::bool* binaryOnBoolBar2 = self::falseBool.{core::bool::|}(self::trueBool);
+static const field core::bool* binaryOnBoolCaret = self::trueBool.{core::bool::^}(self::falseBool){(core::bool*) →* core::bool*};
+static const field core::bool* binaryOnBoolAmpersand = self::trueBool.{core::bool::&}(self::falseBool){(core::bool*) →* core::bool*};
+static const field core::bool* binaryOnBoolBar = self::trueBool.{core::bool::|}(self::falseBool){(core::bool*) →* core::bool*};
+static const field core::bool* binaryOnBoolBar2 = self::falseBool.{core::bool::|}(self::trueBool){(core::bool*) →* core::bool*};
 static const field dynamic willBeDouble = const core::bool::fromEnvironment("foo") ?{core::num*} 42 : 42.42;
-static const field dynamic binaryOnDouble = self::willBeDouble.<<(2);
+static const field dynamic binaryOnDouble = self::willBeDouble{dynamic}.<<(2);
 static const field dynamic willBeInt = const core::bool::fromEnvironment("foo") ?{core::num*} 42.42 : 42;
-static const field dynamic binaryOnIntWithDoubleBad = self::willBeInt.<<(self::willBeDouble);
-static const field dynamic binaryOnIntWithDoubleOK = self::willBeInt.+(self::willBeDouble);
-static const field dynamic binaryOnIntWithString = self::willBeInt.<<("hello");
+static const field dynamic binaryOnIntWithDoubleBad = self::willBeInt{dynamic}.<<(self::willBeDouble);
+static const field dynamic binaryOnIntWithDoubleOK = self::willBeInt{dynamic}.+(self::willBeDouble);
+static const field dynamic binaryOnIntWithString = self::willBeInt{dynamic}.<<("hello");
 static const field dynamic willBeString = const core::bool::fromEnvironment("foo") ?{core::Object*} 42.42 : "hello";
-static const field dynamic binaryOnStringWithStringOK = self::willBeString.+(" world");
-static const field dynamic binaryOnStringWithInt = self::willBeString.+(self::willBeInt);
-static const field dynamic binaryOnStringWithStringBad = self::willBeString.-(" world");
+static const field dynamic binaryOnStringWithStringOK = self::willBeString{dynamic}.+(" world");
+static const field dynamic binaryOnStringWithInt = self::willBeString{dynamic}.+(self::willBeInt);
+static const field dynamic binaryOnStringWithStringBad = self::willBeString{dynamic}.-(" world");
 static field core::int* x;
-static const field core::int* x1 = self::x = self::x.{core::num::-}(1);
-static const field core::int* x2 = self::x = self::x.{core::num::+}(1);
-static const field core::int* x3 = let final core::int* #t4 = self::x in let final core::int* #t5 = self::x = #t4.{core::num::-}(1) in #t4;
-static const field core::int* x4 = let final core::int* #t6 = self::x in let final core::int* #t7 = self::x = #t6.{core::num::+}(1) in #t6;
+static const field core::int* x1 = self::x = self::x.{core::num::-}(1){(core::num*) →* core::int*};
+static const field core::int* x2 = self::x = self::x.{core::num::+}(1){(core::num*) →* core::int*};
+static const field core::int* x3 = let final core::int* #t4 = self::x in let final core::int* #t5 = self::x = #t4.{core::num::-}(1){(core::num*) →* core::int*} in #t4;
+static const field core::int* x4 = let final core::int* #t6 = self::x in let final core::int* #t7 = self::x = #t6.{core::num::+}(1){(core::num*) →* core::int*} in #t6;
 static const field core::int* y = 1;
 static const field dynamic y1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
 const y1 = --y;
@@ -322,7 +322,7 @@ static const field self::ExtendsFoo2* extendsFoo2 = const self::ExtendsFoo2::•
 static const field self::Foo* foo1 = const self::Foo::•(42);
 static const field self::Foo* foo2 = const self::Foo::•(42);
 static const field core::bool* foosIdentical = core::identical(self::foo1, self::foo2);
-static const field core::bool* foosEqual = self::foo1.{self::Foo::==}(self::foo2);
+static const field core::bool* foosEqual = self::foo1 =={self::Foo::==}{(dynamic) →* core::bool*} self::foo2;
 static const field core::Symbol* barFoo = const _in::Symbol::•("Foo");
 static const field core::Symbol* barFooEqual = const _in::Symbol::•("Foo=");
 static const field core::Symbol* tripleShiftSymbol = const _in::Symbol::•(">>>");
@@ -344,11 +344,11 @@ static field self::ConstClassWithFinalFields2* constClassWithFinalFields;
 static const field core::bool* zeroPointZeroIdentical = core::identical(0.0, 0.0);
 static const field core::bool* zeroPointZeroIdenticalToZero = core::identical(0.0, 0);
 static const field core::bool* zeroIdenticalToZeroPointZero = core::identical(0, 0.0);
-static const field core::bool* nanIdentical = core::identical(0.{core::num::/}(0), 0.{core::num::/}(0));
-static const field core::bool* zeroPointZeroEqual = 0.0.{core::num::==}(0.0);
-static const field core::bool* zeroPointZeroEqualToZero = 0.0.{core::num::==}(0);
-static const field core::bool* zeroEqualToZeroPointZero = 0.{core::num::==}(0.0);
-static const field core::bool* nanEqual = 0.{core::num::/}(0).{core::num::==}(0.{core::num::/}(0));
+static const field core::bool* nanIdentical = core::identical(0.{core::num::/}(0){(core::num*) →* core::double*}, 0.{core::num::/}(0){(core::num*) →* core::double*});
+static const field core::bool* zeroPointZeroEqual = 0.0 =={core::num::==}{(core::Object*) →* core::bool*} 0.0;
+static const field core::bool* zeroPointZeroEqualToZero = 0.0 =={core::num::==}{(core::Object*) →* core::bool*} 0;
+static const field core::bool* zeroEqualToZeroPointZero = 0 =={core::num::==}{(core::Object*) →* core::bool*} 0.0;
+static const field core::bool* nanEqual = 0.{core::num::/}(0){(core::num*) →* core::double*} =={core::num::==}{(core::Object*) →* core::bool*} 0.{core::num::/}(0){(core::num*) →* core::double*};
 static const field dynamic willBecomeNull = const core::bool::fromEnvironment("foo") ?{<T extends core::Object* = dynamic>(T*) →* T*} self::id1 : null;
 static const field (core::int*) →* core::int* willBecomeNullToo = (const core::bool::fromEnvironment("foo") ?{dynamic} self::id1<core::int*> : self::willBecomeNull) as{TypeError,ForDynamic} (core::int*) →* core::int*;
 static const field (core::int*) →* core::int* partialInstantiation = (const core::bool::fromEnvironment("foo") ?{dynamic} self::willBecomeNull : self::id1<core::int*>) as{TypeError,ForDynamic} (core::int*) →* core::int*;
@@ -369,7 +369,7 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: PropertyGet @ org-dartlang-testcase:///various.dart:111:26 -> IntConstant(5)
+Evaluated: InstanceGet @ org-dartlang-testcase:///various.dart:111:26 -> IntConstant(5)
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:6:31 -> BoolConstant(false)
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:7:30 -> BoolConstant(false)
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:9:11 -> NullConstant(null)
@@ -403,19 +403,19 @@ Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///vario
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:49:41 -> StringConstant("42")
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:53:35 -> BoolConstant(true)
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:54:36 -> BoolConstant(false)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:58:41 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:59:45 -> BoolConstant(false)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:60:39 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:61:41 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:58:41 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:59:45 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:60:39 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///various.dart:61:41 -> BoolConstant(true)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:63:64 -> DoubleConstant(42.42)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:64:24 -> DoubleConstant(42.42)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:65:61 -> IntConstant(42)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:66:34 -> IntConstant(42)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:66:47 -> DoubleConstant(42.42)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:67:43 -> DoubleConstant(84.42)
+Evaluated: DynamicInvocation @ org-dartlang-testcase:///various.dart:67:43 -> DoubleConstant(84.42)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:68:31 -> IntConstant(42)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:70:39 -> StringConstant("hello")
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:71:49 -> StringConstant("hello world")
+Evaluated: DynamicInvocation @ org-dartlang-testcase:///various.dart:71:49 -> StringConstant("hello world")
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:72:31 -> StringConstant("hello")
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:72:46 -> IntConstant(42)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:73:37 -> StringConstant("hello")
@@ -439,10 +439,10 @@ Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:187:32 -> Bo
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:188:38 -> BoolConstant(false)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:189:38 -> BoolConstant(false)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:190:22 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:192:32 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:193:38 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:194:36 -> BoolConstant(true)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:195:24 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:192:32 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:193:38 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:194:36 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:195:24 -> BoolConstant(false)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:200:66 -> NullConstant(null)
 Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:203:39 -> NullConstant(null)
 Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:205:39 -> PartialInstantiationConstant(id1<int*>)

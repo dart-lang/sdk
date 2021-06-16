@@ -351,24 +351,10 @@ CodePtr StackFrame::GetCodeObject() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     NoSafepointScope no_safepoint;
-    Code code;
-    code = ReversePc::Lookup(isolate_group(), pc(),
-                             /*is_return_address=*/true);
-    if (!code.IsNull()) {
-      // This is needed in order to test stack traces with the future
-      // behavior of ReversePc::Lookup which will return
-      // StubCode::UnknownDartCode() if code object is omitted from
-      // the snapshot.
-      if (code.is_discarded()) {
-        ASSERT(StubCode::UnknownDartCode().PayloadStart() == 0);
-        ASSERT(StubCode::UnknownDartCode().Size() == kUwordMax);
-        ASSERT(StubCode::UnknownDartCode().IsFunctionCode());
-        ASSERT(StubCode::UnknownDartCode().IsUnknownDartCode());
-        return StubCode::UnknownDartCode().ptr();
-      }
-      return code.ptr();
-    }
-    UNREACHABLE();
+    CodePtr code = ReversePc::Lookup(isolate_group(), pc(),
+                                     /*is_return_address=*/true);
+    ASSERT(code != Code::null());
+    return code;
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 

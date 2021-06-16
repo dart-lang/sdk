@@ -15,6 +15,8 @@ main() {
 
 @reflectiveTest
 class InvalidAnnotationTargetTest extends PubPackageResolutionTest {
+  // todo(pq): add tests for topLevelVariables:
+  // https://dart-review.googlesource.com/c/sdk/+/200301
   void test_classType_class() async {
     writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
@@ -602,6 +604,40 @@ class A {
 
 @A()
 set x(_x) {}
+''');
+  }
+
+  void test_topLevelVariable_field() async {
+    writeTestPackageConfigWithMeta();
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.topLevelVariable})
+class A {
+  const A();
+}
+
+class B {
+  @A()
+  int f = 0;
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 117, 1),
+    ]);
+  }
+
+  void test_topLevelVariable_topLevelVariable() async {
+    writeTestPackageConfigWithMeta();
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.topLevelVariable})
+class A {
+  const A();
+}
+
+@A()
+int f = 0;
 ''');
   }
 

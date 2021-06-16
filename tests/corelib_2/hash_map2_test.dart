@@ -5,6 +5,8 @@
 // VMOptions=
 // VMOptions=--use_internal_hash_map
 
+// @dart = 2.9
+
 // Tests of hash map behavior, with focus in iteration and concurrent
 // modification errors.
 

@@ -13,6 +13,8 @@ class LintNames {
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';
+  static const String avoid_function_literals_in_foreach_calls =
+      'avoid_function_literals_in_foreach_calls';
   static const String avoid_init_to_null = 'avoid_init_to_null';
   static const String avoid_private_typedef_functions =
       'avoid_private_typedef_functions';
@@ -23,6 +25,8 @@ class LintNames {
       'avoid_return_types_on_setters';
   static const String avoid_returning_null_for_future =
       'avoid_returning_null_for_future';
+  static const String avoid_returning_null_for_void =
+      'avoid_returning_null_for_void';
   static const String avoid_single_cascade_in_expression_statements =
       'avoid_single_cascade_in_expression_statements';
   static const String avoid_types_as_parameter_names =
@@ -85,6 +89,7 @@ class LintNames {
   static const String prefer_spread_collections = 'prefer_spread_collections';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';
+  static const String sort_constructors_first = 'sort_constructors_first';
   static const String type_annotate_public_apis = 'type_annotate_public_apis';
   static const String type_init_formals = 'type_init_formals';
   static const String unawaited_futures = 'unawaited_futures';

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,7 +31,8 @@ class AbstractOutlineComputerTest extends AbstractContextTest
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, content: code);
-    var resolveResult = await session.getResolvedUnit(testPath);
+    var resolveResult =
+        await session.getResolvedUnit2(testPath) as ResolvedUnitResult;
     return DartUnitOutlineComputer(
       resolveResult,
       withBasicFlutter: true,
@@ -1024,9 +1026,9 @@ mixin M<N> {
     var unitOutline = await _computeOutline('''
 class A {
   int fieldA, fieldB = 2;
-  
+
   int fieldC;
-  
+
   /// Documentation.
   int fieldD;
 }
@@ -1069,10 +1071,10 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldC');
 
-      expect(outline.offset, 41);
+      expect(outline.offset, 39);
       expect(outline.length, 11);
 
-      expect(outline.codeOffset, 45);
+      expect(outline.codeOffset, 43);
       expect(outline.codeLength, 6);
     }
 
@@ -1083,10 +1085,10 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldD');
 
-      expect(outline.offset, 58);
+      expect(outline.offset, 54);
       expect(outline.length, 32);
 
-      expect(outline.codeOffset, 83);
+      expect(outline.codeOffset, 79);
       expect(outline.codeLength, 6);
     }
   }
@@ -1134,7 +1136,7 @@ class B {}
     var unitOutline = await _computeOutline('''
 class A {
   int methodA() {}
-  
+
   /// Documentation.
   @override
   int methodB() {}
@@ -1164,10 +1166,10 @@ class A {
       expect(element.kind, ElementKind.METHOD);
       expect(element.name, 'methodB');
 
-      expect(outline.offset, 34);
+      expect(outline.offset, 32);
       expect(outline.length, 49);
 
-      expect(outline.codeOffset, 67);
+      expect(outline.codeOffset, 65);
       expect(outline.codeLength, 16);
     }
   }

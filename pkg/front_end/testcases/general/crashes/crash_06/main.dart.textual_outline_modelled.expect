@@ -1,0 +1,3 @@
+class B extends C with D, A {}
+
+mixin A on C, D {}

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=triple-shift
+// @dart = 2.9
+
 // VMOptions=
 // VMOptions=--use_slow_path
 
@@ -59,7 +60,6 @@ class Custom {
   operator ^(other) => "xor";
   operator <<(other) => "sll";
   operator >>(other) => "sra";
-  operator >>>(other) => "srl";
 }
 
 main() {
@@ -73,7 +73,6 @@ main() {
   Expect.equals(40, hiddenSmi() ^ 2);
   Expect.equals(168, hiddenSmi() << 2);
   Expect.equals(10, hiddenSmi() >> 2);
-  Expect.equals(10, hiddenSmi() >>> 2);
 
   Expect.equals(-9223372036854775806, hiddenMint() + 2);
   Expect.equals(9223372036854775806, hiddenMint() - 2);
@@ -85,7 +84,6 @@ main() {
   Expect.equals(-9223372036854775806, hiddenMint() ^ 2);
   Expect.equals(0, hiddenMint() << 2);
   Expect.equals(-2305843009213693952, hiddenMint() >> 2);
-  Expect.equals(2305843009213693952, hiddenMint() >>> 2);
 
   Expect.equals(5.0, hiddenDouble() + 2);
   Expect.equals(1.0, hiddenDouble() - 2);
@@ -97,7 +95,6 @@ main() {
   Expect.throws(() => hiddenDouble() ^ 2, (e) => e is NoSuchMethodError);
   Expect.throws(() => hiddenDouble() << 2, (e) => e is NoSuchMethodError);
   Expect.throws(() => hiddenDouble() >> 2, (e) => e is NoSuchMethodError);
-  Expect.throws(() => hiddenDouble() >>> 2, (e) => e is NoSuchMethodError);
 
   Expect.equals("add", hiddenCustom() + 2);
   Expect.equals("sub", hiddenCustom() - 2);
@@ -109,5 +106,4 @@ main() {
   Expect.equals("xor", hiddenCustom() ^ 2);
   Expect.equals("sll", hiddenCustom() << 2);
   Expect.equals("sra", hiddenCustom() >> 2);
-  Expect.equals("srl", hiddenCustom() >>> 2);
 }

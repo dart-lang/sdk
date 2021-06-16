@@ -53,6 +53,10 @@ void main() {
 
   Expect.throws<FormatException>(
       () => parseFuse(" [\xEF\xBB\xBF]".codeUnits.toList()));
+
+  // Regression test for dartbug.com/46205
+  // Bug occurs in sound null safe mode only.
+  Expect.isNull(parseFuse("null".codeUnits.toList()));
 }
 
 Object? parseFuse(List<int> text) {

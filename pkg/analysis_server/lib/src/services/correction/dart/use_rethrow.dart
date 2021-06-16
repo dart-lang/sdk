@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,6 +11,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class UseRethrow extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.USE_RETHROW;
 
   @override
@@ -20,6 +24,7 @@ class UseRethrow extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    final coveredNode = this.coveredNode;
     if (coveredNode is ThrowExpression) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(coveredNode), 'rethrow');

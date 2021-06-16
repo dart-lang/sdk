@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -92,7 +90,7 @@ main() {
 ''');
   }
 
-  Future<void> test_constructor() async {
+  Future<void> test_constructor_factory() async {
     await resolveTestCode('''
 class A {
   A.named();
@@ -109,6 +107,19 @@ class A {
   factory A() => A.named();
 }
 ''');
+  }
+
+  Future<void> test_constructor_generative() async {
+    await resolveTestCode('''
+class A {
+  int x;
+
+  A() {
+    x = 3;
+  }
+}
+''');
+    await assertNoAssistAt('A()');
   }
 
   Future<void> test_function_onBlock() async {

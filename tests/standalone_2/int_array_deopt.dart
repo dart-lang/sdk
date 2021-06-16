@@ -4,6 +4,8 @@
 //
 // Dart deoptimization of Uint32Array and Int32Array loads.
 
+// @dart = 2.9
+
 import 'dart:typed_data';
 import "package:expect/expect.dart";
 

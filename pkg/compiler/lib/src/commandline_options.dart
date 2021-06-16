@@ -27,8 +27,6 @@ class Flags {
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
-  static const String experimentalAllocationsPath =
-      '--experimental-allocations-path';
 
   static const String experimentalWrapped = '--experimental-wrapped';
   static const String experimentalPowersets = '--experimental-powersets';
@@ -53,6 +51,11 @@ class Flags {
       '--experiment-call-instrumentation';
 
   static const String experimentNewRti = '--experiment-new-rti';
+
+  /// Use the dart2js lowering of late instance variables rather than the CFE
+  /// lowering.
+  static const String experimentLateInstanceVariables =
+      '--experiment-late-instance-variables';
 
   static const String enableLanguageExperiments = '--enable-experiment';
 
@@ -81,6 +84,10 @@ class Flags {
   static const String noNativeNullAssertions = '--no-native-null-assertions';
 
   static const String noSourceMaps = '--no-source-maps';
+
+  static const String omitLateNames = '--omit-late-names';
+  static const String noOmitLateNames = '--no-omit-late-names';
+
   static const String preserveUris = '--preserve-uris';
   static const String printLegacyStars = '--debug-print-legacy-stars';
   static const String showPackageWarnings = '--show-package-warnings';
@@ -96,6 +103,7 @@ class Flags {
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String useOldRti = '--use-old-rti';
+  static const String useSimpleLoadIds = '--simple-load-ids';
   static const String verbose = '--verbose';
   static const String verbosity = '--verbosity';
   static const String progress = '--show-internal-progress';

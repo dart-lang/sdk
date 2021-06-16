@@ -43,13 +43,8 @@ main() {
   Expect.equals(magnitudeDecl, magnitudeOfR.originalDeclaration);
   Expect.equals(rFromSorter, magnitudeOfR.typeArguments.single);
 
-  typeParameters(magnitudeDecl, [#T]);
   typeParameters(realDecl, []);
-  typeParameters(sorterDecl, [#R]);
   typeParameters(realSorterDecl, []);
-  typeParameters(magnitudeOfReal, [#T]);
-  typeParameters(sorterOfReal, [#R]);
-  typeParameters(magnitudeOfR, [#T]);
 
   typeArguments(magnitudeDecl, []);
   typeArguments(realDecl, []);

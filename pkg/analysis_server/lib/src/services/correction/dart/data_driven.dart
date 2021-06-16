@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
@@ -20,7 +18,7 @@ import 'package:meta/meta.dart';
 class DataDriven extends MultiCorrectionProducer {
   /// The transform sets used by the current test.
   @visibleForTesting
-  static List<TransformSet> transformSetsForTests;
+  static List<TransformSet>? transformSetsForTests;
 
   @override
   Iterable<CorrectionProducer> get producers sync* {
@@ -51,11 +49,12 @@ class DataDriven extends MultiCorrectionProducer {
   /// Return the transform sets that are available for fixing issues in the
   /// given [library].
   List<TransformSet> _availableTransformSetsForLibrary(LibraryElement library) {
-    if (transformSetsForTests != null) {
-      return transformSetsForTests;
+    var setsForTests = transformSetsForTests;
+    if (setsForTests != null) {
+      return setsForTests;
     }
     var transformSets = TransformSetManager.instance.forLibrary(library);
-    var overrideSet = this.overrideSet;
+    final overrideSet = this.overrideSet;
     if (overrideSet != null) {
       transformSets =
           transformSets.map((set) => set.applyOverrides(overrideSet)).toList();

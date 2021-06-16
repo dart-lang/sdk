@@ -46,29 +46,29 @@ class C extends self::B implements self::I {
 }
 static method expectTypeError(() →* void callback) → void {
   try {
-    callback.call();
+    callback(){() →* void};
     throw "Expected TypeError, did not occur";
   }
   on core::TypeError* catch(no-exception-var) {
   }
 }
 static method expect(core::Object* value, core::Object* expected) → void {
-  if(!value.{core::Object::==}(expected)) {
+  if(!(value =={core::Object::==}{(core::Object*) →* core::bool*} expected)) {
     throw "Expected ${expected}, got ${value}";
   }
 }
 static method g(self::C* c) → void {
-  c.{self::C::f}("hello");
+  c.{self::C::f}("hello"){(core::Object*) →* core::int*};
 }
 static method test(self::C* c, self::I* i) → void {
   self::expectTypeError(() → Null {
-    i.{self::I::f}("hello");
+    i.{self::I::f}("hello"){(core::Object*) →* core::int*};
   });
-  self::expect(i.{self::I::f}(1), 2);
+  self::expect(i.{self::I::f}(1){(core::Object*) →* core::int*}, 2);
   self::expectTypeError(() → Null {
-    c.{self::C::f}("hello");
+    c.{self::C::f}("hello"){(core::Object*) →* core::int*};
   });
-  self::expect(c.{self::C::f}(1), 2);
+  self::expect(c.{self::C::f}(1){(core::Object*) →* core::int*}, 2);
 }
 static method main() → dynamic {
   self::C* c = new self::C::•();

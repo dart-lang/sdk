@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method test(() →* void f) → void {
   try {
     core::int* x = 0;
-    f.call();
+    f(){() →* void};
   }
   finally {
     core::int* x = 0;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test for F-Bounded Quantification.
 
 class FBound1<F1 extends FBound1<F1, F2>, F2 extends FBound2<F1, F2>> {

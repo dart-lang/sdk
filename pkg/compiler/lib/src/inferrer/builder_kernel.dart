@@ -922,18 +922,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
   @override
   TypeInformation visitEqualsNull(ir.EqualsNull node) {
     visit(node.expression);
-    if (node.fileOffset < node.expression.fileOffset) {
-      // Hack to detect `null == o`.
-      // TODO(johnniwinther): Remove this after the new method invocation has
-      //  landed stably. This is only included to make the transition a no-op.
-      KernelGlobalTypeInferenceElementData data = _memberData;
-      data.setReceiverTypeMask(node, _closedWorld.abstractValueDomain.nullType);
-    } else {
-      // TODO(johnniwinther). This triggers the computation of the mask for the
-      // receiver of the call to `==`, which doesn't happen in this case. Remove
-      // this when the ssa builder recognized `== null` directly.
-      _typeOfReceiver(node, node.expression);
-    }
+    // TODO(johnniwinther). This triggers the computation of the mask for the
+    // receiver of the call to `==`, which doesn't happen in this case. Remove
+    // this when the ssa builder recognizes `== null` directly.
+    _typeOfReceiver(node, node.expression);
     _potentiallyAddNullCheck(node, node.expression);
     return _types.boolType;
   }
@@ -986,7 +978,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       TypeInformation rightType) {
     // TODO(johnniwinther). This triggers the computation of the mask for the
     // receiver of the call to `==`, which might not happen in this case. Remove
-    // this when the ssa builder recognized `== null` directly.
+    // this when the ssa builder recognizes `== null` directly.
     _typeOfReceiver(node, left);
     bool leftIsNull = _types.isNull(leftType);
     bool rightIsNull = _types.isNull(rightType);
@@ -1065,7 +1057,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
         receiver.variable.parent is ir.FunctionDeclaration) {
       // TODO(johnniwinther). This triggers the computation of the mask for the
       // receiver of the call to `call`. Remove this when the ssa builder
-      // recognized local function invocation directly.
+      // recognizes local function invocation directly.
       _typeOfReceiver(node, node.receiver);
       // This is an invocation of a named local function.
       return _handleLocalFunctionInvocation(

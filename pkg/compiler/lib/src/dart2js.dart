@@ -512,6 +512,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.initializingFormalAccess, ignoreOption),
     new OptionHandler(Flags.minify, passThrough),
     new OptionHandler(Flags.noMinify, passThrough),
+    new OptionHandler(Flags.omitLateNames, passThrough),
+    new OptionHandler(Flags.noOmitLateNames, passThrough),
     new OptionHandler(Flags.preserveUris, ignoreOption),
     new OptionHandler(Flags.printLegacyStars, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
@@ -581,6 +583,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useMultiSourceInfo, passThrough),
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.useOldRti, passThrough),
+    new OptionHandler(Flags.useSimpleLoadIds, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
     new OptionHandler('${Flags.dumpSsa}=.+', passThrough),
     new OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
@@ -592,7 +595,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     // TODO(29574): provide a warning/hint/error, when profile-based data is
     // used without `--fast-startup`.
     new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
-    new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
     new OptionHandler(Flags.experimentLocalNames, ignoreOption),
     new OptionHandler(Flags.experimentStartupFunctions, passThrough),
@@ -600,6 +602,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentUnreachableMethodsThrow, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
     new OptionHandler(Flags.experimentNewRti, ignoreOption),
+    new OptionHandler(Flags.experimentLateInstanceVariables, passThrough),
     new OptionHandler('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
     // The following three options must come last.
@@ -1122,6 +1125,11 @@ Supported options:
   --no-source-maps
     Do not generate a source map file.
 
+  --omit-late-names
+    Do not include names of late variables in error messages. This allows
+    dart2js to generate smaller code by removing late variable names from the
+    generated JavaScript.
+
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve
     performance of the generated code for deployment.
@@ -1149,6 +1157,7 @@ Supported options:
        Equivalent to calling dart2js with these extra flags:
         --minify
         --lax-runtime-type-to-string
+        --omit-late-names
 
     -O3
        Enables optimizations that respect the language semantics only on

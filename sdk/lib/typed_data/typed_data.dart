@@ -475,8 +475,6 @@ abstract class ByteData implements TypedData {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null)
-      throw "unreachable"; // TODO(38725): Remove when promotion works.
     return data.buffer.asByteData(
         data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
@@ -771,7 +769,6 @@ abstract class Int8List implements List<int>, _TypedIntList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     return data.buffer.asInt8List(
         data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
@@ -882,7 +879,6 @@ abstract class Uint8List implements List<int>, _TypedIntList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     return data.buffer.asUint8List(
         data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
@@ -1002,7 +998,6 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     return data.buffer.asUint8ClampedList(
         data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
@@ -1120,7 +1115,6 @@ abstract class Int16List implements List<int>, _TypedIntList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -1244,7 +1238,6 @@ abstract class Uint16List implements List<int>, _TypedIntList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -1367,7 +1360,6 @@ abstract class Int32List implements List<int>, _TypedIntList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -1491,7 +1483,6 @@ abstract class Uint32List implements List<int>, _TypedIntList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -1614,7 +1605,6 @@ abstract class Int64List implements List<int>, _TypedIntList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -1738,7 +1728,6 @@ abstract class Uint64List implements List<int>, _TypedIntList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -1862,7 +1851,6 @@ abstract class Float32List implements List<double>, _TypedFloatList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -1979,7 +1967,6 @@ abstract class Float64List implements List<double>, _TypedFloatList {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -2095,7 +2082,6 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -2217,7 +2203,6 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +
@@ -2345,7 +2330,6 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
         start, end, data.lengthInBytes ~/ elementSize);
-    if (end == null) throw "unreachable"; // TODO(38725)
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
       throw ArgumentError("The number of bytes to view must be a multiple of " +

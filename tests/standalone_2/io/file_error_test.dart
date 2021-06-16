@@ -4,6 +4,8 @@
 //
 // Dart test program for testing error handling in file I/O.
 
+// @dart = 2.9
+
 import "dart:convert";
 import "dart:io";
 

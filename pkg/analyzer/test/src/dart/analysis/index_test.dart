@@ -1327,7 +1327,7 @@ class X extends A {
   int get getter1 => null;
   void set setter1(_) {}
   void method1() {}
-  
+
   static int staticField;
   static void staticMethod() {}
 }

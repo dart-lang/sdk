@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -100,8 +101,8 @@ var t = b
 var a = b;
 var b = a;
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 8, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 19, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 15, 1),
     ]);
   }
 
@@ -122,11 +123,13 @@ var b1 = a[1];
   }
 
   test_initializer_functionLiteral_blockBody() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 var t = (int p) {};
-''', [
-      error(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK, 8, 10),
-    ]);
+''');
+    assertType(
+      findElement.topVar('t').type,
+      'Null Function(int)',
+    );
   }
 
   test_initializer_functionLiteral_expressionBody() async {
@@ -134,12 +137,20 @@ var t = (int p) {};
 var a = 0;
 var t = (int p) => (a = 1);
 ''');
+    assertType(
+      findElement.topVar('t').type,
+      'int Function(int)',
+    );
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
     await assertNoErrorsInCode('''
 var t = (int a, b,int c, d) => 0;
 ''');
+    assertType(
+      findElement.topVar('t').type,
+      'int Function(int, dynamic, int, dynamic)',
+    );
   }
 
   test_initializer_hasTypeAnnotation() async {
@@ -707,7 +718,7 @@ var x = new C().f;
 class C {
   int f;
 }
-dynamic x;
+int x;
 ''');
   }
 
@@ -724,7 +735,7 @@ var x = new C().f;
 ''');
     checkElementText(library, r'''
 import 'package:test/a.dart';
-dynamic x;
+int x;
 ''');
   }
 
@@ -801,6 +812,29 @@ abstract class C implements I {
 }
 bool x;
 C f() {}
+''');
+  }
+
+  test_initializer_fromInstanceMethod() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int foo() => 0;
+}
+class B extends A {
+  foo() => 1;
+}
+var x = A().foo();
+var y = B().foo();
+''');
+    checkElementText(library, r'''
+class A {
+  int foo() {}
+}
+class B extends A {
+  int foo() {}
+}
+int x;
+int y;
 ''');
   }
 
@@ -1452,7 +1486,7 @@ class A {
     checkElementText(library, r'''
 class A {
   int f;
-  A([int this.f = 'hello']);
+  A([final int this.f = 'hello']);
 }
 ''');
   }
@@ -1480,7 +1514,7 @@ abstract class A {
 }
 class B implements A {
   int x;
-  synthetic final int y;
+  synthetic int y;
   synthetic int z;
   int get y {}
   void set z(int _) {}
@@ -1531,7 +1565,7 @@ abstract class A<E> {
 }
 class B<T> implements A<T> {
   T x;
-  synthetic final T y;
+  synthetic T y;
   synthetic T z;
   T get y {}
   void set z(T _) {}
@@ -1782,7 +1816,7 @@ class C implements A, B {
         library,
         r'''
 abstract class A {
-  synthetic final int x;
+  synthetic int x;
   int get x;
 }
 abstract class B {
@@ -1790,7 +1824,7 @@ abstract class B {
   void set x(String _);
 }
 class C implements A, B {
-  synthetic final int x;
+  synthetic int x;
   int get x {}
 }
 ''',
@@ -1814,7 +1848,7 @@ class C implements A, B {
         library,
         r'''
 abstract class A {
-  synthetic final int x;
+  synthetic int x;
   int get x;
 }
 abstract class B {
@@ -1870,7 +1904,7 @@ class C implements A, B {
         library,
         r'''
 abstract class A {
-  synthetic final int x;
+  synthetic int x;
   int get x;
 }
 abstract class B {
@@ -1878,7 +1912,7 @@ abstract class B {
   void set x(int _);
 }
 class C implements A, B {
-  synthetic final int x;
+  synthetic int x;
   int get x {}
 }
 ''',
@@ -1901,7 +1935,7 @@ class C implements A, B {
         library,
         r'''
 abstract class A {
-  synthetic final int x;
+  synthetic int x;
   int get x;
 }
 abstract class B {
@@ -2712,7 +2746,8 @@ class C extends A implements B {
 
     var path = convertPath(testFilePath);
     var analysisSession = contextFor(path).currentSession;
-    var result = await analysisSession.getUnitElement(path);
+    var result = await analysisSession.getUnitElement2(path);
+    result as UnitElementResult;
     return result.element.library;
   }
 }

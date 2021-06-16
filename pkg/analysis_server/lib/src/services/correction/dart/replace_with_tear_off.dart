@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,6 +10,12 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithTearOff extends CorrectionProducer {
+  @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_TEAR_OFF;
 
@@ -24,16 +28,22 @@ class ReplaceWithTearOff extends CorrectionProducer {
     if (ancestor == null) {
       return;
     }
-    Future<void> addFixOfExpression(InvocationExpression expression) async {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addReplacement(range.node(ancestor), (builder) {
-          if (expression is MethodInvocation && expression.target != null) {
-            builder.write(utils.getNodeText(expression.target));
-            builder.write('.');
-          }
-          builder.write(utils.getNodeText(expression.function));
+
+    Future<void> addFixOfExpression(Expression? expression) async {
+      if (expression is InvocationExpression) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addReplacement(range.node(ancestor), (builder) {
+            if (expression is MethodInvocation) {
+              var target = expression.target;
+              if (target != null) {
+                builder.write(utils.getNodeText(target));
+                builder.write('.');
+              }
+            }
+            builder.write(utils.getNodeText(expression.function));
+          });
         });
-      });
+      }
     }
 
     final body = ancestor.body;
@@ -47,7 +57,7 @@ class ReplaceWithTearOff extends CorrectionProducer {
         await addFixOfExpression(expression.unParenthesized);
       } else if (statement is ReturnStatement) {
         final expression = statement.expression;
-        await addFixOfExpression(expression.unParenthesized);
+        await addFixOfExpression(expression?.unParenthesized);
       }
     }
   }

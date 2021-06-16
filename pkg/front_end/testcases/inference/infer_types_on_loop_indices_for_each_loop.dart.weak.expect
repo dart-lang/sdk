@@ -47,7 +47,7 @@ class Foo extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Bar<T extends core::Iterable<core::String*>* = core::Iterable<core::String*>*> extends core::Object {
+class Bar<T extends core::Iterable<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     : super core::Object::•()
     ;
@@ -135,7 +135,7 @@ Try changing the type of the variable.
                                                                      ^" in map as{TypeError} core::Iterable<dynamic>*) {
     core::String* y = x as{TypeError,ForDynamic} core::String*;
   }
-  for (core::String* x in map.{core::Map::keys}) {
+  for (core::String* x in map.{core::Map::keys}{core::Iterable<core::String*>*}) {
     core::String* y = x;
   }
 }

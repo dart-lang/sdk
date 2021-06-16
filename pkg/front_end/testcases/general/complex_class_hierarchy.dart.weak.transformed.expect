@@ -32,7 +32,7 @@ class D extends self::C {
     : super self::C::•()
     ;
 }
-class G<T extends self::A* = self::A*> extends core::Object {
+class G<T extends self::A*> extends core::Object {
   synthetic constructor •() → self::G<self::G::T*>*
     : super core::Object::•()
     ;

@@ -414,8 +414,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
     }
 
-    runPhase(
-        new SsaInstructionSelection(_options, _closedWorld, _interceptorData));
+    runPhase(new SsaInstructionSelection(_options, _closedWorld));
     runPhase(new SsaTypeKnownRemover());
     runPhase(new SsaTrustedCheckRemover(_options));
     runPhase(new SsaAssignmentChaining(_closedWorld));
@@ -2249,7 +2248,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
 
         push(js.js('#.#.call(#)', [
-          _emitter.prototypeAccess(superClass, hasBeenInstantiated: true),
+          _emitter.prototypeAccess(superClass),
           methodName,
           visitArguments(node.inputs, start: 0)
         ]).withSourceInformation(node.sourceInformation));

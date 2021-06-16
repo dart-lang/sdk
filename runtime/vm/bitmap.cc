@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "vm/object.h"
+#include "vm/log.h"
 
 namespace dart {
 
@@ -77,9 +78,9 @@ void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
 void BitmapBuilder::Print() const {
   for (intptr_t i = 0; i < Length(); i++) {
     if (Get(i)) {
-      OS::PrintErr("1");
+      THR_Print("1");
     } else {
-      OS::PrintErr("0");
+      THR_Print("0");
     }
   }
 }

@@ -4,6 +4,8 @@
 //
 // Process test program to test process communication.
 
+// @dart = 2.9
+
 library ProcessSegfaultTest;
 
 import "dart:io";

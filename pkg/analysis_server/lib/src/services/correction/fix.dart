@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -131,11 +130,16 @@ class DartFixContextImpl implements DartFixContext {
   @override
   final AnalysisError error;
 
+  @override
+  final ExtensionCache extensionCache;
+
   final List<TopLevelDeclaration> Function(String name)
       getTopLevelDeclarationsFunction;
 
   DartFixContextImpl(this.instrumentationService, this.workspace,
-      this.resolveResult, this.error, this.getTopLevelDeclarationsFunction);
+      this.resolveResult, this.error, this.getTopLevelDeclarationsFunction,
+      {ExtensionCache? extensionCache})
+      : extensionCache = extensionCache ?? ExtensionCache();
 
   @override
   List<TopLevelDeclaration> getTopLevelDeclarations(String name) {
@@ -259,6 +263,14 @@ class DartFixKind {
       'dart.fix.flutter.convert.childrenToChild',
       DartFixKindPriority.DEFAULT,
       'Convert to child:');
+  static const CONVERT_FOR_EACH_TO_FOR_LOOP = FixKind(
+      'dart.fix.convert.toForLoop',
+      DartFixKindPriority.DEFAULT,
+      "Convert 'forEach' to a 'for' loop");
+  static const CONVERT_FOR_EACH_TO_FOR_LOOP_MULTI = FixKind(
+      'dart.fix.convert.toForLoop.multi',
+      DartFixKindPriority.IN_FILE,
+      "Convert 'forEach' to a 'for' loop everywhere in file");
   static const CONVERT_INTO_EXPRESSION_BODY = FixKind(
       'dart.fix.convert.toExpressionBody',
       DartFixKindPriority.DEFAULT,
@@ -305,6 +317,10 @@ class DartFixKind {
       'dart.fix.convert.toIntLiteral.multi',
       DartFixKindPriority.IN_FILE,
       'Convert to int literals everywhere in file');
+  static const CONVERT_TO_IS_NOT = FixKind(
+      'dart.fix.convert.isNot', DartFixKindPriority.DEFAULT, 'Convert to is!');
+  static const CONVERT_TO_IS_NOT_MULTI = FixKind('dart.fix.convert.isNot.multi',
+      DartFixKindPriority.IN_FILE, 'Convert to is! everywhere in file');
   static const CONVERT_TO_LINE_COMMENT = FixKind(
       'dart.fix.convert.toLineComment',
       DartFixKindPriority.DEFAULT,
@@ -587,6 +603,10 @@ class DartFixKind {
       'dart.fix.remove.nonNullAssertion',
       DartFixKindPriority.DEFAULT,
       "Remove the '!'");
+  static const REMOVE_NON_NULL_ASSERTION_MULTI = FixKind(
+      'dart.fix.remove.nonNullAssertion.multi',
+      DartFixKindPriority.IN_FILE,
+      "Remove '!'s in file");
   static const REMOVE_OPERATOR = FixKind('dart.fix.remove.operator',
       DartFixKindPriority.DEFAULT, 'Remove the operator');
   static const REMOVE_OPERATOR_MULTI = FixKind(
@@ -607,6 +627,12 @@ class DartFixKind {
       'dart.fix.remove.questionMark.multi',
       DartFixKindPriority.IN_FILE,
       'Remove unnecessary question marks in file');
+  static const REMOVE_RETURNED_VALUE = FixKind('dart.fix.remove.returnedValue',
+      DartFixKindPriority.DEFAULT, 'Remove invalid returned value');
+  static const REMOVE_RETURNED_VALUE_MULTI = FixKind(
+      'dart.fix.remove.returnedValue.multi',
+      DartFixKindPriority.IN_FILE,
+      'Remove invalid returned values in file');
   static const REMOVE_THIS_EXPRESSION = FixKind(
       'dart.fix.remove.thisExpression',
       DartFixKindPriority.DEFAULT,
@@ -829,6 +855,10 @@ class DartFixKind {
       'dart.fix.replace.withNotNullAware',
       DartFixKindPriority.DEFAULT,
       "Replace with '{0}'");
+  static const REPLACE_WITH_NOT_NULL_AWARE_MULTI = FixKind(
+      'dart.fix.replace.withNotNullAware.multi',
+      DartFixKindPriority.IN_FILE,
+      'Replace with non-null-aware operator everywhere in file.');
   static const REPLACE_WITH_NULL_AWARE = FixKind(
       'dart.fix.replace.withNullAware',
       DartFixKindPriority.DEFAULT,

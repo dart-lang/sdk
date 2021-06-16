@@ -4,6 +4,8 @@
 //
 // Tests that CR*LF sequence works as well as CRLF in http client parser.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 

@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+from contextlib import ExitStack
 import os
 import string
 import subprocess
@@ -35,7 +36,9 @@ def Main():
                                          android_platform_tools)
 
     with utils.FileDescriptorLimitIncreaser():
-        with utils.CoreDumpArchiver(args):
+        with ExitStack() as stack:
+            for ctx in utils.CoreDumpArchiver(args):
+                stack.enter_context(ctx)
             exit_code = subprocess.call(command)
 
     if cleanup_dart:

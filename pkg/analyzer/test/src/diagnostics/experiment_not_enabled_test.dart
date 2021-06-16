@@ -15,6 +15,35 @@ main() {
 
 @reflectiveTest
 class ExperimentNotEnabledTest extends PubPackageResolutionTest {
+  test_constructor_tearoffs_disabled_grammar() async {
+    await assertErrorsInCode('''
+class Foo<X> {
+  const Foo.bar();
+  int get baz => 0;
+}
+main() {
+  Foo<int>.bar.baz();
+}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 70, 5),
+    ]);
+  }
+
+  test_constructor_tearoffs_disabled_grammar_pre_nnbd() async {
+    await assertErrorsInCode('''
+// @dart=2.9
+class Foo<X> {
+  const Foo.bar();
+  int get baz => 0;
+}
+main() {
+  Foo<int>.bar.baz();
+}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 83, 5),
+    ]);
+  }
+
   test_nonFunctionTypeAliases_disabled() async {
     await assertErrorsInCode(r'''
 // @dart = 2.12

@@ -2837,15 +2837,18 @@ void Simulator::DecodeType7(Instr* instr) {
                  (instr->Bit(8) == 1) && (instr->Bits(5, 2) == 0)) {
         DRegister dn = instr->DnField();
         Register rd = instr->RdField();
+        const int32_t src_value = get_register(rd);
+        const int64_t dst_value = get_dregister_bits(dn);
+        int32_t dst_lo = Utils::Low32Bits(dst_value);
+        int32_t dst_hi = Utils::High32Bits(dst_value);
         if (instr->Bit(21) == 0) {
-          // Format(instr, "vmovd'cond 'dd[0], 'rd");
-          SRegister sd = EvenSRegisterOf(dn);
-          set_sregister_bits(sd, get_register(rd));
+          // Format(instr, "vmovd'cond 'dn[0], 'rd");
+          dst_lo = src_value;
         } else {
-          // Format(instr, "vmovd'cond 'dd[1], 'rd");
-          SRegister sd = OddSRegisterOf(dn);
-          set_sregister_bits(sd, get_register(rd));
+          // Format(instr, "vmovd'cond 'dn[1], 'rd");
+          dst_hi = src_value;
         }
+        set_dregister_bits(dn, Utils::LowHighTo64Bits(dst_lo, dst_hi));
       } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0)) {
         if (instr->Bits(12, 4) == 0xf) {
           // Format(instr, "vmrs'cond APSR, FPSCR");
