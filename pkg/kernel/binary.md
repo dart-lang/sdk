@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 65;
+  UInt32 formatVersion = 66;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -698,6 +698,13 @@ type StaticTearOff extends Expression {
   Byte tag = 17;
   FileOffset fileOffset;
   MemberReference target;
+}
+
+type ConstructorTearOff extends Expression {
+  Byte tag = 60;
+  FileOffset fileOffset;
+  ConstructorReference constructor;
+  Option<List<DartType>> typeArguments;
 }
 
 type StaticSet extends Expression {

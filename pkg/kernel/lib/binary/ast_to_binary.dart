@@ -1591,6 +1591,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    writeByte(Tag.ConstructorTearOff);
+    writeOffset(node.fileOffset);
+    writeNonNullReference(node.constructorReference);
+  }
+
+  @override
   void visitStaticTearOff(StaticTearOff node) {
     writeByte(Tag.StaticTearOff);
     writeOffset(node.fileOffset);

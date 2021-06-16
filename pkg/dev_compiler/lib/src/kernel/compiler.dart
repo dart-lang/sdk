@@ -5807,6 +5807,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitConstructorTearOff(ConstructorTearOff node) {
+    throw UnsupportedError('Constructor tear off');
+  }
+
+  @override
   js_ast.Expression visitIsExpression(IsExpression node) {
     return _emitIsExpression(node.operand, node.type);
   }
