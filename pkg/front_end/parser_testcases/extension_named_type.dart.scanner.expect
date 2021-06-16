@@ -1,0 +1,17 @@
+class A {}
+
+extension type on A {
+method() {}
+}
+
+test(A a) => type(new A()).method();
+
+
+class[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
+
+extension[KeywordToken] type[StringToken] on[KeywordToken] A[StringToken] {[BeginToken]
+method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+test[StringToken]([BeginToken]A[StringToken] a[StringToken])[SimpleToken] =>[SimpleToken] type[StringToken]([BeginToken]new[KeywordToken] A[StringToken]([BeginToken])[SimpleToken])[SimpleToken].[SimpleToken]method[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

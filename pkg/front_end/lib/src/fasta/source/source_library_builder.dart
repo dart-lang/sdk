@@ -314,6 +314,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableNonNullableInLibrary;
   Version _enableNonNullableVersionInLibrary;
   Version _enableConstructorTearoffsVersionInLibrary;
+  Version _enableExtensionTypesVersionInLibrary;
   bool _enableTripleShiftInLibrary;
   bool _enableExtensionMethodsInLibrary;
   bool _enableGenericMetadataInLibrary;
@@ -380,6 +381,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           ExperimentalFlag.extensionTypes,
           _packageUri ?? importUri,
           languageVersion.version);
+
+  Version get enableExtensionTypesVersionInLibrary =>
+      _enableExtensionTypesVersionInLibrary ??= loader.target
+          .getExperimentEnabledVersionInLibrary(
+              ExperimentalFlag.extensionTypes, _packageUri ?? importUri);
 
   void _updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
@@ -1854,6 +1860,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String extensionName,
       List<TypeVariableBuilder> typeVariables,
       TypeBuilder type,
+      bool isExtensionTypeDeclaration,
       int startOffset,
       int nameOffset,
       int endOffset) {
@@ -1887,6 +1894,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         type,
         classScope,
         this,
+        isExtensionTypeDeclaration,
         startOffset,
         nameOffset,
         endOffset,

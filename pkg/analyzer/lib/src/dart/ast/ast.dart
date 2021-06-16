@@ -3702,6 +3702,9 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   Token extensionKeyword;
 
+  @override
+  Token? typeKeyword;
+
   /// The name of the extension, or `null` if the extension does not have a
   /// name.
   SimpleIdentifierImpl? _name;
@@ -3731,6 +3734,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
       CommentImpl? comment,
       List<Annotation>? metadata,
       this.extensionKeyword,
+      this.typeKeyword,
       this._name,
       this._typeParameters,
       this.onKeyword,

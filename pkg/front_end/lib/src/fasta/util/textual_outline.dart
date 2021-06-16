@@ -804,8 +804,8 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token extensionKeyword, Token typeKeyword,
+      Token onKeyword, Token endToken) {
     classStartToChunk[extensionKeyword] =
         new _ExtensionDeclarationChunk(extensionKeyword, endToken);
   }
