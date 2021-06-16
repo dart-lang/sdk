@@ -7,11 +7,7 @@ import 'feature.dart';
 import 'path.dart';
 import 'static_error.dart';
 
-// TODO(rnystrom): Remove support for "///" once tests have been migrated.
-// https://dart-review.googlesource.com/c/sdk/+/106201
-// https://github.com/dart-lang/co19/issues/391
-/// Require at least one non-space character before '//[/#]'.
-final _multitestRegExp = RegExp(r"\S *//[#/] \w+:(.*)");
+final _multitestRegExp = RegExp(r"//# \w+:(.*)");
 
 final _vmOptionsRegExp = RegExp(r"// VMOptions=(.*)");
 final _environmentRegExp = RegExp(r"// Environment=(.*)");
