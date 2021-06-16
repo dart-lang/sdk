@@ -28,26 +28,11 @@ class NonNullIntent {
   /// intent (see [direct]).
   final bool isDirect;
 
-  factory NonNullIntent.fromJson(dynamic json) {
-    switch (json as String) {
-      case 'none':
-        return none;
-      case 'indirect':
-        return indirect;
-      case 'direct':
-        return direct;
-      default:
-        throw StateError('Unrecognized nullability $json');
-    }
-  }
-
   const NonNullIntent._(this.name, this.isPresent, {this.isDirect = false});
 
   /// Returns a [NonNullIntent] object representing the result of adding
   /// indirect non-null intent to `this`.
   NonNullIntent addIndirect() => isPresent ? this : indirect;
-
-  String toJson() => name;
 
   @override
   String toString() => name;
@@ -83,23 +68,8 @@ class Nullability {
   /// later be used in a contravariant way that requires it to be nullable.
   final bool isExactNullable;
 
-  factory Nullability.fromJson(dynamic json) {
-    switch (json as String) {
-      case 'non-nullable':
-        return nonNullable;
-      case 'ordinary nullable':
-        return ordinaryNullable;
-      case 'exact nullable':
-        return exactNullable;
-      default:
-        throw StateError('Unrecognized nullability $json');
-    }
-  }
-
   const Nullability._(this.name, this.isNullable,
       {this.isExactNullable = false});
-
-  String toJson() => name;
 
   @override
   String toString() => name;

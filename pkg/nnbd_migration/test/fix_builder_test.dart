@@ -115,7 +115,7 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   @override
   Future<CompilationUnit> analyze(String code) async {
     var unit = await super.analyze(code);
-    graph.propagate(null);
+    graph.propagate();
     return unit;
   }
 

@@ -24,7 +24,6 @@ import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
-import 'package:nnbd_migration/src/postmortem_file.dart';
 import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 /// Data structure used by [Variables.spanForUniqueIdentifier] to return an
@@ -70,12 +69,10 @@ class Variables {
 
   final NullabilityMigrationInstrumentation /*?*/ instrumentation;
 
-  final PostmortemFileWriter postmortemFileWriter;
-
   final LineInfo Function(String) _getLineInfo;
 
   Variables(this._graph, this._typeProvider, this._getLineInfo,
-      {this.instrumentation, this.postmortemFileWriter})
+      {this.instrumentation})
       : _alreadyMigratedCodeDecorator =
             AlreadyMigratedCodeDecorator(_graph, _typeProvider, _getLineInfo);
 
@@ -241,7 +238,6 @@ class Variables {
     instrumentation?.explicitTypeNullability(source, node, type.node);
     var id = uniqueIdentifierForSpan(node.offset, node.end);
     (_decoratedTypeAnnotations[source] ??= {})[id] = type;
-    postmortemFileWriter?.storeFileDecorations(source.fullName, id, type);
   }
 
   /// Associates a set of nullability checks with the given expression [node].
