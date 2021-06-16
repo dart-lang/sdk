@@ -76,6 +76,7 @@ class Tag {
   static const int BigIntLiteral = 57;
   static const int ConstListLiteral = 58;
   static const int ConstMapLiteral = 59;
+  static const int ConstructorTearOff = 60;
 
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
@@ -174,7 +175,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 65;
+  static const int BinaryFormatVersion = 66;
 }
 
 abstract class ConstantTag {

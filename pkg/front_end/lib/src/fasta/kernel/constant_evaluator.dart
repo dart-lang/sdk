@@ -3407,6 +3407,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   @override
+  Constant visitConstructorTearOff(ConstructorTearOff node) {
+    return defaultExpression(node);
+  }
+
+  @override
   Constant visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     return createErrorConstant(node,
         templateConstEvalDeferredLibrary.withArguments(node.import.name!));

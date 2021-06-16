@@ -735,6 +735,11 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   TreeNode visitFunctionTearOff(FunctionTearOff node) {
     return new FunctionTearOff(clone(node.receiver));
   }
+
+  @override
+  TreeNode visitConstructorTearOff(ConstructorTearOff node) {
+    return new ConstructorTearOff.byReference(node.constructorReference);
+  }
 }
 
 /// Visitor that return a clone of a tree, maintaining references to cloned

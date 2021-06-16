@@ -1966,6 +1966,8 @@ class BinaryBuilder {
         return _readStaticTearOff();
       case Tag.StaticSet:
         return _readStaticSet();
+      case Tag.ConstructorTearOff:
+        return _readConstructorTearOff();
       case Tag.MethodInvocation:
         return _readMethodInvocation();
       case Tag.InstanceInvocation:
@@ -2192,6 +2194,13 @@ class BinaryBuilder {
   Expression _readStaticGet() {
     int offset = readOffset();
     return new StaticGet.byReference(readNonNullMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstructorTearOff() {
+    int offset = readOffset();
+    Reference constructorReference = readNonNullMemberReference();
+    return new ConstructorTearOff.byReference(constructorReference)
       ..fileOffset = offset;
   }
 

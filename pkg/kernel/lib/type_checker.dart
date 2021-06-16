@@ -520,6 +520,12 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitConstructorTearOff(ConstructorTearOff node) {
+    return node.constructorReference.asConstructor.function
+        .computeFunctionType(Nullability.nonNullable);
+  }
+
+  @override
   DartType visitListLiteral(ListLiteral node) {
     for (int i = 0; i < node.expressions.length; ++i) {
       node.expressions[i] =

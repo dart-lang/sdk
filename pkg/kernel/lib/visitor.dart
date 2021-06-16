@@ -81,6 +81,7 @@ abstract class ExpressionVisitor<R> {
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
+  R visitConstructorTearOff(ConstructorTearOff node) => defaultExpression(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -255,6 +256,7 @@ abstract class TreeVisitor<R>
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
+  R visitConstructorTearOff(ConstructorTearOff node) => defaultExpression(node);
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);
@@ -429,6 +431,8 @@ abstract class TreeVisitor1<R, A>
       defaultExpression(node, arg);
   R visitLoadLibrary(LoadLibrary node, A arg) => defaultExpression(node, arg);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, A arg) =>
+      defaultExpression(node, arg);
+  R visitConstructorTearOff(ConstructorTearOff node, A arg) =>
       defaultExpression(node, arg);
 
   // Statements
@@ -1541,6 +1545,8 @@ abstract class ExpressionVisitor1<R, T> {
       defaultExpression(node, arg);
   R visitLoadLibrary(LoadLibrary node, T arg) => defaultExpression(node, arg);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, T arg) =>
+      defaultExpression(node, arg);
+  R visitConstructorTearOff(ConstructorTearOff node, T arg) =>
       defaultExpression(node, arg);
 }
 

@@ -8600,6 +8600,57 @@ class CheckLibraryIsLoaded extends Expression {
   }
 }
 
+/// Tearing off a constructor of a class.
+class ConstructorTearOff extends Expression {
+  /// The reference to the constructor being torn off.
+  Reference constructorReference;
+
+  ConstructorTearOff(Constructor constructor)
+      : this.byReference(getNonNullableMemberReferenceGetter(constructor));
+
+  ConstructorTearOff.byReference(this.constructorReference);
+
+  Constructor get constructor => constructorReference.asConstructor;
+
+  void set constructor(Constructor constructor) {
+    constructorReference = getNonNullableMemberReferenceGetter(constructor);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return constructorReference.asConstructor.function
+        .computeFunctionType(Nullability.nonNullable);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitConstructorTearOff(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitConstructorTearOff(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    constructor.acceptReference(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "ConstructorTearOff(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(constructorReference);
+  }
+}
+
 // ------------------------------------------------------------------------
 //                              STATEMENTS
 // ------------------------------------------------------------------------

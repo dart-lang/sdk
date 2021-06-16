@@ -2893,6 +2893,9 @@ class Precedence implements ExpressionVisitor<int> {
   int visitStaticSet(StaticSet node) => EXPRESSION;
 
   @override
+  int visitConstructorTearOff(ConstructorTearOff node) => PRIMARY;
+
+  @override
   int visitLet(Let node) => EXPRESSION;
 
   @override
