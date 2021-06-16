@@ -640,6 +640,17 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
         workspace.findFile(convertPath('/workspace/web/file.dart')), webFile);
   }
 
+  void test_isConsistentWithFileSystem() {
+    newFolder('/workspace/.dart_tool/build/generated/project/bin');
+    newPubspecYamlFile('/workspace', 'name: project');
+    PackageBuildWorkspace workspace =
+        _createWorkspace('/workspace', ['project']);
+    expect(workspace.isConsistentWithFileSystem, isTrue);
+
+    newPubspecYamlFile('/workspace', 'name: my2');
+    expect(workspace.isConsistentWithFileSystem, isFalse);
+  }
+
   PackageBuildWorkspace _createWorkspace(
       String root, List<String> packageNames) {
     return PackageBuildWorkspace.find(

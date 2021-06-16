@@ -111,4 +111,14 @@ class PubWorkspaceTest with ResourceProviderMixin {
         resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'));
     expect(workspace, isNull);
   }
+
+  void test_isConsistentWithFileSystem() {
+    newPubspecYamlFile('/workspace', 'name: my');
+    var workspace =
+        PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'))!;
+    expect(workspace.isConsistentWithFileSystem, isTrue);
+
+    newPubspecYamlFile('/workspace', 'name: my2');
+    expect(workspace.isConsistentWithFileSystem, isFalse);
+  }
 }

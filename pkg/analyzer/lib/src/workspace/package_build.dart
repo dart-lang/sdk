@@ -145,6 +145,9 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
   /// package:build does it.
   static const String _pubspecName = 'pubspec.yaml';
 
+  /// The associated pubspec file.
+  final File _pubspecFile;
+
   /// The content of the `pubspec.yaml` file.
   /// We read it once, so that all usages return consistent results.
   final String? _pubspecContent;
@@ -185,8 +188,14 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
     this.generatedRootPath,
     this.generatedThisPath,
     File pubspecFile,
-  ) : _pubspecContent = _fileContentOrNull(pubspecFile) {
+  )   : _pubspecFile = pubspecFile,
+        _pubspecContent = _fileContentOrNull(pubspecFile) {
     _theOnlyPackage = PackageBuildWorkspacePackage(root, this);
+  }
+
+  @override
+  bool get isConsistentWithFileSystem {
+    return _fileContentOrNull(_pubspecFile) == _pubspecContent;
   }
 
   @override

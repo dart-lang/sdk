@@ -21,6 +21,9 @@ class PubWorkspace extends SimpleWorkspace {
   /// Each Pub workspace is itself one package.
   late final PubWorkspacePackage _theOnlyPackage;
 
+  /// The associated pubspec file.
+  final File _pubspecFile;
+
   /// The content of the `pubspec.yaml` file.
   /// We read it once, so that all usages return consistent results.
   final String? _pubspecContent;
@@ -30,9 +33,15 @@ class PubWorkspace extends SimpleWorkspace {
     Map<String, List<Folder>> packageMap,
     String root,
     File pubspecFile,
-  )   : _pubspecContent = _fileContentOrNull(pubspecFile),
+  )   : _pubspecFile = pubspecFile,
+        _pubspecContent = _fileContentOrNull(pubspecFile),
         super(provider, packageMap, root) {
     _theOnlyPackage = PubWorkspacePackage(root, this);
+  }
+
+  @override
+  bool get isConsistentWithFileSystem {
+    return _fileContentOrNull(_pubspecFile) == _pubspecContent;
   }
 
   @internal
