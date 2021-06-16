@@ -2644,19 +2644,11 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicSet(TokenPosition* p) {
 
   const DirectCallMetadata direct_call =
       direct_call_metadata_helper_.GetDirectTargetForPropertySet(offset);
-  const CallSiteAttributesMetadata call_site_attributes =
-      call_site_attributes_metadata_helper_.GetCallSiteAttributes(offset);
   const InferredTypeMetadata inferred_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
   // True if callee can skip argument type checks.
-  bool is_unchecked_call = inferred_type.IsSkipCheck();
-  if (call_site_attributes.receiver_type != nullptr &&
-      call_site_attributes.receiver_type->HasTypeClass() &&
-      !Class::Handle(call_site_attributes.receiver_type->type_class())
-           .IsGeneric()) {
-    is_unchecked_call = true;
-  }
+  const bool is_unchecked_call = inferred_type.IsSkipCheck();
 
   Fragment instructions(MakeTemp());
   LocalVariable* variable = MakeTemporary();
@@ -2664,9 +2656,6 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicSet(TokenPosition* p) {
   const TokenPosition position = ReadPosition();  // read position.
   if (p != nullptr) *p = position;
 
-  if (PeekTag() == kThisExpression) {
-    is_unchecked_call = true;
-  }
   instructions += BuildExpression();  // read receiver.
 
   LocalVariable* receiver = nullptr;
@@ -2709,7 +2698,7 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicSet(TokenPosition* p) {
         Array::null_array(), kNumArgsChecked, Function::null_function(),
         Function::null_function(),
         /*result_type=*/nullptr,
-        /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes);
+        /*use_unchecked_entry=*/is_unchecked_call, /*call_site_attrs=*/nullptr);
   }
 
   instructions += Drop();  // Drop result of the setter invocation.
@@ -3071,12 +3060,14 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
   bool is_unchecked_closure_call = false;
   bool is_unchecked_call = is_invariant || result_type.IsSkipCheck();
   if (call_site_attributes.receiver_type != nullptr) {
-    if (call_site_attributes.receiver_type->IsFunctionType()) {
+    if ((tag == kMethodInvocation) &&
+        call_site_attributes.receiver_type->IsFunctionType()) {
       AlternativeReadingScope alt(&reader_);
       SkipExpression();  // skip receiver
       is_unchecked_closure_call =
           ReadNameAsMethodName().Equals(Symbols::Call());
-    } else if (call_site_attributes.receiver_type->HasTypeClass() &&
+    } else if ((tag != kDynamicInvocation) &&
+               call_site_attributes.receiver_type->HasTypeClass() &&
                !call_site_attributes.receiver_type->IsDynamicType() &&
                !Class::Handle(call_site_attributes.receiver_type->type_class())
                     .IsGeneric()) {
@@ -3111,7 +3102,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   // Take note of whether the invocation is against the receiver of the current
   // function: in this case, we may skip some type checks in the callee.
-  if (PeekTag() == kThisExpression) {
+  if ((PeekTag() == kThisExpression) && (tag != kDynamicInvocation)) {
     is_unchecked_call = true;
   }
   instructions += BuildExpression();  // read receiver.
@@ -3325,12 +3316,10 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
 
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
-  const CallSiteAttributesMetadata call_site_attributes =
-      call_site_attributes_metadata_helper_.GetCallSiteAttributes(offset);
 
+  RELEASE_ASSERT((function_access_kind == FunctionAccessKind::kFunction) ||
+                 (function_access_kind == FunctionAccessKind::kFunctionType));
   const bool is_unchecked_closure_call =
-      ((call_site_attributes.receiver_type != nullptr) &&
-       call_site_attributes.receiver_type->IsFunctionType()) ||
       (function_access_kind == FunctionAccessKind::kFunctionType);
   Fragment instructions;
 
@@ -3383,7 +3372,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
         position, Symbols::DynamicCall(), Token::kILLEGAL, type_args_len,
         argument_count, argument_names, 1, Function::null_function(),
         Function::null_function(), &result_type,
-        /*use_unchecked_entry=*/false, &call_site_attributes,
+        /*use_unchecked_entry=*/false, /*call_site_attrs=*/nullptr,
         result_type.ReceiverNotInt());
   }
   instructions += DropTempsPreserveTop(1);

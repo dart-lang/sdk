@@ -50,14 +50,13 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
     _staticTypeContext = null;
   }
 
-  void annotateWithType(TreeNode node, Expression receiver) {
-    _metadata.mapping[node] = new CallSiteAttributesMetadata(
-        receiverType: receiver.getStaticType(_staticTypeContext!));
+  void annotateWithReceiver(TreeNode node, Expression receiver) {
+    annotateWithReceiverType(node, receiver.getStaticType(_staticTypeContext!));
   }
 
-  void annotateWithFunctionType(TreeNode node, FunctionType type) {
+  void annotateWithReceiverType(TreeNode node, DartType receiverType) {
     _metadata.mapping[node] =
-        new CallSiteAttributesMetadata(receiverType: type);
+        new CallSiteAttributesMetadata(receiverType: receiverType);
   }
 
   @override
@@ -65,7 +64,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
     super.visitPropertySet(node);
 
     if (hasGenericCovariantParameters(node.interfaceTarget)) {
-      annotateWithType(node, node.receiver);
+      annotateWithReceiver(node, node.receiver);
     }
   }
 
@@ -74,7 +73,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
     super.visitInstanceSet(node);
 
     if (hasGenericCovariantParameters(node.interfaceTarget)) {
-      annotateWithType(node, node.receiver);
+      annotateWithReceiver(node, node.receiver);
     }
   }
 
@@ -86,7 +85,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
     // or not it's a statically-checked call.
     if (node.name.text == 'call' ||
         hasGenericCovariantParameters(node.interfaceTarget)) {
-      annotateWithType(node, node.receiver);
+      annotateWithReceiver(node, node.receiver);
     }
   }
 
@@ -94,29 +93,31 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
   visitInstanceInvocation(InstanceInvocation node) {
     super.visitInstanceInvocation(node);
 
+    final DartType receiverType =
+        node.receiver.getStaticType(_staticTypeContext!);
+    if (receiverType is FunctionType && node.name.text == 'call') {
+      throw 'Node ${node.runtimeType}: $node at ${node.location} has receiver'
+          ' static type $receiverType and selector \'call\'';
+    }
+
     // TODO(34162): We don't need to save the type here for calls, just whether
     // or not it's a statically-checked call.
     if (hasGenericCovariantParameters(node.interfaceTarget)) {
-      annotateWithType(node, node.receiver);
+      annotateWithReceiverType(node, receiverType);
     }
-  }
-
-  @override
-  visitLocalFunctionInvocation(LocalFunctionInvocation node) {
-    super.visitLocalFunctionInvocation(node);
-
-    // TODO(34162): We don't need to save the type here for calls, just whether
-    // or not it's a statically-checked call.
-    annotateWithFunctionType(node, node.functionType);
   }
 
   @override
   visitFunctionInvocation(FunctionInvocation node) {
     super.visitFunctionInvocation(node);
 
-    // TODO(34162): We don't need to save the type here for calls, just whether
-    // or not it's a statically-checked call.
-    annotateWithType(node, node.receiver);
+    final DartType receiverType =
+        node.receiver.getStaticType(_staticTypeContext!);
+    if (receiverType is FunctionType &&
+        node.kind == FunctionAccessKind.Function) {
+      throw 'Node ${node.runtimeType}: $node at ${node.location} has receiver'
+          ' static type $receiverType, but kind ${node.kind}';
+    }
   }
 
   @override
@@ -126,7 +127,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
     // TODO(34162): We don't need to save the type here for calls, just whether
     // or not it's a statically-checked call.
     if (hasGenericCovariantParameters(node.interfaceTarget)) {
-      annotateWithType(node, node.left);
+      annotateWithReceiver(node, node.left);
     }
   }
 

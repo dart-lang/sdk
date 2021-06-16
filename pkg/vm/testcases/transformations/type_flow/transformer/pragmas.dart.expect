@@ -20,7 +20,7 @@ class Foo extends core::Object {
   method bar() → void {
     @#C17
     function bazz() → void {}
-    [@vm.call-site-attributes.metadata=receiverType:void Function()*] bazz(){() →* void};
+    bazz(){() →* void};
   }
 }
 static method main() → dynamic {
