@@ -43,13 +43,6 @@ class CodeReference {
         location.columnNumber, _computeElementFullName(element));
   }
 
-  CodeReference.fromJson(dynamic json)
-      : path = json['path'] as String,
-        offset = json['offset'] as int,
-        line = json['line'] as int,
-        column = json['col'] as int,
-        function = json['function'] as String;
-
   /// Gets a short description of this code reference (using the last component
   /// of the path rather than the full path)
   String get shortName => '$shortPath:$line:$column';
@@ -58,16 +51,6 @@ class CodeReference {
   String get shortPath {
     var pathAsUri = Uri.file(path);
     return pathAsUri.pathSegments.last;
-  }
-
-  Map<String, Object> toJson() {
-    return {
-      'path': path,
-      'offset': offset,
-      'line': line,
-      'col': column,
-      if (function != null) 'function': function
-    };
   }
 
   @override

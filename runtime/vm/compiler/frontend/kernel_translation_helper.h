@@ -1538,6 +1538,7 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
+  bool refers_to_derived_type_param_;
   const bool apply_canonical_type_erasure_;
   const bool in_constant_context_;
 

@@ -3038,6 +3038,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
+      refers_to_derived_type_param_(false),
       apply_canonical_type_erasure_(apply_canonical_type_erasure),
       in_constant_context_(in_constant_context) {}
 
@@ -3094,6 +3095,10 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kTypeParameterType:
       BuildTypeParameterType();
+      if (result_.IsTypeParameter() &&
+          TypeParameter::Cast(result_).bound() == AbstractType::null()) {
+        refers_to_derived_type_param_ = true;
+      }
       break;
     default:
       helper_->ReportUnexpectedTag("type", tag);
@@ -3475,8 +3480,14 @@ void TypeTranslator::LoadAndSetupBounds(
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
 
+    bool saved_refers_to_derived_type_param = refers_to_derived_type_param_;
+    refers_to_derived_type_param_ = false;
     AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
     ASSERT(!bound.IsNull());
+    if (refers_to_derived_type_param_) {
+      bound = TypeRef::New(bound);
+    }
+    refers_to_derived_type_param_ = saved_refers_to_derived_type_param;
     type_parameters.SetBoundAt(i, bound);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
     AbstractType& default_arg = BuildTypeWithoutFinalization();
@@ -3503,6 +3514,7 @@ void TypeTranslator::LoadAndSetupBounds(
             derived.index() >= offset &&
             derived.index() < offset + type_parameter_count))) {
         bound = type_parameters.BoundAt(derived.index() - offset);
+        ASSERT(!bound.IsNull());
         derived.set_bound(bound);
       }
     }

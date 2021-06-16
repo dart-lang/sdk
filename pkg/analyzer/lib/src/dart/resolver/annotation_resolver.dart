@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -29,8 +28,8 @@ class AnnotationResolver {
   bool get _genericMetadataIsEnabled =>
       _definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
-  void resolve(AnnotationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+  void resolve(
+      AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     node.typeArguments?.accept(_resolver);
     _resolve(node, whyNotPromotedList);
   }
@@ -40,7 +39,7 @@ class AnnotationResolver {
     ClassElement classElement,
     SimpleIdentifierImpl? constructorName,
     ArgumentList argumentList,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     ConstructorElement? constructorElement;
     if (constructorName != null) {
@@ -72,7 +71,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     ClassElement classElement,
     SimpleIdentifierImpl? getterName,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     ExecutableElement? getter;
     if (getterName != null) {
@@ -108,7 +107,7 @@ class AnnotationResolver {
     ConstructorElement? constructorElement,
     ArgumentList argumentList,
     InterfaceType Function(List<DartType> typeArguments) instantiateElement,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     constructorElement = _resolver.toLegacyElement(constructorElement);
     constructorName?.staticElement = constructorElement;
@@ -240,7 +239,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     ExtensionElement extensionElement,
     SimpleIdentifierImpl? getterName,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     ExecutableElement? getter;
     if (getterName != null) {
@@ -268,7 +267,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     SimpleIdentifierImpl name,
     PropertyAccessorElement element,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     element = _resolver.toLegacyElement(element);
     name.staticElement = element;
@@ -278,8 +277,8 @@ class AnnotationResolver {
     _visitArguments(node, whyNotPromotedList);
   }
 
-  void _resolve(AnnotationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+  void _resolve(
+      AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     SimpleIdentifierImpl name1;
     SimpleIdentifierImpl? name2;
     SimpleIdentifierImpl? name3;
@@ -471,7 +470,7 @@ class AnnotationResolver {
     SimpleIdentifierImpl? constructorName,
     InterfaceType aliasedType,
     ArgumentList argumentList,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     var constructorElement = aliasedType.lookUpConstructor(
       constructorName?.name,
@@ -499,7 +498,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     TypeAliasElement typeAliasElement,
     SimpleIdentifierImpl? getterName,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     ExecutableElement? getter;
     var aliasedType = typeAliasElement.aliasedType;
@@ -527,8 +526,8 @@ class AnnotationResolver {
     _visitArguments(node, whyNotPromotedList);
   }
 
-  void _visitArguments(AnnotationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+  void _visitArguments(
+      AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     var arguments = node.arguments;
     if (arguments != null) {
       _resolver.visitArgumentList(arguments,

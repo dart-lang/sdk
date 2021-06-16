@@ -67,6 +67,10 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
 
+/// A function which returns [NonPromotionReason]s that various types are not
+/// promoted.
+typedef WhyNotPromotedGetter = Map<DartType, NonPromotionReason> Function();
+
 /// Maintains and manages contextual type information used for
 /// inferring types.
 class InferenceContext {
@@ -422,7 +426,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   ///
   /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypesNotAssignableInList(ArgumentList argumentList,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       checkForArgumentTypeNotAssignableForArgument(arguments[i],
@@ -893,7 +897,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitArgumentList(ArgumentList node,
       {bool isIdentical = false,
-      List<Map<DartType, NonPromotionReason> Function()>? whyNotPromotedList}) {
+      List<WhyNotPromotedGetter>? whyNotPromotedList}) {
     whyNotPromotedList ??= [];
     var callerType = InferenceContext.getContext(node);
     NodeList<Expression> arguments = node.arguments;
@@ -2235,7 +2239,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   /// as for method invocations.
   void _resolveRewrittenFunctionExpressionInvocation(
     FunctionExpressionInvocation node,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     var function = node.function;
 

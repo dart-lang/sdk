@@ -100,14 +100,15 @@ class FfiNativeTransformer extends Transformer {
     // patch files.
 
     // _ffi_resolver('dart:math', 'Math_sqrt')
-    final resolverInvocation = MethodInvocation(
+    final resolverInvocation = FunctionInvocation(
+        FunctionAccessKind.FunctionType,
         StaticGet(resolverField),
-        Name('call'),
         Arguments([
           ConstantExpression(
               StringConstant(currentLibrary!.importUri.toString())),
           ConstantExpression(functionName)
-        ]));
+        ]),
+        functionType: resolverField.type as FunctionType);
 
     // _fromAddress<NativeFunction<Double Function(Double)>>(...)
     final fromAddressInvocation = StaticInvocation(fromAddressInternal,
@@ -130,8 +131,11 @@ class FfiNativeTransformer extends Transformer {
     currentLibrary!.addField(funcPtrField);
 
     // _@FfiNative_Math_sqrt(x)
-    final callFuncPtrInvocation = MethodInvocation(StaticGet(funcPtrField),
-        Name('call'), Arguments(params.map((p) => VariableGet(p)).toList()));
+    final callFuncPtrInvocation = FunctionInvocation(
+        FunctionAccessKind.FunctionType,
+        StaticGet(funcPtrField),
+        Arguments(params.map((p) => VariableGet(p)).toList()),
+        functionType: dartType as FunctionType);
 
     return ReturnStatement(callFuncPtrInvocation);
   }

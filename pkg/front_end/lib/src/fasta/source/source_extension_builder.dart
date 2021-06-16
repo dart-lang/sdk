@@ -52,6 +52,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       TypeBuilder onType,
       Scope scope,
       LibraryBuilder parent,
+      bool isExtensionTypeDeclaration,
       int startOffset,
       int nameOffset,
       int endOffset,
@@ -62,6 +63,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
             typeParameters:
                 TypeVariableBuilder.typeParametersFromBuilders(typeParameters),
             reference: referenceFrom?.reference)
+          ..isExtensionTypeDeclaration = isExtensionTypeDeclaration
           ..fileOffset = nameOffset,
         super(metadata, modifiers, name, parent, nameOffset, scope,
             typeParameters, onType);

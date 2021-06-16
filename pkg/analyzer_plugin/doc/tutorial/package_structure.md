@@ -10,7 +10,7 @@ plugins as simply the _tool_.
 In order to describe the way tools use plugins, we need to refer to four
 different packages. In order to keep the discussion clear, we will refer to
 those packages as the target package, the host package, the bootstrap package,
-and the plugin package. (If you're not familiar will packages, you should read
+and the plugin package. (If you're not familiar with packages, you should read
 about the Dart [package manager][pub].)
 
 The _target package_ is the package for which the tool is producing analysis

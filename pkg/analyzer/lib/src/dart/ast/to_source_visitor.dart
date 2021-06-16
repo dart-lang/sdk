@@ -466,6 +466,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     safelyVisitTokenWithSuffix(node.extensionKeyword, ' ');
+    safelyVisitTokenWithSuffix(node.typeKeyword, ' ');
     safelyVisitNode(node.name);
     safelyVisitNode(node.typeParameters);
     sink.write(' ');

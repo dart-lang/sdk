@@ -911,8 +911,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token extensionKeyword, Token typeKeyword,
+      Token onKeyword, Token endToken) {
     debugEvent("endExtensionDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }

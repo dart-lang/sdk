@@ -276,6 +276,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var enclosingRef = _enclosingContext.reference;
 
+    var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.fields.variables) {
       var nameNode = variable.name as SimpleIdentifierImpl;
       var name = nameNode.name;
@@ -297,7 +298,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isFinal = node.fields.isFinal;
       element.isLate = node.fields.isLate;
       element.isStatic = node.isStatic;
-      element.metadata = _buildAnnotations(node.metadata);
+      element.metadata = metadata;
       _setCodeRange(element, variable);
       _setDocumentation(element, node);
 
@@ -785,6 +786,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var enclosingRef = _enclosingContext.reference;
 
+    var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.variables.variables) {
       var nameNode = variable.name as SimpleIdentifierImpl;
       var name = nameNode.name;
@@ -802,7 +804,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isExternal = node.externalKeyword != null;
       element.isFinal = node.variables.isFinal;
       element.isLate = node.variables.isLate;
-      element.metadata = _buildAnnotations(node.metadata);
+      element.metadata = metadata;
       _setCodeRange(element, variable);
       _setDocumentation(element, node);
 

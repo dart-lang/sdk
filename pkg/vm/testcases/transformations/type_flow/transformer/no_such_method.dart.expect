@@ -114,7 +114,7 @@ class H extends core::Object {
 [@vm.inferred-type.metadata=#lib::D?]static field self::A* dd = new self::D::•();
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
 static method getDynamic() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown();
+  return self::unknown();
 static method main(core::List<core::String*>* args) → dynamic {
   core::print([@vm.direct-call.metadata=#lib::B.foo??] [@vm.inferred-type.metadata=#lib::T1 (skip check)] [@vm.inferred-type.metadata=#lib::B?] self::bb.{self::A::foo}(){() →* dynamic});
   core::print([@vm.direct-call.metadata=#lib::B.bar??] [@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B?] self::bb.{self::A::bar}{dynamic});

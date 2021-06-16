@@ -246,6 +246,7 @@ class AstBuilder extends StackListener {
       comment: comment,
       metadata: metadata,
       extensionKeyword: extensionKeyword,
+      typeKeyword: null,
       name: name,
       typeParameters: typeParameters,
       onKeyword: Tokens.on_(),
@@ -1186,12 +1187,23 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token token) {
+  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
+      Token onKeyword, Token token) {
+    if (typeKeyword != null && !enableConstructorTearoffs) {
+      var feature = ExperimentalFeatures.constructor_tearoffs;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          typeKeyword,
+          typeKeyword);
+    }
     var type = pop() as TypeAnnotation;
     extensionDeclaration!
       ..extendedType = type
-      ..onKeyword = onKeyword;
+      ..onKeyword = onKeyword
+      ..typeKeyword = typeKeyword;
     extensionDeclaration = null;
   }
 

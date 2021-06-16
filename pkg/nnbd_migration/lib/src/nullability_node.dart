@@ -13,7 +13,6 @@ import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
-import 'package:nnbd_migration/src/postmortem_file.dart';
 
 import 'edge_origin.dart';
 
@@ -34,32 +33,14 @@ abstract class DownstreamPropagationStep extends PropagationStep
 
   DownstreamPropagationStep();
 
-  DownstreamPropagationStep.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : targetNode = deserializer.nodeForId(json['target'] as int)
-            as NullabilityNodeMutable,
-        newState = Nullability.fromJson(json['newState']);
-
   @override
   DownstreamPropagationStep get principalCause;
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    return {
-      'target': serializer.idForNode(targetNode),
-      'newState': newState.toJson()
-    };
-  }
 }
 
 /// Base class for steps that occur as part of propagating exact nullability
 /// upstream through the nullability graph.
 abstract class ExactNullablePropagationStep extends DownstreamPropagationStep {
   ExactNullablePropagationStep();
-
-  ExactNullablePropagationStep.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : super.fromJson(json, deserializer);
 }
 
 /// Conditions of the "lateness" of a [NullabilityNode].
@@ -109,23 +90,6 @@ class NullabilityEdge implements EdgeInfo {
   /// `setUp` function.
   final bool isSetupAssignment;
 
-  NullabilityEdge.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : destinationNode = deserializer.nodeForId(json['dest'] as int),
-        upstreamNodes = [],
-        _kind = _deserializeKind(json['kind']),
-        codeReference =
-            json['code'] == null ? null : CodeReference.fromJson(json['code']),
-        description = json['description'] as String,
-        isUninit = json['isUninit'] as bool,
-        isSetupAssignment = json['isSetupAssignment'] as bool {
-    deserializer.defer(() {
-      for (var id in json['us'] as List<dynamic>) {
-        upstreamNodes.add(deserializer.nodeForId(id as int));
-      }
-    });
-  }
-
   NullabilityEdge._(
       this.destinationNode, this.upstreamNodes, this._kind, this.description,
       {this.codeReference, this.isUninit, this.isSetupAssignment});
@@ -171,36 +135,6 @@ class NullabilityEdge implements EdgeInfo {
   @override
   NullabilityNode get sourceNode => upstreamNodes.first;
 
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = <String, Object>{};
-    switch (_kind) {
-      case _NullabilityEdgeKind.soft:
-        break;
-      case _NullabilityEdgeKind.uncheckable:
-        json['kind'] = 'uncheckable';
-        break;
-      case _NullabilityEdgeKind.uncheckableHard:
-        json['kind'] = 'uncheckableHard';
-        break;
-      case _NullabilityEdgeKind.hard:
-        json['kind'] = 'hard';
-        break;
-      case _NullabilityEdgeKind.union:
-        json['kind'] = 'union';
-        break;
-      case _NullabilityEdgeKind.dummy:
-        json['kind'] = 'dummy';
-        break;
-    }
-    if (codeReference != null) json['code'] = codeReference.toJson();
-    if (description != null) json['description'] = description;
-    serializer.defer(() {
-      json['dest'] = serializer.idForNode(destinationNode);
-      json['us'] = [for (var n in upstreamNodes) serializer.idForNode(n)];
-    });
-    return json;
-  }
-
   @override
   String toString({NodeToIdMapper idMapper}) {
     var edgeDecorations = <Object>[];
@@ -228,23 +162,6 @@ class NullabilityEdge implements EdgeInfo {
         edgeDecorations.isEmpty ? '' : '-(${edgeDecorations.join(', ')})';
     return '${sourceNode.toString(idMapper: idMapper)} $edgeDecoration-> '
         '${destinationNode.toString(idMapper: idMapper)}';
-  }
-
-  static _NullabilityEdgeKind _deserializeKind(dynamic json) {
-    if (json == null) return _NullabilityEdgeKind.soft;
-    var kind = json as String;
-    switch (kind) {
-      case 'uncheckable':
-        return _NullabilityEdgeKind.uncheckable;
-      case 'uncheckableHard':
-        return _NullabilityEdgeKind.uncheckableHard;
-      case 'hard':
-        return _NullabilityEdgeKind.hard;
-      case 'union':
-        return _NullabilityEdgeKind.union;
-      default:
-        throw StateError('Unrecognized edge kind $kind');
-    }
   }
 }
 
@@ -285,18 +202,6 @@ class NullabilityGraph {
   NullabilityGraph({this.instrumentation})
       : always = _NullabilityNodeImmutable('always', true),
         never = _NullabilityNodeImmutable('never', false);
-
-  NullabilityGraph.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : instrumentation = null,
-        always = deserializer.nodeForId(json['always'] as int),
-        never = deserializer.nodeForId(json['never'] as int) {
-    var serializedNodes = json['nodes'] as List<dynamic>;
-    for (int id = 0; id < serializedNodes.length; id++) {
-      nodes.add(deserializer.nodeForId(id));
-    }
-    deserializer.finish();
-  }
 
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   ///
@@ -433,23 +338,12 @@ class NullabilityGraph {
 
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
-  PropagationResult propagate(PostmortemFileWriter postmortemFileWriter) {
-    postmortemFileWriter?.clearPropagationSteps();
+  PropagationResult propagate() {
     if (_debugBeforePropagation) debugDump();
     var propagationState =
-        _PropagationState(always, never, postmortemFileWriter).result;
+        _PropagationState(always, never).result;
     if (_debugAfterPropagation) debugDump();
     return propagationState;
-  }
-
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = <String, Object>{};
-    json['always'] = serializer.idForNode(always);
-    json['never'] = serializer.idForNode(never);
-    serializer.finish();
-    json['nodes'] = serializer.serializedNodes;
-    json['edges'] = serializer.serializedEdges;
-    return json;
   }
 
   /// Records that nodes [x] and [y] should have exactly the same nullability.
@@ -459,7 +353,7 @@ class NullabilityGraph {
   }
 
   /// Update the graph after an edge has been added or removed.
-  void update(PostmortemFileWriter postmortemFileWriter) {
+  void update() {
     //
     // Reset the state of the nodes.
     //
@@ -477,7 +371,7 @@ class NullabilityGraph {
     //
     // Re-run the propagation step.
     //
-    propagate(postmortemFileWriter);
+    propagate();
   }
 
   NullabilityEdge _connect(
@@ -515,96 +409,6 @@ class NullabilityGraph {
   }
 }
 
-/// Helper object used to deserialize a nullability graph from a JSON
-/// representation.
-class NullabilityGraphDeserializer implements NodeToIdMapper {
-  final List<dynamic> _serializedNodes;
-
-  final List<dynamic> _serializedEdges;
-
-  final Map<int, NullabilityNode> _idToNodeMap = {};
-
-  final Map<int, NullabilityEdge> _idToEdgeMap = {};
-
-  final List<void Function()> _deferred = [];
-
-  final Map<NullabilityNode, int> _nodeToIdMap = {};
-
-  final Map<PropagationStep, int> _stepToIdMap = {};
-
-  final List<PropagationStep> _propagationSteps;
-
-  NullabilityGraphDeserializer(
-      this._serializedNodes, this._serializedEdges, this._propagationSteps);
-
-  /// Defers a deserialization action until later.  The nullability node
-  /// `fromJson` constructors use this method to defer populating edge lists
-  /// until all nodes have been deserialized.
-  void defer(void Function() callback) {
-    _deferred.add(callback);
-  }
-
-  /// Gets the edge having the given [id], deserializing it if it hasn't been
-  /// deserialized already.
-  NullabilityEdge edgeForId(int id) {
-    var edge = _idToEdgeMap[id];
-    if (edge == null) {
-      _idToEdgeMap[id] =
-          edge = NullabilityEdge.fromJson(_serializedEdges[id], this);
-    }
-    return edge;
-  }
-
-  /// Runs all deferred actions that have been passed to [defer].
-  void finish() {
-    while (_deferred.isNotEmpty) {
-      var callback = _deferred.removeLast();
-      callback();
-    }
-  }
-
-  @override
-  int idForNode(NullabilityNodeInfo node) => _nodeToIdMap[node];
-
-  /// Gets the node having the given [id], deserializing it if it hasn't been
-  /// deserialized already.
-  NullabilityNode nodeForId(int id) {
-    var node = _idToNodeMap[id];
-    if (node == null) {
-      _idToNodeMap[id] = node = _deserializeNode(id);
-      _nodeToIdMap[node] = id;
-    }
-    return node;
-  }
-
-  /// Records that the given [step] was stored in the postmortem file with the
-  /// given [id] number.
-  void recordStepId(PropagationStep step, int id) {
-    _stepToIdMap[step] = id;
-  }
-
-  /// Gets the propagation step having the given [id].
-  PropagationStep stepForId(int id) =>
-      id == null ? null : _propagationSteps[id];
-
-  NullabilityNode _deserializeNode(int id) {
-    var json = _serializedNodes[id];
-    var kind = json['kind'] as String;
-    switch (kind) {
-      case 'immutable':
-        return _NullabilityNodeImmutable.fromJson(json, this);
-      case 'simple':
-        return _NullabilityNodeSimple.fromJson(json, this);
-      case 'lub':
-        return NullabilityNodeForLUB.fromJson(json, this);
-      case 'substitution':
-        return NullabilityNodeForSubstitution.fromJson(json, this);
-      default:
-        throw StateError('Unrecognized node kind $kind');
-    }
-  }
-}
-
 /// Same as [NullabilityGraph], but extended with extra methods for easier
 /// testing.
 @visibleForTesting
@@ -633,81 +437,6 @@ class NullabilityGraphForTesting extends NullabilityGraph {
     _allEdges.add(edge);
     _edgeOrigins[edge] = origin;
     return edge;
-  }
-}
-
-/// Helper object used to serialize a nullability graph into a JSON
-/// representation.
-class NullabilityGraphSerializer {
-  /// The list of serialized node objects to be stored in the output JSON.
-  final List<Map<String, Object>> serializedNodes = [];
-
-  final Map<NullabilityNode, int> _nodeToIdMap = {};
-
-  /// The list of serialized edge objects to be stored in the output JSON.
-  final List<Map<String, Object>> serializedEdges = [];
-
-  final Map<NullabilityEdge, int> _edgeToIdMap = {};
-
-  final List<void Function()> _deferred = [];
-
-  bool _serializingNodeOrEdge = false;
-
-  final Map<PropagationStep, int> _stepToIdMap = {};
-
-  /// Defers a serialization action until later.  The nullability node
-  /// `toJson` methods use this method to defer serializing edge lists
-  /// until all nodes have been serialized.
-  void defer(void Function() callback) {
-    _deferred.add(callback);
-  }
-
-  /// Runs all deferred actions that have been passed to [defer].
-  void finish() {
-    while (_deferred.isNotEmpty) {
-      var callback = _deferred.removeLast();
-      callback();
-    }
-  }
-
-  /// Gets the id for the given [edge], serializing it if it hasn't been
-  /// serialized already.
-  int idForEdge(NullabilityEdge edge) {
-    var result = _edgeToIdMap[edge];
-    if (result == null) {
-      if (_serializingNodeOrEdge) {
-        throw StateError('Illegal nesting of idForEdge');
-      }
-      _serializingNodeOrEdge = true;
-      assert(_edgeToIdMap.length == serializedEdges.length);
-      result = _edgeToIdMap[edge] = _edgeToIdMap.length;
-      serializedEdges.add(edge.toJson(this));
-      _serializingNodeOrEdge = false;
-    }
-    return result;
-  }
-
-  /// Gets the id for the given [node], serializing it if it hasn't been
-  /// serialized already.
-  int idForNode(NullabilityNode node) {
-    var result = _nodeToIdMap[node];
-    if (result == null) {
-      if (_serializingNodeOrEdge) {
-        throw StateError('Illegal nesting of idForEdge');
-      }
-      _serializingNodeOrEdge = true;
-      assert(_nodeToIdMap.length == serializedNodes.length);
-      result = _nodeToIdMap[node] = _nodeToIdMap.length;
-      serializedNodes.add(node.toJson(this));
-      _serializingNodeOrEdge = false;
-    }
-    return result;
-  }
-
-  int idForStep(PropagationStep step) => _stepToIdMap[step];
-
-  void recordStepId(PropagationStep step, int id) {
-    _stepToIdMap[step] = id;
   }
 }
 
@@ -785,25 +514,6 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   factory NullabilityNode.forTypeAnnotation(NullabilityNodeTarget target) =>
       _NullabilityNodeSimple(target);
 
-  NullabilityNode.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer) {
-    deserializer.defer(() {
-      if (json['isPossiblyOptional'] == true) {
-        _isPossiblyOptional = true;
-      }
-      for (var id in json['ds'] ?? []) {
-        _downstreamEdges.add(deserializer.edgeForId(id as int));
-      }
-      for (var id in json['us'] ?? []) {
-        _upstreamEdges.add(deserializer.edgeForId(id as int));
-      }
-      for (var id in json['outerCompoundNodes'] ?? []) {
-        outerCompoundNodes
-            .add(deserializer.nodeForId(id as int) as NullabilityNodeCompound);
-      }
-    });
-  }
-
   NullabilityNode._();
 
   @override
@@ -847,8 +557,6 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   @override
   UpstreamPropagationStep get whyNotNullable;
 
-  String get _jsonKind;
-
   Nullability get _nullability;
 
   /// Records the fact that an invocation was made to a function with named
@@ -863,28 +571,6 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   /// Reset the state of this node to what it was before the graph was solved.
   void resetState();
-
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = <String, Object>{};
-    json['kind'] = _jsonKind;
-    if (_isPossiblyOptional) {
-      json['isPossiblyOptional'] = true;
-    }
-    serializer.defer(() {
-      if (_downstreamEdges.isNotEmpty) {
-        json['ds'] = [for (var e in _downstreamEdges) serializer.idForEdge(e)];
-      }
-      if (_upstreamEdges.isNotEmpty) {
-        json['us'] = [for (var e in _upstreamEdges) serializer.idForEdge(e)];
-      }
-      if (outerCompoundNodes.isNotEmpty) {
-        json['outerCompoundNodes'] = [
-          for (var e in outerCompoundNodes) serializer.idForNode(e)
-        ];
-      }
-    });
-    return json;
-  }
 
   String toString({NodeToIdMapper idMapper}) {
     var name = displayName;
@@ -909,10 +595,6 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 abstract class NullabilityNodeCompound extends NullabilityNodeMutable {
   NullabilityNodeCompound() : super._();
 
-  NullabilityNodeCompound.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : super.fromJson(json, deserializer);
-
   /// A map describing each of the node's components by name.
   Map<String, NullabilityNode> get componentsByName;
 
@@ -932,12 +614,6 @@ class NullabilityNodeForLUB extends NullabilityNodeCompound {
 
   final NullabilityNode right;
 
-  NullabilityNodeForLUB.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : left = deserializer.nodeForId(json['left'] as int),
-        right = deserializer.nodeForId(json['right'] as int),
-        super.fromJson(json, deserializer);
-
   NullabilityNodeForLUB._(this.left, this.right) {
     left.outerCompoundNodes.add(this);
     right.outerCompoundNodes.add(this);
@@ -954,22 +630,9 @@ class NullabilityNodeForLUB extends NullabilityNodeCompound {
   Iterable<NullabilityNode> get _components => [left, right];
 
   @override
-  String get _jsonKind => 'lub';
-
-  @override
   void resetState() {
     left.resetState();
     right.resetState();
-  }
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = super.toJson(serializer);
-    serializer.defer(() {
-      json['left'] = serializer.idForNode(left);
-      json['right'] = serializer.idForNode(right);
-    });
-    return json;
   }
 }
 
@@ -982,12 +645,6 @@ class NullabilityNodeForSubstitution extends NullabilityNodeCompound
 
   @override
   final NullabilityNode outerNode;
-
-  NullabilityNodeForSubstitution.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : innerNode = deserializer.nodeForId(json['inner'] as int),
-        outerNode = deserializer.nodeForId(json['outer'] as int),
-        super.fromJson(json, deserializer);
 
   NullabilityNodeForSubstitution._(this.innerNode, this.outerNode) {
     innerNode.outerCompoundNodes.add(this);
@@ -1006,22 +663,9 @@ class NullabilityNodeForSubstitution extends NullabilityNodeCompound
   Iterable<NullabilityNode> get _components => [innerNode, outerNode];
 
   @override
-  String get _jsonKind => 'substitution';
-
-  @override
   void resetState() {
     innerNode.resetState();
     outerNode.resetState();
-  }
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = super.toJson(serializer);
-    serializer.defer(() {
-      json['inner'] = serializer.idForNode(innerNode);
-      json['outer'] = serializer.idForNode(outerNode);
-    });
-    return json;
   }
 }
 
@@ -1037,16 +681,6 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
   DownstreamPropagationStep _whyNullable;
 
   UpstreamPropagationStep _whyNotNullable;
-
-  NullabilityNodeMutable.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : _nullability = json['nullability'] == null
-            ? Nullability.nonNullable
-            : Nullability.fromJson(json['nullability']),
-        _nonNullIntent = json['nonNullIntent'] == null
-            ? NonNullIntent.none
-            : NonNullIntent.fromJson(json['nonNullIntent']),
-        super.fromJson(json, deserializer);
 
   NullabilityNodeMutable._(
       {Nullability initialNullability = Nullability.nonNullable})
@@ -1078,18 +712,6 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
     _nonNullIntent = NonNullIntent.none;
     _whyNullable = null;
   }
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = super.toJson(serializer);
-    if (_nullability != Nullability.nonNullable) {
-      json['nullability'] = _nullability.toJson();
-    }
-    if (_nonNullIntent != NonNullIntent.none) {
-      json['intent'] = _nonNullIntent.toJson();
-    }
-    return json;
-  }
 }
 
 /// Information produced by [NullabilityGraph.propagate] about the results of
@@ -1108,23 +730,6 @@ class PropagationResult {
 abstract class PropagationStep implements PropagationStepInfo {
   PropagationStep();
 
-  factory PropagationStep.fromJson(
-      json, NullabilityGraphDeserializer deserializer) {
-    var kind = json['kind'] as String;
-    switch (kind) {
-      case 'downstream':
-        return SimpleDownstreamPropagationStep.fromJson(json, deserializer);
-      case 'exact':
-        return SimpleExactNullablePropagationStep.fromJson(json, deserializer);
-      case 'resolveSubstitution':
-        return ResolveSubstitutionPropagationStep.fromJson(json, deserializer);
-      case 'upstream':
-        return UpstreamPropagationStep.fromJson(json, deserializer);
-      default:
-        throw StateError('Unrecognized propagation step kind: $kind');
-    }
-  }
-
   /// The location in the source code that caused this step to be necessary,
   /// or `null` if not known.
   CodeReference get codeReference => null;
@@ -1132,8 +737,6 @@ abstract class PropagationStep implements PropagationStepInfo {
   /// The previous propagation step that led to this one, or `null` if there was
   /// no previous step.
   PropagationStep get principalCause;
-
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer);
 
   @override
   String toString({NodeToIdMapper idMapper});
@@ -1151,25 +754,8 @@ class ResolveSubstitutionPropagationStep extends ExactNullablePropagationStep {
 
   ResolveSubstitutionPropagationStep(this.principalCause, this.node);
 
-  ResolveSubstitutionPropagationStep.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : principalCause = deserializer.stepForId(json['cause'] as int)
-            as DownstreamPropagationStep,
-        node = deserializer.nodeForId(json['node'] as int)
-            as NullabilityNodeForSubstitution,
-        super.fromJson(json, deserializer);
-
   @override
   EdgeInfo get edge => null;
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = super.toJson(serializer);
-    json['kind'] = 'resolveSubstitution';
-    json['cause'] = serializer.idForStep(principalCause);
-    json['node'] = serializer.idForNode(node);
-    return json;
-  }
 
   @override
   String toString({NodeToIdMapper idMapper}) =>
@@ -1188,24 +774,8 @@ class SimpleDownstreamPropagationStep extends DownstreamPropagationStep {
 
   SimpleDownstreamPropagationStep(this.principalCause, this.edge);
 
-  SimpleDownstreamPropagationStep.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : principalCause = deserializer.stepForId(json['cause'] as int)
-            as DownstreamPropagationStep,
-        edge = deserializer.edgeForId(json['edge'] as int),
-        super.fromJson(json, deserializer);
-
   @override
   CodeReference get codeReference => edge.codeReference;
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = super.toJson(serializer);
-    json['kind'] = 'downstream';
-    json['cause'] = serializer.idForStep(principalCause);
-    json['edge'] = serializer.idForEdge(edge);
-    return json;
-  }
 
   @override
   String toString({NodeToIdMapper idMapper}) =>
@@ -1223,22 +793,6 @@ class SimpleExactNullablePropagationStep extends ExactNullablePropagationStep {
   final NullabilityEdge edge;
 
   SimpleExactNullablePropagationStep(this.principalCause, this.edge);
-
-  SimpleExactNullablePropagationStep.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : principalCause = deserializer.stepForId(json['cause'] as int)
-            as ExactNullablePropagationStep,
-        edge = deserializer.edgeForId(json['edge'] as int),
-        super.fromJson(json, deserializer);
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = super.toJson(serializer);
-    json['kind'] = 'exact';
-    json['cause'] = serializer.idForStep(principalCause);
-    json['edge'] = serializer.idForEdge(edge);
-    return json;
-  }
 
   @override
   String toString({NodeToIdMapper idMapper}) =>
@@ -1270,29 +824,8 @@ class UpstreamPropagationStep extends PropagationStep
       this.principalCause, this.node, this.newNonNullIntent, this.edge,
       {this.isStartingPoint = false});
 
-  UpstreamPropagationStep.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : principalCause = deserializer.stepForId(json['cause'] as int)
-            as UpstreamPropagationStep,
-        node = deserializer.nodeForId(json['node'] as int),
-        newNonNullIntent = NonNullIntent.fromJson(json['newState']),
-        edge = deserializer.edgeForId(json['edge'] as int),
-        isStartingPoint = json['isStartingPoint'] as bool ?? false;
-
   @override
   CodeReference get codeReference => edge?.codeReference;
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    return {
-      'kind': 'upstream',
-      'cause': serializer.idForStep(principalCause),
-      'node': serializer.idForNode(node),
-      'newState': newNonNullIntent.toJson(),
-      'edge': serializer.idForEdge(edge),
-      if (isStartingPoint) 'isStartingPoint': true
-    };
-  }
 
   @override
   String toString({NodeToIdMapper idMapper}) =>
@@ -1336,12 +869,6 @@ class _NullabilityNodeImmutable extends NullabilityNode {
 
   _NullabilityNodeImmutable(this.displayName, this.isNullable) : super._();
 
-  _NullabilityNodeImmutable.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : displayName = json['displayName'] as String,
-        isNullable = json['isNullable'] as bool,
-        super.fromJson(json, deserializer);
-
   @override
   String get debugSuffix => isNullable ? '?' : '';
 
@@ -1369,23 +896,12 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   DownstreamPropagationStepInfo get whyNullable => null;
 
   @override
-  String get _jsonKind => 'immutable';
-
-  @override
   Nullability get _nullability =>
       isNullable ? Nullability.ordinaryNullable : Nullability.nonNullable;
 
   @override
   void resetState() {
     // There is no state to reset.
-  }
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = super.toJson(serializer);
-    json['displayName'] = displayName;
-    json['isNullable'] = isNullable;
-    return json;
   }
 }
 
@@ -1394,27 +910,11 @@ class _NullabilityNodeSimple extends NullabilityNodeMutable {
 
   _NullabilityNodeSimple(this.target) : super._();
 
-  _NullabilityNodeSimple.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : target =
-            NullabilityNodeTarget.text(json['targetDisplayName'] as String),
-        super.fromJson(json, deserializer);
-
   @override
   CodeReference get codeReference => target.codeReference;
 
   @override
   String get displayName => target.displayName;
-
-  @override
-  String get _jsonKind => 'simple';
-
-  @override
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
-    var json = super.toJson(serializer);
-    json['targetDisplayName'] = target.displayName;
-    return json;
-  }
 }
 
 /// Workspace for performing graph propagation.
@@ -1437,13 +937,11 @@ class _PropagationState {
   final Queue<SimpleDownstreamPropagationStep> _pendingDownstreamSteps =
       Queue();
 
-  final PostmortemFileWriter _postmortemFileWriter;
-
   /// During execution of [_propagateDownstream], a list of all the substitution
   /// nodes that have not yet been resolved.
   List<ResolveSubstitutionPropagationStep> _pendingSubstitutions = [];
 
-  _PropagationState(this._always, this._never, this._postmortemFileWriter) {
+  _PropagationState(this._always, this._never) {
     _propagateUpstream();
     _propagateDownstream();
   }
@@ -1651,7 +1149,6 @@ class _PropagationState {
     var newNonNullIntent = step.newNonNullIntent;
     var oldNonNullIntent = node.nonNullIntent;
     node._nonNullIntent = newNonNullIntent;
-    _postmortemFileWriter?.addPropagationStep(step);
     if (!oldNonNullIntent.isPresent) {
       node._whyNotNullable = step;
     }
@@ -1662,7 +1159,6 @@ class _PropagationState {
     var newState = step.newState;
     var oldState = node._nullability;
     node._nullability = newState;
-    _postmortemFileWriter?.addPropagationStep(step);
     if (!oldState.isNullable) {
       node._whyNullable = step;
       // Was not previously nullable, so we need to propagate.

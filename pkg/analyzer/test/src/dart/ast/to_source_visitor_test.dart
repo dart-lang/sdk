@@ -830,7 +830,9 @@ class ToSourceVisitor2Test {
     _assertSource(
         'extension E on C {}',
         AstTestFactory.extensionDeclaration(
-            name: 'E', extendedType: AstTestFactory.typeName4('C')));
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            isExtensionTypeDeclaration: false));
   }
 
   void test_visitExtensionDeclaration_multipleMember() {
@@ -844,7 +846,8 @@ class ToSourceVisitor2Test {
                   [AstTestFactory.variableDeclaration('a')]),
               AstTestFactory.fieldDeclaration2(
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
-            ]));
+            ],
+            isExtensionTypeDeclaration: false));
   }
 
   void test_visitExtensionDeclaration_parameters() {
@@ -853,7 +856,8 @@ class ToSourceVisitor2Test {
         AstTestFactory.extensionDeclaration(
             name: 'E',
             typeParameters: AstTestFactory.typeParameterList(['T']),
-            extendedType: AstTestFactory.typeName4('C')));
+            extendedType: AstTestFactory.typeName4('C'),
+            isExtensionTypeDeclaration: false));
   }
 
   void test_visitExtensionDeclaration_singleMember() {
@@ -865,7 +869,8 @@ class ToSourceVisitor2Test {
             members: [
               AstTestFactory.fieldDeclaration2(
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
-            ]));
+            ],
+            isExtensionTypeDeclaration: false));
   }
 
   void test_visitExtensionOverride_prefixedName_noTypeArgs() {
@@ -906,6 +911,53 @@ class ToSourceVisitor2Test {
                 [AstTestFactory.typeName4('A')]),
             argumentList: AstTestFactory.argumentList(
                 [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionTypeDeclaration_empty() {
+    _assertSource(
+        'extension type E on C {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionTypeDeclaration_multipleMember() {
+    _assertSource(
+        'extension type E on C {var a; var b;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
+                  [AstTestFactory.variableDeclaration('a')]),
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
+            ],
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionTypeDeclaration_parameters() {
+    _assertSource(
+        'extension type E<T> on C {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            typeParameters: AstTestFactory.typeParameterList(['T']),
+            extendedType: AstTestFactory.typeName4('C'),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionTypeDeclaration_singleMember() {
+    _assertSource(
+        'extension type E on C {var a;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
+            ],
+            isExtensionTypeDeclaration: true));
   }
 
   void test_visitFieldDeclaration_abstract() {

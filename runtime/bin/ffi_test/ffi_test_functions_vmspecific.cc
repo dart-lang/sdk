@@ -314,6 +314,15 @@ DART_EXPORT intptr_t TestLeafCallApi(void (*fn)()) {
 
 #endif  // defined(TARGET_OS_LINUX)
 
+// Restore default SIGPIPE handler, which is only needed on mac
+// since that is the only platform we explicitly ignore it.
+// See Platform::Initialize() in platform_macos.cc.
+DART_EXPORT void RestoreSIGPIPEHandler() {
+#if defined(HOST_OS_MACOS)
+  signal(SIGPIPE, SIG_DFL);
+#endif
+}
+
 DART_EXPORT void IGH_MsanUnpoison(void* start, intptr_t length) {
   MSAN_UNPOISON(start, length);
 }
@@ -418,7 +427,7 @@ void Fatal(char const* file, int line, char const* error) {
 
 #define FATAL(error) Fatal(__FILE__, __LINE__, error)
 
-void SleepOnAnyOS(intptr_t seconds) {
+DART_EXPORT void SleepOnAnyOS(intptr_t seconds) {
 #if defined(HOST_OS_WINDOWS)
   Sleep(1000 * seconds);
 #else

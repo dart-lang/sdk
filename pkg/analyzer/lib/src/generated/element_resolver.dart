@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -390,8 +389,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node,
-      {List<Map<DartType, NonPromotionReason> Function()>?
-          whyNotPromotedList}) {
+      {List<WhyNotPromotedGetter>? whyNotPromotedList}) {
     whyNotPromotedList ??= [];
     _methodInvocationResolver.resolve(
         node as MethodInvocationImpl, whyNotPromotedList);

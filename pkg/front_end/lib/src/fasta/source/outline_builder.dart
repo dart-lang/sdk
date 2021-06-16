@@ -752,8 +752,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token extensionKeyword, Token typeKeyword,
+      Token onKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
       ValueKinds.TypeVariableListOrNull,
@@ -780,6 +780,15 @@ class OutlineBuilder extends StackListenerImpl {
     int startOffset = metadata == null
         ? extensionKeyword.charOffset
         : metadata.first.charOffset;
+    bool isExtensionTypeDeclaration = typeKeyword != null;
+    if (!libraryBuilder.enableExtensionTypesInLibrary &&
+        isExtensionTypeDeclaration) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('extension-types',
+              libraryBuilder.enableExtensionTypesVersionInLibrary.toText()),
+          extensionKeyword.next.charOffset,
+          extensionKeyword.next.length);
+    }
     libraryBuilder.addExtensionDeclaration(
         metadata,
         // TODO(johnniwinther): Support modifiers on extensions?
@@ -787,6 +796,7 @@ class OutlineBuilder extends StackListenerImpl {
         name,
         typeVariables,
         onType,
+        isExtensionTypeDeclaration,
         startOffset,
         nameOffset,
         endToken.charOffset);

@@ -19562,6 +19562,10 @@ bool AbstractType::IsStrictlyNonNullable() const {
     return false;
   }
 
+  if (IsTypeRef()) {
+    return AbstractType::Handle(zone, TypeRef::Cast(*this).type())
+        .IsStrictlyNonNullable();
+  }
   if (IsTypeParameter()) {
     const auto& bound =
         AbstractType::Handle(zone, TypeParameter::Cast(*this).bound());
@@ -19911,10 +19915,12 @@ void AbstractType::PrintName(NameVisibility name_visibility,
   const TypeArguments& args = TypeArguments::Handle(zone, arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
   intptr_t first_type_param_index;
-  intptr_t num_type_params;  // Number of type parameters to print.
+  intptr_t num_type_params = num_args;  // Number of type parameters to print.
   cls = type_class();
-  // Do not print the full vector, but only the declared type parameters.
-  num_type_params = cls.NumTypeParameters();
+  if (cls.is_declaration_loaded()) {
+    // Do not print the full vector, but only the declared type parameters.
+    num_type_params = cls.NumTypeParameters();
+  }
   printer->AddString(cls.NameCString(name_visibility));
   if (num_type_params > num_args) {
     first_type_param_index = 0;
@@ -20055,6 +20061,7 @@ bool AbstractType::IsFfiPointerType() const {
 }
 
 AbstractTypePtr AbstractType::UnwrapFutureOr() const {
+  // Works properly for a TypeRef without dereferencing it.
   if (!IsFutureOrType()) {
     return ptr();
   }
@@ -20982,8 +20989,13 @@ uword FunctionType::ComputeHash() const {
   if (num_type_params > 0) {
     const TypeParameters& type_params =
         TypeParameters::Handle(type_parameters());
-    const TypeArguments& bounds = TypeArguments::Handle(type_params.bounds());
-    result = CombineHashes(result, bounds.Hash());
+    // Do not calculate the hash of the bounds using TypeArguments::Hash(),
+    // because HashForRange() dereferences TypeRefs which should not be here.
+    AbstractType& bound = AbstractType::Handle();
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      bound = type_params.BoundAt(i);
+      result = CombineHashes(result, bound.Hash());
+    }
     // Since the default arguments are ignored when comparing two generic
     // function types for type equality, the hash does not depend on them.
   }
@@ -21705,7 +21717,9 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
         upper_bound = upper_bound.InstantiateFrom(
             instantiator_type_arguments, function_type_arguments,
             num_free_fun_type_params, space, trail);
-        if (upper_bound.ptr() == Type::NeverType()) {
+        if ((upper_bound.IsTypeRef() &&
+             TypeRef::Cast(upper_bound).type() == Type::NeverType()) ||
+            (upper_bound.ptr() == Type::NeverType())) {
           // Normalize 'X extends Never' to 'Never'.
           result = Type::NeverType();
         } else if (upper_bound.ptr() != bound()) {

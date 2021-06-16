@@ -2334,6 +2334,9 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
   /// Return the right curly bracket.
   Token get rightBracket;
 
+  /// Return the token representing the 'type' keyword.
+  Token? get typeKeyword;
+
   /// Return the type parameters for the extension, or `null` if the extension
   /// does not have any type parameters.
   TypeParameterList? get typeParameters;

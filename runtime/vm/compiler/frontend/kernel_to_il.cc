@@ -1815,6 +1815,9 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
       type_param = dart_function.TypeParameterAt(i);
     }
     ASSERT(type_param.IsFinalized());
+    if (bound.IsTypeRef()) {
+      bound = TypeRef::Cast(bound).type();
+    }
     check_bounds +=
         AssertSubtype(TokenPosition::kNoSource, type_param, bound, name);
   }
@@ -4506,6 +4509,10 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
 bool FlowGraphBuilder::NeedsNullAssertion(const AbstractType& type) {
   if (!type.IsNonNullable()) {
     return false;
+  }
+  if (type.IsTypeRef()) {
+    return NeedsNullAssertion(
+        AbstractType::Handle(Z, TypeRef::Cast(type).type()));
   }
   if (type.IsTypeParameter()) {
     return NeedsNullAssertion(

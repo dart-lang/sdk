@@ -63,6 +63,7 @@ general/error_recovery/issue_39202.crash: FormatterCrash
 general/error_recovery/issue_39230.crash: FormatterCrash
 general/error_recovery/issue_39958_01: FormatterCrash
 general/error_recovery/issue_43090.crash: FormatterCrash
+general/extension_types_feature_not_enabled: FormatterCrash
 general/function_type_default_value: FormatterCrash
 general/incomplete_field_formal_parameter: FormatterCrash
 general/invalid_operator2: FormatterCrash

@@ -337,6 +337,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _compilationUnitMember(node);
     _token(node.extensionKeyword);
+    _token(node.typeKeyword);
     node.name?.accept(this);
     node.typeParameters?.accept(this);
     _token(node.onKeyword);

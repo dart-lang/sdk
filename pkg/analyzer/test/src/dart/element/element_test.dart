@@ -77,7 +77,7 @@ class ClassElementImplTest extends AbstractTypeTest {
     expect(classA.getField(fieldName), same(field));
     expect(field.isEnumConstant, false);
     // no such field
-    expect(classA.getField("noSuchField"), same(null));
+    expect(classA.getField("noSuchField"), isNull);
   }
 
   void test_getMethod_declared() {
