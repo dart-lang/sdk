@@ -1492,7 +1492,7 @@ dart_ci_builder(
 dart_ci_builder(
     "dart-sdk-mac-arm64",
     category = "sdk|m1",
-    channels = ["try", "dev", "beta"],
+    channels = ["try", "dev"],
     dimensions = mac(cpu = "arm64"),
 )
 
