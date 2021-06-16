@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -37,7 +36,7 @@ class FunctionExpressionInvocationResolver {
       _resolver.nullableDereferenceVerifier;
 
   void resolve(FunctionExpressionInvocationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     var function = node.function;
 
     if (function is ExtensionOverrideImpl) {
@@ -104,7 +103,7 @@ class FunctionExpressionInvocationResolver {
   }
 
   void _resolve(FunctionExpressionInvocationImpl node, FunctionType rawType,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     _inferenceHelper.resolveFunctionExpressionInvocation(
       node: node,
       rawType: rawType,
@@ -118,7 +117,7 @@ class FunctionExpressionInvocationResolver {
   }
 
   void _resolveArguments(FunctionExpressionInvocationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     _resolver.visitArgumentList(node.argumentList,
         whyNotPromotedList: whyNotPromotedList);
   }
@@ -126,7 +125,7 @@ class FunctionExpressionInvocationResolver {
   void _resolveReceiverExtensionOverride(
     FunctionExpressionInvocationImpl node,
     ExtensionOverride function,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     var result = _extensionResolver.getOverrideMember(
       function,
@@ -159,7 +158,7 @@ class FunctionExpressionInvocationResolver {
     FunctionExpressionInvocationImpl node,
     Expression function,
     InterfaceType receiverType,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     var result = _typePropertyResolver.resolve(
       receiver: function,
@@ -196,7 +195,7 @@ class FunctionExpressionInvocationResolver {
   }
 
   void _unresolved(FunctionExpressionInvocationImpl node, DartType type,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     _setExplicitTypeArgumentTypes(node);
     _resolveArguments(node, whyNotPromotedList);
     node.staticInvokeType = DynamicTypeImpl.instance;

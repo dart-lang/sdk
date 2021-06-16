@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -126,8 +125,8 @@ class ExtensionMemberResolver {
   }
 
   /// Perform upward inference for the override.
-  void resolveOverride(ExtensionOverride node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+  void resolveOverride(
+      ExtensionOverride node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     var nodeImpl = node as ExtensionOverrideImpl;
     var element = node.staticElement!;
     var typeParameters = element.typeParameters;

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
@@ -82,7 +81,7 @@ class MethodInvocationResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(MethodInvocationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     _invocation = node;
 
     var nameNode = node.methodName;
@@ -235,7 +234,7 @@ class MethodInvocationResolver {
   }
 
   void _reportInvocationOfNonFunction(MethodInvocationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     _setDynamicResolution(node,
         setNameTypeToDynamic: false, whyNotPromotedList: whyNotPromotedList);
     _resolver.errorReporter.reportErrorForNode(
@@ -268,8 +267,7 @@ class MethodInvocationResolver {
     MethodInvocationImpl node, {
     required String? prefix,
     required String name,
-    required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
     _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
 
@@ -288,7 +286,7 @@ class MethodInvocationResolver {
       MethodInvocationImpl node,
       String name,
       ClassElement typeReference,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
     _resolver.errorReporter.reportErrorForNode(
       CompileTimeErrorCode.UNDEFINED_METHOD,
@@ -298,7 +296,7 @@ class MethodInvocationResolver {
   }
 
   void _reportUseOfVoidType(MethodInvocationImpl node, AstNode errorNode,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
     _resolver.errorReporter.reportErrorForNode(
       CompileTimeErrorCode.USE_OF_VOID_RESULT,
@@ -309,7 +307,7 @@ class MethodInvocationResolver {
   /// [InvocationExpression.staticInvokeType] has been set for the [node].
   /// Use it to set context for arguments, and resolve them.
   void _resolveArguments(MethodInvocationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     // TODO(scheglov) This is bad, don't write raw type, carry it
     _inferenceHelper.inferArgumentTypesForInvocation(
       node,
@@ -320,7 +318,7 @@ class MethodInvocationResolver {
   }
 
   void _resolveArguments_finishInference(MethodInvocationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     _resolveArguments(node, whyNotPromotedList);
 
     // TODO(scheglov) This is bad, don't put / get raw FunctionType this way.
@@ -359,7 +357,7 @@ class MethodInvocationResolver {
       ExtensionElement extension,
       SimpleIdentifierImpl nameNode,
       String name,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     var getter = extension.getGetter(name);
     if (getter != null) {
       getter = _resolver.toLegacyElement(getter);
@@ -391,7 +389,7 @@ class MethodInvocationResolver {
       ExtensionOverride override,
       SimpleIdentifierImpl nameNode,
       String name,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     var result = _extensionResolver.getOverrideMember(override, name);
     var member = _resolver.toLegacyElement(result.getter);
 
@@ -430,7 +428,7 @@ class MethodInvocationResolver {
   }
 
   void _resolveReceiverDynamicBounded(MethodInvocationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     var nameNode = node.methodName;
 
     var objectElement = _typeSystem.typeProvider.objectElement;
@@ -466,7 +464,7 @@ class MethodInvocationResolver {
     DartType receiverType,
     SimpleIdentifierImpl nameNode,
     String name,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     if (name == FunctionElement.CALL_METHOD_NAME) {
       _setResolution(node, receiverType, whyNotPromotedList);
@@ -492,7 +490,7 @@ class MethodInvocationResolver {
     MethodInvocationImpl node,
     Expression receiver,
     DartType receiverType,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     _setExplicitTypeArgumentTypes();
 
@@ -545,7 +543,7 @@ class MethodInvocationResolver {
       MethodInvocationImpl node,
       SimpleIdentifierImpl nameNode,
       String name,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     var element = nameScope.lookup(name).getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
@@ -604,7 +602,7 @@ class MethodInvocationResolver {
       PrefixElement prefix,
       SimpleIdentifierImpl nameNode,
       String name,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
@@ -651,7 +649,7 @@ class MethodInvocationResolver {
       SuperExpression receiver,
       SimpleIdentifierImpl nameNode,
       String name,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     var enclosingClass = _resolver.enclosingClass;
     if (SuperContext.of(receiver) != SuperContext.valid) {
       _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
@@ -705,8 +703,7 @@ class MethodInvocationResolver {
     required SimpleIdentifierImpl nameNode,
     required String name,
     required Expression receiverErrorNode,
-    required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedList,
   }) {
     var result = _resolver.typePropertyResolver.resolve(
       receiver: receiver,
@@ -761,7 +758,7 @@ class MethodInvocationResolver {
       ClassElement receiver,
       SimpleIdentifierImpl nameNode,
       String name,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     if (node.isCascaded) {
       receiver = _typeType.element;
     }
@@ -847,8 +844,7 @@ class MethodInvocationResolver {
 
   void _setDynamicResolution(MethodInvocationImpl node,
       {bool setNameTypeToDynamic = true,
-      required List<Map<DartType, NonPromotionReason> Function()>
-          whyNotPromotedList}) {
+      required List<WhyNotPromotedGetter> whyNotPromotedList}) {
     if (setNameTypeToDynamic) {
       node.methodName.staticType = _dynamicType;
     }
@@ -875,7 +871,7 @@ class MethodInvocationResolver {
   }
 
   void _setResolution(MethodInvocationImpl node, DartType type,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     // TODO(scheglov) We need this for StaticTypeAnalyzer to run inference.
     // But it seems weird. Do we need to know the raw type of a function?!
     node.methodName.staticType = type;
