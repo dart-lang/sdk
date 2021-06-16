@@ -1,0 +1,7 @@
+class A {
+  static final int X = 0;
+  static final int X = 0;
+  static final int foo = X + 1;
+}
+
+main() {}

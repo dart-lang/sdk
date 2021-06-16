@@ -50,7 +50,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   Linker get _linker => _libraryBuilder.linker;
 
   void buildDeclarationElements(CompilationUnit unit) {
-    unit.declarations.accept(this);
+    _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.classes = _enclosingContext.classes;
     _unitElement.enums = _enclosingContext.enums;
@@ -767,7 +767,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     element.hasImplicitType = node.type == null;
-    element.isConst = node.isConst;
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
@@ -884,21 +883,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(element.reference!, element,
         hasConstConstructor: hasConstConstructor);
     _withEnclosing(holder, () {
-      // When loading from bytes, we read fields first.
-      // There is no particular reason for this - we just have to store
-      // either non-synthetic fields first, or non-synthetic property
-      // accessors first. And we arbitrary decided to store fields first.
-      for (var member in members) {
-        if (member is FieldDeclaration) {
-          member.accept(this);
-        }
-      }
-      // ...then we load non-synthetic accessors.
-      for (var member in members) {
-        if (member is! FieldDeclaration) {
-          member.accept(this);
-        }
-      }
+      _visitPropertyFirst<FieldDeclaration>(members);
     });
     return holder;
   }
@@ -1034,6 +1019,25 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var fields = node.fields;
     return fields.isConst ||
         fields.isFinal && _enclosingContext.hasConstConstructor;
+  }
+
+  void _visitPropertyFirst<T extends AstNode>(List<AstNode> nodes) {
+    // When loading from bytes, we read fields first.
+    // There is no particular reason for this - we just have to store
+    // either non-synthetic fields first, or non-synthetic property
+    // accessors first. And we arbitrary decided to store fields first.
+    for (var node in nodes) {
+      if (node is T) {
+        node.accept(this);
+      }
+    }
+
+    // ...then we load non-synthetic accessors.
+    for (var node in nodes) {
+      if (node is! T) {
+        node.accept(this);
+      }
+    }
   }
 
   /// Make the given [context] be the current one while running [f].
