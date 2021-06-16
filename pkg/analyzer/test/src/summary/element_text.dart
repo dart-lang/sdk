@@ -618,6 +618,7 @@ class _ElementWriter {
         buffer.write('optionalNamed ');
       }
 
+      _writeIf(e.isConst, 'const ');
       _writeIf(e.isCovariant, 'covariant ');
       _writeIf(e.isFinal, 'final ');
 

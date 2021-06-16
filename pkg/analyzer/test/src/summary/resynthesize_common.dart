@@ -16345,6 +16345,22 @@ f() => 0;
     expect(f.hasImplicitReturnType, isTrue);
   }
 
+  test_function_parameter_const() async {
+    var library = await checkLibrary('''
+void f(const x) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional x @13
+            type: dynamic
+        returnType: void
+''');
+  }
+
   test_function_parameter_fieldFormal() async {
     var library = await checkLibrary('''
 void f(int this.a) {}
