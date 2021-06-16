@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
-import 'package:dev_compiler/src/kernel/module_symbols.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
@@ -31,6 +30,8 @@ import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
 import 'module_metadata.dart';
+import 'module_symbols.dart';
+import 'module_symbols_collector.dart';
 import 'target.dart';
 
 const _binaryName = 'dartdevc -k';
@@ -682,8 +683,9 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   }
 
   var tree = transformModuleFormat(format, moduleTree);
-  var namer = js_ast.TemporaryNamer(tree);
-  tree.accept(js_ast.Printer(opts, printer, localNamer: namer));
+  var nameListener = emitDebugSymbols ? js_ast.NameListener() : null;
+  tree.accept(js_ast.Printer(opts, printer,
+      localNamer: js_ast.TemporaryNamer(tree, nameListener)));
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
@@ -726,15 +728,27 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
       ? _emitMetadata(moduleTree, component, mapUrl, jsUrl, fullDillUri)
       : null;
 
-  var debugSymbols =
-      emitDebugSymbols ? _emitSymbols(compiler, component) : null;
+  var debugSymbols = emitDebugSymbols
+      ? _emitSymbols(compiler, nameListener.identifierNames, component)
+      : null;
 
   return JSCode(text, builtMap, symbols: debugSymbols, metadata: debugMetadata);
 }
 
-ModuleSymbols _emitSymbols(ProgramCompiler compiler, Component component) {
-  // TODO(annagrin): collect module symbols.
-  return ModuleSymbols();
+/// Assembles symbol information describing the nodes from the AST [component]
+/// and their representation in JavaScript.
+///
+/// Uses information from the [compiler] used to compile the JS module combined
+/// with [identifierNames] that maps JavaScript identifier nodes to their actual
+/// names used when outputting the JavaScript.
+ModuleSymbols _emitSymbols(ProgramCompiler compiler,
+    Map<js_ast.Identifier, String> identifierNames, Component component) {
+  var classJsNames = <Class, String>{
+    for (var e in compiler.classIdentifiers.entries)
+      e.key: identifierNames[e.value],
+  };
+
+  return ModuleSymbolsCollector(classJsNames).collectSymbolInfo(component);
 }
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,

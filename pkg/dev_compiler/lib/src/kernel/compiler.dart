@@ -46,6 +46,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         DartTypeVisitor<js_ast.Expression> {
   final SharedCompilerOptions _options;
 
+  /// Maps each `Class` node compiled in the module to the `Identifier`s used to
+  /// name the class in JavaScript.
+  ///
+  /// This mapping is used when generating the symbol information for the
+  /// module.
+  final classIdentifiers = <Class, js_ast.Identifier>{};
+
   /// Maps a library URI import, that is not in [_libraries], to the
   /// corresponding Kernel summary module we imported it with.
   ///
@@ -781,12 +788,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement _emitClassStatement(Class c, js_ast.Expression className,
       js_ast.Expression heritage, List<js_ast.Method> methods) {
     if (c.typeParameters.isNotEmpty) {
-      return js_ast.ClassExpression(
-              className as js_ast.Identifier, heritage, methods)
+      var classIdentifier = className as js_ast.Identifier;
+      if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
+      return js_ast.ClassExpression(classIdentifier, heritage, methods)
           .toStatement();
     }
-    var classExpr = js_ast.ClassExpression(
-        _emitTemporaryId(getLocalClassName(c)), heritage, methods);
+
+    var classIdentifier = _emitTemporaryId(getLocalClassName(c));
+    if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
+    var classExpr = js_ast.ClassExpression(classIdentifier, heritage, methods);
     return js.statement('# = #;', [className, classExpr]);
   }
 
