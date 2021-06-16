@@ -113,6 +113,9 @@ def mac(cpu = None):
 def windows():
     return {"os": "Windows"}
 
+def linux():
+    return {"os": "Linux"}
+
 # https://chrome-infra-auth.appspot.com/auth/groups/project-dart-ci-task-accounts
 CI_ACCOUNTS_GROUP = "project-dart-ci-task-accounts"
 
@@ -1582,6 +1585,26 @@ dart_infra_builder(
 )
 dart_infra_builder("chocolatey", recipe = "dart/chocolatey", dimensions = windows())
 dart_infra_builder("co19-roller", recipe = "dart/package_co19")
+dart_infra_builder(
+    "dart-ci-scripts-linux",
+    recipe = "dart/package_dart_ci",
+    dimensions = linux(),
+)
+dart_infra_builder(
+    "dart-ci-scripts-win",
+    recipe = "dart/package_dart_ci",
+    dimensions = windows(),
+)
+dart_infra_builder(
+    "dart-ci-scripts-mac",
+    recipe = "dart/package_dart_ci",
+    dimensions = mac(),
+)
+dart_infra_builder(
+    "dart-ci-scripts-mac-arm64",
+    recipe = "dart/package_dart_ci",
+    dimensions = mac(cpu = "arm64"),
+)
 dart_infra_builder("docker", recipe = "dart/docker")
 dart_infra_builder(
     "linearize-flutter",
