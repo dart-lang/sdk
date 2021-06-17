@@ -58,7 +58,8 @@ abstract class AbstractIgnoreDiagnostic extends CorrectionProducer {
       final prefix = insertDesc.prefix;
       final comment = '// $ignoreCommentType: $_code';
       final suffix = insertDesc.suffix;
-      builder.addSimpleInsertion(lineOffset, '$prefix$indent$comment\n$suffix');
+      builder.addSimpleInsertion(
+          lineOffset, '$prefix$indent$comment$eol$suffix');
     });
   }
 }
