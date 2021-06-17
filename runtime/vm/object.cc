@@ -7090,7 +7090,11 @@ void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
 }
 
 uword Function::Hash() const {
-  return String::HashRawSymbol(name());
+  const uword hash = String::HashRawSymbol(name());
+  if (untag()->owner()->IsClass()) {
+    return hash ^ Class::RawCast(untag()->owner())->untag()->id();
+  }
+  return hash;
 }
 
 bool Function::HasBreakpoint() const {

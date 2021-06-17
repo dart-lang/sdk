@@ -1015,6 +1015,8 @@ class UntaggedClass : public UntaggedObject {
     kTypeFinalized,
   };
 
+  classid_t id() const { return id_; }
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Class);
 
