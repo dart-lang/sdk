@@ -817,7 +817,7 @@ class Thread : public ThreadState {
         return (state & SafepointRequestedField::mask_in_place()) != 0;
       case SafepointLevel::kGCAndDeopt:
         return (state & DeoptSafepointRequestedField::mask_in_place()) != 0;
-      case SafepointLevel::kNumLevels:
+      default:
         UNREACHABLE();
     }
   }
@@ -1169,7 +1169,7 @@ class Thread : public ThreadState {
       case SafepointLevel::kGCAndDeopt:
         return AtSafepointField::mask_in_place() |
                AtDeoptSafepointField::mask_in_place();
-      case SafepointLevel::kNumLevels:
+      default:
         UNREACHABLE();
     }
   }

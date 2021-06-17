@@ -4256,7 +4256,7 @@ static void AddVMMappings(JSONArray* rss_children) {
   while (fgets(line, sizeof(line), fp) != nullptr) {
     if (sscanf(line, "%zx-%zx", &start, &end) == 2) {
       // Mapping line.
-      strncpy(path, strrchr(line, ' ') + 1, sizeof(path));
+      strncpy(path, strrchr(line, ' ') + 1, sizeof(path) - 1);
       int len = strlen(path);
       if ((len > 0) && path[len - 1] == '\n') {
         path[len - 1] = 0;

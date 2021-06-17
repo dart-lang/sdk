@@ -318,9 +318,10 @@ extension on CType {
   String cAllocateStatements(String variableName) {
     switch (this.runtimeType) {
       case FundamentalType:
+        return "${cType} ${variableName};\n";
       case StructType:
       case UnionType:
-        return "${cType} ${variableName};\n";
+        return "${cType} ${variableName} = {};\n";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -743,7 +744,7 @@ extension on FunctionType {
         break;
       case TestType.structReturn:
         body = """
-        ${returnValue.cType} result;
+        ${returnValue.cType} result = {};
 
         ${arguments.copyValueStatements("", "result.")}
         """;

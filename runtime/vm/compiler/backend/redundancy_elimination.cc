@@ -3630,7 +3630,7 @@ void AllocationSinking::CreateMaterializationAt(
   intptr_t num_elements = -1;
   if (auto instr = alloc->AsAllocateObject()) {
     cls = &(instr->cls());
-  } else if (auto instr = alloc->AsAllocateClosure()) {
+  } else if (alloc->IsAllocateClosure()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->object_store()->closure_class());
   } else if (auto instr = alloc->AsAllocateContext()) {

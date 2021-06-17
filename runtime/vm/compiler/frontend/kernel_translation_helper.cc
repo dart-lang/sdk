@@ -1951,13 +1951,13 @@ UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
   const auto info = new (helper_->zone_) UnboxingInfoMetadata();
   info->SetArgsCount(num_args);
   for (intptr_t i = 0; i < num_args; i++) {
-    const auto arg_info = helper_->ReadByte();
+    const intptr_t arg_info = helper_->ReadByte();
     assert(arg_info >= UnboxingInfoMetadata::kBoxed &&
            arg_info < UnboxingInfoMetadata::kUnboxingCandidate);
     info->unboxed_args_info[i] =
         static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(arg_info);
   }
-  const auto return_info = helper_->ReadByte();
+  const intptr_t return_info = helper_->ReadByte();
   assert(return_info >= UnboxingInfoMetadata::kBoxed &&
          return_info < UnboxingInfoMetadata::kUnboxingCandidate);
   info->return_info =

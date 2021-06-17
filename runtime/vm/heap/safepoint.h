@@ -77,7 +77,7 @@ class SafepointHandler {
 
   bool IsOwnedByTheThread(Thread* thread) {
     for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
-      if (handlers_[level].owner_ == thread) {
+      if (handlers_[level]->owner_ == thread) {
         return true;
       }
     }
@@ -86,7 +86,7 @@ class SafepointHandler {
 
   bool AnySafepointInProgress() {
     for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
-      if (handlers_[level].SafepointInProgress()) {
+      if (handlers_[level]->SafepointInProgress()) {
         return true;
       }
     }
@@ -171,7 +171,7 @@ class SafepointHandler {
 
   IsolateGroup* isolate_group_;
 
-  LevelHandler handlers_[SafepointLevel::kNumLevels];
+  LevelHandler* handlers_[SafepointLevel::kNumLevels];
 
   friend class Isolate;
   friend class IsolateGroup;

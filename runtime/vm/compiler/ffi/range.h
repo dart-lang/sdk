@@ -20,7 +20,7 @@ namespace ffi {
 // Ranges are positive and non-empty.
 //
 // The end is exclusive.
-class Range : public ValueObject {
+class Range {
  public:
   // Constructs a Range from start (inclusive) and length.
   //
@@ -35,9 +35,6 @@ class Range : public ValueObject {
   static Range StartAndEnd(intptr_t start_inclusive, intptr_t end_exclusive) {
     return Range(start_inclusive, end_exclusive);
   }
-
-  Range(const Range& other)
-      : start_(other.start_), end_exclusive_(other.end_exclusive_) {}
 
   intptr_t start() const { return start_; }
   intptr_t end_exclusive() const { return end_exclusive_; }
@@ -84,10 +81,7 @@ class Range : public ValueObject {
  private:
   Range(intptr_t start_inclusive, intptr_t end_exclusive)
       : start_(start_inclusive), end_exclusive_(end_exclusive) {
-    if (!(start_ >= 0 && end_exclusive_ > start_)) {
-      ASSERT(start_ >= 0);
-      ASSERT(end_exclusive_ > start_);
-    }
+    ASSERT(start_ < end_exclusive_);
   }
 
   const intptr_t start_;

@@ -10247,8 +10247,7 @@ FunctionTypePtr FunctionType::New(intptr_t num_parent_type_arguments,
 }
 
 void FunctionType::set_type_state(uint8_t state) const {
-  ASSERT((state >= UntaggedFunctionType::kAllocated) &&
-         (state <= UntaggedFunctionType::kFinalizedUninstantiated));
+  ASSERT(state <= UntaggedFunctionType::kFinalizedUninstantiated);
   StoreNonPointer(&untag()->type_state_, state);
 }
 
@@ -21054,8 +21053,7 @@ TypePtr Type::New(const Class& clazz,
 }
 
 void Type::set_type_state(uint8_t state) const {
-  ASSERT((state >= UntaggedType::kAllocated) &&
-         (state <= UntaggedType::kFinalizedUninstantiated));
+  ASSERT(state <= UntaggedType::kFinalizedUninstantiated);
   StoreNonPointer(&untag()->type_state_, state);
 }
 

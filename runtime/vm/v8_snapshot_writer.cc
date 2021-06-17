@@ -183,6 +183,8 @@ const char* V8SnapshotProfileWriter::ObjectId::IdSpaceToCString(IdSpace space) {
       return "IsolateData";
     case IdSpace::kArtificial:
       return "Artificial";
+    default:
+      UNREACHABLE();
   }
 }
 

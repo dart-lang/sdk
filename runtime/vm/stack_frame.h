@@ -210,7 +210,7 @@ class EntryFrame : public StackFrame {
 // Windows- where it is needed for the profiler. It is the responsibility of
 // users of StackFrameIterator to ensure that the thread given is not running
 // concurrently.
-class StackFrameIterator : public ValueObject {
+class StackFrameIterator {
  public:
   enum CrossThreadPolicy {
     kNoCrossThreadIteration = 0,
@@ -219,9 +219,9 @@ class StackFrameIterator : public ValueObject {
 
   // Iterators for iterating over all frames from the last ExitFrame to the
   // first EntryFrame.
-  explicit StackFrameIterator(ValidationPolicy validation_policy,
-                              Thread* thread,
-                              CrossThreadPolicy cross_thread_policy);
+  StackFrameIterator(ValidationPolicy validation_policy,
+                     Thread* thread,
+                     CrossThreadPolicy cross_thread_policy);
   StackFrameIterator(uword last_fp,
                      ValidationPolicy validation_policy,
                      Thread* thread,
@@ -236,7 +236,7 @@ class StackFrameIterator : public ValueObject {
                      Thread* thread,
                      CrossThreadPolicy cross_thread_policy);
 
-  StackFrameIterator(const StackFrameIterator& orig);
+  explicit StackFrameIterator(const StackFrameIterator& orig);
 
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
@@ -311,7 +311,7 @@ class StackFrameIterator : public ValueObject {
 // it is only allowed on Windows- where it is needed for the profiler.
 // It is the responsibility of users of DartFrameIterator to ensure that the
 // isolate given is not running concurrently on another thread.
-class DartFrameIterator : public ValueObject {
+class DartFrameIterator {
  public:
   explicit DartFrameIterator(
       Thread* thread,
@@ -340,7 +340,8 @@ class DartFrameIterator : public ValueObject {
                 thread,
                 cross_thread_policy) {}
 
-  DartFrameIterator(const DartFrameIterator& orig) : frames_(orig.frames_) {}
+  explicit DartFrameIterator(const DartFrameIterator& orig)
+      : frames_(orig.frames_) {}
 
   // Get next dart frame.
   StackFrame* NextFrame() {

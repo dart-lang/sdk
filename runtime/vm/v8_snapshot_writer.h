@@ -69,16 +69,14 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
       kElement,
       kProperty,
     } type;
-    union {
-      intptr_t offset;   // kElement
-      const char* name;  // kProperty
-    };
+    intptr_t offset;   // kElement
+    const char* name;  // kProperty
 
     static Reference Element(intptr_t offset) {
-      return {Type::kElement, {.offset = offset}};
+      return {Type::kElement, offset, nullptr};
     }
     static Reference Property(const char* name) {
-      return {Type::kProperty, {.name = name}};
+      return {Type::kProperty, 0, name};
     }
 
     bool IsElement() const { return type == Type::kElement; }
