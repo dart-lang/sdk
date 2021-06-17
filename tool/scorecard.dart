@@ -7,12 +7,12 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 
 import 'crawl.dart';
+import 'github.dart';
 import 'parse.dart';
 import 'since.dart';
 
@@ -234,19 +234,6 @@ class ScoreCard {
     return collector.lintNames;
   }
 
-  static Future<List<Issue>> _getIssues() async {
-    var github = GitHub();
-    var slug = RepositorySlug('dart-lang', 'linter');
-    try {
-      return github.issues.listByRepo(slug).toList();
-    } on Exception catch (e) {
-      print('exception caught fetching github issues');
-      print(e);
-      print('(defaulting to an empty list)');
-      return Future.value(<Issue>[]);
-    }
-  }
-
   static Future<ScoreCard> calculate() async {
     var lintsWithFixes = await _getLintsWithFixes();
     var lintsWithAssists = await _getLintsWithAssists();
@@ -255,8 +242,8 @@ class ScoreCard {
     var pedanticRuleset = await pedanticRules;
     var effectiveDartRuleset = await effectiveDartRules;
 
-    var issues = await _getIssues();
-    var bugs = issues.where(_isBug).toList();
+    var issues = await getLinterIssues();
+    var bugs = issues.where(isBug).toList();
     var sinceInfo = await sinceMap;
 
     var scorecard = ScoreCard();
@@ -299,8 +286,6 @@ class ScoreCard {
     scores.removeWhere(test);
   }
 }
-
-bool _isBug(Issue issue) => issue.labels.map((l) => l.name).contains('bug');
 
 class LintScore {
   String? name;
