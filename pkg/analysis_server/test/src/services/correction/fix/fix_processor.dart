@@ -182,7 +182,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   Future<void> addUnimportedFile(String filePath, String content) async {
     addSource(filePath, content);
-    var result = await session.getResolvedUnit2(filePath);
+    var result = await session.getResolvedUnit2(convertPath(filePath));
     extensionCache.cacheFromResult(result as ResolvedUnitResult);
   }
 
