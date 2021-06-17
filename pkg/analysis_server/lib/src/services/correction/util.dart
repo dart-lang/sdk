@@ -574,6 +574,66 @@ class CorrectionUtils {
   /// Returns the indentation with the given level.
   String getIndent(int level) => repeat('  ', level);
 
+  /// Returns a [InsertDesc] describing where to insert an ignore_for_file
+  /// comment.
+  ///
+  /// When an existing ignore_for_file comment is found, this returns the start
+  /// of the following line, although calling code may choose to fold into the
+  /// previous line.
+  CorrectionUtils_InsertDesc getInsertDescIgnoreForFile() {
+    var offset = 0;
+    var insertEmptyLineBefore = false;
+    var insertEmptyLineAfter = false;
+    var source = _buffer;
+
+    // Look for the last blank line in any leading comments (to insert after all
+    // header comments but not after any comment "attached" code). If an
+    // existing ignore_for_file comment is found while looking, then insert
+    // after that.
+
+    int? lastBlankLineOffset;
+    var insertOffset = 0;
+    while (offset < source.length - 1) {
+      var nextLineOffset = getLineNext(offset);
+      var line = source.substring(offset, nextLineOffset).trim();
+
+      if (line.startsWith('// ignore_for_file:')) {
+        // Found existing ignore, insert after this.
+        insertOffset = nextLineOffset;
+        break;
+      } else if (line.isEmpty) {
+        // Track last blank line, as we will insert there.
+        lastBlankLineOffset = offset;
+        offset = nextLineOffset;
+      } else if (line.startsWith('#!') || line.startsWith('//')) {
+        // Skip comment/hash-bang.
+        offset = nextLineOffset;
+      } else {
+        // We found some code.
+        // If we found a blank line, insert it after that.
+        if (lastBlankLineOffset != null) {
+          insertOffset = lastBlankLineOffset;
+          insertEmptyLineBefore = true;
+        } else {
+          // Otherwise, insert it before the first line of code.
+          insertOffset = offset;
+          insertEmptyLineAfter = true;
+        }
+        break;
+      }
+    }
+
+    var desc = CorrectionUtils_InsertDesc();
+    desc.offset = insertOffset;
+    if (insertEmptyLineBefore) {
+      desc.prefix = endOfLine;
+    }
+    if (insertEmptyLineAfter) {
+      desc.suffix = endOfLine;
+    }
+    return desc;
+  }
+
   /// Returns a [InsertDesc] describing where to insert a new directive or a
   /// top-level declaration at the top of the file.
   CorrectionUtils_InsertDesc getInsertDescTop() {

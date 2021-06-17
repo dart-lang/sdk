@@ -74,6 +74,7 @@ import 'package:analysis_server/src/services/correction/dart/create_no_such_meth
 import 'package:analysis_server/src/services/correction/dart/create_setter.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
+import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
@@ -1278,6 +1279,16 @@ class FixProcessor extends BaseProcessor {
             await compute(producer);
           }
         }
+      }
+    }
+
+    if (errorCode is LintCode || errorCode is HintCode) {
+      var generators = [
+        IgnoreDiagnosticOnLine.newInstance,
+        IgnoreDiagnosticInFile.newInstance,
+      ];
+      for (var generator in generators) {
+        await compute(generator());
       }
     }
   }
