@@ -109,6 +109,8 @@ class Elf : public ZoneAllocated {
   void FinalizeProgramTable();
   void ComputeFileOffsets();
 
+  void FinalizeEhFrame();
+
   void WriteHeader(ElfWriteStream* stream);
   void WriteSectionTable(ElfWriteStream* stream);
   void WriteProgramTable(ElfWriteStream* stream);
