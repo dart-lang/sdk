@@ -2081,12 +2081,11 @@ abstract class ModularNamer {
     return DeferredHolderExpression.forStaticState();
   }
 
-  /// Returns a variable use for accessing [library].
+  /// Returns a variable use for accessing interceptors.
   ///
   /// This is one of the [reservedGlobalObjectNames]
-  jsAst.Expression readGlobalObjectForLibrary(LibraryEntity library) {
-    return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForLibrary, library);
+  jsAst.Expression readGlobalObjectForInterceptors() {
+    return DeferredHolderExpression.forInterceptors();
   }
 
   /// Returns a variable use for accessing the class [element].

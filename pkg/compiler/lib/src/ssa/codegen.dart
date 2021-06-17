@@ -1881,8 +1881,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(node.inputs.length == 1);
       _registry.registerSpecializedGetInterceptor(node.interceptedClasses);
       js.Name name = _namer.nameForGetInterceptor(node.interceptedClasses);
-      js.Expression isolate = _namer
-          .readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
+      js.Expression isolate = _namer.readGlobalObjectForInterceptors();
       use(node.receiver);
       List<js.Expression> arguments = <js.Expression>[pop()];
       push(js
@@ -1968,8 +1967,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     _metrics.countHInterceptor.add();
     _metrics.countHInterceptorOneshot.add();
     List<js.Expression> arguments = visitArguments(node.inputs);
-    js.Expression isolate =
-        _namer.readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
+    js.Expression isolate = _namer.readGlobalObjectForInterceptors();
     Selector selector = node.selector;
     Set<ClassEntity> classes =
         _interceptorData.getInterceptedClassesOn(selector.name, _closedWorld);
