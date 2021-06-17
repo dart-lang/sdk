@@ -5862,7 +5862,7 @@ class CompressedStackMaps : public Object {
                /*uses_global_table=*/false);
   }
 
-  class Iterator : public ValueObject {
+  class Iterator {
    public:
     Iterator(const CompressedStackMaps& maps,
              const CompressedStackMaps& global_table);

@@ -220,8 +220,8 @@ class Location : public ValueObject {
   static Location Constant(const ConstantInstr* obj, int pair_index = 0) {
     ASSERT((pair_index == 0) || (pair_index == 1));
     Location loc(reinterpret_cast<uword>(obj) |
-                 (pair_index != 0 ? kPairLocationTag : 0) |
-                 kConstantTag);
+                 (pair_index != 0 ? static_cast<uword>(kPairLocationTag) : 0) |
+                 static_cast<uword>(kConstantTag));
     ASSERT(obj == loc.constant_instruction());
     ASSERT(loc.pair_index() == pair_index);
     return loc;

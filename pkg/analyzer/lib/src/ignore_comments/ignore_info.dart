@@ -36,7 +36,7 @@ class IgnoreInfo {
   ///     * ['//ignore: error_code', 'error_code']
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
-  static final RegExp _IGNORE_MATCHER =
+  static final RegExp IGNORE_MATCHER =
       RegExp(r'//+[ ]*ignore:(.*)$', multiLine: true);
 
   /// A regular expression for matching 'ignore_for_file' comments.  Produces
@@ -45,7 +45,7 @@ class IgnoreInfo {
   ///     * ['//ignore_for_file: error_code', 'error_code']
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
-  static final RegExp _IGNORE_FOR_FILE_MATCHER =
+  static final RegExp IGNORE_FOR_FILE_MATCHER =
       RegExp(r'//[ ]*ignore_for_file:(.*)$', multiLine: true);
 
   /// A table mapping line numbers to the diagnostics that are ignored on that
@@ -135,8 +135,8 @@ class IgnoreInfo {
   /// Calculate ignores for the given [content] with line [info].
   @Deprecated('Use the constructor IgnoreInfo.forDart')
   static IgnoreInfo calculateIgnores(String content, LineInfo info) {
-    Iterable<Match> matches = _IGNORE_MATCHER.allMatches(content);
-    Iterable<Match> fileMatches = _IGNORE_FOR_FILE_MATCHER.allMatches(content);
+    Iterable<Match> matches = IGNORE_MATCHER.allMatches(content);
+    Iterable<Match> fileMatches = IGNORE_FOR_FILE_MATCHER.allMatches(content);
     if (matches.isEmpty && fileMatches.isEmpty) {
       return _EMPTY_INFO;
     }
@@ -186,11 +186,11 @@ extension on CompilationUnit {
       var comment = currentToken.precedingComments;
       while (comment != null) {
         var lexeme = comment.lexeme;
-        var match = IgnoreInfo._IGNORE_MATCHER.matchAsPrefix(lexeme);
+        var match = IgnoreInfo.IGNORE_MATCHER.matchAsPrefix(lexeme);
         if (match != null) {
           yield comment;
         } else {
-          match = IgnoreInfo._IGNORE_FOR_FILE_MATCHER.matchAsPrefix(lexeme);
+          match = IgnoreInfo.IGNORE_FOR_FILE_MATCHER.matchAsPrefix(lexeme);
           if (match != null) {
             yield comment;
           }

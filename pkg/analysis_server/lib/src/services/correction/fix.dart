@@ -447,6 +447,10 @@ class DartFixKind {
       FixKind('dart.fix.dataDriven', DartFixKindPriority.DEFAULT, '{0}');
   static const EXTEND_CLASS_FOR_MIXIN = FixKind('dart.fix.extendClassForMixin',
       DartFixKindPriority.DEFAULT, "Extend the class '{0}'");
+  static const IGNORE_ERROR_LINE = FixKind('dart.fix.ignore.line',
+      DartFixKindPriority.IGNORE, "Ignore '{0}' for this line");
+  static const IGNORE_ERROR_FILE = FixKind('dart.fix.ignore.file',
+      DartFixKindPriority.IGNORE - 1, "Ignore '{0}' for this file");
   static const IMPORT_ASYNC =
       FixKind('dart.fix.import.async', 49, "Import 'dart:async'");
   static const IMPORT_LIBRARY_PREFIX = FixKind('dart.fix.import.libraryPrefix',
@@ -924,4 +928,5 @@ class DartFixKind {
 class DartFixKindPriority {
   static const int DEFAULT = 50;
   static const int IN_FILE = 40;
+  static const int IGNORE = 30;
 }

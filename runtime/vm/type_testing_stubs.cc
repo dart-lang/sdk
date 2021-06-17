@@ -207,7 +207,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
 static CodePtr RetryCompilationWithFarBranches(
     Thread* thread,
     std::function<CodePtr(compiler::Assembler&)> fun) {
-  bool use_far_branches = false;
+  volatile bool use_far_branches = false;
   while (true) {
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
