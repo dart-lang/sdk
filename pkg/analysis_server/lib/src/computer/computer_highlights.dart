@@ -100,6 +100,9 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_class(node)) {
       return;
     }
+    if (_addIdentifierRegion_extension(node)) {
+      return;
+    }
     if (_addIdentifierRegion_constructor(node)) {
       return;
     }
@@ -221,6 +224,29 @@ class DartUnitHighlightsComputer {
       }
     }
     return false;
+  }
+
+  bool _addIdentifierRegion_extension(SimpleIdentifier node) {
+    var element = node.writeOrReadElement;
+    if (element is! ExtensionElement) {
+      return false;
+    }
+
+    // TODO(dantup): Right now there is no highlight type for extension, so
+    // bail out and do the default thing (which will be to return
+    // IDENTIFIER_DEFAULT). Adding EXTENSION requires coordination with
+    // IntelliJ + bumping protocol version.
+    if (!_computeSemanticTokens) {
+      return false;
+    }
+
+    return _addRegion_node(
+      node,
+      // TODO(dantup): Change this to EXTENSION and add to LSP mapping when
+      // we have it, but for now use CLASS (which is probably what we'll map it
+      // to for LSP semantic tokens anyway).
+      HighlightRegionType.CLASS,
+    );
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
