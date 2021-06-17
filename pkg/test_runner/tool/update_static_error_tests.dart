@@ -244,7 +244,7 @@ Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
 
   var errors = <StaticError>[];
   var warnings = <StaticError>[];
-  AnalysisCommandOutput.parseErrors(result.stderr as String, errors, warnings);
+  AnalysisCommandOutput.parseErrors(result.stdout as String, errors, warnings);
   return [...errors, ...warnings];
 }
 
