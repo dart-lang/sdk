@@ -1734,6 +1734,18 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   @override
+  void visitFunctionExpression(FunctionExpression node) {
+    // We store FunctionExpression(s) as empty stubs: `() {}`.
+    // We just need it to have right code range, so we apply 2 offsets.
+    node.parameters?.leftParenthesis.offset = _iterator.take() ?? 0;
+
+    var body = node.body;
+    if (body is BlockFunctionBody) {
+      body.block.rightBracket.offset = _iterator.take() ?? 0;
+    }
+  }
+
+  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     super.visitSimpleFormalParameter(node);
 
@@ -1816,6 +1828,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
     _tokenOrNull(node.literal);
+  }
+
+  @override
+  void visitFormalParameterList(FormalParameterList node) {
+    _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.rightParenthesis);
+    super.visitFormalParameterList(node);
   }
 
   @override
@@ -2003,6 +2022,12 @@ class _OffsetsCollector extends _OffsetsAstVisitor {
   @override
   void handleToken(Token token) {
     offsets.add(token.offset);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    offsets.add(node.offset);
+    offsets.add(node.end - 1);
   }
 }
 

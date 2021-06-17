@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 import 'package:collection/collection.dart';
 
@@ -80,7 +81,7 @@ class AstBinaryReader {
         return _readFieldFormalParameter();
       case Tag.FormalParameterList:
         return _readFormalParameterList();
-      case Tag.FunctionExpression:
+      case Tag.FunctionExpressionStub:
         return _readFunctionExpression();
       case Tag.FunctionExpressionInvocation:
         return _readFunctionExpressionInvocation();
@@ -180,24 +181,6 @@ class AstBinaryReader {
     );
     _readExpressionResolution(node);
     return node;
-  }
-
-  FunctionBody _functionBodyForFlags(int flags) {
-    if (AstBinaryFlags.isNative(flags)) {
-      return AstTestFactory.nativeFunctionBody('');
-    } else if (AstBinaryFlags.isAbstract(flags)) {
-      return AstTestFactory.emptyFunctionBody();
-    } else {
-      return astFactory.blockFunctionBody(
-        AstBinaryFlags.isAsync(flags) ? Tokens.async_() : null,
-        AstBinaryFlags.isGenerator(flags) ? Tokens.star() : null,
-        astFactory.block(
-          Tokens.openCurlyBracket(),
-          const <Statement>[],
-          Tokens.closeCurlyBracket(),
-        ),
-      );
-    }
   }
 
   AdjacentStrings _readAdjacentStrings() {
@@ -556,16 +539,7 @@ class AstBinaryReader {
   }
 
   FunctionExpression _readFunctionExpression() {
-    var flags = _readByte();
-    var typeParameters = _readOptionalNode() as TypeParameterList?;
-    var formalParameters = _readOptionalNode() as FormalParameterList?;
-    var body = _functionBodyForFlags(flags);
-
-    return astFactory.functionExpression(
-      typeParameters,
-      formalParameters,
-      body,
-    );
+    return emptyFunctionExpression();
   }
 
   FunctionExpressionInvocation _readFunctionExpressionInvocation() {
