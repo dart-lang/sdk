@@ -676,7 +676,11 @@ class LibraryAnalyzer {
         errorListener: errorListener,
         featureSet: unit.featureSet,
         nameScope: _libraryElement.scope,
-        elementWalker: ElementWalker.forCompilationUnit(unitElement),
+        elementWalker: ElementWalker.forCompilationUnit(
+          unitElement,
+          libraryFilePath: _library.path,
+          unitFilePath: file.path,
+        ),
       ),
     );
 
