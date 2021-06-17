@@ -34,6 +34,9 @@ io/socket_source_address_test: SkipByDesign
 [ $builder_tag == obfuscated ]
 no_such_method_error_with_invocation_test: SkipByDesign # Checks the member names in the NSM error message.
 
+[ $compiler == app_jitk ]
+io/socket_sigpipe_test: SkipByDesign # Spawns server process using Platform.executable
+
 [ $compiler == dart2analyzer ]
 deferred_transitive_import_error_test: Skip
 
@@ -93,6 +96,9 @@ io/socket_many_connections_test: Skip # This test fails with "Too many open file
 [ $arch == arm || $arch == arm64 || $runtime != vm || $system == android ]
 fragmentation_test: SkipSlow
 fragmentation_typed_data_test: SkipSlow
+
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+io/socket_sigpipe_test: SkipByDesign # Test uses ffi
 
 [ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
 *: SkipByDesign

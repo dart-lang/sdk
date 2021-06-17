@@ -50,6 +50,10 @@ void main(List<String> args) async {
         help: 'Compile for sound null safety at runtime. Passed through to the '
             'DDC binary. Defaults to false.',
         defaultsTo: false)
+    ..addFlag('emit-debug-symbols',
+        help: 'Pass through flag for DDC, emits debug symbols file along with '
+            'the compiled module.',
+        defaultsTo: false)
     ..addFlag('null-assertions',
         help: 'Run with assertions that values passed to non-nullable method '
             'parameters are not null.',
@@ -115,6 +119,7 @@ void main(List<String> args) async {
   var run = mode == 'run' || mode == 'all';
   var verbose = options['verbose'] as bool;
   var soundNullSafety = options['sound-null-safety'] as bool;
+  var emitDebugSymbols = options['emit-debug-symbols'] as bool;
   var nonNullAsserts = options['null-assertions'] as bool;
   var nativeNonNullAsserts = options['native-null-assertions'] as bool;
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
@@ -230,6 +235,7 @@ void main(List<String> args) async {
       for (var experiment in experiments) '--enable-experiment=$experiment',
       if (soundNullSafety) '--sound-null-safety',
       if (options['packages'] != null) '--packages=${options['packages']}',
+      if (emitDebugSymbols) '--emit-debug-symbols',
       '-o',
       out,
       entry

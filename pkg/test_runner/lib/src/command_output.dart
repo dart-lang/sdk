@@ -1463,6 +1463,8 @@ mixin _StaticErrorOutput on CommandOutput {
   }
 
   Expectation result(TestCase testCase) {
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
     if (truncatedOutput) return Expectation.truncatedOutput;
 
@@ -1475,6 +1477,8 @@ mixin _StaticErrorOutput on CommandOutput {
   }
 
   Expectation realResult(TestCase testCase) {
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
     if (truncatedOutput) return Expectation.truncatedOutput;
 
