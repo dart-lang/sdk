@@ -124,6 +124,32 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
+  Future<void> test_accept_required_hint() async {
+    var content = '''
+f({/*required*/ int i}) {}
+''';
+    var expected = '''
+f({required int i}) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_accept_required_hint_nullable() async {
+    var content = '''
+f({/*required*/ int i}) {}
+g() {
+  f(i: null);
+}
+''';
+    var expected = '''
+f({required int? i}) {}
+g() {
+  f(i: null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_add_explicit_parameter_type() async {
     var content = '''
 abstract class C {

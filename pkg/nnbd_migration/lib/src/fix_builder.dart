@@ -1113,17 +1113,20 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     var element = node.declaredElement;
     if (node.defaultValue == null) {
+      var requiredHint =
+          _fixBuilder._variables.getRequiredHint(_fixBuilder.source, node);
       var nullabilityNode =
           _fixBuilder._variables.decoratedElementType(element).node;
       if (!nullabilityNode.isNullable) {
         if (element.isNamed) {
-          _addRequiredKeyword(node, nullabilityNode);
+          _addRequiredKeyword(node, nullabilityNode, requiredHint);
         } else {
           _fixBuilder._addProblem(
               node, const NonNullableUnnamedOptionalParameter());
         }
-      } else if (element.metadata.any((m) => m.isRequired)) {
-        _addRequiredKeyword(node, nullabilityNode);
+      } else if (requiredHint != null ||
+          element.metadata.any((m) => m.isRequired)) {
+        _addRequiredKeyword(node, nullabilityNode, requiredHint);
       }
     }
     super.visitDefaultFormalParameter(node);
@@ -1199,8 +1202,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     super.visitTypeName(node);
   }
 
-  void _addRequiredKeyword(
-      DefaultFormalParameter parameter, NullabilityNode node) {
+  void _addRequiredKeyword(DefaultFormalParameter parameter,
+      NullabilityNode node, HintComment requiredHint) {
     // Change an existing `@required` annotation into a `required` keyword if
     // possible.
     final element = parameter.declaredElement;
@@ -1226,7 +1229,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var nodeChange = (_fixBuilder._getChange(parameter)
         as NodeChangeForDefaultFormalParameter)
       ..addRequiredKeyword = true
-      ..addRequiredKeywordInfo = info;
+      ..addRequiredKeywordInfo = info
+      ..requiredHint = requiredHint;
     var requiredAnnotation = metadata?.firstWhere(
         (annotation) => annotation.elementAnnotation.isRequired,
         orElse: () => null);

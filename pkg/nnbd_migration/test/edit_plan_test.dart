@@ -64,7 +64,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
     await analyze(code);
     var hint = getPrefixHint(findNode.simple('int').token);
     var changes = checkPlan(
-        planner.acceptLateHint(
+        planner.acceptPrefixHint(
             planner.passThrough(findNode.simple('int')), hint),
         'late int x = 0;');
     expect(changes.keys, unorderedEquals([0, 7]));
@@ -77,7 +77,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
     await analyze(code);
     var hint = getPrefixHint(findNode.simple('int').token);
     checkPlan(
-        planner.acceptLateHint(
+        planner.acceptPrefixHint(
             planner.passThrough(findNode.simple('int')), hint),
         'late int x = 0;');
   }
@@ -87,7 +87,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
     await analyze(code);
     var hint = getPrefixHint(findNode.simple('int').token);
     checkPlan(
-        planner.acceptLateHint(
+        planner.acceptPrefixHint(
             planner.passThrough(findNode.simple('int')), hint),
         '@deprecated late int x = 0;');
   }
@@ -103,7 +103,7 @@ class C {
     var parameter = findNode.fieldFormalParameter('void this.f(int i)');
     var typeName = planner.passThrough(parameter);
     checkPlan(
-        planner.acceptNullabilityOrNullCheckHint(
+        planner.acceptSuffixHint(
             typeName, getPostfixHint(parameter.parameters.rightParenthesis)),
         '''
 class C {
@@ -118,7 +118,7 @@ class C {
     var parameter = findNode.functionTypedFormalParameter('void g(int i)');
     var typeName = planner.passThrough(parameter);
     checkPlan(
-        planner.acceptNullabilityOrNullCheckHint(
+        planner.acceptSuffixHint(
             typeName, getPostfixHint(parameter.parameters.rightParenthesis)),
         'f(void g(int i)?) {}');
   }
@@ -128,9 +128,7 @@ class C {
     await analyze(code);
     var intRef = findNode.simple('int');
     var typeName = planner.passThrough(intRef);
-    checkPlan(
-        planner.acceptNullabilityOrNullCheckHint(
-            typeName, getPostfixHint(intRef.token)),
+    checkPlan(planner.acceptSuffixHint(typeName, getPostfixHint(intRef.token)),
         'int? x = 0;');
   }
 
@@ -141,7 +139,7 @@ class C {
     checkPlan(
         planner.extract(
             xRef.parent.parent,
-            planner.acceptNullabilityOrNullCheckHint(
+            planner.acceptSuffixHint(
                 planner.passThrough(xRef), getPostfixHint(xRef.token))),
         'f(x) => x!;');
   }
