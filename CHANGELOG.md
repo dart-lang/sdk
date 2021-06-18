@@ -1,3 +1,8 @@
+# master
+
+- update `use_setters_to_change_properties` to only highlight a method name,
+  not the entire body and doc comment.
+
 # 1.6.1
 
 - reverted relaxation of `sort_child_properties_last` to allow for a 

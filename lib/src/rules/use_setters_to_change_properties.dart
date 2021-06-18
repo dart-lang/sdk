@@ -61,7 +61,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.returnType?.type?.isVoid != true) {
       return;
     }
-    void _visitExpression(Expression expression) {
+
+    void checkExpression(Expression expression) {
       if (expression is AssignmentExpression &&
           expression.operator.type == TokenType.EQ) {
         var leftOperand =
@@ -70,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             expression.rightHandSide);
         var parameterElement = node.declaredElement?.parameters.first;
         if (rightOperand == parameterElement && leftOperand is FieldElement) {
-          rule.reportLint(node);
+          rule.reportLint(node.name);
         }
       }
     }
@@ -80,11 +81,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (body.block.statements.length == 1) {
         var statement = body.block.statements.first;
         if (statement is ExpressionStatement) {
-          _visitExpression(statement.expression);
+          checkExpression(statement.expression);
         }
       }
     } else if (body is ExpressionFunctionBody) {
-      _visitExpression(body.expression);
+      checkExpression(body.expression);
     }
   }
 }
