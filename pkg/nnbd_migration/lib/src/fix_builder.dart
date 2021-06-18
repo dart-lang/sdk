@@ -426,7 +426,7 @@ class MigrationResolutionHooksImpl
       node,
       () => node.elements,
       () => _collectionElements[node] ??=
-          _transformCollectionElements(node.elements, node.typeArguments));
+          _transformCollectionElements(node.elements));
 
   @override
   List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) =>
@@ -434,7 +434,7 @@ class MigrationResolutionHooksImpl
           node,
           () => node.elements,
           () => _collectionElements[node] ??=
-              _transformCollectionElements(node.elements, node.typeArguments));
+              _transformCollectionElements(node.elements));
 
   @override
   DartType getTypeParameterBound(TypeParameterElementImpl element) {
@@ -808,7 +808,7 @@ class MigrationResolutionHooksImpl
   }
 
   List<CollectionElement> _transformCollectionElements(
-      NodeList<CollectionElement> elements, TypeArgumentList typeArguments) {
+      NodeList<CollectionElement> elements) {
     return elements
         .map(_transformCollectionElement)
         .where((e) => e != null)
