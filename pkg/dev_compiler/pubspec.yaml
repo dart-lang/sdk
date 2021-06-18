@@ -31,6 +31,8 @@ dev_dependencies:
   browser_launcher: ^0.1.9
   expect:
     path: ../expect
+  http_multi_server:
+    path: ../../third_party/pkg/http_multi_server
   js:
     path: ../js
   modular_test:
@@ -40,6 +42,8 @@ dev_dependencies:
   sourcemap_testing:
     path: ../sourcemap_testing
   stack_trace: any
+  shelf:
+    path: ../../third_party/pkg/shelf
   test: any
   testing:
     path: ../testing

@@ -262,6 +262,9 @@ class ExpressionCompilerWorker {
                 'Unrecognized command `$command`, full request was `$request`');
         }
       } catch (e, s) {
+        var command = request['command'] as String;
+        _processedOptions.ticker
+            .logMs('Expression compiler worker request $command failed: $e:$s');
         sendResponse({
           'exception': '$e',
           'stackTrace': '$s',
