@@ -20,19 +20,11 @@ class InstrumentationInformation {
   /// The node used for type sources that are never `null`.
   NullabilityNodeInfo never;
 
-  /// A map associating [NodeInformation] with [NullabilityNodeInfo] objects.
-  Map<NullabilityNodeInfo, NodeInformation> nodeInformation = {};
-
   /// The instrumentation information that is specific to a single source.
   final Map<Source, SourceInformation> sourceInformation = {};
 
   /// Initialize a newly created holder of instrumentation information.
   InstrumentationInformation();
-
-  /// Return information about the given [node].
-  NodeInformation nodeInfoFor(NullabilityNodeInfo node) {
-    return nodeInformation[node];
-  }
 
   /// Return the type annotation associated with the [node] or `null` if the
   /// node represents an implicit type.
