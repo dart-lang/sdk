@@ -118,10 +118,11 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
 
   @override
   List<AstNode> get sortedCommentAndAnnotations {
-    return <AstNode>[]
-      ..add(_comment!)
-      ..addAll(_metadata)
-      ..sort(AstNode.LEXICAL_ORDER);
+    var comment = _comment;
+    return <AstNode>[
+      if (comment != null) comment,
+      ..._metadata,
+    ]..sort(AstNode.LEXICAL_ORDER);
   }
 
   /// Return a holder of child entities that subclasses can add to.
@@ -7713,10 +7714,11 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 
   @override
   List<AstNode> get sortedCommentAndAnnotations {
-    return <AstNode>[]
-      ..add(_comment!)
-      ..addAll(_metadata)
-      ..sort(AstNode.LEXICAL_ORDER);
+    var comment = _comment;
+    return <AstNode>[
+      if (comment != null) comment,
+      ..._metadata,
+    ]..sort(AstNode.LEXICAL_ORDER);
   }
 
   ChildEntities get _childEntities {
