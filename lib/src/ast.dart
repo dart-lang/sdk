@@ -162,11 +162,17 @@ bool isPublicMethod(ClassMember m) {
 ///
 /// A simple getter takes one of these basic forms:
 ///
-///     get x => _simpleIdentifier;
+/// ```dart
+/// get x => _simpleIdentifier;
+/// ```
+///
 /// or
-///     get x {
-///       return _simpleIdentifier;
-///     }
+///
+/// ```dart
+/// get x {
+///   return _simpleIdentifier;
+/// }
+/// ```
 bool isSimpleGetter(MethodDeclaration declaration) {
   if (!declaration.isGetter) {
     return false;
@@ -190,14 +196,18 @@ bool isSimpleGetter(MethodDeclaration declaration) {
 ///
 /// A simple setter takes this basic form:
 ///
-///     var _x;
-///     set(x) {
-///       _x = x;
-///     }
+/// ```dart
+/// var _x;
+/// set(x) {
+///   _x = x;
+/// }
+/// ```
 ///
 /// or:
 ///
-///     set(x) => _x = x;
+/// ```dart
+/// set(x) => _x = x;
+/// ```
 ///
 /// where the static type of the left and right hand sides must be the same.
 bool isSimpleSetter(MethodDeclaration setter) {
@@ -274,18 +284,20 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   if (expression is! AssignmentExpression) {
     return false;
   }
-  var assignment = expression;
+  if (expression.operator.type != TokenType.EQ) {
+    return false;
+  }
 
-  var leftHandSide = assignment.leftHandSide;
-  var rightHandSide = assignment.rightHandSide;
+  var leftHandSide = expression.leftHandSide;
+  var rightHandSide = expression.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
-    var leftElement = assignment.writeElement;
+    var leftElement = expression.writeElement;
     if (leftElement is! PropertyAccessorElement || !leftElement.isSynthetic) {
       return false;
     }
 
     // To guard against setters used as type constraints
-    if (assignment.writeType != rightHandSide.staticType) {
+    if (expression.writeType != rightHandSide.staticType) {
       return false;
     }
 

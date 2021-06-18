@@ -74,6 +74,14 @@ class Box7 {
   }
 }
 
+class Box8 {
+  var _contents;
+  get contents => _contents; //OK (setter uses `??=`)
+  set contents(value) {
+    _contents ??= value;
+  }
+}
+
 class LowerCase {
   var _contents;
   get contents => _contents;

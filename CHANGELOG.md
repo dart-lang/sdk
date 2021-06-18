@@ -6,6 +6,8 @@
   and setters with annotations.
 - update `missing_whitespace_between_adjacent_strings` to allow String
   interpolations at the beginning and end of String literals.
+- update `unnecessary_getters_setters` to allow for setters with non-basic
+  assignments (for example, `??=` or `+=`).
 
 # 1.6.1
 
