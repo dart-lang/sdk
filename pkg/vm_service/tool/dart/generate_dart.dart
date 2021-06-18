@@ -1731,7 +1731,7 @@ Map<String, dynamic> toJson() {
       gen.writeln();
 
       gen.writeStatement(
-          'operator==(other) => other is ${name} && id == other.id;');
+          'bool operator ==(Object other) => other is ${name} && id == other.id;');
       gen.writeln();
     }
 
