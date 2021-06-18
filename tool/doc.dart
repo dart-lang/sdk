@@ -63,9 +63,7 @@ These rules are under active development.  Feedback is
 
 const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
-// todo(pq):add badge
 final coreRules = <String?>[];
-// todo(pq):add badge
 final recommendedRules = <String?>[];
 final effectiveDartRules = <String?>[];
 final flutterRules = <String?>[];
@@ -217,9 +215,19 @@ Future<void> generateDocs(String? dir) async {
 
 String getBadges(String rule) {
   var sb = StringBuffer();
+  if (coreRules.contains(rule)) {
+    sb.write(
+        '<a class="style-type" href="https://github.com/dart-lang/lints/blob/main/lib/core.yaml">'
+        '<!--suppress HtmlUnknownTarget --><img alt="core" src="style-core.svg"></a>');
+  }
+  if (recommendedRules.contains(rule)) {
+    sb.write(
+        '<a class="style-type" href="https://github.com/dart-lang/lints/blob/main/lib/recommended.yaml">'
+        '<!--suppress HtmlUnknownTarget --><img alt="recommended" src="style-recommended.svg"></a>');
+  }
   if (flutterRules.contains(rule)) {
     sb.write(
-        '<a class="style-type" href="https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml">'
+        '<a class="style-type" href="https://github.com/flutter/packages/blob/master/packages/flutter_lints/lib/flutter.yaml">'
         '<!--suppress HtmlUnknownTarget --><img alt="flutter" src="style-flutter.svg"></a>');
   }
   if (pedanticRules.contains(rule)) {
@@ -393,6 +401,14 @@ class MarkdownIndexer {
     void emit(LintRule rule) {
       buffer
           .writeln('**[${rule.name}](${rule.name}.md)** - ${rule.description}');
+      if (coreRules.contains(rule.name)) {
+        buffer.writeln('[![core](style-core.svg)]'
+            '(https://github.com/dart-lang/lints/blob/main/lib/core.yaml)');
+      }
+      if (recommendedRules.contains(rule.name)) {
+        buffer.writeln('[![recommended](style-recommended.svg)]'
+            '(https://github.com/dart-lang/lints/blob/main/lib/recommended.yaml)');
+      }
       if (flutterRules.contains(rule.name)) {
         buffer.writeln('[![flutter](style-flutter.svg)]'
             '(https://github.com/flutter/packages/blob/master/packages/'
@@ -664,10 +680,18 @@ class RuleMarkdownGenerator {
     buffer.writeln();
 
     // badges
+    if (coreRules.contains(name)) {
+      buffer.writeln('[![core](style-core.svg)]'
+          '(https://github.com/dart-lang/lints/blob/main/lib/core.yaml)');
+    }
+    if (recommendedRules.contains(name)) {
+      buffer.writeln('[![recommended](style-flutter.svg)]'
+          'https://github.com/dart-lang/lints/blob/main/lib/recommended.yaml)');
+    }
     if (flutterRules.contains(name)) {
       buffer.writeln('[![flutter](style-flutter.svg)]'
-          '(https://github.com/flutter/flutter/blob/master/packages/'
-          'flutter/lib/analysis_options_user.yaml)');
+          '(https://github.com/flutter/packages/blob/master/packages/'
+          'flutter_lints/lib/flutter.yaml)');
     }
     if (pedanticRules.contains(name)) {
       buffer.writeln('[![pedantic](style-pedantic.svg)]'
