@@ -8666,7 +8666,6 @@ library
 ''');
   }
 
-  /// TODO(scheglov) review location
   test_const_methodInvocation() async {
     var library = await checkLibrary(r'''
 T f<T>(T a) => a;
@@ -23914,7 +23913,6 @@ class A {
   A(@foo int a);
 }
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit
@@ -24006,7 +24004,6 @@ class A {
   void method<@foo T>(@foo int a) {}
 }
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit
@@ -24068,7 +24065,6 @@ class A {
   set setter(@foo int a) {}
 }
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit
@@ -24664,7 +24660,6 @@ const foo = 0;
 @foo
 void f<@foo T>({@foo int? a = 42}) {}
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit
@@ -24759,7 +24754,6 @@ const foo = 0;
 @foo
 set setter(@foo int a) {}
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit
