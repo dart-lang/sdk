@@ -1523,7 +1523,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (isSymbol) {
       final Constant nameValue = positionals.single;
 
-      if (nameValue is StringConstant && isValidSymbolName(nameValue.value)) {
+      // For libraries with null safety Symbol constructor accepts arbitrary
+      // string as argument.
+      if (nameValue is StringConstant &&
+          (isNonNullableByDefault || isValidSymbolName(nameValue.value))) {
         return canonicalize(new SymbolConstant(nameValue.value, null));
       }
       return createErrorConstant(
