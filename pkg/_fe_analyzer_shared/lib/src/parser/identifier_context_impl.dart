@@ -548,8 +548,16 @@ class LiteralSymbolIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    return parser.insertSyntheticIdentifier(token, this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier));
+    if (!identifier.isKeywordOrIdentifier) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: codes.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      // Use the keyword as the identifier.
+      parser.reportRecoverableErrorWithToken(
+          identifier, codes.templateExpectedIdentifierButGotKeyword);
+    }
+
+    return identifier;
   }
 }
 
