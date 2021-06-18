@@ -238,7 +238,10 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
     final int tmpUsed = _usedData;
     _usedData = 0;
     for (int i = 0; i < tmpUsed; i += 2) {
-      this[_data[i]] = _data[i + 1];
+      final key = _data[i];
+      if (!_HashBase._isDeleted(_data, key)) {
+        this[key] = _data[i + 1];
+      }
     }
   }
 
