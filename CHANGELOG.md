@@ -2,6 +2,8 @@
 
 - update `use_setters_to_change_properties` to only highlight a method name,
   not the entire body and doc comment.
+- update `unnecessary_getters_setters` to allow otherwise "unnecessary" getters
+  and setters with annotations.
 
 # 1.6.1
 

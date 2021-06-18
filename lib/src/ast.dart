@@ -98,12 +98,6 @@ bool inPrivateMember(AstNode node) {
   return false;
 }
 
-/// Returns `true` if the given [declaration] is annotated `@deprecated`.
-bool isDeprecated(Declaration declaration) {
-  var declaredElement = declaration.declaredElement;
-  return declaredElement != null && declaredElement.hasDeprecated;
-}
-
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
     element is MethodDeclaration && element.name.name == '==';
@@ -157,10 +151,6 @@ bool isMethod(ClassMember m) => m is MethodDeclaration;
 /// Check if the given identifier has a private name.
 bool isPrivate(SimpleIdentifier? identifier) =>
     identifier != null ? Identifier.isPrivateName(identifier.name) : false;
-
-/// Returns `true` if the given [declaration] is annotated `@protected`.
-bool isProtected(Declaration declaration) =>
-    declaration.metadata.any((Annotation a) => a.name.name == 'protected');
 
 /// Returns `true` if the given [ClassMember] is a public method.
 bool isPublicMethod(ClassMember m) {

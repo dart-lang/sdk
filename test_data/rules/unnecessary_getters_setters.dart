@@ -65,6 +65,15 @@ class Box6 {
   }
 }
 
+class Box7 {
+  var _contents;
+  @visibleForTesting
+  get contents => _contents; //OK (annotation)
+  set contents(value) {
+    _contents = value;
+  }
+}
+
 class LowerCase {
   var _contents;
   get contents => _contents;
