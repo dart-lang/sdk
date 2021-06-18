@@ -956,6 +956,11 @@ class Bequest {
   ~Bequest();
 
   PersistentHandle* handle() { return handle_; }
+  PersistentHandle* TakeHandle() {
+    auto handle = handle_;
+    handle_ = nullptr;
+    return handle;
+  }
   Dart_Port beneficiary() { return beneficiary_; }
 
  private:

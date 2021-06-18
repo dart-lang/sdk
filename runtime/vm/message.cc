@@ -6,6 +6,7 @@
 
 #include <utility>
 
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/json_stream.h"
 #include "vm/object.h"
@@ -21,8 +22,7 @@ Message::Message(Dart_Port dest_port,
                  MessageFinalizableData* finalizable_data,
                  Priority priority,
                  Dart_Port delivery_failure_port)
-    : next_(NULL),
-      dest_port_(dest_port),
+    : dest_port_(dest_port),
       delivery_failure_port_(delivery_failure_port),
       payload_(snapshot),
       snapshot_length_(snapshot_length),
@@ -37,12 +37,9 @@ Message::Message(Dart_Port dest_port,
                  ObjectPtr raw_obj,
                  Priority priority,
                  Dart_Port delivery_failure_port)
-    : next_(NULL),
-      dest_port_(dest_port),
+    : dest_port_(dest_port),
       delivery_failure_port_(delivery_failure_port),
       payload_(raw_obj),
-      snapshot_length_(0),
-      finalizable_data_(NULL),
       priority_(priority) {
   ASSERT(!raw_obj->IsHeapObject() || raw_obj->untag()->InVMIsolateHeap());
   ASSERT((priority == kNormalPriority) ||
@@ -51,19 +48,17 @@ Message::Message(Dart_Port dest_port,
 }
 
 Message::Message(Dart_Port dest_port,
-                 Bequest* bequest,
+                 PersistentHandle* handle,
                  Priority priority,
                  Dart_Port delivery_failure_port)
-    : next_(nullptr),
-      dest_port_(dest_port),
+    : dest_port_(dest_port),
       delivery_failure_port_(delivery_failure_port),
-      payload_(bequest),
-      snapshot_length_(-1),
-      finalizable_data_(nullptr),
+      payload_(handle),
+      snapshot_length_(kPersistentHandleSnapshotLen),
       priority_(priority) {
   ASSERT((priority == kNormalPriority) ||
          (delivery_failure_port == kIllegalPort));
-  ASSERT(IsBequest());
+  ASSERT(IsPersistentHandle());
 }
 
 Message::~Message() {
@@ -72,8 +67,10 @@ Message::~Message() {
     free(payload_.snapshot_);
   }
   delete finalizable_data_;
-  if (IsBequest()) {
-    delete (payload_.bequest_);
+  if (IsPersistentHandle()) {
+    auto isolate_group = IsolateGroup::Current();
+    isolate_group->api_state()->FreePersistentHandle(
+        payload_.persistent_handle_);
   }
 }
 

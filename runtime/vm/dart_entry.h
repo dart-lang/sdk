@@ -303,6 +303,10 @@ class DartLibraryCalls : public AllStatic {
   // _startMicrotaskLoop from dart:async.
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr EnsureScheduleImmediate();
+
+  // Runs the `_rehashObjects()` function.
+  static ObjectPtr RehashObjects(Thread* thread,
+                                 const Object& array_or_growable_array);
 };
 
 }  // namespace dart
