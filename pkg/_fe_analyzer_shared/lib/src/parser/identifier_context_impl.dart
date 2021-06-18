@@ -58,9 +58,22 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
-        isOneOfOrEof(identifier,
-            const ['<', '{', 'extends', 'with', 'implements', 'on'])) {
+    const List<String> afterIdentifier = const [
+      '<',
+      '{',
+      'extends',
+      'with',
+      'implements',
+      'on',
+      '=',
+    ];
+    if (identifier.isEof ||
+        (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
+            (identifier.next == null ||
+                !isOneOfOrEof(identifier.next!, afterIdentifier))) ||
+        (isOneOfOrEof(identifier, afterIdentifier) &&
+            (identifier.next == null ||
+                !isOneOfOrEof(identifier.next!, afterIdentifier)))) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else if (identifier.type.isBuiltIn) {
