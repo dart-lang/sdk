@@ -218,7 +218,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
-          previousMember.functionExpression is FunctionExpression &&
           previousMember.functionExpression.body.isEmpty) {
         _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);

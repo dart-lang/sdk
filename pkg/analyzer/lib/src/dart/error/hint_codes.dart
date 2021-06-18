@@ -2342,7 +2342,7 @@ class HintCode extends AnalyzerErrorCode {
   // this diagnostic:
   //
   // ```dart
-  // const x = 4;
+  // const Object x = 4;
   // const y = [!x is int!] ? 0 : 1;
   // ```
   //
@@ -2362,7 +2362,7 @@ class HintCode extends AnalyzerErrorCode {
   // [constant context][]:
   //
   // ```dart
-  // const x = 4;
+  // const Object x = 4;
   // var y = x is int ? 0 : 1;
   // ```
   static const HintCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT = HintCode(

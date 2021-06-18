@@ -11144,7 +11144,7 @@ In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart tag=pre+code %}
-const x = 4;
+const Object x = 4;
 const y = [!x is int!] ? 0 : 1;
 {% endprettify %}
 
@@ -11164,7 +11164,7 @@ code so that the `is` expression isn't in a
 [constant context][]:
 
 {% prettify dart tag=pre+code %}
-const x = 4;
+const Object x = 4;
 var y = x is int ? 0 : 1;
 {% endprettify %}
 

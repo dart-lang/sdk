@@ -3798,72 +3798,42 @@ main() {
 
   test_isExpression() async {
     await assertNoErrorsInCode(r'''
-void main() {
-  var v = 42;
-  v is num;
+void f(var a) {
+  a is num;
 }
 ''');
 
-    List<Statement> statements = _getMainStatements(result);
+    var isExpression = findNode.isExpression('a is num');
+    expect(isExpression.notOperator, isNull);
+    expect(isExpression.staticType, typeProvider.boolType);
 
-    // var v = 42;
-    VariableElement vElement;
-    {
-      var statement = statements[0] as VariableDeclarationStatement;
-      vElement = statement.variables.variables[0].name.staticElement
-          as VariableElement;
-    }
+    var target = isExpression.expression as SimpleIdentifier;
+    expect(target.staticElement, findElement.parameter('a'));
+    expect(target.staticType, dynamicType);
 
-    // v is num;
-    {
-      var statement = statements[1] as ExpressionStatement;
-      var isExpression = statement.expression as IsExpression;
-      expect(isExpression.notOperator, isNull);
-      expect(isExpression.staticType, typeProvider.boolType);
-
-      var target = isExpression.expression as SimpleIdentifier;
-      expect(target.staticElement, vElement);
-      expect(target.staticType, typeProvider.intType);
-
-      var numName = isExpression.type as TypeName;
-      expect(numName.name.staticElement, typeProvider.numType.element);
-      expect(numName.name.staticType, isNull);
-    }
+    var numName = isExpression.type as TypeName;
+    expect(numName.name.staticElement, typeProvider.numType.element);
+    expect(numName.name.staticType, isNull);
   }
 
   test_isExpression_not() async {
     await assertNoErrorsInCode(r'''
-void main() {
-  var v = 42;
-  v is! num;
+void f(var a) {
+  a is! num;
 }
 ''');
 
-    List<Statement> statements = _getMainStatements(result);
+    var isExpression = findNode.isExpression('a is! num');
+    expect(isExpression.notOperator, isNotNull);
+    expect(isExpression.staticType, typeProvider.boolType);
 
-    // var v = 42;
-    VariableElement vElement;
-    {
-      var statement = statements[0] as VariableDeclarationStatement;
-      vElement = statement.variables.variables[0].name.staticElement
-          as VariableElement;
-    }
+    var target = isExpression.expression as SimpleIdentifier;
+    expect(target.staticElement, findElement.parameter('a'));
+    expect(target.staticType, dynamicType);
 
-    // v is! num;
-    {
-      var statement = statements[1] as ExpressionStatement;
-      var isExpression = statement.expression as IsExpression;
-      expect(isExpression.notOperator, isNotNull);
-      expect(isExpression.staticType, typeProvider.boolType);
-
-      var target = isExpression.expression as SimpleIdentifier;
-      expect(target.staticElement, vElement);
-      expect(target.staticType, typeProvider.intType);
-
-      var numName = isExpression.type as TypeName;
-      expect(numName.name.staticElement, typeProvider.numType.element);
-      expect(numName.name.staticType, isNull);
-    }
+    var numName = isExpression.type as TypeName;
+    expect(numName.name.staticElement, typeProvider.numType.element);
+    expect(numName.name.staticType, isNull);
   }
 
   test_label_while() async {

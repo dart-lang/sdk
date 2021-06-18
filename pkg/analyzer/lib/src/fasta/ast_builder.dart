@@ -3035,9 +3035,7 @@ class AstBuilder extends StackListener {
 
       List<Expression> expressions = <Expression>[];
       for (var elem in elements) {
-        if (elem is Expression) {
-          expressions.add(elem);
-        }
+        expressions.add(elem);
       }
 
       push(ast.listLiteral(

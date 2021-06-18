@@ -23,6 +23,7 @@ main() {
 class NonConstantValueInInitializer extends PubPackageResolutionTest {
   test_intLiteralInDoubleContext_const_exact() async {
     await assertNoErrorsInCode(r'''
+// @dart = 2.9
 const double x = 0;
 class C {
   const C(double y) : assert(y is double), assert(x is double);
@@ -42,6 +43,7 @@ void main() {
 
   test_isCheckInConstAssert() async {
     await assertNoErrorsInCode(r'''
+// @dart = 2.9
 class C {
   const C() : assert(1 is int);
 }
@@ -1376,6 +1378,7 @@ typedef int f(@app int app);
 
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
     await assertNoErrorsInCode('''
+// @dart = 2.9
 typedef Foo<S> = S Function<T>(T x);
 
 main(Object p) {
@@ -1393,6 +1396,7 @@ main(Object p) {
 
   test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
     await assertNoErrorsInCode('''
+// @dart = 2.9
 typedef Foo = T Function<T>(T x);
 
 main(Object p) {
@@ -3084,6 +3088,7 @@ main(Object p) {
 
   test_typePromotion_if_is_and_subThenSuper() async {
     await assertNoErrorsInCode(r'''
+// @dart = 2.9
 class A {
   var a;
 }

@@ -1496,7 +1496,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
             // file.
             var isFirst =
                 next == (next.parent as CompilationUnit).directives.first;
-            var offset = isFirst && next is AnnotatedNode
+            var offset = isFirst
                 ? next.firstTokenAfterCommentAndMetadata.offset
                 : next.offset;
             addInsertion(offset, (EditBuilder builder) {

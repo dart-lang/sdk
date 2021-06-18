@@ -432,31 +432,28 @@ class ContextLocatorImpl implements ContextLocator {
                 root.workspace.createSourceFactory(null, null))
             .getOptionsFromFile(optionsFile);
 
-        if (doc is YamlMap) {
-          var analyzerOptions = doc.valueAt(AnalyzerOptions.analyzer);
-          if (analyzerOptions is YamlMap) {
-            var excludeOptions =
-                analyzerOptions.valueAt(AnalyzerOptions.exclude);
-            if (excludeOptions is YamlList) {
-              var pathContext = resourceProvider.pathContext;
+        var analyzerOptions = doc.valueAt(AnalyzerOptions.analyzer);
+        if (analyzerOptions is YamlMap) {
+          var excludeOptions = analyzerOptions.valueAt(AnalyzerOptions.exclude);
+          if (excludeOptions is YamlList) {
+            var pathContext = resourceProvider.pathContext;
 
-              void addGlob(List<String> components) {
-                var pattern = posix.joinAll(components);
-                patterns.add(Glob(pattern, context: pathContext));
+            void addGlob(List<String> components) {
+              var pattern = posix.joinAll(components);
+              patterns.add(Glob(pattern, context: pathContext));
+            }
+
+            for (String excludedPath in excludeOptions.whereType<String>()) {
+              var excludedComponents = posix.split(excludedPath);
+              if (pathContext.isRelative(excludedPath)) {
+                excludedComponents = [
+                  ...pathContext.split(optionsFile.parent2.path),
+                  ...excludedComponents,
+                ];
               }
-
-              for (String excludedPath in excludeOptions.whereType<String>()) {
-                var excludedComponents = posix.split(excludedPath);
-                if (pathContext.isRelative(excludedPath)) {
-                  excludedComponents = [
-                    ...pathContext.split(optionsFile.parent2.path),
-                    ...excludedComponents,
-                  ];
-                }
-                addGlob(excludedComponents);
-                if (excludedComponents.last == '**') {
-                  addGlob(excludedComponents..removeLast());
-                }
+              addGlob(excludedComponents);
+              if (excludedComponents.last == '**') {
+                addGlob(excludedComponents..removeLast());
               }
             }
           }
