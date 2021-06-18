@@ -75,12 +75,8 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.THIS,
-      Keyword.DYNAMIC,
       Keyword.VOID
     ];
-    if (isEnabled(ExperimentalFeatures.non_nullable)) {
-      keywords.add(Keyword.REQUIRED);
-    }
     return keywords;
   }
 
@@ -175,9 +171,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   List<Keyword> get methodParameter {
     var keywords = <Keyword>[Keyword.COVARIANT, Keyword.DYNAMIC, Keyword.VOID];
-    if (isEnabled(ExperimentalFeatures.non_nullable)) {
-      keywords.add(Keyword.REQUIRED);
-    }
     return keywords;
   }
 
