@@ -20,6 +20,11 @@ f(o) {
   f(RegExp('(\n)+' '(\n)+' '(\n)+')); // OK
   new Unresolved('aaa' 'bbb'); // OK
   matches('(\n)+' '(\n)+' '(\n)+'); // OK
+
+  f('Hello' // OK
+    '${1 == 2 ? ', world' : ''}');
+  f('${1 == 2 ? 'Hello ' : ''}' // OK
+    'world');
 }
 
-void matches(String value){}
+void matches(String value) {}

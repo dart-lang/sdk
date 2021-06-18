@@ -57,7 +57,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    // skip regexp
+    // Skip strings passed to `RegExp()` or any method named `matches`.
     var parent = node.parent;
     if (parent is ArgumentList) {
       var parentParent = parent.parent;
@@ -73,11 +73,11 @@ class _Visitor extends RecursiveAstVisitor<void> {
     for (var i = 0; i < node.strings.length - 1; i++) {
       var current = node.strings[i];
       var next = node.strings[i + 1];
-      if (_visit(current, (l) => _endsWithWhitespace(l.last)) ||
-          _visit(next, (l) => _startsWithWhitespace(l.first))) {
+      if (_visit(current, (l) => l.last.endsWithWhitespace) ||
+          _visit(next, (l) => l.first.startsWithWhitespace)) {
         continue;
       }
-      if (!_visit(current, (l) => l.any(_hasWhitespace))) {
+      if (!_visit(current, (l) => l.any((e) => e.hasWhitespace))) {
         continue;
       }
       rule.reportLint(current);
@@ -90,27 +90,39 @@ class _Visitor extends RecursiveAstVisitor<void> {
     if (string is SimpleStringLiteral) {
       return test([string.value]);
     } else if (string is StringInterpolation) {
-      return test(string.elements.map((e) {
-        if (e is InterpolationString) return e.value;
-        return '';
-      }));
+      var interpolationSubstitutions = <String>[];
+      for (var e in string.elements) {
+        // Given a [StringInterpolation] like '$text', the elements include
+        // empty [InterpolationString]s on either side of the
+        // [InterpolationExpression]. Don't include them in the evaluation.
+        if (e is InterpolationString && e.value.isNotEmpty) {
+          interpolationSubstitutions.add(e.value);
+        }
+        if (e is InterpolationExpression) {
+          // Treat an interpolation expression as a string with whitespace. This
+          // prevents over-reporting on adjascent Strings which start or end
+          // with interpolations.
+          interpolationSubstitutions.add(' ');
+        }
+      }
+      return test(interpolationSubstitutions);
     }
     throw ArgumentError('${string.runtimeType}: $string');
   }
 
-  bool _hasWhitespace(String value) => _whitespaces.any(value.contains);
-  bool _endsWithWhitespace(String value) => _whitespaces.any(value.endsWith);
-  bool _startsWithWhitespace(String value) =>
-      _whitespaces.any(value.startsWith);
-
   static bool _isRegExpInstanceCreation(AstNode? node) {
     if (node is InstanceCreationExpression) {
       var constructorElement = node.constructorName.staticElement;
-      return constructorElement != null &&
-          constructorElement.enclosingElement.name == 'RegExp';
+      return constructorElement?.enclosingElement.name == 'RegExp';
     }
     return false;
   }
 }
 
-const _whitespaces = [' ', '\n', '\r', '\t'];
+extension on String {
+  bool get hasWhitespace => whitespaces.any(contains);
+  bool get endsWithWhitespace => whitespaces.any(endsWith);
+  bool get startsWithWhitespace => whitespaces.any(startsWith);
+
+  static const whitespaces = [' ', '\n', '\r', '\t'];
+}
