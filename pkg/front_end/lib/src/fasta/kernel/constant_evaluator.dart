@@ -3162,7 +3162,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
 
     String name = target.name.text;
-    if (target is Procedure && target.isFactory) {
+    if (target.isFactory) {
       if (name.isEmpty) {
         name = target.enclosingClass!.name;
       } else {
