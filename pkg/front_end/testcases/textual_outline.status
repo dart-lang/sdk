@@ -28,6 +28,8 @@ constructor_tearoffs/generic_tearoff_without_context: FormatterCrash
 constructor_tearoffs/instantiation: FormatterCrash
 constructor_tearoffs/nongeneric_tearoff_with_context: FormatterCrash
 constructor_tearoffs/nongeneric_tearoff_without_context: FormatterCrash
+constructor_tearoffs/redirecting_constructors: FormatterCrash
+constructor_tearoffs/unnamed_constructor: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
 extensions/extension_constructor: FormatterCrash
