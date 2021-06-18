@@ -799,21 +799,31 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     _dispatch(node.parameter);
     var defaultValue = node.defaultValue;
+    var declaredElement = node.declaredElement;
     if (defaultValue == null) {
-      if (node.declaredElement.hasRequired) {
+      if (declaredElement.hasRequired) {
         // Nothing to do; the implicit default value of `null` will never be
         // reached.
       } else if (_variables.getRequiredHint(source, node) != null) {
         // Nothing to do; assume the implicit default value of `null` will never
         // be reached.
       } else {
-        _graph.makeNullable(
-            getOrComputeElementType(node, node.declaredElement).node,
-            OptionalFormalParameterOrigin(source, node));
+        var enclosingElement = declaredElement.enclosingElement;
+        if (enclosingElement is ConstructorElement &&
+            enclosingElement.isFactory &&
+            enclosingElement.redirectedConstructor != null) {
+          // Redirecting factory constructors inherit their parameters' default
+          // values from the constructors they redirect to, so the lack of a
+          // default value doesn't mean the parameter has to be nullable.
+        } else {
+          _graph.makeNullable(
+              getOrComputeElementType(node, declaredElement).node,
+              OptionalFormalParameterOrigin(source, node));
+        }
       }
     } else {
       _handleAssignment(defaultValue,
-          destinationType: getOrComputeElementType(node, node.declaredElement),
+          destinationType: getOrComputeElementType(node, declaredElement),
           fromDefaultValue: true);
     }
     return null;

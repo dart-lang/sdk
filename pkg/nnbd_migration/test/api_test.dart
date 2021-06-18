@@ -1096,6 +1096,86 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_constructor_optional_param_factory() async {
+    var content = '''
+class C {
+  factory C([int x]) => C._();
+  C._([int x = 0]);
+}
+''';
+    var expected = '''
+class C {
+  factory C([int? x]) => C._();
+  C._([int x = 0]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_constructor_optional_param_factory_redirecting_named() async {
+    var content = '''
+class C {
+  factory C({int x}) = C._;
+  C._({int x = 0});
+}
+''';
+    var expected = '''
+class C {
+  factory C({int x}) = C._;
+  C._({int x = 0});
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_constructor_optional_param_factory_redirecting_unnamed() async {
+    var content = '''
+class C {
+  factory C([int x]) = C._;
+  C._([int x = 0]);
+}
+''';
+    var expected = '''
+class C {
+  factory C([int x]) = C._;
+  C._([int x = 0]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_constructor_optional_param_normal() async {
+    var content = '''
+class C {
+  C([int x]);
+}
+''';
+    var expected = '''
+class C {
+  C([int? x]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_constructor_optional_param_redirecting() async {
+    var content = '''
+class C {
+  C([int x]) : this._();
+  C._([int x = 0]);
+}
+''';
+    var expected = '''
+class C {
+  C([int? x]) : this._();
+  C._([int x = 0]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_constructorDeclaration_factory_non_null_return() async {
     var content = '''
 class C {

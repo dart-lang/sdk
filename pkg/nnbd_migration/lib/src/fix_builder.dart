@@ -1118,7 +1118,14 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       var nullabilityNode =
           _fixBuilder._variables.decoratedElementType(element).node;
       if (!nullabilityNode.isNullable) {
-        if (element.isNamed) {
+        var enclosingElement = element.enclosingElement;
+        if (enclosingElement is ConstructorElement &&
+            enclosingElement.isFactory &&
+            enclosingElement.redirectedConstructor != null) {
+          // Redirecting factory constructors inherit their parameters' default
+          // values from the constructors they redirect to, so the lack of a
+          // default value doesn't mean the parameter has to be nullable.
+        } else if (element.isNamed) {
           _addRequiredKeyword(node, nullabilityNode, requiredHint);
         } else {
           _fixBuilder._addProblem(
