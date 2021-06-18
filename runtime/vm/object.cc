@@ -313,7 +313,6 @@ const char* String::ScrubName(const String& name, bool is_extension) {
 
   printer.Clear();
   intptr_t start = 0;
-  intptr_t final_len = 0;
   intptr_t len = sum_segment_len;
   bool is_setter = false;
   if (is_extension) {
@@ -323,7 +322,6 @@ const char* String::ScrubName(const String& name, bool is_extension) {
         intptr_t slen = i + 1;
         intptr_t plen = slen - start;
         AppendSubString(&printer, unmangled_name, start, plen);
-        final_len = plen;
         unmangled_name += slen;
         len -= slen;
         break;
@@ -379,13 +377,11 @@ const char* String::ScrubName(const String& name, bool is_extension) {
   intptr_t end = ((dot_pos + 1) == len) ? dot_pos : len;
 
   intptr_t substr_len = end - start;
-  final_len += substr_len;
   AppendSubString(&printer, unmangled_name, start, substr_len);
   if (is_setter) {
     const char* equals = Symbols::Equals().ToCString();
     const intptr_t equals_len = strlen(equals);
     AppendSubString(&printer, equals, 0, equals_len);
-    final_len += equals_len;
   }
 
   return printer.buffer();

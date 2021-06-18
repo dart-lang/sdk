@@ -1331,8 +1331,7 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
     TypeParameters& type_params = TypeParameters::Handle();
     Function& current = Function::Handle(function().ptr());
     intptr_t mapping_offset = num_vars;
-    for (intptr_t i = 0; !current.IsNull(); i += current.NumTypeParameters(),
-                  current = current.parent_function()) {
+    for (; !current.IsNull(); current = current.parent_function()) {
       type_params = current.type_parameters();
       if (type_params.IsNull()) continue;
       intptr_t size = current.NumTypeParameters();
