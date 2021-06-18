@@ -11,8 +11,8 @@ import "dart:isolate";
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';
+import 'package:ffi/ffi.dart';
 
-import 'arena.dart';
 import '../dylib_utils.dart';
 
 void main() {
