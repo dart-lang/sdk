@@ -50,6 +50,11 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
   }
 
   @override
+  void finished() {
+    migrationSummary?.write();
+  }
+
+  @override
   void graphEdge(EdgeInfo edge, EdgeOriginInfo originInfo) {
     data.edgeOrigin[edge] = originInfo;
   }
@@ -129,10 +134,5 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
         }
       }
     }
-  }
-
-  @override
-  void finished() {
-    migrationSummary?.write();
   }
 }
