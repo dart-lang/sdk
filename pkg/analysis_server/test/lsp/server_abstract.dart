@@ -827,11 +827,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final path = Uri.parse(edit.textDocument.uri).toFilePath();
     final expectedVersion = expectedVersions[path];
 
-    if (edit.textDocument is OptionalVersionedTextDocumentIdentifier) {
-      expect(edit.textDocument.version, equals(expectedVersion));
-    } else {
-      throw 'Document identifier for $path was not versioned (expected version $expectedVersion)';
-    }
+    expect(edit.textDocument.version, equals(expectedVersion));
   }
 
   /// Validates the document versions for a set of edits match the versions in

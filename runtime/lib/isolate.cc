@@ -283,15 +283,18 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   Object& validated_result = Object::Handle(zone);
-  Object& msg_obj = Object::Handle(zone, obj.ptr());
+  const Object& msg_obj = Object::Handle(zone, obj.ptr());
   validated_result = ValidateMessageObject(zone, isolate, msg_obj);
+  // msg_array = [<message>, <object-in-message-to-rehash>]
+  const Array& msg_array = Array::Handle(zone, Array::New(2));
+  msg_array.SetAt(0, msg_obj);
   if (validated_result.IsUnhandledException()) {
     Exceptions::PropagateError(Error::Cast(validated_result));
     UNREACHABLE();
   }
   PersistentHandle* handle =
       isolate->group()->api_state()->AllocatePersistentHandle();
-  handle->set_ptr(msg_obj);
+  handle->set_ptr(msg_array);
   isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
   // TODO(aam): Ensure there are no dart api calls after this point as we want
   // to ensure that validated message won't get tampered with.

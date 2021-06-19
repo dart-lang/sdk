@@ -186,9 +186,11 @@ class Driver implements CommandLineStarter {
     // batch flag and source file" error message.
     ErrorFormatter formatter;
     if (options.jsonFormat) {
-      formatter = JsonErrorFormatter(errorSink, options, stats,
+      formatter = JsonErrorFormatter(outSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     } else if (options.machineFormat) {
+      // The older machine format emits to stderr (instead of stdout) for legacy
+      // reasons.
       formatter = MachineErrorFormatter(errorSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     } else {
@@ -368,7 +370,7 @@ class Driver implements CommandLineStarter {
 
     formatter.flush();
 
-    if (!options.machineFormat) {
+    if (!options.machineFormat && !options.jsonFormat) {
       stats.print(outSink);
     }
 

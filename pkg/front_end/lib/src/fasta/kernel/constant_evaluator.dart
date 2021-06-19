@@ -1523,7 +1523,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (isSymbol) {
       final Constant nameValue = positionals.single;
 
-      if (nameValue is StringConstant && isValidSymbolName(nameValue.value)) {
+      // For libraries with null safety Symbol constructor accepts arbitrary
+      // string as argument.
+      if (nameValue is StringConstant &&
+          (isNonNullableByDefault || isValidSymbolName(nameValue.value))) {
         return canonicalize(new SymbolConstant(nameValue.value, null));
       }
       return createErrorConstant(
@@ -3159,7 +3162,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
 
     String name = target.name.text;
-    if (target is Procedure && target.isFactory) {
+    if (target.isFactory) {
       if (name.isEmpty) {
         name = target.enclosingClass!.name;
       } else {

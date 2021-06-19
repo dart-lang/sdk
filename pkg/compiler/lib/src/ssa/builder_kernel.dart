@@ -599,7 +599,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // TODO(sra): The source information should indiciate the field and
       // possibly its type but not the initializer.
       value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
-      value = _potentiallyAssertNotNull(node, value, type);
+      value = _potentiallyAssertNotNull(field, node, value, type);
       if (!_fieldAnalysis.getFieldData(field).isElided) {
         add(HFieldSet(_abstractValueDomain, field, thisInstruction, value));
       }
@@ -1371,7 +1371,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     return true;
   }
 
-  void _potentiallyAddFunctionParameterTypeChecks(
+  void _potentiallyAddFunctionParameterTypeChecks(MemberEntity member,
       ir.FunctionNode function, TargetChecks targetChecks) {
     // Put the type checks in the first successor of the entry,
     // because that is where the type guards will also be inserted.
@@ -1417,7 +1417,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             targetElement, newParameter, type);
       }
       // TODO(sra): Hoist out of loop.
-      newParameter = _potentiallyAssertNotNull(variable, newParameter, type);
+      newParameter =
+          _potentiallyAssertNotNull(member, variable, newParameter, type);
       localsHandler.updateLocal(local, newParameter);
     }
 
@@ -1448,11 +1449,20 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// In mixed mode, inserts an assertion of the form `assert(x != null)` for
   /// parameters in opt-in libraries that have a static type that cannot be
   /// nullable under a strong interpretation.
-  HInstruction _potentiallyAssertNotNull(
+  HInstruction _potentiallyAssertNotNull(MemberEntity member,
       ir.TreeNode context, HInstruction value, DartType type) {
     if (!options.enableNullAssertions) return value;
     if (!_isNonNullableByDefault(context)) return value;
     if (!dartTypes.isNonNullableIfSound(type)) return value;
+
+    // `operator==` is usually augmented to handle a `null`-argument before this
+    // test would be inserted.  There are a few exceptions (Object,
+    // Interceptor), where the body of the `==` method is designed to handle a
+    // `null` argument. In the usual case the null assertion is unnecessary and
+    // will be optimized away. In the exception cases a null assertion would be
+    // incorrect. Either way we should not do a null-assertion on the parameter
+    // of any `operator==` method.
+    if (member.name == '==') return value;
 
     if (options.enableUserAssertions) {
       pushCheckNull(value);
@@ -1668,7 +1678,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     if (functionNode != null) {
-      _potentiallyAddFunctionParameterTypeChecks(functionNode, checks);
+      _potentiallyAddFunctionParameterTypeChecks(member, functionNode, checks);
     }
     _insertCoverageCall(member);
   }
@@ -6311,7 +6321,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             function, argument, type);
       }
       checkedOrTrusted =
-          _potentiallyAssertNotNull(variable, checkedOrTrusted, type);
+          _potentiallyAssertNotNull(function, variable, checkedOrTrusted, type);
       localsHandler.updateLocal(parameter, checkedOrTrusted);
     });
   }

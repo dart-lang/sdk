@@ -200,6 +200,7 @@ Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:72:46 -> BoolCon
 Evaluated: IsExpression @ org-dartlang-testcase:///various.dart:73:46 -> BoolConstant(true)
 Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///various.dart:76:11 -> SymbolConstant(#)
 Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:76:25 -> StringConstant("")
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:77:44 -> SymbolConstant(#42)
 Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:107:17 -> BoolConstant(false)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:107:71 -> InstanceConstant(const C{})
 Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:108:17 -> BoolConstant(false)
@@ -227,4 +228,4 @@ Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:
 Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:130:10 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:130:35 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:131:37 -> NullConstant(null)
-Extra constant evaluation: evaluated: 112, effectively constant: 68
+Extra constant evaluation: evaluated: 112, effectively constant: 69

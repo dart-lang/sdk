@@ -188,6 +188,10 @@ class FindNode {
     return _node(search, (n) => n is IntegerLiteral);
   }
 
+  IsExpression isExpression(String search) {
+    return _node(search, (n) => n is IsExpression);
+  }
+
   Label label(String search) {
     return _node(search, (n) => n is Label);
   }

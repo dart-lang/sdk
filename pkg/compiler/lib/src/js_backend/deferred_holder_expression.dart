@@ -19,7 +19,7 @@ import 'namer.dart';
 enum DeferredHolderExpressionKind {
   globalObjectForStaticState,
   globalObjectForConstant,
-  globalObjectForLibrary,
+  globalObjectForInterceptors,
   globalObjectForClass,
   globalObjectForMember,
 }
@@ -45,6 +45,11 @@ class DeferredHolderExpression extends js.DeferredExpression
   DeferredHolderExpression._(
       this.kind, this.data, this._value, this.sourceInformation);
 
+  factory DeferredHolderExpression.forInterceptors() {
+    return DeferredHolderExpression(
+        DeferredHolderExpressionKind.globalObjectForInterceptors, null);
+  }
+
   factory DeferredHolderExpression.forStaticState() {
     return DeferredHolderExpression(
         DeferredHolderExpressionKind.globalObjectForStaticState, null);
@@ -55,9 +60,6 @@ class DeferredHolderExpression extends js.DeferredExpression
     var kind = source.readEnum(DeferredHolderExpressionKind.values);
     Object data;
     switch (kind) {
-      case DeferredHolderExpressionKind.globalObjectForLibrary:
-        data = source.readLibrary();
-        break;
       case DeferredHolderExpressionKind.globalObjectForClass:
         data = source.readClass();
         break;
@@ -67,6 +69,7 @@ class DeferredHolderExpression extends js.DeferredExpression
       case DeferredHolderExpressionKind.globalObjectForConstant:
         data = source.readConstant();
         break;
+      case DeferredHolderExpressionKind.globalObjectForInterceptors:
       case DeferredHolderExpressionKind.globalObjectForStaticState:
         // no entity.
         break;
@@ -79,9 +82,6 @@ class DeferredHolderExpression extends js.DeferredExpression
     sink.begin(tag);
     sink.writeEnum(kind);
     switch (kind) {
-      case DeferredHolderExpressionKind.globalObjectForLibrary:
-        sink.writeLibrary(data);
-        break;
       case DeferredHolderExpressionKind.globalObjectForClass:
         sink.writeClass(data);
         break;
@@ -91,6 +91,7 @@ class DeferredHolderExpression extends js.DeferredExpression
       case DeferredHolderExpressionKind.globalObjectForConstant:
         sink.writeConstant(data);
         break;
+      case DeferredHolderExpressionKind.globalObjectForInterceptors:
       case DeferredHolderExpressionKind.globalObjectForStaticState:
         // no entity.
         break;
@@ -375,7 +376,8 @@ class DeferredHolderExpressionFinalizerImpl
 
   /// Returns the [reservedGlobalObjectNames] for [library].
   String globalObjectNameForLibrary(LibraryEntity library) {
-    if (library == _commonElements.interceptorsLibrary) return 'J';
+    if (library == _commonElements.interceptorsLibrary)
+      return globalObjectNameForInterceptors();
     Uri uri = library.canonicalUri;
     if (uri.scheme == 'dart') {
       if (uri.path == 'html') return 'W';
@@ -410,6 +412,8 @@ class DeferredHolderExpressionFinalizerImpl
 
   final Holder globalObjectForStaticState =
       Holder(globalObjectNameForStaticState());
+
+  static String globalObjectNameForInterceptors() => 'J';
 
   static String globalObjectNameForStaticState() => r'$';
 
@@ -458,8 +462,8 @@ class DeferredHolderExpressionFinalizerImpl
   /// [DeferredHolderExpressionKind].
   String kindToHolderName(DeferredHolderExpressionKind kind, Object data) {
     switch (kind) {
-      case DeferredHolderExpressionKind.globalObjectForLibrary:
-        return globalObjectNameForLibrary(data);
+      case DeferredHolderExpressionKind.globalObjectForInterceptors:
+        return globalObjectNameForInterceptors();
       case DeferredHolderExpressionKind.globalObjectForClass:
         return globalObjectNameForClass(data);
       case DeferredHolderExpressionKind.globalObjectForMember:
@@ -820,6 +824,8 @@ class LegacyDeferredHolderExpressionFinalizerImpl
     return globalObjectForLibrary(entity.library);
   }
 
+  String globalObjectForInterceptors() => 'J';
+
   String globalObjectForStaticState() => r'$';
 
   String globalObjectForConstants() => 'C';
@@ -848,8 +854,8 @@ class LegacyDeferredHolderExpressionFinalizerImpl
   /// [DeferredHolderExpressionKind].
   String kindToHolder(DeferredHolderExpressionKind kind, Object data) {
     switch (kind) {
-      case DeferredHolderExpressionKind.globalObjectForLibrary:
-        return globalObjectForLibrary(data);
+      case DeferredHolderExpressionKind.globalObjectForInterceptors:
+        return globalObjectForInterceptors();
       case DeferredHolderExpressionKind.globalObjectForClass:
         return globalObjectForClass(data);
       case DeferredHolderExpressionKind.globalObjectForMember:

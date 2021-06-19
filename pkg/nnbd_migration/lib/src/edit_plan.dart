@@ -185,8 +185,9 @@ class EditPlanner {
   EditPlanner(this.lineInfo, this.sourceText, {this.removeViaComments = false});
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
-  /// converting the late [hint] into an explicit `late`.
-  NodeProducingEditPlan acceptLateHint(
+  /// converting the [hint] (which precedes the node) into text that is not
+  /// commented out.
+  NodeProducingEditPlan acceptPrefixHint(
       NodeProducingEditPlan innerPlan, HintComment hint,
       {AtomicEditInfo info}) {
     var affixPlan = innerPlan is _CommentAffixPlan
@@ -200,8 +201,9 @@ class EditPlanner {
   }
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
-  /// converting the nullability [hint] into an explicit `?` or `!`.
-  NodeProducingEditPlan acceptNullabilityOrNullCheckHint(
+  /// converting the [hint] (which follows the node) into text that is not
+  /// commented out.
+  NodeProducingEditPlan acceptSuffixHint(
       NodeProducingEditPlan innerPlan, HintComment hint,
       {AtomicEditInfo info}) {
     var affixPlan = innerPlan is _CommentAffixPlan

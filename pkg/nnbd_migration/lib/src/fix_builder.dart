@@ -426,7 +426,7 @@ class MigrationResolutionHooksImpl
       node,
       () => node.elements,
       () => _collectionElements[node] ??=
-          _transformCollectionElements(node.elements, node.typeArguments));
+          _transformCollectionElements(node.elements));
 
   @override
   List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) =>
@@ -434,7 +434,7 @@ class MigrationResolutionHooksImpl
           node,
           () => node.elements,
           () => _collectionElements[node] ??=
-              _transformCollectionElements(node.elements, node.typeArguments));
+              _transformCollectionElements(node.elements));
 
   @override
   DartType getTypeParameterBound(TypeParameterElementImpl element) {
@@ -808,7 +808,7 @@ class MigrationResolutionHooksImpl
   }
 
   List<CollectionElement> _transformCollectionElements(
-      NodeList<CollectionElement> elements, TypeArgumentList typeArguments) {
+      NodeList<CollectionElement> elements) {
     return elements
         .map(_transformCollectionElement)
         .where((e) => e != null)
@@ -1113,17 +1113,27 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     var element = node.declaredElement;
     if (node.defaultValue == null) {
+      var requiredHint =
+          _fixBuilder._variables.getRequiredHint(_fixBuilder.source, node);
       var nullabilityNode =
           _fixBuilder._variables.decoratedElementType(element).node;
       if (!nullabilityNode.isNullable) {
-        if (element.isNamed) {
-          _addRequiredKeyword(node, nullabilityNode);
+        var enclosingElement = element.enclosingElement;
+        if (enclosingElement is ConstructorElement &&
+            enclosingElement.isFactory &&
+            enclosingElement.redirectedConstructor != null) {
+          // Redirecting factory constructors inherit their parameters' default
+          // values from the constructors they redirect to, so the lack of a
+          // default value doesn't mean the parameter has to be nullable.
+        } else if (element.isNamed) {
+          _addRequiredKeyword(node, nullabilityNode, requiredHint);
         } else {
           _fixBuilder._addProblem(
               node, const NonNullableUnnamedOptionalParameter());
         }
-      } else if (element.metadata.any((m) => m.isRequired)) {
-        _addRequiredKeyword(node, nullabilityNode);
+      } else if (requiredHint != null ||
+          element.metadata.any((m) => m.isRequired)) {
+        _addRequiredKeyword(node, nullabilityNode, requiredHint);
       }
     }
     super.visitDefaultFormalParameter(node);
@@ -1199,8 +1209,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     super.visitTypeName(node);
   }
 
-  void _addRequiredKeyword(
-      DefaultFormalParameter parameter, NullabilityNode node) {
+  void _addRequiredKeyword(DefaultFormalParameter parameter,
+      NullabilityNode node, HintComment requiredHint) {
     // Change an existing `@required` annotation into a `required` keyword if
     // possible.
     final element = parameter.declaredElement;
@@ -1226,7 +1236,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var nodeChange = (_fixBuilder._getChange(parameter)
         as NodeChangeForDefaultFormalParameter)
       ..addRequiredKeyword = true
-      ..addRequiredKeywordInfo = info;
+      ..addRequiredKeywordInfo = info
+      ..requiredHint = requiredHint;
     var requiredAnnotation = metadata?.firstWhere(
         (annotation) => annotation.elementAnnotation.isRequired,
         orElse: () => null);

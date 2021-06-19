@@ -175,7 +175,6 @@ void CodeStatistics::Finalize() {
 }
 
 void CodeStatistics::AppendTo(CombinedCodeStatistics* stat) {
-  intptr_t sum = 0;
   bool returns_constant = true;
   bool returns_const_with_load_field_ = true;
 
@@ -183,7 +182,6 @@ void CodeStatistics::AppendTo(CombinedCodeStatistics* stat) {
     intptr_t bytes = entries_[i].bytes;
     stat->entries_[i].count += entries_[i].count;
     if (bytes > 0) {
-      sum += bytes;
       stat->entries_[i].bytes += bytes;
       if (i != CombinedCodeStatistics::kTagParallelMove &&
           i != CombinedCodeStatistics::kTagReturn &&

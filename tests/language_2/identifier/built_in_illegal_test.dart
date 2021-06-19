@@ -20,19 +20,8 @@ class dynamic { }
 // [cfe] Can't use 'dynamic' as a name here.
 class export { }
 //    ^^^^^^
-// [analyzer] SYNTACTIC_ERROR.DIRECTIVE_AFTER_DECLARATION
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_BODY
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] A class declaration must have a body, even if it is empty.
-// [cfe] Directives must appear before any declarations.
-// [cfe] Expected an identifier, but got 'export'.
-//           ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_STRING_LITERAL
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ';' after this.
-// [cfe] Expected a String, but got '{'.
-// [cfe] Expected a declaration, but got '{'.
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'export' as a name here.
 class external { }
 //    ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
@@ -43,111 +32,47 @@ class factory { }
 // [cfe] Can't use 'factory' as a name here.
 class get { }
 //    ^^^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_BODY
-// [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_PARAMETERS
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] A class declaration must have a body, even if it is empty.
-// [cfe] A function declaration needs an explicit list of parameters.
-// [cfe] Expected an identifier, but got 'get'.
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'get' as a name here.
 class interface { }
 //    ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'interface' as a name here.
 class implements { }
 //    ^^^^^^^^^^
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] Expected an identifier, but got 'implements'.
-// [error line 56, column 18, length 0]
-// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
-//               ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
-// [cfe] Expected a type, but got '{'.
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'implements' as a name here.
 class import { }
 //    ^^^^^^
-// [analyzer] SYNTACTIC_ERROR.DIRECTIVE_AFTER_DECLARATION
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_BODY
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] A class declaration must have a body, even if it is empty.
-// [cfe] Directives must appear before any declarations.
-// [cfe] Expected an identifier, but got 'import'.
-//           ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_STRING_LITERAL
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ';' after this.
-// [cfe] Expected a String, but got '{'.
-// [cfe] Expected a declaration, but got '{'.
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'import' as a name here.
 class mixin { }
 //    ^^^^^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_BODY
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] A class declaration must have a body, even if it is empty.
-// [cfe] Expected an identifier, but got 'mixin'.
-//          ^
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] Expected an identifier, but got '{'.
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'mixin' as a name here.
 class library { }
 //    ^^^^^^^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_BODY
-// [analyzer] SYNTACTIC_ERROR.LIBRARY_DIRECTIVE_NOT_FIRST
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] A class declaration must have a body, even if it is empty.
-// [cfe] Expected an identifier, but got 'library'.
-// [cfe] The library directive must appear before all other directives.
-//            ^
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] Expected an identifier, but got '{'.
-//              ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ';' after this.
-// [cfe] Expected a declaration, but got '}'.
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'library' as a name here.
 class operator { }
 //    ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'operator' as a name here.
 class part { }
 //    ^^^^
-// [analyzer] SYNTACTIC_ERROR.DIRECTIVE_AFTER_DECLARATION
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_BODY
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] A class declaration must have a body, even if it is empty.
-// [cfe] Directives must appear before any declarations.
-// [cfe] Expected an identifier, but got 'part'.
-//         ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_STRING_LITERAL
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ';' after this.
-// [cfe] Expected a String, but got '{'.
-// [cfe] Expected a declaration, but got '{'.
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'part' as a name here.
 class set { }
 //    ^^^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_BODY
-// [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_PARAMETERS
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] A class declaration must have a body, even if it is empty.
-// [cfe] A function declaration needs an explicit list of parameters.
-// [cfe] Expected an identifier, but got 'set'.
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'set' as a name here.
 class static { }
 //    ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'static' as a name here.
 class typedef { }
 //    ^^^^^^^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_BODY
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] A class declaration must have a body, even if it is empty.
-// [cfe] Expected an identifier, but got 'typedef'.
-//            ^
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] Expected an identifier, but got '{'.
-//              ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [analyzer] SYNTACTIC_ERROR.MISSING_TYPEDEF_PARAMETERS
-// [cfe] A typedef needs an explicit list of parameters.
-// [cfe] Expected ';' after this.
-// [cfe] Expected a declaration, but got '}'.
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'typedef' as a name here.
 
 main() {}

@@ -102,7 +102,7 @@ class AssignmentVerifier {
       }
     } else if (recovery is MultiplyDefinedElementImpl) {
       // Will be reported in ErrorVerifier.
-    } else if (node is SimpleIdentifier) {
+    } else {
       if (node.isSynthetic) {
         return;
       }

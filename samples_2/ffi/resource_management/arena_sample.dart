@@ -9,8 +9,8 @@
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';
+import 'package:ffi/ffi.dart';
 
-import 'arena.dart';
 import 'utf8_helpers.dart';
 import '../dylib_utils.dart';
 

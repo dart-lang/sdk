@@ -40,6 +40,15 @@ class Foo {
     ]);
   }
 
+  test_functionExpression() async {
+    await assertErrorsInCode('''
+const a = () {};
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
+          5),
+    ]);
+  }
+
   test_missingConstInListLiteral() async {
     await assertNoErrorsInCode('''
 const List L = [0];

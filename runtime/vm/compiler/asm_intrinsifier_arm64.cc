@@ -1418,19 +1418,15 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
 // Compares cid1 and cid2 to see if they're syntactically equivalent. If this
 // can be determined by this fast path, it jumps to either equal or not_equal,
-// if equal but belonging to a generic class, it falls through with the scratch
-// register containing host_type_arguments_field_offset_in_words,
-// otherwise it jumps to normal_ir_body. May clobber scratch.
+// otherwise it jumps to normal_ir_body. May clobber cid1, cid2, and scratch.
 static void EquivalentClassIds(Assembler* assembler,
                                Label* normal_ir_body,
                                Label* equal,
                                Label* not_equal,
                                Register cid1,
                                Register cid2,
-                               Register scratch,
-                               bool testing_instance_cids) {
-  Label different_cids, equal_cids_but_generic, not_integer,
-      not_integer_or_string;
+                               Register scratch) {
+  Label different_cids, not_integer, not_integer_or_string;
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ CompareImmediate(cid1, kClosureCid);
@@ -1447,12 +1443,10 @@ static void EquivalentClassIds(Assembler* assembler,
   // Otherwise fall through into the runtime to handle comparison.
   __ LoadClassById(scratch, cid1);
   __ ldr(scratch,
-         FieldAddress(
-             scratch,
-             target::Class::host_type_arguments_field_offset_in_words_offset()),
-         kFourBytes);
-  __ CompareImmediate(scratch, target::Class::kNoTypeArguments);
-  __ b(&equal_cids_but_generic, NE);
+         FieldAddress(scratch, target::Class::num_type_arguments_offset(),
+                      kTwoBytes),
+         kTwoBytes);
+  __ cbnz(normal_ir_body, scratch);
   __ b(equal);
 
   // Class ids are different. Check if we are comparing two string types (with
@@ -1471,50 +1465,35 @@ static void EquivalentClassIds(Assembler* assembler,
 
   __ Bind(&not_integer);
   // Check if both are String types.
-  JumpIfNotString(assembler, cid1, scratch,
-                  testing_instance_cids ? &not_integer_or_string : not_equal);
+  JumpIfNotString(assembler, cid1, scratch, &not_integer_or_string);
 
   // First type is String. Check if the second is a string too.
   JumpIfString(assembler, cid2, scratch, equal);
   // String types are only equivalent to other String types.
   __ b(not_equal);
 
-  if (testing_instance_cids) {
-    __ Bind(&not_integer_or_string);
-    // Check if the first type is a Type. If it is not then types are not
-    // equivalent because they have different class ids and they are not String
-    // or integer or Type.
-    JumpIfNotType(assembler, cid1, scratch, not_equal);
+  __ Bind(&not_integer_or_string);
+  // Check if the first type is a Type. If it is not then types are not
+  // equivalent because they have different class ids and they are not String
+  // or integer or Type.
+  JumpIfNotType(assembler, cid1, scratch, not_equal);
 
-    // First type is a Type. Check if the second is a Type too.
-    JumpIfType(assembler, cid2, scratch, equal);
-    // Type types are only equivalent to other Type types.
-    __ b(not_equal);
-  }
-
-  // The caller must compare the type arguments.
-  __ Bind(&equal_cids_but_generic);
+  // First type is a Type. Check if the second is a Type too.
+  JumpIfType(assembler, cid2, scratch, equal);
+  // Type types are only equivalent to other Type types.
+  __ b(not_equal);
 }
 
 void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  __ ldp(R0, R1, Address(SP, 0 * target::kWordSize, Address::PairOffset));
-  __ LoadClassIdMayBeSmi(R2, R1);
+  __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
 
-  Label equal, not_equal;
-  EquivalentClassIds(assembler, normal_ir_body, &equal, &not_equal, R1, R2, R0,
-                     /* testing_instance_cids = */ true);
+  __ ldr(R0, Address(SP, 1 * target::kWordSize));
+  __ LoadClassIdMayBeSmi(R2, R0);
 
-  // Compare type arguments, host_type_arguments_field_offset_in_words in R0.
-  __ ldp(R1, R2, Address(SP, 0 * target::kWordSize, Address::PairOffset));
-  __ AddImmediate(R1, -kHeapObjectTag);
-  __ ldr(R1, Address(R1, R0, UXTX, Address::Scaled));
-  __ AddImmediate(R2, -kHeapObjectTag);
-  __ ldr(R2, Address(R2, R0, UXTX, Address::Scaled));
-  __ CompareObjectRegisters(R1, R2);
-  __ b(&not_equal, NE);
-  // Fall through to equal case if type arguments are equal.
+  Label equal, not_equal;
+  EquivalentClassIds(assembler, normal_ir_body, &equal, &not_equal, R1, R2, R0);
 
   __ Bind(&equal);
   __ LoadObject(R0, CastHandle<Object>(TrueObject()));
@@ -1570,16 +1549,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ LoadCompressedSmi(R4,
                        FieldAddress(R2, target::Type::type_class_id_offset()));
   __ SmiUntag(R4);
-  // We are not testing instance cids, but type class cids of Type instances.
   EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, R3, R4,
-                     R0, /* testing_instance_cids = */ false);
-
-  // Compare type arguments in Type instances.
-  __ LoadCompressed(R3, FieldAddress(R1, target::Type::arguments_offset()));
-  __ LoadCompressed(R4, FieldAddress(R2, target::Type::arguments_offset()));
-  __ CompareObjectRegisters(R3, R4);
-  __ b(normal_ir_body, NE);
-  // Fall through to check nullability if type arguments are equal.
+                     R0);
 
   // Check nullability.
   __ Bind(&equiv_cids);

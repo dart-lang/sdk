@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+
 // We need to use the 'io' prefix here, otherwise io.exitCode will shadow
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import 'dart:io' as io;
@@ -459,11 +460,11 @@ class BrowserCommandOutput extends CommandOutput
 
 /// A parsed analyzer error diagnostic.
 class AnalyzerError implements Comparable<AnalyzerError> {
-  /// Parses all errors from analyzer [stderr] output.
-  static List<AnalyzerError> parseStderr(String stderr) {
+  /// Parses all errors from analyzer [stdout] output.
+  static List<AnalyzerError> parseStdout(String stdout) {
     var result = <AnalyzerError>[];
 
-    var jsonData = json.decode(stderr) as Map<String, dynamic>;
+    var jsonData = json.decode(stdout) as Map<String, dynamic>;
     var version = jsonData['version'];
     if (version != 1) {
       DebugLogger.error('Unexpected analyzer JSON data version: $version');
@@ -543,8 +544,11 @@ class AnalyzerError implements Comparable<AnalyzerError> {
 }
 
 class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
-  static void parseErrors(String stderr, List<StaticError> errors,
-      [List<StaticError> warnings]) {
+  static void parseErrors(
+    String stdout,
+    List<StaticError> errors, [
+    List<StaticError> warnings,
+  ]) {
     StaticError convert(AnalyzerError error) {
       var staticError = StaticError(ErrorSource.analyzer, error.errorCode,
           line: error.line, column: error.column, length: error.length);
@@ -570,7 +574,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
 
     // Parse as Analyzer errors and then convert them to the StaticError objects
     // the static error tests expect.
-    for (var diagnostic in AnalyzerError.parseStderr(stderr)) {
+    for (var diagnostic in AnalyzerError.parseStdout(stdout)) {
       if (diagnostic.severity == 'ERROR') {
         errors.add(convert(diagnostic));
       } else if (diagnostic.severity == 'WARNING' && warnings != null) {
@@ -579,18 +583,18 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     }
   }
 
-  /// If the stderr of analyzer could not be parsed as valid JSON, this will
-  /// be the stderr as a string instead. Otherwise it will be null.
-  String get invalidJsonStderr {
+  /// If the stdout of analyzer could not be parsed as valid JSON, this will be
+  /// the stdout as a string instead. Otherwise it will be null.
+  String get invalidJsonStdout {
     if (!_parsedErrors) {
       _parseErrors();
       _parsedErrors = true;
     }
 
-    return _invalidJsonStderr;
+    return _invalidJsonStdout;
   }
 
-  String _invalidJsonStderr;
+  String _invalidJsonStdout;
 
   AnalysisCommandOutput(
       Command command,
@@ -614,7 +618,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
     if (truncatedOutput) return Expectation.truncatedOutput;
 
-    if (invalidJsonStderr != null) return Expectation.fail;
+    if (invalidJsonStdout != null) return Expectation.fail;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -661,7 +665,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
     if (truncatedOutput) return Expectation.truncatedOutput;
 
-    if (invalidJsonStderr != null) return Expectation.fail;
+    if (invalidJsonStdout != null) return Expectation.fail;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -679,9 +683,9 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
 
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
-    if (invalidJsonStderr != null) {
-      output.subsection("invalid JSON on analyzer stderr");
-      output.write(invalidJsonStderr);
+    if (invalidJsonStdout != null) {
+      output.subsection("invalid analyzer json");
+      output.write(invalidJsonStdout);
       return;
     }
 
@@ -692,7 +696,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     } else {
       // Parse and sort the errors.
       var errorsByFile = <String, List<AnalyzerError>>{};
-      for (var error in AnalyzerError.parseStderr(decodeUtf8(stderr))) {
+      for (var error in AnalyzerError.parseStdout(decodeUtf8(stdout))) {
         errorsByFile.putIfAbsent(error.file, () => []).add(error);
       }
 
@@ -720,20 +724,20 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     }
   }
 
-  /// Parses the JSON output of analyzer.
+  /// Parses the JSON output of the analyzer.
   @override
   void _parseErrors() {
-    var stderrString = decodeUtf8(stderr);
+    var stdoutString = decodeUtf8(stdout);
     try {
       var errors = <StaticError>[];
       var warnings = <StaticError>[];
-      parseErrors(stderrString, errors, warnings);
+      parseErrors(stdoutString, errors, warnings);
       errors.forEach(addError);
       warnings.forEach(addWarning);
     } on FormatException {
       // It wasn't JSON. This can happen if analyzer instead prints:
       // "No dart files found at: ..."
-      _invalidJsonStderr = stderrString;
+      _invalidJsonStdout = stdoutString;
     }
   }
 }
@@ -1293,6 +1297,7 @@ class ScriptCommandOutput extends CommandOutput {
   }
 
   Expectation result(TestCase testCase) => _result;
+
   Expectation realResult(TestCase testCase) => _result;
 
   bool get canRunDependendCommands => _result == Expectation.pass;

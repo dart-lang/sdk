@@ -10,6 +10,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 class ElementWalker {
   /// The element whose child elements are being walked.
   final Element element;
+  String? libraryFilePath;
+  String? unitFilePath;
 
   List<PropertyAccessorElement>? _accessors;
   int _accessorIndex = 0;
@@ -48,7 +50,8 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
-  ElementWalker.forCompilationUnit(CompilationUnitElement element)
+  ElementWalker.forCompilationUnit(CompilationUnitElement element,
+      {this.libraryFilePath, this.unitFilePath})
       : element = element,
         _accessors = element.accessors.where(_isNotSynthetic).toList(),
         _classes = element.classes,
@@ -119,7 +122,22 @@ class ElementWalker {
 
   /// Returns the next non-synthetic child of [element] which is a class; throws
   /// an [IndexError] if there are no more.
-  ClassElementImpl getClass() => _classes![_classIndex++] as ClassElementImpl;
+  ClassElementImpl getClass() {
+    // TODO(scheglov) Remove after fixing.
+    // https://github.com/dart-lang/sdk/issues/46392
+    var classes = _classes;
+    if (classes != null && _classIndex >= classes.length) {
+      throw StateError(
+        '[_classIndex: $_classIndex]'
+        '[classes.length: ${classes.length}]'
+        '[classes: $classes]'
+        '[element.source: ${element.source?.fullName}]'
+        '[libraryFilePath: $libraryFilePath]'
+        '[unitFilePath: $unitFilePath]',
+      );
+    }
+    return _classes![_classIndex++] as ClassElementImpl;
+  }
 
   /// Returns the next non-synthetic child of [element] which is a constructor;
   /// throws an [IndexError] if there are no more.

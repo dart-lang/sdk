@@ -187,6 +187,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('Block');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('leftBracket', node.leftBracket);
+      properties.addToken('rightBracket', node.rightBracket);
       properties.addNodeList('statements', node.statements);
       _addStatement(properties, node);
       _writeProperties(properties);
@@ -578,6 +580,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FormalParameterList');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('leftParenthesis', node.leftParenthesis);
+      properties.addToken('rightParenthesis', node.rightParenthesis);
       properties.addNodeList('parameters', node.parameters);
       _addAstNode(properties, node);
       _writeProperties(properties);

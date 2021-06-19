@@ -124,6 +124,32 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
+  Future<void> test_accept_required_hint() async {
+    var content = '''
+f({/*required*/ int i}) {}
+''';
+    var expected = '''
+f({required int i}) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_accept_required_hint_nullable() async {
+    var content = '''
+f({/*required*/ int i}) {}
+g() {
+  f(i: null);
+}
+''';
+    var expected = '''
+f({required int? i}) {}
+g() {
+  f(i: null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_add_explicit_parameter_type() async {
     var content = '''
 abstract class C {
@@ -1065,6 +1091,86 @@ void main() {
   int? x2 = f2<int>(true, 0, null) as int?;
   int? x3 = f3<int>(true, null, 0) as int?;
   int x4 = f4<int>(true, 0, 0) as int;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_constructor_optional_param_factory() async {
+    var content = '''
+class C {
+  factory C([int x]) => C._();
+  C._([int x = 0]);
+}
+''';
+    var expected = '''
+class C {
+  factory C([int? x]) => C._();
+  C._([int x = 0]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_constructor_optional_param_factory_redirecting_named() async {
+    var content = '''
+class C {
+  factory C({int x}) = C._;
+  C._({int x = 0});
+}
+''';
+    var expected = '''
+class C {
+  factory C({int x}) = C._;
+  C._({int x = 0});
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_constructor_optional_param_factory_redirecting_unnamed() async {
+    var content = '''
+class C {
+  factory C([int x]) = C._;
+  C._([int x = 0]);
+}
+''';
+    var expected = '''
+class C {
+  factory C([int x]) = C._;
+  C._([int x = 0]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_constructor_optional_param_normal() async {
+    var content = '''
+class C {
+  C([int x]);
+}
+''';
+    var expected = '''
+class C {
+  C([int? x]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_constructor_optional_param_redirecting() async {
+    var content = '''
+class C {
+  C([int x]) : this._();
+  C._([int x = 0]);
+}
+''';
+    var expected = '''
+class C {
+  C([int? x]) : this._();
+  C._([int x = 0]);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

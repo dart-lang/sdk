@@ -294,7 +294,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    _writeNotSerializableExpression();
+    _writeByte(Tag.FunctionExpressionStub);
   }
 
   @override

@@ -19,7 +19,6 @@ typedef int64_t Dart_Port;
 
 namespace dart {
 
-class Bequest;
 class JSONStream;
 class PersistentHandle;
 class OldPage;
@@ -68,7 +67,7 @@ class Message {
           Dart_Port delivery_failure_port = kIllegalPort);
 
   Message(Dart_Port dest_port,
-          Bequest* bequest,
+          PersistentHandle* handle,
           Priority priority,
           Dart_Port delivery_failure_port = kIllegalPort);
 
@@ -101,9 +100,9 @@ class Message {
     ASSERT(IsRaw());
     return payload_.raw_obj_;
   }
-  Bequest* bequest() const {
-    ASSERT(IsBequest());
-    return payload_.bequest_;
+  PersistentHandle* persistent_handle() const {
+    ASSERT(IsPersistentHandle());
+    return payload_.persistent_handle_;
   }
   Priority priority() const { return priority_; }
 
@@ -111,11 +110,14 @@ class Message {
   // of at the top of the message loop. Control messages from dart:isolate or
   // vm-service requests.
   bool IsOOB() const { return priority_ == Message::kOOBPriority; }
-  bool IsSnapshot() const { return !IsRaw() && !IsBequest(); }
+  bool IsSnapshot() const { return !IsRaw() && !IsPersistentHandle(); }
   // A message whose object is an immortal object from the vm-isolate's heap.
   bool IsRaw() const { return snapshot_length_ == 0; }
-  // A message sent from sendAndExit.
-  bool IsBequest() const { return snapshot_length_ == -1; }
+  // A message sent from SendPort.send or SendPort.sendAndExit where sender and
+  // receiver are in the same isolate group.
+  bool IsPersistentHandle() const {
+    return snapshot_length_ == kPersistentHandleSnapshotLen;
+  }
 
   bool RedirectToDeliveryFailurePort();
 
@@ -130,22 +132,25 @@ class Message {
   static const char* PriorityAsString(Priority priority);
 
  private:
+  static intptr_t const kPersistentHandleSnapshotLen = -1;
+
   friend class MessageQueue;
 
-  Message* next_;
+  Message* next_ = nullptr;
   Dart_Port dest_port_;
   Dart_Port delivery_failure_port_;
   union Payload {
     Payload(uint8_t* snapshot) : snapshot_(snapshot) {}
     Payload(ObjectPtr raw_obj) : raw_obj_(raw_obj) {}
-    Payload(Bequest* bequest) : bequest_(bequest) {}
+    Payload(PersistentHandle* persistent_handle)
+        : persistent_handle_(persistent_handle) {}
 
     uint8_t* snapshot_;
     ObjectPtr raw_obj_;
-    Bequest* bequest_;
+    PersistentHandle* persistent_handle_;
   } payload_;
-  intptr_t snapshot_length_;
-  MessageFinalizableData* finalizable_data_;
+  intptr_t snapshot_length_ = 0;
+  MessageFinalizableData* finalizable_data_ = nullptr;
   Priority priority_;
 
   DISALLOW_COPY_AND_ASSIGN(Message);

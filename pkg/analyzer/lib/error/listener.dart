@@ -190,9 +190,7 @@ class ErrorReporter {
     for (List<_TypeToConvert> typeGroup in typeGroups.values) {
       if (typeGroup.length == 1) {
         _TypeToConvert typeToConvert = typeGroup[0];
-        if (typeToConvert.type is DartType) {
-          arguments[typeToConvert.index] = typeToConvert.displayName;
-        }
+        arguments[typeToConvert.index] = typeToConvert.displayName;
       } else {
         Map<String, Set<Element>> nameToElementMap = {};
         for (_TypeToConvert typeToConvert in typeGroup) {

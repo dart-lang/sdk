@@ -1500,24 +1500,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (expression is! SimpleIdentifier) return;
 
     // Already handled in the assignment resolver.
-    if (expression is SimpleIdentifier &&
-        expression.parent is AssignmentExpression) {
+    if (expression.parent is AssignmentExpression) {
       return;
     }
 
     // prepare element
-    Element? element;
-    AstNode highlightedNode = expression;
-    if (expression is Identifier) {
-      element = expression.staticElement;
-      if (expression is PrefixedIdentifier) {
-        var prefixedIdentifier = expression as PrefixedIdentifier;
-        highlightedNode = prefixedIdentifier.identifier;
-      }
-    } else if (expression is PropertyAccess) {
-      var propertyAccess = expression as PropertyAccess;
-      element = propertyAccess.propertyName.staticElement;
-      highlightedNode = propertyAccess.propertyName;
+    var highlightedNode = expression;
+    var element = expression.staticElement;
+    if (expression is PrefixedIdentifier) {
+      var prefixedIdentifier = expression as PrefixedIdentifier;
+      highlightedNode = prefixedIdentifier.identifier;
     }
     // check if element is assignable
     if (element is VariableElement) {

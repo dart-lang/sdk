@@ -87,6 +87,9 @@
 * The `dart analyze` command has been extended to support specifying multiple
   files or directories to analyze; see also https://github.com/dart-lang/sdk/issues/45352.
 
+* The `dartanalyzer` command's JSON output mode has been changed to emit the JSON
+  output on stdout instead of stderr.
+
 #### Linter
 
 Updated the Linter to `1.6.1`, which includes changes that

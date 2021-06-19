@@ -190,6 +190,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
               prefixElement.getGetter(name.name) ??
               prefixElement.getSetter(name.name) ??
               prefixElement.getNamedConstructor(name.name);
+        } else if (prefixElement is ExtensionElement) {
+          name.staticElement = prefixElement.getMethod(name.name) ??
+              prefixElement.getGetter(name.name) ??
+              prefixElement.getSetter(name.name);
         } else {
           // TODO(brianwilkerson) Report this error.
         }

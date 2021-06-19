@@ -6555,6 +6555,68 @@ library
 ''');
   }
 
+  test_const_invalid_functionExpression() async {
+    var library = await checkLibrary('''
+const v = () { return 0; };
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: int Function()
+        constantInitializer
+          FunctionExpression
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { @0
+                rightBracket: } @25
+            declaredElement: <null>
+            parameters: FormalParameterList
+              leftParenthesis: ( @10
+              rightParenthesis: ) @0
+            staticType: null
+    accessors
+      synthetic static get v @-1
+        returnType: int Function()
+''');
+  }
+
+  test_const_invalid_functionExpression_nested() async {
+    var library = await checkLibrary('''
+const v = () { return 0; } + 2;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: dynamic
+        constantInitializer
+          BinaryExpression
+            leftOperand: FunctionExpression
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: { @0
+                  rightBracket: } @25
+              declaredElement: <null>
+              parameters: FormalParameterList
+                leftParenthesis: ( @10
+                rightParenthesis: ) @0
+              staticType: null
+            operator: + @27
+            rightOperand: IntegerLiteral
+              literal: 2 @29
+              staticType: int
+            staticElement: <null>
+            staticInvokeType: null
+            staticType: dynamic
+    accessors
+      synthetic static get v @-1
+        returnType: dynamic
+''');
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_const_invalid_intLiteral() async {
     var library = await checkLibrary(r'''
@@ -8604,7 +8666,6 @@ library
 ''');
   }
 
-  /// TODO(scheglov) review location
   test_const_methodInvocation() async {
     var library = await checkLibrary(r'''
 T f<T>(T a) => a;
@@ -12162,6 +12223,8 @@ library
                                   type: dynamic Function()
                                 functionKeyword: Function @86
                                 parameters: FormalParameterList
+                                  leftParenthesis: ( @94
+                                  rightParenthesis: ) @95
                                 type: dynamic Function()
                             leftBracket: < @85
                             rightBracket: > @96
@@ -13690,6 +13753,8 @@ library
                                 type: dynamic Function()
                               functionKeyword: Function @61
                               parameters: FormalParameterList
+                                leftParenthesis: ( @69
+                                rightParenthesis: ) @70
                               type: dynamic Function()
                           leftBracket: < @60
                           rightBracket: > @71
@@ -15669,6 +15734,7 @@ library
                             type: int Function(double)
                           functionKeyword: Function @62
                           parameters: FormalParameterList
+                            leftParenthesis: ( @70
                             parameters
                               SimpleFormalParameter
                                 declaredElement: a@78
@@ -15683,6 +15749,7 @@ library
                                     staticType: null
                                     token: double @71
                                   type: double
+                            rightParenthesis: ) @79
                           returnType: TypeName
                             name: SimpleIdentifier
                               staticElement: dart:core::@class::int
@@ -17279,6 +17346,7 @@ library
                     type: int Function(String)
                   functionKeyword: Function @36
                   parameters: FormalParameterList
+                    leftParenthesis: ( @44
                     parameters
                       SimpleFormalParameter
                         declaredElement: a@52
@@ -17293,6 +17361,7 @@ library
                             staticType: null
                             token: String @45
                           type: String
+                    rightParenthesis: ) @53
                   returnType: TypeName
                     name: SimpleIdentifier
                       staticElement: dart:core::@class::int
@@ -17353,6 +17422,7 @@ library
                     type: int Function(String)
                   functionKeyword: Function @36
                   parameters: FormalParameterList
+                    leftParenthesis: ( @44
                     parameters
                       SimpleFormalParameter
                         declaredElement: a@52
@@ -17367,6 +17437,7 @@ library
                             staticType: null
                             token: String @45
                           type: String
+                    rightParenthesis: ) @53
                   returnType: TypeName
                     name: SimpleIdentifier
                       staticElement: dart:core::@class::int
@@ -17436,6 +17507,7 @@ library
                         type: String Function({int? a})
                       functionKeyword: Function @48
                       parameters: FormalParameterList
+                        leftParenthesis: ( @56
                         parameters
                           DefaultFormalParameter
                             declaredElement: a@63
@@ -17457,6 +17529,7 @@ library
                                   staticType: null
                                   token: int @58
                                 type: int?
+                        rightParenthesis: ) @65
                       returnType: TypeName
                         name: SimpleIdentifier
                           staticElement: dart:core::@class::String
@@ -17521,6 +17594,7 @@ library
                         type: String Function([int?])
                       functionKeyword: Function @48
                       parameters: FormalParameterList
+                        leftParenthesis: ( @56
                         parameters
                           DefaultFormalParameter
                             declaredElement: a@63
@@ -17542,6 +17616,7 @@ library
                                   staticType: null
                                   token: int @58
                                 type: int?
+                        rightParenthesis: ) @65
                       returnType: TypeName
                         name: SimpleIdentifier
                           staticElement: dart:core::@class::String
@@ -17606,6 +17681,7 @@ library
                         type: String Function({required int a})
                       functionKeyword: Function @48
                       parameters: FormalParameterList
+                        leftParenthesis: ( @56
                         parameters
                           DefaultFormalParameter
                             declaredElement: a@71
@@ -17628,6 +17704,7 @@ library
                                   staticType: null
                                   token: int @67
                                 type: int
+                        rightParenthesis: ) @73
                       returnType: TypeName
                         name: SimpleIdentifier
                           staticElement: dart:core::@class::String
@@ -17692,6 +17769,7 @@ library
                         type: String Function(int)
                       functionKeyword: Function @48
                       parameters: FormalParameterList
+                        leftParenthesis: ( @56
                         parameters
                           SimpleFormalParameter
                             declaredElement: a@61
@@ -17706,6 +17784,7 @@ library
                                 staticType: null
                                 token: int @57
                               type: int
+                        rightParenthesis: ) @62
                       returnType: TypeName
                         name: SimpleIdentifier
                           staticElement: dart:core::@class::String
@@ -23834,7 +23913,6 @@ class A {
   A(@foo int a);
 }
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit
@@ -23926,7 +24004,6 @@ class A {
   void method<@foo T>(@foo int a) {}
 }
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit
@@ -23988,7 +24065,6 @@ class A {
   set setter(@foo int a) {}
 }
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit
@@ -24584,7 +24660,6 @@ const foo = 0;
 @foo
 void f<@foo T>({@foo int? a = 42}) {}
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit
@@ -24679,7 +24754,6 @@ const foo = 0;
 @foo
 set setter(@foo int a) {}
 ''');
-    // TODO(scheglov) Enhance to show metadata on formal parameters?
     checkElementText(library, r'''
 library
   definingUnit

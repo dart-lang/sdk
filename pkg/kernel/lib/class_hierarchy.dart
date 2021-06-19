@@ -1216,8 +1216,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       for (Member mixinMember in _buildDeclaredMembers(
           mixedInClassNode, mixedInInfo,
           setters: setters)) {
-        if (mixinMember is! Procedure ||
-            (mixinMember is Procedure && !mixinMember.isSynthetic)) {
+        if (mixinMember is! Procedure || !mixinMember.isSynthetic) {
           memberMap[mixinMember.name] = mixinMember;
         }
       }

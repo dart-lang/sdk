@@ -396,12 +396,38 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token("'../file.dart'", SemanticTokenTypes.string),
       _Token('if', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.control]),
+      _Token('dart', CustomSemanticTokenTypes.source),
+      _Token('library', CustomSemanticTokenTypes.source),
+      _Token('io', CustomSemanticTokenTypes.source),
       _Token("'file_io.dart'", SemanticTokenTypes.string),
       _Token('if', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.control]),
+      _Token('dart', CustomSemanticTokenTypes.source),
+      _Token('library', CustomSemanticTokenTypes.source),
+      _Token('html', CustomSemanticTokenTypes.source),
       _Token("'file_html.dart'", SemanticTokenTypes.string),
       _Token('library', SemanticTokenTypes.keyword),
       _Token('foo', SemanticTokenTypes.namespace),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
+  Future<void> test_extension() async {
+    final content = '''
+    extension A on String {}
+    ''';
+
+    final expected = [
+      _Token('extension', SemanticTokenTypes.keyword),
+      _Token('A', SemanticTokenTypes.class_),
+      _Token('on', SemanticTokenTypes.keyword),
+      _Token('String', SemanticTokenTypes.class_)
     ];
 
     await initialize();
@@ -993,6 +1019,48 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       _Token('abc', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token('true', CustomSemanticTokenTypes.boolean),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
+  Future<void> test_unresolvedOrInvalid() async {
+    // Unresolved/invalid names should be marked as "source", which is used to
+    // mark up code the server thinks should be uncolored (without this, a
+    // clients other grammars would show through, losing the benefit from having
+    // resolved the code).
+    final content = '''
+    main() {
+      int a;
+      a.foo().bar.baz();
+
+      dynamic b;
+      b.foo().bar.baz();
+    }
+    ''';
+
+    final expected = [
+      _Token('main', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.variable),
+      _Token('foo', CustomSemanticTokenTypes.source),
+      _Token('bar', CustomSemanticTokenTypes.source),
+      _Token('baz', CustomSemanticTokenTypes.source),
+      _Token('dynamic', SemanticTokenTypes.type),
+      _Token('b', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('b', SemanticTokenTypes.variable),
+      _Token('foo', CustomSemanticTokenTypes.source),
+      _Token('bar', CustomSemanticTokenTypes.source),
+      _Token('baz', CustomSemanticTokenTypes.source),
     ];
 
     await initialize();

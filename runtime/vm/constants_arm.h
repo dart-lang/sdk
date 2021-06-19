@@ -1113,6 +1113,10 @@ constexpr bool operator!=(Register r, LinkRegister lr) {
   return !(r == lr);
 }
 
+inline Register ConcreteRegister(LinkRegister) {
+  return LR;
+}
+
 #undef LR
 
 #define LINK_REGISTER (LinkRegister())

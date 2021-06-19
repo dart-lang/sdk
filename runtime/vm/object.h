@@ -110,33 +110,36 @@ class BaseTextBuffer;
   object##Ptr ptr() const { return static_cast<object##Ptr>(ptr_); }           \
   bool Is##object() const { return true; }                                     \
   DART_NOINLINE static object& Handle() {                                      \
-    return HandleImpl(Thread::Current()->zone(), object::null());              \
+    return static_cast<object&>(                                               \
+        HandleImpl(Thread::Current()->zone(), object::null(), kClassId));      \
   }                                                                            \
   DART_NOINLINE static object& Handle(Zone* zone) {                            \
-    return HandleImpl(zone, object::null());                                   \
+    return static_cast<object&>(HandleImpl(zone, object::null(), kClassId));   \
   }                                                                            \
   DART_NOINLINE static object& Handle(object##Ptr ptr) {                       \
-    return HandleImpl(Thread::Current()->zone(), ptr);                         \
+    return static_cast<object&>(                                               \
+        HandleImpl(Thread::Current()->zone(), ptr, kClassId));                 \
   }                                                                            \
   DART_NOINLINE static object& Handle(Zone* zone, object##Ptr ptr) {           \
-    return HandleImpl(zone, ptr);                                              \
+    return static_cast<object&>(HandleImpl(zone, ptr, kClassId));              \
   }                                                                            \
   DART_NOINLINE static object& ZoneHandle() {                                  \
-    return ZoneHandleImpl(Thread::Current()->zone(), object::null());          \
+    return static_cast<object&>(                                               \
+        ZoneHandleImpl(Thread::Current()->zone(), object::null(), kClassId));  \
   }                                                                            \
   DART_NOINLINE static object& ZoneHandle(Zone* zone) {                        \
-    return ZoneHandleImpl(zone, object::null());                               \
+    return static_cast<object&>(                                               \
+        ZoneHandleImpl(zone, object::null(), kClassId));                       \
   }                                                                            \
   DART_NOINLINE static object& ZoneHandle(object##Ptr ptr) {                   \
-    return ZoneHandleImpl(Thread::Current()->zone(), ptr);                     \
+    return static_cast<object&>(                                               \
+        ZoneHandleImpl(Thread::Current()->zone(), ptr, kClassId));             \
   }                                                                            \
   DART_NOINLINE static object& ZoneHandle(Zone* zone, object##Ptr ptr) {       \
-    return ZoneHandleImpl(zone, ptr);                                          \
+    return static_cast<object&>(ZoneHandleImpl(zone, ptr, kClassId));          \
   }                                                                            \
-  DART_NOINLINE static object* ReadOnlyHandle() {                              \
-    object* obj = reinterpret_cast<object*>(Dart::AllocateReadOnlyHandle());   \
-    initializeHandle(obj, object::null());                                     \
-    return obj;                                                                \
+  static object* ReadOnlyHandle() {                                            \
+    return static_cast<object*>(ReadOnlyHandleImpl(kClassId));                 \
   }                                                                            \
   DART_NOINLINE static object& CheckedHandle(Zone* zone, ObjectPtr ptr) {      \
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
@@ -178,26 +181,9 @@ class BaseTextBuffer;
   static const ClassId kClassId = k##object##Cid;                              \
                                                                                \
  private: /* NOLINT */                                                         \
-  static object& HandleImpl(Zone* zone, object##Ptr ptr) {                     \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
-    initializeHandle(obj, ptr);                                                \
-    return *obj;                                                               \
-  }                                                                            \
-  static object& ZoneHandleImpl(Zone* zone, object##Ptr ptr) {                 \
-    object* obj =                                                              \
-        reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
-    initializeHandle(obj, ptr);                                                \
-    return *obj;                                                               \
-  }                                                                            \
   /* Initialize the handle based on the ptr in the presence of null. */        \
   static void initializeHandle(object* obj, ObjectPtr ptr) {                   \
-    if (ptr != Object::null()) {                                               \
-      obj->SetPtr(ptr);                                                        \
-    } else {                                                                   \
-      obj->ptr_ = Object::null();                                              \
-      object fake_object;                                                      \
-      obj->set_vtable(fake_object.vtable());                                   \
-    }                                                                          \
+    obj->SetPtr(ptr, kClassId);                                                \
   }                                                                            \
   /* Disallow allocation, copy constructors and override super assignment. */  \
  public: /* NOLINT */                                                          \
@@ -237,8 +223,10 @@ class BaseTextBuffer;
 
 #define OBJECT_IMPLEMENTATION(object, super)                                   \
  public: /* NOLINT */                                                          \
-  void operator=(object##Ptr value) { initializeHandle(this, value); }         \
-  void operator^=(ObjectPtr value) {                                           \
+  DART_NOINLINE void operator=(object##Ptr value) {                            \
+    initializeHandle(this, value);                                             \
+  }                                                                            \
+  DART_NOINLINE void operator^=(ObjectPtr value) {                             \
     initializeHandle(this, value);                                             \
     ASSERT(IsNull() || Is##object());                                          \
   }                                                                            \
@@ -637,8 +625,28 @@ class Object {
 
   uword raw_value() const { return static_cast<uword>(ptr()); }
 
-  inline void SetPtr(ObjectPtr value);
+  inline void SetPtr(ObjectPtr value, intptr_t default_cid);
   void CheckHandle() const;
+  DART_NOINLINE static Object& HandleImpl(Zone* zone,
+                                          ObjectPtr ptr,
+                                          intptr_t default_cid) {
+    Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(zone));
+    obj->SetPtr(ptr, default_cid);
+    return *obj;
+  }
+  DART_NOINLINE static Object& ZoneHandleImpl(Zone* zone,
+                                              ObjectPtr ptr,
+                                              intptr_t default_cid) {
+    Object* obj =
+        reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle(zone));
+    obj->SetPtr(ptr, default_cid);
+    return *obj;
+  }
+  DART_NOINLINE static Object* ReadOnlyHandleImpl(intptr_t cid) {
+    Object* obj = reinterpret_cast<Object*>(Dart::AllocateReadOnlyHandle());
+    obj->SetPtr(Object::null(), cid);
+    return obj;
+  }
 
   cpp_vtable vtable() const { return bit_copy<cpp_vtable>(*this); }
   void set_vtable(cpp_vtable value) { *vtable_address() = value; }
@@ -779,13 +787,7 @@ class Object {
 
   /* Initialize the handle based on the ptr in the presence of null. */
   static void initializeHandle(Object* obj, ObjectPtr ptr) {
-    if (ptr != Object::null()) {
-      obj->SetPtr(ptr);
-    } else {
-      obj->ptr_ = Object::null();
-      Object fake_object;
-      obj->set_vtable(fake_object.vtable());
-    }
+    obj->SetPtr(ptr, kObjectCid);
   }
 
   cpp_vtable* vtable_address() const {
@@ -11611,19 +11613,20 @@ ClassPtr Object::clazz() const {
 }
 
 DART_FORCE_INLINE
-void Object::SetPtr(ObjectPtr value) {
-  NoSafepointScope no_safepoint_scope;
+void Object::SetPtr(ObjectPtr value, intptr_t default_cid) {
   ptr_ = value;
   intptr_t cid = value->GetClassIdMayBeSmi();
   // Free-list elements cannot be wrapped in a handle.
   ASSERT(cid != kFreeListElement);
   ASSERT(cid != kForwardingCorpse);
-  if (cid >= kNumPredefinedCids) {
+  if (cid == kNullCid) {
+    cid = default_cid;
+  } else if (cid >= kNumPredefinedCids) {
     cid = kInstanceCid;
   }
   set_vtable(builtin_vtables_[cid]);
 #if defined(DEBUG)
-  if (FLAG_verify_handles && ptr_->IsHeapObject()) {
+  if (FLAG_verify_handles && ptr_->IsHeapObject() && (ptr_ != Object::null())) {
     Heap* isolate_heap = IsolateGroup::Current()->heap();
     // TODO(rmacnak): Remove after rewriting StackFrame::VisitObjectPointers
     // to not use handles.

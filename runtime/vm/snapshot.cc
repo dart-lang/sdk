@@ -375,17 +375,7 @@ void SnapshotReader::EnqueueRehashingOfMap(const LinkedHashMap& map) {
 
 ObjectPtr SnapshotReader::RunDelayedRehashingOfMaps() {
   if (!objects_to_rehash_.IsNull()) {
-    const Library& collections_lib =
-        Library::Handle(zone_, Library::CollectionLibrary());
-    const Function& rehashing_function = Function::Handle(
-        zone_,
-        collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
-    ASSERT(!rehashing_function.IsNull());
-
-    const Array& arguments = Array::Handle(zone_, Array::New(1));
-    arguments.SetAt(0, objects_to_rehash_);
-
-    return DartEntry::InvokeFunction(rehashing_function, arguments);
+    return DartLibraryCalls::RehashObjects(thread(), objects_to_rehash_);
   }
   return Object::null();
 }

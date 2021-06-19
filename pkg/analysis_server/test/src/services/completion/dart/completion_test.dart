@@ -15,6 +15,7 @@ void main() {
     defineReflectiveTests(ConstructorCompletionTest);
     defineReflectiveTests(ExpressionFunctionBodyCompletionTest);
     defineReflectiveTests(ExtensionCompletionTest);
+    defineReflectiveTests(FormalParameterCompletionTest);
     defineReflectiveTests(GenericTypeAliasCompletionTest);
     defineReflectiveTests(PropertyAccessCompletionTest);
     defineReflectiveTests(RedirectedConstructorCompletionTest);
@@ -291,6 +292,86 @@ extension E on String {
 ''');
     await getSuggestions();
     assertHasCompletion('m');
+  }
+}
+
+@reflectiveTest
+class FormalParameterCompletionTest extends CompletionTestCase {
+  Future<void> test_named_last() async {
+    addTestFile('''
+void f({int? a, ^}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_named_last_afterCovariant() async {
+    addTestFile('''
+void f({covariant ^}) {}
+''');
+    await getSuggestions();
+    assertHasNoCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_named_last_afterRequired() async {
+    addTestFile('''
+void f({required ^}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_named_only() async {
+    addTestFile('''
+void f({^}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_optionalPositional_last() async {
+    addTestFile('''
+void f([int a, ^]) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_optionalPositional_only() async {
+    addTestFile('''
+void f([^]) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_requiredPositional_only() async {
+    addTestFile('''
+void f(^) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
   }
 }
 

@@ -60,8 +60,6 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       if (_knownExceptions == null || !_knownExceptions!.contains(node)) {
         _unresolvedNodes.add(node);
       }
-    } else if (elementAnnotation is! ElementAnnotation) {
-      _wrongTypedNodes.add(node);
     }
   }
 

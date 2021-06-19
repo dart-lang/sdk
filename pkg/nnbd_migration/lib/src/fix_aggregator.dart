@@ -746,6 +746,10 @@ class NodeChangeForDefaultFormalParameter
   /// contained in the edit.
   AtomicEditInfo addRequiredKeywordInfo;
 
+  /// If [addRequiredKeyword] is `true`, and there is a `/*required*/` hint,
+  /// the hint comment that should be converted into a simple `required` string.
+  HintComment requiredHint;
+
   /// If non-null, indicates a `@required` annotation which should be removed
   /// from this node.
   Annotation annotationToRemove;
@@ -762,8 +766,13 @@ class NodeChangeForDefaultFormalParameter
 
   @override
   EditPlan _apply(DefaultFormalParameter node, FixAggregator aggregator) {
-    var innerPlan = aggregator.innerPlanForNode(node);
-    if (!addRequiredKeyword) return innerPlan;
+    if (!addRequiredKeyword) return aggregator.innerPlanForNode(node);
+
+    if (requiredHint != null) {
+      var innerPlan = aggregator.innerPlanForNode(node);
+      return aggregator.planner.acceptPrefixHint(innerPlan, requiredHint,
+          info: addRequiredKeywordInfo);
+    }
 
     var offset = node.firstTokenAfterCommentAndMetadata.offset;
     return aggregator.planner.passThrough(node, innerPlans: [
@@ -1205,8 +1214,7 @@ abstract class NodeChangeForType<N extends AstNode> extends NodeChange<N> {
     if (_makeNullable) {
       var hint = _nullabilityHint;
       if (hint != null) {
-        return aggregator.planner.acceptNullabilityOrNullCheckHint(
-            innerPlan, hint,
+        return aggregator.planner.acceptSuffixHint(innerPlan, hint,
             info: AtomicEditInfo(
                 NullabilityFixDescription.makeTypeNullableDueToHint(typeName),
                 fixReasons,
@@ -1302,7 +1310,7 @@ class NodeChangeForVariableDeclarationList
       var description = lateHint.kind == HintCommentKind.late_
           ? NullabilityFixDescription.addLateDueToHint
           : NullabilityFixDescription.addLateFinalDueToHint;
-      plan = aggregator.planner.acceptLateHint(plan, lateHint,
+      plan = aggregator.planner.acceptPrefixHint(plan, lateHint,
           info: AtomicEditInfo(description, {}, hintComment: lateHint));
     }
     return plan;
@@ -1348,8 +1356,7 @@ class NullCheckChange extends ExpressionChange {
   NodeProducingEditPlan applyExpression(FixAggregator aggregator,
       NodeProducingEditPlan innerPlan, AtomicEditInfo info) {
     if (hint != null) {
-      return aggregator.planner
-          .acceptNullabilityOrNullCheckHint(innerPlan, hint, info: info);
+      return aggregator.planner.acceptSuffixHint(innerPlan, hint, info: info);
     } else {
       return aggregator.planner
           .addUnaryPostfix(innerPlan, TokenType.BANG, info: info);
