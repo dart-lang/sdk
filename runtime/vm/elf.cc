@@ -1219,7 +1219,7 @@ void Elf::FinalizeEhFrame() {
     (defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64))
   // Multiplier which will be used to scale operands of DW_CFA_offset and
   // DW_CFA_val_offset.
-  const intptr_t kDataAlignment = kWordSize;
+  const intptr_t kDataAlignment = compiler::target::kWordSize;
 
   const uint8_t DW_CFA_offset = 0x80;
   const uint8_t DW_CFA_val_offset = 0x14;
@@ -1241,7 +1241,7 @@ void Elf::FinalizeEhFrame() {
     const intptr_t start = stream.Position();
     stream.WriteFixed<uint32_t>(0);
     body();
-    stream.Align(kWordSize);
+    stream.Align(compiler::target::kWordSize);
     const intptr_t end = stream.Position();
     stream.SetPosition(start);
     // Write length not counting the length field itself.
@@ -1379,6 +1379,10 @@ void Elf::Finalize() {
   auto const hash = new (zone_) SymbolHashTable(zone_, dynstrtab_, dynsym_);
   AddSection(hash, ".hash");
 
+  // Must come before .dynamic, because .dynamic is writable and
+  // .eh_frame is not. See restriction in Elf::WriteProgramTable.
+  FinalizeEhFrame();
+
   auto const dynamic =
       new (zone_) DynamicTable(zone_, dynstrtab_, dynsym_, hash);
   AddSection(dynamic, ".dynamic");
@@ -1403,7 +1407,6 @@ void Elf::Finalize() {
   }
   AddSection(shstrtab_, ".shstrtab");
   FinalizeDwarfSections();
-  FinalizeEhFrame();
 
   // At this point, all non-programmatically calculated sections and segments
   // have been added. Add any programatically calculated sections and segments
