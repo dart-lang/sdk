@@ -20,6 +20,7 @@ void main() {
     defineReflectiveTests(PropertyAccessCompletionTest);
     defineReflectiveTests(RedirectedConstructorCompletionTest);
     defineReflectiveTests(RedirectingConstructorInvocationCompletionTest);
+    defineReflectiveTests(ReturnStatementTest);
     defineReflectiveTests(SuperConstructorInvocationCompletionTest);
     defineReflectiveTests(VariableDeclarationListCompletionTest);
   });
@@ -581,6 +582,48 @@ class C {
 ''');
     await getSuggestions();
     assertHasNoCompletion('');
+  }
+}
+
+@reflectiveTest
+class ReturnStatementTest extends CompletionTestCase {
+  Future<void> test_voidFromVoid_localFunction() async {
+    addTestFile('''
+class C {
+  void m() {
+    void f() {
+      return ^
+    }
+  }
+  void g() {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_voidFromVoid_method() async {
+    addTestFile('''
+class C {
+  void f() {
+    return ^
+  }
+  void g() {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_voidFromVoid_topLevelFunction() async {
+    addTestFile('''
+void f() {
+  return ^
+}
+void g() {}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
   }
 }
 
