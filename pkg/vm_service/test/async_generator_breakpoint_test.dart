@@ -55,23 +55,18 @@ Future testAsync(VmService service, IsolateRef isolateRef) async {
 
   final bp1 = await service.addBreakpoint(isolateId, scriptId, 11);
   expect(bp1, isNotNull);
-  expect(bp1 is Breakpoint, isTrue);
 
   final bp2 = await service.addBreakpoint(isolateId, scriptId, 16);
   expect(bp2, isNotNull);
-  expect(bp2 is Breakpoint, isTrue);
 
   final bp3 = await service.addBreakpoint(isolateId, scriptId, 21);
   expect(bp3, isNotNull);
-  expect(bp3 is Breakpoint, isTrue);
 
   final bp4 = await service.addBreakpoint(isolateId, scriptId, 25);
   expect(bp4, isNotNull);
-  expect(bp4 is Breakpoint, isTrue);
 
   final bp5 = await service.addBreakpoint(isolateId, scriptId, 42);
   expect(bp5, isNotNull);
-  expect(bp5 is Breakpoint, isTrue);
 
   final hits = <Breakpoint>[];
   await service.streamListen(EventStreams.kDebug);
