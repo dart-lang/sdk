@@ -4,7 +4,7 @@
 
 part of dart.core;
 
-/// The base class for all Dart objects exception `null`.
+/// The base class for all Dart objects except `null`.
 ///
 /// Because `Object` is a root of the non-nullable Dart class hierarchy,
 /// every other non-`Null` Dart class is a subclass of `Object`.
