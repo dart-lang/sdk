@@ -507,7 +507,9 @@ abstract class num implements Comparable<num> {
   int toInt();
 }
 
-abstract class Match {}
+abstract class Match {
+  int get start;
+}
 
 class Object {
   const Object();
