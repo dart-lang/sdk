@@ -15,6 +15,8 @@ import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_late_test.dart' as add_late;
 import 'add_missing_enum_case_clauses_test.dart'
     as add_missing_enum_case_clauses;
+import 'add_missing_enum_like_case_clauses_test.dart'
+    as add_missing_enum_like_case_clauses;
 import 'add_missing_parameter_named_test.dart' as add_missing_parameter_named;
 import 'add_missing_parameter_positional_test.dart'
     as add_missing_parameter_positional;
@@ -193,6 +195,7 @@ void main() {
     add_field_formal_parameters.main();
     add_late.main();
     add_missing_enum_case_clauses.main();
+    add_missing_enum_like_case_clauses.main();
     add_missing_parameter_named.main();
     add_missing_parameter_positional.main();
     add_missing_parameter_required.main();

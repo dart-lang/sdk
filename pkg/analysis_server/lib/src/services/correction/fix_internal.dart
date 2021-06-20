@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.d
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_case_clauses.dart';
+import 'package:analysis_server/src/services/correction/dart/add_missing_enum_like_case_clauses.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter_named.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_required_argument.dart';
@@ -394,6 +395,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.empty_statements: [
       RemoveEmptyStatement.newInstance,
       ReplaceWithBrackets.newInstance,
+    ],
+    LintNames.exhaustive_cases: [
+      AddMissingEnumLikeCaseClauses.newInstance,
     ],
     LintNames.hash_and_equals: [
       CreateMethod.equalsOrHashCode,

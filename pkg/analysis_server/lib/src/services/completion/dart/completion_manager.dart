@@ -353,7 +353,19 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   @override
   OpType get opType {
-    return _opType ??= OpType.forCompletion(target, offset);
+    var opType = _opType;
+    if (opType == null) {
+      opType = OpType.forCompletion(target, offset);
+      var contextType = this.contextType;
+      if (contextType is FunctionType) {
+        contextType = contextType.returnType;
+      }
+      if (contextType != null && contextType.isVoid) {
+        opType.includeVoidReturnSuggestions = true;
+      }
+      _opType = opType;
+    }
+    return opType;
   }
 
   /// The source range that represents the region of text that should be
