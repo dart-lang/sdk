@@ -9,31 +9,26 @@ import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PubspecNameValidatorTest);
+    defineReflectiveTests(PathNotPosixTest);
   });
 }
 
 @reflectiveTest
-class PubspecNameValidatorTest extends BasePubspecValidatorTest {
-  test_missingName_error() {
-    assertErrors('', [PubspecWarningCode.MISSING_NAME]);
-  }
-
-  test_missingName_noError() {
-    assertNoErrors('''
-name: sample
+class PathNotPosixTest extends PubspecDiagnosticTest {
+  test_pathNotPosix_error() {
+    newFolder('/foo');
+    newPubspecYamlFile('/foo', '''
+name: foo
 ''');
-  }
-
-  test_nameNotString_error_int() {
-    assertErrors('''
-name: 42
-''', [PubspecWarningCode.NAME_NOT_STRING]);
-  }
-
-  test_nameNotString_noError() {
-    assertNoErrors('''
+    assertErrors(r'''
 name: sample
-''');
+version: 0.1.0
+publish_to: none
+dependencies:
+  foo:
+    path: \foo
+''', [
+      PubspecWarningCode.PATH_NOT_POSIX,
+    ]);
   }
 }
