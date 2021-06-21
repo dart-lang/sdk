@@ -737,6 +737,27 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     sendResponse();
   }
 
+  /// Handles a request from the client for the list of threads.
+  ///
+  /// This is usually called after we sent a [StoppedEvent] to the client
+  /// notifying it that execution of an isolate has paused and it wants to
+  /// populate the threads view.
+  @override
+  Future<void> threadsRequest(
+    Request request,
+    void args,
+    void Function(ThreadsResponseBody) sendResponse,
+  ) async {
+    final threads = [
+      for (final thread in _isolateManager.threads)
+        Thread(
+          id: thread.threadId,
+          name: thread.isolate.name ?? '<unnamed isolate>',
+        )
+    ];
+    sendResponse(ThreadsResponseBody(threads: threads));
+  }
+
   /// [variablesRequest] is called by the client to request child variables for
   /// a given variables variablesReference.
   ///

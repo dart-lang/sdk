@@ -227,6 +227,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     void Function() sendResponse,
   );
 
+  Future<void> threadsRequest(
+    Request request,
+    void args,
+    void Function(ThreadsResponseBody) sendResponse,
+  );
+
   Future<void> variablesRequest(
     Request request,
     VariablesArguments args,
@@ -301,6 +307,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
         _withVoidResponse(stepOutRequest),
         StepOutArguments.fromJson,
       );
+    } else if (request.command == 'threads') {
+      handle(request, threadsRequest, _voidArgs);
     } else if (request.command == 'stackTrace') {
       handle(request, stackTraceRequest, StackTraceArguments.fromJson);
     } else if (request.command == 'scopes') {
@@ -322,6 +330,10 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     // TODO(dantup): Implement this when the server sends requests to the client
     // (for example runInTerminalRequest).
   }
+
+  /// Helpers for requests that have `void` arguments. The supplied args are
+  /// ignored.
+  void _voidArgs(Map<String, Object?>? args) {}
 
   /// Helper that converts a handler with no response value to one that has
   /// passes an unused arg so that `Function()` can be passed to a function

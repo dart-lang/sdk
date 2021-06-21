@@ -230,6 +230,13 @@ class DapTestClient {
 
   Future<Response> terminate() => sendRequest(TerminateArguments());
 
+  /// Sends a threads request to the server to request the list of active
+  /// threads (isolates).
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> threads() => sendRequest(null, overrideCommand: 'threads');
+
   /// Sends a request for child variables (fields/list elements/etc.) for the
   /// variable with reference [variablesReference].
   ///
@@ -399,6 +406,14 @@ extension DapTestClientExtension on DapTestClient {
     expect(response.command, equals('stackTrace'));
     return StackTraceResponseBody.fromJson(
         response.body as Map<String, Object?>);
+  }
+
+  /// Fetches threads and asserts a valid response.
+  Future<ThreadsResponseBody> getValidThreads() async {
+    final response = await threads();
+    expect(response.success, isTrue);
+    expect(response.command, equals('threads'));
+    return ThreadsResponseBody.fromJson(response.body as Map<String, Object?>);
   }
 
   /// A helper that fetches scopes for a frame, checks for one with the name

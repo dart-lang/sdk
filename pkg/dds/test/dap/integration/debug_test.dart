@@ -46,6 +46,22 @@ void main(List<String> args) async {
         ]);
       });
 
+      test('provides a list of threads', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile(r'''
+void main(List<String> args) async {
+  print('Hello!'); // BREAKPOINT
+}
+    ''');
+        final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+        await client.hitBreakpoint(testFile, breakpointLine);
+        final response = await client.getValidThreads();
+
+        expect(response.threads, hasLength(1));
+        expect(response.threads.first.name, equals('main'));
+      });
+
       test('connects with DDS', () async {
         final client = dap.client;
         final testFile = dap.createTestFile(r'''
