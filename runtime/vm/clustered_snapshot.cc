@@ -5011,20 +5011,7 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
   void Trace(Serializer* s, ObjectPtr object) {
     LinkedHashMapPtr map = LinkedHashMap::RawCast(object);
     objects_.Add(map);
-
-    s->Push(map->untag()->type_arguments_);
-
-    intptr_t used_data = Smi::Value(map->untag()->used_data_);
-    ArrayPtr data_array = map->untag()->data_;
-    ObjectPtr* data_elements = data_array->untag()->data();
-    for (intptr_t i = 0; i < used_data; i += 2) {
-      ObjectPtr key = data_elements[i];
-      if (key != data_array) {
-        ObjectPtr value = data_elements[i + 1];
-        s->Push(key);
-        s->Push(value);
-      }
-    }
+    PushFromTo(map);
   }
 
   void WriteAlloc(Serializer* s) {
@@ -5041,26 +5028,7 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       LinkedHashMapPtr map = objects_[i];
       AutoTraceObject(map);
-
-      WriteField(map, type_arguments_);
-
-      const intptr_t used_data = Smi::Value(map->untag()->used_data_);
-      ASSERT((used_data & 1) == 0);  // Keys + values, so must be even.
-      const intptr_t deleted_keys = Smi::Value(map->untag()->deleted_keys_);
-
-      // Write out the number of (not deleted) key/value pairs that will follow.
-      s->Write<int32_t>((used_data >> 1) - deleted_keys);
-
-      ArrayPtr data_array = map->untag()->data_;
-      ObjectPtr* data_elements = data_array->untag()->data();
-      for (intptr_t i = 0; i < used_data; i += 2) {
-        ObjectPtr key = data_elements[i];
-        if (key != data_array) {
-          ObjectPtr value = data_elements[i + 1];
-          s->WriteElementRef(key, i);
-          s->WriteElementRef(value, i + 1);
-        }
-      }
+      WriteFromTo(map);
     }
   }
 
@@ -5081,41 +5049,12 @@ class LinkedHashMapDeserializationCluster
   }
 
   void ReadFill(Deserializer* d, bool primary) {
-    PageSpace* old_space = d->heap()->old_space();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       LinkedHashMapPtr map = static_cast<LinkedHashMapPtr>(d->Ref(id));
       Deserializer::InitializeHeader(map, kLinkedHashMapCid,
                                      LinkedHashMap::InstanceSize(),
                                      primary && is_canonical());
-
-      map->untag()->type_arguments_ =
-          static_cast<TypeArgumentsPtr>(d->ReadRef());
-
-      // TODO(rmacnak): Reserve ref ids and co-allocate in ReadAlloc.
-      intptr_t pairs = d->Read<int32_t>();
-      intptr_t used_data = pairs << 1;
-      intptr_t data_size = Utils::Maximum(
-          Utils::RoundUpToPowerOfTwo(used_data),
-          static_cast<uintptr_t>(LinkedHashMap::kInitialIndexSize));
-
-      ArrayPtr data = static_cast<ArrayPtr>(
-          old_space->AllocateSnapshot(Array::InstanceSize(data_size)));
-      data->untag()->type_arguments_ = TypeArguments::null();
-      data->untag()->length_ = Smi::New(data_size);
-      intptr_t i;
-      for (i = 0; i < used_data; i++) {
-        data->untag()->data()[i] = d->ReadRef();
-      }
-      for (; i < data_size; i++) {
-        data->untag()->data()[i] = Object::null();
-      }
-
-      map->untag()->index_ = TypedData::null();
-      map->untag()->hash_mask_ = Smi::New(0);
-      map->untag()->data_ = data;
-      map->untag()->used_data_ = Smi::New(used_data);
-      map->untag()->deleted_keys_ = Smi::New(0);
+      ReadFromTo(map);
     }
   }
 };

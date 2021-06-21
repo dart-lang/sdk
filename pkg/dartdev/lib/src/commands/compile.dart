@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:dart2native/generate.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
@@ -66,89 +67,28 @@ bool checkFile(String sourcePath) {
 class CompileJSCommand extends CompileSubcommandCommand {
   static const String cmdName = 'js';
 
-  CompileJSCommand({bool verbose})
-      : super(cmdName, 'Compile Dart to JavaScript.', verbose) {
-    argParser
-      ..addOption(
-        commonOptions['outputFile'].flag,
-        help: commonOptions['outputFile'].help,
-        abbr: commonOptions['outputFile'].abbr,
-        defaultsTo: commonOptions['outputFile'].defaultsTo,
-      )
-      ..addOption(
-        commonOptions['verbosity'].flag,
-        help: commonOptions['verbosity'].help,
-        abbr: commonOptions['verbosity'].abbr,
-        defaultsTo: commonOptions['verbosity'].defaultsTo,
-        allowed: commonOptions['verbosity'].allowed,
-        allowedHelp: commonOptions['verbosity'].allowedHelp,
-      )
-      ..addFlag(
-        'minified',
-        help: 'Generate minified output.',
-        abbr: 'm',
-        negatable: false,
-      )
-      ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
-Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
-For example: dart compile $cmdName -Da=1,b=2 main.dart''');
+  /// Accept all flags so we can delegate arg parsing to dart2js internally.
+  @override
+  final ArgParser argParser = ArgParser.allowAnything();
 
-    addExperimentalFlags(argParser, verbose);
-  }
+  CompileJSCommand({bool verbose})
+      : super(cmdName, 'Compile Dart to JavaScript.', verbose);
 
   @override
   String get invocation => '${super.invocation} <dart entry point>';
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.dart2jsSnapshot)) {
-      return 255;
-    }
-    final String librariesPath = path.absolute(
-      sdk.sdkPath,
-      'lib',
-      'libraries.json',
-    );
+    if (!Sdk.checkArtifactExists(sdk.dart2jsSnapshot)) return 255;
 
-    if (!Sdk.checkArtifactExists(librariesPath)) {
-      return 255;
-    }
+    final librariesPath = path.absolute(sdk.sdkPath, 'lib', 'libraries.json');
 
-    // We expect a single rest argument; the dart entry point.
-    if (argResults.rest.length != 1) {
-      // This throws.
-      usageException('Missing Dart entry point.');
-    }
-
-    final String sourcePath = argResults.rest[0];
-    if (!checkFile(sourcePath)) {
-      return 1;
-    }
-    final args = <String>[
-      '--libraries-spec=$librariesPath',
-      if (argResults.enabledExperiments.isNotEmpty)
-        "--enable-experiment=${argResults.enabledExperiments.join(',')}",
-      if (argResults.wasParsed(commonOptions['outputFile'].flag))
-        "-o${argResults[commonOptions['outputFile'].flag]}",
-      if (argResults.wasParsed('minified')) '-m',
-    ];
-
-    if (argResults.wasParsed('define')) {
-      for (final define in argResults['define']) {
-        args.add('-D$define');
-      }
-    }
-
-    // Add any args that weren't parsed to the end. This will likely only ever
-    // be the script name.
-    args.addAll(argResults.rest);
+    if (!Sdk.checkArtifactExists(librariesPath)) return 255;
 
     VmInteropHandler.run(
         sdk.dart2jsSnapshot,
         [
           '--libraries-spec=$librariesPath',
-          if (argResults.enabledExperiments.isNotEmpty)
-            "--enable-experiment=${argResults.enabledExperiments.join(',')}",
           '--cfe-invocation-modes=compile',
           ...argResults.arguments,
         ],
@@ -357,9 +297,7 @@ class CompileCommand extends DartdevCommand {
   static const String cmdName = 'compile';
   CompileCommand({bool verbose = false})
       : super(cmdName, 'Compile Dart to various formats.', verbose) {
-    addSubcommand(CompileJSCommand(
-      verbose: verbose,
-    ));
+    addSubcommand(CompileJSCommand(verbose: verbose));
     addSubcommand(CompileSnapshotCommand(
       commandName: CompileSnapshotCommand.jitSnapshotCmdName,
       help: 'to a JIT snapshot.',

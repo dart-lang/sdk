@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' as js;
 import '../serialization/serialization.dart';
 import '../util/util.dart';
-import '../js_emitter/model.dart' show Fragment;
+import '../js_emitter/model.dart';
 
 import 'namer.dart';
 
@@ -230,7 +230,7 @@ class DeferredHolderResource extends js.DeferredStatement
   // Each resource has a distinct name.
   String name;
   List<Fragment> fragments;
-  Map<Entity, List<js.Property>> holderCode;
+  Map<Library, List<js.Property>> holderCode;
   js.Statement _statement;
 
   @override
@@ -507,8 +507,8 @@ class DeferredHolderExpressionFinalizerImpl
   void registerHolders() {
     // Register all holders used in all [DeferredHolderResource]s.
     for (var resource in holderResources) {
-      resource.holderCode.forEach((entity, properties) {
-        String holderName = globalObjectNameForEntity(entity);
+      resource.holderCode.forEach((library, properties) {
+        String holderName = globalObjectNameForEntity(library.element);
         registerHolderUseOrUpdate(resource.name, holderName,
             properties: properties);
       });
@@ -769,7 +769,7 @@ class LegacyDeferredHolderExpressionFinalizerImpl
   final List<DeferredHolderResource> holderResources = [];
   final Set<String> _uniqueHolders = {};
   final List<String> _holders = [];
-  final Map<Entity, String> _entityMap = {};
+  final Map<Library, String> _libraryMap = {};
   final JCommonElements _commonElements;
 
   LegacyDeferredHolderExpressionFinalizerImpl(this._commonElements) {
@@ -844,9 +844,9 @@ class LegacyDeferredHolderExpressionFinalizerImpl
   /// Registers an [Entity] with a specific [holder].
   void registerHolderUse(String holder, Object data) {
     if (_uniqueHolders.add(holder)) _holders.add(holder);
-    if (data != null && data is Entity) {
-      assert(!_entityMap.containsKey(data) || _entityMap[data] == holder);
-      _entityMap[data] = holder;
+    if (data != null && data is Library) {
+      assert(!_libraryMap.containsKey(data) || _libraryMap[data] == holder);
+      _libraryMap[data] = holder;
     }
   }
 
@@ -890,9 +890,9 @@ class LegacyDeferredHolderExpressionFinalizerImpl
 
   /// Registers all of the holders used by a given [DeferredHolderResource].
   void registerHolders(DeferredHolderResource resource) {
-    for (var entity in resource.holderCode.keys) {
-      var holder = globalObjectForEntity(entity);
-      registerHolderUse(holder, entity);
+    for (var library in resource.holderCode.keys) {
+      var holder = globalObjectForLibrary(library.element);
+      registerHolderUse(holder, library);
     }
   }
 
@@ -917,9 +917,9 @@ class LegacyDeferredHolderExpressionFinalizerImpl
     }
 
     final holderCode = resource.holderCode;
-    holderCode.forEach((entity, properties) {
-      assert(_entityMap.containsKey(entity));
-      var holder = _entityMap[entity];
+    holderCode.forEach((library, properties) {
+      assert(_libraryMap.containsKey(library));
+      var holder = _libraryMap[library];
       assert(codePerHolder.containsKey(holder));
       codePerHolder[holder].addAll(properties);
     });

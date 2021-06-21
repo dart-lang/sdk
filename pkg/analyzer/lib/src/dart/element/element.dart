@@ -3417,7 +3417,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
       returnType: returnType,
       nullabilitySuffix:
           isNullable ? NullabilitySuffix.question : _noneOrStarSuffix,
-      element: this,
     );
   }
 

@@ -3097,6 +3097,7 @@ class UntaggedLinkedHashMap : public UntaggedInstance {
   POINTER_FIELD(SmiPtr, used_data)
   POINTER_FIELD(SmiPtr, deleted_keys)
   VISIT_TO(deleted_keys)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
 };

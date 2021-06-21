@@ -10,7 +10,7 @@ import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
 
-class BasePubspecValidatorTest with ResourceProviderMixin {
+class PubspecDiagnosticTest with ResourceProviderMixin {
   late PubspecValidator validator;
 
   /// Assert that when the validator is used on the given [content] the

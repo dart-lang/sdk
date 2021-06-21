@@ -9,34 +9,12 @@ import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PubspecDependencyValidatorTest);
+    defineReflectiveTests(InvalidDependencyTest);
   });
 }
 
 @reflectiveTest
-class PubspecDependencyValidatorTest extends BasePubspecValidatorTest {
-  test_dependenciesField_empty() {
-    assertNoErrors('''
-name: sample
-dependencies:
-''');
-  }
-
-  test_dependenciesFieldNotMap_error_bool() {
-    assertErrors('''
-name: sample
-dependencies: true
-''', [PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP]);
-  }
-
-  test_dependenciesFieldNotMap_noError() {
-    assertNoErrors('''
-name: sample
-dependencies:
-  a: any
-''');
-  }
-
+class InvalidDependencyTest extends PubspecDiagnosticTest {
   test_dependencyGit_malformed_empty() {
     // todo (pq): consider validating.
     assertNoErrors('''
@@ -150,29 +128,6 @@ dependencies:
 ''');
   }
 
-  test_dependencyPath_pubspecDoesNotExist() {
-    newFolder('/foo');
-    assertErrors('''
-name: sample
-dependencies:
-  foo:
-    path: /foo
-''', [PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST]);
-  }
-
-  test_dependencyPath_pubspecExists() {
-    newFolder('/foo');
-    newPubspecYamlFile('/foo', '''
-name: foo
-''');
-    assertNoErrors('''
-name: sample
-dependencies:
-  foo:
-    path: /foo
-''');
-  }
-
   test_dependencyPath_valid_absolute() {
     newFolder('/foo');
     newPubspecYamlFile('/foo', '''
@@ -228,27 +183,11 @@ dependencies:
 ''');
   }
 
-  test_dependencyPathDoesNotExist_path_error() {
-    assertErrors('''
-name: sample
-dependencies:
-  foo:
-    path: does/not/exist
-''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
-  }
-
   test_devDependenciesField_empty() {
     assertNoErrors('''
 name: sample
 dev_dependencies:
 ''');
-  }
-
-  test_devDependenciesFieldNotMap_dev_error_bool() {
-    assertErrors('''
-name: sample
-dev_dependencies: true
-''', [PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP]);
   }
 
   test_devDependenciesFieldNotMap_dev_noError() {
@@ -269,65 +208,6 @@ dev_dependencies:
     git:
       url: git@github.com:foo/foo.git
       path: path/to/foo
-''');
-  }
-
-  test_devDependencyPathDoesNotExist_path_error() {
-    assertErrors('''
-name: sample
-dev_dependencies:
-  foo:
-    path: does/not/exist
-''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
-  }
-
-  test_devDependencyPathExists() {
-    newFolder('/foo');
-    newPubspecYamlFile('/foo', '''
-name: foo
-''');
-    assertNoErrors('''
-name: sample
-dev_dependencies:
-  foo:
-    path: /foo
-''');
-  }
-
-  test_pathNotPosix_error() {
-    newFolder('/foo');
-    newPubspecYamlFile('/foo', '''
-name: foo
-''');
-    assertErrors(r'''
-name: sample
-version: 0.1.0
-publish_to: none
-dependencies:
-  foo:
-    path: \foo
-''', [
-      PubspecWarningCode.PATH_NOT_POSIX,
-    ]);
-  }
-
-  test_unnecessaryDevDependency_error() {
-    assertErrors('''
-name: sample
-dependencies:
-  a: any
-dev_dependencies:
-  a: any
-''', [PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY]);
-  }
-
-  test_unnecessaryDevDependency_noError() {
-    assertNoErrors('''
-name: sample
-dependencies:
-  a: any
-dev_dependencies:
-  b: any
 ''');
   }
 }

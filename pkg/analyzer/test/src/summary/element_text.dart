@@ -781,7 +781,15 @@ class _ElementWriter {
       _writeMetadata(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
-      _writelnWithIndent('aliasedType: ${e.aliasedType}');
+
+      var aliasedType = e.aliasedType;
+      _writeType(aliasedType, name: 'aliasedType');
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
+      // TODO(scheglov) Remove it when we stop providing it everywhere.
+      if (aliasedType is FunctionType) {
+        // ignore: deprecated_member_use_from_same_package
+        expect(aliasedType.element, isNull);
+      }
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
