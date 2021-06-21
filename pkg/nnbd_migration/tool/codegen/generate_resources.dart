@@ -157,6 +157,10 @@ String generateResourceFile(Iterable<File> resources) {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This file is explicitly opted in to null safety since it contains `String?`
+// types, even though the rest of the migration tool isn't migrated yet.
+// @dart=2.12
+
 // This file is generated; don't edit it directly.
 //
 // See $filePath for how
@@ -196,7 +200,7 @@ String _decode(String data) {
     var delimiter = "'''";
 
     buf.writeln();
-    buf.writeln('String _$name;');
+    buf.writeln('String? _$name;');
     if (name == path.basename(javascriptOutput.path).replaceAll('.', '_')) {
       // Write out the crc for the dart code.
       var sourceCode = StringBuffer();
