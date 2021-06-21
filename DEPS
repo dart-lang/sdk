@@ -105,7 +105,6 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "f17c23e0eea9a870601c19d904e2a9c1a7c81470",
 
-  "chromedriver_tag": "83.0.4103.39",
   "dartdoc_rev" : "b733d4952dbd25374d55e28476a5f44bd60ed63f",
   "devtools_rev" : "b3bf672474a2bff82f33e1176aa803539baa0d60+1",
   "jsshell_tag": "version:88.0",
@@ -185,7 +184,7 @@ vars = {
   # Pinned browser versions used by the testing infrastructure. These are not
   # meant to be downloaded by users for local testing.
   "download_chrome": False,
-  "chrome_tag": "84",
+  "chrome_tag": "91",
   "download_firefox": False,
   "firefox_tag": "67",
 }
@@ -523,7 +522,7 @@ deps = {
     "packages": [
       {
         "package": "dart/third_party/chromedriver/${{platform}}",
-        "version": "version:" + Var("chromedriver_tag"),
+        "version": "version:" + Var("chrome_tag"),
       }
     ],
     "condition": "host_cpu == 'x64'",
