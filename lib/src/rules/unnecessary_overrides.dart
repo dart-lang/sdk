@@ -39,10 +39,11 @@ class A extends B {
 
 It's valid to override a member in the following cases:
 
-* if a type (return type or a parameter type) is not the exactly the same as the
-super method,
+* if a return type or a parameter type is not the exact same type as the
+  super method,
 * if the `covariant` keyword is added to one of the parameters,
-* if documentation comments are present on the member,
+* if a documentation comment is present on the member, and the member is
+  abstract,
 * if the member has annotations other than `@override`.
 
 `noSuchMethod` is a special method and is not checked by this rule.
@@ -99,11 +100,12 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    // noSuchMethod is mandatory to proxify
+    // `noSuchMethod` is mandatory to proxify.
     if (node.name.name == 'noSuchMethod') return;
 
-    // it's ok to override to have better documentation
-    if (node.documentationComment != null) return;
+    // It's ok to override a method with an abstract declaration, in order to
+    // have better documentation.
+    if (node.documentationComment != null && node.isAbstract) return;
 
     inheritedMethod = getInheritedElement(node);
     declaration = node;
