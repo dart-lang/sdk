@@ -4019,7 +4019,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             var element = parameter.declaredElement!;
             errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-              parameter,
+              parameter.name,
               [element.displayName, element.bound],
             );
             break;
