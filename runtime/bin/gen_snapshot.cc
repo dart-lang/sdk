@@ -116,8 +116,6 @@ static const char* const kSnapshotKindNames[] = {
   V(assembly, assembly_filename)                                               \
   V(elf, elf_filename)                                                         \
   V(loading_unit_manifest, loading_unit_manifest_filename)                     \
-  V(load_compilation_trace, load_compilation_trace_filename)                   \
-  V(load_type_feedback, load_type_feedback_filename)                           \
   V(save_debugging_info, debugging_info_filename)                              \
   V(save_obfuscation_map, obfuscation_map_filename)
 
@@ -388,34 +386,6 @@ static void MaybeLoadCode() {
   if (compile_all &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
     Dart_Handle result = Dart_CompileAll();
-    CHECK_RESULT(result);
-  }
-
-  if ((load_compilation_trace_filename != NULL) &&
-      ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
-    // Finalize all classes. This ensures that there are no non-finalized
-    // classes in the gaps between cid ranges. Such classes prevent merging of
-    // cid ranges.
-    Dart_Handle result = Dart_FinalizeAllClasses();
-    CHECK_RESULT(result);
-    // Sort classes to have better cid ranges.
-    result = Dart_SortClasses();
-    CHECK_RESULT(result);
-    uint8_t* buffer = NULL;
-    intptr_t size = 0;
-    ReadFile(load_compilation_trace_filename, &buffer, &size);
-    result = Dart_LoadCompilationTrace(buffer, size);
-    free(buffer);
-    CHECK_RESULT(result);
-  }
-
-  if ((load_type_feedback_filename != NULL) &&
-      ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
-    uint8_t* buffer = NULL;
-    intptr_t size = 0;
-    ReadFile(load_type_feedback_filename, &buffer, &size);
-    Dart_Handle result = Dart_LoadTypeFeedback(buffer, size);
-    free(buffer);
     CHECK_RESULT(result);
   }
 }
