@@ -340,8 +340,7 @@ class NullabilityGraph {
   /// nullability information from one node to another.
   PropagationResult propagate() {
     if (_debugBeforePropagation) debugDump();
-    var propagationState =
-        _PropagationState(always, never).result;
+    var propagationState = _PropagationState(always, never).result;
     if (_debugAfterPropagation) debugDump();
     return propagationState;
   }
