@@ -77,6 +77,11 @@ class DapTestClient {
   Future<Response> continue_(int threadId) =>
       sendRequest(ContinueArguments(threadId: threadId));
 
+  /// Sends a custom request to the server and waits for a response.
+  Future<Response> custom(String name, Object? args) async {
+    return sendRequest(args, overrideCommand: name);
+  }
+
   Future<Response> disconnect() => sendRequest(DisconnectArguments());
 
   /// Sends an evaluate request for the given [expression], optionally for a

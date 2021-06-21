@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
+
 import 'exceptions.dart';
 import 'logging.dart';
 import 'protocol_common.dart';
@@ -58,6 +60,22 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     ContinueArguments args,
     void Function(ContinueResponseBody) sendResponse,
   );
+
+  @mustCallSuper
+  Future<void> customRequest(
+    Request request,
+    RawRequestArguments? args,
+    void Function(Object?) sendResponse,
+  ) async {
+    final response = Response(
+      success: false,
+      requestSeq: request.seq,
+      seq: _sequence++,
+      command: request.command,
+      message: 'Unknown command: ${request.command}',
+    );
+    sendResponse(response);
+  }
 
   Future<void> disconnectRequest(
     Request request,
@@ -278,8 +296,11 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
         StepInArguments.fromJson,
       );
     } else if (request.command == 'stepOut') {
-      handle(request, _withVoidResponse(stepOutRequest),
-          StepOutArguments.fromJson);
+      handle(
+        request,
+        _withVoidResponse(stepOutRequest),
+        StepOutArguments.fromJson,
+      );
     } else if (request.command == 'stackTrace') {
       handle(request, stackTraceRequest, StackTraceArguments.fromJson);
     } else if (request.command == 'scopes') {
@@ -289,14 +310,11 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     } else if (request.command == 'evaluate') {
       handle(request, evaluateRequest, EvaluateArguments.fromJson);
     } else {
-      final response = Response(
-        success: false,
-        requestSeq: request.seq,
-        seq: _sequence++,
-        command: request.command,
-        message: 'Unknown command: ${request.command}',
+      handle(
+        request,
+        customRequest,
+        _allowNullArg(RawRequestArguments.fromJson),
       );
-      _channel.sendResponse(response);
     }
   }
 

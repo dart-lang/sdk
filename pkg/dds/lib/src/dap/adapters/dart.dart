@@ -12,6 +12,7 @@ import '../base_debug_adapter.dart';
 import '../exceptions.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
+import '../protocol_common.dart';
 import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
@@ -251,6 +252,39 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   ) async {
     await _isolateManager.resumeThread(args.threadId);
     sendResponse(ContinueResponseBody(allThreadsContinued: false));
+  }
+
+  /// [customRequest] handles any messages that do not match standard messages
+  /// in the spec.
+  ///
+  /// This is used to allow a client/DA to have custom methods outside of the
+  /// spec. It is up to the client/DA to negotiate which custom messages are
+  /// allowed.
+  ///
+  /// Implementations of this method must call super for any requests they are
+  /// not handling. The base implementation will reject the request as unknown.
+  ///
+  /// Custom message starting with _ are considered internal and are liable to
+  /// change without warning.
+  @override
+  Future<void> customRequest(
+    Request request,
+    RawRequestArguments? args,
+    void Function(Object?) sendResponse,
+  ) async {
+    switch (request.command) {
+
+      /// Used by tests to validate available protocols (eg. DDS). There may be
+      /// value in making this available to clients in future, but for now it's
+      /// internal.
+      case '_getSupportedProtocols':
+        final protocols = await vmService?.getSupportedProtocols();
+        sendResponse(protocols?.toJson());
+        break;
+
+      default:
+        await super.customRequest(request, args, sendResponse);
+    }
   }
 
   /// Overridden by sub-classes to perform any additional setup after the VM

@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
+import 'test_client.dart';
 import 'test_support.dart';
 
 main() {
@@ -41,6 +44,30 @@ void main(List<String> args) async {
           '',
           'Exited.',
         ]);
+      });
+
+      test('connects with DDS', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile(r'''
+void main(List<String> args) async {
+  print('Hello!'); // BREAKPOINT
+}
+    ''');
+        final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+        await client.hitBreakpoint(testFile, breakpointLine);
+        final response = await client.custom(
+          '_getSupportedProtocols',
+          null,
+        );
+
+        // For convenience, use the ProtocolList to deserialise the custom
+        // response to check if included DDS.
+        final protocolList =
+            ProtocolList.parse(response.body as Map<String, Object?>?);
+        final ddsProtocol = protocolList?.protocols
+            ?.singleWhereOrNull((protocol) => protocol.protocolName == "DDS");
+        expect(ddsProtocol, isNot(isNull));
       });
       // These tests can be slow due to starting up the external server process.
     }, timeout: Timeout.none);
