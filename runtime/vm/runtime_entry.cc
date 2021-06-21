@@ -3674,6 +3674,8 @@ extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("AllocateHandle %p", scope);
   LocalHandle* return_value = scope->local_handles()->AllocateHandle();
+  // Don't return an uninitialised handle.
+  return_value->set_ptr(Object::sentinel().ptr());
   TRACE_RUNTIME_CALL("AllocateHandle returning %p", return_value);
   return return_value;
 }
