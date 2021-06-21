@@ -311,57 +311,6 @@ class B {}
 class C {}''');
   }
 
-  test_commentReference_extension_getter() async {
-    await resolveTestCode('''
-/// See [E.b]
-class A {}
-
-extension E on A {
-  String get b => '';
-}
-''');
-
-    final classA = findNode.classDeclaration('class A');
-    final reference = classA.documentationComment!.references.single;
-
-    expect(
-        reference.identifier.staticElement, findElement.getter('b', of: 'E'));
-  }
-
-  test_commentReference_extension_method() async {
-    await resolveTestCode('''
-/// See [E.b]
-class A {}
-
-extension E on A {
-  void b() {}
-}
-''');
-
-    final classA = findNode.classDeclaration('class A');
-    final reference = classA.documentationComment!.references.single;
-
-    expect(
-        reference.identifier.staticElement, findElement.method('b', of: 'E'));
-  }
-
-  test_commentReference_extension_setter() async {
-    await resolveTestCode('''
-/// See [E.b]
-class A {}
-
-extension E on A {
-  set b(String x) {}
-}
-''');
-
-    final classA = findNode.classDeclaration('class A');
-    final reference = classA.documentationComment!.references.single;
-
-    expect(
-        reference.identifier.staticElement, findElement.setter('b', of: 'E'));
-  }
-
   test_continueTarget_labeled() async {
     // Verify that the target of the label is correctly found and is recorded
     // as the unlabeled portion of the statement.
