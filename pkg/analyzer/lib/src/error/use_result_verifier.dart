@@ -94,7 +94,9 @@ class UseResultVerifier {
       return false;
     }
 
-    if (parent is ParenthesizedExpression || parent is ConditionalExpression) {
+    if (parent is ParenthesizedExpression ||
+        parent is ConditionalExpression ||
+        parent is CascadeExpression) {
       return _isUsed(parent);
     }
 

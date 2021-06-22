@@ -9,12 +9,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UseResultTest);
+    defineReflectiveTests(UnusedResultTest);
   });
 }
 
 @reflectiveTest
-class UseResultTest extends PubPackageResolutionTest {
+class UnusedResultTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
@@ -472,12 +472,10 @@ int f2() {
   test_method_result_targetedMethod() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
-
 class A {
   @useResult
   String foo() => '';
 }
-
 void main() {
   A().foo().toString(); // OK
 }
@@ -516,6 +514,26 @@ void main() {
     ]);
   }
 
+  test_method_result_unassigned_cascade() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  @useResult
+  C m1() => throw '';
+  
+  C m2() => throw '';
+  
+  void m3() {
+    m2()..m1();
+  }
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 129, 6,
+          messageContains: "'m1' should be used."),
+    ]);
+  }
+
   test_topLevelFunction_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -525,6 +543,20 @@ int foo() => 0;
 
 void main() {
   var x = foo(); // OK
+  print(x);
+}
+''');
+  }
+
+  test_topLevelFunction_result_assigned_cascade() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 0;
+
+void main() {
+  var x = foo()..toString(); // OK
   print(x);
 }
 ''');
@@ -569,7 +601,6 @@ void main() {
 ''');
   }
 
-  // todo(pq):implement visitExpressionStatement?
   test_topLevelFunction_result_unassigned() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -586,6 +617,21 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_RESULT, 108, 5),
+    ]);
+  }
+
+  test_topLevelFunction_result_unassigned_cascade() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 0;
+
+void main() {
+  foo()..toString();
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 78, 5),
     ]);
   }
 
