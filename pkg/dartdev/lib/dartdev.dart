@@ -63,6 +63,9 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
 }
 
 class DartdevRunner extends CommandRunner<int> {
+  static const String dartdevDescription =
+      'A command-line utility for Dart development';
+
   @override
   final ArgParser argParser = ArgParser(
     usageLineLength: dartdevUsageLineLength,
@@ -71,8 +74,7 @@ class DartdevRunner extends CommandRunner<int> {
 
   final bool verbose;
 
-  static const String dartdevDescription =
-      'A command-line utility for Dart development';
+  Analytics _analytics;
 
   DartdevRunner(List<String> args)
       : verbose = args.contains('-v') || args.contains('--verbose'),
@@ -108,17 +110,15 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(TestCommand());
   }
 
-  @override
-  String get usageFooter =>
-      'See https://dart.dev/tools/dart-tool for detailed documentation.';
+  @visibleForTesting
+  Analytics get analytics => _analytics;
 
   @override
   String get invocation =>
       'dart ${verbose ? '[vm-options] ' : ''}<command|dart-file> [arguments]';
-
-  @visibleForTesting
-  Analytics get analytics => _analytics;
-  Analytics _analytics;
+  @override
+  String get usageFooter =>
+      'See https://dart.dev/tools/dart-tool for detailed documentation.';
 
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
