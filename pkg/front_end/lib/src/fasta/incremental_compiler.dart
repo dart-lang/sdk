@@ -2249,6 +2249,55 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 }
 
 /// Translate a parts "partUri" to an actual uri with handling of invalid uris.
+///
+/// ```
+/// DartDocTest(
+///   getPartUri(
+///     Uri.parse("file://path/to/parent.dart"),
+///     new LibraryPart([], "simple.dart")
+///   ),
+///   Uri.parse("file://path/to/simple.dart")
+/// )
+/// DartDocTest(
+///   getPartUri(
+///     Uri.parse("file://path/to/parent.dart"),
+///     new LibraryPart([], "dir/simple.dart")
+///   ),
+///   Uri.parse("file://path/to/dir/simple.dart")
+/// )
+/// DartDocTest(
+///   getPartUri(
+///     Uri.parse("file://path/to/parent.dart"),
+///     new LibraryPart([], "../simple.dart")
+///   ),
+///   Uri.parse("file://path/simple.dart")
+/// )
+/// DartDocTest(
+///   getPartUri(
+///     Uri.parse("file://path/to/parent.dart"),
+///     new LibraryPart([], "file:///my/path/absolute.dart")
+///   ),
+///   Uri.parse("file:///my/path/absolute.dart")
+/// )
+/// DartDocTest(
+///   getPartUri(
+///     Uri.parse("file://path/to/parent.dart"),
+///     new LibraryPart([], "package:foo/hello.dart")
+///   ),
+///   Uri.parse("package:foo/hello.dart")
+/// )
+/// ```
+/// And with invalid part uri:
+/// ```
+/// DartDocTest(
+///   getPartUri(
+///     Uri.parse("file://path/to/parent.dart"),
+///     new LibraryPart([], ":hello")
+///   ),
+///   new Uri(scheme: SourceLibraryBuilder.MALFORMED_URI_SCHEME,
+///     query: Uri.encodeQueryComponent(":hello"))
+/// )
+/// ```
 Uri getPartUri(Uri parentUri, LibraryPart part) {
   try {
     return parentUri.resolve(part.partUri);

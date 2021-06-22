@@ -28,6 +28,8 @@ allocations
 allowlist
 allowlisting
 alt
+amend
+amended
 amortized
 analyses
 animal
@@ -147,6 +149,7 @@ columns
 commented
 commit
 commits
+communication
 companion
 comparative
 comparer
@@ -189,7 +192,11 @@ d1b
 dacoharkes
 dadd
 daemon
+dart$doc$test$tester
+dart\$doc\$test\$tester
 dartanalyzer
+dartdoctest
+dartdoctestrun
 dartfile
 dartfmt
 dash
@@ -237,6 +244,7 @@ dispose
 dist
 div
 divergent
+doctest
 doctype
 doesnt
 dog
@@ -258,6 +266,7 @@ ec
 echo
 edits
 elapse
+elegantly
 ell
 entrypoint
 entrypoints

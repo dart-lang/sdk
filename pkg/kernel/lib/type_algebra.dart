@@ -417,8 +417,86 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 ///
 /// Here `!` denotes `Nullability.nonNullable`, `?` denotes
 /// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
-/// `Nullability.neither`.  The table elements marked with N/A denote the
+/// `Nullability.undetermined`.  The table elements marked with N/A denote the
 /// cases that should yield a type error before the substitution is performed.
+///
+/// a is nonNullable:
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nonNullable, Nullability.nonNullable),
+///   Nullability.nonNullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nonNullable, Nullability.nullable),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nonNullable, Nullability.legacy),
+///   Nullability.legacy
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nonNullable, Nullability.undetermined),
+///   Nullability.nonNullable
+/// )
+///
+/// a is nullable:
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nullable, Nullability.nullable),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nullable, Nullability.legacy),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.nullable, Nullability.undetermined),
+///   Nullability.nullable
+/// )
+///
+/// a is legacy:
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.legacy, Nullability.nonNullable),
+///   Nullability.legacy
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.legacy, Nullability.nullable),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.legacy, Nullability.legacy),
+///   Nullability.legacy
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.legacy, Nullability.undetermined),
+///   Nullability.legacy
+/// )
+///
+/// a is undetermined:
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.undetermined, Nullability.nullable),
+///   Nullability.nullable
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.undetermined, Nullability.legacy),
+///   Nullability.legacy
+/// )
+/// DartDocTest(
+///   combineNullabilitiesForSubstitution(
+///     Nullability.undetermined, Nullability.undetermined),
+///   Nullability.undetermined
+/// )
 Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
   // In the table above we may extend the function given by it, replacing N/A
   // with whatever is easier to implement.  In this implementation, we extend

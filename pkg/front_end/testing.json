@@ -270,6 +270,19 @@
       ]
     },
     {
+      "name": "dartdoctest",
+      "kind": "Chain",
+      "source": "test/dartdoctest_suite.dart",
+      "path": "../",
+      "status": "test/dartdoctest_suite.status",
+      "pattern": [
+        "_fe_analyzer_shared/.*\\.dart$",
+        "kernel/.*\\.dart$",
+        "front_end/.*\\.dart$"
+      ],
+      "exclude": []
+    },
+    {
       "name": "spelling_test_src",
       "kind": "Chain",
       "source": "test/spelling_test_src_suite.dart",
