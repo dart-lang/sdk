@@ -6,74 +6,6 @@
 
 import "dart:math" as math;
 
-main() {
-  List<String> test = BinaryMdDillReader._getGenerics("Pair<A, B>");
-  if (test.length != 2 || test[0] != "A" || test[1] != "B") {
-    throw "Expected [A, B] got $test";
-  }
-
-  test = BinaryMdDillReader._getGenerics("List<Expression>");
-  if (test.length != 1 || test[0] != "Expression") {
-    throw "Expected [Expression] got $test";
-  }
-
-  test = BinaryMdDillReader._getGenerics("List<Pair<FileOffset, Expression>>");
-  if (test.length != 1 || test[0] != "Pair<FileOffset, Expression>") {
-    throw "Expected [Pair<FileOffset, Expression>] got $test";
-  }
-
-  test = BinaryMdDillReader._getGenerics("RList<Pair<UInt32, UInt32>>");
-  if (test.length != 1 || test[0] != "Pair<UInt32, UInt32>") {
-    throw "Expected [Pair<UInt32, UInt32>] got $test";
-  }
-
-  test =
-      BinaryMdDillReader._getGenerics("List<Pair<FieldReference, Expression>>");
-  if (test.length != 1 || test[0] != "Pair<FieldReference, Expression>") {
-    throw "Expected [Pair<FieldReference, Expression>] got $test";
-  }
-
-  test = BinaryMdDillReader._getGenerics(
-      "List<Pair<ConstantReference, ConstantReference>>");
-  if (test.length != 1 ||
-      test[0] != "Pair<ConstantReference, ConstantReference>") {
-    throw "Expected [Pair<ConstantReference, ConstantReference>] got $test";
-  }
-
-  test = BinaryMdDillReader._getGenerics(
-      "List<Pair<FieldReference, ConstantReference>>");
-  if (test.length != 1 ||
-      test[0] != "Pair<FieldReference, ConstantReference>") {
-    throw "Expected [Pair<FieldReference, ConstantReference>] got $test";
-  }
-
-  test = BinaryMdDillReader._getGenerics("Option<List<DartType>>");
-  if (test.length != 1 || test[0] != "List<DartType>") {
-    throw "Expected [List<DartType>] got $test";
-  }
-
-  test = BinaryMdDillReader._getGenerics("Foo<Bar<Baz>>");
-  if (test.length != 1 || test[0] != "Bar<Baz>") {
-    throw "Expected [Bar<Baz>] got $test";
-  }
-
-  test = BinaryMdDillReader._getGenerics("Foo<A, B<C, D>, E>");
-  if (test.length != 3 ||
-      test[0] != "A" ||
-      test[1] != "B<C, D>" ||
-      test[2] != "E") {
-    throw "Expected [A, B<C, D>, E] got $test";
-  }
-
-  test = BinaryMdDillReader._getGenerics("Foo<A, B<C, D<E<F<G>>>>, H>");
-  if (test.length != 3 ||
-      test[0] != "A" ||
-      test[1] != "B<C, D<E<F<G>>>>" ||
-      test[2] != "H") {
-    throw "Expected [A, B<C, D<E<F<G>>>>, H] got $test";
-  }
-}
-
 class BinaryMdDillReader {
   final String _binaryMdContent;
 
@@ -317,6 +249,65 @@ class BinaryMdDillReader {
   ///
   /// Note that the input string *has* to use generics, i.e. have '<' and '>'
   /// in it.
+  ///
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("Pair<A, B>"), ["A", "B"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("List<Expression>"), ["Expression"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("List<Pair<FileOffset, Expression>>"),
+  ///   ["Pair<FileOffset, Expression>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("RList<Pair<UInt32, UInt32>>"),
+  ///   ["Pair<UInt32, UInt32>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics(
+  ///     "List<Pair<FieldReference, Expression>>"),
+  ///   ["Pair<FieldReference, Expression>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics(
+  ///     "List<Pair<ConstantReference, ConstantReference>>"),
+  ///   ["Pair<ConstantReference, ConstantReference>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics(
+  ///     "List<Pair<FieldReference, ConstantReference>>"),
+  ///   ["Pair<FieldReference, ConstantReference>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("Option<List<DartType>>"),
+  ///   ["List<DartType>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("Foo<Bar<Baz>>"), ["Bar<Baz>"]
+  /// )
+  /// DartDocTest(
+  ///      BinaryMdDillReader._getGenerics("Foo<A, B<C, D>, E>"),
+  ///            ["A", "B<C, D>", "E"]
+  /// )
+  /// DartDocTest(
+  ///      BinaryMdDillReader._getGenerics("Foo<A, B<C, D<E<F<G>>>>, H>"),
+  ///            ["A", "B<C, D<E<F<G>>>>", "H"]
+  /// )
+  ///
+  /// Expected failing run (expects to fail with unbalanced < >).
+  /// TODO: Support this more elegantly.
+  /// DartDocTest(() {
+  ///      try {
+  ///        BinaryMdDillReader._getGenerics("Foo<A, B<C, D, E>");
+  ///        return false;
+  ///      } catch(e) {
+  ///        return true;
+  ///      }
+  ///    }(),
+  ///    true
+  /// )
+  ///
   static List<String> _getGenerics(String s) {
     s = s.substring(s.indexOf("<") + 1, s.lastIndexOf(">"));
     // Check that any '<' and '>' are balanced and split entries on comma for

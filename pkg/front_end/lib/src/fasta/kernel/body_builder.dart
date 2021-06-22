@@ -6867,9 +6867,25 @@ Block combineStatements(Statement statement, Statement body) {
   }
 }
 
+/// DartDocTest(
+///   debugName("myClassName", "myName", "myPrefix"),
+///   "myPrefix.myClassName.myName"
+/// )
+/// DartDocTest(
+///   debugName("myClassName", "myName"),
+///   "myClassName.myName"
+/// )
+/// DartDocTest(
+///   debugName("myClassName", ""),
+///   "myClassName"
+/// )
+/// DartDocTest(
+///   debugName("", ""),
+///   ""
+/// )
 String debugName(String className, String name, [String prefix]) {
   String result = name.isEmpty ? className : "$className.$name";
-  return prefix == null ? result : "$prefix.result";
+  return prefix == null ? result : "$prefix.$result";
 }
 
 // TODO(johnniwinther): This is a bit ad hoc. Call sites should know what kind
