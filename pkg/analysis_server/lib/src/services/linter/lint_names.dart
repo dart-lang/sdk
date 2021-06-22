@@ -88,6 +88,8 @@ class LintNames {
   static const String prefer_relative_imports = 'prefer_relative_imports';
   static const String prefer_single_quotes = 'prefer_single_quotes';
   static const String prefer_spread_collections = 'prefer_spread_collections';
+  static const String prefer_typing_uninitialized_variables =
+      'prefer_typing_uninitialized_variables';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';
   static const String sort_constructors_first = 'sort_constructors_first';

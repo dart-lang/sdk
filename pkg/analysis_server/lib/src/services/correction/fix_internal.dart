@@ -501,6 +501,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_spread_collections: [
       ConvertAddAllToSpread.newInstance,
     ],
+    LintNames.prefer_typing_uninitialized_variables: [
+      AddTypeAnnotation.newInstance,
+    ],
     LintNames.slash_for_doc_comments: [
       ConvertDocumentationIntoLine.newInstance,
     ],
