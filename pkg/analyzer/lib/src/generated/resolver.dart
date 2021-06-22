@@ -37,6 +37,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/function_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -263,6 +264,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   /// TODO(scheglov) Stop cloning altogether.
   bool shouldCloneAnnotations = true;
 
+  late final FunctionReferenceResolver _functionReferenceResolver;
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -381,6 +384,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         migratableAstInfoProvider: _migratableAstInfoProvider);
     inferenceContext = InferenceContext._(this);
     typeAnalyzer = StaticTypeAnalyzer(this, migrationResolutionHooks);
+    _functionReferenceResolver = FunctionReferenceResolver(this);
   }
 
   /// Return the element representing the function containing the current node,
@@ -1535,6 +1539,11 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     nullShortingTermination(node);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
+  }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    _functionReferenceResolver.resolve(node as FunctionReferenceImpl);
   }
 
   @override

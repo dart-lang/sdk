@@ -254,6 +254,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
         EnableString.generic_metadata,
         EnableString.nonfunction_type_aliases,
         EnableString.triple_shift,
+        EnableString.constructor_tearoffs,
       ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
@@ -417,7 +418,7 @@ mixin WithNullSafetyMixin on PubPackageResolutionTest {
   // TODO(https://github.com/dart-lang/sdk/issues/44666): This mixin is a no-op
   // on PubPackageResolutionTest; remove its usage and remove it.
   @override
-  String? get testPackageLanguageVersion => '2.12';
+  String? get testPackageLanguageVersion => '2.14';
 
   @override
   bool get typeToStringWithNullability => true;
