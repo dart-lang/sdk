@@ -13,6 +13,7 @@ void main() {
     defineReflectiveTests(AsExpressionCompletionTest);
     defineReflectiveTests(AssertStatementCompletionTest);
     defineReflectiveTests(ConstructorCompletionTest);
+    defineReflectiveTests(DeclaredIdentifierCompletionTest);
     defineReflectiveTests(ExpressionFunctionBodyCompletionTest);
     defineReflectiveTests(ExtensionCompletionTest);
     defineReflectiveTests(FormalParameterCompletionTest);
@@ -118,6 +119,33 @@ abstract class C {
 ''');
     await getSuggestions();
     assertHasNoCompletion('C.c');
+  }
+}
+
+@reflectiveTest
+class DeclaredIdentifierCompletionTest extends CompletionTestCase {
+  Future<void> test_afterFinal_withIdentifier() async {
+    addTestFile('''
+class C {
+  void m(List<C> cs) {
+    for (final ^ x in cs) {}
+  }
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('C');
+  }
+
+  Future<void> test_afterFinal_withoutIdentifier() async {
+    addTestFile('''
+class C {
+  void m(List<C> cs) {
+    for (final ^) {}
+  }
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('C');
   }
 }
 

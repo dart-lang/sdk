@@ -543,6 +543,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    var identifier = node.identifier;
+    if (identifier == entity &&
+        offset < identifier.offset &&
+        node.type == null) {
+      // Adding a type before the identifier.
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (identical(entity, node.defaultValue)) {
       optype.completionLocation = 'DefaultFormalParameter_defaultValue';
