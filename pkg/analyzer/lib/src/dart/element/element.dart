@@ -1620,6 +1620,11 @@ class DefaultFieldFormalParameterElementImpl
   /// [nameOffset].
   DefaultFieldFormalParameterElementImpl(String name, int nameOffset)
       : super(name, nameOffset);
+
+  @override
+  String? get defaultValueCode {
+    return constantInitializer?.toSource();
+  }
 }
 
 /// A [ParameterElement] for parameters that have an initializer.
@@ -1632,8 +1637,7 @@ class DefaultParameterElementImpl extends ParameterElementImpl
 
   @override
   String? get defaultValueCode {
-    var ast = constantInitializer;
-    return ast != null ? ast.toSource() : null;
+    return constantInitializer?.toSource();
   }
 }
 

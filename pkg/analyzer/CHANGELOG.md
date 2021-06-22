@@ -6,7 +6,9 @@
 * Deprecated `CompilationUnitElement.types`, use `classes` instead.
 * Added `Element.nonSynthetic`, use it to get the element that caused creation
   of this element, e.g. the field for a synthetic getter.
+* `FieldElement.isFinal` is `true` only when the field is not synthetic.
 * Synthetic getters and setters now use `-1` as `nameOffset`.
+* Fixed bug that `defaultValueCode` is `null` for field formal parameters.
 
 ## 1.7.0
 * Require `meta: ^1.4.0`.
