@@ -6183,17 +6183,18 @@ void TypeParameters::Print(Thread* thread,
       printer->AddString(TypeParameter::CanonicalNameCString(
           are_class_type_parameters, base, base + i));
     }
-    if (!AllDynamicBounds()) {
+    if (FLAG_show_internal_names || !AllDynamicBounds()) {
       type = BoundAt(i);
       // Do not print default bound or non-nullable Object bound in weak mode.
       if (!type.IsNull() &&
-          (!type.IsObjectType() ||
+          (FLAG_show_internal_names || !type.IsObjectType() ||
            (thread->isolate_group()->null_safety() && type.IsNonNullable()))) {
         printer->AddString(" extends ");
         type.PrintName(name_visibility, printer);
         if (FLAG_show_internal_names && !AllDynamicDefaults()) {
           type = DefaultAt(i);
-          if (!type.IsNull() && !type.IsDynamicType()) {
+          if (!type.IsNull() &&
+              (FLAG_show_internal_names || !type.IsDynamicType())) {
             printer->AddString(" defaults to ");
             type.PrintName(name_visibility, printer);
           }
@@ -6427,18 +6428,19 @@ bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
   if (this->ptr() == other.ptr()) {
     return true;
   }
-  if (IsNull() || other.IsNull()) {
-    return false;
-  }
-  const intptr_t num_types = Length();
-  if (num_types != other.Length()) {
-    return false;
+  if (kind == TypeEquality::kCanonical) {
+    if (IsNull() || other.IsNull()) {
+      return false;
+    }
+    if (Length() != other.Length()) {
+      return false;
+    }
   }
   AbstractType& type = AbstractType::Handle();
   AbstractType& other_type = AbstractType::Handle();
   for (intptr_t i = from_index; i < from_index + len; i++) {
-    type = TypeAt(i);
-    other_type = other.TypeAt(i);
+    type = IsNull() ? Type::DynamicType() : TypeAt(i);
+    other_type = other.IsNull() ? Type::DynamicType() : other.TypeAt(i);
     // Still unfinalized vectors should not be considered equivalent.
     if (type.IsNull() || !type.IsEquivalent(other_type, kind, trail)) {
       return false;

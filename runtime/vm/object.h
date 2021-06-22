@@ -7735,8 +7735,9 @@ class TypeArguments : public Instance {
   bool IsEquivalent(const TypeArguments& other,
                     TypeEquality kind,
                     TrailPtr trail = nullptr) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), kind,
-                                 trail);
+    // Make a null vector a vector of dynamic as long as the other vector.
+    return IsSubvectorEquivalent(other, 0, IsNull() ? other.Length() : Length(),
+                                 kind, trail);
   }
   bool IsSubvectorEquivalent(const TypeArguments& other,
                              intptr_t from_index,
