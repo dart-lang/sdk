@@ -1,0 +1,51 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:html';
+
+void main() {
+  print(HttpStatus.continue_);
+  print(HttpStatus.switchingProtocols);
+  print(HttpStatus.ok);
+  print(HttpStatus.created);
+  print(HttpStatus.accepted);
+  print(HttpStatus.nonAuthoritativeInformation);
+  print(HttpStatus.noContent);
+  print(HttpStatus.resetContent);
+  print(HttpStatus.partialContent);
+  print(HttpStatus.multipleChoices);
+  print(HttpStatus.movedPermanently);
+  print(HttpStatus.found);
+  print(HttpStatus.movedTemporarily);
+  print(HttpStatus.seeOther);
+  print(HttpStatus.notModified);
+  print(HttpStatus.useProxy);
+  print(HttpStatus.temporaryRedirect);
+  print(HttpStatus.badRequest);
+  print(HttpStatus.unauthorized);
+  print(HttpStatus.paymentRequired);
+  print(HttpStatus.forbidden);
+  print(HttpStatus.notFound);
+  print(HttpStatus.methodNotAllowed);
+  print(HttpStatus.notAcceptable);
+  print(HttpStatus.proxyAuthenticationRequired);
+  print(HttpStatus.requestTimeout);
+  print(HttpStatus.conflict);
+  print(HttpStatus.gone);
+  print(HttpStatus.lengthRequired);
+  print(HttpStatus.preconditionFailed);
+  print(HttpStatus.requestEntityTooLarge);
+  print(HttpStatus.requestUriTooLong);
+  print(HttpStatus.unsupportedMediaType);
+  print(HttpStatus.requestedRangeNotSatisfiable);
+  print(HttpStatus.expectationFailed);
+  print(HttpStatus.upgradeRequired);
+  print(HttpStatus.internalServerError);
+  print(HttpStatus.notImplemented);
+  print(HttpStatus.badGateway);
+  print(HttpStatus.serviceUnavailable);
+  print(HttpStatus.gatewayTimeout);
+  print(HttpStatus.httpVersionNotSupported);
+  print(HttpStatus.networkConnectTimeoutError);
+}
