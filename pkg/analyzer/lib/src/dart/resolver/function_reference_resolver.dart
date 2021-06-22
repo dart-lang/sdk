@@ -167,9 +167,6 @@ class FunctionReferenceResolver {
     var invokeType = rawType.instantiate(typeArguments);
     node.typeArgumentTypes = typeArguments;
     node.staticType = invokeType;
-
-    // TODO(srawlins): Verify that type arguments conform to bounds. This will
-    // probably be done later, not in this resolution phase.
   }
 
   void _resolveFunctionReferenceMethod({
