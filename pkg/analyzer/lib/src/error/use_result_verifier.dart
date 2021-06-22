@@ -64,12 +64,22 @@ class UseResultVerifier {
 
     var message = _getUseResultMessage(annotation);
     if (message == null || message.isEmpty) {
-      _errorReporter
-          .reportErrorForNode(HintCode.UNUSED_RESULT, node, [displayName]);
-    } else {
       _errorReporter.reportErrorForNode(
-          HintCode.UNUSED_RESULT_WITH_MESSAGE, node, [displayName, message]);
+          HintCode.UNUSED_RESULT, _getNodeToAnnotate(node), [displayName]);
+    } else {
+      _errorReporter.reportErrorForNode(HintCode.UNUSED_RESULT_WITH_MESSAGE,
+          _getNodeToAnnotate(node), [displayName, message]);
     }
+  }
+
+  static AstNode _getNodeToAnnotate(AstNode node) {
+    if (node is MethodInvocation) {
+      return node.methodName;
+    }
+    if (node is PropertyAccess) {
+      return node.propertyName;
+    }
+    return node;
   }
 
   static String? _getUseResultMessage(ElementAnnotation annotation) {

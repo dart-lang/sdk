@@ -114,7 +114,7 @@ void main() {
   A().foo;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 100, 7),
+      error(HintCode.UNUSED_RESULT, 104, 3),
     ]);
   }
 
@@ -207,7 +207,7 @@ void main() {
   A().foo;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 91, 7),
+      error(HintCode.UNUSED_RESULT, 95, 3),
     ]);
   }
 
@@ -224,7 +224,7 @@ void f(bool b) {
   b ? A().foo : 0;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 98, 7),
+      error(HintCode.UNUSED_RESULT, 102, 3),
     ]);
   }
 
@@ -241,7 +241,7 @@ void f(bool b) {
   b ? (A().foo) : 0;
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 99, 7),
+      error(HintCode.UNUSED_RESULT, 103, 3),
     ]);
   }
 
@@ -262,7 +262,7 @@ void main() {
   });
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 126, 7),
+      error(HintCode.UNUSED_RESULT, 130, 3),
     ]);
   }
 
@@ -346,6 +346,23 @@ void main() {
 ''');
   }
 
+  test_field_static_result_unassigned() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static int foo = 0;
+}
+
+void main() {
+  A.foo;
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 100, 3),
+    ]);
+  }
+
   test_getter_result_passed() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -419,7 +436,9 @@ class A {
 void main() {
   A().foo;
 }
-''', [error(HintCode.UNUSED_RESULT, 96, 7)]);
+''', [
+      error(HintCode.UNUSED_RESULT, 100, 3),
+    ]);
   }
 
   test_method_result_assigned() async {
@@ -510,7 +529,7 @@ void main() {
   A().foo();
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 94, 9),
+      error(HintCode.UNUSED_RESULT, 98, 3),
     ]);
   }
 
@@ -529,7 +548,7 @@ class C {
   }
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 129, 6,
+      error(HintCode.UNUSED_RESULT, 131, 2,
           messageContains: "'m1' should be used."),
     ]);
   }
@@ -616,7 +635,7 @@ void main() {
   baz(); // OK
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 108, 5),
+      error(HintCode.UNUSED_RESULT, 108, 3),
     ]);
   }
 
@@ -631,7 +650,7 @@ void main() {
   foo()..toString();
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 78, 5),
+      error(HintCode.UNUSED_RESULT, 78, 3),
     ]);
   }
 
