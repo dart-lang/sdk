@@ -12,6 +12,9 @@ _DIMENSIONS = {
     "os": "Linux",
     "pool": "luci.dart.try",
 }
+_CACHES = {
+    "Mac": [swarming.cache("osx_sdk", name = "osx_sdk")],
+}
 
 def _default_dict(defaults, overrides):
     defaults = dict(defaults)
@@ -20,6 +23,7 @@ def _default_dict(defaults, overrides):
     return defaults
 
 defaults = struct(
-    properties = lambda properties: _default_dict(_PROPERTIES, properties),
+    caches = lambda os: _CACHES.get(os),
     dimensions = lambda dimensions: _default_dict(_DIMENSIONS, dimensions),
+    properties = lambda properties: _default_dict(_PROPERTIES, properties),
 )

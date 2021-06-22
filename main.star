@@ -551,12 +551,11 @@ def dart_try_builder(
     properties = defaults.properties(properties)
     builder_properties = with_goma(goma, "try", dimensions, properties)
     builder = name + "-try"
-
     luci.builder(
         name = builder,
         build_numbers = True,
         bucket = bucket,
-        caches = [swarming.cache("third_party/browsers", name = "browsers")],
+        caches = defaults.caches(dimensions["os"]),
         dimensions = dimensions,
         executable = dart_recipe(recipe),
         execution_timeout = execution_timeout,
@@ -697,7 +696,7 @@ def dart_builder(
                 name = builder,
                 build_numbers = True,
                 bucket = bucket,
-                caches = [swarming.cache("browsers")],
+                caches = defaults.caches(dimensions["os"]),
                 dimensions = dimensions,
                 executable = executable or dart_recipe(recipe),
                 execution_timeout = execution_timeout,
