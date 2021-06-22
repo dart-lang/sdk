@@ -23,15 +23,21 @@ def Main():
     parser = optparse.OptionParser()
     parser.add_option(
         '--mode', action='store', dest='mode', type='string', default='release')
+    parser.add_option('--arch',
+                      action='store',
+                      dest='arch',
+                      type='string',
+                      default='x64')
 
     (options, args) = parser.parse_args()
 
-    out_dir_subfolder = 'DebugX64' if options.mode == 'debug' else 'ReleaseX64'
+    arch = 'XARM64' if options.arch == 'arm64' else 'X64'
+    mode = ('Debug' if options.mode == 'debug' else 'Release')
 
     out_dir = 'xcodebuild' if sys.platform == 'darwin' else 'out'
     extension = '' if not sys.platform == 'win32' else '.bat'
-    pub = os.path.abspath(
-        '%s/%s/dart-sdk/bin/pub%s' % (out_dir, out_dir_subfolder, extension))
+    pub = os.path.abspath('%s/%s%s/dart-sdk/bin/pub%s' %
+                          (out_dir, mode, arch, extension))
     print(pub)
 
     working_dir = tempfile.mkdtemp()

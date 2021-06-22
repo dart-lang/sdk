@@ -3503,7 +3503,8 @@
           "name": "pub integration tests",
           "script": "tools/bots/pub_integration_test.py",
           "arguments": [
-            "--mode=release"
+            "--mode=release",
+            "--arch=arm64"
           ]
         }
       ]
