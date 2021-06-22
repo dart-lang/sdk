@@ -20254,6 +20254,7 @@ void AbstractType::SetTypeTestingStub(const Code& stub) const {
   if (stub.IsNull()) {
     // This only happens during bootstrapping when creating Type objects before
     // we have the instructions.
+    ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid);
     StoreNonPointer(&untag()->type_test_stub_entry_point_, 0);
     untag()->set_type_test_stub(stub.ptr());
     return;
