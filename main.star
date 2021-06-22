@@ -953,11 +953,24 @@ dart_vm_nightly_builder(
     channels = ["try"],
 )
 dart_vm_nightly_builder(
+    "vm-kernel-nnbd-mac-debug-arm64",
+    category = "vm|nnbd|jit|m1d",
+    channels = ["try"],
+    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    dimensions = mac(cpu = "arm64"),
+)
+dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-debug-x64",
     category = "vm|nnbd|jit|md",
     channels = ["try"],
     properties = {"shard_timeout": (90 * time.minute) // time.second},
     dimensions = mac(),
+)
+dart_vm_extra_builder(
+    "vm-kernel-nnbd-mac-release-arm64",
+    category = "vm|nnbd|jit|m1r",
+    channels = ["try"],
+    dimensions = mac(cpu = "arm64"),
 )
 dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-release-x64",
@@ -1010,6 +1023,13 @@ nightly_builder(
     "vm-kernel-precomp-nnbd-linux-release-simarm64",
     category = "vm|nnbd|aot|ra6",
     channels = ["try"],
+)
+dart_vm_extra_builder(
+    "vm-kernel-precomp-nnbd-mac-release-arm64",
+    category = "vm|nnbd|aot|m1",
+    channels = ["try"],
+    dimensions = mac(cpu = "arm64"),
+    properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
 nightly_builder(
     "vm-kernel-precomp-nnbd-mac-release-simarm64",
@@ -1327,6 +1347,13 @@ dart_ci_sandbox_builder(
     "pkg-mac-release",
     category = "pkg|m",
     dimensions = mac(),
+    properties = CHROME,
+)
+dart_ci_sandbox_builder(
+    "pkg-mac-release-arm64",
+    category = "pkg|m1",
+    channels = ["try"],
+    dimensions = mac(cpu = "arm64"),
     properties = CHROME,
 )
 dart_ci_sandbox_builder(
