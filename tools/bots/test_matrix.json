@@ -404,6 +404,15 @@
         "use-sdk": true
       }
     },
+    "unittest-asserts-(debug|product|release)-mac-arm64": {
+      "options": {
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
     "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
@@ -870,7 +879,7 @@
         "builder-tag": "canary"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(x64|x64c)": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(arm64|x64|x64c)": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
@@ -890,18 +899,18 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|simarm64c|x64|x64c)": {
+    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c)": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-strong-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|simarm64c|x64|x64c)": {
+    "dartk-strong-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c)": {
       "options": {
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-(x64|x64c)": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-(arm64|x64|x64c)": {
       "options": {
         "builder-tag": "vm_nnbd"
       }
@@ -1313,6 +1322,7 @@
         "vm-kernel-precomp-nnbd-linux-release-simarm64c",
         "vm-kernel-precomp-nnbd-linux-release-x64",
         "vm-kernel-precomp-nnbd-linux-release-x64c",
+        "vm-kernel-precomp-nnbd-mac-release-arm64",
         "vm-kernel-precomp-nnbd-mac-release-simarm64",
         "vm-kernel-precomp-nnbd-mac-release-simarm64c",
         "vm-kernel-precomp-nnbd-win-release-x64",
@@ -1748,8 +1758,10 @@
         "vm-kernel-nnbd-linux-release-simarm64c",
         "vm-kernel-nnbd-linux-release-x64",
         "vm-kernel-nnbd-linux-release-x64c",
+        "vm-kernel-nnbd-mac-debug-arm64",
         "vm-kernel-nnbd-mac-debug-x64",
         "vm-kernel-nnbd-mac-debug-x64c",
+        "vm-kernel-nnbd-mac-release-arm64",
         "vm-kernel-nnbd-mac-release-x64",
         "vm-kernel-nnbd-mac-release-x64c",
         "vm-kernel-nnbd-win-release-ia32",
@@ -3445,6 +3457,45 @@
           "name": "third_party pkg_tested unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
+            "pkg_tested"
+          ]
+        },
+        {
+          "name": "pub integration tests",
+          "script": "tools/bots/pub_integration_test.py",
+          "arguments": [
+            "--mode=release"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "pkg-mac-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the macOS arm64 pkg builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "create_sdk",
+            "dartdevc_test"
+          ]
+        },
+        {
+          "name": "package unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}-arm64",
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
+          ]
+        },
+        {
+          "name": "third_party pkg_tested unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}-arm64",
             "pkg_tested"
           ]
         },
