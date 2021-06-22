@@ -9,48 +9,60 @@ import 'package:kernel/kernel.dart';
 import 'module_symbols.dart';
 
 class ModuleSymbolsCollector extends RecursiveVisitor {
-  final scopes = <ScopeSymbol>[];
+  /// Stack of active scopes while visiting the original Dart program.
+  ///
+  /// The first scope added to the stack should always be the library scope. The
+  /// last element in the list represents the current scope.
+  final _scopes = <ScopeSymbol>[];
 
-  final moduleSymbols = ModuleSymbols(
-    // TODO version
-    // TODO moduleName
-    libraries: <LibrarySymbol>[],
-    scripts: <Script>[],
-    classes: <ClassSymbol>[],
-    // TODO functionTypes
-    // TODO functions
-    // TODO scopes
-    // TODO variables
-  );
+  final _moduleSymbols = ModuleSymbols(
+      // TODO(nshahan) version
+      // TODO(nshahan) moduleName
+      libraries: <LibrarySymbol>[],
+      scripts: <Script>[],
+      classes: <ClassSymbol>[],
+      // TODO(nshahan) functionTypes
+      // TODO(nshahan) functions
+      // TODO(nshahan) scopes
+      variables: <VariableSymbol>[]);
 
-  final Map<Class, String> classJsNames;
+  final Map<Class, String> _classJsNames;
+  final Map<Member, String> _memberJsNames;
+  final Map<VariableDeclaration, String> _variableJsNames;
 
-  ModuleSymbolsCollector(this.classJsNames);
+  ModuleSymbolsCollector(
+      this._classJsNames, this._memberJsNames, this._variableJsNames);
 
   ModuleSymbols collectSymbolInfo(Component node) {
     node.accept(this);
-    return moduleSymbols;
+    return _moduleSymbols;
   }
 
   /// Returns the id of the script in this module with the matching [fileUri].
   String _scriptId(Uri fileUri) => fileUri.toString();
+
+  /// Returns the id of [type].
+  String _typeId(DartType type) =>
+      // TODO(nshahan) How to handle function types or types from other modules?
+      type is InterfaceType ? _classJsNames[type.classNode] : null;
 
   @override
   void visitClass(Class node) {
     var classSymbol = ClassSymbol(
         name: node.name,
         isAbstract: node.isAbstract,
-        // TODO isConst - has a const constructor?
-        superClassId: classJsNames[node.superclass],
+        // TODO(nshahan) isConst - Does this mean has a const constructor?
+        superClassId: _classJsNames[node.superclass],
         interfaceIds: [
-          for (var type in node.implementedTypes) classJsNames[type.classNode]
+          for (var type in node.implementedTypes) _classJsNames[type.classNode]
         ],
         typeParameters: {
           for (var param in node.typeParameters)
-            param.name: param.name // TODO: value should be JS name
+            // TODO(nshahan) Value should be the JS name.
+            param.name: param.name
         },
-        localId: classJsNames[node],
-        scopeId: scopes.last.id,
+        localId: _classJsNames[node],
+        scopeId: _scopes.last.id,
         location: SourceLocation(
             scriptId: _scriptId(node.location.file),
             tokenPos: node.startFileOffset,
@@ -59,12 +71,33 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
         variableIds: <String>[],
         scopeIds: <String>[]);
 
-    scopes.add(classSymbol);
+    _scopes.add(classSymbol);
     node.visitChildren(this);
-    scopes
+    _scopes
       ..removeLast()
       ..last.scopeIds.add(classSymbol.id);
-    moduleSymbols.classes.add(classSymbol);
+    _moduleSymbols.classes.add(classSymbol);
+  }
+
+  @override
+  void visitField(Field node) {
+    var fieldSymbol = VariableSymbol(
+        name: node.name.text,
+        kind: node.parent is Class
+            ? VariableSymbolKind.field
+            : VariableSymbolKind.global,
+        isConst: node.isConst,
+        isFinal: node.isFinal,
+        isStatic: node.isStatic,
+        typeId: _typeId(node.type),
+        localId: _memberJsNames[node],
+        scopeId: _scopes.last.id,
+        location: SourceLocation(
+            scriptId: _scriptId(node.location.file),
+            tokenPos: node.fileOffset));
+    node.visitChildren(this);
+    _scopes.last.variableIds.add(fieldSymbol.id);
+    _moduleSymbols.variables.add(fieldSymbol);
   }
 
   @override
@@ -77,13 +110,13 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
             LibrarySymbolDependency(
                 isImport: dep.isImport,
                 isDeferred: dep.isDeferred,
-                // TODO prefix
+                // TODO(nshahan) Need to handle prefixes.
                 targetId: dep.targetLibrary.importUri.toString())
         ],
         variableIds: <String>[],
         scopeIds: <String>[]);
 
-    // TODO: Save some space by using integers as local ids?
+    // TODO(nshahan) Save some space by using integers as local ids?
     var scripts = [
       Script(
           uri: node.fileUri.toString(),
@@ -97,11 +130,47 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
     ];
 
     librarySymbol.scriptIds = [for (var script in scripts) script.id];
-    moduleSymbols.scripts.addAll(scripts);
+    _moduleSymbols.scripts.addAll(scripts);
 
-    scopes.add(librarySymbol);
+    _scopes.add(librarySymbol);
     node.visitChildren(this);
-    scopes.removeLast();
-    moduleSymbols.libraries.add(librarySymbol);
+    _scopes.removeLast();
+    _moduleSymbols.libraries.add(librarySymbol);
   }
+
+  @override
+  void visitProcedure(Procedure node) {
+    // Legacy libraries contain procedures with no bodies for all Object methods
+    // in every class. We can ignore these unless they actually contain a body.
+    if (node.function.body == null) return;
+    // TODO(nshahan) implement visitProcedure
+    super.visitProcedure(node);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    var kind = node.isFieldFormal
+        ? VariableSymbolKind.formal
+        : VariableSymbolKind.local;
+    var variableSymbol = _createVariableSymbol(node, kind);
+    node.visitChildren(this);
+    _scopes.last.variableIds.add(variableSymbol.id);
+    _moduleSymbols.variables.add(variableSymbol);
+  }
+
+  VariableSymbol _createVariableSymbol(
+          VariableDeclaration node, VariableSymbolKind kind) =>
+      VariableSymbol(
+          name: node.name,
+          kind: kind,
+          isConst: node.isConst,
+          isFinal: node.isFinal,
+          // Static fields are visited in `visitField()`.
+          isStatic: false,
+          typeId: _typeId(node.type),
+          localId: _variableJsNames[node],
+          scopeId: _scopes.last.id,
+          location: SourceLocation(
+              scriptId: _scriptId(node.location.file),
+              tokenPos: node.fileOffset));
 }

@@ -23,10 +23,6 @@ namespace bin {
   V(snapshot_depfile, snapshot_deps_filename)                                  \
   V(depfile, depfile)                                                          \
   V(depfile_output_filename, depfile_output_filename)                          \
-  V(save_compilation_trace, save_compilation_trace_filename)                   \
-  V(load_compilation_trace, load_compilation_trace_filename)                   \
-  V(save_type_feedback, save_type_feedback_filename)                           \
-  V(load_type_feedback, load_type_feedback_filename)                           \
   V(root_certs_file, root_certs_file)                                          \
   V(root_certs_cache, root_certs_cache)                                        \
   V(namespace, namespc)                                                        \

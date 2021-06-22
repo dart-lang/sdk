@@ -460,7 +460,6 @@ dart_2/isolates/thread_pool_test: Skip # Only AOT has lightweight enough isolate
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
-dart/compilation_trace_test: Pass, Slow
 dart/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
 dart/isolates/spawn_function_test: Skip # This test explicitly enables isolate groups (off-by-default atm). It will be enabled once full IG reloading is implemented.
 dart/issue_31959_31960_test: SkipSlow
@@ -472,9 +471,7 @@ dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloa
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/splay_test: SkipSlow
 dart/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
-dart/type_feedback_test: Pass, Slow
 dart_2/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
-dart_2/compilation_trace_test: Pass, Slow
 dart_2/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
 dart_2/isolates/spawn_function_test: Skip # This test explicitly enables isolate groups (off-by-default atm). It will be enabled once full IG reloading is implemented.
 dart_2/issue_31959_31960_test: SkipSlow
@@ -486,7 +483,6 @@ dart_2/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it rel
 dart_2/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart_2/splay_test: SkipSlow
 dart_2/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
-dart_2/type_feedback_test: Pass, Slow
 
 [ $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkp ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.

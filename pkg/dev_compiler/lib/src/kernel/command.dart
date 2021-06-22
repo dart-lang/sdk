@@ -747,8 +747,14 @@ ModuleSymbols _emitSymbols(ProgramCompiler compiler,
     for (var e in compiler.classIdentifiers.entries)
       e.key: identifierNames[e.value],
   };
+  var variableJsNames = <VariableDeclaration, String>{
+    for (var e in compiler.variableIdentifiers.entries)
+      e.key: identifierNames[e.value],
+  };
 
-  return ModuleSymbolsCollector(classJsNames).collectSymbolInfo(component);
+  return ModuleSymbolsCollector(
+          classJsNames, compiler.memberNames, variableJsNames)
+      .collectSymbolInfo(component);
 }
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,

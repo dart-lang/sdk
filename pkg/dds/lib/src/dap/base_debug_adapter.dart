@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
+
 import 'exceptions.dart';
 import 'logging.dart';
 import 'protocol_common.dart';
@@ -58,6 +60,22 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     ContinueArguments args,
     void Function(ContinueResponseBody) sendResponse,
   );
+
+  @mustCallSuper
+  Future<void> customRequest(
+    Request request,
+    RawRequestArguments? args,
+    void Function(Object?) sendResponse,
+  ) async {
+    final response = Response(
+      success: false,
+      requestSeq: request.seq,
+      seq: _sequence++,
+      command: request.command,
+      message: 'Unknown command: ${request.command}',
+    );
+    sendResponse(response);
+  }
 
   Future<void> disconnectRequest(
     Request request,
@@ -209,6 +227,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     void Function() sendResponse,
   );
 
+  Future<void> threadsRequest(
+    Request request,
+    void args,
+    void Function(ThreadsResponseBody) sendResponse,
+  );
+
   Future<void> variablesRequest(
     Request request,
     VariablesArguments args,
@@ -278,8 +302,13 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
         StepInArguments.fromJson,
       );
     } else if (request.command == 'stepOut') {
-      handle(request, _withVoidResponse(stepOutRequest),
-          StepOutArguments.fromJson);
+      handle(
+        request,
+        _withVoidResponse(stepOutRequest),
+        StepOutArguments.fromJson,
+      );
+    } else if (request.command == 'threads') {
+      handle(request, threadsRequest, _voidArgs);
     } else if (request.command == 'stackTrace') {
       handle(request, stackTraceRequest, StackTraceArguments.fromJson);
     } else if (request.command == 'scopes') {
@@ -289,14 +318,11 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     } else if (request.command == 'evaluate') {
       handle(request, evaluateRequest, EvaluateArguments.fromJson);
     } else {
-      final response = Response(
-        success: false,
-        requestSeq: request.seq,
-        seq: _sequence++,
-        command: request.command,
-        message: 'Unknown command: ${request.command}',
+      handle(
+        request,
+        customRequest,
+        _allowNullArg(RawRequestArguments.fromJson),
       );
-      _channel.sendResponse(response);
     }
   }
 
@@ -304,6 +330,10 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     // TODO(dantup): Implement this when the server sends requests to the client
     // (for example runInTerminalRequest).
   }
+
+  /// Helpers for requests that have `void` arguments. The supplied args are
+  /// ignored.
+  void _voidArgs(Map<String, Object?>? args) {}
 
   /// Helper that converts a handler with no response value to one that has
   /// passes an unused arg so that `Function()` can be passed to a function
