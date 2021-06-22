@@ -26,7 +26,7 @@ class DependencyValidator extends BasePubspecValidator {
     bool isPublishablePackage = false;
     var version = contents[PubspecField.VERSION_FIELD];
     if (version != null) {
-      var publishTo = _asString(contents[PubspecField.PUBLISH_TO_FIELD]);
+      var publishTo = asString(contents[PubspecField.PUBLISH_TO_FIELD]);
       if (publishTo != 'none') {
         isPublishablePackage = true;
       }
@@ -44,16 +44,6 @@ class DependencyValidator extends BasePubspecValidator {
       }
       _validatePathEntries(reporter, dependency.value, false);
     }
-  }
-
-  String? _asString(dynamic node) {
-    if (node is String) {
-      return node;
-    }
-    if (node is YamlScalar && node.value is String) {
-      return node.value as String;
-    }
-    return null;
   }
 
   /// Return a map whose keys are the names of declared dependencies and whose
@@ -84,7 +74,7 @@ class DependencyValidator extends BasePubspecValidator {
   void _validatePathEntries(ErrorReporter reporter, YamlNode dependency,
       bool checkForPathAndGitDeps) {
     if (dependency is YamlMap) {
-      var pathEntry = _asString(dependency[PubspecField.PATH_FIELD]);
+      var pathEntry = asString(dependency[PubspecField.PATH_FIELD]);
       if (pathEntry != null) {
         YamlNode pathKey() => dependency.getKey(PubspecField.PATH_FIELD)!;
         YamlNode pathValue() => dependency.valueAt(PubspecField.PATH_FIELD)!;
