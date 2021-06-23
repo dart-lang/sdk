@@ -661,6 +661,14 @@ abstract class Stream<T> {
   /// If a broadcast stream is listened to more than once, each subscription
   /// will individually perform the `test` and handle the error.
   Stream<T> handleError(Function onError, {bool test(error)?}) {
+    if (onError is! void Function(Object, StackTrace) &&
+        onError is! void Function(Object)) {
+      throw ArgumentError.value(
+          onError,
+          "onError",
+          "Error handler must accept one Object or one Object and a StackTrace"
+              " as arguments.");
+    }
     return new _HandleErrorStream<T>(this, onError, test);
   }
 

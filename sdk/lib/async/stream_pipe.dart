@@ -243,14 +243,11 @@ class _ExpandStream<S, T> extends _ForwardingStream<S, T> {
 /// A stream pipe that converts or disposes error events
 /// before passing them on.
 class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
-  final Function _transform;
+  final Function _onError;
   final bool Function(Object)? _test;
 
-  _HandleErrorStream(
-      Stream<T> source, Function onError, bool test(Object error)?)
-      : this._transform = onError,
-        this._test = test,
-        super(source);
+  _HandleErrorStream(Stream<T> source, this._onError, this._test)
+      : super(source);
 
   void _handleData(T data, _EventSink<T> sink) {
     sink._add(data);
@@ -269,7 +266,7 @@ class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
     }
     if (matches) {
       try {
-        _invokeErrorHandler(_transform, error, stackTrace);
+        _invokeErrorHandler(_onError, error, stackTrace);
       } catch (e, s) {
         if (identical(e, error)) {
           sink._addError(error, stackTrace);
