@@ -299,13 +299,6 @@ class BackendImpacts {
         constantMapLiteral
       ]);
 
-  BackendImpact _symbolConstructor;
-
-  BackendImpact get symbolConstructor {
-    return _symbolConstructor ??= new BackendImpact(
-        staticUses: [_commonElements.symbolValidatedConstructor]);
-  }
-
   BackendImpact _constSymbol;
 
   BackendImpact get constSymbol {

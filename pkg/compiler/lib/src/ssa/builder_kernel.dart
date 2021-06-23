@@ -5546,9 +5546,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             node.arguments,
             typeArguments,
             sourceInformation));
-    if (_commonElements.isSymbolConstructor(constructor)) {
-      constructor = _commonElements.symbolValidatedConstructor;
-    }
     // TODO(johnniwinther): Remove this when type arguments are passed to
     // constructors like calling a generic method.
     _addTypeArguments(arguments, _getClassTypeArguments(cls, node.arguments),

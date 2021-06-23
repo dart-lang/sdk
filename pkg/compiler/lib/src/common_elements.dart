@@ -518,8 +518,6 @@ abstract class CommonElements {
 
   InterfaceType get externalNameType;
 
-  ConstructorEntity get symbolValidatedConstructor;
-
   // From dart:_js_embedded_names
 
   /// Holds the class for the [JsGetName] enum.
@@ -570,8 +568,6 @@ abstract class KCommonElements implements CommonElements {
   FieldEntity get pragmaClassOptionsField;
 
   bool isCreateInvocationMirrorHelper(MemberEntity member);
-
-  bool isSymbolValidatedConstructor(ConstructorEntity element);
 
   ClassEntity get metaNoInlineClass;
 
@@ -2073,26 +2069,12 @@ class CommonElementsImpl
   @override
   InterfaceType get externalNameType => _getRawType(externalNameClass);
 
-  @override
-  ConstructorEntity get symbolValidatedConstructor =>
-      _symbolValidatedConstructor ??=
-          _findConstructor(symbolImplementationClass, 'validated');
-
   /// Returns the field that holds the internal name in the implementation class
   /// for `Symbol`.
   FieldEntity _symbolImplementationField;
   FieldEntity get symbolImplementationField => _symbolImplementationField ??=
       _env.lookupLocalClassMember(symbolImplementationClass, '_name',
           required: true);
-
-  ConstructorEntity _symbolValidatedConstructor;
-  @override
-  bool isSymbolValidatedConstructor(ConstructorEntity element) {
-    if (_symbolValidatedConstructor != null) {
-      return element == _symbolValidatedConstructor;
-    }
-    return false;
-  }
 
   // From dart:_native_typed_data
 
