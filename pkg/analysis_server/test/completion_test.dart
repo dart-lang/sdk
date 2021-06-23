@@ -108,7 +108,7 @@ class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''', <String>[
       '1+void',
       '1-null',
       '2+Arrays',
-      '2-void',
+      '2+void',
       '2-null'
     ]);
 

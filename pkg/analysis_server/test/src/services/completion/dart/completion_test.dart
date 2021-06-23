@@ -17,6 +17,7 @@ void main() {
     defineReflectiveTests(ExpressionFunctionBodyCompletionTest);
     defineReflectiveTests(ExtensionCompletionTest);
     defineReflectiveTests(FormalParameterCompletionTest);
+    defineReflectiveTests(GenericFunctionTypeCompletionTest);
     defineReflectiveTests(GenericTypeAliasCompletionTest);
     defineReflectiveTests(PropertyAccessCompletionTest);
     defineReflectiveTests(RedirectedConstructorCompletionTest);
@@ -400,6 +401,57 @@ void f(^) {}
     assertHasCompletion('covariant');
     assertHasCompletion('dynamic');
     assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+}
+
+@reflectiveTest
+class GenericFunctionTypeCompletionTest extends CompletionTestCase {
+  Future<void> test_returnType_beforeType() async {
+    addTestFile('''
+void f({^vo Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_beforeType_afterRequired() async {
+    addTestFile('''
+void f({required ^vo Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_inType() async {
+    addTestFile('''
+void f({v^o Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_inType_afterRequired() async {
+    addTestFile('''
+void f({required v^o Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_partialFunctionType() async {
+    addTestFile('''
+void f({^ Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_partialFunctionType_afterRequired() async {
+    addTestFile('''
+void f({required ^ Function() p}) {}
+''');
+    await getSuggestions();
     assertHasCompletion('void');
   }
 }

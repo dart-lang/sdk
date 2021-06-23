@@ -403,7 +403,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     } else if (entity is FormalParameter) {
       var beginToken = entity.beginToken;
       var offset = request.target.offset;
-      if (beginToken.offset <= offset && offset <= beginToken.end) {
+      if (offset <= beginToken.end) {
         _addSuggestion(Keyword.COVARIANT);
         _addSuggestion(Keyword.DYNAMIC);
         _addSuggestion(Keyword.VOID);
@@ -676,6 +676,22 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _addCollectionElementKeywords();
     super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    var entity = this.entity;
+    if (node.type == entity && entity is GenericFunctionType) {
+      var offset = request.offset;
+      var returnType = entity.returnType;
+      if ((returnType == null && offset < entity.offset) ||
+          (returnType != null &&
+              offset >= returnType.offset &&
+              offset < returnType.end)) {
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+      }
+    }
   }
 
   @override
