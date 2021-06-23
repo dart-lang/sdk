@@ -74,7 +74,10 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   void addAll(Map<K, V> other) => _throwUnmodifiable();
 
   Iterable<MapEntry<K, V>> get entries sync* {
-    for (var key in keys) yield new MapEntry<K, V>(key, this[key]!);
+    // `this[key]` has static type `V?` but is always `V`. Rather than `as V`,
+    // we use `as dynamic` so the upcast requires no checking and the implicit
+    // downcast to `V` will be discarded in production.
+    for (var key in keys) yield new MapEntry<K, V>(key, this[key] as dynamic);
   }
 
   void addEntries(Iterable<MapEntry<K, V>> entries) {
