@@ -48,8 +48,8 @@ enum/private_test/01: Crash # Issue 34606
 unsorted/inference_enum_list_test: Skip # Issue 35885
 
 [ $compiler == dartk && $mode == product && $runtime == vm ]
-vm/causal_async_exception_stack2_test: SkipByDesign
-vm/causal_async_exception_stack_test: SkipByDesign
+vm/lazy_async_exception_stack2_test: SkipByDesign
+vm/lazy_async_exception_stack_test: SkipByDesign
 
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm ]
@@ -91,9 +91,9 @@ null_test/none: SkipByDesign
 optimize/deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 unsorted/hello_dart_test: Skip # Incompatible flag: --compile_all
 unsorted/invocation_mirror2_test: SkipByDesign
-vm/causal_async_exception_stack2_test: SkipByDesign
-vm/causal_async_exception_stack_test: SkipByDesign
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
+vm/lazy_async_exception_stack2_test: SkipByDesign
+vm/lazy_async_exception_stack_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
 vm/regress_27671_test: Skip # Unsupported
 vm/regress_29145_test: Skip # Issue 29145

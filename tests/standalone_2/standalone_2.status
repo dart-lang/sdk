@@ -41,7 +41,7 @@ io/socket_sigpipe_test: SkipByDesign # Spawns server process using Platform.exec
 deferred_transitive_import_error_test: Skip
 
 [ $compiler == dartkp ]
-causal_async_stack_test: Skip # Flaky.
+lazy_async_stack_test: Skip # Flaky.
 
 [ $mode == product ]
 io/stdio_implicit_close_test: Skip # SkipByDesign
