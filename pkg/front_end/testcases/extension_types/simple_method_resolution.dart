@@ -10,11 +10,22 @@ extension E on A {
   void bar() => foo();
 }
 
-test(A a, E e) {
+extension type ET on A {
+  void baz() => foo();
+}
+
+test(A a, E e, ET et) {
   a.foo(); // Ok.
   a.bar(); // Ok.
+  a.baz(); // Error.
+
   e.foo(); // Error.
   e.bar(); // Ok.
+  e.baz(); // Error.
+
+  et.foo(); // Error.
+  et.bar(); // Error.
+  et.baz(); // Ok.
 }
 
 main() {}

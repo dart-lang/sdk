@@ -4092,10 +4092,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
     if (_extensionsInScope == null) {
       _extensionsInScope = <ExtensionBuilder>{};
-      scope.forEachExtension(_extensionsInScope.add);
+      scope.forEachExtension((e) {
+        if (!e.extension.isExtensionTypeDeclaration) {
+          _extensionsInScope.add(e);
+        }
+      });
       if (_prefixBuilders != null) {
         for (PrefixBuilder prefix in _prefixBuilders) {
-          prefix.exportScope.forEachExtension(_extensionsInScope.add);
+          prefix.exportScope.forEachExtension((e) {
+            if (!e.extension.isExtensionTypeDeclaration) {
+              _extensionsInScope.add(e);
+            }
+          });
         }
       }
     }
