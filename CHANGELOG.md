@@ -1,3 +1,13 @@
+## 2.13.4 - 2021-06-28
+
+This is a patch release that fixes:
+
+* a Dart VM compiler crash (issue [flutter/flutter#84212][]).
+* a DDC compiler crash (issue [flutter/flutter#82838][]).
+
+[flutter/flutter#84212]: https://github.com/flutter/flutter/issues/84212
+[flutter/flutter#82838]: https://github.com/flutter/flutter/issues/82838
+
 ## 2.13.3 - 2021-06-10
 
 This is a patch release that fixes:
