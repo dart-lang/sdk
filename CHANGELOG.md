@@ -103,7 +103,7 @@ Updated the Linter to `1.6.1`, which includes changes that
   underscore.
 - fix false negative in `prefer_final_parameters` where first parameter
   is final.
-- improve `directives_ordering` sorting of directives with dot paths and 
+- improve `directives_ordering` sorting of directives with dot paths and
   dot-separated package names.
 - (internal) migrate to `SecurityLintCode` instead of deprecated
   `SecurityLintCodeWithUniqueName`.
@@ -207,6 +207,16 @@ Updated the Linter to `1.6.1`, which includes changes that
       f<int>(3);
     }
     ```
+
+## 2.13.4 - 2021-06-28
+
+This is a patch release that fixes:
+
+* a Dart VM compiler crash (issue [flutter/flutter#84212][]).
+* a DDC compiler crash (issue [flutter/flutter#82838][]).
+
+[flutter/flutter#84212]: https://github.com/flutter/flutter/issues/84212
+[flutter/flutter#82838]: https://github.com/flutter/flutter/issues/82838
 
 ## 2.13.3 - 2021-06-10
 
