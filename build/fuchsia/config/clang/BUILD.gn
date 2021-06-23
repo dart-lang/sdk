@@ -21,9 +21,9 @@ copy("clang-runtime-libs") {
 
   sys = target_os
   sources = [
-    "${clang_base_path}/lib/${arch}-${vendor}-${sys}/c++/libc++.so.2.0",
-    "${clang_base_path}/lib/${arch}-${vendor}-${sys}/c++/libc++abi.so.1.0",
-    "${clang_base_path}/lib/${arch}-${vendor}-${sys}/c++/libunwind.so.1.0",
+    "${clang_base_path}/lib/${arch}-${vendor}-${sys}/libc++.so.2.0",
+    "${clang_base_path}/lib/${arch}-${vendor}-${sys}/libc++abi.so.1.0",
+    "${clang_base_path}/lib/${arch}-${vendor}-${sys}/libunwind.so.1.0",
   ]
   outputs = [
     "${root_out_dir}/lib/{{source_name_part}}",
