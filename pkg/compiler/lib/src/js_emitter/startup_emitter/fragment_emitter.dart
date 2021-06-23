@@ -827,7 +827,7 @@ class FragmentEmitter {
 
   /// Adds code to a finalizer.
   void addCodeToFinalizer(void Function(js.Node) addCode, js.Node fragmentCode,
-      Map<Library, List<js.Property>> holderCode) {
+      Map<Entity, List<js.Property>> holderCode) {
     addCode(fragmentCode);
     for (var properties in holderCode.values) {
       for (var property in properties) {
@@ -839,7 +839,7 @@ class FragmentEmitter {
   /// Finalizes the code for a fragment, and optionally finalizes holders.
   /// Finalizing holders must be the last step of the emitter.
   void finalizeCode(String resourceName, js.Node code,
-      Map<Library, List<js.Property>> holderCode,
+      Map<Entity, List<js.Property>> holderCode,
       {bool finalizeHolders: false}) {
     StringReferenceFinalizer stringFinalizer =
         StringReferenceFinalizerImpl(_options.enableMinification);
@@ -871,21 +871,23 @@ class FragmentEmitter {
   /// into a map keyed by [Entity] because we don't yet know anything about the
   /// structure of the underlying holders and thus we cannot emit this code
   /// directly into the ast.
-  Map<Library, List<js.Property>> emitHolderCode(List<Library> libraries) {
-    Map<Library, List<js.Property>> holderCode = {};
+  Map<Entity, List<js.Property>> emitHolderCode(List<Library> libraries) {
+    Map<Entity, List<js.Property>> holderCode = {};
     for (Library library in libraries) {
       for (StaticMethod method in library.statics) {
         Map<js.Name, js.Expression> propertyMap = emitStaticMethod(method);
         propertyMap.forEach((js.Name key, js.Expression value) {
           var property = new js.Property(js.quoteName(key), value);
-          (holderCode[library] ??= []).add(property);
+          Entity holderKey =
+              method is StaticStubMethod ? method.library : method.element;
+          (holderCode[holderKey] ??= []).add(property);
           registerEntityAst(method.element, property, library: library.element);
         });
       }
       for (Class cls in library.classes) {
         js.Expression constructor = emitConstructor(cls);
         var property = new js.Property(js.quoteName(cls.name), constructor);
-        (holderCode[library] ??= []).add(property);
+        (holderCode[cls.element] ??= []).add(property);
         registerEntityAst(cls.element, property, library: library.element);
       }
     }
