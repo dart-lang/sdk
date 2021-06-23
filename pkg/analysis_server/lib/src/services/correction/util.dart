@@ -17,6 +17,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -865,6 +866,7 @@ class CorrectionUtils {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
         element: aliasElement,
+        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: aliasArguments,
       );
     }
@@ -895,6 +897,7 @@ class CorrectionUtils {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
         element: type.element,
+        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: type.typeArguments,
       );
     }
@@ -1161,6 +1164,7 @@ class CorrectionUtils {
   String? _getTypeCodeElementArguments({
     required Set<Source> librariesToImport,
     required Element element,
+    required bool isNullable,
     required List<DartType> typeArguments,
   }) {
     var sb = StringBuffer();
@@ -1188,6 +1192,9 @@ class CorrectionUtils {
     // append simple name
     var name = element.displayName;
     sb.write(name);
+    if (isNullable) {
+      sb.write('?');
+    }
 
     // append type arguments
     if (typeArguments.isNotEmpty) {

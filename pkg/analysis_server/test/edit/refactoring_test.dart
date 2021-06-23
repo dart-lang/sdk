@@ -763,6 +763,43 @@ void res(int a, int b) {
 ''');
   }
 
+  Future<void> test_statements_nullableReturnType() {
+    addTestFile('''
+void foo(int b) {
+// start
+  int? x;
+  if (b < 2) {
+    x = 42;
+  }
+  if (b >= 2) {
+    x = 43;
+  }
+// end
+  print(x!);
+}
+''');
+    _setOffsetLengthForStartEnd();
+    return assertSuccessfulRefactoring(_computeChange, '''
+void foo(int b) {
+// start
+  int? x = res(b);
+// end
+  print(x!);
+}
+
+int? res(int b) {
+  int? x;
+  if (b < 2) {
+    x = 42;
+  }
+  if (b >= 2) {
+    x = 43;
+  }
+  return x;
+}
+''');
+  }
+
   Future<Response> _computeChange() async {
     await _prepareOptions();
     // send request with the options

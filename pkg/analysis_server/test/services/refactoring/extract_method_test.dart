@@ -1209,7 +1209,7 @@ f(bool p) {
     _createRefactoringForStartEndComments();
     // do check
     await refactoring.checkInitialConditions();
-    expect(refactoring.returnType, 'int');
+    expect(refactoring.returnType, 'int?');
   }
 
   Future<void> test_returnType_statements_void() async {
