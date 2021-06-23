@@ -6,15 +6,15 @@
 /// action.
 class HintAction {
   final HintActionKind kind;
-  final int nodeId;
+  final int? nodeId;
   HintAction(this.kind, this.nodeId);
 
-  HintAction.fromJson(Map<String, Object /*?*/ > json)
-      : nodeId = json['nodeId'] as int,
+  HintAction.fromJson(Map<String, Object?> json)
+      : nodeId = json['nodeId'] as int?,
         kind = HintActionKind.values
             .singleWhere((action) => action.index == json['kind']);
 
-  Map<String, Object> toJson() => {
+  Map<String, Object?> toJson() => {
         'nodeId': nodeId,
         'kind': kind.index,
       };
@@ -49,7 +49,7 @@ enum HintActionKind {
 /// Extension methods to make [HintActionKind] act as a smart enum.
 extension HintActionKindBehaviors on HintActionKind {
   /// Get the text description of a [HintActionKind], for display to users.
-  String get description {
+  String? get description {
     switch (this) {
       case HintActionKind.addNullableHint:
         return 'Add /*?*/ hint';

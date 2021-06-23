@@ -22,7 +22,7 @@ main() {
 class PassThroughMergingTest extends AbstractSingleUnitTest {
   Future<void> test_creates_pass_through_plans_stepwise() async {
     await resolveTestUnit('var x = [[[1]]];');
-    var plan = _EditPlannerForTesting(testCode).passThrough(
+    var plan = _EditPlannerForTesting(testCode!).passThrough(
         findNode.listLiteral('[[['),
         innerPlans: [_MockPlan(findNode.integerLiteral('1'))]);
     expect(plan.toString(),
@@ -31,7 +31,7 @@ class PassThroughMergingTest extends AbstractSingleUnitTest {
 
   Future<void> test_merge_plans_at_lower_level() async {
     await resolveTestUnit('var x = [[1, 2]];');
-    var plan = _EditPlannerForTesting(testCode)
+    var plan = _EditPlannerForTesting(testCode!)
         .passThrough(findNode.listLiteral('[['), innerPlans: [
       _MockPlan(findNode.integerLiteral('1')),
       _MockPlan(findNode.integerLiteral('2'))
@@ -42,7 +42,7 @@ class PassThroughMergingTest extends AbstractSingleUnitTest {
 
   Future<void> test_merge_plans_at_top_level() async {
     await resolveTestUnit('var x = [[1], [2]];');
-    var plan = _EditPlannerForTesting(testCode)
+    var plan = _EditPlannerForTesting(testCode!)
         .passThrough(findNode.listLiteral('[['), innerPlans: [
       _MockPlan(findNode.integerLiteral('1')),
       _MockPlan(findNode.integerLiteral('2'))
@@ -53,7 +53,7 @@ class PassThroughMergingTest extends AbstractSingleUnitTest {
 
   Future<void> test_merge_plans_at_varying_levels() async {
     await resolveTestUnit('var x = [1, [2, 3], 4];');
-    var plan = _EditPlannerForTesting(testCode)
+    var plan = _EditPlannerForTesting(testCode!)
         .passThrough(findNode.listLiteral('[1'), innerPlans: [
       _MockPlan(findNode.integerLiteral('1')),
       _MockPlan(findNode.integerLiteral('2')),
@@ -72,7 +72,7 @@ class _EditPlannerForTesting extends EditPlanner {
       : super(LineInfo.fromContent(content), content);
 
   @override
-  PassThroughBuilder createPassThroughBuilder(AstNode node) =>
+  PassThroughBuilder createPassThroughBuilder(AstNode? node) =>
       _MockPassThroughBuilder(node);
 }
 
@@ -80,7 +80,7 @@ class _MockPassThroughBuilder implements PassThroughBuilder {
   final List<EditPlan> _innerPlans = [];
 
   @override
-  final AstNode node;
+  final AstNode? node;
 
   _MockPassThroughBuilder(this.node);
 
@@ -96,7 +96,7 @@ class _MockPassThroughBuilder implements PassThroughBuilder {
 }
 
 class _MockPlan implements NodeProducingEditPlan {
-  final AstNode _node;
+  final AstNode? _node;
 
   final List<EditPlan> _innerPlans;
 
@@ -104,7 +104,7 @@ class _MockPlan implements NodeProducingEditPlan {
       : _innerPlans = innerPlans;
 
   @override
-  AstNode get parentNode => _node.parent;
+  AstNode? get parentNode => _node!.parent;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

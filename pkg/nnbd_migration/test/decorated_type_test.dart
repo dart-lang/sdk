@@ -342,7 +342,7 @@ class DecoratedTypeTest extends Object
         function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends dynamic>()');
     assertDartType(
-        elementTypeProvider.getTypeParameterBound(type.typeFormals[0]),
+        elementTypeProvider.getTypeParameterBound(type.typeFormals[0])!,
         'dynamic');
   }
 
@@ -352,7 +352,8 @@ class DecoratedTypeTest extends Object
         function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends num?>()');
     assertDartType(
-        elementTypeProvider.getTypeParameterBound(type.typeFormals[0]), 'num?');
+        elementTypeProvider.getTypeParameterBound(type.typeFormals[0])!,
+        'num?');
   }
 
   void test_toFinalType_function_generic_bound_object_question() {
@@ -361,7 +362,7 @@ class DecoratedTypeTest extends Object
         function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends Object?>()');
     assertDartType(
-        elementTypeProvider.getTypeParameterBound(type.typeFormals[0]),
+        elementTypeProvider.getTypeParameterBound(type.typeFormals[0])!,
         'Object?');
   }
 
@@ -626,11 +627,11 @@ class _ElementTypeProvider extends ElementTypeProvider {
 
   void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
       TypeParameterElement oldTypeParameter) {
-    DecoratedTypeParameterBounds.current.put(newTypeParameter,
-        DecoratedTypeParameterBounds.current.get(oldTypeParameter));
+    DecoratedTypeParameterBounds.current!.put(newTypeParameter,
+        DecoratedTypeParameterBounds.current!.get(oldTypeParameter));
   }
 
-  DartType getTypeParameterBound(TypeParameterElement element) {
+  DartType? getTypeParameterBound(TypeParameterElement element) {
     var decoratedType = variables.decoratedTypeParameterBound(element,
         allowNullUnparentedBounds: true);
     if (decoratedType == null) return element.bound;

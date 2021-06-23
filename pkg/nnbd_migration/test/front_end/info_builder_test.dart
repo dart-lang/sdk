@@ -25,7 +25,7 @@ void main() {
 @reflectiveTest
 class BuildEnclosingMemberDescriptionTest extends AbstractAnalysisTest {
   Future<ResolvedUnitResult> resolveTestFile() async {
-    return await session.getResolvedUnit2(testFile) as ResolvedUnitResult;
+    return await session.getResolvedUnit2(testFile!) as ResolvedUnitResult;
   }
 
   Future<void> test_classConstructor_named() async {
@@ -36,7 +36,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit.declarations.single as ClassDeclaration;
+        result.unit!.declarations.single as ClassDeclaration;
     var constructor = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(constructor),
         equals("the constructor 'C.aaa'"));
@@ -50,7 +50,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit.declarations.single as ClassDeclaration;
+        result.unit!.declarations.single as ClassDeclaration;
     var constructor = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(constructor),
         equals("the default constructor of 'C'"));
@@ -64,7 +64,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit.declarations.single as ClassDeclaration;
+        result.unit!.declarations.single as ClassDeclaration;
     FieldDeclaration fieldDeclaration =
         class_.members.single as FieldDeclaration;
     var field = fieldDeclaration.fields.variables[0];
@@ -80,7 +80,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit.declarations.single as ClassDeclaration;
+        result.unit!.declarations.single as ClassDeclaration;
     FieldDeclaration fieldDeclaration =
         class_.members.single as FieldDeclaration;
     var type = fieldDeclaration.fields.type;
@@ -96,7 +96,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit.declarations.single as ClassDeclaration;
+        result.unit!.declarations.single as ClassDeclaration;
     var getter = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(getter),
         equals("the getter 'C.aaa'"));
@@ -110,7 +110,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit.declarations.single as ClassDeclaration;
+        result.unit!.declarations.single as ClassDeclaration;
     var method = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(method),
         equals("the method 'C.aaa'"));
@@ -124,7 +124,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit.declarations.single as ClassDeclaration;
+        result.unit!.declarations.single as ClassDeclaration;
     var operator = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(operator),
         equals("the operator 'C.=='"));
@@ -138,7 +138,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit.declarations.single as ClassDeclaration;
+        result.unit!.declarations.single as ClassDeclaration;
     var setter = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(setter),
         equals("the setter 'C.aaa='"));
@@ -152,7 +152,7 @@ extension E on List {
 ''');
     var result = await resolveTestFile();
     ExtensionDeclaration extension_ =
-        result.unit.declarations.single as ExtensionDeclaration;
+        result.unit!.declarations.single as ExtensionDeclaration;
     var method = extension_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(method),
         equals("the method 'E.aaa'"));
@@ -166,7 +166,7 @@ extension on List {
 ''');
     var result = await resolveTestFile();
     ExtensionDeclaration extension_ =
-        result.unit.declarations.single as ExtensionDeclaration;
+        result.unit!.declarations.single as ExtensionDeclaration;
     var method = extension_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(method),
         equals("the method 'aaa' in unnamed extension on List<dynamic>"));
@@ -180,7 +180,7 @@ mixin C {
 ''');
     var result = await resolveTestFile();
     MixinDeclaration mixin_ =
-        result.unit.declarations.single as MixinDeclaration;
+        result.unit!.declarations.single as MixinDeclaration;
     var method = mixin_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(method),
         equals("the method 'C.aaa'"));
@@ -191,7 +191,7 @@ mixin C {
 void aaa(value) {}
 ''');
     var result = await resolveTestFile();
-    var function = result.unit.declarations.single;
+    var function = result.unit!.declarations.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(function),
         equals("the function 'aaa'"));
   }
@@ -201,7 +201,7 @@ void aaa(value) {}
 int get aaa => 7;
 ''');
     var result = await resolveTestFile();
-    var getter = result.unit.declarations.single;
+    var getter = result.unit!.declarations.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(getter),
         equals("the getter 'aaa'"));
   }
@@ -211,7 +211,7 @@ int get aaa => 7;
 void set aaa(value) {}
 ''');
     var result = await resolveTestFile();
-    var setter = result.unit.declarations.single;
+    var setter = result.unit!.declarations.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(setter),
         equals("the setter 'aaa='"));
   }
@@ -222,7 +222,7 @@ int i;
 ''');
     var result = await resolveTestFile();
     TopLevelVariableDeclaration topLevelVariableDeclaration =
-        result.unit.declarations.single as TopLevelVariableDeclaration;
+        result.unit!.declarations.single as TopLevelVariableDeclaration;
     var variable = topLevelVariableDeclaration.variables.variables[0];
     expect(InfoBuilder.buildEnclosingMemberDescription(variable),
         equals("the variable 'i'"));
@@ -234,7 +234,7 @@ int i;
 ''');
     var result = await resolveTestFile();
     TopLevelVariableDeclaration topLevelVariableDeclaration =
-        result.unit.declarations.single as TopLevelVariableDeclaration;
+        result.unit!.declarations.single as TopLevelVariableDeclaration;
     var type = topLevelVariableDeclaration.variables.type;
     expect(InfoBuilder.buildEnclosingMemberDescription(type),
         equals("the variable 'i'"));
@@ -245,16 +245,19 @@ int i;
 class InfoBuilderTest extends NnbdMigrationTestBase {
   /// Assert various properties of the given [edit].
   bool assertEdit(
-      {@required EditDetail edit, int offset, int length, String replacement}) {
+      {required EditDetail? edit,
+      int? offset,
+      int? length,
+      String? replacement}) {
     expect(edit, isNotNull);
     if (offset != null) {
-      expect(edit.offset, offset);
+      expect(edit!.offset, offset);
     }
     if (length != null) {
-      expect(edit.length, length);
+      expect(edit!.length, length);
     }
     if (replacement != null) {
-      expect(edit.replacement, replacement);
+      expect(edit!.replacement, replacement);
     }
     return true;
   }
@@ -399,7 +402,7 @@ void f(C/*!*/ a, int  b) {
 }
 ''');
     var operator = '+=';
-    var operatorOffset = unit.content.indexOf(operator);
+    var operatorOffset = unit.content!.indexOf(operator);
     var region =
         unit.regions.where((region) => region.offset == operatorOffset).single;
     assertRegion(
@@ -421,7 +424,7 @@ void f(int/*?*/ a, int  b) {
 }
 ''');
     var operator = '+=';
-    var operatorOffset = unit.content.indexOf(operator);
+    var operatorOffset = unit.content!.indexOf(operator);
     var region =
         unit.regions.where((region) => region.offset == operatorOffset).single;
     assertRegion(
@@ -439,7 +442,7 @@ void f(int/*?*/ a, int  b) {
             'int  f(String  s) => s == null /* == false */ ? 0 : s.length;',
         warnOnWeakCode: true);
     var insertedComment = '/* == false */';
-    var insertedCommentOffset = unit.content.indexOf(insertedComment);
+    var insertedCommentOffset = unit.content!.indexOf(insertedComment);
     var region = unit.regions
         .where((region) => region.offset == insertedCommentOffset)
         .single;
@@ -470,7 +473,7 @@ int  f(String  s) {
 }
 ''', warnOnWeakCode: true);
     var insertedComment = '/* == false */';
-    var insertedCommentOffset = unit.content.indexOf(insertedComment);
+    var insertedCommentOffset = unit.content!.indexOf(insertedComment);
     var region = unit.regions
         .where((region) => region.offset == insertedCommentOffset)
         .single;
@@ -489,7 +492,7 @@ int  f(String  s) {
             'int  f(String  s) => s != null /* == true */ ? s.length : 0;',
         warnOnWeakCode: true);
     var insertedComment = '/* == true */';
-    var insertedCommentOffset = unit.content.indexOf(insertedComment);
+    var insertedCommentOffset = unit.content!.indexOf(insertedComment);
     var region = unit.regions
         .where((region) => region.offset == insertedCommentOffset)
         .single;
@@ -520,7 +523,7 @@ int  f(String  s) {
 }
 ''', warnOnWeakCode: true);
     var insertedComment = '/* == true */';
-    var insertedCommentOffset = unit.content.indexOf(insertedComment);
+    var insertedCommentOffset = unit.content!.indexOf(insertedComment);
     var region = unit.regions
         .where((region) => region.offset == insertedCommentOffset)
         .single;
@@ -655,7 +658,7 @@ void g(int  i) {
         traces: isNotEmpty);
     var traceDescriptionToOffset = {
       for (var trace in region.traces)
-        trace.description: trace.entries[0].target.offset
+        trace.description: trace.entries[0].target!.offset
     };
     expect(traceDescriptionToOffset, {
       'Nullability reason': content.indexOf('List<int/*?*/>/*?*/'),
@@ -763,7 +766,7 @@ void f(C/*!*/ a) {
 }
 ''');
     var operator = '++';
-    var operatorOffset = unit.content.indexOf(operator);
+    var operatorOffset = unit.content!.indexOf(operator);
     var region =
         unit.regions.where((region) => region.offset == operatorOffset).single;
     assertRegion(
@@ -785,7 +788,7 @@ void f(int/*?*/ a) {
 }
 ''');
     var operator = '++';
-    var operatorOffset = unit.content.indexOf(operator);
+    var operatorOffset = unit.content!.indexOf(operator);
     var region =
         unit.regions.where((region) => region.offset == operatorOffset).single;
     assertRegion(
@@ -996,7 +999,7 @@ int f(int/*!*/ x, int y) => x ??= y;
 int  f(int/*!*/ x, int  y) => x ??= y;
 ''', warnOnWeakCode: false, removeViaComments: false);
     var codeToRemove = ' ??= y';
-    var removalOffset = unit.content.indexOf(codeToRemove);
+    var removalOffset = unit.content!.indexOf(codeToRemove);
     var region =
         unit.regions.where((region) => region.offset == removalOffset).single;
     assertRegion(
@@ -1016,7 +1019,7 @@ int f(int/*!*/ x, int y) => x ??= y;
 int  f(int/*!*/ x, int  y) => x ??= y;
 ''', warnOnWeakCode: true);
     var operator = '??=';
-    var operatorOffset = unit.content.indexOf(operator);
+    var operatorOffset = unit.content!.indexOf(operator);
     var region =
         unit.regions.where((region) => region.offset == operatorOffset).single;
     assertRegion(
@@ -1035,7 +1038,7 @@ int f(String s) => s?.length;
 int  f(String  s) => s?.length;
 ''', warnOnWeakCode: true);
     var question = '?';
-    var questionOffset = unit.content.indexOf(question);
+    var questionOffset = unit.content!.indexOf(question);
     var region =
         unit.regions.where((region) => region.offset == questionOffset).single;
     assertRegion(
@@ -1137,7 +1140,7 @@ void f(A  a) => a.m = null;
     expect(trace.description, 'Nullability reason');
     var entries = trace.entries;
     expect(entries, hasLength(2));
-    assertTraceEntry(unit, entries[0], 'A.m', unit.content.indexOf('int?'),
+    assertTraceEntry(unit, entries[0], 'A.m', unit.content!.indexOf('int?'),
         contains('A.m (test.dart:2:3)'));
   }
 
@@ -1240,14 +1243,18 @@ void f() {
 }
 ''');
     var region = unit.regions
-        .where((info) => info.offset == unit.content.indexOf('? i) {}'))
+        .where((info) => info.offset == unit.content!.indexOf('? i) {}'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
     expect(trace.description, 'Nullability reason');
     var entries = trace.entries;
-    assertTraceEntry(unit, entries[0], 'C.named',
-        unit.content.indexOf('int? i) {}'), contains('parameter 0 of C.named'));
+    assertTraceEntry(
+        unit,
+        entries[0],
+        'C.named',
+        unit.content!.indexOf('int? i) {}'),
+        contains('parameter 0 of C.named'));
   }
 
   Future<void> test_trace_constructor_unnamed() async {
@@ -1267,7 +1274,7 @@ void f() {
 }
 ''');
     var region = unit.regions
-        .where((info) => info.offset == unit.content.indexOf('? i) {}'))
+        .where((info) => info.offset == unit.content!.indexOf('? i) {}'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
@@ -1277,7 +1284,7 @@ void f() {
         unit,
         entries[0],
         'C.<unnamed>',
-        unit.content.indexOf('int? i) {}'),
+        unit.content!.indexOf('int? i) {}'),
         contains('parameter 0 of C.<unnamed>'));
   }
 
@@ -1293,7 +1300,7 @@ void f(int/*!*/ i) {
 ''');
     var region = unit.regions
         .where(
-            (regionInfo) => regionInfo.offset == unit.content.indexOf('/* if'))
+            (regionInfo) => regionInfo.offset == unit.content!.indexOf('/* if'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
@@ -1301,10 +1308,10 @@ void f(int/*!*/ i) {
     var entries = trace.entries;
     expect(entries, hasLength(2));
     // Entry 0 is the nullability of f's argument
-    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int'),
+    assertTraceEntry(unit, entries[0], 'f', unit.content!.indexOf('int'),
         contains('parameter 0 of f'));
     // Entry 1 is the edge from f's argument to never, due to the `/*!*/` hint.
-    assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int'),
+    assertTraceEntry(unit, entries[1], 'f', unit.content!.indexOf('int'),
         'explicitly hinted to be non-nullable');
   }
 
@@ -1325,7 +1332,7 @@ void f() {
 }
 ''');
     var region = unit.regions
-        .where((info) => info.offset == unit.content.indexOf('? i) {}'))
+        .where((info) => info.offset == unit.content!.indexOf('? i) {}'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
@@ -1335,7 +1342,7 @@ void f() {
         unit,
         entries[0],
         '<unnamed extension>.m',
-        unit.content.indexOf('int? i) {}'),
+        unit.content!.indexOf('int? i) {}'),
         contains('parameter 0 of <unnamed>.m'));
   }
 
@@ -1359,7 +1366,7 @@ void h() {
 ''');
     var region = unit.regions
         .where((regionInfo) =>
-            regionInfo.offset == unit.content.indexOf('? i) {} // f'))
+            regionInfo.offset == unit.content!.indexOf('? i) {} // f'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
@@ -1368,7 +1375,7 @@ void h() {
     expect(entries, hasLength(6));
     // Entry 0 is the nullability of f's argument
     assertTraceEntry(unit, entries[0], 'f',
-        unit.content.indexOf('int? i) {} // f'), contains('parameter 0 of f'),
+        unit.content!.indexOf('int? i) {} // f'), contains('parameter 0 of f'),
         hintActions: {
           HintActionKind.addNullableHint,
           HintActionKind.addNonNullableHint
@@ -1377,24 +1384,24 @@ void h() {
     // Entry 1 is the edge from g's argument to f's argument, due to g's call to
     // f.
     assertTraceEntry(
-        unit, entries[1], 'g', unit.content.indexOf('i);'), 'data flow');
+        unit, entries[1], 'g', unit.content!.indexOf('i);'), 'data flow');
     // Entry 2 is the nullability of g's argument
     assertTraceEntry(unit, entries[2], 'g',
-        unit.content.indexOf('int? i) { // g'), contains('parameter 0 of g'),
+        unit.content!.indexOf('int? i) { // g'), contains('parameter 0 of g'),
         hintActions: {
           HintActionKind.addNullableHint,
           HintActionKind.addNonNullableHint
         });
     // Entry 3 is the edge from null to g's argument, due to h's call to g.
     assertTraceEntry(
-        unit, entries[3], 'h', unit.content.indexOf('null'), 'data flow');
+        unit, entries[3], 'h', unit.content!.indexOf('null'), 'data flow');
     // Entry 4 is the nullability of the null literal.
-    assertTraceEntry(unit, entries[4], 'h', unit.content.indexOf('null'),
+    assertTraceEntry(unit, entries[4], 'h', unit.content!.indexOf('null'),
         contains('null literal'));
     // Entry 5 is the edge from always to null.
     // TODO(paulberry): this edge provides no additional useful information and
     // shouldn't be included in the trace.
-    assertTraceEntry(unit, entries[5], 'h', unit.content.indexOf('null'),
+    assertTraceEntry(unit, entries[5], 'h', unit.content!.indexOf('null'),
         'literal expression');
   }
 
@@ -1402,7 +1409,8 @@ void h() {
     var unit = await buildInfoForSingleTestFile('int f(int/*?*/ i) => i + 1;',
         migratedContent: 'int  f(int/*?*/ i) => i! + 1;');
     var region = unit.regions
-        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('! +'))
+        .where(
+            (regionInfo) => regionInfo.offset == unit.content!.indexOf('! +'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
@@ -1410,12 +1418,12 @@ void h() {
     var entries = trace.entries;
     expect(entries, hasLength(2));
     // Entry 0 is the nullability of the type of i.
-    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int/*?*/'),
+    assertTraceEntry(unit, entries[0], 'f', unit.content!.indexOf('int/*?*/'),
         contains('parameter 0 of f'));
     // Entry 1 is the edge from always to the type of i.
     // TODO(paulberry): this edge provides no additional useful information and
     // shouldn't be included in the trace.
-    assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int/*?*/'),
+    assertTraceEntry(unit, entries[1], 'f', unit.content!.indexOf('int/*?*/'),
         'explicitly hinted to be nullable');
   }
 
@@ -1442,7 +1450,7 @@ void h(int/*?*/ i) {
 }
 ''');
     var region = unit.regions
-        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('!)'))
+        .where((regionInfo) => regionInfo.offset == unit.content!.indexOf('!)'))
         .single;
     expect(region.traces, hasLength(2));
     // Trace 0 is the nullability reason; we don't care about that right now.
@@ -1453,16 +1461,16 @@ void h(int/*?*/ i) {
     expect(entries, hasLength(4));
     // Entry 0 is the nullability of g's argument
     assertTraceEntry(unit, entries[0], 'g',
-        unit.content.indexOf('int  i) { // g'), contains('parameter 0 of g'));
+        unit.content!.indexOf('int  i) { // g'), contains('parameter 0 of g'));
     // Entry 1 is the edge from g's argument to f's argument, due to g's call to
     // f.
     assertTraceEntry(unit, entries[1], 'g',
-        unit.content.indexOf('i); // call f'), 'data flow');
+        unit.content!.indexOf('i); // call f'), 'data flow');
     // Entry 2 is the nullability of f's argument
     assertTraceEntry(unit, entries[2], 'f',
-        unit.content.indexOf('int  i) { // f'), contains('parameter 0 of f'));
+        unit.content!.indexOf('int  i) { // f'), contains('parameter 0 of f'));
     // Entry 3 is the edge f's argument to never, due to the assert.
-    assertTraceEntry(unit, entries[3], 'f', unit.content.indexOf('assert'),
+    assertTraceEntry(unit, entries[3], 'f', unit.content!.indexOf('assert'),
         'value asserted to be non-null');
   }
 
@@ -1471,14 +1479,14 @@ void h(int/*?*/ i) {
         migratedContent: 'int  f(int/*?*/ i) => i/*!*/;');
     var region = unit.regions
         .where(
-            (regionInfo) => regionInfo.offset == unit.content.indexOf('/*!*/'))
+            (regionInfo) => regionInfo.offset == unit.content!.indexOf('/*!*/'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
     expect(trace.description, 'Reason');
     expect(trace.entries, hasLength(1));
     assertTraceEntry(unit, trace.entries.single, 'f',
-        unit.content.indexOf('i/*!*/'), 'Null check hint');
+        unit.content!.indexOf('i/*!*/'), 'Null check hint');
   }
 
   Future<void> test_trace_refers_to_variable_initializer() async {
@@ -1494,7 +1502,8 @@ void f(int/*?*/ i) {
 }
 ''');
     var region = unit.regions
-        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('? y'))
+        .where(
+            (regionInfo) => regionInfo.offset == unit.content!.indexOf('? y'))
         .single;
     expect(region.traces, hasLength(1));
     var trace = region.traces.single;
@@ -1502,30 +1511,30 @@ void f(int/*?*/ i) {
     var entries = trace.entries;
     expect(entries, hasLength(8));
     // Entry 0 is the nullability of y
-    assertTraceEntry(unit, entries[0], 'f.y', unit.content.indexOf('int? y'),
+    assertTraceEntry(unit, entries[0], 'f.y', unit.content!.indexOf('int? y'),
         contains('f.y'));
     // Entry 1 is the edge from the list element type of x to y, due to array
     // indexing.
-    assertTraceEntry(unit, entries[1], 'f.y', unit.content.indexOf('x[0]'),
+    assertTraceEntry(unit, entries[1], 'f.y', unit.content!.indexOf('x[0]'),
         contains('data flow'));
     // Entry 2 is the nullability of the implicit list element type of x
-    assertTraceEntry(unit, entries[2], 'f.x', unit.content.indexOf('x ='),
+    assertTraceEntry(unit, entries[2], 'f.x', unit.content!.indexOf('x ='),
         contains('type argument 0 of f.x'));
     // Entry 3 is the edge from the explicit list element type on the RHS of x
     // to the implicit list element type on the LHS of x
-    assertTraceEntry(unit, entries[3], 'f.x', unit.content.indexOf('<int?>[i]'),
-        contains('data flow'));
+    assertTraceEntry(unit, entries[3], 'f.x',
+        unit.content!.indexOf('<int?>[i]'), contains('data flow'));
     // Entry 4 is the explicit list element type on the RHS of x
-    assertTraceEntry(unit, entries[4], 'f.x', unit.content.indexOf('int?>[i]'),
+    assertTraceEntry(unit, entries[4], 'f.x', unit.content!.indexOf('int?>[i]'),
         contains('list element type'));
     // Entry 5 is the edge from the parameter i to the list literal
-    assertTraceEntry(unit, entries[5], 'f.x', unit.content.indexOf('i]'),
+    assertTraceEntry(unit, entries[5], 'f.x', unit.content!.indexOf('i]'),
         contains('data flow'));
     // Entry 6 is the nullability of the parameter i
-    assertTraceEntry(unit, entries[6], 'f', unit.content.indexOf('int/*?*/'),
+    assertTraceEntry(unit, entries[6], 'f', unit.content!.indexOf('int/*?*/'),
         contains('parameter 0 of f'));
     // Entry 7 is the edge due to the explicit /*?*/ hint
-    assertTraceEntry(unit, entries[7], 'f', unit.content.indexOf('int/*?*/'),
+    assertTraceEntry(unit, entries[7], 'f', unit.content!.indexOf('int/*?*/'),
         contains('explicitly hinted to be nullable'));
   }
 
@@ -1546,7 +1555,7 @@ Map<int , String >  x = {};
 String/*!*/ y = x[0]!;
 ''');
     var region = unit.regions
-        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('!;'))
+        .where((regionInfo) => regionInfo.offset == unit.content!.indexOf('!;'))
         .single;
     // The "why nullable" node associated with adding the `!` is a substitution
     // node, and we don't currently generate a trace for a substitution node.
@@ -1608,7 +1617,8 @@ String? g() => 1 == 2 ? "Hello" : null;
     var unit = await buildInfoForSingleTestFile('int i = 0;',
         migratedContent: 'int  i = 0;');
     var region = unit.regions
-        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('  i'))
+        .where(
+            (regionInfo) => regionInfo.offset == unit.content!.indexOf('  i'))
         .single;
     expect(region.length, 1);
     expect(region.lineNumber, 1);
@@ -1619,7 +1629,7 @@ String? g() => 1 == 2 ? "Hello" : null;
     expect(trace.description, 'Non-nullability reason');
     var entries = trace.entries;
     expect(entries, hasLength(1));
-    assertTraceEntry(unit, entries[0], 'i', unit.content.indexOf('int'),
+    assertTraceEntry(unit, entries[0], 'i', unit.content!.indexOf('int'),
         'No reason found to make nullable');
     expect(region.kind, NullabilityFixKind.typeNotMadeNullable);
   }

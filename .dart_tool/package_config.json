@@ -470,7 +470,7 @@
       "name": "nnbd_migration",
       "rootUri": "../pkg/nnbd_migration",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "oauth2",

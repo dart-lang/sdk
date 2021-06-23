@@ -47,7 +47,7 @@ main() {
 class _ExceptionGeneratingInstrumentationListener
     extends InstrumentationListener {
   _ExceptionGeneratingInstrumentationListener(
-      {MigrationSummary migrationSummary})
+      {MigrationSummary? migrationSummary})
       : super(migrationSummary: migrationSummary);
 
   @override
@@ -66,14 +66,14 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
       DartFixListener listener,
       ResourceProvider resourceProvider,
       LineInfo Function(String) getLineInfo,
-      Object bindAddress,
+      Object? bindAddress,
       Logger logger,
       {List<String> included = const <String>[],
-      int preferredPort,
-      String summaryPath,
-      @required String sdkPath})
+      int? preferredPort,
+      String? summaryPath,
+      required String sdkPath})
       : super(listener, resourceProvider, getLineInfo, bindAddress, logger,
-            (String /*?*/ path) => true,
+            (String? path) => true,
             included: included,
             preferredPort: preferredPort,
             summaryPath: summaryPath,
@@ -81,7 +81,7 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
 
   @override
   InstrumentationListener createInstrumentationListener(
-          {MigrationSummary migrationSummary}) =>
+          {MigrationSummary? migrationSummary}) =>
       _ExceptionGeneratingInstrumentationListener(
           migrationSummary: migrationSummary);
 }
@@ -91,7 +91,7 @@ class _MigrationCli extends MigrationCli {
 
   /// If non-null, callback function that will be invoked by the `applyHook`
   /// override.
-  void Function() _onApplyHook;
+  void Function()? _onApplyHook;
 
   _MigrationCli(this._test)
       : super(
@@ -102,8 +102,8 @@ class _MigrationCli extends MigrationCli {
             resourceProvider: _test.resourceProvider,
             environmentVariables: _test.environmentVariables);
 
-  _MigrationCliRunner decodeCommandLineArgs(ArgResults argResults,
-      {bool isVerbose}) {
+  _MigrationCliRunner? decodeCommandLineArgs(ArgResults argResults,
+      {bool? isVerbose}) {
     var runner = super.decodeCommandLineArgs(argResults, isVerbose: isVerbose);
     if (runner == null) return null;
     return _MigrationCliRunner(this, runner.options);
@@ -111,7 +111,7 @@ class _MigrationCli extends MigrationCli {
 }
 
 class _MigrationCliRunner extends MigrationCliRunner {
-  Future<void> Function() _runWhilePreviewServerActive;
+  Future<void> Function()? _runWhilePreviewServerActive;
 
   _MigrationCliRunner(_MigrationCli cli, CommandLineOptions options)
       : super(cli, options);
@@ -125,7 +125,7 @@ class _MigrationCliRunner extends MigrationCliRunner {
   }
 
   @override
-  Object computeBindAddress() {
+  Object? computeBindAddress() {
     var address = super.computeBindAddress();
     if (Platform.environment.containsKey('FORCE_IPV6') &&
         address == InternetAddress.loopbackIPv4) {
@@ -144,11 +144,11 @@ class _MigrationCliRunner extends MigrationCliRunner {
       DartFixListener listener,
       ResourceProvider resourceProvider,
       LineInfo Function(String path) getLineInfo,
-      Object bindAddress,
+      Object? bindAddress,
       {List<String> included = const <String>[],
-      int preferredPort,
-      String summaryPath,
-      @required String sdkPath}) {
+      int? preferredPort,
+      String? summaryPath,
+      required String sdkPath}) {
     if (cli._test.injectArtificialException) {
       return _ExceptionGeneratingNonNullableFix(
           listener, resourceProvider, getLineInfo, bindAddress, logger,
@@ -172,7 +172,9 @@ class _MigrationCliRunner extends MigrationCliRunner {
       fail('Preview server not expected to have been started');
     }
     sigIntSignalled = Completer();
-    _runWhilePreviewServerActive.call().then((_) => sigIntSignalled.complete());
+    _runWhilePreviewServerActive!
+        .call()
+        .then((_) => sigIntSignalled.complete());
     _runWhilePreviewServerActive = null;
   }
 
@@ -206,9 +208,9 @@ abstract class _MigrationCliTestBase {
 
   /// If non-null, this is injected as the return value for
   /// [_MigrationCliRunner.computePathsToProcess].
-  Set<String> overridePathsToProcess;
+  Set<String>? overridePathsToProcess;
 
-  bool Function(String) overrideShouldBeMigrated;
+  bool Function(String)? overrideShouldBeMigrated;
 
   set logger(TestLogger logger);
 
@@ -217,7 +219,7 @@ abstract class _MigrationCliTestBase {
 
 mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   @override
-  /*late*/ TestLogger logger;
+  late TestLogger logger;
 
   final hasVerboseHelpMessage = contains('for verbose help output');
 
@@ -245,7 +247,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   Future<String> assertErrorExit(
       MigrationCliRunner cliRunner, FutureOr<void> Function() callback,
-      {@required bool withUsage, dynamic expectedExitCode}) async {
+      {required bool withUsage, dynamic expectedExitCode}) async {
     expectedExitCode ??= isNot(0);
     try {
       await callback();
@@ -289,7 +291,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   CommandLineOptions assertParseArgsSuccess(List<String> args) {
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(MigrationCli.createParser().parse(args));
+        .decodeCommandLineArgs(MigrationCli.createParser().parse(args))!;
     assertNormalExit(cliRunner);
     var options = cliRunner.options;
     expect(options, isNotNull);
@@ -301,7 +303,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     assertHttpSuccess(response);
   }
 
-  void assertProjectContents(String projectDir, Map<String, String> expected) {
+  void assertProjectContents(String projectDir, Map<String, String?> expected) {
     for (var entry in expected.entries) {
       var relativePathPosix = entry.key;
       assert(!path.posix.isAbsolute(relativePathPosix));
@@ -313,12 +315,12 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Future<String> assertRunFailure(List<String> args,
-      {MigrationCli cli,
+      {MigrationCli? cli,
       bool withUsage = false,
       dynamic expectedExitCode}) async {
     expectedExitCode ??= isNot(0);
     cli ??= _createCli();
-    MigrationCliRunner cliRunner;
+    MigrationCliRunner? cliRunner;
     try {
       cliRunner =
           cli.decodeCommandLineArgs(MigrationCli.createParser().parse(args));
@@ -327,11 +329,11 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
       expect(e.exitCode, expectedExitCode);
       return assertStderr(withUsage: withUsage);
     }
-    return await assertErrorExit(cliRunner, () => cliRunner.run(),
+    return await assertErrorExit(cliRunner!, () => cliRunner!.run(),
         withUsage: withUsage, expectedExitCode: expectedExitCode);
   }
 
-  String assertStderr({@required bool withUsage}) {
+  String assertStderr({required bool withUsage}) {
     var stderrText = logger.stderrBuffer.toString();
     expect(stderrText, withUsage ? hasUsageText : isNot(hasUsageText));
     expect(stderrText,
@@ -352,34 +354,34 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     return response;
   }
 
-  String createProjectDir(Map<String, String> contents,
+  String createProjectDir(Map<String, String?> contents,
       {String posixPath = '/test_project'}) {
     for (var entry in contents.entries) {
       var relativePathPosix = entry.key;
       assert(!path.posix.isAbsolute(relativePathPosix));
       var filePathPosix = path.posix.join(posixPath, relativePathPosix);
       resourceProvider.newFile(
-          resourceProvider.convertPath(filePathPosix), entry.value);
+          resourceProvider.convertPath(filePathPosix), entry.value!);
     }
     return resourceProvider.convertPath(posixPath);
   }
 
-  Future<String> getSourceFromServer(Uri uri, String path) async {
+  Future<String?> getSourceFromServer(Uri uri, String path) async {
     http.Response response = await tryGetSourceFromServer(uri, path);
     assertHttpSuccess(response);
-    return jsonDecode(response.body)['sourceCode'] as String;
+    return jsonDecode(response.body)['sourceCode'] as String?;
   }
 
   /// Performs an HTTP get, verifying that the response received (if any) is
   /// reasonable.
-  Future<http.Response> httpGet(Uri url, {Map<String, String> headers}) {
+  Future<http.Response> httpGet(Uri url, {Map<String, String>? headers}) {
     return checkHttpResponse(http.get(url, headers: headers));
   }
 
   /// Performs an HTTP post, verifying that the response received (if any) is
   /// reasonable.
   Future<http.Response> httpPost(Uri url,
-      {Map<String, String> headers, dynamic body, Encoding encoding}) {
+      {Map<String, String>? headers, dynamic body, Encoding? encoding}) {
     return checkHttpResponse(
         http.post(url, headers: headers, body: body, encoding: encoding));
   }
@@ -388,8 +390,8 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
       resourceProvider.convertPath('/.pub-cache/$path');
 
   Future<void> runWithPreviewServer(_MigrationCli cli, List<String> args,
-      Future<void> Function(String) callback) async {
-    String url;
+      Future<void> Function(String?) callback) async {
+    String? url;
     var cliRunner = cli.decodeCommandLineArgs(_parseArgs(args));
     if (cliRunner != null) {
       await cliRunner.runWithPreviewServer(() async {
@@ -399,7 +401,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
         await callback(url);
       });
       // Server should be stopped now
-      expect(httpGet(Uri.parse(url)), throwsA(anything));
+      expect(httpGet(Uri.parse(url!)), throwsA(anything));
       assertNormalExit(cliRunner);
     }
   }
@@ -409,12 +411,12 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     environmentVariables.clear();
   }
 
-  Map<String, String> simpleProject(
+  Map<String, String?> simpleProject(
       {bool migrated = false,
-      String sourceText,
-      String pubspecText,
-      String packageConfigText,
-      String analysisOptionsText}) {
+      String? sourceText,
+      String? pubspecText,
+      String? packageConfigText,
+      String? analysisOptionsText}) {
     return {
       'pubspec.yaml': pubspecText ??
           '''
@@ -582,7 +584,7 @@ int${migrated ? '?' : ''} f() => null;
   }
 
   test_lifecycle_already_migrated_file() async {
-    Map<String, String> createProject({bool migrated = false}) {
+    Map<String, String?> createProject({bool migrated = false}) {
       var projectContents = simpleProject(sourceText: '''
 ${migrated ? '' : '// @dart = 2.6'}
 import 'already_migrated.dart';
@@ -597,7 +599,7 @@ int? y = 0;
     var projectContents = createProject();
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli(nullSafePackages: ['test'])
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     assertNormalExit(cliRunner);
     // Check that a summary was printed
@@ -619,7 +621,7 @@ int? y = 0;
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     var cliRunner =
-        cli.decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        cli.decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     bool applyHookCalled = false;
     cli._onApplyHook = () {
       expect(applyHookCalled, false);
@@ -656,7 +658,7 @@ linter:
 
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--no-web-preview', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--no-web-preview', projectDir]))!;
     await cliRunner.run();
     assertNormalExit(cliRunner);
     expect(cliRunner.hasMultipleAnalysisContext, true);
@@ -669,7 +671,7 @@ linter:
     var projectContents = simpleProject();
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--no-web-preview', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--no-web-preview', projectDir]))!;
     await cliRunner.run();
     assertNormalExit(cliRunner);
     expect(cliRunner.hasMultipleAnalysisContext, false);
@@ -713,7 +715,7 @@ main() {
           contains('Attempting to perform\nmigration anyway due to the use'
               ' of --ignore-exceptions.'));
       expect(output, contains('re-run without --ignore-exceptions'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       await _tellPreviewToApplyChanges(url);
       assertProjectContents(
           projectDir, simpleProject(migrated: true, sourceText: '''
@@ -784,7 +786,7 @@ int? f() => null
           output,
           contains('Continuing with migration suggestions due to the use of '
               '--ignore-errors.'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
     });
   }
 
@@ -833,7 +835,7 @@ int? f() => null
   }
 
   test_lifecycle_import_lib_from_test() async {
-    Map<String, String> makeProject({bool migrated = false}) {
+    Map<String, String?> makeProject({bool migrated = false}) {
       return simpleProject(migrated: migrated)
         ..['test/foo.dart'] = '''
 import '../lib/test.dart';
@@ -844,7 +846,7 @@ import '../lib/test.dart';
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     var cliRunner =
-        cli.decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        cli.decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     bool applyHookCalled = false;
     cli._onApplyHook = () {
       expect(applyHookCalled, false);
@@ -894,7 +896,7 @@ import 'test.dart';
     var projectContents = simpleProject();
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--no-web-preview', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--no-web-preview', projectDir]))!;
     await cliRunner.run();
     assertNormalExit(cliRunner);
     // Check that a summary was printed
@@ -912,7 +914,7 @@ import 'test.dart';
   }
 
   test_lifecycle_override_paths() async {
-    Map<String, String> makeProject({bool migrated = false}) {
+    Map<String, String?> makeProject({bool migrated = false}) {
       var projectContents = simpleProject(migrated: migrated);
       projectContents['lib/test.dart'] = '''
 import 'skip.dart';
@@ -946,7 +948,7 @@ void call_g() => g(null);
       '--apply-changes',
       '--skip-import-check',
       projectDir
-    ]));
+    ]))!;
     await cliRunner.run();
     assertNormalExit(cliRunner);
     // Check that a summary was printed
@@ -972,7 +974,7 @@ void call_g() => g(null);
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
       expect(url, startsWith('http://$localhostAddressText:'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
     });
     // No changes should have been made.
     assertProjectContents(projectDir, projectContents);
@@ -985,7 +987,7 @@ void call_g() => g(null);
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
       var response = await httpPost(
@@ -1021,7 +1023,7 @@ void call_g() => g(null);
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       await _tellPreviewToApplyChanges(url);
       expect(applyHookCalled, true);
     });
@@ -1046,7 +1048,7 @@ int f() => null;
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       await _tellPreviewToApplyChanges(url);
       expect(applyHookCalled, true);
     });
@@ -1056,7 +1058,7 @@ int f() => null;
     var projectDir = createProjectDir(simpleProject());
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
-      var uri = Uri.parse(url);
+      var uri = Uri.parse(url!);
       await assertPreviewServerResponsive(
           uri.replace(path: uri.path + '/').toString());
     });
@@ -1070,7 +1072,7 @@ int f() => null;
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       final uri = Uri.parse(url);
       final authToken = uri.queryParameters['authToken'];
       final fileResponse = await httpGet(
@@ -1082,10 +1084,10 @@ int f() => null;
               queryParameters: {'inline': 'true', 'authToken': authToken}),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       final fileJson = FileDetails.fromJson(jsonDecode(fileResponse.body));
-      final navigation = fileJson.navigationContent;
+      final navigation = fileJson.navigationContent!;
       final aLink = RegExp(r'<a href="([^"]+)" class="nav-link">');
       for (final match in aLink.allMatches(navigation)) {
-        var href = match.group(1);
+        var href = match.group(1)!;
         final contentsResponse = await httpGet(
             uri.replace(
                 path: Uri.parse(href).path,
@@ -1103,7 +1105,7 @@ int f() => null;
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
       var treeResponse = await httpGet(
@@ -1115,11 +1117,11 @@ int f() => null;
       for (final root in navRoots) {
         var navTree =
             NavigationTreeNode.fromJson(root) as NavigationTreeDirectoryNode;
-        for (final file in navTree.subtree) {
+        for (final file in navTree.subtree!) {
           if (file is NavigationTreeFileNode) {
             final contentsResponse = await httpGet(
                 uri
-                    .resolve(file.href)
+                    .resolve(file.href!)
                     .replace(queryParameters: {'authToken': authToken}),
                 headers: {'Content-Type': 'application/json; charset=UTF-8'});
             assertHttpSuccess(contentsResponse);
@@ -1136,7 +1138,7 @@ int f() => null;
       ..decodeCommandLineArgs(_parseArgs(['--preview-hostname=any']));
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(url, isNot(contains('localhost')));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
     });
     // No changes should have been made.
     assertProjectContents(projectDir, projectContents);
@@ -1149,7 +1151,7 @@ int f() => null;
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
       var regionResponse = await httpGet(
@@ -1165,7 +1167,7 @@ int f() => null;
               }),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var regionJson = EditDetails.fromJson(jsonDecode(regionResponse.body));
-      final displayPath = regionJson.displayPath;
+      final displayPath = regionJson.displayPath!;
       final uriPath = regionJson.uriPath;
       // uriPath should be a working URI
       final contentsResponse = await httpGet(
@@ -1190,7 +1192,7 @@ int f() => null;
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       final uri = Uri.parse(url);
       final authToken = uri.queryParameters['authToken'];
       final fileResponse = await httpGet(
@@ -1202,10 +1204,10 @@ int f() => null;
               queryParameters: {'inline': 'true', 'authToken': authToken}),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       final fileJson = FileDetails.fromJson(jsonDecode(fileResponse.body));
-      final regions = fileJson.regions;
+      final regions = fileJson.regions!;
       final regionsPathRegex = RegExp(r'<table data-path="([^"]+)">');
       expect(regionsPathRegex.hasMatch(regions), true);
-      final regionsPath = regionsPathRegex.matchAsPrefix(regions).group(1);
+      final regionsPath = regionsPathRegex.matchAsPrefix(regions)!.group(1)!;
       final contentsResponse = await httpGet(
           uri.replace(
               path: Uri.parse(regionsPath).path,
@@ -1221,7 +1223,7 @@ int f() => null;
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
       var testPath =
           resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
@@ -1243,7 +1245,7 @@ int f() => null;
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
       var test2Path =
           resourceProvider.pathContext.join(projectDir, 'lib', 'test2.dart');
@@ -1269,7 +1271,7 @@ int f() => null;
     var summaryPath = resourceProvider.convertPath('/summary.json');
     await runWithPreviewServer(cli, ['--summary', summaryPath, projectDir],
         (url) async {
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       // lib/test.dart should be readable from the server and appear in the
       // summary
       var uri = Uri.parse(url);
@@ -1304,7 +1306,7 @@ int f() => null;
     var cli = _createCli();
     await runWithPreviewServer(cli, ['--ignore-errors', projectDir],
         (url) async {
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
       var testPath =
           resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
@@ -1329,7 +1331,7 @@ int f() => null;
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
       var testPath =
           resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
@@ -1365,7 +1367,7 @@ int f() => null;
         createProjectDir(projectContents, posixPath: '/other_project_dir');
     var cli = _createCli();
     await runWithPreviewServer(cli, [mainProjectDir], (url) async {
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
 
       Future<http.Response> tryGetSourceFromProject(String projectDir) =>
@@ -1396,7 +1398,7 @@ int f() => null;
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
       var regionResponse = await httpGet(
@@ -1431,7 +1433,7 @@ int f() => null;
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
       var regionUri = uri.replace(
@@ -1447,8 +1449,8 @@ int f() => null;
       var regionResponse = await httpGet(regionUri,
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var regionJson = EditDetails.fromJson(jsonDecode(regionResponse.body));
-      final traceEntry = regionJson.traces[0].entries[0];
-      final uriPath = traceEntry.link.href;
+      final traceEntry = regionJson.traces![0].entries[0];
+      final uriPath = traceEntry.link!.href!;
       // uriPath should be a working URI
       final contentsResponse = await httpGet(
           regionUri
@@ -1499,7 +1501,7 @@ int f() => null;
     var cli = _createCli();
     await runWithPreviewServer(cli, ['--skip-import-check', projectDir],
         (url) async {
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var output = logger.stdoutBuffer.toString();
       expect(output, contains('Warning: package has unmigrated dependencies'));
       // Output should not mention the particular unmigrated dependencies.
@@ -1514,8 +1516,8 @@ int f() => null;
     var projectContents = simpleProject();
     var projectDir = createProjectDir(projectContents);
     var summaryPath = resourceProvider.convertPath('/summary.json');
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--summary', summaryPath, projectDir]));
+    var cliRunner = _createCli().decodeCommandLineArgs(_parseArgs(
+        ['--no-web-preview', '--summary', summaryPath, projectDir]))!;
     await cliRunner.run();
     var summaryData =
         jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
@@ -1528,8 +1530,8 @@ int f() => null;
     var projectContents = simpleProject(sourceText: 'int/*?*/ x;');
     var projectDir = createProjectDir(projectContents);
     var summaryPath = resourceProvider.convertPath('/summary.json');
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--summary', summaryPath, projectDir]));
+    var cliRunner = _createCli().decodeCommandLineArgs(_parseArgs(
+        ['--no-web-preview', '--summary', summaryPath, projectDir]))!;
     await cliRunner.run();
     assertNormalExit(cliRunner);
     var summaryData =
@@ -1546,7 +1548,7 @@ int f() => null;
     var summaryPath = resourceProvider.convertPath('/summary.json');
     await runWithPreviewServer(cli, ['--summary', summaryPath, projectDir],
         (url) async {
-      await assertPreviewServerResponsive(url);
+      await assertPreviewServerResponsive(url!);
       var summaryData =
           jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
       var separator = resourceProvider.pathContext.separator;
@@ -1659,7 +1661,7 @@ int f() => null;
 
   test_option_sdk_default() {
     var cli = MigrationCli(binaryName: 'nnbd_migration');
-    var cliRunner = cli.decodeCommandLineArgs(_parseArgs([]));
+    var cliRunner = cli.decodeCommandLineArgs(_parseArgs([]))!;
     expect(Directory(path.join(cliRunner.options.sdkPath, 'bin')).existsSync(),
         isTrue);
   }
@@ -1695,7 +1697,7 @@ int f() => null;
       _expectErrorIndicatingCodeIsAlreadyOptedIn();
     } else {
       var cliRunner = _createCli()
-          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
       await cliRunner.run();
       // The Dart source code should still be migrated.
       assertProjectContents(
@@ -1728,7 +1730,7 @@ int f() => null;
       _expectErrorIndicatingCodeIsAlreadyOptedIn();
     } else {
       var cliRunner = _createCli()
-          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
       await cliRunner.run();
       // The Dart source code should still be migrated.
       assertProjectContents(projectDir,
@@ -1754,7 +1756,7 @@ int f() => null;
       _expectErrorIndicatingCodeIsAlreadyOptedIn();
     } else {
       var cliRunner = _createCli()
-          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
       await cliRunner.run();
       // The Dart source code should still be migrated.
       assertProjectContents(projectDir,
@@ -1785,7 +1787,7 @@ int f() => null;
       _expectErrorIndicatingCodeIsAlreadyOptedIn();
     } else {
       var cliRunner = _createCli()
-          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
       await cliRunner.run();
       // The Dart source code should still be migrated.
       assertProjectContents(projectDir,
@@ -1806,7 +1808,7 @@ dependencies:
 ''');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     expect(
         logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
@@ -1836,7 +1838,7 @@ name: test
 ''');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     expect(
         logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
@@ -1866,7 +1868,7 @@ int firstEven(Iterable<int> x)
 ''');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     expect(
         logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
@@ -1892,7 +1894,7 @@ environment:
     var projectContents = simpleProject()..remove('pubspec.yaml');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -1912,7 +1914,7 @@ environment:
 ''');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -1932,7 +1934,7 @@ environment: 1
     var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -1948,7 +1950,7 @@ environment:
     var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -1969,7 +1971,7 @@ environment:
     var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -1990,7 +1992,7 @@ environment:
     var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -2011,7 +2013,7 @@ environment:
     var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -2033,7 +2035,7 @@ environment:
 ''');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -2050,7 +2052,7 @@ name: test
 ''');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(projectDir, simpleProject(migrated: true, pubspecText:
@@ -2066,7 +2068,7 @@ name: test
     var projectContents = simpleProject(pubspecText: 'not-a-map');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     var message = await assertErrorExit(
         cliRunner, () async => await cliRunner.run(),
         withUsage: false);
@@ -2086,7 +2088,7 @@ dependencies:
 ''');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     expect(logger.stdoutBuffer.toString(),
         isNot(contains('Please run `dart pub get`')));
@@ -2119,7 +2121,7 @@ dependencies:
 ''');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     expect(
         logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
@@ -2142,7 +2144,7 @@ dependencies:
   test_pubspec_with_sdk_version_beta() async {
     var projectDir = createProjectDir(simpleProject());
     var cliRunner = _createCli(sdkVersion: '2.12.0-1.2.beta')
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     assertProjectContents(
         projectDir, simpleProject(migrated: true, pubspecText: '''
@@ -2155,7 +2157,7 @@ environment:
   test_pubspec_with_sdk_version_dev() async {
     var projectDir = createProjectDir(simpleProject());
     var cliRunner = _createCli(sdkVersion: '2.12.0-1.2.dev')
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     assertProjectContents(
         projectDir, simpleProject(migrated: true, pubspecText: '''
@@ -2168,7 +2170,7 @@ environment:
   test_pubspec_with_sdk_version_edge() async {
     var projectDir = createProjectDir(simpleProject());
     var cliRunner = _createCli(sdkVersion: '2.12.0-edge.1234567')
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     assertProjectContents(
         projectDir, simpleProject(migrated: true, pubspecText: '''
@@ -2181,7 +2183,7 @@ environment:
   test_pubspec_with_sdk_version_internal() async {
     var projectDir = createProjectDir(simpleProject());
     var cliRunner = _createCli(sdkVersion: '2.12.0-1234567')
-        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]))!;
     await cliRunner.run();
     assertProjectContents(
         projectDir, simpleProject(migrated: true, pubspecText: '''
@@ -2206,7 +2208,7 @@ environment:
   }
 
   _MigrationCli _createCli(
-      {List<String> nullSafePackages = const [], String sdkVersion}) {
+      {List<String> nullSafePackages = const [], String? sdkVersion}) {
     mock_sdk.MockSdk(
         resourceProvider: resourceProvider,
         nullSafePackages: nullSafePackages,
@@ -2224,7 +2226,7 @@ environment:
     expect(errorOutput, contains('Set the lower SDK constraint'));
   }
 
-  String _getHelpText({@required bool verbose}) {
+  String _getHelpText({required bool verbose}) {
     var cliRunner = _createCli().decodeCommandLineArgs(_parseArgs(
         ['--${CommandLineOptions.helpFlag}', if (verbose) '--verbose']));
     expect(cliRunner, isNull);
@@ -2233,9 +2235,8 @@ environment:
   }
 
   String _getPackageConfigText(
-      {@required bool migrated,
-      Map<String, bool> packagesMigrated = const {}}) {
-    Object makePackageEntry(String name, bool migrated, {String rootUri}) {
+      {required bool migrated, Map<String, bool> packagesMigrated = const {}}) {
+    Object makePackageEntry(String name, bool migrated, {String? rootUri}) {
       rootUri ??=
           resourceProvider.pathContext.toUri(packagePath(name)).toString();
       return {
@@ -2278,7 +2279,7 @@ environment:
 class _MigrationCliTestPosix extends _MigrationCliTestBase
     with _MigrationCliTestMethods {
   @override
-  final resourceProvider;
+  final MemoryResourceProvider resourceProvider;
 
   _MigrationCliTestPosix()
       : resourceProvider = MemoryResourceProvider(
@@ -2292,7 +2293,7 @@ class _MigrationCliTestPosix extends _MigrationCliTestBase
 class _MigrationCliTestWindows extends _MigrationCliTestBase
     with _MigrationCliTestMethods {
   @override
-  final resourceProvider;
+  final MemoryResourceProvider resourceProvider;
 
   _MigrationCliTestWindows()
       : resourceProvider = MemoryResourceProvider(

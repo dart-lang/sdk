@@ -9,7 +9,7 @@ import 'package:nnbd_migration/migration_cli.dart';
 
 void main(List<String> args) async {
   var cli = MigrationCli(binaryName: 'nnbd_migration');
-  ArgResults argResults;
+  late ArgResults argResults;
   try {
     try {
       argResults = MigrationCli.createParser().parse(args);

@@ -13,7 +13,7 @@ import 'package:nnbd_migration/src/front_end/migration_summary.dart';
 /// A listener used to gather instrumentation information from the migration
 /// engine.
 class InstrumentationListener implements NullabilityMigrationInstrumentation {
-  final MigrationSummary migrationSummary;
+  final MigrationSummary? migrationSummary;
 
   /// The instrumentation information being gathered.
   InstrumentationInformation data = InstrumentationInformation();
@@ -22,15 +22,15 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
   InstrumentationListener({this.migrationSummary});
 
   @override
-  void changes(Source source, Map<int, List<AtomicEdit>> changes) {
+  void changes(Source source, Map<int?, List<AtomicEdit>> changes) {
     assert(_sourceInfo(source).changes == null);
     _sourceInfo(source).changes = changes;
     migrationSummary?.recordChanges(source, changes);
   }
 
   @override
-  void explicitTypeNullability(
-      Source source, TypeAnnotation typeAnnotation, NullabilityNodeInfo node) {
+  void explicitTypeNullability(Source? source, TypeAnnotation typeAnnotation,
+      NullabilityNodeInfo? node) {
     _sourceInfo(source).explicitTypeNullability[typeAnnotation] = node;
   }
 
@@ -60,15 +60,15 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
 
   @override
   void implicitReturnType(
-      Source source, AstNode node, DecoratedTypeInfo decoratedReturnType) {}
+      Source? source, AstNode node, DecoratedTypeInfo? decoratedReturnType) {}
 
   @override
   void implicitType(
-      Source source, AstNode node, DecoratedTypeInfo decoratedType) {}
+      Source? source, AstNode? node, DecoratedTypeInfo decoratedType) {}
 
   @override
   void implicitTypeArguments(
-      Source source, AstNode node, Iterable<DecoratedTypeInfo> types) {}
+      Source? source, AstNode node, Iterable<DecoratedTypeInfo> types) {}
 
   @override
   void prepareForUpdate() {
@@ -79,6 +79,6 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
 
   /// Return the source information associated with the given [source], creating
   /// it if there has been no previous information for that source.
-  SourceInformation _sourceInfo(Source source) =>
+  SourceInformation _sourceInfo(Source? source) =>
       data.sourceInformation.putIfAbsent(source, () => SourceInformation());
 }

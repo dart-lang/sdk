@@ -18,7 +18,7 @@ class ExperimentStatusException extends StateError {
   /// incorrectly configured experiment flags/nnbd sources.
   static void sanityCheck(ResolvedUnitResult result) {
     final equalsParamType = result.typeProvider.objectType
-        .getMethod('==')
+        .getMethod('==')!
         .parameters[0]
         .type
         .getDisplayString(withNullability: true);

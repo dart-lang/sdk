@@ -56,28 +56,28 @@ String _makeAuthToken() {
 /// * already opted out files will remain unchanged.
 class IncrementalPlan {
   static final _nonWhitespaceChar = RegExp(r'\S');
-  final MigrationInfo migrationInfo;
-  final Map<String, UnitInfo> unitInfoMap;
-  final PathMapper pathMapper;
+  final MigrationInfo? migrationInfo;
+  final Map<String?, UnitInfo> unitInfoMap;
+  final PathMapper? pathMapper;
   final List<SourceFileEdit> edits;
-  final Logger logger;
+  final Logger? logger;
 
   /// The set of units which are to be opted out in this migration.
-  final Set<String> optOutUnitPaths;
+  final Set<String?> optOutUnitPaths;
 
   /// Creates a new [IncrementalPlan], extracting all of the paths which are
   /// "opting out" from [navigationTree].
   factory IncrementalPlan(
-      MigrationInfo migrationInfo,
-      Map<String, UnitInfo> unitInfoMap,
-      PathMapper pathMapper,
+      MigrationInfo? migrationInfo,
+      Map<String?, UnitInfo> unitInfoMap,
+      PathMapper? pathMapper,
       List<SourceFileEdit> edits,
       Iterable<NavigationTreeNode> navigationTree,
-      Logger logger) {
-    var optOutUnitPaths = <String>{};
+      Logger? logger) {
+    var optOutUnitPaths = <String?>{};
     void addUnitsToOptOut(NavigationTreeNode entity) {
       if (entity is NavigationTreeDirectoryNode) {
-        for (var child in entity.subtree) {
+        for (var child in entity.subtree!) {
           addUnitsToOptOut(child);
         }
       } else {
@@ -100,32 +100,32 @@ class IncrementalPlan {
 
   /// Applies this migration to disk.
   void apply() {
-    logger.stdout('Applying migration suggestions to disk...');
+    logger!.stdout('Applying migration suggestions to disk...');
     var migratedFiles = <String>[];
     for (final fileEdit in edits) {
       var unit = unitInfoMap[fileEdit.file];
       // Decide whether to opt out; default to `false` files not included in
       // [edits], like [pubspec.yaml].
       var unitIsOptOut = unit != null
-          ? optOutUnitPaths.contains(migrationInfo.computeName(unit))
+          ? optOutUnitPaths.contains(migrationInfo!.computeName(unit))
           : false;
       if (!unitIsOptOut) {
-        final file = pathMapper.provider.getFile(fileEdit.file);
+        final file = pathMapper!.provider.getFile(fileEdit.file);
         var code = file.exists ? file.readAsStringSync() : '';
         code = SourceEdit.applySequence(code, fileEdit.edits);
         file.writeAsStringSync(code);
-        migratedFiles.add(migrationInfo.relativePathFromRoot(fileEdit.file));
+        migratedFiles.add(migrationInfo!.relativePathFromRoot(fileEdit.file));
       }
     }
 
     // A file which is to be opted out may not be found in [edits], if all types
     // were to be made non-nullable, etc. Iterate over [optOutUnitPaths] instead
     // of [edits] to opt files out.
-    var newlyOptedOutFiles = <String>[];
-    var keptOptedOutFiles = <String>[];
+    var newlyOptedOutFiles = <String?>[];
+    var keptOptedOutFiles = <String?>[];
     for (var optOutUnitPath in optOutUnitPaths) {
-      var absolutePath = migrationInfo.absolutePathFromRoot(optOutUnitPath);
-      var unit = unitInfoMap[absolutePath];
+      var absolutePath = migrationInfo!.absolutePathFromRoot(optOutUnitPath);
+      var unit = unitInfoMap[absolutePath]!;
       if (unit.wasExplicitlyOptedOut) {
         // This unit was explicitly opted out of null safety with a Dart
         // Language version comment. Leave the unit be.
@@ -134,7 +134,7 @@ class IncrementalPlan {
         // This unit was not yet migrated at the start, was not explicitly
         // opted out at the start, and is being opted out now. Add a Dart
         // Language version comment.
-        final file = pathMapper.provider.getFile(absolutePath);
+        final file = pathMapper!.provider.getFile(absolutePath);
         var code = file.exists ? file.readAsStringSync() : '';
         file.writeAsStringSync(optCodeOutOfNullSafety(code));
         newlyOptedOutFiles.add(optOutUnitPath);
@@ -152,19 +152,19 @@ class IncrementalPlan {
   }
 
   void _logFileStatus(
-      List<String> files, String Function(String text) template) {
+      List<String?> files, String Function(String text) template) {
     if (files.isNotEmpty) {
       var count = files.length;
       if (count <= 20) {
         var s = count > 1 ? 's' : '';
         var text = '$count file$s';
-        logger.stdout('${template(text)}:');
+        logger!.stdout('${template(text)}:');
         for (var path in files) {
-          logger.stdout('    $path');
+          logger!.stdout('    $path');
         }
       } else {
         var text = '$count files';
-        logger.stdout('${template(text)}.');
+        logger!.stdout('${template(text)}.');
       }
     }
   }
@@ -299,20 +299,20 @@ class PreviewSite extends Site
   static const rerunMigrationPath = '/rerun-migration';
 
   /// The state of the migration being previewed.
-  MigrationState migrationState;
+  MigrationState? migrationState;
 
   /// A table mapping the paths of files to the information about the
   /// compilation units at those paths.
-  final Map<String, UnitInfo> unitInfoMap = {};
+  final Map<String?, UnitInfo> unitInfoMap = {};
 
   // A function provided by DartFix to rerun the migration.
-  final Future<MigrationState> Function() rerunFunction;
+  final Future<MigrationState?> Function() rerunFunction;
 
   /// Callback function that should be invoked after successfully applying
   /// migration.
   final void Function() applyHook;
 
-  final Logger logger;
+  final Logger? logger;
 
   final String serviceAuthToken = _makeAuthToken();
 
@@ -326,11 +326,11 @@ class PreviewSite extends Site
 
   /// Return the information about the migration that will be used to serve up
   /// pages.
-  MigrationInfo get migrationInfo => migrationState.migrationInfo;
+  MigrationInfo? get migrationInfo => migrationState!.migrationInfo;
 
   /// Return the path mapper used to map paths from the unit infos to the paths
   /// being served.
-  PathMapper get pathMapper => migrationState.pathMapper;
+  PathMapper? get pathMapper => migrationState!.pathMapper;
 
   @override
   Page createExceptionPage(String message, StackTrace trace) {
@@ -369,7 +369,7 @@ class PreviewSite extends Site
   Future<void> handleGetRequest(HttpRequest request) async {
     var uri = request.uri;
     var path = uri.path;
-    var decodedPath = pathMapper.reverseMap(uri);
+    var decodedPath = pathMapper!.reverseMap(uri);
     try {
       if (path == highlightCssPath) {
         // Note: `return await` needed due to
@@ -400,9 +400,9 @@ class PreviewSite extends Site
         // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, RobotoMonoPage(this));
       } else if (path == '/' ||
-          decodedPath == migrationInfo.includedRoot ||
+          decodedPath == migrationInfo!.includedRoot ||
           decodedPath ==
-              '${migrationInfo.includedRoot}${pathMapper.separator}') {
+              '${migrationInfo!.includedRoot}${pathMapper!.separator}') {
         // Note: `return await` needed due to
         // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, IndexFilePage(this));
@@ -453,12 +453,12 @@ class PreviewSite extends Site
       } else if (path == rerunMigrationPath) {
         await rerunMigration();
 
-        if (migrationState.hasErrors) {
+        if (migrationState!.hasErrors) {
           return await respondJson(
               request,
               {
                 'success': false,
-                'errors': migrationState.analysisResult.toJson(),
+                'errors': migrationState!.analysisResult!.toJson(),
               },
               HttpStatus.ok);
         } else {
@@ -483,17 +483,17 @@ class PreviewSite extends Site
 
   /// Perform the migration.
   void performApply(Iterable<NavigationTreeNode> navigationTree) {
-    if (migrationState.hasBeenApplied) {
+    if (migrationState!.hasBeenApplied) {
       throw StateError(
           'It looks like this migration has already been applied. Try'
           ' restarting the migration tool if this is not the case.');
     }
 
-    final edits = migrationState.listener.sourceChange.edits;
+    final edits = migrationState!.listener!.sourceChange.edits;
 
     // Perform a full check that no files have changed before touching the disk.
     for (final fileEdit in edits) {
-      final file = pathMapper.provider.getFile(fileEdit.file);
+      final file = pathMapper!.provider.getFile(fileEdit.file);
       if (!file.path.endsWith('.dart')) {
         continue;
       }
@@ -514,7 +514,7 @@ class PreviewSite extends Site
     }
 
     // Eagerly mark the migration applied. If this throws, we cannot go back.
-    migrationState.markApplied();
+    migrationState!.markApplied();
     IncrementalPlan(migrationInfo, unitInfoMap, pathMapper, edits,
             navigationTree, logger)
         .apply();
@@ -527,18 +527,18 @@ class PreviewSite extends Site
     // Update the code on disk.
     //
     var params = uri.queryParameters;
-    var path = pathMapper.reverseMap(uri);
-    var offset = int.parse(params['offset']);
-    var end = int.parse(params['end']);
-    var replacement = params['replacement'];
-    var file = pathMapper.provider.getFile(path);
+    var path = pathMapper!.reverseMap(uri);
+    var offset = int.parse(params['offset']!);
+    var end = int.parse(params['end']!);
+    var replacement = params['replacement']!;
+    var file = pathMapper!.provider.getFile(path);
     var diskContent = file.readAsStringSync();
-    if (!unitInfoMap[path].hadDiskContent(diskContent)) {
+    if (!unitInfoMap[path]!.hadDiskContent(diskContent)) {
       throw StateError('Cannot perform edit. This file has been changed since'
           ' last migration run. Press the "rerun from sources" button and then'
           ' try again. (Changed file path is ${file.path})');
     }
-    final unitInfo = unitInfoMap[path];
+    final unitInfo = unitInfoMap[path]!;
     final diskMapper = unitInfo.diskChangesOffsetMapper;
     final diskOffsetStart = diskMapper.map(offset);
     final diskOffsetEnd = diskMapper.map(end);
@@ -547,7 +547,7 @@ class PreviewSite extends Site
           ' a previous hint action. Rerun the migration and try again.');
     }
     unitInfo.handleSourceEdit(SourceEdit(offset, end - offset, replacement));
-    migrationState.needsRerun = true;
+    migrationState!.needsRerun = true;
     var newContent =
         diskContent.replaceRange(diskOffsetStart, diskOffsetEnd, replacement);
     file.writeAsStringSync(newContent);
@@ -556,7 +556,7 @@ class PreviewSite extends Site
 
   /// Perform the hint edit indicated by the [hintAction].
   Future<void> performHintAction(HintAction hintAction) async {
-    final node = migrationState.nodeMapper.nodeForId(hintAction.nodeId);
+    final node = migrationState!.nodeMapper.nodeForId(hintAction.nodeId)!;
     final edits = node.hintActions[hintAction.kind];
     if (edits == null) {
       throw StateError('This edit was not available to perform.');
@@ -564,20 +564,20 @@ class PreviewSite extends Site
     //
     // Update the code on disk.
     //
-    var path = node.codeReference.path;
-    var file = pathMapper.provider.getFile(path);
+    var path = node.codeReference!.path;
+    var file = pathMapper!.provider.getFile(path);
     var diskContent = file.readAsStringSync();
-    if (!unitInfoMap[path].hadDiskContent(diskContent)) {
+    if (!unitInfoMap[path]!.hadDiskContent(diskContent)) {
       throw StateError('Cannot perform edit. This file has been changed since'
           ' last migration run. Press the "rerun from sources" button and then'
           ' try again. (Changed file path is ${file.path})');
     }
-    final unitInfo = unitInfoMap[path];
+    final unitInfo = unitInfoMap[path]!;
     final diskMapper = unitInfo.diskChangesOffsetMapper;
     var newContent = diskContent;
-    migrationState.needsRerun = true;
+    migrationState!.needsRerun = true;
     for (final entry in edits.entries) {
-      final offset = entry.key;
+      final offset = entry.key!;
       final edits = entry.value;
       final diskOffset = diskMapper.map(offset);
       if (diskOffset == null) {
@@ -586,7 +586,7 @@ class PreviewSite extends Site
             ' a previous hint action. Rerun the migration and try again.');
       }
       final unmappedSourceEdit = edits.toSourceEdit(offset);
-      final diskSourceEdit = edits.toSourceEdit(diskMapper.map(offset));
+      final diskSourceEdit = edits.toSourceEdit(diskMapper.map(offset)!);
       unitInfo.handleSourceEdit(unmappedSourceEdit);
       newContent = diskSourceEdit.apply(newContent);
     }
@@ -594,32 +594,32 @@ class PreviewSite extends Site
     unitInfo.diskContent = newContent;
   }
 
-  Future<Map<String, Object>> requestBodyJson(HttpRequest request) async =>
+  Future<Map<String, Object?>> requestBodyJson(HttpRequest request) async =>
       (await request
           .map((entry) => entry.map((i) => i.toInt()).toList())
           .transform<String>(Utf8Decoder())
           .transform(JsonDecoder())
-          .single) as Map<String, Object /*?*/ > /*!*/;
+          .single) as Map<String, Object?>;
 
   Future<void> rerunMigration() async {
     migrationState = await rerunFunction();
-    if (!migrationState.hasErrors) {
+    if (!migrationState!.hasErrors) {
       reset();
     }
   }
 
   void reset() {
     unitInfoMap.clear();
-    var unitInfos = migrationInfo.units;
-    var provider = pathMapper.provider;
+    var unitInfos = migrationInfo!.units!;
+    var provider = pathMapper!.provider;
     for (var unit in unitInfos) {
       unitInfoMap[unit.path] = unit;
     }
-    for (var unit in migrationInfo.unitMap.values) {
+    for (var unit in migrationInfo!.unitMap.values) {
       if (!unitInfos.contains(unit)) {
         if (unit.content == null) {
           try {
-            unit.content = provider.getFile(unit.path).readAsStringSync();
+            unit.content = provider.getFile(unit.path!).readAsStringSync();
           } catch (_) {
             // If we can't read the content of the file, then skip it.
             continue;
@@ -668,7 +668,7 @@ class PreviewSite extends Site
   Future<void> _respondInternalError(HttpRequest request, String path,
       dynamic exception, StackTrace stackTrace) async {
     try {
-      if (request.headers.contentType.subType == 'json') {
+      if (request.headers.contentType!.subType == 'json') {
         return await respondJson(
             request,
             {

@@ -11,24 +11,24 @@ import 'package:nnbd_migration/src/edit_plan.dart';
 /// The instrumentation information gathered from the migration engine.
 class InstrumentationInformation {
   /// The node used for type sources that are always `null`.
-  NullabilityNodeInfo always;
+  NullabilityNodeInfo? always;
 
   /// A map from the graph edges between nullability nodes, to information about
   /// the edge that was created and why it was created.
   final Map<EdgeInfo, EdgeOriginInfo> edgeOrigin = {};
 
   /// The node used for type sources that are never `null`.
-  NullabilityNodeInfo never;
+  NullabilityNodeInfo? never;
 
   /// The instrumentation information that is specific to a single source.
-  final Map<Source, SourceInformation> sourceInformation = {};
+  final Map<Source?, SourceInformation> sourceInformation = {};
 
   /// Initialize a newly created holder of instrumentation information.
   InstrumentationInformation();
 
   /// Return the type annotation associated with the [node] or `null` if the
   /// node represents an implicit type.
-  TypeAnnotation typeAnnotationForNode(NullabilityNodeInfo node) {
+  TypeAnnotation? typeAnnotationForNode(NullabilityNodeInfo node) {
     for (var sourceEntry in sourceInformation.entries) {
       for (var typeEntry in sourceEntry.value.explicitTypeNullability.entries) {
         if (typeEntry.value == node) {
@@ -65,11 +65,11 @@ class SourceInformation {
   /// nullability nodes that are associated with that type.
   ///
   /// TODO(paulberry): we should probably get rid of this data structure.
-  final Map<TypeAnnotation, NullabilityNodeInfo> explicitTypeNullability = {};
+  final Map<TypeAnnotation, NullabilityNodeInfo?> explicitTypeNullability = {};
 
   /// A map from offsets within the source file to a list of changes to be
   /// applied at that offset.
-  Map<int, List<AtomicEdit>> changes;
+  Map<int?, List<AtomicEdit>>? changes;
 
   /// Initialize a newly created holder of instrumentation information that is
   /// specific to a single source.

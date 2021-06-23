@@ -41,7 +41,7 @@ abstract class OffsetMapper {
 
   /// Return the post-edit offset that corresponds to the given pre-edit
   /// [offset], or `null` when that offset has been deleted.
-  int map(int offset);
+  int? map(int? offset);
 }
 
 /// A mapper used for files that were modified by a set of edits.
@@ -61,14 +61,14 @@ class _EditMapper implements OffsetMapper {
   }
 
   @override
-  int map(int offset) => offset + _deltaFor(offset);
+  int map(int? offset) => offset! + _deltaFor(offset);
 
   /// Return the delta to be added to the pre-edit [offset] to produce the
   /// post-edit offset.
-  int _deltaFor(int offset) {
+  int _deltaFor(int? offset) {
     for (var i = 0; i < _offsets.length; i++) {
       var currentOffset = _offsets[i];
-      if (currentOffset >= offset || currentOffset < 0) {
+      if (currentOffset >= offset! || currentOffset < 0) {
         return _deltas[i];
       }
     }
@@ -95,7 +95,7 @@ class _EditMapper implements OffsetMapper {
 /// A mapper used for files that were not modified.
 class _IdentityMapper implements OffsetMapper {
   @override
-  int map(int offset) => offset;
+  int? map(int? offset) => offset;
 }
 
 class _OffsetMapperChain implements OffsetMapper {
@@ -104,7 +104,7 @@ class _OffsetMapperChain implements OffsetMapper {
   _OffsetMapperChain(this.innerMappers);
 
   @override
-  int map(int offset) {
+  int? map(int? offset) {
     for (final mapper in innerMappers) {
       offset = mapper.map(offset);
       if (offset == null) {
@@ -122,13 +122,13 @@ class _RebasedOffsetMapper implements OffsetMapper {
   _RebasedOffsetMapper(this.rebaser, this.rebased);
 
   @override
-  int map(int offset) {
+  int? map(int? offset) {
     final rebasedOffset = rebased.map(offset);
     final rebasingOffset = rebaser.map(offset);
     if (rebasedOffset == null || rebasingOffset == null) {
       return null;
     }
-    final delta = rebasedOffset - offset;
+    final delta = rebasedOffset - offset!;
     return rebasingOffset + delta;
   }
 }
@@ -147,8 +147,8 @@ class _SimpleSourceEditMapper implements OffsetMapper {
       this.offset, this.replacedLength, this.replacementLength);
 
   @override
-  int map(int offset) {
-    if (offset < this.offset) {
+  int? map(int? offset) {
+    if (offset! < this.offset) {
       return offset;
     }
     if (offset < this.offset + replacedLength) {

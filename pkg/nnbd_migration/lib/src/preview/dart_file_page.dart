@@ -19,7 +19,7 @@ class DartFilePage extends PreviewPage {
   DartFilePage(PreviewSite site, this.unitInfo)
       // TODO(brianwilkerson) The path needs to be converted to use '/' if that
       //  isn't already done as part of building the unitInfo.
-      : super(site, unitInfo.path.substring(1));
+      : super(site, unitInfo.path!.substring(1));
 
   @override
   bool get requiresAuth => true;

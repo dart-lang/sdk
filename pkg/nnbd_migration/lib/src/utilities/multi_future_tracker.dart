@@ -63,7 +63,7 @@ class MultiFutureTracker {
   /// Generates a [Future] from the given closure and adds it to the queue,
   /// once the queue is sufficiently empty.  Completes when the generated
   /// closure completes.
-  Future<T> runFutureFromClosure<T>(FutureOr<T> Function() closure) async {
+  Future<T> runFutureFromClosure<T>(FutureOr<T>? Function() closure) async {
     Completer<T> futureComplete = Completer();
     await addFutureFromClosure(() async {
       futureComplete.complete(await closure());

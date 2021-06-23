@@ -6,7 +6,7 @@ import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 
 /// Information about a link to a compilation unit.
 class UnitLink {
-  final String fullPath;
+  final String? fullPath;
   final List<String> pathParts;
   final int editCount;
 
@@ -19,7 +19,7 @@ class UnitLink {
   /// the start of this migration.
   final bool wasExplicitlyOptedOut;
 
-  final UnitMigrationStatus migrationStatus;
+  final UnitMigrationStatus? migrationStatus;
 
   /// Whether the migration status of this compilation unit can be changed in
   /// the web interface.

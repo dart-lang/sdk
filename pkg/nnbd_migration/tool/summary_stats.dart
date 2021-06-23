@@ -6,7 +6,7 @@ void main(List<String> args) {
   var json =
       jsonDecode(File(jsonPath).readAsStringSync()) as Map<String, Object>;
   var changes = json['changes'] as Map<String, Object>;
-  var byPath = changes['byPath'] as Map<String, Object>;
+  var byPath = changes['byPath'] as Map<String, Object>?;
   if (args.isEmpty) {
     print('''
 Usage: summary_stats.dart <summary_file> [category_name]
@@ -21,10 +21,10 @@ If [category_name] is given, this prints the file names and suggestion counts of
 each file with one or more suggestions categorized as [category_name].
 ''');
   } else if (args.length == 1) {
-    _printTotals(byPath);
+    _printTotals(byPath!);
   } else {
     var category = args[1];
-    _printCategory(byPath, category);
+    _printCategory(byPath!, category);
   }
 }
 
@@ -43,8 +43,7 @@ void _printTotals(Map<String, Object> byPath) {
   var summary = <String, int>{};
   for (var file in byPath.values.cast<Map<Object, Object>>()) {
     file.forEach((category, count) {
-      summary[category as String] =
-          (summary[category as String] ?? 0) + (count as int);
+      summary[category as String] = (summary[category] ?? 0) + (count as int);
     });
   }
   var categories = summary.keys.toList()..sort();

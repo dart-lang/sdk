@@ -43,11 +43,11 @@ class AssignmentCheckerTest extends Object
     with EdgeTester, DecoratedTypeTester {
   static const EdgeOrigin origin = _TestEdgeOrigin();
 
-  LibraryElementImpl _myLibrary;
+  LibraryElementImpl? _myLibrary;
 
-  ClassElement _myListOfListClass;
+  ClassElement? _myListOfListClass;
 
-  DecoratedType _myListOfListSupertype;
+  late DecoratedType _myListOfListSupertype;
 
   @override
   final TypeProvider typeProvider;
@@ -96,14 +96,14 @@ class AssignmentCheckerTest extends Object
       var t = typeParameter('T', object());
       _myListOfListSupertype = list(list(typeParameterType(t)));
       _myListOfListClass = ClassElementImpl('MyListOfList', 0)
-        ..enclosingElement = _myLibrary.definingCompilationUnit
+        ..enclosingElement = _myLibrary!.definingCompilationUnit
         ..typeParameters = [t]
-        ..supertype = _myListOfListSupertype.type as InterfaceType;
+        ..supertype = _myListOfListSupertype.type as InterfaceType?;
     }
     return DecoratedType(
       InterfaceTypeImpl(
-        element: _myListOfListClass,
-        typeArguments: [elementType.type],
+        element: _myListOfListClass!,
+        typeArguments: [elementType.type!],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
       newNode(),
@@ -115,7 +115,7 @@ class AssignmentCheckerTest extends Object
     var t = list(object());
     assign(bottom, t);
     assertEdge(never, t.node, hard: false);
-    assertNoEdge(anyNode, t.typeArguments[0].node);
+    assertNoEdge(anyNode, t.typeArguments[0]!.node);
   }
 
   void test_bottom_to_simple() {
@@ -132,7 +132,7 @@ class AssignmentCheckerTest extends Object
     assertEdge(t1.node, t2.node, hard: true);
     assertEdge(t1.node, bound.node, hard: false);
     // TODO(40622): Should this be a checkable edge?
-    assertEdge(t1.typeArguments[0].node, bound.typeArguments[0].node,
+    assertEdge(t1.typeArguments[0]!.node, bound.typeArguments[0]!.node,
         hard: false, checkable: false);
   }
 
@@ -151,7 +151,7 @@ class AssignmentCheckerTest extends Object
     var t2 = function(dynamic_, named: {'x': object()});
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
-    assertEdge(t2.namedParameters['x'].node, t1.namedParameters['x'].node,
+    assertEdge(t2.namedParameters!['x']!.node, t1.namedParameters!['x']!.node,
         hard: false, checkable: false);
   }
 
@@ -167,7 +167,8 @@ class AssignmentCheckerTest extends Object
     var t2 = function(dynamic_, positional: [object()]);
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
-    assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
+    assertEdge(
+        t2.positionalParameters![0]!.node, t1.positionalParameters![0]!.node,
         hard: false, checkable: false);
   }
 
@@ -183,7 +184,8 @@ class AssignmentCheckerTest extends Object
     var t2 = function(dynamic_, required: [object()]);
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
-    assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
+    assertEdge(
+        t2.positionalParameters![0]!.node, t1.positionalParameters![0]!.node,
         hard: false, checkable: false);
   }
 
@@ -192,7 +194,8 @@ class AssignmentCheckerTest extends Object
     var t2 = function(dynamic_, required: [object()]);
     assign(t1, t2);
     // Note: t1 and t2 are swapped due to contravariance.
-    assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
+    assertEdge(
+        t2.positionalParameters![0]!.node, t1.positionalParameters![0]!.node,
         hard: false, checkable: false);
   }
 
@@ -200,7 +203,7 @@ class AssignmentCheckerTest extends Object
     var t1 = function(object());
     var t2 = function(object());
     assign(t1, t2, hard: true);
-    assertEdge(t1.returnType.node, t2.returnType.node,
+    assertEdge(t1.returnType!.node, t2.returnType!.node,
         hard: false, checkable: false);
   }
 
@@ -210,7 +213,7 @@ class AssignmentCheckerTest extends Object
     var t1 = function(void_);
     var t2 = function(object());
     assign(t1, t2, hard: true);
-    assertEdge(t1.returnType.node, t2.returnType.node,
+    assertEdge(t1.returnType!.node, t2.returnType!.node,
         hard: false, checkable: false);
   }
 
@@ -219,7 +222,7 @@ class AssignmentCheckerTest extends Object
     var t2 = futureOr(int_());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node,
+    assertEdge(t1.typeArguments[0]!.node, t2.typeArguments[0]!.node,
         hard: true, checkable: false);
   }
 
@@ -230,11 +233,12 @@ class AssignmentCheckerTest extends Object
     // FutureOr<int>? is nullable, so Future<int>? should be.
     assertEdge(t1.node, t2.node, hard: true);
     // FutureOr<int?> is nullable, so Future<int>? should be.
-    assertEdge(t1.typeArguments[0].node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0]!.node, t2.node, hard: true);
     // FutureOr<int?> may hold a Future<int?>, so carry that forward.
-    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+    assertEdge(t1.typeArguments[0]!.node, t2.typeArguments[0]!.node,
+        hard: false);
     // FutureOr<int>? does not accept a Future<int?>, so don't draw this.
-    assertNoEdge(t1.node, t2.typeArguments[0].node);
+    assertNoEdge(t1.node, t2.typeArguments[0]!.node);
   }
 
   void test_future_or_int_to_int() {
@@ -242,7 +246,7 @@ class AssignmentCheckerTest extends Object
     var t2 = int_();
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertEdge(t1.typeArguments[0].node, t2.node, hard: false);
+    assertEdge(t1.typeArguments[0]!.node, t2.node, hard: false);
   }
 
   void test_future_or_list_object_to_list_int() {
@@ -250,9 +254,9 @@ class AssignmentCheckerTest extends Object
     var t2 = list(int_());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertEdge(t1.typeArguments[0].node, t2.node, hard: false);
+    assertEdge(t1.typeArguments[0]!.node, t2.node, hard: false);
     assertEdge(
-        t1.typeArguments[0].typeArguments[0].node, t2.typeArguments[0].node,
+        t1.typeArguments[0]!.typeArguments[0]!.node, t2.typeArguments[0]!.node,
         hard: false);
   }
 
@@ -261,7 +265,8 @@ class AssignmentCheckerTest extends Object
     var t2 = futureOr(int_());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+    assertEdge(t1.typeArguments[0]!.node, t2.typeArguments[0]!.node,
+        hard: false);
   }
 
   void test_future_or_to_future_or() {
@@ -269,14 +274,15 @@ class AssignmentCheckerTest extends Object
     var t2 = futureOr(int_());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+    assertEdge(t1.typeArguments[0]!.node, t2.typeArguments[0]!.node,
+        hard: false);
   }
 
   void test_generic_to_dynamic() {
     var t = list(object());
     assign(t, dynamic_);
     assertEdge(t.node, always, hard: false);
-    assertNoEdge(t.typeArguments[0].node, anyNode);
+    assertNoEdge(t.typeArguments[0]!.node, anyNode);
   }
 
   void test_generic_to_generic_downcast() {
@@ -286,11 +292,11 @@ class AssignmentCheckerTest extends Object
     assertEdge(t1.node, t2.node, hard: true);
     // Let A, B, and C be nullability nodes such that:
     // - t2 is MyListOfList<Object?A>
-    var a = t2.typeArguments[0].node;
+    var a = t2.typeArguments[0]!.node;
     // - t1 is List<List<Object?B>>
-    var b = t1.typeArguments[0].typeArguments[0].node;
+    var b = t1.typeArguments[0]!.typeArguments[0]!.node;
     // - the supertype of MyListOfList<T> is List<List<T?C>>
-    var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
+    var c = _myListOfListSupertype.typeArguments[0]!.typeArguments[0]!.node;
     // Then there should be an edge from b to substitute(a, c)
     assertEdge(b, substitutionNode(a, c), hard: false);
   }
@@ -301,8 +307,8 @@ class AssignmentCheckerTest extends Object
     var t2 = list(t);
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    var a = t1.typeArguments[0].node;
-    var b = t2.typeArguments[0].node;
+    var a = t1.typeArguments[0]!.node;
+    var b = t2.typeArguments[0]!.node;
     assertEdge(a, b, hard: false);
   }
 
@@ -311,7 +317,8 @@ class AssignmentCheckerTest extends Object
     var t2 = list(int_());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+    assertEdge(t1.typeArguments[0]!.node, t2.typeArguments[0]!.node,
+        hard: false);
   }
 
   void test_generic_to_generic_same_element() {
@@ -319,7 +326,7 @@ class AssignmentCheckerTest extends Object
     var t2 = list(object());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node,
+    assertEdge(t1.typeArguments[0]!.node, t2.typeArguments[0]!.node,
         hard: true, checkable: false);
   }
 
@@ -330,11 +337,11 @@ class AssignmentCheckerTest extends Object
     assertEdge(t1.node, t2.node, hard: false);
     // Let A, B, and C be nullability nodes such that:
     // - t1 is MyListOfList<Object?A>
-    var a = t1.typeArguments[0].node;
+    var a = t1.typeArguments[0]!.node;
     // - t2 is List<List<Object?B>>
-    var b = t2.typeArguments[0].typeArguments[0].node;
+    var b = t2.typeArguments[0]!.typeArguments[0]!.node;
     // - the supertype of MyListOfList<T> is List<List<T?C>>
-    var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
+    var c = _myListOfListSupertype.typeArguments[0]!.typeArguments[0]!.node;
     // Then there should be an edge from substitute(a, c) to b.
     assertEdge(substitutionNode(a, c), b, hard: false, checkable: false);
   }
@@ -344,14 +351,14 @@ class AssignmentCheckerTest extends Object
     var t2 = object();
     assign(t1, t2);
     assertEdge(t1.node, t2.node, hard: false);
-    assertNoEdge(t1.typeArguments[0].node, anyNode);
+    assertNoEdge(t1.typeArguments[0]!.node, anyNode);
   }
 
   void test_generic_to_void() {
     var t = list(object());
     assign(t, void_);
     assertEdge(t.node, always, hard: false);
-    assertNoEdge(t.typeArguments[0].node, anyNode);
+    assertNoEdge(t.typeArguments[0]!.node, anyNode);
   }
 
   void test_int_to_future_or_int() {
@@ -366,7 +373,7 @@ class AssignmentCheckerTest extends Object
     // `FutureOr<int>?` because it is a narrower type, so it is less likely to
     // cause a proliferation of nullable types in the user's program.
     assertEdge(t1.node, t2.node, hard: true);
-    assertNoEdge(t1.node, t2.typeArguments[0].node);
+    assertNoEdge(t1.node, t2.typeArguments[0]!.node);
   }
 
   void test_iterable_object_to_list_void() {
@@ -378,7 +385,7 @@ class AssignmentCheckerTest extends Object
     var t = list(object());
     assign(null_, t);
     assertEdge(always, t.node, hard: false);
-    assertNoEdge(anyNode, t.typeArguments[0].node);
+    assertNoEdge(anyNode, t.typeArguments[0]!.node);
   }
 
   void test_null_to_simple() {
@@ -426,7 +433,7 @@ class AssignmentCheckerTest extends Object
     assertEdge(t1.node, t2.node, hard: true);
     assertEdge(bound.node, t2.node, hard: false);
     // TODO(40622): Should this be a checkable edge?
-    assertEdge(bound.typeArguments[0].node, t2.typeArguments[0].node,
+    assertEdge(bound.typeArguments[0]!.node, t2.typeArguments[0]!.node,
         hard: false, checkable: false);
   }
 
@@ -475,8 +482,8 @@ class AssignmentCheckerTest extends Object
         flags: [EnableString.non_nullable],
       ),
     );
-    _myLibrary.typeSystem = typeSystem;
-    _myLibrary.typeProvider = coreLibrary.typeProvider;
+    _myLibrary!.typeSystem = typeSystem;
+    _myLibrary!.typeProvider = coreLibrary.typeProvider;
 
     var uri = Uri.parse(uriStr);
     var source = _MockSource(uri);
@@ -486,7 +493,7 @@ class AssignmentCheckerTest extends Object
     definingUnit.librarySource = source;
 
     definingUnit.enclosingElement = _myLibrary;
-    _myLibrary.definingCompilationUnit = definingUnit;
+    _myLibrary!.definingCompilationUnit = definingUnit;
   }
 
   static void _setCoreLibrariesTypeSystem(TypeProviderImpl typeProvider) {
@@ -522,14 +529,14 @@ class AssignmentCheckerTest extends Object
 @reflectiveTest
 class EdgeBuilderTest extends EdgeBuilderTestBase {
   void assertGLB(
-      NullabilityNode node, NullabilityNode left, NullabilityNode right) {
+      NullabilityNode? node, NullabilityNode? left, NullabilityNode? right) {
     expect(node, isNot(TypeMatcher<NullabilityNodeForLUB>()));
     assertEdge(left, node, hard: false, guards: [right]);
     assertEdge(node, left, hard: false);
     assertEdge(node, right, hard: false);
   }
 
-  void assertLUB(NullabilityNode node, Object left, Object right) {
+  void assertLUB(NullabilityNode node, Object? left, Object? right) {
     var conditionalNode = node as NullabilityNodeForLUB;
     var leftMatcher = NodeMatcher(left);
     var rightMatcher = NodeMatcher(right);
@@ -539,7 +546,7 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
 
   /// Checks that there are no nullability nodes upstream from [node] that could
   /// cause it to become nullable.
-  void assertNoUpstreamNullability(NullabilityNode node) {
+  void assertNoUpstreamNullability(NullabilityNode? node) {
     // Store `neverClosure` in a local variable so that we avoid the
     // computational expense of recomputing it each time through the loop below.
     var neverClosure = this.neverClosure;
@@ -567,26 +574,26 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
   /// Gets the [ExpressionChecks] associated with the expression whose text
   /// representation is [text], or `null` if the expression has no
   /// [ExpressionChecks] associated with it.
-  ExpressionChecksOrigin checkExpression(String text) {
-    return variables.checkExpression(findNode.expression(text));
+  ExpressionChecksOrigin? checkExpression(String text) {
+    return variables!.checkExpression(findNode.expression(text));
   }
 
   /// Gets the [DecoratedType] associated with the expression whose text
   /// representation is [text], or `null` if the expression has no
   /// [DecoratedType] associated with it.
-  DecoratedType decoratedExpressionType(String text) {
-    return variables.decoratedExpressionType(findNode.expression(text));
+  DecoratedType? decoratedExpressionType(String text) {
+    return variables!.decoratedExpressionType(findNode.expression(text));
   }
 
   bool hasNullCheckHint(Expression expression) =>
-      variables.getNullCheckHint(testSource, expression) != null;
+      variables!.getNullCheckHint(testSource, expression) != null;
 
   Future<void> test_already_migrated_field() async {
     await analyze('''
 double f() => double.NAN;
 ''');
-    var nanElement = typeProvider.doubleType.element.getField('NAN');
-    assertEdge(variables.decoratedElementType(nanElement).node,
+    var nanElement = typeProvider.doubleType.element.getField('NAN')!;
+    assertEdge(variables!.decoratedElementType(nanElement).node,
         decoratedTypeAnnotation('double f').node,
         hard: false);
   }
@@ -650,7 +657,7 @@ void f(Object o) {
         hard: true);
     assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
     expect(
-        variables.wasUnnecessaryCast(testSource, findNode.as_('o as')), false);
+        variables!.wasUnnecessaryCast(testSource, findNode.as_('o as')), false);
   }
 
   Future<void> test_as_int_null_ok() async {
@@ -679,7 +686,7 @@ void f(int i) {
         hard: true);
     assertEdge(decoratedTypeAnnotation('int)').node, never, hard: true);
     expect(
-        variables.wasUnnecessaryCast(testSource, findNode.as_('i as')), true);
+        variables!.wasUnnecessaryCast(testSource, findNode.as_('i as')), true);
   }
 
   Future<void> test_as_side_cast() async {
@@ -717,7 +724,7 @@ B<bool> f(A<int> a) {
     assertNoEdge(anyNode, decoratedTypeAnnotation('int> a').node);
     // int> a should be connected to the bound of T in A<T>, but nothing else.
     expect(
-        decoratedTypeAnnotation('int> a').node.downstreamEdges, hasLength(1));
+        decoratedTypeAnnotation('int> a').node!.downstreamEdges, hasLength(1));
   }
 
   Future<void> test_assert_demonstrates_non_null_intent() async {
@@ -767,7 +774,7 @@ class C<T extends List<int>> {
     // TODO(mfairhurst): Confirm we want this edge.
     // TODO(40622): Should this be a checkable edge?
     assertEdge(
-        parameterType.typeArguments[0].node, boundType.typeArguments[0].node,
+        parameterType.typeArguments[0]!.node, boundType.typeArguments[0]!.node,
         hard: false, checkable: false);
   }
 
@@ -1219,7 +1226,7 @@ class C<T extends List<int>> {
     assertEdge(boundType.node, returnType.node, hard: false);
     // TODO(40622): Should this be a checkable edge?
     assertEdge(
-        boundType.typeArguments[0].node, returnType.typeArguments[0].node,
+        boundType.typeArguments[0]!.node, returnType.typeArguments[0]!.node,
         hard: false, checkable: false);
   }
 
@@ -1235,8 +1242,8 @@ void g(List<int> x) {
     var listInt = decoratedTypeAnnotation('List<int>');
     assertEdge(listInt.node, iterableInt.node, hard: true);
     assertEdge(
-        substitutionNode(listInt.typeArguments[0].node, inSet(pointsToNever)),
-        iterableInt.typeArguments[0].node,
+        substitutionNode(listInt.typeArguments[0]!.node, inSet(pointsToNever)),
+        iterableInt.typeArguments[0]!.node,
         hard: true,
         checkable: false);
   }
@@ -1250,7 +1257,7 @@ void f(int i) {
     var edge = assertEdge(decoratedTypeAnnotation('int i').node,
         decoratedTypeAnnotation('int j').node,
         hard: true);
-    var codeReference = edge.codeReference;
+    var codeReference = edge.codeReference!;
     expect(codeReference, isNotNull);
     expect(codeReference.path, contains('test.dart'));
     expect(codeReference.line, 2);
@@ -1279,12 +1286,12 @@ C f(C y, C z) => (y += z);
         hard: true);
     expect(
         (graph.getEdgeOrigin(targetEdge) as CompoundAssignmentOrigin)
-            .node
+            .node!
             .operator
             .offset,
         code.indexOf('+='));
     assertNullCheck(
-        checkExpression('z);'),
+        checkExpression('z);')!,
         assertEdge(decoratedTypeAnnotation('C z').node,
             decoratedTypeAnnotation('C x').node,
             hard: true));
@@ -1294,14 +1301,14 @@ C f(C y, C z) => (y += z);
         hard: false);
     expect(
         (graph.getEdgeOrigin(operatorReturnEdge) as CompoundAssignmentOrigin)
-            .node
+            .node!
             .operator
             .offset,
         code.indexOf('+='));
     var fReturnEdge = assertEdge(decoratedTypeAnnotation('C operator').node,
         decoratedTypeAnnotation('C f').node,
         hard: false);
-    assertNullCheck(checkExpression('(y += z)'), fReturnEdge);
+    assertNullCheck(checkExpression('(y += z)')!, fReturnEdge);
   }
 
   Future<void> test_assignmentExpression_compound_withSubstitution() async {
@@ -1318,12 +1325,12 @@ C<int> f(C<int> y, C<int> z) => (y += z);
         hard: true);
     expect(
         (graph.getEdgeOrigin(targetEdge) as CompoundAssignmentOrigin)
-            .node
+            .node!
             .operator
             .offset,
         code.indexOf('+='));
     assertNullCheck(
-        checkExpression('z);'),
+        checkExpression('z);')!,
         assertEdge(decoratedTypeAnnotation('C<int> z').node,
             decoratedTypeAnnotation('C<T> x').node,
             hard: true));
@@ -1333,14 +1340,14 @@ C<int> f(C<int> y, C<int> z) => (y += z);
         hard: false);
     expect(
         (graph.getEdgeOrigin(operatorReturnEdge) as CompoundAssignmentOrigin)
-            .node
+            .node!
             .operator
             .offset,
         code.indexOf('+='));
     var fReturnEdge = assertEdge(decoratedTypeAnnotation('C<T> operator').node,
         decoratedTypeAnnotation('C<int> f').node,
         hard: false);
-    assertNullCheck(checkExpression('(y += z)'), fReturnEdge);
+    assertNullCheck(checkExpression('(y += z)')!, fReturnEdge);
   }
 
   Future<void> test_assignmentExpression_field() async {
@@ -1380,7 +1387,7 @@ void f(C c, int i) {
   c.x = i;
 }
 ''');
-    assertNullCheck(checkExpression('c.x'),
+    assertNullCheck(checkExpression('c.x')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -1393,7 +1400,7 @@ void f(C c, int i) {
   c..x = i;
 }
 ''');
-    assertNullCheck(checkExpression('c..x'),
+    assertNullCheck(checkExpression('c..x')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -1432,7 +1439,7 @@ void f(C c, int i, int j) {
   c[i] = j;
 }
 ''');
-    assertNullCheck(checkExpression('c['),
+    assertNullCheck(checkExpression('c[')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -1489,7 +1496,7 @@ int f(int x, int y) => (x ??= y);
     var yNullable = decoratedTypeAnnotation('int y').node;
     var xNullable = decoratedTypeAnnotation('int x').node;
     var returnNullable = decoratedTypeAnnotation('int f').node;
-    var glbNode = decoratedExpressionType('(x ??= y)').node;
+    var glbNode = decoratedExpressionType('(x ??= y)')!.node;
     assertEdge(yNullable, xNullable, hard: false, guards: [xNullable]);
     assertEdge(yNullable, glbNode, hard: false, guards: [xNullable]);
     assertEdge(glbNode, xNullable, hard: false);
@@ -1542,7 +1549,7 @@ class C {
 int f(C c, int i) => (c?.s = i);
 ''');
     var lubNode =
-        decoratedExpressionType('(c?.s = i)').node as NullabilityNodeForLUB;
+        decoratedExpressionType('(c?.s = i)')!.node as NullabilityNodeForLUB;
     expect(lubNode.left, same(decoratedTypeAnnotation('C c').node));
     expect(lubNode.right, same(decoratedTypeAnnotation('int i').node));
     assertEdge(lubNode, decoratedTypeAnnotation('int f').node, hard: false);
@@ -1557,7 +1564,7 @@ void f(C c, int i) {
   c.s = i;
 }
 ''');
-    assertNullCheck(checkExpression('c.s'),
+    assertNullCheck(checkExpression('c.s')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -1678,7 +1685,7 @@ void g(int j) {}
     var jNode = decoratedTypeAnnotation('int j').node;
     assertEdge(iNode, jNode,
         hard: false,
-        guards: TypeMatcher<Iterable<NullabilityNode /*?*/ >>()
+        guards: TypeMatcher<Iterable<NullabilityNode?>>()
             .having((g) => g.single, 'single value', isIn(alwaysPlus)));
   }
 
@@ -1816,7 +1823,7 @@ int f(int i, int j) => i % j;
 int f(int i, int j) => i + j;
 ''');
 
-    assertNullCheck(checkExpression('i +'),
+    assertNullCheck(checkExpression('i +')!,
         assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true));
   }
 
@@ -1828,7 +1835,7 @@ class Int {
 Int f(Int i, Int j) => i + j;
 ''');
 
-    assertNullCheck(checkExpression('i +'),
+    assertNullCheck(checkExpression('i +')!,
         assertEdge(decoratedTypeAnnotation('Int i').node, never, hard: true));
   }
 
@@ -1841,7 +1848,7 @@ Int f(Int i, Int j) => (i + j);
 ''');
 
     assertNullCheck(
-        checkExpression('(i + j)'),
+        checkExpression('(i + j)')!,
         assertEdge(decoratedTypeAnnotation('Int operator+').node,
             decoratedTypeAnnotation('Int f').node,
             hard: false));
@@ -1861,7 +1868,7 @@ int f(int i, int j) => i + j;
 ''');
 
     assertNullCheck(
-        checkExpression('j;'),
+        checkExpression('j;')!,
         assertEdge(decoratedTypeAnnotation('int j').node, inSet(pointsToNever),
             hard: true));
   }
@@ -1875,7 +1882,7 @@ Int f(Int i, Int j) => i + j/*check*/;
 ''');
 
     assertNullCheck(
-        checkExpression('j/*check*/'),
+        checkExpression('j/*check*/')!,
         assertEdge(decoratedTypeAnnotation('Int j').node,
             decoratedTypeAnnotation('Int other').node,
             hard: true));
@@ -1907,7 +1914,7 @@ int f(int i, int j) => i ?? j;
 
     var left = decoratedTypeAnnotation('int i').node;
     var right = decoratedTypeAnnotation('int j').node;
-    var expression = decoratedExpressionType('??').node;
+    var expression = decoratedExpressionType('??')!.node!;
     assertEdge(right, expression, guards: [left], hard: false);
     expect(expression.displayName, '?? operator (test.dart:1:24)');
   }
@@ -1929,7 +1936,7 @@ class C {
 }
 C f(C x, dynamic y) => x + y;
 ''');
-    assertNullCheck(checkExpression('x +'),
+    assertNullCheck(checkExpression('x +')!,
         assertEdge(decoratedTypeAnnotation('C x').node, never, hard: true));
     assertEdge(decoratedTypeAnnotation('C operator').node,
         decoratedTypeAnnotation('C f').node,
@@ -2025,17 +2032,17 @@ class D = C with M;
 D f(MyList<int>/*2*/ x) => D(x);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters[0];
+    var constructorType = variables!.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0]!;
     assertEdge(decoratedTypeAnnotation('MyList<int>/*2*/').node,
         constructorParameterType.node,
         hard: true);
     assertEdge(decoratedTypeAnnotation('int>/*2*/').node,
-        constructorParameterType.typeArguments[0].node,
+        constructorParameterType.typeArguments[0]!.node,
         hard: true, checkable: false);
     assertUnion(constructorParameterType.node,
         decoratedTypeAnnotation('MyList<int>/*1*/').node);
-    assertUnion(constructorParameterType.typeArguments[0].node,
+    assertUnion(constructorParameterType.typeArguments[0]!.node,
         decoratedTypeAnnotation('int>/*1*/').node);
   }
 
@@ -2049,8 +2056,8 @@ mixin M {}
 class D<U> = C<U> with M;
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters[0];
+    var constructorType = variables!.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0]!;
     assertUnion(
         constructorParameterType.node, decoratedTypeAnnotation('T t').node);
   }
@@ -2066,8 +2073,8 @@ class D = C with M;
 D f(int/*2*/ i) => D(i: i);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.namedParameters['i'];
+    var constructorType = variables!.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.namedParameters!['i']!;
     assertEdge(
         decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
         hard: true);
@@ -2086,8 +2093,8 @@ class D = C with M;
 D f(int/*2*/ i) => D(i);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters[0];
+    var constructorType = variables!.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0]!;
     assertEdge(
         decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
         hard: true);
@@ -2106,8 +2113,8 @@ class D = C with M;
 D f(int/*2*/ i) => D(i);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters[0];
+    var constructorType = variables!.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0]!;
     assertEdge(
         decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
         hard: true);
@@ -2132,7 +2139,7 @@ int f(bool b, int i, int j) {
 ''');
 
     var nullable_b = decoratedTypeAnnotation('bool b').node;
-    var check_b = checkExpression('b ?');
+    var check_b = checkExpression('b ?')!;
     assertNullCheck(check_b, assertEdge(nullable_b, never, hard: true));
   }
 
@@ -2143,7 +2150,7 @@ int f(bool b, int i, int j) {
         decoratedTypeAnnotation('int y').node,
         hard: false, guards: [guard]);
     var conditionalDiscard =
-        variables.conditionalDiscard(findNode.conditionalExpression('!='));
+        variables!.conditionalDiscard(findNode.conditionalExpression('!='))!;
     expect(conditionalDiscard, isNotNull);
     expect(conditionalDiscard.trueGuard, isNull);
     expect(conditionalDiscard.falseGuard, same(guard));
@@ -2159,10 +2166,10 @@ void f(bool b, void Function({int p}) x, void Function({int p}) y) {
         decoratedGenericFunctionTypeAnnotation('void Function({int p}) x');
     var yType =
         decoratedGenericFunctionTypeAnnotation('void Function({int p}) y');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, xType.node, yType.node);
-    assertGLB(resultType.namedParameters['p'].node,
-        xType.namedParameters['p'].node, yType.namedParameters['p'].node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, xType.node, yType.node);
+    assertGLB(resultType.namedParameters!['p']!.node,
+        xType.namedParameters!['p']!.node, yType.namedParameters!['p']!.node);
   }
 
   Future<void>
@@ -2174,10 +2181,12 @@ void f(bool b, void Function(int) x, void Function(int) y) {
 ''');
     var xType = decoratedGenericFunctionTypeAnnotation('void Function(int) x');
     var yType = decoratedGenericFunctionTypeAnnotation('void Function(int) y');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, xType.node, yType.node);
-    assertGLB(resultType.positionalParameters[0].node,
-        xType.positionalParameters[0].node, yType.positionalParameters[0].node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, xType.node, yType.node);
+    assertGLB(
+        resultType.positionalParameters![0]!.node,
+        xType.positionalParameters![0]!.node,
+        yType.positionalParameters![0]!.node);
   }
 
   Future<void>
@@ -2191,12 +2200,16 @@ void f(bool b, void Function(int, int) x, void Function(int, int) y) {
         decoratedGenericFunctionTypeAnnotation('void Function(int, int) x');
     var yType =
         decoratedGenericFunctionTypeAnnotation('void Function(int, int) y');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, xType.node, yType.node);
-    assertGLB(resultType.positionalParameters[0].node,
-        xType.positionalParameters[0].node, yType.positionalParameters[0].node);
-    assertGLB(resultType.positionalParameters[1].node,
-        xType.positionalParameters[1].node, yType.positionalParameters[1].node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, xType.node, yType.node);
+    assertGLB(
+        resultType.positionalParameters![0]!.node,
+        xType.positionalParameters![0]!.node,
+        yType.positionalParameters![0]!.node);
+    assertGLB(
+        resultType.positionalParameters![1]!.node,
+        xType.positionalParameters![1]!.node,
+        yType.positionalParameters![1]!.node);
   }
 
   Future<void>
@@ -2210,10 +2223,12 @@ void f(bool b, void Function([int]) x, void Function([int]) y) {
         decoratedGenericFunctionTypeAnnotation('void Function([int]) x');
     var yType =
         decoratedGenericFunctionTypeAnnotation('void Function([int]) y');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, xType.node, yType.node);
-    assertGLB(resultType.positionalParameters[0].node,
-        xType.positionalParameters[0].node, yType.positionalParameters[0].node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, xType.node, yType.node);
+    assertGLB(
+        resultType.positionalParameters![0]!.node,
+        xType.positionalParameters![0]!.node,
+        yType.positionalParameters![0]!.node);
   }
 
   Future<void> test_conditionalExpression_functionTyped_returnType() async {
@@ -2224,10 +2239,10 @@ void f(bool b, int Function() x, int Function() y) {
 ''');
     var xType = decoratedGenericFunctionTypeAnnotation('int Function() x');
     var yType = decoratedGenericFunctionTypeAnnotation('int Function() y');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, xType.node, yType.node);
-    assertLUB(resultType.returnType.node, xType.returnType.node,
-        yType.returnType.node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, xType.node, yType.node);
+    assertLUB(resultType.returnType!.node!, xType.returnType!.node,
+        yType.returnType!.node);
   }
 
   Future<void>
@@ -2239,9 +2254,9 @@ void f(bool b, void Function() x, void Function() y) {
 ''');
     var xType = decoratedGenericFunctionTypeAnnotation('void Function() x');
     var yType = decoratedGenericFunctionTypeAnnotation('void Function() y');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, xType.node, yType.node);
-    expect(resultType.returnType.node.isImmutable, false);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, xType.node, yType.node);
+    expect(resultType.returnType!.node!.isImmutable, false);
   }
 
   Future<void> test_conditionalExpression_general() async {
@@ -2253,10 +2268,10 @@ int f(bool b, int i, int j) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_j = decoratedTypeAnnotation('int j').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, nullable_i, nullable_j);
     var nullable_return = decoratedTypeAnnotation('int f').node;
-    assertNullCheck(checkExpression('(b ? i : j)'),
+    assertNullCheck(checkExpression('(b ? i : j)')!,
         assertEdge(nullable_conditional, nullable_return, hard: false));
   }
 
@@ -2268,12 +2283,12 @@ void f(bool b, Map<int, String> x, Map<int, String> y) {
 ''');
     var xType = decoratedTypeAnnotation('Map<int, String> x');
     var yType = decoratedTypeAnnotation('Map<int, String> y');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, xType.node, yType.node);
-    assertLUB(resultType.typeArguments[0].node, xType.typeArguments[0].node,
-        yType.typeArguments[0].node);
-    assertLUB(resultType.typeArguments[1].node, xType.typeArguments[1].node,
-        yType.typeArguments[1].node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, xType.node, yType.node);
+    assertLUB(resultType.typeArguments[0]!.node!, xType.typeArguments[0]!.node,
+        yType.typeArguments[0]!.node);
+    assertLUB(resultType.typeArguments[1]!.node!, xType.typeArguments[1]!.node,
+        yType.typeArguments[1]!.node);
   }
 
   Future<void> test_conditionalExpression_generic_lub() async {
@@ -2289,12 +2304,12 @@ A<num> f(bool b, B<num> x, C<num> y) {
     var cType = decoratedTypeAnnotation('C<num> y');
     var bInA = decoratedTypeAnnotation('T/*b*/');
     var cInA = decoratedTypeAnnotation('T/*c*/');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, bType.node, cType.node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, bType.node, cType.node);
     assertLUB(
-        resultType.typeArguments[0].node,
-        substitutionNode(bType.typeArguments[0].node, bInA.node),
-        substitutionNode(cType.typeArguments[0].node, cInA.node));
+        resultType.typeArguments[0]!.node!,
+        substitutionNode(bType.typeArguments[0]!.node, bInA.node),
+        substitutionNode(cType.typeArguments[0]!.node, cInA.node));
   }
 
   Future<void> test_conditionalExpression_generic_lub_leftSubtype() async {
@@ -2308,12 +2323,12 @@ A<num> f(bool b, B<num> x, A<num> y) {
     var aType = decoratedTypeAnnotation('A<num> y');
     var bType = decoratedTypeAnnotation('B<num> x');
     var bInA = decoratedTypeAnnotation('T/*b*/');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, bType.node, aType.node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, bType.node, aType.node);
     assertLUB(
-        resultType.typeArguments[0].node,
-        substitutionNode(bType.typeArguments[0].node, bInA.node),
-        aType.typeArguments[0].node);
+        resultType.typeArguments[0]!.node!,
+        substitutionNode(bType.typeArguments[0]!.node, bInA.node),
+        aType.typeArguments[0]!.node);
   }
 
   Future<void> test_conditionalExpression_generic_lub_rightSubtype() async {
@@ -2327,10 +2342,10 @@ A<num> f(bool b, A<num> x, B<num> y) {
     var aType = decoratedTypeAnnotation('A<num> x');
     var bType = decoratedTypeAnnotation('B<num> y');
     var bInA = decoratedTypeAnnotation('T/*b*/');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, aType.node, bType.node);
-    assertLUB(resultType.typeArguments[0].node, aType.typeArguments[0].node,
-        substitutionNode(bType.typeArguments[0].node, bInA.node));
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, aType.node, bType.node);
+    assertLUB(resultType.typeArguments[0]!.node!, aType.typeArguments[0]!.node,
+        substitutionNode(bType.typeArguments[0]!.node, bInA.node));
   }
 
   Future<void> test_conditionalExpression_generic_typeParameter_bound() async {
@@ -2342,11 +2357,11 @@ List<num> f<T extends List<num>>(bool b, List<num> x, T y) {
     var aType = decoratedTypeAnnotation('List<num> x');
     var bType = decoratedTypeAnnotation('T y');
     var bBound = decoratedTypeAnnotation('List<num>>');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(
-        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
-    assertLUB(resultType.typeArguments[0].node, aType.typeArguments[0].node,
-        bBound.typeArguments[0].node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, aType.node,
+        substitutionNode(bBound.node, bType.node));
+    assertLUB(resultType.typeArguments[0]!.node!, aType.typeArguments[0]!.node,
+        bBound.typeArguments[0]!.node);
   }
 
   Future<void> test_conditionalExpression_left_never() async {
@@ -2358,7 +2373,7 @@ List<int> f(bool b, List<int> i) {
 
     var nullable_i = decoratedTypeAnnotation('List<int> i').node;
     var nullable_conditional =
-        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+        decoratedExpressionType('(b ?')!.node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.left;
     assertNoUpstreamNullability(nullable_throw);
     assertLUB(nullable_conditional, nullable_throw, nullable_i);
@@ -2373,7 +2388,7 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional =
-        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+        decoratedExpressionType('(b ?')!.node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.left;
     assertNoUpstreamNullability(nullable_throw);
     assertLUB(nullable_conditional, nullable_throw, nullable_i);
@@ -2387,7 +2402,7 @@ int f(bool b, int i) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
@@ -2400,7 +2415,7 @@ bool Function<T>(int) g(bool b, bool Function<T>(int) f) {
 
     var nullable_i =
         decoratedGenericFunctionTypeAnnotation('bool Function<T>(int) f').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
@@ -2413,7 +2428,7 @@ T g<T>(bool b, T t) {
 ''');
 
     var nullable_t = decoratedTypeAnnotation('T t').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_t);
   }
 
@@ -2425,7 +2440,7 @@ List<int> f(bool b, List<int> l) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('List<int> l').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
@@ -2439,10 +2454,12 @@ void f(bool b, void Function(Null p) x, void Function(List<int> p) y) {
         decoratedGenericFunctionTypeAnnotation('void Function(Null p) x');
     var yType =
         decoratedGenericFunctionTypeAnnotation('void Function(List<int> p) y');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, xType.node, yType.node);
-    assertGLB(resultType.positionalParameters[0].node,
-        xType.positionalParameters[0].node, yType.positionalParameters[0].node);
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, xType.node, yType.node);
+    assertGLB(
+        resultType.positionalParameters![0]!.node,
+        xType.positionalParameters![0]!.node,
+        yType.positionalParameters![0]!.node);
   }
 
   Future<void> test_conditionalExpression_parameterType() async {
@@ -2454,7 +2471,7 @@ T g<T>(bool b, T x, T y) {
 
     var nullable_x = decoratedTypeAnnotation('T x').node;
     var nullable_y = decoratedTypeAnnotation('T y').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, nullable_x, nullable_y);
   }
 
@@ -2467,7 +2484,7 @@ List<int> f(bool b, List<int> i) {
 
     var nullable_i = decoratedTypeAnnotation('List<int> i').node;
     var nullable_conditional =
-        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+        decoratedExpressionType('(b ?')!.node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.right;
     assertNoUpstreamNullability(nullable_throw);
     assertLUB(nullable_conditional, nullable_i, nullable_throw);
@@ -2482,7 +2499,7 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional =
-        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+        decoratedExpressionType('(b ?')!.node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.right;
     assertNoUpstreamNullability(nullable_throw);
     assertLUB(nullable_conditional, nullable_i, nullable_throw);
@@ -2496,7 +2513,7 @@ int f(bool b, int i) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
   }
 
@@ -2509,7 +2526,7 @@ bool Function<T>(int) g(bool b, bool Function<T>(int) f) {
 
     var nullable_i =
         decoratedGenericFunctionTypeAnnotation('bool Function<T>(int) f').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
   }
 
@@ -2521,7 +2538,7 @@ List<int> f(bool b, List<int> l) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('List<int> l').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
   }
 
@@ -2534,7 +2551,7 @@ T f<T>(bool b, T t) {
 ''');
 
     var nullable_t = decoratedTypeAnnotation('T t').node;
-    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    var nullable_conditional = decoratedExpressionType('(b ?')!.node!;
     assertLUB(nullable_conditional, nullable_t, inSet(alwaysPlus));
   }
 
@@ -2545,7 +2562,7 @@ T f<T>(bool b, T t) {
         decoratedTypeAnnotation('int y').node,
         hard: false, guards: [guard]);
     var conditionalDiscard =
-        variables.conditionalDiscard(findNode.conditionalExpression('=='));
+        variables!.conditionalDiscard(findNode.conditionalExpression('=='))!;
     expect(conditionalDiscard, isNotNull);
     expect(conditionalDiscard.trueGuard, same(guard));
     expect(conditionalDiscard.falseGuard, isNull);
@@ -2560,9 +2577,9 @@ num f<T extends num>(bool b, num x, T y) {
     var aType = decoratedTypeAnnotation('num x');
     var bType = decoratedTypeAnnotation('T y');
     var bBound = decoratedTypeAnnotation('num>');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(
-        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, aType.node,
+        substitutionNode(bBound.node, bType.node));
   }
 
   Future<void> test_conditionalExpression_typeParameter_bound_bound() async {
@@ -2575,9 +2592,9 @@ num f<T extends R, R extends num>(bool b, num x, T y) {
     var bType = decoratedTypeAnnotation('T y');
     var bBound = decoratedTypeAnnotation('R,');
     var bBoundBound = decoratedTypeAnnotation('num>');
-    var resultType = decoratedExpressionType('(b ?');
+    var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(
-        resultType.node,
+        resultType.node!,
         aType.node,
         substitutionNode(
             bBoundBound.node, substitutionNode(bBound.node, bType.node)));
@@ -2593,9 +2610,9 @@ dynamic f<T extends num>(bool b, dynamic x, T y) {
     var aType = decoratedTypeAnnotation('dynamic x');
     var bType = decoratedTypeAnnotation('T y');
     var bBound = decoratedTypeAnnotation('num>');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(
-        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, aType.node,
+        substitutionNode(bBound.node, bType.node));
   }
 
   Future<void> test_conditionalExpression_typeParameters_bound() async {
@@ -2608,8 +2625,8 @@ num f<T extends num, R extends num>(bool b, R x, T y) {
     var bType = decoratedTypeAnnotation('T y');
     var aBound = decoratedTypeAnnotation('num>');
     var bBound = decoratedTypeAnnotation('num,');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(resultType.node, substitutionNode(aBound.node, aType.node),
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, substitutionNode(aBound.node, aType.node),
         substitutionNode(bBound.node, bType.node));
   }
 
@@ -2623,9 +2640,9 @@ R f<T extends R, R>(bool b, R x, T y) {
     var aType = decoratedTypeAnnotation('R x');
     var bType = decoratedTypeAnnotation('T y');
     var bBound = decoratedTypeAnnotation('R,');
-    var resultType = decoratedExpressionType('(b ?');
-    assertLUB(
-        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+    var resultType = decoratedExpressionType('(b ?')!;
+    assertLUB(resultType.node!, aType.node,
+        substitutionNode(bBound.node, bType.node));
   }
 
   Future<void> test_constructor_default_parameter_value_bool() async {
@@ -2658,8 +2675,8 @@ class D extends C {
 ''');
 
     var namedConstructor = findElement.constructor('named', of: 'C');
-    var constructorType = variables.decoratedElementType(namedConstructor);
-    var constructorParameterType = constructorType.positionalParameters[0];
+    var constructorType = variables!.decoratedElementType(namedConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0]!;
     assertEdge(
         decoratedTypeAnnotation('int j').node, constructorParameterType.node,
         hard: true);
@@ -2706,18 +2723,18 @@ class C<T, U> {
 }
 ''');
     var constructor = findElement.unnamedConstructor('C');
-    var constructorDecoratedType = variables.decoratedElementType(constructor);
-    _assertType(constructorDecoratedType.type, 'C<T, U> Function()');
+    var constructorDecoratedType = variables!.decoratedElementType(constructor);
+    _assertType(constructorDecoratedType.type!, 'C<T, U> Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
-    expect(constructorDecoratedType.returnType.node, same(never));
-    _assertType(constructorDecoratedType.returnType.type, 'C<T, U>');
-    var typeArguments = constructorDecoratedType.returnType.typeArguments;
+    expect(constructorDecoratedType.returnType!.node, same(never));
+    _assertType(constructorDecoratedType.returnType!.type!, 'C<T, U>');
+    var typeArguments = constructorDecoratedType.returnType!.typeArguments;
     expect(typeArguments, hasLength(2));
-    _assertType(typeArguments[0].type, 'T');
-    expect(typeArguments[0].node, same(never));
-    _assertType(typeArguments[1].type, 'U');
-    expect(typeArguments[1].node, same(never));
+    _assertType(typeArguments[0]!.type!, 'T');
+    expect(typeArguments[0]!.node, same(never));
+    _assertType(typeArguments[1]!.type!, 'U');
+    expect(typeArguments[1]!.node, same(never));
   }
 
   Future<void> test_constructorDeclaration_returnType_generic_implicit() async {
@@ -2725,18 +2742,18 @@ class C<T, U> {
 class C<T, U> {}
 ''');
     var constructor = findElement.unnamedConstructor('C');
-    var constructorDecoratedType = variables.decoratedElementType(constructor);
-    _assertType(constructorDecoratedType.type, 'C<T, U> Function()');
+    var constructorDecoratedType = variables!.decoratedElementType(constructor);
+    _assertType(constructorDecoratedType.type!, 'C<T, U> Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
-    expect(constructorDecoratedType.returnType.node, same(never));
-    _assertType(constructorDecoratedType.returnType.type, 'C<T, U>');
-    var typeArguments = constructorDecoratedType.returnType.typeArguments;
+    expect(constructorDecoratedType.returnType!.node, same(never));
+    _assertType(constructorDecoratedType.returnType!.type!, 'C<T, U>');
+    var typeArguments = constructorDecoratedType.returnType!.typeArguments;
     expect(typeArguments, hasLength(2));
-    _assertType(typeArguments[0].type, 'T');
-    expect(typeArguments[0].node, same(never));
-    _assertType(typeArguments[1].type, 'U');
-    expect(typeArguments[1].node, same(never));
+    _assertType(typeArguments[0]!.type!, 'T');
+    expect(typeArguments[0]!.node, same(never));
+    _assertType(typeArguments[1]!.type!, 'U');
+    expect(typeArguments[1]!.node, same(never));
   }
 
   Future<void> test_constructorDeclaration_returnType_simple() async {
@@ -2746,12 +2763,12 @@ class C {
 }
 ''');
     var constructorDecoratedType =
-        variables.decoratedElementType(findElement.unnamedConstructor('C'));
-    _assertType(constructorDecoratedType.type, 'C Function()');
+        variables!.decoratedElementType(findElement.unnamedConstructor('C'));
+    _assertType(constructorDecoratedType.type!, 'C Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
-    expect(constructorDecoratedType.returnType.node, same(never));
-    expect(constructorDecoratedType.returnType.typeArguments, isEmpty);
+    expect(constructorDecoratedType.returnType!.node, same(never));
+    expect(constructorDecoratedType.returnType!.typeArguments, isEmpty);
   }
 
   Future<void> test_constructorDeclaration_returnType_simple_implicit() async {
@@ -2759,12 +2776,12 @@ class C {
 class C {}
 ''');
     var constructorDecoratedType =
-        variables.decoratedElementType(findElement.unnamedConstructor('C'));
-    _assertType(constructorDecoratedType.type, 'C Function()');
+        variables!.decoratedElementType(findElement.unnamedConstructor('C'));
+    _assertType(constructorDecoratedType.type!, 'C Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
-    expect(constructorDecoratedType.returnType.node, same(never));
-    expect(constructorDecoratedType.returnType.typeArguments, isEmpty);
+    expect(constructorDecoratedType.returnType!.node, same(never));
+    expect(constructorDecoratedType.returnType!.typeArguments, isEmpty);
   }
 
   Future<void> test_constructorFieldInitializer_generic() async {
@@ -2810,7 +2827,7 @@ void f(bool b) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b);'),
+    assertNullCheck(checkExpression('b);')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
   }
 
@@ -3153,7 +3170,7 @@ class C {
 }
 ''');
     var xType =
-        variables.decoratedElementType(findNode.simple('x').staticElement);
+        variables!.decoratedElementType(findNode.simple('x').staticElement!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -3164,18 +3181,18 @@ class C {
   C(int this.f(int i, {int j}));
 }
 ''');
-    var ctorParamType = variables
+    var ctorParamType = variables!
         .decoratedElementType(findElement.unnamedConstructor('C'))
-        .positionalParameters[0];
-    var fieldType = variables.decoratedElementType(findElement.field('f'));
+        .positionalParameters![0]!;
+    var fieldType = variables!.decoratedElementType(findElement.field('f'));
     assertEdge(ctorParamType.node, fieldType.node, hard: true);
-    assertEdge(ctorParamType.returnType.node, fieldType.returnType.node,
+    assertEdge(ctorParamType.returnType!.node, fieldType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(fieldType.positionalParameters[0].node,
-        ctorParamType.positionalParameters[0].node,
+    assertEdge(fieldType.positionalParameters![0]!.node,
+        ctorParamType.positionalParameters![0]!.node,
         hard: false, checkable: false);
-    assertEdge(fieldType.namedParameters['j'].node,
-        ctorParamType.namedParameters['j'].node,
+    assertEdge(fieldType.namedParameters!['j']!.node,
+        ctorParamType.namedParameters!['j']!.node,
         hard: false, checkable: false);
   }
 
@@ -3199,7 +3216,7 @@ class C {
 }
 ''');
     var decoratedConstructorParamType =
-        decoratedConstructorDeclaration('named').positionalParameters[0];
+        decoratedConstructorDeclaration('named').positionalParameters![0]!;
     assertEdge(decoratedConstructorParamType.node,
         decoratedTypeAnnotation('int i').node,
         hard: true);
@@ -3218,23 +3235,23 @@ int firstEven(Iterable<int> x)
     // `firstWhereOrNull` in order to avoid having to make `x`'s type argument
     // nullable, we need a synthetic edge to ensure that the return type of
     // `firstEven` is nullable.
-    var closureReturnType = decoratedExpressionType('() => null').returnType;
-    var firstWhereReturnType = variables
-        .decoratedExpressionType(findNode.methodInvocation('firstWhere'));
+    var closureReturnType = decoratedExpressionType('() => null')!.returnType!;
+    var firstWhereReturnType = variables!
+        .decoratedExpressionType(findNode.methodInvocation('firstWhere'))!;
     assertEdge(closureReturnType.node, firstWhereReturnType.node, hard: false);
 
     // There should also be an edge from a substitution node to the return type
     // of `firstWhere`, to account for the normal data flow (when the element is
     // found).
     var typeParameterType = decoratedTypeAnnotation('int>');
-    var firstWhereType = variables.decoratedElementType(findNode
+    var firstWhereType = variables!.decoratedElementType(findNode
         .methodInvocation('firstWhere')
         .methodName
-        .staticElement
-        .declaration);
+        .staticElement!
+        .declaration!);
     assertEdge(
         substitutionNode(
-            typeParameterType.node, firstWhereType.returnType.node),
+            typeParameterType.node, firstWhereType.returnType!.node),
         firstWhereReturnType.node,
         hard: false);
   }
@@ -3377,7 +3394,7 @@ void f(List<int> ints) {
 ''');
 
     assertNullCheck(
-        checkExpression('ints) i'),
+        checkExpression('ints) i')!,
         assertEdge(decoratedTypeAnnotation('List<int> ints').node, never,
             hard: true));
     assertEdge(decoratedTypeAnnotation('int i').node,
@@ -3397,11 +3414,11 @@ void f(List<String> strs, List<int> ints) {
 ''');
 
     assertNullCheck(
-        checkExpression('strs)\n'),
+        checkExpression('strs)\n')!,
         assertEdge(decoratedTypeAnnotation('List<String> strs').node, never,
             hard: true));
     assertNullCheck(
-        checkExpression('ints)\n'),
+        checkExpression('ints)\n')!,
         assertEdge(decoratedTypeAnnotation('List<int> ints').node, never,
             hard: false));
 
@@ -3421,7 +3438,7 @@ void f(List<int> ints) {
 ''');
 
     assertNullCheck(
-        checkExpression('ints) i'),
+        checkExpression('ints) i')!,
         assertEdge(decoratedTypeAnnotation('List<int> ints').node, never,
             hard: true));
     assertEdge(decoratedTypeAnnotation('int i').node,
@@ -3492,7 +3509,7 @@ int/*1*/ f(int/*2*/ i) => i/*3*/;
 ''');
 
     assertNullCheck(
-        checkExpression('i/*3*/'),
+        checkExpression('i/*3*/')!,
         assertEdge(decoratedTypeAnnotation('int/*2*/').node,
             decoratedTypeAnnotation('int/*1*/').node,
             hard: true));
@@ -3634,7 +3651,7 @@ void test(int/*2*/ i) {
 
     var int_1 = decoratedTypeAnnotation('int/*1*/');
     var int_2 = decoratedTypeAnnotation('int/*2*/');
-    var i_3 = checkExpression('i/*3*/');
+    var i_3 = checkExpression('i/*3*/')!;
     assertNullCheck(i_3, assertEdge(int_2.node, int_1.node, hard: true));
     assertEdge(int_2.node, int_1.node, hard: true);
   }
@@ -3647,9 +3664,9 @@ void test() {
 }
 ''');
 
-    var parameter = variables.decoratedElementType(
-        findNode.functionTypedFormalParameter('void g()').declaredElement);
-    assertNullCheck(checkExpression('null'),
+    var parameter = variables!.decoratedElementType(
+        findNode.functionTypedFormalParameter('void g()').declaredElement!);
+    assertNullCheck(checkExpression('null')!,
         assertEdge(inSet(alwaysPlus), parameter.node, hard: false));
   }
 
@@ -3661,8 +3678,8 @@ void h() {
   f();
 }
 ''');
-    var parameter = variables.decoratedElementType(
-        findNode.functionTypedFormalParameter('void g()').declaredElement);
+    var parameter = variables!.decoratedElementType(
+        findNode.functionTypedFormalParameter('void g()').declaredElement!);
     expect(getEdges(always, parameter.node), isNotEmpty);
   }
 
@@ -3675,7 +3692,7 @@ void g(int j) {
 ''');
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_j = decoratedTypeAnnotation('int j').node;
-    assertNullCheck(checkExpression('j/*check*/'),
+    assertNullCheck(checkExpression('j/*check*/')!,
         assertEdge(nullable_j, nullable_i, hard: true));
   }
 
@@ -3729,7 +3746,7 @@ void test() {
 ''');
 
     assertNullCheck(
-        checkExpression('null'),
+        checkExpression('null')!,
         assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
             hard: false));
   }
@@ -3743,7 +3760,7 @@ int/*2*/ g() {
 ''');
 
     assertNullCheck(
-        checkExpression('(f())'),
+        checkExpression('(f())')!,
         assertEdge(decoratedTypeAnnotation('int/*1*/').node,
             decoratedTypeAnnotation('int/*2*/').node,
             hard: false));
@@ -3899,7 +3916,7 @@ void f(bool b) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b) {}'),
+    assertNullCheck(checkExpression('b) {}')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
   }
 
@@ -3965,12 +3982,12 @@ dynamic f(int i, int j, int k) {
     var nullable_k = decoratedTypeAnnotation('int k').node;
     var nullable_itemType = decoratedTypeAnnotation('int>[').node;
     assertNullCheck(
-        checkExpression('j/*check*/'),
+        checkExpression('j/*check*/')!,
         assertEdge(nullable_j, nullable_itemType,
             guards: [nullable_i], hard: false));
-    assertNullCheck(checkExpression('k/*check*/'),
+    assertNullCheck(checkExpression('k/*check*/')!,
         assertEdge(nullable_k, nullable_itemType, hard: false));
-    var discard = elementDiscard('if (i == null)');
+    var discard = elementDiscard('if (i == null)')!;
     expect(discard.trueGuard, same(nullable_i));
     expect(discard.falseGuard, null);
     expect(discard.pureCondition, true);
@@ -3985,7 +4002,7 @@ void f(bool b) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b) i1'),
+    assertNullCheck(checkExpression('b) i1')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
     assertEdge(decoratedTypeAnnotation('int i1').node,
         decoratedTypeAnnotation('int>[').node,
@@ -4006,7 +4023,7 @@ void f(bool b) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b) s1'),
+    assertNullCheck(checkExpression('b) s1')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
 
     var keyTypeNode = decoratedTypeAnnotation('String, int>{').node;
@@ -4031,10 +4048,10 @@ void f(bool b1, bool b2) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b1)'),
+    assertNullCheck(checkExpression('b1)')!,
         assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
     assertNullCheck(
-        checkExpression('b2) i1'),
+        checkExpression('b2) i1')!,
         assertEdge(decoratedTypeAnnotation('bool b2').node, never,
             hard: false));
     assertEdge(decoratedTypeAnnotation('int i1').node,
@@ -4057,7 +4074,7 @@ void f(bool b) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b) i1'),
+    assertNullCheck(checkExpression('b) i1')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
     assertEdge(decoratedTypeAnnotation('int i1').node,
         decoratedTypeAnnotation('int>{').node,
@@ -4082,12 +4099,12 @@ int f(int i, int j, int k) {
     var nullable_k = decoratedTypeAnnotation('int k').node;
     var nullable_return = decoratedTypeAnnotation('int f').node;
     assertNullCheck(
-        checkExpression('j/*check*/'),
+        checkExpression('j/*check*/')!,
         assertEdge(nullable_j, nullable_return,
             guards: [nullable_i], hard: false));
-    assertNullCheck(checkExpression('k/*check*/'),
+    assertNullCheck(checkExpression('k/*check*/')!,
         assertEdge(nullable_k, nullable_return, hard: false));
-    var discard = statementDiscard('if (i == null)');
+    var discard = statementDiscard('if (i == null)')!;
     expect(discard.trueGuard, same(nullable_i));
     expect(discard.falseGuard, null);
     expect(discard.pureCondition, true);
@@ -4107,9 +4124,9 @@ int f(bool b, int i, int j) {
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_j = decoratedTypeAnnotation('int j').node;
     var nullable_return = decoratedTypeAnnotation('int f').node;
-    assertNullCheck(checkExpression('i/*check*/'),
+    assertNullCheck(checkExpression('i/*check*/')!,
         assertEdge(nullable_i, nullable_return, hard: false));
-    assertNullCheck(checkExpression('j/*check*/'),
+    assertNullCheck(checkExpression('j/*check*/')!,
         assertEdge(nullable_j, nullable_return, hard: false));
   }
 
@@ -4125,7 +4142,7 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_return = decoratedTypeAnnotation('int f').node;
-    assertNullCheck(checkExpression('i/*check*/'),
+    assertNullCheck(checkExpression('i/*check*/')!,
         assertEdge(nullable_i, nullable_return, hard: false));
   }
 
@@ -4209,7 +4226,7 @@ class C {
 }
 int f(C c) => c[0];
 ''');
-    assertNullCheck(checkExpression('c['),
+    assertNullCheck(checkExpression('c[')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -4220,7 +4237,7 @@ class C {
 }
 C f(C c) => c..[0];
 ''');
-    assertNullCheck(checkExpression('c..['),
+    assertNullCheck(checkExpression('c..[')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -4305,10 +4322,10 @@ class C<T> {
 f(int i) => C<int>(i/*check*/);
 ''');
     var nullable_i = decoratedTypeAnnotation('int i').node;
-    var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
+    var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0]!.node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
-    var check_i = checkExpression('i/*check*/');
-    var nullable_c_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+    var check_i = checkExpression('i/*check*/')!;
+    var nullable_c_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]!
         .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
@@ -4324,10 +4341,10 @@ class C<T> {
 f(int i) => C<int>(t: i/*check*/);
 ''');
     var nullable_i = decoratedTypeAnnotation('int i').node;
-    var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
+    var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0]!.node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
-    var check_i = checkExpression('i/*check*/');
-    var nullable_c_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+    var check_i = checkExpression('i/*check*/')!;
+    var nullable_c_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]!
         .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
@@ -4345,14 +4362,14 @@ void main() {
     var edge0 = assertEdge(
         anyNode, decoratedTypeAnnotation('C<Object, Object>').node,
         hard: false);
-    expect(edge0.sourceNode.displayName, 'constructed type (test.dart:3:25)');
+    expect(edge0.sourceNode!.displayName, 'constructed type (test.dart:3:25)');
     var edge1 = assertEdge(anyNode, decoratedTypeAnnotation('Object,').node,
         hard: false, checkable: false);
-    expect(edge1.sourceNode.displayName,
+    expect(edge1.sourceNode!.displayName,
         'type argument 0 of constructed type (test.dart:3:25)');
     var edge2 = assertEdge(anyNode, decoratedTypeAnnotation('Object>').node,
         hard: false, checkable: false);
-    expect(edge2.sourceNode.displayName,
+    expect(edge2.sourceNode!.displayName,
         'type argument 1 of constructed type (test.dart:3:25)');
   }
 
@@ -4461,7 +4478,7 @@ int f(Function g) => g();
     assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
         hard: false);
     assertNullCheck(
-        checkExpression('g('),
+        checkExpression('g(')!,
         assertEdge(decoratedTypeAnnotation('Function g').node, never,
             hard: true));
   }
@@ -4473,7 +4490,7 @@ int f(Function g) => (g)();
     assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
         hard: false);
     assertNullCheck(
-        checkExpression('g)('),
+        checkExpression('g)(')!,
         assertEdge(decoratedTypeAnnotation('Function g').node, never,
             hard: true));
   }
@@ -4603,7 +4620,7 @@ List<String> f() {
     expect(returnTypeEdges.length, 1);
     final returnTypeEdge = returnTypeEdges.single;
 
-    final listArgType = returnTypeEdge.sourceNode;
+    final listArgType = returnTypeEdge.sourceNode!;
     assertNoUpstreamNullability(listArgType);
     expect(listArgType.displayName, 'list element type (test.dart:2:10)');
   }
@@ -4658,7 +4675,7 @@ main() {
 }
 ''');
     var xType =
-        variables.decoratedElementType(findNode.simple('x').staticElement);
+        variables!.decoratedElementType(findNode.simple('x').staticElement!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -4682,8 +4699,8 @@ class C extends B {
   void f/*C*/(x) {}
 }
 ''');
-    var bReturnType = decoratedMethodType('f/*B*/').positionalParameters[0];
-    var cReturnType = decoratedMethodType('f/*C*/').positionalParameters[0];
+    var bReturnType = decoratedMethodType('f/*B*/').positionalParameters![0]!;
+    var cReturnType = decoratedMethodType('f/*C*/').positionalParameters![0]!;
     assertEdge(bReturnType.node, cReturnType.node, hard: true);
   }
 
@@ -4696,8 +4713,8 @@ class C extends B {
   void f/*C*/({x = 0}) {}
 }
 ''');
-    var bReturnType = decoratedMethodType('f/*B*/').namedParameters['x'];
-    var cReturnType = decoratedMethodType('f/*C*/').namedParameters['x'];
+    var bReturnType = decoratedMethodType('f/*B*/').namedParameters!['x']!;
+    var cReturnType = decoratedMethodType('f/*C*/').namedParameters!['x']!;
     assertEdge(bReturnType.node, cReturnType.node, hard: true);
   }
 
@@ -4710,8 +4727,8 @@ class C extends B {
   f/*C*/() => 1;
 }
 ''');
-    var bReturnType = decoratedMethodType('f/*B*/').returnType;
-    var cReturnType = decoratedMethodType('f/*C*/').returnType;
+    var bReturnType = decoratedMethodType('f/*B*/').returnType!;
+    var cReturnType = decoratedMethodType('f/*C*/').returnType!;
     assertEdge(cReturnType.node, bReturnType.node, hard: true);
   }
 
@@ -5029,10 +5046,10 @@ String f(int i) => i.toString();
     await analyze('''
 String f(void Function() g) => g.toString();
 ''');
-    var toStringReturnType = variables
+    var toStringReturnType = variables!
         .decoratedElementType(
-            typeProvider.objectType.element.getMethod('toString'))
-        .returnType;
+            typeProvider.objectType.element.getMethod('toString')!)
+        .returnType!;
     assertEdge(
         toStringReturnType.node, decoratedTypeAnnotation('String f').node,
         hard: false);
@@ -5049,10 +5066,10 @@ void g(C<int> c, int i) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
-    var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
+    var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0]!.node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
-    var check_i = checkExpression('i/*check*/');
-    var nullable_c_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+    var check_i = checkExpression('i/*check*/')!;
+    var nullable_c_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]!
         .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
@@ -5070,17 +5087,18 @@ void f(List<int> x, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_list_t =
-        decoratedTypeAnnotation('List<int>').typeArguments[0].node;
-    var addMethod = findNode.methodInvocation('x.add').methodName.staticElement;
-    var nullable_t = variables
-        .decoratedElementType(addMethod.declaration)
-        .positionalParameters[0]
+        decoratedTypeAnnotation('List<int>').typeArguments[0]!.node;
+    var addMethod =
+        findNode.methodInvocation('x.add').methodName.staticElement!;
+    var nullable_t = variables!
+        .decoratedElementType(addMethod.declaration!)
+        .positionalParameters![0]!
         .node;
     assertEdge(nullable_t, never, hard: true, checkable: false);
-    var check_i = checkExpression('i/*check*/');
+    var check_i = checkExpression('i/*check*/')!;
     var nullable_list_t_or_nullable_t = check_i
         .checks
-        .edges[FixReasonTarget.root]
+        .edges[FixReasonTarget.root]!
         .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_list_t_or_nullable_t.innerNode, same(nullable_list_t));
     expect(nullable_list_t_or_nullable_t.outerNode, same(nullable_t));
@@ -5098,8 +5116,8 @@ void g(int i) {
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_f_t = decoratedTypeAnnotation('int>').node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
-    var check_i = checkExpression('i/*check*/');
-    var nullable_f_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+    var check_i = checkExpression('i/*check*/')!;
+    var nullable_f_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]!
         .destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_f_t_or_nullable_t.innerNode, same(nullable_f_t));
     expect(nullable_f_t_or_nullable_t.outerNode, same(nullable_t));
@@ -5120,7 +5138,7 @@ void g(C<int/*3*/>/*4*/ c) {
         decoratedTypeAnnotation('int/*1*/').node,
         hard: true, checkable: false);
     assertNullCheck(
-        checkExpression('c/*check*/'),
+        checkExpression('c/*check*/')!,
         assertEdge(decoratedTypeAnnotation('C<int/*3*/>/*4*/').node,
             decoratedTypeAnnotation('C<int/*1*/>/*2*/').node,
             hard: true));
@@ -5137,7 +5155,7 @@ void g(C c, int j) {
 ''');
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_j = decoratedTypeAnnotation('int j').node;
-    assertNullCheck(checkExpression('j/*check*/'),
+    assertNullCheck(checkExpression('j/*check*/')!,
         assertEdge(nullable_j, nullable_i, hard: true));
   }
 
@@ -5154,7 +5172,7 @@ void g(C c, int j) {
 }
 ''');
     var nullable_j = decoratedTypeAnnotation('int j');
-    assertNullCheck(checkExpression('j/*check*/'),
+    assertNullCheck(checkExpression('j/*check*/')!,
         assertEdge(nullable_j.node, inSet(pointsToNever), hard: true));
   }
 
@@ -5211,10 +5229,10 @@ bool f(C c) => c.m();
 T f<T extends Object>(T t) => t;
 int g() => (f<int>(1));
 ''');
-    var check_i = checkExpression('(f<int>(1))');
+    var check_i = checkExpression('(f<int>(1))')!;
     var t_bound = decoratedTypeAnnotation('Object').node;
     var nullable_f_t = decoratedTypeAnnotation('int>').node;
-    var nullable_f_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]
+    var nullable_f_t_or_nullable_t = check_i.checks.edges[FixReasonTarget.root]!
         .sourceNode as NullabilityNodeForSubstitution;
     var nullable_t = decoratedTypeAnnotation('T f').node;
     expect(nullable_f_t_or_nullable_t.innerNode, same(nullable_f_t));
@@ -5233,7 +5251,7 @@ class C {
 bool f(C c) => (c?.m());
 ''');
     var lubNode =
-        decoratedExpressionType('(c?.m())').node as NullabilityNodeForLUB;
+        decoratedExpressionType('(c?.m())')!.node as NullabilityNodeForLUB;
     expect(lubNode.left, same(decoratedTypeAnnotation('C c').node));
     expect(lubNode.right, same(decoratedTypeAnnotation('bool m').node));
     assertEdge(lubNode, decoratedTypeAnnotation('bool f').node, hard: false);
@@ -5264,7 +5282,7 @@ void test(C c) {
 }
 ''');
 
-    assertNullCheck(checkExpression('c.m'),
+    assertNullCheck(checkExpression('c.m')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -5278,7 +5296,7 @@ void test(C c) {
 }
 ''');
 
-    assertNullCheck(checkExpression('c..m'),
+    assertNullCheck(checkExpression('c..m')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -5441,12 +5459,12 @@ class Derived extends Base {
   void f(void g(int i)/*2*/) {}
 }
 ''');
-    var p1 = variables.decoratedElementType(findNode
+    var p1 = variables!.decoratedElementType(findNode
         .functionTypedFormalParameter('void g(int i)/*1*/')
-        .declaredElement);
-    var p2 = variables.decoratedElementType(findNode
+        .declaredElement!);
+    var p2 = variables!.decoratedElementType(findNode
         .functionTypedFormalParameter('void g(int i)/*2*/')
-        .declaredElement);
+        .declaredElement!);
     assertEdge(p1.node, p2.node, hard: false, checkable: false);
   }
 
@@ -5690,7 +5708,7 @@ int f() {
 ''');
 
     assertNullCheck(
-        checkExpression('(null)'),
+        checkExpression('(null)')!,
         assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
             hard: false));
   }
@@ -5810,11 +5828,11 @@ void test(bool b1, C _c) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b1/*check*/'),
+    assertNullCheck(checkExpression('b1/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
-    assertNullCheck(checkExpression('b2/*check*/'),
+    assertNullCheck(checkExpression('b2/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
-    assertNullCheck(checkExpression('c.m'),
+    assertNullCheck(checkExpression('c.m')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
   }
 
@@ -5835,11 +5853,11 @@ void test(bool b1, C _c) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b1/*check*/'),
+    assertNullCheck(checkExpression('b1/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
-    assertNullCheck(checkExpression('b2/*check*/'),
+    assertNullCheck(checkExpression('b2/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
-    assertNullCheck(checkExpression('c.m'),
+    assertNullCheck(checkExpression('c.m')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
   }
 
@@ -5857,9 +5875,9 @@ void test(bool b, C c) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b/*check*/'),
+    assertNullCheck(checkExpression('b/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: false));
-    assertNullCheck(checkExpression('c.m'),
+    assertNullCheck(checkExpression('c.m')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
   }
 
@@ -5879,13 +5897,13 @@ void test(bool b, C c1, C c2) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b/*check*/'),
+    assertNullCheck(checkExpression('b/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
   }
 
@@ -5900,11 +5918,11 @@ void test(bool _b, C c1, C c2) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b1/*check*/'),
+    assertNullCheck(checkExpression('b1/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
   }
 
@@ -5920,12 +5938,12 @@ void test(List<C> l, C c1) {
 ''');
 
     assertNullCheck(
-        checkExpression('l/*check*/'),
+        checkExpression('l/*check*/')!,
         assertEdge(decoratedTypeAnnotation('List<C> l').node, never,
             hard: true));
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
   }
 
@@ -5945,14 +5963,14 @@ void test(List<C> l, C c1, C c2) {
 ''');
 
     assertNullCheck(
-        checkExpression('l/*check*/'),
+        checkExpression('l/*check*/')!,
         assertEdge(decoratedTypeAnnotation('List<C> l').node, never,
             hard: true));
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
   }
 
@@ -5973,13 +5991,13 @@ void test(bool b1, C c1, C c2, C c3) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b1/*check*/'),
+    assertNullCheck(checkExpression('b1/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
-    assertNullCheck(checkExpression('c4.m'),
+    assertNullCheck(checkExpression('c4.m')!,
         assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: true));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
   }
 
@@ -5999,17 +6017,17 @@ void test(bool b1, C c1, C c2, C c3) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b1/*check*/'),
+    assertNullCheck(checkExpression('b1/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
     //TODO(mfairhurst): enable this check
     //assertNullCheck(checkExpression('b2/*check*/'),
     //    assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
     //assertEdge(decoratedTypeAnnotation('b3 =').node, never, hard: false);
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
   }
 
@@ -6024,13 +6042,13 @@ void test(bool b, C c1, C c2, C c3) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b)'),
+    assertNullCheck(checkExpression('b)')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
   }
 
@@ -6055,15 +6073,15 @@ void test(bool b, C c1, C c2) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b/*check*/'),
+    assertNullCheck(checkExpression('b/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
-    assertNullCheck(checkExpression('c4.m'),
+    assertNullCheck(checkExpression('c4.m')!,
         assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: false));
   }
 
@@ -6088,15 +6106,15 @@ void test(bool b, C c1, C c2) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b/*check*/'),
+    assertNullCheck(checkExpression('b/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
-    assertNullCheck(checkExpression('c4.m'),
+    assertNullCheck(checkExpression('c4.m')!,
         assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: true));
   }
 
@@ -6110,7 +6128,7 @@ int test(C c) {
 }
 ''');
 
-    assertNullCheck(checkExpression('c.m'),
+    assertNullCheck(checkExpression('c.m')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -6133,13 +6151,13 @@ void test(bool b1, C _c) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b1/*check*/'),
+    assertNullCheck(checkExpression('b1/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
-    assertNullCheck(checkExpression('b2/*check*/'),
+    assertNullCheck(checkExpression('b2/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
   }
 
@@ -6187,10 +6205,10 @@ void test(bool b, int i1, int i2) {
 }
 ''');
 
-    assertNullCheck(checkExpression('i1.toDouble'),
+    assertNullCheck(checkExpression('i1.toDouble')!,
         assertEdge(decoratedTypeAnnotation('int i1').node, never, hard: false));
 
-    assertNullCheck(checkExpression('i2.toDouble'),
+    assertNullCheck(checkExpression('i2.toDouble')!,
         assertEdge(decoratedTypeAnnotation('int i2').node, never, hard: false));
   }
 
@@ -6205,16 +6223,16 @@ void test(C c1, C c2, C c3, C c4) {
 }
 ''');
 
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
 
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
 
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
 
-    assertNullCheck(checkExpression('c4.m'),
+    assertNullCheck(checkExpression('c4.m')!,
         assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: false));
   }
 
@@ -6230,7 +6248,7 @@ void test() {
 }
 ''');
 
-    assertNullCheck(checkExpression('c.m'),
+    assertNullCheck(checkExpression('c.m')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -6251,9 +6269,9 @@ void test() {
 }
 ''');
 
-    assertNullCheck(checkExpression('b/*check*/'),
+    assertNullCheck(checkExpression('b/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: false));
-    assertNullCheck(checkExpression('c.m'),
+    assertNullCheck(checkExpression('c.m')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
   }
 
@@ -6272,9 +6290,9 @@ void test() {
 }
 ''');
 
-    assertNullCheck(checkExpression('b/*check*/'),
+    assertNullCheck(checkExpression('b/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
-    assertNullCheck(checkExpression('c.m'),
+    assertNullCheck(checkExpression('c.m')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -6342,16 +6360,16 @@ void test(C c1, C c2, C c3, C c4) {
 }
 ''');
 
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
 
-    assertNullCheck(checkExpression('c4.m'),
+    assertNullCheck(checkExpression('c4.m')!,
         assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: true));
 
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
 
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
   }
 
@@ -6384,13 +6402,13 @@ void test(bool b, C c1, C c2) {
 }
 ''');
 
-    assertNullCheck(checkExpression('b/*check*/'),
+    assertNullCheck(checkExpression('b/*check*/')!,
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
-    assertNullCheck(checkExpression('c1.m'),
+    assertNullCheck(checkExpression('c1.m')!,
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
-    assertNullCheck(checkExpression('c2.m'),
+    assertNullCheck(checkExpression('c2.m')!,
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
-    assertNullCheck(checkExpression('c3.m'),
+    assertNullCheck(checkExpression('c3.m')!,
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
   }
 
@@ -6402,7 +6420,7 @@ int f(int i) {
 ''');
 
     var declaration = decoratedTypeAnnotation('int i').node;
-    var use = checkExpression('i--');
+    var use = checkExpression('i--')!;
     assertNullCheck(use, assertEdge(declaration, never, hard: true));
 
     var returnType = decoratedTypeAnnotation('int f').node;
@@ -6417,7 +6435,7 @@ int f(int i) {
 ''');
 
     var declaration = decoratedTypeAnnotation('int i').node;
-    var use = checkExpression('i++');
+    var use = checkExpression('i++')!;
     assertNullCheck(use, assertEdge(declaration, never, hard: true));
 
     var returnType = decoratedTypeAnnotation('int f').node;
@@ -6448,9 +6466,9 @@ C<int> f(C<int> c) {
     var cType = decoratedTypeAnnotation('C<int> c');
     var returnType = decoratedTypeAnnotation('C<int> f');
     assertNullCheck(
-        checkExpression('c++'), assertEdge(cType.node, never, hard: true));
+        checkExpression('c++')!, assertEdge(cType.node, never, hard: true));
     assertEdge(cType.node, returnType.node, hard: false);
-    assertEdge(cType.typeArguments[0].node, returnType.typeArguments[0].node,
+    assertEdge(cType.typeArguments[0]!.node, returnType.typeArguments[0]!.node,
         hard: false, checkable: false);
   }
 
@@ -6558,7 +6576,7 @@ void test(C c) {
 }
 ''');
 
-    assertNullCheck(checkExpression('c.x'),
+    assertNullCheck(checkExpression('c.x')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -6583,13 +6601,13 @@ abstract class C {
 }
 int Function(int) g(C c) => c.f;
 ''');
-    var fType = variables.decoratedElementType(findElement.method('f'));
+    var fType = variables!.decoratedElementType(findElement.method('f'));
     var gReturnType =
-        variables.decoratedElementType(findElement.function('g')).returnType;
-    assertEdge(fType.returnType.node, gReturnType.returnType.node,
+        variables!.decoratedElementType(findElement.function('g')).returnType!;
+    assertEdge(fType.returnType!.node, gReturnType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(gReturnType.positionalParameters[0].node,
-        fType.positionalParameters[0].node,
+    assertEdge(gReturnType.positionalParameters![0]!.node,
+        fType.positionalParameters![0]!.node,
         hard: false, checkable: false);
   }
 
@@ -6601,7 +6619,7 @@ bool f(bool b) {
 ''');
 
     var nullable_b = decoratedTypeAnnotation('bool b').node;
-    var check_b = checkExpression('b;');
+    var check_b = checkExpression('b;')!;
     assertNullCheck(check_b, assertEdge(nullable_b, never, hard: true));
 
     var return_f = decoratedTypeAnnotation('bool f').node;
@@ -6628,7 +6646,7 @@ C test(C c) => -c/*check*/;
     assertEdge(decoratedTypeAnnotation('C operator').node,
         decoratedTypeAnnotation('C test').node,
         hard: false);
-    assertNullCheck(checkExpression('c/*check*/'),
+    assertNullCheck(checkExpression('c/*check*/')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -6652,12 +6670,12 @@ List<int> test(C<int> c) => -c/*check*/;
     var cType = decoratedTypeAnnotation('C<int> c');
     var testReturnType = decoratedTypeAnnotation('List<int> test');
     assertEdge(operatorReturnType.node, testReturnType.node, hard: false);
-    assertNullCheck(checkExpression('c/*check*/'),
+    assertNullCheck(checkExpression('c/*check*/')!,
         assertEdge(cType.node, never, hard: true));
     assertEdge(
-        substitutionNode(cType.typeArguments[0].node,
-            operatorReturnType.typeArguments[0].node),
-        testReturnType.typeArguments[0].node,
+        substitutionNode(cType.typeArguments[0]!.node,
+            operatorReturnType.typeArguments[0]!.node),
+        testReturnType.typeArguments[0]!.node,
         hard: false,
         checkable: false);
   }
@@ -6670,7 +6688,7 @@ int f(int i) {
 ''');
 
     var declaration = decoratedTypeAnnotation('int i').node;
-    var use = checkExpression('i;');
+    var use = checkExpression('i;')!;
     assertNullCheck(use, assertEdge(declaration, never, hard: true));
 
     var returnType = decoratedTypeAnnotation('int f').node;
@@ -6685,7 +6703,7 @@ int f(int i) {
 ''');
 
     var declaration = decoratedTypeAnnotation('int i').node;
-    var use = checkExpression('i;');
+    var use = checkExpression('i;')!;
     assertNullCheck(use, assertEdge(declaration, never, hard: true));
 
     var returnType = decoratedTypeAnnotation('int f').node;
@@ -6715,9 +6733,9 @@ C<int> f(C<int> x) => ++x;
     assertEdge(xType.node, never, hard: true);
     assertEdge(plusReturnType.node, fReturnType.node, hard: false);
     assertEdge(
-        substitutionNode(
-            xType.typeArguments[0].node, plusReturnType.typeArguments[0].node),
-        fReturnType.typeArguments[0].node,
+        substitutionNode(xType.typeArguments[0]!.node,
+            plusReturnType.typeArguments[0]!.node),
+        fReturnType.typeArguments[0]!.node,
         hard: false,
         checkable: false);
   }
@@ -6909,10 +6927,10 @@ int f(int i) => i.hashCode;
 
   Future<void> test_propertyAccess_object_property_on_function_type() async {
     await analyze('int f(void Function() g) => g.hashCode;');
-    var hashCodeReturnType = variables
+    var hashCodeReturnType = variables!
         .decoratedElementType(
-            typeProvider.objectType.element.getGetter('hashCode'))
-        .returnType;
+            typeProvider.objectType.element.getGetter('hashCode')!)
+        .returnType!;
     assertEdge(hashCodeReturnType.node, decoratedTypeAnnotation('int f').node,
         hard: false);
   }
@@ -6937,7 +6955,7 @@ class C {
 bool f(C c) => (c?.b);
 ''');
     var lubNode =
-        decoratedExpressionType('(c?.b)').node as NullabilityNodeForLUB;
+        decoratedExpressionType('(c?.b)')!.node as NullabilityNodeForLUB;
     expect(lubNode.left, same(decoratedTypeAnnotation('C c').node));
     expect(lubNode.right, same(decoratedTypeAnnotation('bool get b').node));
     assertEdge(lubNode, decoratedTypeAnnotation('bool f').node, hard: false);
@@ -6965,7 +6983,7 @@ void test(C c) {
 }
 ''');
 
-    assertNullCheck(checkExpression('c).x'),
+    assertNullCheck(checkExpression('c).x')!,
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
@@ -7235,7 +7253,8 @@ int f() {
     var edge = assertEdge(
         inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
         hard: false);
-    expect(edge.sourceNode.displayName, 'implicit null return (test.dart:2:3)');
+    expect(
+        edge.sourceNode!.displayName, 'implicit null return (test.dart:2:3)');
   }
 
   Future<void> test_return_in_asyncStar() async {
@@ -7268,8 +7287,8 @@ int f() {
     var edge = assertEdge(
         inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
         hard: false);
-    assertNullCheck(checkExpression('null'), edge);
-    expect(edge.sourceNode.displayName, 'null literal (test.dart:2:10)');
+    assertNullCheck(checkExpression('null')!, edge);
+    expect(edge.sourceNode!.displayName, 'null literal (test.dart:2:10)');
   }
 
   Future<void> test_return_null_generic() async {
@@ -7282,7 +7301,7 @@ class C<T> {
 ''');
     var tNode = decoratedTypeAnnotation('T f').node;
     assertEdge(inSet(alwaysPlus), tNode, hard: false);
-    assertNullCheck(checkExpression('null'),
+    assertNullCheck(checkExpression('null')!,
         assertEdge(inSet(alwaysPlus), tNode, hard: false));
   }
 
@@ -7300,11 +7319,12 @@ Map<String, int> f() {
     assertNoUpstreamNullability(mapNode);
     var keyEdge = assertEdge(anyNode, keyNode, hard: true, checkable: false);
     assertNoUpstreamNullability(keyEdge.sourceNode);
-    expect(keyEdge.sourceNode.displayName, 'map key type (test.dart:2:10)');
+    expect(keyEdge.sourceNode!.displayName, 'map key type (test.dart:2:10)');
     var valueEdge =
         assertEdge(anyNode, valueNode, hard: true, checkable: false);
     assertNoUpstreamNullability(valueEdge.sourceNode);
-    expect(valueEdge.sourceNode.displayName, 'map value type (test.dart:2:10)');
+    expect(
+        valueEdge.sourceNode!.displayName, 'map value type (test.dart:2:10)');
   }
 
   Future<void> test_setOrMapLiteral_map_noTypeArgument_nullableKey() async {
@@ -7436,7 +7456,7 @@ Set<String> f() {
     assertNoUpstreamNullability(setNode);
     var edge = assertEdge(anyNode, valueNode, hard: true, checkable: false);
     assertNoUpstreamNullability(edge.sourceNode);
-    expect(edge.sourceNode.displayName, 'set element type (test.dart:2:10)');
+    expect(edge.sourceNode!.displayName, 'set element type (test.dart:2:10)');
   }
 
   Future<void> test_setOrMapLiteral_set_noTypeArgument_nullableElement() async {
@@ -7530,7 +7550,7 @@ void main() {
 ''');
 
     assertNullCheck(
-        checkExpression('j;'),
+        checkExpression('j;')!,
         assertEdge(decoratedTypeAnnotation('int j').node,
             decoratedTypeAnnotation('int i').node,
             hard: false, isSetupAssignment: true));
@@ -7557,7 +7577,7 @@ void main() {
 
     assertNoEdge(graph.never, decoratedTypeAnnotation('int/*1*/').node);
     assertNullCheck(
-        checkExpression('j;'),
+        checkExpression('j;')!,
         assertEdge(decoratedTypeAnnotation('int j').node,
             decoratedTypeAnnotation('int/*2*/').node,
             hard: false, isSetupAssignment: true));
@@ -7625,7 +7645,7 @@ void main() {
 
     var iNullable = decoratedTypeAnnotation('int i').node;
     assertNullCheck(
-        checkExpression('j;'),
+        checkExpression('j;')!,
         assertEdge(decoratedTypeAnnotation('int j').node, iNullable,
             hard: false, guards: [iNullable], isSetupAssignment: true));
   }
@@ -7674,13 +7694,13 @@ main() {
 int f(int i) => 0;
 int Function(int) g() => f;
 ''');
-    var fType = variables.decoratedElementType(findElement.function('f'));
+    var fType = variables!.decoratedElementType(findElement.function('f'));
     var gReturnType =
-        variables.decoratedElementType(findElement.function('g')).returnType;
-    assertEdge(fType.returnType.node, gReturnType.returnType.node,
+        variables!.decoratedElementType(findElement.function('g')).returnType!;
+    assertEdge(fType.returnType!.node, gReturnType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(gReturnType.positionalParameters[0].node,
-        fType.positionalParameters[0].node,
+    assertEdge(gReturnType.positionalParameters![0]!.node,
+        fType.positionalParameters![0]!.node,
         hard: false, checkable: false);
   }
 
@@ -7691,13 +7711,13 @@ abstract class C {
   int Function(int) g() => f;
 }
 ''');
-    var fType = variables.decoratedElementType(findElement.method('f'));
+    var fType = variables!.decoratedElementType(findElement.method('f'));
     var gReturnType =
-        variables.decoratedElementType(findElement.method('g')).returnType;
-    assertEdge(fType.returnType.node, gReturnType.returnType.node,
+        variables!.decoratedElementType(findElement.method('g')).returnType!;
+    assertEdge(fType.returnType!.node, gReturnType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(gReturnType.positionalParameters[0].node,
-        fType.positionalParameters[0].node,
+    assertEdge(gReturnType.positionalParameters![0]!.node,
+        fType.positionalParameters![0]!.node,
         hard: false, checkable: false);
   }
 
@@ -7921,7 +7941,7 @@ int f() {
     var intNode = decoratedTypeAnnotation('int').node;
     assertNoUpstreamNullability(intNode);
     var edge = assertEdge(anyNode, intNode, hard: false);
-    expect(edge.sourceNode.displayName, 'throw expression (test.dart:2:10)');
+    expect(edge.sourceNode!.displayName, 'throw expression (test.dart:2:10)');
   }
 
   Future<void> test_top_level_annotation_begins_flow_analysis() async {
@@ -7997,7 +8017,7 @@ int f() => 1;
 var x = f();
 ''');
     var xType =
-        variables.decoratedElementType(findNode.simple('x').staticElement);
+        variables!.decoratedElementType(findNode.simple('x').staticElement!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -8090,8 +8110,8 @@ void f(Point<int> x) {}
     var pointClass =
         findNode.typeName('Point').name.staticElement as ClassElement;
     var pointBound =
-        variables.decoratedTypeParameterBound(pointClass.typeParameters[0]);
-    _assertType(pointBound.type, 'num');
+        variables!.decoratedTypeParameterBound(pointClass.typeParameters[0])!;
+    _assertType(pointBound.type!, 'num');
     assertEdge(decoratedTypeAnnotation('int>').node, pointBound.node,
         hard: true);
   }
@@ -8102,8 +8122,8 @@ void f(List<int> x) {}
 ''');
     var listClass = typeProvider.listElement;
     var listBound =
-        variables.decoratedTypeParameterBound(listClass.typeParameters[0]);
-    _assertType(listBound.type, 'dynamic');
+        variables!.decoratedTypeParameterBound(listClass.typeParameters[0])!;
+    _assertType(listBound.type!, 'dynamic');
     assertEdge(decoratedTypeAnnotation('int>').node, listBound.node,
         hard: true);
   }
@@ -8175,7 +8195,7 @@ void f(C c) {}
 ''');
     var cType = decoratedTypeAnnotation('C c');
     var cBound = decoratedTypeAnnotation('Object');
-    assertEdge(cType.typeArguments[0].node, cBound.node, hard: true);
+    assertEdge(cType.typeArguments[0]!.node, cBound.node, hard: true);
   }
 
   Future<void> test_typeName_with_bound_function_type() async {
@@ -8185,8 +8205,9 @@ void f(C c) {}
 ''');
     var cType = decoratedTypeAnnotation('C c');
     var cBound = decoratedGenericFunctionTypeAnnotation('int Function()');
-    assertEdge(cType.typeArguments[0].node, cBound.node, hard: true);
-    assertEdge(cType.typeArguments[0].returnType.node, cBound.returnType.node,
+    assertEdge(cType.typeArguments[0]!.node, cBound.node, hard: true);
+    assertEdge(
+        cType.typeArguments[0]!.returnType!.node, cBound.returnType!.node,
         hard: true);
   }
 
@@ -8198,8 +8219,8 @@ void f(C c) {}
     var cType = decoratedTypeAnnotation('C c');
     var tBound = decoratedTypeAnnotation('Object,');
     var uBound = decoratedTypeAnnotation('Object>');
-    assertEdge(cType.typeArguments[0].node, tBound.node, hard: true);
-    assertEdge(cType.typeArguments[1].node, uBound.node, hard: true);
+    assertEdge(cType.typeArguments[0]!.node, tBound.node, hard: true);
+    assertEdge(cType.typeArguments[1]!.node, uBound.node, hard: true);
   }
 
   Future<void> test_variableDeclaration() async {
@@ -8220,13 +8241,13 @@ void f(int i) {
 }
 
 class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
-  AssignmentCheckerTest assignmentCheckerTest;
+  late AssignmentCheckerTest assignmentCheckerTest;
 
   @override
-  DecoratedType asInstanceOf(DecoratedType type, ClassElement superclass) {
+  DecoratedType asInstanceOf(DecoratedType type, ClassElement? superclass) {
     var class_ = (type.type as InterfaceType).element;
     if (class_ == superclass) return type;
-    if (superclass.name == 'Object') {
+    if (superclass!.name == 'Object') {
       return DecoratedType(
         superclass.instantiate(
           typeArguments: const [],
@@ -8242,7 +8263,7 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
     if (class_.name == 'List' && superclass.name == 'Iterable') {
       return DecoratedType(
         superclass.instantiate(
-          typeArguments: [type.typeArguments[0].type],
+          typeArguments: [type.typeArguments[0]!.type!],
           nullabilitySuffix: NullabilitySuffix.star,
         ),
         type.node,
@@ -8252,7 +8273,7 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
     if (class_.name == 'Future' && superclass.name == 'FutureOr') {
       return DecoratedType(
         superclass.instantiate(
-          typeArguments: [type.typeArguments[0].type],
+          typeArguments: [type.typeArguments[0]!.type!],
           nullabilitySuffix: NullabilitySuffix.star,
         ),
         type.node,
@@ -8284,13 +8305,13 @@ class _TestEdgeOrigin implements EdgeOrigin {
   const _TestEdgeOrigin();
 
   @override
-  CodeReference get codeReference => null;
+  CodeReference? get codeReference => null;
 
   @override
   String get description => 'Test edge';
 
   @override
-  EdgeOriginKind get kind => null;
+  EdgeOriginKind? get kind => null;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

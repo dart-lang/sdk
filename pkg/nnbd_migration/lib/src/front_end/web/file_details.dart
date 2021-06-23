@@ -7,23 +7,23 @@ import 'package:meta/meta.dart';
 /// Information about an item that should show up in the "proposed edits" panel.
 class EditListItem {
   /// Line number of this edit.
-  final int line;
+  final int? line;
 
   /// Human-readable explanation of this edit.
-  final String explanation;
+  final String? explanation;
 
   /// File offset of this edit
-  final int offset;
+  final int? offset;
 
   EditListItem(
-      {@required this.line, @required this.explanation, @required this.offset});
+      {required this.line, required this.explanation, required this.offset});
 
   EditListItem.fromJson(dynamic json)
-      : line = json['line'] as int,
-        explanation = json['explanation'] as String,
-        offset = json['offset'] as int;
+      : line = json['line'] as int?,
+        explanation = json['explanation'] as String?,
+        offset = json['offset'] as int?;
 
-  Map<String, Object> toJson() =>
+  Map<String, Object?> toJson() =>
       {'line': line, 'explanation': explanation, 'offset': offset};
 }
 
@@ -33,7 +33,7 @@ class FileDetails {
   /// added, removed, and unchanged file regions.
   ///
   /// TODO(paulberry): this should be replaced by a more neutral data structure.
-  final String regions;
+  final String? regions;
 
   /// HTML representation of the source file with links added to allow
   /// navigation through source files.
@@ -42,11 +42,11 @@ class FileDetails {
   /// to a specific line number.
   ///
   /// TODO(paulberry): this should be replaced by a more neutral data structure.
-  final String navigationContent;
+  final String? navigationContent;
 
   /// Textual representation of the source file, including both added and
   /// removed text.
-  final String sourceCode;
+  final String? sourceCode;
 
   /// Items that should show up in the "proposed edits" panel for the file.
   ///
@@ -56,10 +56,10 @@ class FileDetails {
   final Map<String, List<EditListItem>> edits;
 
   FileDetails(
-      {@required this.regions,
-      @required this.navigationContent,
-      @required this.sourceCode,
-      @required this.edits});
+      {required this.regions,
+      required this.navigationContent,
+      required this.sourceCode,
+      required this.edits});
 
   FileDetails.empty()
       : regions = '',
@@ -68,19 +68,18 @@ class FileDetails {
         edits = const {};
 
   FileDetails.fromJson(dynamic json)
-      : regions = json['regions'] as String,
-        navigationContent = json['navigationContent'] as String,
-        sourceCode = json['sourceCode'] as String,
+      : regions = json['regions'] as String?,
+        navigationContent = json['navigationContent'] as String?,
+        sourceCode = json['sourceCode'] as String?,
         edits = {
-          for (var entry
-              in (json['edits'] as Map<String, Object /*?*/ >).entries)
+          for (var entry in (json['edits'] as Map<String, Object?>).entries)
             entry.key: [
               for (var edit in entry.value as Iterable<dynamic>)
                 EditListItem.fromJson(edit)
             ]
         };
 
-  Map<String, Object> toJson() => {
+  Map<String, Object?> toJson() => {
         'regions': regions,
         'navigationContent': navigationContent,
         'sourceCode': sourceCode,

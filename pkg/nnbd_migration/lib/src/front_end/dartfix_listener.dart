@@ -10,7 +10,7 @@ import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:pub_semver/src/version.dart';
 
 class DartFixListener {
-  final DriverProviderImpl server;
+  final DriverProviderImpl? server;
 
   final SourceChange sourceChange = SourceChange('null safety migration');
 
@@ -80,5 +80,5 @@ class DartFixSuggestion {
 
   final Location location;
 
-  DartFixSuggestion(this.description, {@required this.location});
+  DartFixSuggestion(this.description, {required this.location});
 }

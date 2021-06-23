@@ -38,7 +38,7 @@ class ScopedSet<T> {
   void doScoped(
       {List<T> elements = const [],
       bool copyCurrent = false,
-      void Function() action}) {
+      required void Function() action}) {
     pushScope(elements: elements, copyCurrent: copyCurrent);
     try {
       action();

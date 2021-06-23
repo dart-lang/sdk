@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class WhereOrNullTransformerTest extends AbstractSingleUnitTest {
-  WhereOrNullTransformer transformer;
+  late WhereOrNullTransformer transformer;
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
@@ -35,7 +35,7 @@ f(List<int> x) => x.firstWhere((i) => i.isEven, orElse: () => null);
 ''');
     var orElseExpression = findNode.functionExpression('() => null');
     var transformationInfo =
-        transformer.tryTransformOrElseArgument(orElseExpression);
+        transformer.tryTransformOrElseArgument(orElseExpression)!;
     expect(transformationInfo, isNotNull);
     expect(transformationInfo.methodInvocation,
         same(findNode.methodInvocation('firstWhere')));
@@ -53,7 +53,7 @@ f(C c) => c.firstWhere((i) => i.isEven, orElse: () => null);
 ''');
     var orElseExpression = findNode.functionExpression('() => null');
     var transformationInfo =
-        transformer.tryTransformOrElseArgument(orElseExpression);
+        transformer.tryTransformOrElseArgument(orElseExpression)!;
     expect(transformationInfo, isNotNull);
     expect(transformationInfo.methodInvocation,
         same(findNode.methodInvocation('firstWhere((')));

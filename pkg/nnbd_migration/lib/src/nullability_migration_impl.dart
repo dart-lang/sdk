@@ -25,26 +25,26 @@ import 'package:pub_semver/pub_semver.dart';
 
 /// Implementation of the [NullabilityMigration] public API.
 class NullabilityMigrationImpl implements NullabilityMigration {
-  final NullabilityMigrationListener listener;
+  final NullabilityMigrationListener? listener;
 
-  Variables _variables;
+  Variables? _variables;
 
   final NullabilityGraph _graph;
 
-  final bool _permissive;
+  final bool? _permissive;
 
-  final NullabilityMigrationInstrumentation _instrumentation;
+  final NullabilityMigrationInstrumentation? _instrumentation;
 
-  DecoratedClassHierarchy _decoratedClassHierarchy;
+  DecoratedClassHierarchy? _decoratedClassHierarchy;
 
   bool _propagated = false;
 
   /// Indicates whether code removed by the migration engine should be removed
   /// by commenting it out.  A value of `false` means to actually delete the
   /// code that is removed.
-  final bool removeViaComments;
+  final bool? removeViaComments;
 
-  final bool warnOnWeakCode;
+  final bool? warnOnWeakCode;
 
   final _decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
 
@@ -75,12 +75,12 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// Optional parameter [warnOnWeakCode] indicates whether weak-only code
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
-  NullabilityMigrationImpl(NullabilityMigrationListener listener,
+  NullabilityMigrationImpl(NullabilityMigrationListener? listener,
       LineInfo Function(String) getLineInfo,
-      {bool permissive = false,
-      NullabilityMigrationInstrumentation instrumentation,
-      bool removeViaComments = false,
-      bool warnOnWeakCode = true})
+      {bool? permissive = false,
+      NullabilityMigrationInstrumentation? instrumentation,
+      bool? removeViaComments = false,
+      bool? warnOnWeakCode = true})
       : this._(
             listener,
             NullabilityGraph(instrumentation: instrumentation),
@@ -102,7 +102,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   @override
-  bool get isPermissive => _permissive;
+  bool? get isPermissive => _permissive;
 
   @override
   List<String> get unmigratedDependencies {
@@ -123,7 +123,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @override
   void finalizeInput(ResolvedUnitResult result) {
-    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
+    if (result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
@@ -132,8 +132,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       _propagated = true;
       _graph.propagate();
     }
-    var unit = result.unit;
-    var compilationUnit = unit.declaredElement;
+    var unit = result.unit!;
+    var compilationUnit = unit.declaredElement!;
     var library = compilationUnit.library;
     var source = compilationUnit.source;
     // Hierarchies were created assuming the libraries being migrated are opted
@@ -147,7 +147,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         library.typeSystem as TypeSystemImpl,
         _variables,
         library,
-        _permissive ? listener : null,
+        _permissive! ? listener : null,
         unit,
         warnOnWeakCode,
         _graph,
@@ -159,22 +159,22 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       DecoratedTypeParameterBounds.current = null;
     }
     var changes = FixAggregator.run(unit, result.content, fixBuilder.changes,
-        removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode);
+        removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode)!;
     _instrumentation?.changes(source, changes);
     final lineInfo = LineInfo.fromContent(source.contents.data);
     var offsets = changes.keys.toList();
     offsets.sort();
     for (var offset in offsets) {
-      var edits = changes[offset];
+      var edits = changes[offset]!;
       var descriptions = edits
           .map((edit) => edit.info)
           .where((info) => info != null)
-          .map((info) => info.description.appliedMessage)
+          .map((info) => info!.description.appliedMessage)
           .join(', ');
-      var sourceEdit = edits.toSourceEdit(offset);
-      listener.addSuggestion(
+      var sourceEdit = edits.toSourceEdit(offset!);
+      listener!.addSuggestion(
           descriptions, _computeLocation(lineInfo, sourceEdit, source));
-      listener.addEdit(source, sourceEdit);
+      listener!.addEdit(source, sourceEdit);
     }
   }
 
@@ -188,7 +188,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         !_queriedUnmigratedDependencies,
         'Should only query unmigratedDependencies after all calls to '
         'prepareInput');
-    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
+    if (result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
@@ -202,13 +202,13 @@ class NullabilityMigrationImpl implements NullabilityMigration {
           instrumentation: _instrumentation);
       _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
     }
-    var unit = result.unit;
+    var unit = result.unit!;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       unit.accept(NodeBuilder(
           _variables,
-          unit.declaredElement.source,
-          _permissive ? listener : null,
+          unit.declaredElement!.source,
+          _permissive! ? listener : null,
           _graph,
           result.typeProvider,
           _getLineInfo,
@@ -219,12 +219,12 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void processInput(ResolvedUnitResult result) {
-    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
+    if (result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
     ExperimentStatusException.sanityCheck(result);
-    var unit = result.unit;
+    var unit = result.unit!;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       unit.accept(EdgeBuilder(
@@ -232,8 +232,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
           result.typeSystem,
           _variables,
           _graph,
-          unit.declaredElement.source,
-          _permissive ? listener : null,
+          unit.declaredElement!.source,
+          _permissive! ? listener : null,
           _decoratedClassHierarchy,
           instrumentation: _instrumentation));
     } finally {

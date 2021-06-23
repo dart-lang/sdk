@@ -4,7 +4,6 @@
 
 // Explicitly opt out this file from null safety, for build reasons, inside
 // Google.
-// @dart=2.9
 
 import 'dart:async';
 import 'dart:convert';
@@ -30,23 +29,23 @@ void main() {
     loadNavigationTree();
     if (path != '/' && path != rootPath) {
       // TODO(srawlins): replaceState?
-      loadFile(path, offset, lineNumber, true, callback: () {
+      loadFile(path!, offset, lineNumber, true, callback: () {
         pushState(path, offset, lineNumber);
       });
     }
 
-    final applyMigrationButton = document.querySelector('.apply-migration');
+    final applyMigrationButton = document.querySelector('.apply-migration')!;
     applyMigrationButton.onClick.listen((event) {
       if (window.confirm(
           "This will apply the changes you've previewed to your working "
           'directory. It is recommended you commit any changes you made before '
           'doing this.')) {
         var navigationTreeJson = [
-          for (var entity in navigationTree) entity.toJson()
+          for (var entity in navigationTree!) entity.toJson()
         ];
         doPost('/apply-migration', {'navigationTree': navigationTreeJson})
             .then((xhr) {
-          document.body.classes
+          document.body!.classes
             ..remove('proposed')
             ..add('applied');
         }).catchError((Object e, st) {
@@ -55,12 +54,12 @@ void main() {
       }
     });
 
-    final rerunMigrationButton = document.querySelector('.rerun-migration');
+    final rerunMigrationButton = document.querySelector('.rerun-migration')!;
     rerunMigrationButton.onClick.listen((event) async {
       try {
-        document.body.classes..add('rerunning');
-        Map<String, Object> /*?*/ response = await doPost('/rerun-migration');
-        if (response['success'] as bool) {
+        document.body!.classes..add('rerunning');
+        var response = await doPost('/rerun-migration');
+        if (response!['success'] as bool) {
           window.location.reload();
         } else {
           handleRerunFailure(response['errors'] as List<Object>);
@@ -68,27 +67,27 @@ void main() {
       } catch (e, st) {
         handleError('Failed to rerun migration', e, st);
       } finally {
-        document.body.classes.remove('rerunning');
+        document.body!.classes.remove('rerunning');
       }
     });
 
-    final reportProblemButton = document.querySelector('.report-problem');
+    final reportProblemButton = document.querySelector('.report-problem')!;
     reportProblemButton.onClick.listen((_) {
       window.open(getGitHubProblemUri().toString(), 'report-problem');
     });
 
-    document.querySelector('.popup-pane .close').onClick.listen(
-        (_) => document.querySelector('.popup-pane').style.display = 'none');
+    document.querySelector('.popup-pane .close')!.onClick.listen(
+        (_) => document.querySelector('.popup-pane')!.style.display = 'none');
 
-    migrateUnitStatusIcon.onClick.listen((MouseEvent event) {
-      var unitPath = unitName.innerText;
+    migrateUnitStatusIcon!.onClick.listen((MouseEvent event) {
+      var unitPath = unitName!.innerText;
       var unitNavItem = document
-          .querySelector('.nav-panel [data-name*="${Css.escape(unitPath)}"]')
+          .querySelector('.nav-panel [data-name*="${Css.escape(unitPath)}"]')!
           .parentNode as Element;
       var statusIcon = unitNavItem.querySelector('.status-icon');
-      var entity = navigationTree.find(unitPath);
+      var entity = navigationTree!.find(unitPath);
       if (entity is NavigationTreeFileNode &&
-          entity.migrationStatusCanBeChanged) {
+          entity.migrationStatusCanBeChanged!) {
         toggleFileMigrationStatus(entity);
         updateIconsForNode(statusIcon, entity);
         updateParentIcons(unitNavItem, entity);
@@ -97,7 +96,7 @@ void main() {
   });
 
   window.addEventListener('popstate', (event) {
-    var path = window.location.pathname;
+    var path = window.location.pathname!;
     var offset = getOffset(window.location.href);
     var lineNumber = getLine(window.location.href);
     if (path.length > 1) {
@@ -117,34 +116,34 @@ void main() {
 //  server would attach such a token to cookies. We could do a little step where
 //  the first request to the server with the token is considered
 //  "authentication", and we subsequently store the token in cookies thereafter.
-final String authToken =
+final String? authToken =
     Uri.parse(window.location.href).queryParameters['authToken'];
 
-final Element editListElement =
+final Element? editListElement =
     document.querySelector('.edit-list .panel-content');
 
-final Element editPanel = document.querySelector('.edit-panel .panel-content');
+final Element? editPanel = document.querySelector('.edit-panel .panel-content');
 
-final Element footerPanel = document.querySelector('footer');
+final Element? footerPanel = document.querySelector('footer');
 
-final Element headerPanel = document.querySelector('header');
+final Element? headerPanel = document.querySelector('header');
 
-final Element migrateUnitStatusIcon =
+final Element? migrateUnitStatusIcon =
     document.querySelector('#migrate-unit-status-icon');
 
-final Element migrateUnitStatusIconLabel =
+final Element? migrateUnitStatusIconLabel =
     document.querySelector('#migrate-unit-status-icon-label');
 
-List<NavigationTreeNode> /*?*/ navigationTree;
+List<NavigationTreeNode>? navigationTree;
 
-final Element unitName = document.querySelector('#unit-name');
+final Element? unitName = document.querySelector('#unit-name');
 
-String get rootPath => querySelector('.root').text.trim();
+String get rootPath => querySelector('.root')!.text!.trim();
 
-String get sdkVersion => document.getElementById('sdk-version').text;
+String? get sdkVersion => document.getElementById('sdk-version')!.text;
 
 void addArrowClickHandler(Element arrow) {
-  var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
+  var childList = (arrow.parentNode as Element).querySelector(':scope > ul')!;
   // Animating height from "auto" to "0" is not supported by CSS [1], so all we
   // have are hacks. The `* 2` allows for events in which the list grows in
   // height when resized, with additional text wrapping.
@@ -162,7 +161,7 @@ void addArrowClickHandler(Element arrow) {
 }
 
 void addClickHandlers(String selector, bool clearEditDetails) {
-  var parentElement = document.querySelector(selector);
+  var parentElement = document.querySelector(selector)!;
 
   // Add navigation handlers for navigation links in the source code.
   List<Element> navLinks = parentElement.querySelectorAll('.nav-link');
@@ -172,13 +171,13 @@ void addClickHandlers(String selector, bool clearEditDetails) {
 
   List<Element> regions = parentElement.querySelectorAll('.region');
   if (regions.isNotEmpty) {
-    var table = parentElement.querySelector('table[data-path]');
+    var table = parentElement.querySelector('table[data-path]')!;
     var path = table.dataset['path'];
     regions.forEach((Element anchor) {
       anchor.onClick.listen((event) {
-        var offset = int.parse(anchor.dataset['offset']);
-        var line = int.parse(anchor.dataset['line']);
-        loadAndPopulateEditDetails(path, offset, line);
+        var offset = int.parse(anchor.dataset['offset']!);
+        var line = int.parse(anchor.dataset['line']!);
+        loadAndPopulateEditDetails(path!, offset, line);
       });
     });
   }
@@ -200,19 +199,18 @@ Element createIcon([String name = '']) {
 ///
 /// Returns a T so that the various json objects can be requested (lists, maps,
 /// etc.).
-Future<T> doGet<T>(String path,
+Future<T?> doGet<T>(String path,
         {Map<String, String> queryParameters = const {}}) =>
     doRequest(HttpRequest()
       ..open('GET', pathWithQueryParameters(path, queryParameters), async: true)
       ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'));
 
 /// Perform a POST request on the path, return the JSON-decoded response.
-Future<Map<String, Object /*?*/ >> doPost(String path, [Object body]) =>
-    doRequest(
-        HttpRequest()
-          ..open('POST', pathWithQueryParameters(path, {}), async: true)
-          ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'),
-        body);
+Future<Map<String, Object?>?> doPost(String path, [Object? body]) => doRequest(
+    HttpRequest()
+      ..open('POST', pathWithQueryParameters(path, {}), async: true)
+      ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'),
+    body);
 
 /// Execute the [HttpRequest], handle its error codes, and return or throw the
 /// response.
@@ -221,7 +219,7 @@ Future<Map<String, Object /*?*/ >> doPost(String path, [Object body]) =>
 /// the response body on a non-200 code. We want to get that response body in
 /// that case, though, because it may be an error response from the server with
 /// useful debugging information (stack trace etc).
-Future<T> doRequest<T>(HttpRequest xhr, [Object body]) async {
+Future<T?> doRequest<T>(HttpRequest xhr, [Object? body]) async {
   var completer = Completer<HttpRequest>();
   xhr.onLoad.listen((e) {
     completer.complete(xhr);
@@ -273,12 +271,12 @@ run.  Have you restarted the migration server recently?  If so, you'll need to
 check its output for a fresh URL, and use that URL to perform your migration.
 ''');
   }
-  final Object json = jsonDecode(xhr.responseText);
+  final Object? json = jsonDecode(xhr.responseText!);
   if (xhr.status == 200) {
     // Request OK.
-    return json as T;
+    return json as T?;
   } else {
-    throw json;
+    throw json!;
   }
 }
 
@@ -286,7 +284,7 @@ check its output for a fresh URL, and use that URL to perform your migration.
 /// pre-populating the title, some labels, using [description], [exception], and
 /// [stackTrace] in the body.
 Uri getGitHubErrorUri(
-        String description, Object exception, Object stackTrace) =>
+        String description, Object? exception, Object? stackTrace) =>
     Uri.https('github.com', 'dart-lang/sdk/issues/new', {
       'title': 'Customer-reported issue with NNBD migration tool: $description',
       'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
@@ -335,18 +333,18 @@ Thanks for filing!
 ''',
     });
 
-int getLine(String location) {
+int? getLine(String location) {
   var str = Uri.parse(location).queryParameters['line'];
   return str == null ? null : int.tryParse(str);
 }
 
-int getOffset(String location) {
+int? getOffset(String location) {
   var str = Uri.parse(location).queryParameters['offset'];
   return str == null ? null : int.tryParse(str);
 }
 
 void handleAddHintLinkClick(MouseEvent event) async {
-  var path = (event.currentTarget as Element).getAttribute('href');
+  var path = (event.currentTarget as Element).getAttribute('href')!;
 
   // Don't navigate on link click.
   event.preventDefault();
@@ -356,22 +354,22 @@ void handleAddHintLinkClick(MouseEvent event) async {
     // Directing the server to produce an edit; request it, then do work with
     // the response.
     await doPost(path);
-    await loadFile(window.location.pathname, null, null, false);
-    document.body.classes.add('needs-rerun');
+    await loadFile(window.location.pathname!, null, null, false);
+    document.body!.classes.add('needs-rerun');
     _scrollContentTo(previousScrollPosition);
   } catch (e, st) {
     handleError("couldn't add/remove hint", e, st);
   }
 }
 
-void handleError(String header, Object exception, Object stackTrace) {
-  String subheader;
-  Object details;
+void handleError(String header, Object exception, Object? stackTrace) {
+  String? subheader;
+  Object? details;
   if (exception is Map<String, Object> &&
       exception['success'] == false &&
       exception.containsKey('exception') &&
       exception.containsKey('stackTrace')) {
-    subheader = exception['exception'] as String;
+    subheader = exception['exception'] as String?;
     stackTrace = exception['stackTrace'];
   } else if (exception is UserError) {
     subheader = exception.message;
@@ -383,10 +381,10 @@ void handleError(String header, Object exception, Object stackTrace) {
   }
   // If there was no detailed error message, use the stacktrace instead.
   details ??= stackTrace;
-  final popupPane = document.querySelector('.popup-pane');
-  popupPane.querySelector('h2').innerText = header;
-  popupPane.querySelector('p').innerText = subheader;
-  popupPane.querySelector('pre').innerText = details.toString();
+  final popupPane = document.querySelector('.popup-pane')!;
+  popupPane.querySelector('h2')!.innerText = header;
+  popupPane.querySelector('p')!.innerText = subheader!;
+  popupPane.querySelector('pre')!.innerText = details.toString();
   var bottom = popupPane.querySelector('a.bottom') as AnchorElement;
   bottom
     ..href = getGitHubErrorUri(header, subheader, stackTrace).toString()
@@ -399,7 +397,7 @@ void handleNavLinkClick(MouseEvent event, bool clearEditDetails) {
   Element target = event.currentTarget as Element;
   event.preventDefault();
 
-  var location = target.getAttribute('href');
+  var location = target.getAttribute('href')!;
   var path = _stripQuery(location);
 
   var offset = getOffset(location);
@@ -417,15 +415,15 @@ void handleNavLinkClick(MouseEvent event, bool clearEditDetails) {
 }
 
 void handleRerunFailure(List<Object> errors) {
-  final popupPane = document.querySelector('.popup-pane');
-  popupPane.querySelector('h2').innerText = 'Failed to rerun from sources';
-  popupPane.querySelector('p').innerText =
+  final popupPane = document.querySelector('.popup-pane')!;
+  popupPane.querySelector('h2')!.innerText = 'Failed to rerun from sources';
+  popupPane.querySelector('p')!.innerText =
       'Sources contain static analysis errors:';
-  popupPane.querySelector('pre').innerText = errors.cast<Map>().map((error) {
+  popupPane.querySelector('pre')!.innerText = errors.cast<Map>().map((error) {
     return '${error['severity']} - ${error['message']} '
         'at ${error['location']} - (${error['code']})';
   }).join('\n');
-  popupPane.querySelector('a.bottom').style.display = 'none';
+  popupPane.querySelector('a.bottom')!.style.display = 'none';
   popupPane.style.display = 'initial';
 
   // TODO(srawlins): I think we should lock down the entire web UI, except for
@@ -439,11 +437,10 @@ void highlightAllCode() {
 }
 
 /// Loads the explanation for [region], into the ".panel-content" div.
-void loadAndPopulateEditDetails(String path, int offset, int line) async {
+void loadAndPopulateEditDetails(String path, int? offset, int? line) async {
   try {
-    final Map<String, Object> /*?*/ responseJson =
-        await doGet<Map<String, Object /*?*/ >>(path,
-            queryParameters: {'region': 'region', 'offset': '$offset'});
+    final responseJson = await doGet<Map<String, Object?>>(path,
+        queryParameters: {'region': 'region', 'offset': '$offset'});
     var response = EditDetails.fromJson(responseJson);
     populateEditDetails(response);
     pushState(path, offset, line);
@@ -457,10 +454,10 @@ void loadAndPopulateEditDetails(String path, int offset, int line) async {
 /// view.
 Future<void> loadFile(
   String path,
-  int offset,
-  int line,
+  int? offset,
+  int? line,
   bool clearEditDetails, {
-  VoidCallback callback,
+  VoidCallback? callback,
 }) async {
   // Handle the case where we're requesting a directory.
   if (!path.endsWith('.dart')) {
@@ -475,9 +472,8 @@ Future<void> loadFile(
 
   try {
     // Navigating to another file; request it, then do work with the response.
-    final Map<String, Object> /*?*/ response =
-        await doGet<Map<String, Object /*?*/ >>(path,
-            queryParameters: {'inline': 'true'});
+    final response = await doGet<Map<String, Object?>>(path,
+        queryParameters: {'inline': 'true'});
     writeCodeAndRegions(path, FileDetails.fromJson(response), clearEditDetails);
     maybeScrollToAndHighlight(offset, line);
     var filePathPart = _stripQuery(path);
@@ -496,18 +492,18 @@ void loadNavigationTree() async {
 
   // Request the navigation tree, then do work with the response.
   try {
-    final List<Object> /*?*/ response = await doGet<List<Object /*?*/ >>(path);
-    var navTree = document.querySelector('.nav-tree');
+    final response = await doGet<List<Object?>>(path);
+    var navTree = document.querySelector('.nav-tree')!;
     navTree.innerHtml = '';
     navigationTree = NavigationTreeNode.listFromJson(response);
-    writeNavigationSubtree(navTree, navigationTree,
+    writeNavigationSubtree(navTree, navigationTree!,
         enablePartialMigration: true);
   } catch (e, st) {
     handleError("couldn't load navigation tree", e, st);
   }
 }
 
-void logError(Object e, Object st) {
+void logError(Object e, Object? st) {
   window.console.error('$e');
   window.console.error('$st');
 }
@@ -519,9 +515,9 @@ void maybeScrollIntoView(Element element) {
   // only choose to _not_ scroll a line of code into view if the entire line is
   // visible.
   var lineHeight = 14;
-  var visibleCeiling = headerPanel.offsetHeight + lineHeight;
+  var visibleCeiling = headerPanel!.offsetHeight + lineHeight;
   var visibleFloor =
-      window.innerHeight - (footerPanel.offsetHeight + lineHeight);
+      window.innerHeight! - (footerPanel!.offsetHeight + lineHeight);
   if (rect.bottom > visibleFloor) {
     element.scrollIntoView();
   } else if (rect.top < visibleCeiling) {
@@ -537,9 +533,9 @@ void maybeScrollIntoView(Element element) {
 /// class to the entire line on which the target lies.
 ///
 /// If [offset] is null, instead scrolls to the top of the file.
-void maybeScrollToAndHighlight(int offset, int lineNumber) {
-  Element target;
-  Element line;
+void maybeScrollToAndHighlight(int? offset, int? lineNumber) {
+  Element? target;
+  Element? line;
 
   if (offset != null) {
     target = document.getElementById('o$offset');
@@ -550,7 +546,7 @@ void maybeScrollToAndHighlight(int offset, int lineNumber) {
     } else if (line != null) {
       // If the target doesn't exist, but the line does, scroll that into view
       // instead.
-      maybeScrollIntoView(line.parent);
+      maybeScrollIntoView(line.parent!);
     }
     if (line != null) {
       (line.parentNode as Element).classes.add('highlight');
@@ -572,11 +568,11 @@ void maybeScrollToAndHighlight(int offset, int lineNumber) {
 /// If [callback] is present, it will be called after the server response has
 /// been processed, and the content has been updated on the page.
 void navigate(
-  String path,
-  int offset,
-  int lineNumber,
+  String? path,
+  int? offset,
+  int? lineNumber,
   bool clearEditDetails, {
-  VoidCallback callback,
+  VoidCallback? callback,
 }) {
   var currentOffset = getOffset(window.location.href);
   var currentLineNumber = getLine(window.location.href);
@@ -588,7 +584,7 @@ void navigate(
       callback();
     }
   } else {
-    loadFile(path, offset, lineNumber, clearEditDetails, callback: callback);
+    loadFile(path!, offset, lineNumber, clearEditDetails, callback: callback);
   }
 }
 
@@ -608,23 +604,23 @@ String pathWithQueryParameters(
   return uri.replace(queryParameters: mergedQueryParameters).toString();
 }
 
-String pluralize(int count, String single, {String multiple}) {
+String pluralize(int count, String single, {String? multiple}) {
   return count == 1 ? single : (multiple ?? '${single}s');
 }
 
-void populateEditDetails([EditDetails response]) {
+void populateEditDetails([EditDetails? response]) {
   // Clear out any current edit details.
-  editPanel.innerHtml = '';
+  editPanel!.innerHtml = '';
   if (response == null) {
     Element p = ParagraphElement()
       ..text = 'See details about a proposed edit.'
       ..classes = ['placeholder'];
-    editPanel.append(p);
+    editPanel!.append(p);
     p.scrollIntoView();
     return;
   }
 
-  var fileDisplayPath = response.displayPath;
+  var fileDisplayPath = response.displayPath!;
   var parentDirectory = _p.dirname(fileDisplayPath);
 
   // 'Changed ... at foo.dart:12.'
@@ -632,12 +628,12 @@ void populateEditDetails([EditDetails response]) {
   var relPath = _p.relative(fileDisplayPath, from: rootPath);
   var line = response.line;
   Element explanation = document.createElement('p');
-  editPanel.append(explanation);
+  editPanel!.append(explanation);
   explanation
     ..appendText('$explanationMessage at ')
     ..append(AnchorElement(
         href: pathWithQueryParameters(
-            response.uriPath, {'line': line.toString()}))
+            response.uriPath!, {'line': line.toString()}))
       ..appendText('$relPath:$line.'));
   explanation.scrollIntoView();
   _populateEditTraces(response, editPanel, parentDirectory);
@@ -647,21 +643,21 @@ void populateEditDetails([EditDetails response]) {
 /// Write the contents of the Edit List, from JSON data [editListData].
 void populateProposedEdits(
     String path, Map<String, List<EditListItem>> edits, bool clearEditDetails) {
-  editListElement.innerHtml = '';
+  editListElement!.innerHtml = '';
 
   var editCount = edits.length;
   if (editCount == 0) {
     Element p = document.createElement('p');
-    editListElement.append(p);
+    editListElement!.append(p);
     p.append(Text('No proposed edits'));
   } else {
     for (var entry in edits.entries) {
       Element p = document.createElement('p');
-      editListElement.append(p);
+      editListElement!.append(p);
       p.append(Text('${entry.key}:'));
 
       Element list = document.createElement('ul');
-      editListElement.append(list);
+      editListElement!.append(list);
       for (var edit in entry.value) {
         Element item = document.createElement('li');
         list.append(item);
@@ -676,7 +672,7 @@ void populateProposedEdits(
         anchor.append(Text('line $line'));
         anchor.setAttribute(
             'href',
-            pathWithQueryParameters(window.location.pathname, {
+            pathWithQueryParameters(window.location.pathname!, {
               'line': '$line',
               'offset': '$offset',
             }));
@@ -697,7 +693,7 @@ void populateProposedEdits(
   }
 }
 
-void pushState(String path, int offset, int line) {
+void pushState(String? path, int? offset, int? line) {
   var uri = Uri.parse('${window.location.origin}$path');
 
   var params = {
@@ -713,7 +709,7 @@ void pushState(String path, int offset, int line) {
 /// If [path] lies within [root], return the relative path of [path] from [root].
 /// Otherwise, return [path].
 String relativePath(String path) {
-  var root = querySelector('.root').text + '/';
+  var root = querySelector('.root')!.text! + '/';
   if (path.startsWith(root)) {
     return path.substring(root.length);
   } else {
@@ -722,7 +718,7 @@ String relativePath(String path) {
 }
 
 /// Remove highlighting from [offset].
-void removeHighlight(int offset, int lineNumber) {
+void removeHighlight(int? offset, int? lineNumber) {
   if (offset != null) {
     var anchor = document.getElementById('o$offset');
     if (anchor != null) {
@@ -732,7 +728,7 @@ void removeHighlight(int offset, int lineNumber) {
   if (lineNumber != null) {
     var line = document.querySelector('.line-$lineNumber');
     if (line != null) {
-      line.parent.classes.remove('highlight');
+      line.parent!.classes.remove('highlight');
     }
   }
 }
@@ -778,28 +774,28 @@ void toggleFileMigrationStatus(NavigationTreeFileNode entity) {
 }
 
 /// Updates [icon] according to [status].
-void updateIconForStatus(Element icon, UnitMigrationStatus status) {
+void updateIconForStatus(Element? icon, UnitMigrationStatus? status) {
   switch (status) {
     case UnitMigrationStatus.alreadyMigrated:
-      icon.innerText = 'check_box';
+      icon!.innerText = 'check_box';
       icon.classes.add('already-migrated');
       icon.classes.add('disabled');
       icon.setAttribute('title', 'Already migrated');
       break;
     case UnitMigrationStatus.migrating:
-      icon.innerText = 'check_box';
+      icon!.innerText = 'check_box';
       icon.classes.remove('opted-out');
       icon.classes.add('migrating');
       icon.setAttribute('title', 'Migrating to null safety');
       break;
     case UnitMigrationStatus.optingOut:
-      icon.innerText = 'check_box_outline_blank';
+      icon!.innerText = 'check_box_outline_blank';
       icon.classes.remove('migrating');
       icon.classes.add('opted-out');
       icon.setAttribute('title', 'Opting out of null safety');
       break;
     default:
-      icon.innerText = 'indeterminate_check_box';
+      icon!.innerText = 'indeterminate_check_box';
       icon.classes.remove('migrating');
       // 'opted-out' is the same style as 'indeterminate'.
       icon.classes.add('opted-out');
@@ -811,18 +807,18 @@ void updateIconForStatus(Element icon, UnitMigrationStatus status) {
 
 /// Updates the navigation [icon] and current file icon according to the current
 /// migration status of [entity].
-void updateIconsForNode(Element icon, NavigationTreeNode entity) {
+void updateIconsForNode(Element? icon, NavigationTreeNode entity) {
   var status = entity.migrationStatus;
   updateIconForStatus(icon, status);
   // Update the status at the top of the file view if [entity] represents the
   // current file.
-  var unitPath = unitName.innerText;
+  var unitPath = unitName!.innerText;
   if (entity.path == unitPath) {
     if (entity is NavigationTreeFileNode &&
-        !entity.migrationStatusCanBeChanged) {
-      icon.classes.add('disabled');
+        !entity.migrationStatusCanBeChanged!) {
+      icon!.classes.add('disabled');
     } else {
-      icon.classes.remove('disabled');
+      icon!.classes.remove('disabled');
     }
     updateIconForStatus(migrateUnitStatusIcon, status);
   }
@@ -831,10 +827,10 @@ void updateIconsForNode(Element icon, NavigationTreeNode entity) {
 /// Update the heading and navigation links.
 ///
 /// Call this after updating page content on a navigation.
-void updatePage(String path, [int offset]) {
+void updatePage(String path, [int? offset]) {
   path = relativePath(path);
   // Update page heading.
-  unitName.text = path;
+  unitName!.text = path;
   // Update navigation styles.
   document.querySelectorAll('.nav-panel .nav-link').forEach((Element link) {
     var name = link.dataset['name'];
@@ -850,9 +846,9 @@ void updatePage(String path, [int offset]) {
   var entity = navigationTree?.find(path);
   // Update migration status for files in current migration.
   if (entity == null) {
-    migrateUnitStatusIconLabel.classes.remove('visible');
+    migrateUnitStatusIconLabel!.classes.remove('visible');
   } else {
-    migrateUnitStatusIconLabel.classes.add('visible');
+    migrateUnitStatusIconLabel!.classes.add('visible');
     updateIconForStatus(migrateUnitStatusIcon, entity.migrationStatus);
   }
 }
@@ -870,16 +866,16 @@ void updateParentIcons(Element element, NavigationTreeNode entity) {
 }
 
 /// Updates subtree icons for the children [entity] with list item [element].
-void updateSubtreeIcons(Element element, NavigationTreeDirectoryNode entity) {
-  for (var child in entity.subtree) {
+void updateSubtreeIcons(Element? element, NavigationTreeDirectoryNode entity) {
+  for (var child in entity.subtree!) {
     var childNode =
-        element.querySelector('[data-name*="${Css.escape(child.path)}"]');
+        element!.querySelector('[data-name*="${Css.escape(child.path!)}"]');
     if (child is NavigationTreeDirectoryNode) {
       updateSubtreeIcons(childNode, child);
-      var childIcon = childNode.querySelector(':scope > .status-icon');
+      var childIcon = childNode!.querySelector(':scope > .status-icon');
       updateIconsForNode(childIcon, entity);
     } else {
-      var childIcon = (childNode.parentNode as Element)
+      var childIcon = (childNode!.parentNode as Element)
           .querySelector(':scope > .status-icon');
       updateIconsForNode(childIcon, child);
     }
@@ -888,8 +884,8 @@ void updateSubtreeIcons(Element element, NavigationTreeDirectoryNode entity) {
 
 /// Load data from [data] into the .code and the .regions divs.
 void writeCodeAndRegions(String path, FileDetails data, bool clearEditDetails) {
-  var regionsElement = document.querySelector('.regions');
-  var codeElement = document.querySelector('.code');
+  var regionsElement = document.querySelector('.regions')!;
+  var codeElement = document.querySelector('.code')!;
 
   _PermissiveNodeValidator.setInnerHtml(regionsElement, data.regions);
   _PermissiveNodeValidator.setInnerHtml(codeElement, data.navigationContent);
@@ -897,7 +893,7 @@ void writeCodeAndRegions(String path, FileDetails data, bool clearEditDetails) {
 
   // highlightAllCode is remarkably slow (about 4 seconds to handle a 300k file
   // on a Pixelbook), so skip it for large files.
-  if (data.sourceCode.length < 200000) {
+  if (data.sourceCode!.length < 200000) {
     highlightAllCode();
   }
   addClickHandlers('.code', true);
@@ -914,15 +910,15 @@ void writeNavigationSubtree(
     ul.append(li);
     if (entity is NavigationTreeDirectoryNode) {
       li.classes.add('dir');
-      li.dataset['name'] = entity.path;
+      li.dataset['name'] = entity.path!;
       Element arrow = document.createElement('span');
       li.append(arrow);
       arrow.classes.add('arrow');
       arrow.innerHtml = '&#x25BC;';
       var folderIcon = createIcon('folder_open');
       li.append(folderIcon);
-      li.append(Text(entity.name));
-      writeNavigationSubtree(li, entity.subtree,
+      li.append(Text(entity.name!));
+      writeNavigationSubtree(li, entity.subtree!,
           enablePartialMigration: enablePartialMigration);
       if (enablePartialMigration) {
         var statusIcon = createIcon('indeterminate_check_box')
@@ -941,11 +937,11 @@ void writeNavigationSubtree(
       if (enablePartialMigration) {
         var statusIcon = createIcon()..classes.add('status-icon');
         if (entity is NavigationTreeFileNode &&
-            !entity.migrationStatusCanBeChanged) {
+            !entity.migrationStatusCanBeChanged!) {
           statusIcon.classes.add('disabled');
         }
         updateIconsForNode(statusIcon, entity);
-        if (entity.migrationStatusCanBeChanged) {
+        if (entity.migrationStatusCanBeChanged!) {
           statusIcon.onClick.listen((MouseEvent event) {
             toggleFileMigrationStatus(entity);
             updateIconsForNode(statusIcon, entity);
@@ -958,11 +954,11 @@ void writeNavigationSubtree(
       Element a = document.createElement('a');
       li.append(a);
       a.classes.add('nav-link');
-      a.dataset['name'] = entity.path;
-      a.setAttribute('href', pathWithQueryParameters(entity.href, {}));
-      a.append(Text(entity.name));
+      a.dataset['name'] = entity.path!;
+      a.setAttribute('href', pathWithQueryParameters(entity.href!, {}));
+      a.append(Text(entity.name!));
       a.onClick.listen((MouseEvent event) => handleNavLinkClick(event, true));
-      var editCount = entity.editCount;
+      var editCount = entity.editCount!;
       if (editCount > 0) {
         Element editsBadge = document.createElement('span');
         li.append(editsBadge);
@@ -975,41 +971,42 @@ void writeNavigationSubtree(
   }
 }
 
-void _addHintAction(HintAction hintAction, Node drawer, TargetLink link) {
+void _addHintAction(HintAction hintAction, Node drawer, TargetLink? link) {
   drawer.append(ButtonElement()
     ..onClick.listen((event) async {
       try {
         var previousScrollPosition = _getCurrentScrollPosition();
         await doPost(
             pathWithQueryParameters('/apply-hint', {}), hintAction.toJson());
-        var path = _stripQuery(link.href);
+        var path = _stripQuery(link!.href!);
         await loadFile(path, null, link.line, false);
-        document.body.classes.add('needs-rerun');
+        document.body!.classes.add('needs-rerun');
         _scrollContentTo(previousScrollPosition);
       } catch (e, st) {
         handleError("couldn't apply hint", e, st);
       }
     })
-    ..appendText(hintAction.kind.description));
+    ..appendText(hintAction.kind.description!));
 }
 
 AnchorElement _aElementForLink(TargetLink link) {
   var targetLine = link.line;
   AnchorElement a = AnchorElement();
   a.append(Text('${link.path}:$targetLine'));
-  a.setAttribute('href', link.href);
+  a.setAttribute('href', link.href!);
   a.classes.add('nav-link');
   return a;
 }
 
-int _getCurrentScrollPosition() => document.querySelector('.content').scrollTop;
+int _getCurrentScrollPosition() =>
+    document.querySelector('.content')!.scrollTop;
 
-void _populateEditLinks(EditDetails response, Element editPanel) {
+void _populateEditLinks(EditDetails response, Element? editPanel) {
   if (response.edits == null) {
     return;
   }
 
-  var subheading = editPanel.append(document.createElement('p'));
+  var subheading = editPanel!.append(document.createElement('p'));
   subheading.append(document.createElement('span')
     ..classes = ['type-description']
     ..append(Text('Actions')));
@@ -1017,23 +1014,23 @@ void _populateEditLinks(EditDetails response, Element editPanel) {
 
   Element editParagraph = document.createElement('p');
   editPanel.append(editParagraph);
-  for (var edit in response.edits) {
+  for (var edit in response.edits!) {
     Element a = document.createElement('a');
     editParagraph.append(a);
-    a.append(Text(edit.description));
-    a.setAttribute('href', edit.href);
+    a.append(Text(edit.description!));
+    a.setAttribute('href', edit.href!);
     a.classes = ['add-hint-link', 'before-apply', 'button'];
   }
 }
 
 void _populateEditTraces(
-    EditDetails response, Element editPanel, String parentDirectory) {
-  for (var trace in response.traces) {
+    EditDetails response, Element? editPanel, String parentDirectory) {
+  for (var trace in response.traces!) {
     var traceParagraph =
-        editPanel.append(document.createElement('p')..classes = ['trace']);
+        editPanel!.append(document.createElement('p')..classes = ['trace']);
     traceParagraph.append(document.createElement('span')
       ..classes = ['type-description']
-      ..append(Text(trace.description)));
+      ..append(Text(trace.description!)));
     traceParagraph.append(Text(':'));
     var ul = traceParagraph
         .append(document.createElement('ul')..classes = ['trace']);
@@ -1064,7 +1061,7 @@ void _populateEditTraces(
 }
 
 void _scrollContentTo(int top) =>
-    document.querySelector('.content').scrollTop = top;
+    document.querySelector('.content')!.scrollTop = top;
 
 String _stripQuery(String path) =>
     path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
@@ -1092,17 +1089,17 @@ class _PermissiveNodeValidator implements NodeValidator {
     return true;
   }
 
-  static void setInnerHtml(Element element, String html) {
+  static void setInnerHtml(Element element, String? html) {
     element.setInnerHtml(html, validator: instance);
   }
 }
 
 extension on List<NavigationTreeNode> {
   /// Finds the node with path equal to [path], recursively, or `null`.
-  NavigationTreeNode find(String path) {
+  NavigationTreeNode? find(String path) {
     for (var node in this) {
       if (node is NavigationTreeDirectoryNode) {
-        var foundInSubtree = node.subtree.find(path);
+        var foundInSubtree = node.subtree!.find(path);
         if (foundInSubtree != null) return foundInSubtree;
       } else {
         assert(node is NavigationTreeFileNode);

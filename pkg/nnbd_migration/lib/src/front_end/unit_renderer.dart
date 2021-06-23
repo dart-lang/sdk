@@ -56,11 +56,11 @@ class UnitRenderer {
 
   /// Information for a whole migration, so that libraries can reference each
   /// other.
-  final MigrationInfo migrationInfo;
+  final MigrationInfo? migrationInfo;
 
   /// An object used to map the file paths of analyzed files to the file paths
   /// of the HTML files used to view the content of those files.
-  final PathMapper pathMapper;
+  final PathMapper? pathMapper;
 
   /// The auth token for the current site, for use in generating URIs.
   final String authToken;
@@ -70,7 +70,7 @@ class UnitRenderer {
       this.unitInfo, this.migrationInfo, this.pathMapper, this.authToken);
 
   /// Return the path context used to manipulate paths.
-  path.Context get pathContext => migrationInfo.pathContext;
+  path.Context get pathContext => migrationInfo!.pathContext;
 
   /// Builds a JSON view of the instrumentation information in [unitInfo].
   FileDetails render() {
@@ -148,7 +148,7 @@ class UnitRenderer {
         if (target.filePath != unitInfo.path ||
             region.offset != target.offset) {
           var openInsertion = openInsertions[openOffset] ?? '';
-          var targetUri = _uriForPath(pathMapper.map(target.filePath), target);
+          var targetUri = _uriForPath(pathMapper!.map(target.filePath), target);
           openInsertion =
               '<a href="$targetUri" class="nav-link">$openInsertion';
           openInsertions[openOffset] = openInsertion;
@@ -169,12 +169,12 @@ class UnitRenderer {
     var previousOffset = 0;
     for (var offset in offsets) {
       navContent2.write(
-          _htmlEscape.convert(content.substring(previousOffset, offset)));
+          _htmlEscape.convert(content!.substring(previousOffset, offset)));
       navContent2.write(closeInsertions[offset] ?? '');
       navContent2.write(openInsertions[offset] ?? '');
       previousOffset = offset;
     }
-    if (previousOffset < content.length) {
+    if (previousOffset < content!.length) {
       navContent2.write(_htmlEscape.convert(content.substring(previousOffset)));
     }
     return navContent2.toString();
@@ -186,7 +186,7 @@ class UnitRenderer {
   /// The content of the file (not including added links and anchors) will be
   /// HTML-escaped.
   String _computeRegionContent(UnitInfo unit) {
-    var content = unitInfo.content;
+    var content = unitInfo.content!;
     var rows = <String>[];
     var currentTextCell = StringBuffer();
     bool isAddedLine = false;
@@ -270,7 +270,7 @@ class UnitRenderer {
       writeSplitLines(content.substring(previousOffset));
     }
     finishRow(false);
-    return '<table data-path="${pathMapper.map(unit.path)}"><tbody>'
+    return '<table data-path="${pathMapper!.map(unit.path!)}"><tbody>'
         '${rows.join()}</tbody></table>';
   }
 
