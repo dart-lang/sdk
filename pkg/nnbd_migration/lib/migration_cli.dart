@@ -14,7 +14,6 @@ import 'package:analyzer/file_system/file_system.dart'
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/sdk.dart';
@@ -22,7 +21,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:dartdev/src/core.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/exceptions.dart';
@@ -137,42 +135,6 @@ class CommandLineOptions {
       @required this.webPreview});
 }
 
-class MigrateCommand extends DartdevCommand {
-  static const String cmdName = 'migrate';
-
-  static const String cmdDescription =
-      'Perform null safety migration on a project.';
-
-  static const String migrationGuideLink =
-      'See https://dart.dev/go/null-safety-migration for a migration guide.';
-
-  /// Return whether the SDK has null safety on by default.
-  static bool get nullSafetyOnByDefault => IsEnabledByDefault.non_nullable;
-
-  final bool verbose;
-
-  MigrateCommand({this.verbose = false})
-      : super(cmdName, '$cmdDescription\n\n$migrationGuideLink', verbose) {
-    MigrationCli._defineOptions(argParser, !verbose);
-  }
-
-  @override
-  String get invocation {
-    return '${super.invocation} [project or directory]';
-  }
-
-  @override
-  FutureOr<int> run() async {
-    var cli = MigrationCli(binaryName: 'dart $name');
-    try {
-      await cli.decodeCommandLineArgs(argResults, isVerbose: verbose)?.run();
-    } on MigrationExit catch (migrationExit) {
-      return migrationExit.exitCode;
-    }
-    return 0;
-  }
-}
-
 /// Command-line API for the migration tool, with additional parameters exposed
 /// for testing.
 ///
@@ -280,6 +242,9 @@ class MigrationCli {
               hide: hide,
             )),
   ];
+
+  static const String migrationGuideLink =
+      'See https://dart.dev/go/null-safety-migration for a migration guide.';
 
   /// The name of the executable, for reporting in help messages.
   final String binaryName;
@@ -432,8 +397,14 @@ class MigrationCli {
             'Display this help message. Add --verbose to show hidden options.',
         defaultsTo: false,
         negatable: false);
-    _defineOptions(parser, hide);
+    defineOptions(parser, hide);
     return parser;
+  }
+
+  static void defineOptions(ArgParser parser, bool hide) {
+    for (var option in options) {
+      option.addToParser(parser, hide);
+    }
   }
 
   static Logger _defaultLoggerFactory(bool isVerbose) {
@@ -442,12 +413,6 @@ class MigrationCli {
       return Logger.verbose(ansi: ansi);
     } else {
       return Logger.standard(ansi: ansi);
-    }
-  }
-
-  static void _defineOptions(ArgParser parser, bool hide) {
-    for (var option in options) {
-      option.addToParser(parser, hide);
     }
   }
 }
@@ -679,7 +644,7 @@ Exception details:
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
-    logger.stdout(MigrateCommand.migrationGuideLink);
+    logger.stdout(MigrationCli.migrationGuideLink);
     logger.stdout('');
 
     if (hasMultipleAnalysisContext) {

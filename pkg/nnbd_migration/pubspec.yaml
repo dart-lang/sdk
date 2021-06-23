@@ -18,8 +18,6 @@ dependencies:
   cli_util: ^0.2.0
   collection: ^1.14.11
   crypto: ^2.0.6
-  dartdev:
-    path: ../dartdev
   meta:
     path: ../meta
   path: ^1.6.2
