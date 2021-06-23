@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This file is explicitly opted in to null safety since it contains `String?`
-// types, even though the rest of the migration tool isn't migrated yet.
-// @dart=2.12
-
 // This file is generated; don't edit it directly.
 //
 // See pkg/nnbd_migration/tool/codegen/generate_resources.dart for how
