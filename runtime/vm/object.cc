@@ -192,6 +192,22 @@ static void AppendSubString(BaseTextBuffer* buffer,
   buffer->Printf("%.*s", static_cast<int>(len), &name[start_pos]);
 }
 
+#if defined(DART_PRECOMPILER)
+#define PRECOMPILER_WSR_FIELD_DEFINITION(Class, Type, Name)                    \
+  Type##Ptr Class::Name() const {                                              \
+    return Type::RawCast(WeakSerializationReference::Unwrap(untag()->Name())); \
+  }
+#else
+#define PRECOMPILER_WSR_FIELD_DEFINITION(Class, Type, Name)                    \
+  void Class::set_##Name(const Type& value) const {                            \
+    untag()->set_##Name(value.ptr());                                          \
+  }
+#endif
+
+PRECOMPILER_WSR_FIELD_DEFINITION(ClosureData, Function, parent_function)
+
+#undef PRECOMPILER_WSR_FIELD_DEFINITION
+
 // Remove private keys, but retain getter/setter/constructor/mixin manglings.
 StringPtr String::RemovePrivateKey(const String& name) {
   ASSERT(name.IsOneByteString());
@@ -7354,14 +7370,7 @@ FunctionPtr Function::parent_function() const {
   if (!IsClosureFunction()) return Function::null();
   Object& obj = Object::Handle(untag()->data());
   ASSERT(!obj.IsNull());
-#if defined(DART_PRECOMPILER)
-  obj = ClosureData::Cast(obj).parent_function();
-  obj = WeakSerializationReference::Unwrap(obj);
-  if (!obj.IsFunction()) return Function::null();
-  return Function::RawCast(obj.ptr());
-#else
   return ClosureData::Cast(obj).parent_function();
-#endif
 }
 
 void Function::set_parent_function(const Function& value) const {
@@ -10294,16 +10303,6 @@ void ClosureData::set_implicit_static_closure(const Closure& closure) const {
   ASSERT(untag()->closure() == Closure::null());
   untag()->set_closure<std::memory_order_release>(closure.ptr());
 }
-
-#if defined(DART_PRECOMPILER)
-void ClosureData::set_parent_function(const Object& value) const {
-  untag()->set_parent_function(value.ptr());
-}
-#else
-void ClosureData::set_parent_function(const Function& value) const {
-  untag()->set_parent_function(value.ptr());
-}
-#endif
 
 void FfiTrampolineData::set_c_signature(const FunctionType& value) const {
   untag()->set_c_signature(value.ptr());
@@ -16504,10 +16503,24 @@ const char* WeakSerializationReference::ToCString() const {
   return Object::Handle(target()).ToCString();
 }
 
-WeakSerializationReferencePtr WeakSerializationReference::New(
-    const Object& target,
-    const Object& replacement) {
+ObjectPtr WeakSerializationReference::New(const Object& target,
+                                          const Object& replacement) {
   ASSERT(Object::weak_serialization_reference_class() != Class::null());
+  // Don't wrap any object in the VM heap, as all objects in the VM isolate
+  // heap are currently serialized.
+  //
+  // Note that we _do_ wrap Smis if requested. Smis are serialized in the Mint
+  // cluster, and so dropping them if not strongly referenced saves space in
+  // the snapshot.
+  if (target.ptr()->IsHeapObject() && target.InVMIsolateHeap()) {
+    return target.ptr();
+  }
+  // If the target is a WSR that already uses the replacement, then return it.
+  if (target.IsWeakSerializationReference() &&
+      WeakSerializationReference::Cast(target).replacement() ==
+          replacement.ptr()) {
+    return target.ptr();
+  }
   WeakSerializationReference& result = WeakSerializationReference::Handle();
   {
     ObjectPtr raw = Object::Allocate(
@@ -16517,7 +16530,10 @@ WeakSerializationReferencePtr WeakSerializationReference::New(
     NoSafepointScope no_safepoint;
 
     result ^= raw;
-    result.untag()->set_target(target.ptr());
+    // Don't nest WSRs, instead just use the old WSR's target.
+    result.untag()->set_target(target.IsWeakSerializationReference()
+                                   ? WeakSerializationReference::Unwrap(target)
+                                   : target.ptr());
     result.untag()->set_replacement(replacement.ptr());
   }
   return result.ptr();

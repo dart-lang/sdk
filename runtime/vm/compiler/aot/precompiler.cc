@@ -1073,9 +1073,9 @@ void Precompiler::AddTypesOf(const Function& function) {
   // We're not retaining the parent due to this function, so wrap it with
   // a weak serialization reference.
   const auto& data = ClosureData::CheckedHandle(Z, function.data());
-  const auto& wsr = WeakSerializationReference::Handle(
-      Z, WeakSerializationReference::New(parent_function,
-                                         Object::null_function()));
+  const auto& wsr =
+      Object::Handle(Z, WeakSerializationReference::New(
+                            parent_function, Object::null_function()));
   data.set_parent_function(wsr);
 }
 
