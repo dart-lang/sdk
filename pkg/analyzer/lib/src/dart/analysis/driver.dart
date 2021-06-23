@@ -869,6 +869,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var result = await getResolvedLibrary2(path);
 
     if (result is NotPathOfUriResult) {
+      // ignore: null_argument_to_non_null_type
       return Future.value(); // bug?
     }
 
@@ -1138,7 +1139,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<String> getUnitElementSignature(String path) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return Future.value();
+      return Future.value(); // ignore: null_argument_to_non_null_type
     }
     var completer = Completer<String>();
     _unitElementSignatureFiles
