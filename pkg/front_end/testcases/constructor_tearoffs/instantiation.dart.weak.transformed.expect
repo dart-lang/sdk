@@ -26,19 +26,9 @@ library /*isNonNullableByDefault*/;
 // A<dynamic> Function(String) test6() => A.new; // Error.
 //                                          ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:17:38: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-// A<dynamic> Function(num) test7() => A<num>.foo; // Error.
-//                                      ^
-//
 // pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:17:44: Error: Getter not found: 'foo'.
 // A<dynamic> Function(num) test7() => A<num>.foo; // Error.
 //                                            ^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:18:38: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-// A<dynamic> Function(num) test8() => A<num>.new; // Error.
-//                                      ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:18:44: Error: Getter not found: 'new'.
 // A<dynamic> Function(num) test8() => A<num>.new; // Error.

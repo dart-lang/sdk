@@ -14,55 +14,25 @@ library /*isNonNullableByDefault*/;
 // A<X> Function<X>(X) test3() => A.new; // Error.
 //                                  ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:33: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-// A<X> Function<X>(X) test4() => A<int>.new; // Error.
-//                                 ^
-//
 // pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:39: Error: Getter not found: 'new'.
 // A<X> Function<X>(X) test4() => A<int>.new; // Error.
 //                                       ^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:15:33: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-// A<X> Function<X>(X) test5() => A<int, String>.new; // Error.
-//                                 ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:15:47: Error: Getter not found: 'new'.
 // A<X> Function<X>(X) test5() => A<int, String>.new; // Error.
 //                                               ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:16:33: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-// A<X> Function<X>(X) test6() => A<int>.foo1; // Error.
-//                                 ^
-//
 // pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:16:39: Error: Getter not found: 'foo1'.
 // A<X> Function<X>(X) test6() => A<int>.foo1; // Error.
 //                                       ^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:17:33: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-// A<X> Function<X>(X) test7() => A<int, String>.foo1; // Error.
-//                                 ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:17:47: Error: Getter not found: 'foo1'.
 // A<X> Function<X>(X) test7() => A<int, String>.foo1; // Error.
 //                                               ^^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:18:33: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-// A<X> Function<X>(X) test8() => A<int>.foo2; // Error.
-//                                 ^
-//
 // pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:18:39: Error: Getter not found: 'foo2'.
 // A<X> Function<X>(X) test8() => A<int>.foo2; // Error.
 //                                       ^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:19:33: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-// A<X> Function<X>(X) test9() => A<int, String>.foo2; // Error.
-//                                 ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:19:47: Error: Getter not found: 'foo2'.
 // A<X> Function<X>(X) test9() => A<int, String>.foo2; // Error.

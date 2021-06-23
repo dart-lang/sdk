@@ -253,6 +253,13 @@ abstract class Generator {
         offsetForToken(token), unaryName, buildSimpleRead());
   }
 
+  /*Expression|Generator*/ applyTypeArguments(
+      int fileOffset, List<UnresolvedType> typeArguments) {
+    return new Instantiation(
+        buildSimpleRead(), _helper.buildDartTypeArguments(typeArguments))
+      ..fileOffset = fileOffset;
+  }
+
   /// Returns a [TypeBuilder] for this subexpression instantiated with the
   /// type [arguments]. If no type arguments are provided [arguments] is `null`.
   ///
@@ -2940,6 +2947,7 @@ class DeferredAccessGenerator extends Generator {
 ///
 class TypeUseGenerator extends ReadOnlyAccessGenerator {
   final TypeDeclarationBuilder declaration;
+  List<UnresolvedType> typeArguments;
 
   TypeUseGenerator(ExpressionGeneratorHelper helper, Token token,
       this.declaration, String targetName)
@@ -3038,7 +3046,8 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
             _helper.buildDartType(
                 new UnresolvedType(
                     buildTypeWithResolvedArguments(
-                        _helper.libraryBuilder.nonNullableBuilder, null),
+                        _helper.libraryBuilder.nonNullableBuilder,
+                        typeArguments),
                     fileOffset,
                     _uri),
                 nonInstanceAccessIsError: true));
@@ -3159,6 +3168,12 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
           arguments, "", typeArguments, token.charOffset, Constness.implicit,
           isTypeArgumentsInForest: isTypeArgumentsInForest);
     }
+  }
+
+  @override
+  applyTypeArguments(int fileOffset, List<UnresolvedType> typeArguments) {
+    return new TypeUseGenerator(_helper, token, declaration, targetName)
+      ..typeArguments = typeArguments;
   }
 }
 
