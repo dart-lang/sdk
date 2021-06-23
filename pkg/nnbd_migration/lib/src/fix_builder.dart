@@ -1242,7 +1242,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       ..addRequiredKeyword = true
       ..addRequiredKeywordInfo = info
       ..requiredHint = requiredHint;
-    var requiredAnnotation = metadata?.firstWhereOrNull(
+    var requiredAnnotation = metadata.firstWhereOrNull(
         (annotation) => annotation.elementAnnotation!.isRequired);
     if (requiredAnnotation != null) {
       // If the parameter was annotated with `@required`, but it was not the

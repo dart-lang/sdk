@@ -80,9 +80,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitAsExpression(AsExpression node) {
-    node.expression?.accept(this);
+    node.expression.accept(this);
     _pushNullabilityNodeTarget(
-        NullabilityNodeTarget.text('cast type'), () => node.type?.accept(this));
+        NullabilityNodeTarget.text('cast type'), () => node.type.accept(this));
     return null;
   }
 
@@ -119,7 +119,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           source, node.stackTraceParameter, stackTraceType);
     }
     node.stackTraceParameter?.accept(this);
-    node.body?.accept(this);
+    node.body.accept(this);
     return null;
   }
 
@@ -203,7 +203,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitConstructorName(ConstructorName node) {
     _pushNullabilityNodeTarget(NullabilityNodeTarget.text('constructed type'),
-        () => node.type?.accept(this));
+        () => node.type.accept(this));
     node.name?.accept(this);
     return null;
   }
@@ -357,10 +357,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
-    node.function?.accept(this);
+    node.function.accept(this);
     _pushNullabilityNodeTarget(NullabilityNodeTarget.text('type argument'),
         () => node.typeArguments?.accept(this));
-    node.argumentList?.accept(this);
+    node.argumentList.accept(this);
     return null;
   }
 
@@ -391,7 +391,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType decoratedFunctionType;
     try {
       node.typeParameters?.accept(this);
-      _pushNullabilityNodeTarget(target, () => node.parameters?.accept(this));
+      _pushNullabilityNodeTarget(target, () => node.parameters.accept(this));
       // Note: we don't pass _typeFormalBounds into DecoratedType because we're
       // not defining a generic function type, we're defining a generic typedef
       // of an ordinary (non-generic) function type.
@@ -433,9 +433,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitIsExpression(IsExpression node) {
-    node.expression?.accept(this);
+    node.expression.accept(this);
     _pushNullabilityNodeTarget(NullabilityNodeTarget.text('tested type'),
-        () => node.type?.accept(this));
+        () => node.type.accept(this));
     return null;
   }
 
@@ -465,17 +465,17 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
-    node.methodName?.accept(this);
+    node.methodName.accept(this);
     _pushNullabilityNodeTarget(NullabilityNodeTarget.text('type argument'),
         () => node.typeArguments?.accept(this));
-    node.argumentList?.accept(this);
+    node.argumentList.accept(this);
     return null;
   }
 
   @override
   DecoratedType? visitMixinDeclaration(MixinDeclaration node) {
     node.metadata.accept(this);
-    node.name?.accept(this);
+    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.members.accept(this);
     _handleSupertypeClauses(node, node.declaredElement!, null, null,
@@ -723,7 +723,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           returnType: decoratedReturnType,
           positionalParameters: _positionalParameters,
           namedParameters: _namedParameters);
-      body?.accept(this);
+      body.accept(this);
     } finally {
       _positionalParameters = previousPositionalParameters;
       _namedParameters = previousNamedParameters;
@@ -738,7 +738,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       TypeParameterList? typeParameters,
       FormalParameterList? parameters) {
     var declaredElement = node.declaredElement!;
-    node.metadata?.accept(this);
+    node.metadata.accept(this);
     DecoratedType? decoratedType;
     var target = safeTarget;
     if (parameters == null) {

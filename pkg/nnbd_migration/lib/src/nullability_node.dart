@@ -379,14 +379,14 @@ class NullabilityGraph {
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
-    var isUninit = origin?.kind == EdgeOriginKind.fieldNotInitialized ||
-        origin?.kind == EdgeOriginKind.implicitNullInitializer ||
-        origin?.kind == EdgeOriginKind.uninitializedRead;
+    var isUninit = origin.kind == EdgeOriginKind.fieldNotInitialized ||
+        origin.kind == EdgeOriginKind.implicitNullInitializer ||
+        origin.kind == EdgeOriginKind.uninitializedRead;
     var isSetupAssignment =
         origin is ExpressionChecksOrigin && origin.isSetupAssignment;
     var edge = NullabilityEdge._(
         destinationNode, upstreamNodes, kind, origin.description,
-        codeReference: origin?.codeReference,
+        codeReference: origin.codeReference,
         isUninit: isUninit,
         isSetupAssignment: isSetupAssignment);
     instrumentation?.graphEdge(edge, origin);

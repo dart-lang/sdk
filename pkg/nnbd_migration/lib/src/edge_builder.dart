@@ -759,7 +759,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitConstructorDeclaration(ConstructorDeclaration node) {
     _fieldsNotInitializedByConstructor =
         _fieldsNotInitializedAtDeclaration!.toSet();
-    _dispatch(node.redirectedConstructor?.type?.typeArguments);
+    _dispatch(node.redirectedConstructor?.type.typeArguments);
     _handleExecutableDeclaration(
         node,
         node.declaredElement!,
@@ -2514,7 +2514,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var calleeType = _variables!.decoratedElementType(callee);
     var typeArguments = redirectedConstructor.type.typeArguments;
     var typeArgumentTypes =
-        typeArguments?.arguments?.map((t) => t.type)?.toList();
+        typeArguments?.arguments.map((t) => t.type).toList();
     _handleInvocationArguments(
         redirectedConstructor,
         parameters.parameters,
@@ -2804,7 +2804,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var variableElement = parts.loopVariable.declaredElement!;
         _flowAnalysis!.declare(variableElement, true);
         lhsElement = variableElement;
-        _dispatch(parts.loopVariable?.type);
+        _dispatch(parts.loopVariable.type);
         lhsType = _variables!.decoratedElementType(lhsElement);
       } else if (parts is ForEachPartsWithIdentifier) {
         lhsElement = parts.identifier.staticElement;
@@ -2842,7 +2842,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
       if (parts is ForParts) {
         _flowAnalysis!.for_updaterBegin();
-        for (var updater in parts.updaters ?? <Expression>[]) {
+        for (var updater in parts.updaters) {
           var updaterType = _dispatch(updater)!;
           _graph.connectDummy(updaterType.node, DummyOrigin(source, updater));
         }
@@ -3094,7 +3094,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// [`checkNotNull`]: https://pub.dev/documentation/quiver/latest/quiver.check/checkNotNull.html
   void _handleQuiverCheckNotNull(MethodInvocation node) {
     var callee = node.methodName.staticElement;
-    var calleeUri = callee?.library?.source?.uri;
+    var calleeUri = callee?.library?.source.uri;
     var isQuiverCheckNull = callee?.name == 'checkNotNull' &&
         calleeUri != null &&
         calleeUri.scheme == 'package' &&
@@ -3144,7 +3144,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (grandParent is MethodInvocation) {
         var enclosingInvocation = grandParent.methodName;
         if (enclosingInvocation.name == 'setUp') {
-          var uri = enclosingInvocation.staticElement!.library?.source?.uri;
+          var uri = enclosingInvocation.staticElement!.library?.source.uri;
           if (uri != null &&
               uri.scheme == 'package' &&
               uri.path.startsWith('test_core/')) {

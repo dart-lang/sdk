@@ -167,7 +167,7 @@ class TraceEntry {
         hintActions = (json['hintActions'] as List?)
                 ?.map((value) =>
                     HintAction.fromJson(value as Map<String, Object?>))
-                ?.toList() ??
+                .toList() ??
             const [];
 
   Map<String, Object?> toJson() => {

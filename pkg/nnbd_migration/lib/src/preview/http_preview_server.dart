@@ -62,7 +62,7 @@ class HttpPreviewServer {
 
   /// Return the port this server is bound to.
   Future<String?> get boundHostname async {
-    return (await _serverFuture)?.address?.host;
+    return (await _serverFuture)?.address.host;
   }
 
   /// Return the port this server is bound to.

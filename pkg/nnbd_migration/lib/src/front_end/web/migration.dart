@@ -770,6 +770,9 @@ void toggleFileMigrationStatus(NavigationTreeFileNode entity) {
     case UnitMigrationStatus.indeterminate:
       throw StateError('File ${entity.path} should not have '
           'indeterminate migration status');
+    default:
+      // TODO(paulberry): this should never happen.
+      break;
   }
 }
 

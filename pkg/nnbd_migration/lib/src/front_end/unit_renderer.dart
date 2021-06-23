@@ -193,7 +193,7 @@ class UnitRenderer {
     var lineNumber = 1;
 
     void finishRow(bool isAddedText) {
-      var line = currentTextCell?.toString();
+      var line = currentTextCell.toString();
       if (isAddedLine) {
         rows.add('<tr><td class="line-no">(new)</td><td>$line</td></tr>');
       } else {
