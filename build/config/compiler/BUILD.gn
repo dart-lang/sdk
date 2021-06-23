@@ -552,7 +552,10 @@ if (is_win) {
   ]
 
   if (is_clang) {
-    default_warning_flags += [ "-Wno-tautological-constant-compare" ]
+    default_warning_flags += [
+      "-Wno-tautological-constant-compare",
+      "-Wno-unused-but-set-variable", # icu
+    ]
   } else {
     default_warning_flags +=
         [ "-Wno-ignored-qualifiers" ]  # Warnings in BoringSSL headers

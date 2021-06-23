@@ -63,7 +63,7 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/prebuilts
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "3dc24bc31edbc01dea085b24a6a6b024d7ae531c",
+  "clang_revision": "7c4e9a68264ffeef6178865be76c45c4fb6390af",
   "gn_revision": "39a87c0b36310bdf06b692c098f199a0d97fc810",
 
   # Scripts that make 'git cl format' work.
@@ -199,16 +199,6 @@ deps = {
     Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
     "@" + Var("clang_format_scripts_rev"),
 
-  Var("dart_root") + "/third_party/llvm-build/Release+Asserts": {
-    "packages": [
-      {
-        "package": "flutter/clang/win-amd64",
-        "version": "git_revision:5ec206df8534d2dd8cb9217c3180e5ddba587393"
-      }
-    ],
-    "condition": "download_windows_deps",
-    "dep_type": "cipd",
-  },
   Var("dart_root") + "/benchmarks-internal": {
     "url": Var("dart_internal_git") + "/benchmarks-internal.git" +
            "@" + Var("benchmarks_internal_rev"),
@@ -496,15 +486,35 @@ deps = {
   Var("dart_root") + "/third_party/pkg/yaml":
       Var("dart_git") + "yaml.git" + "@" + Var("yaml_rev"),
 
-  Var("dart_root") + "/buildtools/" + Var("host_os") + "-x64/clang": {
+  Var("dart_root") + "/buildtools/linux-x64/clang": {
       "packages": [
           {
-              "package": "fuchsia/third_party/clang/" + Var("host_os") + "-amd64",
+              "package": "fuchsia/third_party/clang/linux-amd64",
+              "version": "git_revision:" + Var("clang_revision"),
+          },
+      ],
+      "condition": "host_cpu == x64 and host_os == linux",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/buildtools/mac-x64/clang": {
+      "packages": [
+          {
+              "package": "fuchsia/third_party/clang/mac-amd64",
               "version": "git_revision:" + Var("clang_revision"),
           },
       ],
       # TODO(https://fxbug.dev/73385): Use arm64 toolchain on arm64 when it exists.
-      "condition": "host_cpu == x64 and (host_os == linux or host_os == mac) or host_cpu == arm64 and host_os == mac",
+      "condition": "host_cpu == x64 and host_os == mac or host_cpu == arm64 and host_os == mac",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/buildtools/win-x64/clang": {
+      "packages": [
+          {
+              "package": "fuchsia/third_party/clang/windows-amd64",
+              "version": "git_revision:" + Var("clang_revision"),
+          },
+      ],
+      "condition": "host_cpu == x64 and host_os == win",
       "dep_type": "cipd",
   },
   Var("dart_root") + "/buildtools/linux-arm64/clang": {
