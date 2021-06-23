@@ -2009,24 +2009,6 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
 }
 
-// On stack: user tag (+1), return-address (+0).
-void AsmIntrinsifier::UserTag_makeCurrent(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  // EDI: Isolate.
-  __ LoadIsolate(EDI);
-  // EAX: Current user tag.
-  __ movl(EAX, Address(EDI, target::Isolate::current_tag_offset()));
-  // EAX: UserTag.
-  __ movl(EBX, Address(ESP, +1 * target::kWordSize));
-  // Set target::Isolate::current_tag_.
-  __ movl(Address(EDI, target::Isolate::current_tag_offset()), EBX);
-  // EAX: UserTag's tag.
-  __ movl(EBX, FieldAddress(EBX, target::UserTag::tag_offset()));
-  // Set target::Isolate::user_tag_.
-  __ movl(Address(EDI, target::Isolate::user_tag_offset()), EBX);
-  __ ret();
-}
-
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,
                                          Label* normal_ir_body) {
   __ LoadIsolate(EAX);

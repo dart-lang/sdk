@@ -7011,4 +7011,53 @@ DART_EXPORT void Dart_PrepareToAbort() {
   OS::PrepareToAbort();
 }
 
+DART_EXPORT Dart_Handle Dart_GetCurrentUserTag() {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  DARTSCOPE(thread);
+  Isolate* isolate = thread->isolate();
+  return Api::NewHandle(thread, isolate->current_tag());
+}
+
+DART_EXPORT Dart_Handle Dart_GetDefaultUserTag() {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  DARTSCOPE(thread);
+  Isolate* isolate = thread->isolate();
+  return Api::NewHandle(thread, isolate->default_tag());
+}
+
+DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  DARTSCOPE(thread);
+  if (label == nullptr) {
+    return Api::NewError(
+        "Dart_NewUserTag expects argument 'label' to be non-null");
+  }
+  const String& value = String::Handle(String::New(label));
+  return Api::NewHandle(thread, UserTag::New(value));
+}
+
+DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  DARTSCOPE(thread);
+  const UserTag& tag = Api::UnwrapUserTagHandle(Z, user_tag);
+  if (tag.IsNull()) {
+    RETURN_TYPE_ERROR(Z, user_tag, UserTag);
+  }
+  return Api::NewHandle(thread, tag.MakeActive());
+}
+
+DART_EXPORT char* Dart_GetUserTagLabel(Dart_Handle user_tag) {
+  DARTSCOPE(Thread::Current());
+  const UserTag& tag = Api::UnwrapUserTagHandle(Z, user_tag);
+  if (tag.IsNull()) {
+    return nullptr;
+  }
+  const String& label = String::Handle(Z, tag.label());
+  return Utils::StrDup(label.ToCString());
+}
+
 }  // namespace dart

@@ -11559,7 +11559,7 @@ class UserTag : public Instance {
 
   StringPtr label() const { return untag()->label(); }
 
-  void MakeActive() const;
+  UserTagPtr MakeActive() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedUserTag));

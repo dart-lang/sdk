@@ -2086,24 +2086,6 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ jmp(RDI);
 }
 
-// On stack: user tag (+1), return-address (+0).
-void AsmIntrinsifier::UserTag_makeCurrent(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  // RBX: Isolate.
-  __ LoadIsolate(RBX);
-  // RAX: Current user tag.
-  __ movq(RAX, Address(RBX, target::Isolate::current_tag_offset()));
-  // R10: UserTag.
-  __ movq(R10, Address(RSP, +1 * target::kWordSize));
-  // Set Isolate::current_tag_.
-  __ movq(Address(RBX, target::Isolate::current_tag_offset()), R10);
-  // R10: UserTag's tag.
-  __ movq(R10, FieldAddress(R10, target::UserTag::tag_offset()));
-  // Set Isolate::user_tag_.
-  __ movq(Address(RBX, target::Isolate::user_tag_offset()), R10);
-  __ ret();
-}
-
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,
                                          Label* normal_ir_body) {
   __ LoadIsolate(RAX);

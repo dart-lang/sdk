@@ -60,6 +60,8 @@ class ServiceEvent {
     // Sent when SetVMTimelineFlags is called.
     kTimelineStreamSubscriptionsUpdate,
 
+    kUserTagChanged,
+
     kIllegal,
   };
 
@@ -110,6 +112,14 @@ class ServiceEvent {
 
   const char* flag_new_value() const { return flag_new_value_; }
   void set_flag_new_value(const char* value) { flag_new_value_ = value; }
+
+  const char* previous_tag() const { return previous_tag_; }
+  void set_previous_tag(const char* previous_tag) {
+    previous_tag_ = previous_tag;
+  }
+
+  const char* updated_tag() const { return updated_tag_; }
+  void set_updated_tag(const char* updated_tag) { updated_tag_ = updated_tag; }
 
   const char* embedder_kind() const { return embedder_kind_; }
 
@@ -217,6 +227,8 @@ class ServiceEvent {
   EventKind kind_;
   const char* flag_name_;
   const char* flag_new_value_;
+  const char* previous_tag_;
+  const char* updated_tag_;
   const char* embedder_kind_;
   const char* embedder_stream_id_;
   Breakpoint* breakpoint_;

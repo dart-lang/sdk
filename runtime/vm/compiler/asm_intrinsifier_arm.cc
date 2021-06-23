@@ -2020,24 +2020,6 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
 }
 
-// On stack: user tag (+0).
-void AsmIntrinsifier::UserTag_makeCurrent(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  // R1: Isolate.
-  __ LoadIsolate(R1);
-  // R0: Current user tag.
-  __ ldr(R0, Address(R1, target::Isolate::current_tag_offset()));
-  // R2: UserTag.
-  __ ldr(R2, Address(SP, +0 * target::kWordSize));
-  // Set target::Isolate::current_tag_.
-  __ str(R2, Address(R1, target::Isolate::current_tag_offset()));
-  // R2: UserTag's tag.
-  __ ldr(R2, FieldAddress(R2, target::UserTag::tag_offset()));
-  // Set target::Isolate::user_tag_.
-  __ str(R2, Address(R1, target::Isolate::user_tag_offset()));
-  __ Ret();
-}
-
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,
                                          Label* normal_ir_body) {
   __ LoadIsolate(R0);

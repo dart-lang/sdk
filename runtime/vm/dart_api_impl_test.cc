@@ -9363,6 +9363,52 @@ TEST_CASE(Dart_SetFfiNativeResolver_DoesNotResolve) {
       "Invalid argument(s): Couldn't resolve function: 'DoesNotResolve'");
 }
 
+TEST_CASE(DartAPI_UserTags) {
+  Dart_Handle default_tag = Dart_GetDefaultUserTag();
+  EXPECT_VALID(default_tag);
+
+  auto default_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(default_tag), std::free);
+  EXPECT_STREQ(default_label.get(), "Default");
+
+  Dart_Handle current_tag = Dart_GetCurrentUserTag();
+  EXPECT(Dart_IdentityEquals(default_tag, current_tag));
+
+  auto current_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(current_tag), std::free);
+  EXPECT_STREQ(default_label.get(), current_label.get());
+
+  Dart_Handle new_tag = Dart_NewUserTag("Foo");
+  EXPECT_VALID(new_tag);
+
+  auto new_tag_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(new_tag), std::free);
+  EXPECT_STREQ(new_tag_label.get(), "Foo");
+
+  Dart_Handle old_tag = Dart_SetCurrentUserTag(new_tag);
+  EXPECT_VALID(old_tag);
+
+  auto old_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(old_tag), std::free);
+  EXPECT_STREQ(old_label.get(), default_label.get());
+
+  current_tag = Dart_GetCurrentUserTag();
+  EXPECT(Dart_IdentityEquals(new_tag, current_tag));
+
+  current_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(current_tag), std::free);
+  EXPECT_STREQ(current_label.get(), new_tag_label.get());
+
+  EXPECT(Dart_GetUserTagLabel(Dart_Null()) == nullptr);
+
+  EXPECT_ERROR(Dart_NewUserTag(nullptr),
+               "Dart_NewUserTag expects argument 'label' to be non-null");
+
+  EXPECT_ERROR(
+      Dart_SetCurrentUserTag(Dart_Null()),
+      "Dart_SetCurrentUserTag expects argument 'user_tag' to be non-null");
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

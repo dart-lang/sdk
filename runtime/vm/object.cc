@@ -25690,10 +25690,25 @@ const char* MirrorReference::ToCString() const {
   return "_MirrorReference";
 }
 
-void UserTag::MakeActive() const {
+UserTagPtr UserTag::MakeActive() const {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
+  UserTag& old = UserTag::Handle(isolate->current_tag());
   isolate->set_current_tag(*this);
+
+#if !defined(PRODUCT)
+  // Notify VM service clients that the current UserTag has changed.
+  if (Service::profiler_stream.enabled()) {
+    ServiceEvent event(ServiceEvent::kUserTagChanged);
+    String& name = String::Handle(old.label());
+    event.set_previous_tag(name.ToCString());
+    name ^= label();
+    event.set_updated_tag(name.ToCString());
+    Service::HandleEvent(&event);
+  }
+#endif  // !defined(PRODUCT)
+
+  return old.ptr();
 }
 
 UserTagPtr UserTag::New(const String& label, Heap::Space space) {
