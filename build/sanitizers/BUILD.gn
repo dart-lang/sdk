@@ -6,10 +6,12 @@ if (is_linux && !is_chromeos) {
   # TODO(GYP): Figure out which of these work and are needed on other platforms.
   copy("copy_llvm_symbolizer") {
     if (is_win) {
-      sources = [ "//buildtools/win-x64/clang/bin/llvm-symbolizer.exe" ]
+      sources =
+          [ "//third_party/llvm-build/Release+Asserts/bin/llvm-symbolizer.exe" ]
       outputs = [ "$root_out_dir/llvm-symbolizer.exe" ]
     } else {
-      sources = [ "//buildtools/win-x64/clang/bin/llvm-symbolizer" ]
+      sources =
+          [ "//third_party/llvm-build/Release+Asserts/bin/llvm-symbolizer" ]
       outputs = [ "$root_out_dir/llvm-symbolizer" ]
     }
   }

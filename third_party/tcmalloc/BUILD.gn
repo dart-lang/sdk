@@ -16,7 +16,6 @@ config("internal_config") {
     "-Wno-unused-result",
     "-Wno-unused-parameter",
     "-Wno-unused-function",
-    "-Wno-unused-but-set-variable",
     "-Wno-vla",
     "-g3",
     "-ggdb3",
