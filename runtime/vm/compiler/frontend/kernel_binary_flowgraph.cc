@@ -541,23 +541,9 @@ Fragment StreamingFlowGraphBuilder::CompleteBodyWithYieldContinuations(
   IndirectGotoInstr* indirect_goto;
   if (FLAG_async_igoto_threshold >= 0 &&
       continuation_count >= FLAG_async_igoto_threshold) {
-    const auto& offsets = TypedData::ZoneHandle(
-        Z, TypedData::New(kTypedDataInt32ArrayCid, continuation_count,
-                          Heap::kOld));
-
-    dispatch += Constant(offsets);
     dispatch += LoadLocal(scopes()->switch_variable);
-
-    // Ideally this would just be LoadIndexed(kTypedDataInt32ArrayCid),
-    // but that doesn't work in unoptimised code.
-    // The optimiser will turn this into that in any case.
-    dispatch += InstanceCall(TokenPosition::kNoSource, Symbols::IndexToken(),
-                             Token::kINDEX, /*argument_count=*/2);
-
-    Value* offset_from_start = Pop();
-
-    indirect_goto = new (Z) IndirectGotoInstr(&offsets, offset_from_start);
-    dispatch <<= indirect_goto;
+    dispatch += IndirectGoto(continuation_count);
+    indirect_goto = dispatch.current->AsIndirectGoto();
 
     for (intptr_t i = 0; i < continuation_count; i++) {
       if (i >= 1) {
@@ -1531,6 +1517,10 @@ Fragment StreamingFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
 
 Fragment StreamingFlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   return flow_graph_builder_->LoadLocal(variable);
+}
+
+Fragment StreamingFlowGraphBuilder::IndirectGoto(intptr_t target_count) {
+  return flow_graph_builder_->IndirectGoto(target_count);
 }
 
 Fragment StreamingFlowGraphBuilder::Return(TokenPosition position,

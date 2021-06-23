@@ -446,6 +446,11 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   }
 }
 
+Fragment FlowGraphBuilder::IndirectGoto(intptr_t target_count) {
+  Value* index = Pop();
+  return Fragment(new (Z) IndirectGotoInstr(target_count, index));
+}
+
 Fragment FlowGraphBuilder::ThrowLateInitializationError(
     TokenPosition position,
     const char* throw_method_name,

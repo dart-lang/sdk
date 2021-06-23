@@ -153,6 +153,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void InlineBailout(const char* reason);
   Fragment DebugStepCheck(TokenPosition position);
   Fragment LoadLocal(LocalVariable* variable);
+  Fragment IndirectGoto(intptr_t target_count);
   Fragment Return(
       TokenPosition position,
       intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
