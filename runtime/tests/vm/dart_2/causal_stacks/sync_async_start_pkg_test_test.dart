@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // This test ensures that "pkg:stack_trace" (used by "pkg:test") doesn't break
-// when lazy async stacks are enabled by dropping frames below a synchronous
+// when causal async stacks are enabled by dropping frames below a synchronous
 // start to an async function.
 
 import "package:test/test.dart";

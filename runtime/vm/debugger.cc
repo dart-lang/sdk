@@ -1903,7 +1903,10 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncCausal() {
   if (FLAG_lazy_async_stacks) {
     return CollectAsyncLazy();
   }
-  return nullptr;
+  if (!FLAG_causal_async_stacks) {
+    return nullptr;
+  }
+  UNREACHABLE();  //  FLAG_causal_async_stacks is deprecated.
 }
 
 DebuggerStackTrace* DebuggerStackTrace::CollectAsyncLazy() {
@@ -1976,7 +1979,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncLazy() {
 
 DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT does not support debugging.
+  // Causal async stacks are not supported in the AOT runtime.
   ASSERT(!FLAG_async_debugger);
   return nullptr;
 #else

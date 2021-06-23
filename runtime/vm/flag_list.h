@@ -58,10 +58,12 @@ constexpr bool FLAG_support_il_printer = false;
 //
 // The syntax used is the same as that for FLAG_LIST below, as these flags are
 // automatically included in FLAG_LIST.
+// TODO(cskau): Remove causal_async_stacks when deprecated.
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
   P(code_comments, bool, false, "Include comments into code and disassembly.") \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
+  P(causal_async_stacks, bool, false, "DEPRECATED: Improved async stacks")     \
   P(lazy_async_stacks, bool, true, "Reconstruct async stacks from listeners")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \

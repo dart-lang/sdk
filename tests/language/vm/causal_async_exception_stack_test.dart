@@ -6,7 +6,7 @@
 
 import 'package:async_helper/async_minitest.dart';
 
-import 'lazy_async_exception_stack_helper.dart' as h;
+import 'causal_async_exception_stack_helper.dart' as h;
 
 thrower() async {
   throw 'oops';
@@ -29,7 +29,7 @@ foo() async {
 
 main() async {
   // Test async and async*.
-  test('lazy async exception stack', () async {
+  test('causal async exception stack', () async {
     try {
       await foo();
       fail("Did not throw");
