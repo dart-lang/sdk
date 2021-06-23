@@ -1683,6 +1683,16 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Users should not use `Future.value` or `Completer.complete` with a null
+   * argument if the type argument is non-nullable.
+   */
+  static const HintCode NULL_ARGUMENT_TO_NON_NULL_TYPE = HintCode(
+      'NULL_ARGUMENT_TO_NON_NULL_TYPE',
+      "'{0}' should not be called with a null argument for the non-nullable "
+          "type argument '{1}'",
+      correction: 'Try adding a non-null argument.');
+
+  /**
    * When the left operand of a binary expression uses '?.' operator, it can be
    * `null`.
    */

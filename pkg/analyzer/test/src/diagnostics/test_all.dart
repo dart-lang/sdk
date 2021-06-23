@@ -501,6 +501,8 @@ import 'not_instantiated_bound_test.dart' as not_instantiated_bound;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
 import 'not_null_aware_null_spread_test.dart' as not_null_aware_null_spread;
+import 'null_argument_to_non_null_type_test.dart'
+    as null_argument_to_non_null_type;
 import 'null_aware_before_operator_test.dart' as null_aware_before_operator;
 import 'null_aware_in_condition_test.dart' as null_aware_in_condition;
 import 'null_aware_in_logical_operator_test.dart'
@@ -1039,6 +1041,7 @@ main() {
     not_iterable_spread.main();
     not_map_spread.main();
     not_null_aware_null_spread.main();
+    null_argument_to_non_null_type.main();
     null_aware_before_operator.main();
     null_aware_in_condition.main();
     null_aware_in_logical_operator.main();

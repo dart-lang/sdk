@@ -27,6 +27,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
+import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -76,6 +77,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   final ErrorHandlerVerifier _errorHandlerVerifier;
 
+  final NullSafeApiVerifier _nullSafeApiVerifier;
+
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
 
@@ -115,6 +118,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
         _errorHandlerVerifier =
             ErrorHandlerVerifier(_errorReporter, typeProvider, typeSystem),
+        _nullSafeApiVerifier = NullSafeApiVerifier(_errorReporter, typeSystem),
         _workspacePackage = workspacePackage {
     _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
     _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
@@ -567,6 +571,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _deprecatedVerifier.instanceCreationExpression(node);
+    _nullSafeApiVerifier.instanceCreation(node);
     _checkForLiteralConstructorUse(node);
     super.visitInstanceCreationExpression(node);
   }
@@ -644,6 +649,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _deprecatedVerifier.methodInvocation(node);
     _checkForNullAwareHints(node, node.operator);
     _errorHandlerVerifier.verifyMethodInvocation(node);
+    _nullSafeApiVerifier.methodInvocation(node);
     super.visitMethodInvocation(node);
   }
 

@@ -299,13 +299,6 @@ class BackendImpacts {
         constantMapLiteral
       ]);
 
-  BackendImpact _symbolConstructor;
-
-  BackendImpact get symbolConstructor {
-    return _symbolConstructor ??= new BackendImpact(
-        staticUses: [_commonElements.symbolValidatedConstructor]);
-  }
-
   BackendImpact _constSymbol;
 
   BackendImpact get constSymbol {
@@ -574,8 +567,11 @@ class BackendImpacts {
   BackendImpact _functionClass;
 
   BackendImpact get functionClass {
-    return _functionClass ??=
-        new BackendImpact(globalClasses: [_commonElements.closureClass]);
+    return _functionClass ??= new BackendImpact(globalClasses: [
+      _commonElements.closureClass,
+      _commonElements.closureClass0Args,
+      _commonElements.closureClass2Args,
+    ]);
   }
 
   BackendImpact _mapClass;

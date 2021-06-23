@@ -146,7 +146,8 @@ TEST_CASE(FreeListProtectedTinyObjects) {
 
 TEST_CASE(FreeListProtectedVariableSizeObjects) {
   FreeList* free_list = new FreeList();
-  const intptr_t kBlobSize = 8 * KB;
+  const intptr_t kBlobSize = 16 * KB;
+  ASSERT(kBlobSize >= VirtualMemory::PageSize());
   const intptr_t kMinSize = 2 * kWordSize;
   uword* objects = new uword[kBlobSize / kMinSize];
   for (intptr_t i = 0; i < kBlobSize / kMinSize; ++i) {
@@ -155,28 +156,27 @@ TEST_CASE(FreeListProtectedVariableSizeObjects) {
 
   VirtualMemory* blob =
       VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, "test");
-  ASSERT(Utils::IsAligned(blob->start(), 4096));
   blob->Protect(VirtualMemory::kReadWrite);
 
   // Enqueue the large blob as one free block.
   free_list->Free(blob->start(), blob->size());
 
   // Write protect the whole region.
-  blob->Protect(VirtualMemory::kReadExecute);
+  blob->Protect(VirtualMemory::kReadOnly);
 
   // Allocate and free objects so that free list has > 1 elements.
-  uword e0 = Allocate(free_list, 1 * KB, true);
+  uword e0 = Allocate(free_list, 2 * KB, true);
   ASSERT(e0);
-  uword e1 = Allocate(free_list, 3 * KB, true);
+  uword e1 = Allocate(free_list, 6 * KB, true);
   ASSERT(e1);
-  uword e2 = Allocate(free_list, 2 * KB, true);
+  uword e2 = Allocate(free_list, 4 * KB, true);
   ASSERT(e2);
-  uword e3 = Allocate(free_list, 2 * KB, true);
+  uword e3 = Allocate(free_list, 4 * KB, true);
   ASSERT(e3);
 
-  Free(free_list, e1, 3 * KB, true);
-  Free(free_list, e2, 2 * KB, true);
-  e0 = Allocate(free_list, 3 * KB - 2 * kWordSize, true);
+  Free(free_list, e1, 6 * KB, true);
+  Free(free_list, e2, 4 * KB, true);
+  e0 = Allocate(free_list, 6 * KB - 2 * kWordSize, true);
   ASSERT(e0);
 
   // Delete the memory associated with the test.

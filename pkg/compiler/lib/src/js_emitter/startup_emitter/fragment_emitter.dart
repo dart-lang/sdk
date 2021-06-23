@@ -592,6 +592,9 @@ class FragmentEmitter {
       _call1Name ??= _namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX1);
   js.Name get call2Name =>
       _call2Name ??= _namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX2);
+  List<js.Name> _callNamesByArity;
+  List<js.Name> get callNamesByArity =>
+      _callNamesByArity ??= [call0Name, call1Name, call2Name];
 
   FragmentEmitter(
       this._options,
@@ -1068,26 +1071,31 @@ class FragmentEmitter {
     allMethods.forEach((Method method) {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
-        var prop = js.Property(name, code);
-        registerEntityAst(method.element, prop);
-        properties.add(prop);
+        final property = js.Property(name, code);
+        registerEntityAst(method.element, property);
+        properties.add(property);
       });
     });
 
-    if (cls.isClosureBaseClass) {
-      // Closures extend a common base class, so we can put properties on the
-      // prototype for common values.
+    // Closures have metadata that is often the same. We avoid repeated metadata
+    // by putting it on a shared superclass. It is overridden in the subclass if
+    // necessary.
 
-      // Closures taking exactly one argument are common.
+    int arity = cls.sharedClosureApplyMetadata;
+    if (arity != null) {
+      // This is a closure base class that has the specialized `Function.apply`
+      // metadata for functions taking exactly [arity] arguments.
       properties.add(js.Property(js.string(_namer.fixedNames.callCatchAllName),
-          js.quoteName(call1Name)));
+          js.quoteName(callNamesByArity[arity])));
       properties.add(js.Property(
-          js.string(_namer.fixedNames.requiredParameterField), js.number(1)));
+          js.string(_namer.fixedNames.requiredParameterField),
+          js.number(arity)));
+    }
 
+    if (cls.isClosureBaseClass) {
       // Most closures have no optional arguments.
       properties.add(js.Property(
-          js.string(_namer.fixedNames.defaultValuesField),
-          new js.LiteralNull()));
+          js.string(_namer.fixedNames.defaultValuesField), js.LiteralNull()));
     }
 
     return new js.ObjectInitializer(properties);
@@ -1112,35 +1120,27 @@ class FragmentEmitter {
       }
 
       if (method.isClosureCallMethod && method.canBeApplied) {
-        // TODO(sra): We should also add these properties for the user-defined
-        // `call` method on classes. Function.apply is currently broken for
-        // complex cases. [forceAdd] might be true when this is fixed.
-        bool forceAdd = !method.isClosureCallMethod;
+        // The `call` method might flow to `Function.apply`, so the metadata for
+        // `Function.apply` is needed.
 
-        // Common case of "call*": "call$1" is stored on the Closure class.
-        if (method.applyIndex != 0 ||
-            method.parameterStubs.isNotEmpty ||
-            method.requiredParameterCount != 1 ||
-            forceAdd) {
+        // Avoid adding the metadata if a superclass has the same metadata.
+        if (!method.inheritsApplyMetadata) {
           js.Name applyName = method.applyIndex == 0
               ? method.name
               : method.parameterStubs[method.applyIndex - 1].name;
           properties[js.string(_namer.fixedNames.callCatchAllName)] =
               js.quoteName(applyName);
-        }
-        // Common case of '1' is stored on the Closure class.
-        if (method.requiredParameterCount != 1 || forceAdd) {
           properties[js.string(_namer.fixedNames.requiredParameterField)] =
               js.number(method.requiredParameterCount);
-        }
 
-        js.Expression defaultValues =
-            _encodeOptionalParameterDefaultValues(method);
-        // Default values property of `null` is stored on the common JS
-        // superclass.
-        if (defaultValues is! js.LiteralNull || forceAdd) {
-          properties[js.string(_namer.fixedNames.defaultValuesField)] =
-              defaultValues;
+          js.Expression defaultValues =
+              _encodeOptionalParameterDefaultValues(method);
+          // Default values property of `null` is stored on the common JS
+          // superclass.
+          if (defaultValues is! js.LiteralNull) {
+            properties[js.string(_namer.fixedNames.defaultValuesField)] =
+                defaultValues;
+          }
         }
       }
     }

@@ -62,9 +62,6 @@ enum Feature {
   /// super method.
   SUPER_NO_SUCH_METHOD,
 
-  /// A redirection to the `Symbol` constructor.
-  SYMBOL_CONSTRUCTOR,
-
   /// An synchronous for in statement, like `for (var e in i) {}`.
   SYNC_FOR_IN,
 
