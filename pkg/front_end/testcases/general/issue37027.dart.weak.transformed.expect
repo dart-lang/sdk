@@ -13,7 +13,7 @@ class C extends core::Object {
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           core::int e = :sync-for-iterator.{core::Iterator::current}{core::int};
           if(e.{core::int::isOdd}{core::bool})
-            #t1.{core::Set::add}(2.{core::num::*}(e){(core::num) → core::int}){(core::int) → core::bool};
+            #t1.{core::Set::add}{Invariant}(2.{core::num::*}(e){(core::num) → core::int}){(core::int) → core::bool};
         }
       }
     } =>#t1, super core::Object::•()

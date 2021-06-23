@@ -5063,8 +5063,14 @@ abstract class InvocationExpression extends Expression {
   Name get name;
 }
 
-class DynamicInvocation extends InvocationExpression {
+abstract class InstanceInvocationExpression extends InvocationExpression {
+  Expression get receiver;
+}
+
+class DynamicInvocation extends InstanceInvocationExpression {
   final DynamicAccessKind kind;
+
+  @override
   Expression receiver;
 
   @override
@@ -5203,7 +5209,7 @@ enum InstanceAccessKind {
 
 /// An invocation of an instance method with a statically known interface
 /// target.
-class InstanceInvocation extends InvocationExpression {
+class InstanceInvocation extends InstanceInvocationExpression {
   // Must match serialized bit positions.
   static const int FlagInvariant = 1 << 0;
   static const int FlagBoundsSafe = 1 << 1;
@@ -5376,7 +5382,7 @@ class InstanceInvocation extends InvocationExpression {
 /// This is used only for web backend in order to support invocation of
 /// native properties as functions. This node will be removed when this
 /// invocation style is no longer supported.
-class InstanceGetterInvocation extends InvocationExpression {
+class InstanceGetterInvocation extends InstanceInvocationExpression {
   // Must match serialized bit positions.
   static const int FlagInvariant = 1 << 0;
   static const int FlagBoundsSafe = 1 << 1;
@@ -5580,9 +5586,10 @@ enum FunctionAccessKind {
 
 /// An invocation of the 'call' method on an expression whose static type is
 /// a function type or the type 'Function'.
-class FunctionInvocation extends InvocationExpression {
+class FunctionInvocation extends InstanceInvocationExpression {
   final FunctionAccessKind kind;
 
+  @override
   Expression receiver;
 
   @override
@@ -5948,11 +5955,12 @@ class EqualsCall extends Expression {
 }
 
 /// Expression of form `x.foo(y)`.
-class MethodInvocation extends InvocationExpression {
+class MethodInvocation extends InstanceInvocationExpression {
   // Must match serialized bit positions.
   static const int FlagInvariant = 1 << 0;
   static const int FlagBoundsSafe = 1 << 1;
 
+  @override
   Expression receiver;
 
   @override

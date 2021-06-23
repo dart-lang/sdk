@@ -104,7 +104,8 @@ Future<CompilerResult> generateKernelInternal(
     List<int> summary = null;
     if (buildSummary) {
       if (options.verify) {
-        for (LocatedMessage error in verifyComponent(summaryComponent)) {
+        for (LocatedMessage error
+            in verifyComponent(summaryComponent, options.target)) {
           options.report(error, Severity.error);
         }
       }

@@ -9,6 +9,7 @@ library fasta.verifier;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/target/targets.dart';
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
@@ -34,22 +35,24 @@ import 'redirecting_factory_body.dart'
         getRedirectingFactoryBody,
         isRedirectingFactory;
 
-List<LocatedMessage> verifyComponent(Component component,
+List<LocatedMessage> verifyComponent(Component component, Target target,
     {bool isOutline, bool afterConst, bool skipPlatform: false}) {
   FastaVerifyingVisitor verifier =
-      new FastaVerifyingVisitor(isOutline, afterConst, skipPlatform);
+      new FastaVerifyingVisitor(target, isOutline, afterConst, skipPlatform);
   component.accept(verifier);
   return verifier.errors;
 }
 
 class FastaVerifyingVisitor extends VerifyingVisitor {
+  final Target target;
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
   Uri fileUri;
   final List<TreeNode> treeNodeStack = <TreeNode>[];
   final bool skipPlatform;
 
-  FastaVerifyingVisitor(bool isOutline, bool afterConst, this.skipPlatform)
+  FastaVerifyingVisitor(
+      this.target, bool isOutline, bool afterConst, this.skipPlatform)
       : super(isOutline: isOutline, afterConst: afterConst);
 
   /// Invoked by all visit methods if the visited node is a [TreeNode].
@@ -423,6 +426,39 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
       problem(node, "Attempt to invoke redirecting factory.");
     }
     exitTreeNode(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (target.supportsNewMethodInvocationEncoding) {
+      problem(
+          node,
+          "New method invocation encoding is supported, "
+          "but found a MethodInvocation.");
+    }
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPropertyGet(PropertyGet node) {
+    if (target.supportsNewMethodInvocationEncoding) {
+      problem(
+          node,
+          "New method invocation encoding is supported, "
+          "but found a PropertyGet.");
+    }
+    super.visitPropertyGet(node);
+  }
+
+  @override
+  void visitPropertySet(PropertySet node) {
+    if (target.supportsNewMethodInvocationEncoding) {
+      problem(
+          node,
+          "New method invocation encoding is supported, "
+          "but found a PropertySet.");
+    }
+    super.visitPropertySet(node);
   }
 
   @override

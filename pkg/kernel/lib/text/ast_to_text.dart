@@ -1495,6 +1495,16 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
     _writeInstanceAccessKind(node.kind);
+    List<String> flags = <String>[];
+    if (node.isInvariant) {
+      flags.add('Invariant');
+    }
+    if (node.isBoundsSafe) {
+      flags.add('BoundsSafe');
+    }
+    if (flags.isNotEmpty) {
+      write('{${flags.join(',')}}');
+    }
     writeNode(node.arguments);
     writeSymbol('{');
     writeType(node.functionType);

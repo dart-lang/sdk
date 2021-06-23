@@ -1014,10 +1014,10 @@ static method ok<XnonNull extends core::Object, YnonNull extends self::ok::XnonN
   core::Function functionVar = dynamicArg as{TypeError,ForDynamic,ForNonNullableByDefault} core::Function;
   functionVar = functionArg;
   functionVar = toVoidArg;
-  functionVar = let final self::Tearoffable #t2 = tearoffableArg in #t2 == null ?{() → void} null : #t2.{self::Tearoffable::call};
+  functionVar = let final self::Tearoffable #t2 = tearoffableArg in #t2 == null ?{() → void} null : #t2.{self::Tearoffable::call}{() → void};
   () → void toVoidVar = dynamicArg as{TypeError,ForDynamic,ForNonNullableByDefault} () → void;
   toVoidVar = toVoidArg;
-  toVoidVar = let final self::Tearoffable #t3 = tearoffableArg in #t3 == null ?{() → void} null : #t3.{self::Tearoffable::call};
+  toVoidVar = let final self::Tearoffable #t3 = tearoffableArg in #t3 == null ?{() → void} null : #t3.{self::Tearoffable::call}{() → void};
   self::Tearoffable tearoffableVar = dynamicArg as{TypeError,ForDynamic,ForNonNullableByDefault} self::Tearoffable;
   tearoffableVar = tearoffableArg;
   self::ok::XnonNull xNonNullVar = dynamicArg as{TypeError,ForDynamic,ForNonNullableByDefault} self::ok::XnonNull;

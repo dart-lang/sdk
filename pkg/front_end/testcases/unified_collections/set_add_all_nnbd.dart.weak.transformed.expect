@@ -7,33 +7,33 @@ import "dart:_internal" as _in;
 static method useAddAll() → void {
   dynamic dynamicSet1 = block {
     final core::Set<core::int> #t1 = new col::_CompactLinkedHashSet::•<core::int>();
-    #t1.{core::Set::add}(0){(core::int) → core::bool};
-    #t1.{core::Set::add}(1){(core::int) → core::bool};
-    #t1.{core::Set::add}(2){(core::int) → core::bool};
+    #t1.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
+    #t1.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+    #t1.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
   } =>#t1;
   dynamic dynamicSet2 = block {
     final core::Set<core::num> #t2 = new col::_CompactLinkedHashSet::•<core::num>();
-    #t2.{core::Set::add}(3){(core::num) → core::bool};
-    #t2.{core::Set::add}(4){(core::num) → core::bool};
-    #t2.{core::Set::add}(5){(core::num) → core::bool};
+    #t2.{core::Set::add}{Invariant}(3){(core::num) → core::bool};
+    #t2.{core::Set::add}{Invariant}(4){(core::num) → core::bool};
+    #t2.{core::Set::add}{Invariant}(5){(core::num) → core::bool};
   } =>#t2;
   dynamic dynamicSet3 = block {
     final core::Set<core::int?> #t3 = new col::_CompactLinkedHashSet::•<core::int?>();
-    #t3.{core::Set::add}(6){(core::int?) → core::bool};
-    #t3.{core::Set::add}(7){(core::int?) → core::bool};
-    #t3.{core::Set::add}(8){(core::int?) → core::bool};
+    #t3.{core::Set::add}{Invariant}(6){(core::int?) → core::bool};
+    #t3.{core::Set::add}{Invariant}(7){(core::int?) → core::bool};
+    #t3.{core::Set::add}{Invariant}(8){(core::int?) → core::bool};
   } =>#t3;
   core::Iterable<core::int> iterableIntSet = block {
     final core::Set<core::int> #t4 = new col::_CompactLinkedHashSet::•<core::int>();
-    #t4.{core::Set::add}(9){(core::int) → core::bool};
-    #t4.{core::Set::add}(10){(core::int) → core::bool};
-    #t4.{core::Set::add}(11){(core::int) → core::bool};
+    #t4.{core::Set::add}{Invariant}(9){(core::int) → core::bool};
+    #t4.{core::Set::add}{Invariant}(10){(core::int) → core::bool};
+    #t4.{core::Set::add}{Invariant}(11){(core::int) → core::bool};
   } =>#t4;
   core::Set<core::int> intSet = block {
     final core::Set<core::int> #t5 = new col::_CompactLinkedHashSet::•<core::int>();
-    #t5.{core::Set::add}(12){(core::int) → core::bool};
-    #t5.{core::Set::add}(13){(core::int) → core::bool};
-    #t5.{core::Set::add}(14){(core::int) → core::bool};
+    #t5.{core::Set::add}{Invariant}(12){(core::int) → core::bool};
+    #t5.{core::Set::add}{Invariant}(13){(core::int) → core::bool};
+    #t5.{core::Set::add}{Invariant}(14){(core::int) → core::bool};
   } =>#t5;
   core::Set<core::int> set1 = block {
     final core::Set<core::int> #t6 = new col::_CompactLinkedHashSet::•<core::int>();
@@ -43,7 +43,7 @@ static method useAddAll() → void {
         final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t8 = #t7 as{TypeError,ForNonNullableByDefault} core::int;
-          #t6.{core::Set::add}(#t8){(core::int) → core::bool};
+          #t6.{core::Set::add}{Invariant}(#t8){(core::int) → core::bool};
         }
       }
     }
@@ -53,7 +53,7 @@ static method useAddAll() → void {
         final dynamic #t9 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t10 = #t9 as{TypeError,ForNonNullableByDefault} core::int;
-          #t6.{core::Set::add}(#t10){(core::int) → core::bool};
+          #t6.{core::Set::add}{Invariant}(#t10){(core::int) → core::bool};
         }
       }
     }
@@ -63,12 +63,12 @@ static method useAddAll() → void {
         final dynamic #t11 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t12 = #t11 as{TypeError,ForNonNullableByDefault} core::int;
-          #t6.{core::Set::add}(#t12){(core::int) → core::bool};
+          #t6.{core::Set::add}{Invariant}(#t12){(core::int) → core::bool};
         }
       }
     }
-    #t6.{core::Set::addAll}(iterableIntSet){(core::Iterable<core::int>) → void};
-    #t6.{core::Set::addAll}(intSet){(core::Iterable<core::int>) → void};
+    #t6.{core::Set::addAll}{Invariant}(iterableIntSet){(core::Iterable<core::int>) → void};
+    #t6.{core::Set::addAll}{Invariant}(intSet){(core::Iterable<core::int>) → void};
   } =>#t6;
   self::expect(core::_GrowableList::generate<core::int>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<core::int>}, set1);
   core::Set<core::num> set2 = block {
@@ -79,7 +79,7 @@ static method useAddAll() → void {
         final dynamic #t14 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t15 = #t14 as{TypeError,ForNonNullableByDefault} core::num;
-          #t13.{core::Set::add}(#t15){(core::num) → core::bool};
+          #t13.{core::Set::add}{Invariant}(#t15){(core::num) → core::bool};
         }
       }
     }
@@ -89,7 +89,7 @@ static method useAddAll() → void {
         final dynamic #t16 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t17 = #t16 as{TypeError,ForNonNullableByDefault} core::num;
-          #t13.{core::Set::add}(#t17){(core::num) → core::bool};
+          #t13.{core::Set::add}{Invariant}(#t17){(core::num) → core::bool};
         }
       }
     }
@@ -99,45 +99,45 @@ static method useAddAll() → void {
         final dynamic #t18 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t19 = #t18 as{TypeError,ForNonNullableByDefault} core::num;
-          #t13.{core::Set::add}(#t19){(core::num) → core::bool};
+          #t13.{core::Set::add}{Invariant}(#t19){(core::num) → core::bool};
         }
       }
     }
-    #t13.{core::Set::addAll}(iterableIntSet){(core::Iterable<core::num>) → void};
-    #t13.{core::Set::addAll}(intSet){(core::Iterable<core::num>) → void};
+    #t13.{core::Set::addAll}{Invariant}(iterableIntSet){(core::Iterable<core::num>) → void};
+    #t13.{core::Set::addAll}{Invariant}(intSet){(core::Iterable<core::num>) → void};
   } =>#t13;
   self::expect(core::_GrowableList::generate<core::num>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<core::num>}, set2);
 }
 static method useAddAllNullable() → void {
   dynamic dynamicSet1 = block {
     final core::Set<core::int> #t20 = new col::_CompactLinkedHashSet::•<core::int>();
-    #t20.{core::Set::add}(0){(core::int) → core::bool};
-    #t20.{core::Set::add}(1){(core::int) → core::bool};
-    #t20.{core::Set::add}(2){(core::int) → core::bool};
+    #t20.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
+    #t20.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+    #t20.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
   } =>#t20;
   dynamic dynamicSet2 = block {
     final core::Set<core::num> #t21 = new col::_CompactLinkedHashSet::•<core::num>();
-    #t21.{core::Set::add}(3){(core::num) → core::bool};
-    #t21.{core::Set::add}(4){(core::num) → core::bool};
-    #t21.{core::Set::add}(5){(core::num) → core::bool};
+    #t21.{core::Set::add}{Invariant}(3){(core::num) → core::bool};
+    #t21.{core::Set::add}{Invariant}(4){(core::num) → core::bool};
+    #t21.{core::Set::add}{Invariant}(5){(core::num) → core::bool};
   } =>#t21;
   dynamic dynamicSet3 = block {
     final core::Set<core::int?> #t22 = new col::_CompactLinkedHashSet::•<core::int?>();
-    #t22.{core::Set::add}(6){(core::int?) → core::bool};
-    #t22.{core::Set::add}(7){(core::int?) → core::bool};
-    #t22.{core::Set::add}(8){(core::int?) → core::bool};
+    #t22.{core::Set::add}{Invariant}(6){(core::int?) → core::bool};
+    #t22.{core::Set::add}{Invariant}(7){(core::int?) → core::bool};
+    #t22.{core::Set::add}{Invariant}(8){(core::int?) → core::bool};
   } =>#t22;
   core::Iterable<core::int>? iterableIntSet = true ?{core::Set<core::int>?} block {
     final core::Set<core::int> #t23 = new col::_CompactLinkedHashSet::•<core::int>();
-    #t23.{core::Set::add}(9){(core::int) → core::bool};
-    #t23.{core::Set::add}(10){(core::int) → core::bool};
-    #t23.{core::Set::add}(11){(core::int) → core::bool};
+    #t23.{core::Set::add}{Invariant}(9){(core::int) → core::bool};
+    #t23.{core::Set::add}{Invariant}(10){(core::int) → core::bool};
+    #t23.{core::Set::add}{Invariant}(11){(core::int) → core::bool};
   } =>#t23 : null;
   core::Set<core::int>? intSet = true ?{core::Set<core::int>?} block {
     final core::Set<core::int> #t24 = new col::_CompactLinkedHashSet::•<core::int>();
-    #t24.{core::Set::add}(12){(core::int) → core::bool};
-    #t24.{core::Set::add}(13){(core::int) → core::bool};
-    #t24.{core::Set::add}(14){(core::int) → core::bool};
+    #t24.{core::Set::add}{Invariant}(12){(core::int) → core::bool};
+    #t24.{core::Set::add}{Invariant}(13){(core::int) → core::bool};
+    #t24.{core::Set::add}{Invariant}(14){(core::int) → core::bool};
   } =>#t24 : null;
   core::Set<core::int> set1 = block {
     final core::Set<core::int> #t25 = new col::_CompactLinkedHashSet::•<core::int>();
@@ -148,7 +148,7 @@ static method useAddAllNullable() → void {
         final dynamic #t27 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t28 = #t27 as{TypeError,ForNonNullableByDefault} core::int;
-          #t25.{core::Set::add}(#t28){(core::int) → core::bool};
+          #t25.{core::Set::add}{Invariant}(#t28){(core::int) → core::bool};
         }
       }
     }
@@ -159,7 +159,7 @@ static method useAddAllNullable() → void {
         final dynamic #t30 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t31 = #t30 as{TypeError,ForNonNullableByDefault} core::int;
-          #t25.{core::Set::add}(#t31){(core::int) → core::bool};
+          #t25.{core::Set::add}{Invariant}(#t31){(core::int) → core::bool};
         }
       }
     }
@@ -170,16 +170,16 @@ static method useAddAllNullable() → void {
         final dynamic #t33 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t34 = #t33 as{TypeError,ForNonNullableByDefault} core::int;
-          #t25.{core::Set::add}(#t34){(core::int) → core::bool};
+          #t25.{core::Set::add}{Invariant}(#t34){(core::int) → core::bool};
         }
       }
     }
     final core::Iterable<core::int>? #t35 = iterableIntSet;
     if(!(#t35 == null))
-      #t25.{core::Set::addAll}(#t35{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+      #t25.{core::Set::addAll}{Invariant}(#t35{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
     final core::Iterable<core::int>? #t36 = intSet;
     if(!(#t36 == null))
-      #t25.{core::Set::addAll}(#t36{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+      #t25.{core::Set::addAll}{Invariant}(#t36{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
   } =>#t25;
   self::expect(core::_GrowableList::generate<core::int>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<core::int>}, set1);
   core::Set<core::num> set2 = block {
@@ -191,7 +191,7 @@ static method useAddAllNullable() → void {
         final dynamic #t39 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t40 = #t39 as{TypeError,ForNonNullableByDefault} core::num;
-          #t37.{core::Set::add}(#t40){(core::num) → core::bool};
+          #t37.{core::Set::add}{Invariant}(#t40){(core::num) → core::bool};
         }
       }
     }
@@ -202,7 +202,7 @@ static method useAddAllNullable() → void {
         final dynamic #t42 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t43 = #t42 as{TypeError,ForNonNullableByDefault} core::num;
-          #t37.{core::Set::add}(#t43){(core::num) → core::bool};
+          #t37.{core::Set::add}{Invariant}(#t43){(core::num) → core::bool};
         }
       }
     }
@@ -213,16 +213,16 @@ static method useAddAllNullable() → void {
         final dynamic #t45 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t46 = #t45 as{TypeError,ForNonNullableByDefault} core::num;
-          #t37.{core::Set::add}(#t46){(core::num) → core::bool};
+          #t37.{core::Set::add}{Invariant}(#t46){(core::num) → core::bool};
         }
       }
     }
     final core::Iterable<core::num>? #t47 = iterableIntSet;
     if(!(#t47 == null))
-      #t37.{core::Set::addAll}(#t47{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
+      #t37.{core::Set::addAll}{Invariant}(#t47{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
     final core::Iterable<core::num>? #t48 = intSet;
     if(!(#t48 == null))
-      #t37.{core::Set::addAll}(#t48{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
+      #t37.{core::Set::addAll}{Invariant}(#t48{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
   } =>#t37;
   self::expect(core::_GrowableList::generate<core::num>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<core::num>}, set2);
 }

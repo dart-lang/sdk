@@ -19,6 +19,6 @@ class Class extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test(self::Class* c) → dynamic {
-  core::Function* f = let final self::Class* #t1 = c in #t1 == null ?{() →* void} null : #t1.{self::Class::call};
+  core::Function* f = let final self::Class* #t1 = c in #t1 == null ?{() →* void} null : #t1.{self::Class::call}{() →* void};
 }
 static method main() → dynamic {}
