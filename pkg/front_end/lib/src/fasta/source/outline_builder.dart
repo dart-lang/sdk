@@ -2186,7 +2186,7 @@ class OutlineBuilder extends StackListenerImpl {
     // "constructor-tearoffs" feature is enabled.
     addProblem(
         templateExperimentNotEnabled.withArguments('constructor-tearoffs',
-            libraryBuilder.enableConstructorTearoffsVersionInLibrary.toText()),
+            libraryBuilder.enableConstructorTearOffsVersionInLibrary.toText()),
         token.charOffset,
         token.length);
   }

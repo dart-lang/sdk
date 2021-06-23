@@ -6420,19 +6420,30 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 2;
 
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
   summary->set_in(0, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
+  summary->set_temp(1, Location::RequiresRegister());
 
   return summary;
 }
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_address_reg = locs()->temp_slot(0)->reg();
+  Register index_reg = locs()->in(0).reg();
+  Register target_address_reg = locs()->temp(0).reg();
+  Register offset_reg = locs()->temp(1).reg();
+
+  ASSERT(RequiredInputRepresentation(0) == kTagged);
+  __ LoadObject(offset_reg, offsets_);
+  const auto element_address = __ ElementAddressForRegIndex(
+      /*is_external=*/false, kTypedDataInt32ArrayCid,
+      /*index_scale=*/4,
+      /*index_unboxed=*/false, offset_reg, index_reg, TMP);
+  __ ldr(offset_reg, element_address, compiler::kFourBytes);
 
   // Load code entry point.
   const intptr_t entry_offset = __ CodeSize();
@@ -6443,13 +6454,7 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ AddImmediate(target_address_reg, -entry_offset);
   }
 
-  // Add the offset.
-  Register offset_reg = locs()->in(0).reg();
-  compiler::Operand offset_opr =
-      (offset()->definition()->representation() == kTagged)
-          ? compiler::Operand(offset_reg, ASR, kSmiTagSize)
-          : compiler::Operand(offset_reg);
-  __ add(target_address_reg, target_address_reg, offset_opr);
+  __ add(target_address_reg, target_address_reg, compiler::Operand(offset_reg));
 
   // Jump to the absolute address.
   __ br(target_address_reg);

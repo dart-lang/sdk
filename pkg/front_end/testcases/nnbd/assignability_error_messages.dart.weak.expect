@@ -333,7 +333,7 @@ Try changing the type of the variable.
 static method baz(self::C c) → void {
   self::bazContext(let final Never #t14 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:62:14: Error: The argument type 'num? Function()' can't be assigned to the parameter type 'num Function()' because 'num?' is nullable and 'num' isn't.
   bazContext(c);
-             ^" in (let final self::C #t15 = c in #t15 == null ?{() → core::num?} null : #t15.{self::C::call}) as{TypeError,ForNonNullableByDefault} () → core::num);
+             ^" in (let final self::C #t15 = c in #t15 == null ?{() → core::num?} null : #t15.{self::C::call}{() → core::num?}) as{TypeError,ForNonNullableByDefault} () → core::num);
 }
 static method boz(Null x) → self::A {
   self::fooContext(let final Never #t16 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:66:14: Error: The argument type 'Null' can't be assigned to the parameter type 'A' because 'A' is not nullable.

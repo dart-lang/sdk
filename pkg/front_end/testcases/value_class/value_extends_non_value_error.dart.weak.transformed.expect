@@ -30,7 +30,7 @@ class Cat extends self::Animal {
   operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::Cat;
   get /*isLegacy*/ hashCode() → core::int
-    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat".{core::String::hashCode});
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
     return "Cat()";
   method /*isLegacy*/ copyWith() → dynamic
@@ -49,7 +49,7 @@ class Cat2 extends self::Animal2 {
   operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::Cat2;
   get /*isLegacy*/ hashCode() → core::int
-    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat2".{core::String::hashCode});
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat2".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
     return "Cat2()";
   method /*isLegacy*/ copyWith() → dynamic

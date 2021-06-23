@@ -16,7 +16,7 @@ static method useAddAll() → void {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t3 = #t2 as{TypeError,ForNonNullableByDefault} core::int;
-          #t1.{core::List::add}(#t3){(core::int) → void};
+          #t1.{core::List::add}{Invariant}(#t3){(core::int) → void};
         }
       }
     }
@@ -26,7 +26,7 @@ static method useAddAll() → void {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t5 = #t4 as{TypeError,ForNonNullableByDefault} core::int;
-          #t1.{core::List::add}(#t5){(core::int) → void};
+          #t1.{core::List::add}{Invariant}(#t5){(core::int) → void};
         }
       }
     }
@@ -36,12 +36,12 @@ static method useAddAll() → void {
         final dynamic #t6 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t7 = #t6 as{TypeError,ForNonNullableByDefault} core::int;
-          #t1.{core::List::add}(#t7){(core::int) → void};
+          #t1.{core::List::add}{Invariant}(#t7){(core::int) → void};
         }
       }
     }
-    #t1.{core::List::addAll}(iterableIntList){(core::Iterable<core::int>) → void};
-    #t1.{core::List::addAll}(intList){(core::Iterable<core::int>) → void};
+    #t1.{core::List::addAll}{Invariant}(iterableIntList){(core::Iterable<core::int>) → void};
+    #t1.{core::List::addAll}{Invariant}(intList){(core::Iterable<core::int>) → void};
   } =>#t1;
   self::expect(core::_GrowableList::generate<core::int>(15, (core::int i) → core::int => i), list1);
   core::List<core::num> list2 = block {
@@ -52,7 +52,7 @@ static method useAddAll() → void {
         final dynamic #t9 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t10 = #t9 as{TypeError,ForNonNullableByDefault} core::num;
-          #t8.{core::List::add}(#t10){(core::num) → void};
+          #t8.{core::List::add}{Invariant}(#t10){(core::num) → void};
         }
       }
     }
@@ -62,7 +62,7 @@ static method useAddAll() → void {
         final dynamic #t11 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t12 = #t11 as{TypeError,ForNonNullableByDefault} core::num;
-          #t8.{core::List::add}(#t12){(core::num) → void};
+          #t8.{core::List::add}{Invariant}(#t12){(core::num) → void};
         }
       }
     }
@@ -72,12 +72,12 @@ static method useAddAll() → void {
         final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t14 = #t13 as{TypeError,ForNonNullableByDefault} core::num;
-          #t8.{core::List::add}(#t14){(core::num) → void};
+          #t8.{core::List::add}{Invariant}(#t14){(core::num) → void};
         }
       }
     }
-    #t8.{core::List::addAll}(iterableIntList){(core::Iterable<core::num>) → void};
-    #t8.{core::List::addAll}(intList){(core::Iterable<core::num>) → void};
+    #t8.{core::List::addAll}{Invariant}(iterableIntList){(core::Iterable<core::num>) → void};
+    #t8.{core::List::addAll}{Invariant}(intList){(core::Iterable<core::num>) → void};
   } =>#t8;
   self::expect(core::_GrowableList::generate<core::num>(15, (core::int i) → core::int => i), list2);
 }
@@ -96,7 +96,7 @@ static method useAddAllNullable() → void {
         final dynamic #t17 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t18 = #t17 as{TypeError,ForNonNullableByDefault} core::int;
-          #t15.{core::List::add}(#t18){(core::int) → void};
+          #t15.{core::List::add}{Invariant}(#t18){(core::int) → void};
         }
       }
     }
@@ -107,7 +107,7 @@ static method useAddAllNullable() → void {
         final dynamic #t20 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t21 = #t20 as{TypeError,ForNonNullableByDefault} core::int;
-          #t15.{core::List::add}(#t21){(core::int) → void};
+          #t15.{core::List::add}{Invariant}(#t21){(core::int) → void};
         }
       }
     }
@@ -118,16 +118,16 @@ static method useAddAllNullable() → void {
         final dynamic #t23 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t24 = #t23 as{TypeError,ForNonNullableByDefault} core::int;
-          #t15.{core::List::add}(#t24){(core::int) → void};
+          #t15.{core::List::add}{Invariant}(#t24){(core::int) → void};
         }
       }
     }
     final core::Iterable<core::int>? #t25 = iterableIntList;
     if(!(#t25 == null))
-      #t15.{core::List::addAll}(#t25{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+      #t15.{core::List::addAll}{Invariant}(#t25{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
     final core::Iterable<core::int>? #t26 = intList;
     if(!(#t26 == null))
-      #t15.{core::List::addAll}(#t26{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+      #t15.{core::List::addAll}{Invariant}(#t26{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
   } =>#t15;
   self::expect(core::_GrowableList::generate<core::int>(15, (core::int i) → core::int => i), list1);
   core::List<core::num> list2 = block {
@@ -139,7 +139,7 @@ static method useAddAllNullable() → void {
         final dynamic #t29 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t30 = #t29 as{TypeError,ForNonNullableByDefault} core::num;
-          #t27.{core::List::add}(#t30){(core::num) → void};
+          #t27.{core::List::add}{Invariant}(#t30){(core::num) → void};
         }
       }
     }
@@ -150,7 +150,7 @@ static method useAddAllNullable() → void {
         final dynamic #t32 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t33 = #t32 as{TypeError,ForNonNullableByDefault} core::num;
-          #t27.{core::List::add}(#t33){(core::num) → void};
+          #t27.{core::List::add}{Invariant}(#t33){(core::num) → void};
         }
       }
     }
@@ -161,16 +161,16 @@ static method useAddAllNullable() → void {
         final dynamic #t35 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t36 = #t35 as{TypeError,ForNonNullableByDefault} core::num;
-          #t27.{core::List::add}(#t36){(core::num) → void};
+          #t27.{core::List::add}{Invariant}(#t36){(core::num) → void};
         }
       }
     }
     final core::Iterable<core::num>? #t37 = iterableIntList;
     if(!(#t37 == null))
-      #t27.{core::List::addAll}(#t37{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
+      #t27.{core::List::addAll}{Invariant}(#t37{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
     final core::Iterable<core::num>? #t38 = intList;
     if(!(#t38 == null))
-      #t27.{core::List::addAll}(#t38{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
+      #t27.{core::List::addAll}{Invariant}(#t38{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
   } =>#t27;
   self::expect(core::_GrowableList::generate<core::num>(15, (core::int i) → core::int => i), list2);
 }

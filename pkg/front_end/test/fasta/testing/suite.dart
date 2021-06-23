@@ -1979,7 +1979,8 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
     return await CompilerContext.runWithOptions(options,
         (compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
-      List<LocatedMessage> verificationErrors = verifyComponent(component,
+      List<LocatedMessage> verificationErrors = verifyComponent(
+          component, options.target,
           isOutline: !fullCompile, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {

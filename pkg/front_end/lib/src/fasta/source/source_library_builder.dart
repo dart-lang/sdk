@@ -319,6 +319,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableExtensionMethodsInLibrary;
   bool _enableGenericMetadataInLibrary;
   bool _enableExtensionTypesInLibrary;
+  bool _enableConstructorTearOffsInLibrary;
 
   bool get enableConstFunctionsInLibrary => _enableConstFunctionsInLibrary ??=
       loader.target.isExperimentEnabledInLibraryByVersion(
@@ -352,7 +353,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           .getExperimentEnabledVersionInLibrary(
               ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
-  Version get enableConstructorTearoffsVersionInLibrary =>
+  bool get enableConstructorTearOffsInLibrary =>
+      _enableConstructorTearOffsInLibrary ??= loader.target
+          .isExperimentEnabledInLibraryByVersion(
+              ExperimentalFlag.constructorTearoffs,
+              _packageUri ?? importUri,
+              languageVersion.version);
+
+  Version get enableConstructorTearOffsVersionInLibrary =>
       _enableConstructorTearoffsVersionInLibrary ??= loader.target
           .getExperimentEnabledVersionInLibrary(
               ExperimentalFlag.constructorTearoffs, _packageUri ?? importUri);

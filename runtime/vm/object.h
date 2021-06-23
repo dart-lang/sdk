@@ -873,6 +873,18 @@ class Object {
   DISALLOW_COPY_AND_ASSIGN(Object);
 };
 
+#if defined(DART_PRECOMPILER)
+#define PRECOMPILER_WSR_FIELD_DECLARATION(Type, Name)                          \
+  Type##Ptr Name() const;                                                      \
+  void set_##Name(const Object& value) const {                                 \
+    untag()->set_##Name(value.ptr());                                          \
+  }
+#else
+#define PRECOMPILER_WSR_FIELD_DECLARATION(Type, Name)                          \
+  Type##Ptr Name() const { return untag()->Name(); }                           \
+  void set_##Name(const Type& value) const;
+#endif
+
 class PassiveObject : public Object {
  public:
   void operator=(ObjectPtr value) { ptr_ = value; }
@@ -3824,14 +3836,7 @@ class ClosureData : public Object {
   void set_context_scope(const ContextScope& value) const;
 
   // Enclosing function of this local function.
-#if defined(DART_PRECOMPILER)
-  // Can be WSR wrapped in the precompiler.
-  ObjectPtr parent_function() const { return untag()->parent_function(); }
-  void set_parent_function(const Object& value) const;
-#else
-  FunctionPtr parent_function() const { return untag()->parent_function(); }
-  void set_parent_function(const Function& value) const;
-#endif
+  PRECOMPILER_WSR_FIELD_DECLARATION(Function, parent_function)
 
   ClosurePtr implicit_static_closure() const {
     return untag()->closure<std::memory_order_acquire>();
@@ -6011,29 +6016,25 @@ class ExceptionHandlers : public Object {
 
 // A WeakSerializationReference (WSR) denotes a type of weak reference to a
 // target object. In particular, objects that can only be reached from roots via
-// WSR edges during serialization of AOT snapshots should not be serialized. Of
-// course, the target object may still be serialized if there are paths to the
-// object from the roots that do not go through one of these objects, in which
-// case the WSR is discarded in favor of a direct reference during serialization
-// to avoid runtime overhead.
+// WSR edges during serialization of AOT snapshots should not be serialized, but
+// instead references to these objects should be replaced with a reference to
+// the provided replacement object.
 //
-// Note: Some objects cannot be dropped during AOT serialization, and thus
-//       Wrap() may return the original object in some cases. The CanWrap()
-//       function returns false if Wrap() will return the original object.
-//       In particular, the null object will never be wrapped, so receiving
-//       Object::null() from target() means the WSR represents a dropped target.
+// Of course, the target object may still be serialized if there are paths to
+// the object from the roots that do not go through one of these objects. In
+// this case, references through WSRs are serialized as direct references to
+// the target.
 //
-// Unfortunately a WSR is not a proxy for the original object, so if WSRs may
-// appear as field contents (currently only possible for ObjectPtr fields),
-// then code that accesses that field must handle the case where an WSR has
-// been introduced. Before serialization, Unwrap can be used to take a
-// Object reference or RawObject pointer and remove any WSR wrapping before use.
-// After deserialization, any WSRs no longer contain a pointer to the target,
-// but instead contain only the class ID of the original target.
+// Unfortunately a WSR is not a proxy for the original object, so WSRs may
+// only currently be used with ObjectPtr fields. To ease this situation for
+// fields that are normally a non-ObjectPtr type outside of the precompiler,
+// use the following macros, which avoid the need to adjust other code to
+// handle the WSR case:
 //
-// Current uses of WSRs:
-//  * Code::owner_
-//  * Canonical table elements
+// * WSR_*POINTER_FIELD() in raw_object.h (i.e., just append WSR_ to the
+//   original field declaration).
+// * PRECOMPILER_WSR_FIELD_DECLARATION() in object.h
+// * PRECOMPILER_WSR_FIELD_DEFINITION() in object.cc
 class WeakSerializationReference : public Object {
  public:
   ObjectPtr target() const { return TargetOf(ptr()); }
@@ -6057,11 +6058,15 @@ class WeakSerializationReference : public Object {
     return RoundedAllocationSize(sizeof(UntaggedWeakSerializationReference));
   }
 
-  static WeakSerializationReferencePtr New(const Object& target,
-                                           const Object& replacement);
+  // Returns an ObjectPtr as the target may not need wrapping (e.g., it
+  // is guaranteed to be serialized).
+  static ObjectPtr New(const Object& target, const Object& replacement);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference, Object);
+
+  ObjectPtr replacement() const { return untag()->replacement(); }
+
   friend class Class;
 };
 
@@ -12021,6 +12026,8 @@ ErrorPtr EntryPointFieldInvocationError(const String& getter_name);
 
 DART_WARN_UNUSED_RESULT
 ErrorPtr EntryPointMemberInvocationError(const Object& member);
+
+#undef PRECOMPILER_WSR_FIELD_DECLARATION
 
 }  // namespace dart
 

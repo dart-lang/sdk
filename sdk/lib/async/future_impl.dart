@@ -170,12 +170,31 @@ class _FutureListener<S, T> {
     var errorCallback = this.errorCallback; // To enable promotion.
     // If the errorCallback returns something which is not a FutureOr<T>,
     // this return statement throws, and the caller handles the error.
+    dynamic result;
     if (errorCallback is dynamic Function(Object, StackTrace)) {
-      return _zone.runBinary<dynamic, Object, StackTrace>(
+      result = _zone.runBinary<dynamic, Object, StackTrace>(
           errorCallback, asyncError.error, asyncError.stackTrace);
     } else {
-      return _zone.runUnary<dynamic, Object>(
+      result = _zone.runUnary<dynamic, Object>(
           errorCallback as dynamic, asyncError.error);
+    }
+    // Give better error messages if the result is not a valid
+    // FutureOr<T>.
+    try {
+      return result;
+    } on TypeError {
+      if (handlesValue) {
+        // This is a `.then` callback with an `onError`.
+        throw ArgumentError(
+            "The error handler of Future.then"
+                " must return a value of the returned future's type",
+            "onError");
+      }
+      // This is a `catchError` callback.
+      throw ArgumentError(
+          "The error handler of "
+              "Future.catchError must return a value of the future's type",
+          "onError");
     }
   }
 
@@ -315,10 +334,20 @@ class _Future<T> implements Future<T> {
 
   Future<R> then<R>(FutureOr<R> f(T value), {Function? onError}) {
     Zone currentZone = Zone.current;
-    if (!identical(currentZone, _rootZone)) {
+    if (identical(currentZone, _rootZone)) {
+      if (onError != null &&
+          onError is! Function(Object, StackTrace) &&
+          onError is! Function(Object)) {
+        throw ArgumentError.value(
+            onError,
+            "onError",
+            "Error handler must accept one Object or one Object and a StackTrace"
+                " as arguments, and return a value of the returned future's type");
+      }
+    } else {
       f = currentZone.registerUnaryCallback<FutureOr<R>, T>(f);
       if (onError != null) {
-        // In checked mode, this checks that onError is assignable to one of:
+        // This call also checks that onError is assignable to one of:
         //   dynamic Function(Object)
         //   dynamic Function(Object, StackTrace)
         onError = _registerErrorHandler(onError, currentZone);
@@ -873,9 +902,9 @@ Function _registerErrorHandler(Function errorHandler, Zone zone) {
   if (errorHandler is dynamic Function(Object)) {
     return zone.registerUnaryCallback<dynamic, Object>(errorHandler);
   }
-  throw new ArgumentError.value(
+  throw ArgumentError.value(
       errorHandler,
       "onError",
       "Error handler must accept one Object or one Object and a StackTrace"
-          " as arguments, and return a valid result");
+          " as arguments, and return a value of the returned future's type");
 }

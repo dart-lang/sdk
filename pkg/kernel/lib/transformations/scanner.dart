@@ -243,17 +243,18 @@ abstract class ExpressionScanner<Y extends TreeNode>
 }
 
 abstract class MethodInvocationScanner<Y extends TreeNode?>
-    extends RecursiveVisitor implements Scanner<MethodInvocation, Y> {
+    extends RecursiveVisitor
+    implements Scanner<InstanceInvocationExpression, Y> {
   final Scanner<Y, TreeNode>? next;
-  ScanResult<MethodInvocation, Y>? _result;
+  ScanResult<InstanceInvocationExpression, Y>? _result;
 
   MethodInvocationScanner(this.next);
 
-  bool predicate(MethodInvocation node);
+  bool predicate(InstanceInvocationExpression node);
 
-  ScanResult<MethodInvocation, Y> scan(TreeNode node) {
-    ScanResult<MethodInvocation, Y> result =
-        _result = new ScanResult<MethodInvocation, Y>();
+  ScanResult<InstanceInvocationExpression, Y> scan(TreeNode node) {
+    ScanResult<InstanceInvocationExpression, Y> result =
+        _result = new ScanResult<InstanceInvocationExpression, Y>();
     node.accept(this);
     _result = null;
     return result;

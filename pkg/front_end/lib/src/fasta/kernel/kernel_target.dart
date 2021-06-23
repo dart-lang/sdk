@@ -1229,7 +1229,9 @@ class KernelTarget extends TargetImplementation {
     if (loader.target.context.options
         .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
       valueClass.transformComponent(
-          component, loader.coreTypes, loader.hierarchy, environment);
+          component, loader.coreTypes, loader.hierarchy, environment,
+          useNewMethodInvocationEncoding:
+              backendTarget.supportsNewMethodInvocationEncoding);
       ticker.logMs("Lowered value classes");
     }
 
@@ -1301,7 +1303,7 @@ class KernelTarget extends TargetImplementation {
 
   void verify() {
     // TODO(ahe): How to handle errors.
-    verifyComponent(component,
+    verifyComponent(component, context.options.target,
         skipPlatform: context.options.skipPlatformVerification);
     ClassHierarchy hierarchy =
         new ClassHierarchy(component, new CoreTypes(component),

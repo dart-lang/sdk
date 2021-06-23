@@ -6304,12 +6304,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleTypeArgumentApplication(Token openAngleBracket) {
     /// TODO(johnniwinther, paulberry): add support for this construct when the
     /// "constructor-tearoffs" feature is enabled.
-    pop(); // typeArguments
-    addProblem(
-        templateExperimentNotEnabled.withArguments('constructor-tearoffs',
-            libraryBuilder.enableConstructorTearoffsVersionInLibrary.toText()),
-        openAngleBracket.charOffset,
-        noLength);
+    List<UnresolvedType> typeArguments = pop(); // typeArguments
+    if (libraryBuilder.enableConstructorTearOffsInLibrary) {
+      Generator generator = pop();
+      push(generator.applyTypeArguments(
+          openAngleBracket.charOffset, typeArguments));
+    } else {
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'constructor-tearoffs',
+              libraryBuilder.enableConstructorTearOffsVersionInLibrary
+                  .toText()),
+          openAngleBracket.charOffset,
+          noLength);
+    }
   }
 
   @override
@@ -6597,7 +6605,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // "constructor-tearoffs" feature is enabled.
     addProblem(
         templateExperimentNotEnabled.withArguments('constructor-tearoffs',
-            libraryBuilder.enableConstructorTearoffsVersionInLibrary.toText()),
+            libraryBuilder.enableConstructorTearOffsVersionInLibrary.toText()),
         token.charOffset,
         token.length);
   }

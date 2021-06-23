@@ -1370,9 +1370,11 @@ class InferenceVisitor
   }
 
   void visitShadowInvalidInitializer(ShadowInvalidInitializer node) {
-    inferrer.inferExpression(
+    ExpressionInferenceResult initializerResult = inferrer.inferExpression(
         node.variable.initializer, const UnknownType(), !inferrer.isTopLevel,
         isVoidAllowed: false);
+    node.variable.initializer = initializerResult.expression
+      ..parent = node.variable;
   }
 
   void visitShadowInvalidFieldInitializer(ShadowInvalidFieldInitializer node) {

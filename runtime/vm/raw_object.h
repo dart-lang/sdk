@@ -993,6 +993,14 @@ inline intptr_t ObjectPtr::GetClassId() const {
  protected:                                                                    \
   Compressed##type name##_;
 
+#if defined(DART_PRECOMPILER)
+#define WSR_COMPRESSED_POINTER_FIELD(Type, Name)                               \
+  COMPRESSED_POINTER_FIELD(ObjectPtr, Name)
+#else
+#define WSR_COMPRESSED_POINTER_FIELD(Type, Name)                               \
+  COMPRESSED_POINTER_FIELD(Type, Name)
+#endif
+
 class UntaggedClass : public UntaggedObject {
  public:
   enum ClassFinalizedState {
@@ -1425,12 +1433,7 @@ class UntaggedClosureData : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ContextScopePtr, context_scope)
   VISIT_FROM(context_scope)
   // Enclosing function of this local function.
-#if defined(DART_PRECOMPILER)
-  // Can be wrapped by a WSR in the precompiler.
-  COMPRESSED_POINTER_FIELD(ObjectPtr, parent_function)
-#else
-  COMPRESSED_POINTER_FIELD(FunctionPtr, parent_function)
-#endif
+  WSR_COMPRESSED_POINTER_FIELD(FunctionPtr, parent_function)
   // Closure object for static implicit closures.
   COMPRESSED_POINTER_FIELD(ClosurePtr, closure)
   VISIT_TO(closure)
@@ -3346,6 +3349,8 @@ class UntaggedFutureOr : public UntaggedInstance {
 
   friend class SnapshotReader;
 };
+
+#undef WSR_COMPRESSED_POINTER_FIELD
 
 }  // namespace dart
 

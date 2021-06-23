@@ -6845,27 +6845,36 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 }
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register offset_reg = locs()->in(0).reg();
-  Register target_address_reg = locs()->temp(0).reg();
+  Register index_reg = locs()->in(0).reg();
+  Register offset_reg = locs()->temp(0).reg();
+
+  ASSERT(RequiredInputRepresentation(0) == kTagged);
+#if defined(DART_COMPRESSED_POINTERS)
+  // The upper half of a compressed Smi contains undefined bits, but no x64
+  // addressing mode will ignore these bits. Assume that the index is
+  // non-negative and clear the upper bits, which is shorter than
+  // sign-extension (movsxd). Note: we don't bother to ensure index is a
+  // writable input because any other instructions using it must also not
+  // rely on the upper bits.
+  __ orl(index_reg, index_reg);
+#endif
+  __ LoadObject(offset_reg, offsets_);
+  __ movsxd(offset_reg, compiler::Assembler::ElementAddressForRegIndex(
+                            /*is_external=*/false, kTypedDataInt32ArrayCid,
+                            /*index_scale=*/4,
+                            /*index_unboxed=*/false, offset_reg, index_reg));
 
   {
     const intptr_t kRIPRelativeLeaqSize = 7;
     const intptr_t entry_to_rip_offset = __ CodeSize() + kRIPRelativeLeaqSize;
-    __ leaq(target_address_reg,
-            compiler::Address::AddressRIPRelative(-entry_to_rip_offset));
+    __ leaq(TMP, compiler::Address::AddressRIPRelative(-entry_to_rip_offset));
     ASSERT(__ CodeSize() == entry_to_rip_offset);
   }
 
-  // Load from FP+compiler::target::frame_layout.code_from_fp.
-
-  // Calculate the final absolute address.
-  if (offset()->definition()->representation() == kTagged) {
-    __ SmiUntag(offset_reg);
-  }
-  __ addq(target_address_reg, offset_reg);
+  __ addq(TMP, offset_reg);
 
   // Jump to the absolute address.
-  __ jmp(target_address_reg);
+  __ jmp(TMP);
 }
 
 LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,

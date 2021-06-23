@@ -3180,28 +3180,39 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 
 // IndirectGotoInstr represents a dynamically computed jump. Only
 // IndirectEntryInstr targets are valid targets of an indirect goto. The
-// concrete target to jump to is given as a parameter to the indirect goto.
+// concrete target index to jump to is given as a parameter to the indirect
+// goto.
 //
 // In order to preserve split-edge form, an indirect goto does not itself point
 // to its targets. Instead, for each possible target, the successors_ field
 // will contain an ordinary goto instruction that jumps to the target.
 // TODO(zerny): Implement direct support instead of embedding gotos.
 //
-// Byte offsets of all possible targets are stored in the offsets_ array. The
-// desired offset is looked up while the generated code is executing, and passed
-// to IndirectGoto as an input.
+// The input to the [IndirectGotoInstr] is the target index to jump to.
+// All targets of the [IndirectGotoInstr] are added via [AddSuccessor] and get
+// increasing indices.
+//
+// The FlowGraphCompiler will - as a post-processing step - invoke
+// [ComputeOffsetTable] of all [IndirectGotoInstr]s. In there we initialize a
+// TypedDataInt32Array containing offsets of all [IndirectEntryInstr]s (the
+// offests are relative to start of the instruction payload).
+//
+//  => See `FlowGraphCompiler::CompileGraph()`
+//  => See `IndirectGotoInstr::ComputeOffsetTable`
 class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  IndirectGotoInstr(const TypedData* offsets, Value* offset_from_start)
-      : offsets_(*offsets) {
-    SetInputAt(0, offset_from_start);
+  IndirectGotoInstr(intptr_t target_count, Value* target_index)
+      : offsets_(TypedData::ZoneHandle(TypedData::New(kTypedDataInt32ArrayCid,
+                                                      target_count,
+                                                      Heap::kOld))) {
+    SetInputAt(0, target_index);
   }
 
   DECLARE_INSTRUCTION(IndirectGoto)
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kNoRepresentation;
+    return kTagged;
   }
 
   void AddSuccessor(TargetEntryInstr* successor) {

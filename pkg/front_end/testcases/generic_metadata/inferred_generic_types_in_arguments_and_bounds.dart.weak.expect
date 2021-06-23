@@ -15,7 +15,7 @@ static method test() → dynamic {
   core::List<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>> y = <<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>>[#C1];
   core::Set<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>> z = block {
     final core::Set<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>> #t1 = col::LinkedHashSet::•<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>>();
-    #t1.{core::Set::add}(y.{core::Iterable::first}{<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>}){(<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>) → core::bool};
+    #t1.{core::Set::add}{Invariant}(y.{core::Iterable::first}{<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>}){(<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>) → core::bool};
   } =>#t1;
 }
 static method main() → dynamic {}
