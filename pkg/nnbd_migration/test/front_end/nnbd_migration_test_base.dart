@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
@@ -119,16 +118,12 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
       String function, int offset, Object descriptionMatcher,
       {Set<HintActionKind>? hintActions}) {
-    if (offset == null) {
-      expect(entryInfo.target, isNull);
-    } else {
-      assert(offset >= 0);
-      var lineInfo = LineInfo.fromContent(unit.content!);
-      var expectedLocation = lineInfo.getLocation(offset);
-      expect(entryInfo.target!.filePath, unit.path);
-      expect(entryInfo.target!.line, expectedLocation.lineNumber);
-      expect(unit.offsetMapper.map(entryInfo.target!.offset), offset);
-    }
+    assert(offset >= 0);
+    var lineInfo = LineInfo.fromContent(unit.content!);
+    var expectedLocation = lineInfo.getLocation(offset);
+    expect(entryInfo.target!.filePath, unit.path);
+    expect(entryInfo.target!.line, expectedLocation.lineNumber);
+    expect(unit.offsetMapper.map(entryInfo.target!.offset), offset);
     expect(entryInfo.function, function);
     expect(entryInfo.description, descriptionMatcher);
     if (hintActions != null) {

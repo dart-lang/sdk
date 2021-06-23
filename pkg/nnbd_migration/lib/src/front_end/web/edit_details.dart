@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/hint_action.dart';
 
 /// Information about what should be populated into the "Edit Details" view of

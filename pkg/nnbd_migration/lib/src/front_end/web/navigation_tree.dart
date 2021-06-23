@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 class NavigationTreeDirectoryNode extends NavigationTreeNode {
   /// If this is a directory node, list of nodes nested under this one.
   /// Otherwise `null`.

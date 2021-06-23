@@ -1151,6 +1151,5 @@ extension on Severity {
       case Severity.info:
         return 'info';
     }
-    return '???';
   }
 }

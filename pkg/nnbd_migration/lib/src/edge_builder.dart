@@ -1753,11 +1753,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         class_.declaredElement!, callee.enclosingElement);
     var typeArguments = decoratedSupertype.typeArguments;
     Iterable<DartType?> typeArgumentTypes;
-    if (typeArguments != null) {
-      typeArgumentTypes = typeArguments.map((t) => t!.type);
-    } else {
-      typeArgumentTypes = [];
-    }
+    typeArgumentTypes = typeArguments.map((t) => t!.type);
     var createdType = DecoratedType(callee.returnType, nullabilityNode,
         typeArguments: typeArguments);
     var calleeType =
@@ -1884,10 +1880,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (typeArguments == null) {
           var instantiatedType =
               _variables!.decoratedTypeAnnotation(source, typeName);
-          if (instantiatedType == null) {
-            throw StateError('No type annotation for type name '
-                '${typeName.toSource()}, offset=${typeName.offset}');
-          }
           var origin = InstantiateToBoundsOrigin(source, typeName);
           for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
             _linkDecoratedTypes(
@@ -1905,10 +1897,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             assert(bound != null);
             var argumentType =
                 _variables!.decoratedTypeAnnotation(source, typeArguments[i]);
-            if (argumentType == null) {
-              _unimplemented(typeName,
-                  'No decorated type for type argument ${typeArguments[i]} ($i)');
-            }
             _checkAssignment(
                 TypeParameterInstantiationOrigin(source, typeArguments[i]),
                 FixReasonTarget.root,
@@ -2858,7 +2846,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType? getType;
     if (getter.isSynthetic) {
       var field = getter.variable;
-      if (field == null || field.isSynthetic) return;
+      if (field.isSynthetic) return;
       getType = _variables!.decoratedElementType(field);
     } else {
       getType = _variables!.decoratedElementType(getter).returnType;
@@ -2866,7 +2854,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType? setType;
     if (setter.isSynthetic) {
       var field = setter.variable;
-      if (field == null || field.isSynthetic) return;
+      if (field.isSynthetic) return;
       setType = _variables!.decoratedElementType(field);
     } else {
       setType =
@@ -3451,7 +3439,6 @@ mixin _AssignmentChecker {
       required bool hard,
       bool checkable = true,
       bool sourceIsFunctionLiteral = false}) {
-    assert(origin != null);
     var sourceType = source.type!;
     var destinationType = destination.type!;
     if (!_typeSystem.isSubtypeOf(sourceType, destinationType)) {

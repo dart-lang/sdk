@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -246,9 +245,7 @@ class NullabilityFixDescription {
       );
 
   const NullabilityFixDescription._(
-      {required this.appliedMessage, required this.kind})
-      : assert(appliedMessage != null),
-        assert(kind != null);
+      {required this.appliedMessage, required this.kind});
 
   @override
   int get hashCode {

@@ -37,17 +37,14 @@ class SubprocessLauncher {
   /// From flutter:dev/tools/dartdoc.dart, modified.
   static Future<void> _printStream(Stream<List<int>> stream, Stdout output,
       {String prefix = '', Iterable<String> Function(String line)? filter}) {
-    assert(prefix != null);
     filter ??= (line) => [line];
     return stream
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .expand(filter)
         .listen((String line) {
-      if (line != null) {
-        output.write('$prefix$line'.trim());
-        output.write('\n');
-      }
+      output.write('$prefix$line'.trim());
+      output.write('\n');
     }).asFuture();
   }
 
@@ -140,16 +137,14 @@ class SubprocessLauncher {
 
     stderr.write('$prefix+ ');
     if (workingDirectory != null) stderr.write('(cd "$workingDirectory" && ');
-    if (environment != null) {
-      stderr.write(environment.keys.map((String key) {
-        if (environment![key]!.contains(quotables)) {
-          return "$key='${environment[key]}'";
-        } else {
-          return '$key=${environment[key]}';
-        }
-      }).join(' '));
-      stderr.write(' ');
-    }
+    stderr.write(environment.keys.map((String key) {
+      if (environment![key]!.contains(quotables)) {
+        return "$key='${environment[key]}'";
+      } else {
+        return '$key=${environment[key]}';
+      }
+    }).join(' '));
+    stderr.write(' ');
     stderr.write('$executable');
     if (arguments.isNotEmpty) {
       for (String arg in arguments) {

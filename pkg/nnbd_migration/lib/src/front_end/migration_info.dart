@@ -229,8 +229,7 @@ class TraceEntryInfo {
   final List<HintAction> hintActions;
 
   TraceEntryInfo(this.description, this.function, this.target,
-      {this.hintActions = const []})
-      : assert(hintActions != null);
+      {this.hintActions = const []});
 }
 
 /// Information about a nullability trace.

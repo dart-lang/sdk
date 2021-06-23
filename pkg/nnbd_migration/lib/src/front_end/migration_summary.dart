@@ -38,10 +38,8 @@ class MigrationSummary {
           var hint = info.hintComment;
           if (hint == null || hintsSeen.add(hint)) {
             var description = info.description;
-            if (description != null) {
-              var key = _keyForKind(description.kind);
-              changeSummary[key] = (changeSummary[key] ?? 0) + 1;
-            }
+            var key = _keyForKind(description.kind);
+            changeSummary[key] = (changeSummary[key] ?? 0) + 1;
           }
         }
       }
@@ -116,6 +114,5 @@ class MigrationSummary {
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
         return 'typeNotMadeNullableDueToHint';
     }
-    return '???';
   }
 }

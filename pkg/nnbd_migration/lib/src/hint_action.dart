@@ -64,8 +64,5 @@ extension HintActionKindBehaviors on HintActionKind {
       case HintActionKind.changeToNonNullableHint:
         return 'Change to /*!*/ hint';
     }
-
-    assert(false);
-    return null;
   }
 }

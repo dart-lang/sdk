@@ -41,7 +41,6 @@ Map<int?, List<AtomicEdit>>? _removeCode(
           end: [AtomicEdit.insert(' */', info: info)]
         };
     }
-    throw StateError('Null value for removalStyle');
   } else {
     return null;
   }

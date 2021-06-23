@@ -12,7 +12,7 @@ import 'package:path/path.dart' as path;
 /// Return a resolved path including the home directory in place of tilde
 /// references.
 String resolveTildePath(String originalPath) {
-  if (originalPath == null || !originalPath.startsWith('~/')) {
+  if (!originalPath.startsWith('~/')) {
     return originalPath;
   }
 
@@ -182,9 +182,6 @@ class SdkPackage extends Package {
       if (Directory(potentialPath).existsSync()) {
         _packagePath = potentialPath;
       }
-    }
-    if (_packagePath == null) {
-      throw ArgumentError('Package $name not found in SDK');
     }
   }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 /// Information about an item that should show up in the "proposed edits" panel.
 class EditListItem {
   /// Line number of this edit.

@@ -41,8 +41,6 @@ class DecoratedTypeOperations
       DecoratedType from,
       List<DecoratedType>? promotedTypes,
       List<DecoratedType>? newPromotedTypes) {
-    assert(to != null);
-    assert(from != null);
     // Do not force promotion if it appears that the element's type was just
     // demoted.
     if (promotedTypes != null &&

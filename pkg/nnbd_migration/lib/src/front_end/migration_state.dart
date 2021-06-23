@@ -62,8 +62,7 @@ class MigrationState {
       this.instrumentationListener,
       this.neededPackages,
       this.shouldBeMigratedFunction,
-      [this.analysisResult])
-      : assert(neededPackages != null);
+      [this.analysisResult]);
 
   /// If the migration has been applied to disk.
   bool get hasBeenApplied => _hasBeenApplied;

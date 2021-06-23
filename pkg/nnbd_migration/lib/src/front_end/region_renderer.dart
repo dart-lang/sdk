@@ -84,11 +84,6 @@ class RegionRenderer {
 
   /// Returns the URL that will navigate to the given [target].
   String _relativePathToTarget(NavigationTarget target, String unitDir) {
-    if (target == null) {
-      // TODO(brianwilkerson) This is temporary support until we can get targets
-      //  for all nodes.
-      return '';
-    }
     return pathMapper!
         .map(pathContext.relative(target.filePath, from: unitDir));
   }

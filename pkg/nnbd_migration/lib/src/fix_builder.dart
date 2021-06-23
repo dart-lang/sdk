@@ -626,9 +626,7 @@ class MigrationResolutionHooksImpl
     if (_fixBuilder!._typeSystem.isSubtypeOf(nonNullType, contextType)) {
       return _createNullCheckChange(node, expressionType);
     } else {
-      if (node != null) {
-        _flowAnalysis!.asExpression_end(node, contextType);
-      }
+      _flowAnalysis!.asExpression_end(node, contextType);
       return IntroduceAsChange(contextType,
           isDowncast: _fixBuilder!._typeSystem
               .isSubtypeOf(contextType, expressionType));
@@ -1225,7 +1223,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
             cls.name, method.name, element.name),
         {FixReasonTarget.root: node});
     var metadata = parameter.metadata;
-    if (metadata != null && metadata.isNotEmpty) {
+    if (metadata.isNotEmpty) {
       // Only the last annotation can be changed into a `required` keyword;
       // changing an earlier annotation into a keyword would be illegal.
       var lastAnnotation = metadata.last;

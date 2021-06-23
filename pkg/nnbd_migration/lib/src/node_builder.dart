@@ -215,15 +215,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
     DecoratedType? type =
         _pushNullabilityNodeTarget(target, () => node.type?.accept(this));
-    if (node.identifier != null) {
-      if (type == null) {
-        type = DecoratedType.forImplicitType(
-            _typeProvider, declaredElement.type, _graph, target);
-        instrumentation?.implicitType(source, node, type);
-      }
-      _variables!
-          .recordDecoratedElementType(node.identifier.staticElement, type);
+    if (type == null) {
+      type = DecoratedType.forImplicitType(
+          _typeProvider, declaredElement.type, _graph, target);
+      instrumentation?.implicitType(source, node, type);
     }
+    _variables!.recordDecoratedElementType(node.identifier.staticElement, type);
     return type;
   }
 
@@ -510,7 +507,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitTypeAnnotation(TypeAnnotation node) {
-    assert(node != null); // TODO(paulberry)
     var type = node.type!;
     var target = safeTarget.withCodeRef(node);
     if (type.isVoid || type.isDynamic) {

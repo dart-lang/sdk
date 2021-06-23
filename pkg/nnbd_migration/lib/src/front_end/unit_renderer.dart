@@ -242,7 +242,6 @@ class UnitRenderer {
         case RegionType.informative:
           return 'informative-region';
       }
-      throw StateError('Unexpected RegionType $type');
     }
 
     var previousOffset = 0;
@@ -312,10 +311,8 @@ class UnitRenderer {
             'source)';
       case NullabilityFixKind.conditionTrueInStrongMode:
         return '$count condition$s will be true in strong checking mode';
-        break;
       case NullabilityFixKind.conditionFalseInStrongMode:
         return '$count condition$s will be false in strong checking mode';
-        break;
       case NullabilityFixKind.makeTypeNullable:
         return '$count type$s made nullable';
       case NullabilityFixKind.makeTypeNullableDueToHint:
@@ -341,7 +338,6 @@ class UnitRenderer {
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
         return '$count type$s not made nullable due to hint$s';
     }
-    throw StateError('Null kind');
   }
 
   /// Returns the URL that will navigate to the given [target] in the file at

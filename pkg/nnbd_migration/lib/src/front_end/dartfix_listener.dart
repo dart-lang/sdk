@@ -5,7 +5,6 @@
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
-import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:pub_semver/src/version.dart';
 

@@ -189,9 +189,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     var change = _changes[node];
     if (change != null) {
       var innerPlan = change._apply(node, this);
-      if (innerPlan != null) {
-        _plans.add(innerPlan);
-      }
+      _plans.add(innerPlan);
     } else {
       node.visitChildren(this);
     }
@@ -344,9 +342,8 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
     if (name is PrefixedIdentifier) {
       name = name.identifier;
     }
-    if (name != null &&
-        aggregator.planner.sourceText!.substring(name.offset, name.end) ==
-            'required') {
+    if (aggregator.planner.sourceText!.substring(name.offset, name.end) ==
+        'required') {
       // The text `required` already exists in the annotation; we can just
       // extract it.
       return aggregator.planner.extract(
@@ -552,7 +549,6 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
     List<EditPlan> innerPlans = [];
     if (removeLanguageVersionComment) {
       final comment = (node as CompilationUnitImpl).languageVersionToken!;
-      assert(comment != null);
       innerPlans.add(aggregator.planner.replaceToken(node, comment, '',
           info: AtomicEditInfo(
               NullabilityFixDescription.removeLanguageVersionComment,
@@ -933,9 +929,9 @@ class NodeChangeForMethodInvocation
     var innerPlans = [
       if (targetPlan != null) targetPlan,
       if (nullAwarePlan != null) nullAwarePlan,
-      if (methodNamePlan != null) methodNamePlan,
+      methodNamePlan,
       if (typeArgumentsPlan != null) typeArgumentsPlan,
-      if (argumentListPlan != null) argumentListPlan
+      argumentListPlan
     ];
     return _applyExpression(aggregator,
         aggregator.planner.passThrough(node, innerPlans: innerPlans));
@@ -1062,7 +1058,7 @@ class NodeChangeForPropertyAccess
     var innerPlans = [
       if (targetPlan != null) targetPlan,
       if (nullAwarePlan != null) nullAwarePlan,
-      if (propertyNamePlan != null) propertyNamePlan
+      propertyNamePlan
     ];
     return _applyExpression(aggregator,
         aggregator.planner.passThrough(node, innerPlans: innerPlans));
