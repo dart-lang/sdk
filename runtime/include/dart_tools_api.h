@@ -496,4 +496,53 @@ Dart_IsolateRunnableLatencyMetric(Dart_Isolate isolate);  // Microsecond
 DART_EXPORT int64_t
 Dart_IsolateRunnableHeapSizeMetric(Dart_Isolate isolate);  // Byte
 
+/*
+ * ========
+ * UserTags
+ * ========
+ */
+
+/*
+ * Gets the current isolate's currently set UserTag instance.
+ *
+ * \return The currently set UserTag instance.
+ */
+DART_EXPORT Dart_Handle Dart_GetCurrentUserTag();
+
+/*
+ * Gets the current isolate's default UserTag instance.
+ *
+ * \return The default UserTag with label 'Default'
+ */
+DART_EXPORT Dart_Handle Dart_GetDefaultUserTag();
+
+/*
+ * Creates a new UserTag instance.
+ *
+ * \param label The name of the new UserTag.
+ *
+ * \return The newly created UserTag instance or an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label);
+
+/*
+ * Updates the current isolate's UserTag to a new value.
+ *
+ * \param user_tag The UserTag to be set as the current UserTag.
+ *
+ * \return The previously set UserTag instance or an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag);
+
+/*
+ * Returns the label of a given UserTag instance.
+ *
+ * \param user_tag The UserTag from which the label will be retrieved.
+ *
+ * \return The UserTag's label. NULL if the user_tag is invalid. The caller is
+ *   responsible for freeing the returned label.
+ */
+DART_WARN_UNUSED_RESULT DART_EXPORT char* Dart_GetUserTagLabel(
+    Dart_Handle user_tag);
+
 #endif  // RUNTIME_INCLUDE_DART_TOOLS_API_H_

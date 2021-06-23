@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.47.0';
+const String vmServiceVersion = '3.48.0';
 
 /// @optional
 const String optional = 'optional';
@@ -1150,6 +1150,7 @@ abstract class VmServiceInterface {
   /// Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted,
   /// PauseException, PausePostRequest, Resume, BreakpointAdded,
   /// BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
+  /// Profiler | UserTagChanged
   /// GC | GC
   /// Extension | Extension
   /// Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
@@ -1689,6 +1690,9 @@ class VmService implements VmServiceInterface {
 
   // PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
   Stream<Event> get onDebugEvent => _getEventController('Debug').stream;
+
+  // UserTagChanged
+  Stream<Event> get onProfilerEvent => _getEventController('Profiler').stream;
 
   // GC
   Stream<Event> get onGCEvent => _getEventController('GC').stream;
@@ -2384,6 +2388,7 @@ class EventStreams {
   static const String kVM = 'VM';
   static const String kIsolate = 'Isolate';
   static const String kDebug = 'Debug';
+  static const String kProfiler = 'Profiler';
   static const String kGC = 'GC';
   static const String kExtension = 'Extension';
   static const String kTimeline = 'Timeline';
@@ -2496,6 +2501,9 @@ class EventKind {
   /// Notification that a Service has been removed from the Service Protocol
   /// from another client.
   static const String kServiceUnregistered = 'ServiceUnregistered';
+
+  /// Notification that the UserTag for an isolate has been changed.
+  static const String kUserTagChanged = 'UserTagChanged';
 }
 
 /// Adding new values to `InstanceKind` is considered a backwards compatible
@@ -3885,6 +3893,14 @@ class Event extends Response {
   @optional
   bool? last;
 
+  /// The current UserTag label.
+  @optional
+  String? updatedTag;
+
+  /// The previous UserTag label.
+  @optional
+  String? previousTag;
+
   /// Binary data associated with the event.
   ///
   /// This is provided for the event kinds:
@@ -3917,6 +3933,8 @@ class Event extends Response {
     this.flag,
     this.newValue,
     this.last,
+    this.updatedTag,
+    this.previousTag,
     this.data,
   });
 
@@ -3959,6 +3977,8 @@ class Event extends Response {
     flag = json['flag'];
     newValue = json['newValue'];
     last = json['last'];
+    updatedTag = json['updatedTag'];
+    previousTag = json['previousTag'];
     data = json['data'];
   }
 
@@ -3998,6 +4018,8 @@ class Event extends Response {
     _setIfNotNull(json, 'flag', flag);
     _setIfNotNull(json, 'newValue', newValue);
     _setIfNotNull(json, 'last', last);
+    _setIfNotNull(json, 'updatedTag', updatedTag);
+    _setIfNotNull(json, 'previousTag', previousTag);
     _setIfNotNull(json, 'data', data);
     return json;
   }

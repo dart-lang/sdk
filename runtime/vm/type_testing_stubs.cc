@@ -106,6 +106,9 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
   // During bootstrapping we have no access to stubs yet, so we'll just return
   // `null` and patch these later in `Object::FinishInit()`.
   if (!StubCode::HasBeenInitialized()) {
+    ASSERT(type.IsType());
+    const classid_t cid = type.type_class_id();
+    ASSERT(cid == kDynamicCid || cid == kVoidCid);
     return Code::null();
   }
 

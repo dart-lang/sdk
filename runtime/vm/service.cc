@@ -128,16 +128,18 @@ StreamInfo Service::heapsnapshot_stream("HeapSnapshot");
 StreamInfo Service::logging_stream("Logging");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
+StreamInfo Service::profiler_stream("Profiler");
 
 const uint8_t* Service::dart_library_kernel_ = NULL;
 intptr_t Service::dart_library_kernel_len_ = 0;
 
 static StreamInfo* const streams_[] = {
-    &Service::vm_stream,      &Service::isolate_stream,
-    &Service::debug_stream,   &Service::gc_stream,
-    &Service::echo_stream,    &Service::heapsnapshot_stream,
-    &Service::logging_stream, &Service::extension_stream,
-    &Service::timeline_stream};
+    &Service::vm_stream,       &Service::isolate_stream,
+    &Service::debug_stream,    &Service::gc_stream,
+    &Service::echo_stream,     &Service::heapsnapshot_stream,
+    &Service::logging_stream,  &Service::extension_stream,
+    &Service::timeline_stream, &Service::profiler_stream,
+};
 
 bool Service::ListenStream(const char* stream_id) {
   if (FLAG_trace_service) {

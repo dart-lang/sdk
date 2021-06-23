@@ -268,6 +268,20 @@ main() {
         insertText: 'print',
       );
 
+  Future<void> test_completeFunctionCalls_existingPartialArgList() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        class Aaaaa {
+          Aaaaa(int a);
+        }
+        void main(int aaa) {
+          var a = new [[Aaa^]](
+        }
+        ''',
+        'Aaaaa(…)',
+        insertText: 'Aaaaa',
+      );
+
   Future<void> test_completeFunctionCalls_expression() =>
       checkCompleteFunctionCallInsertText(
         '''

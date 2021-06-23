@@ -451,6 +451,32 @@ main() {
 ''');
   }
 
+  test_functionReference() async {
+    await assertErrorsInCode('''
+void bar(void Function<T extends num>(T a) foo) {
+  foo<String>;
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 6),
+    ]);
+  }
+
+  test_functionReference_matching() async {
+    await assertNoErrorsInCode('''
+void bar(void Function<T extends num>(T a) foo) {
+  foo<int>;
+}
+''');
+  }
+
+  test_functionReference_regularBounded() async {
+    await assertNoErrorsInCode('''
+void bar(void Function<T>(T a) foo) {
+  foo<String>;
+}
+''');
+  }
+
   test_genericFunctionTypeArgument_invariant() async {
     await assertErrorsInCode(r'''
 typedef F = T Function<T>(T);

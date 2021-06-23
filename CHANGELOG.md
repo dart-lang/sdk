@@ -12,9 +12,14 @@
 
 #### `dart:async`
 
-* The uncaught error handlers of `Zone`s are now run in the parent zone
-  of the zone where they were declared. This prevents a throwing handler
-  from causing an infinite loop by repeatedly triggering itself.
+*   The uncaught error handlers of `Zone`s are now run in the parent zone
+    of the zone where they were declared. This prevents a throwing handler
+    from causing an infinite loop by repeatedly triggering itself.
+
+*   Added `ignore()` as extension member on futures.
+
+*   Added `void unawaited(Future)` top-level function to deal with
+    the `unawaited_futures` lint.
 
 #### `dart:core`
 

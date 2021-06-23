@@ -7,6 +7,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/validators/dependency_validator.dart';
+import 'package:analyzer/src/pubspec/validators/field_validator.dart';
 import 'package:analyzer/src/pubspec/validators/flutter_validator.dart';
 import 'package:analyzer/src/pubspec/validators/name_validator.dart';
 import 'package:source_span/src/span.dart';
@@ -20,6 +21,16 @@ class BasePubspecValidator {
   final Source source;
 
   BasePubspecValidator(this.provider, this.source);
+
+  String? asString(dynamic node) {
+    if (node is String) {
+      return node;
+    }
+    if (node is YamlScalar && node.value is String) {
+      return node.value as String;
+    }
+    return null;
+  }
 
   /// Report an error for the given node.
   void reportErrorForNode(
@@ -70,6 +81,7 @@ class PubspecValidator {
   final Source source;
 
   final DependencyValidator _dependencyValidator;
+  final FieldValidator _fieldValidator;
   final FlutterValidator _flutterValidator;
   final NameValidator _nameValidator;
 
@@ -77,6 +89,7 @@ class PubspecValidator {
   /// [source].
   PubspecValidator(this.provider, this.source)
       : _dependencyValidator = DependencyValidator(provider, source),
+        _fieldValidator = FieldValidator(provider, source),
         _flutterValidator = FlutterValidator(provider, source),
         _nameValidator = NameValidator(provider, source);
 
@@ -90,6 +103,7 @@ class PubspecValidator {
     );
 
     _dependencyValidator.validate(reporter, contents);
+    _fieldValidator.validate(reporter, contents);
     _flutterValidator.validate(reporter, contents);
     _nameValidator.validate(reporter, contents);
 

@@ -10,6 +10,7 @@ import 'asset_does_not_exist_test.dart' as asset_does_not_exist;
 import 'asset_field_not_list_test.dart' as asset_field_not_list;
 import 'asset_not_string_test.dart' as asset_not_string;
 import 'dependencies_field_not_map_test.dart' as dependencies_field_not_map;
+import 'deprecated_field_test.dart' as deprecated_field;
 import 'flutter_field_not_map_test.dart' as flutter_field_not_map;
 import 'invalid_dependency_test.dart' as invalid_dependency;
 import 'missing_name_test.dart' as missing_name;
@@ -26,6 +27,7 @@ main() {
     asset_field_not_list.main();
     asset_not_string.main();
     dependencies_field_not_map.main();
+    deprecated_field.main();
     flutter_field_not_map.main();
     invalid_dependency.main();
     missing_name.main();

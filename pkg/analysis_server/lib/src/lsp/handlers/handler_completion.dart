@@ -474,9 +474,9 @@ class CompletionHandler
       node = node.parent;
     }
     return (node is ast.InvocationExpression &&
-            node.argumentList.length != 0) ||
+            !node.argumentList.beginToken.isSynthetic) ||
         (node is ast.InstanceCreationExpression &&
-            node.argumentList.length != 0);
+            !node.argumentList.beginToken.isSynthetic);
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(

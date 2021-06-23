@@ -42,12 +42,7 @@ class StubCode : public AllStatic {
   static void Cleanup();
 
   // Returns true if stub code has been initialized.
-  static bool HasBeenInitialized() {
-    return initialized_.load(std::memory_order_acquire);
-  }
-  static void InitializationDone() {
-    initialized_.store(true, std::memory_order_release);
-  }
+  static bool HasBeenInitialized();
 
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
@@ -125,7 +120,6 @@ class StubCode : public AllStatic {
 #endif
   };
   static StubCodeEntry entries_[kNumStubEntries];
-  static AcqRelAtomic<bool> initialized_;
 };
 
 }  // namespace dart

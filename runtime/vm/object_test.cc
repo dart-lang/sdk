@@ -4605,7 +4605,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "vmName\":\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
         "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:"
         "developer-patch\\/profiler.dart\",\"_kind\":\"kernel\"},\"tokenPos\":"
-        "414,\"endTokenPos\":672},\"library\":{\"type\":\"@Library\","
+        "414,\"endTokenPos\":628},\"library\":{\"type\":\"@Library\","
         "\"fixedId\":true,\"id\":\"\",\"name\":\"dart.developer\",\"uri\":"
         "\"dart:developer\"}},"
         // Handle non-zero identity hash.

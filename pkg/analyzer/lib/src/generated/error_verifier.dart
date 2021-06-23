@@ -757,6 +757,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    _typeArgumentsVerifier.checkFunctionReference(node);
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);

@@ -640,11 +640,11 @@ class DartFixKind {
   static const REMOVE_THIS_EXPRESSION = FixKind(
       'dart.fix.remove.thisExpression',
       DartFixKindPriority.DEFAULT,
-      'Remove this expression');
+      "Remove 'this' expression");
   static const REMOVE_THIS_EXPRESSION_MULTI = FixKind(
       'dart.fix.remove.thisExpression.multi',
       DartFixKindPriority.IN_FILE,
-      'Remove unnecessary this expressions everywhere in file');
+      "Remove unnecessary 'this' expressions everywhere in file");
   static const REMOVE_TYPE_ANNOTATION = FixKind(
       'dart.fix.remove.typeAnnotation',
       DartFixKindPriority.DEFAULT,
