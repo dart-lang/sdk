@@ -554,7 +554,7 @@ class MigrationCliRunner implements DartFixListenerClient {
       String summaryPath,
       @required String sdkPath}) {
     return NonNullableFix(listener, resourceProvider, getLineInfo, bindAddress,
-        logger, (String path) => shouldBeMigrated(path),
+        logger, (String /*?*/ path) => shouldBeMigrated(path),
         included: included,
         preferredPort: preferredPort,
         summaryPath: summaryPath,

@@ -6,7 +6,7 @@
 ///
 /// If [map] has key [key], return the value paired with [key]; otherwise throw
 /// a FormatException.
-dynamic expectKey(Map<Object, Object> map, String key) {
+dynamic expectKey(Map<Object /*?*/, Object /*?*/ > map, String key) {
   if (map.containsKey(key)) {
     return map[key];
   }

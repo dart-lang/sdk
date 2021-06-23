@@ -73,7 +73,7 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
       String summaryPath,
       @required String sdkPath})
       : super(listener, resourceProvider, getLineInfo, bindAddress, logger,
-            (String path) => true,
+            (String /*?*/ path) => true,
             included: included,
             preferredPort: preferredPort,
             summaryPath: summaryPath,

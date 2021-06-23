@@ -49,7 +49,7 @@ void main() {
           document.body.classes
             ..remove('proposed')
             ..add('applied');
-        }).catchError((e, st) {
+        }).catchError((Object e, st) {
           handleError("Couldn't apply migration", e, st);
         });
       }
@@ -59,7 +59,7 @@ void main() {
     rerunMigrationButton.onClick.listen((event) async {
       try {
         document.body.classes..add('rerunning');
-        var response = await doPost('/rerun-migration');
+        Map<String, Object> /*?*/ response = await doPost('/rerun-migration');
         if (response['success'] as bool) {
           window.location.reload();
         } else {
@@ -207,11 +207,12 @@ Future<T> doGet<T>(String path,
       ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'));
 
 /// Perform a POST request on the path, return the JSON-decoded response.
-Future<Map<String, Object>> doPost(String path, [Object body]) => doRequest(
-    HttpRequest()
-      ..open('POST', pathWithQueryParameters(path, {}), async: true)
-      ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'),
-    body);
+Future<Map<String, Object /*?*/ >> doPost(String path, [Object body]) =>
+    doRequest(
+        HttpRequest()
+          ..open('POST', pathWithQueryParameters(path, {}), async: true)
+          ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'),
+        body);
 
 /// Execute the [HttpRequest], handle its error codes, and return or throw the
 /// response.
@@ -272,7 +273,7 @@ run.  Have you restarted the migration server recently?  If so, you'll need to
 check its output for a fresh URL, and use that URL to perform your migration.
 ''');
   }
-  final json = jsonDecode(xhr.responseText);
+  final Object json = jsonDecode(xhr.responseText);
   if (xhr.status == 200) {
     // Request OK.
     return json as T;
@@ -440,8 +441,9 @@ void highlightAllCode() {
 /// Loads the explanation for [region], into the ".panel-content" div.
 void loadAndPopulateEditDetails(String path, int offset, int line) async {
   try {
-    final responseJson = await doGet<Map<String, Object>>(path,
-        queryParameters: {'region': 'region', 'offset': '$offset'});
+    final Map<String, Object> /*?*/ responseJson =
+        await doGet<Map<String, Object /*?*/ >>(path,
+            queryParameters: {'region': 'region', 'offset': '$offset'});
     var response = EditDetails.fromJson(responseJson);
     populateEditDetails(response);
     pushState(path, offset, line);
@@ -473,8 +475,9 @@ Future<void> loadFile(
 
   try {
     // Navigating to another file; request it, then do work with the response.
-    final response = await doGet<Map<String, Object>>(path,
-        queryParameters: {'inline': 'true'});
+    final Map<String, Object> /*?*/ response =
+        await doGet<Map<String, Object /*?*/ >>(path,
+            queryParameters: {'inline': 'true'});
     writeCodeAndRegions(path, FileDetails.fromJson(response), clearEditDetails);
     maybeScrollToAndHighlight(offset, line);
     var filePathPart = _stripQuery(path);
@@ -493,7 +496,7 @@ void loadNavigationTree() async {
 
   // Request the navigation tree, then do work with the response.
   try {
-    final response = await doGet<List<Object>>(path);
+    final List<Object> /*?*/ response = await doGet<List<Object /*?*/ >>(path);
     var navTree = document.querySelector('.nav-tree');
     navTree.innerHtml = '';
     navigationTree = NavigationTreeNode.listFromJson(response);

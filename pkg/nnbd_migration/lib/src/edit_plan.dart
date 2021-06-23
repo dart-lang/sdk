@@ -686,7 +686,7 @@ class EditPlanner {
   ///
   /// Optional argument [info] contains information about why the change was
   /// made.
-  EditPlan tryRemoveNode(AstNode sourceNode,
+  EditPlan /*?*/ tryRemoveNode(AstNode sourceNode,
       {List<AstNode> sequenceNodes, AtomicEditInfo info}) {
     var parent = sourceNode.parent;
     sequenceNodes ??= _computeSequenceNodes(parent);
@@ -724,7 +724,7 @@ class EditPlanner {
     for (var entry in changes.entries) {
       var end = entry.key;
       for (var edit in entry.value) {
-        end += edit.length;
+        end = end + edit.length;
       }
       if (result == null || end > result) result = end;
     }
@@ -1709,9 +1709,9 @@ extension AtomicEditList on List<AtomicEdit> {
 }
 
 /// Extension containing useful operations on a map from offsets to lists of
-/// [AtomicEdit]s.  This data structure is used by [EditPlans] to accumulate
+/// [AtomicEdit]s.  This data structure is used by [EditPlan]s to accumulate
 /// source file changes.
-extension AtomicEditMap on Map<int, List<AtomicEdit>> {
+extension AtomicEditMap on Map<int, List<AtomicEdit>> /*?*/ {
   /// Applies the changes to source file text.
   ///
   /// If [includeInformative] is `true`, informative edits are included;
@@ -1728,7 +1728,7 @@ extension AtomicEditMap on Map<int, List<AtomicEdit>> {
   /// otherwise they are ignored.
   List<SourceEdit> toSourceEdits({bool includeInformative = false}) {
     return [
-      for (var offset in keys.toList()..sort((a, b) => b.compareTo(a)))
+      for (var offset in this.keys.toList()..sort((a, b) => b.compareTo(a)))
         this[offset]
             .toSourceEdit(offset, includeInformative: includeInformative)
     ];

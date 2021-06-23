@@ -599,7 +599,7 @@ class PreviewSite extends Site
           .map((entry) => entry.map((i) => i.toInt()).toList())
           .transform<String>(Utf8Decoder())
           .transform(JsonDecoder())
-          .single) as Map<String, Object>;
+          .single) as Map<String, Object /*?*/ > /*!*/;
 
   Future<void> rerunMigration() async {
     migrationState = await rerunFunction();

@@ -9,7 +9,7 @@ class HintAction {
   final int nodeId;
   HintAction(this.kind, this.nodeId);
 
-  HintAction.fromJson(Map<String, Object> json)
+  HintAction.fromJson(Map<String, Object /*?*/ > json)
       : nodeId = json['nodeId'] as int,
         kind = HintActionKind.values
             .singleWhere((action) => action.index == json['kind']);

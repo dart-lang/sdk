@@ -525,7 +525,7 @@ class _CompilationUnitElementMock implements CompilationUnitElementImpl {
 
 class _LibraryElementMock implements LibraryElementImpl {
   @override
-  CompilationUnitElement definingCompilationUnit;
+  /*late*/ CompilationUnitElement definingCompilationUnit;
 
   @override
   Source source;

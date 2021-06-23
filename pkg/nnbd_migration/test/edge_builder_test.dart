@@ -1678,7 +1678,7 @@ void g(int j) {}
     var jNode = decoratedTypeAnnotation('int j').node;
     assertEdge(iNode, jNode,
         hard: false,
-        guards: TypeMatcher<Iterable<NullabilityNode>>()
+        guards: TypeMatcher<Iterable<NullabilityNode /*?*/ >>()
             .having((g) => g.single, 'single value', isIn(alwaysPlus)));
   }
 

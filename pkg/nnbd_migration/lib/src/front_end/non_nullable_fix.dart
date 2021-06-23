@@ -77,7 +77,7 @@ class NonNullableFix {
 
   /// A function which returns whether a file at a given path should be
   /// migrated.
-  final bool Function(String) shouldBeMigratedFunction;
+  final bool Function(String /*?*/) shouldBeMigratedFunction;
 
   /// The set of files which are being considered for migration.
   Iterable<String> pathsToProcess;

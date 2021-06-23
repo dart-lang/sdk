@@ -49,7 +49,7 @@ class Variables {
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
   final _decoratedDirectSupertypes =
-      <ClassElement, Map<ClassElement, DecoratedType>>{};
+      <ClassElement, Map<ClassElement, DecoratedType /*?*/ >>{};
 
   final _decoratedTypeAnnotations = <Source, Map<int, DecoratedType>>{};
 

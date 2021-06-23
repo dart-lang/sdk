@@ -314,7 +314,7 @@ class DecoratedType implements DecoratedTypeInfo {
       var type = this.type;
       undecoratedResult = Substitution.fromPairs(
         substitution.keys.toList(),
-        substitution.values.map((d) => d.type).toList(),
+        substitution.values.map((d) => d.type /*!*/).toList(),
       ).substituteType(type);
       if (undecoratedResult is FunctionType && type is FunctionType) {
         for (int i = 0; i < undecoratedResult.typeFormals.length; i++) {

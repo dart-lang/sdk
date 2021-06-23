@@ -54,7 +54,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
   /// Map from library to the prefix we should use when inserting code that
   /// refers to it.
-  final Map<LibraryElement, String> _importPrefixes = {};
+  final Map<LibraryElement, String /*?*/ > _importPrefixes = {};
 
   final bool _warnOnWeakCode;
 
@@ -109,7 +109,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   EditPlan planForNode(AstNode node) {
     var change = _changes[node];
     if (change != null) {
-      return change._apply(node, this);
+      return change._apply(node /*!*/, this);
     } else {
       return planner.passThrough(node, innerPlans: innerPlansForNode(node));
     }
@@ -288,7 +288,7 @@ enum LateAdditionReason {
 
 /// Base class representing a kind of change that [FixAggregator] might make to
 /// a particular AST node.
-abstract class NodeChange<N extends AstNode> {
+abstract class NodeChange<N extends AstNode /*!*/ > {
   NodeChange._();
 
   /// Indicates whether this node exists solely to provide informative

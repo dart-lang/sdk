@@ -72,9 +72,11 @@ class FileDetails {
         navigationContent = json['navigationContent'] as String,
         sourceCode = json['sourceCode'] as String,
         edits = {
-          for (var entry in (json['edits'] as Map<String, Object>).entries)
+          for (var entry
+              in (json['edits'] as Map<String, Object /*?*/ >).entries)
             entry.key: [
-              for (var edit in entry.value) EditListItem.fromJson(edit)
+              for (var edit in entry.value as Iterable<dynamic>)
+                EditListItem.fromJson(edit)
             ]
         };
 

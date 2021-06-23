@@ -43,8 +43,8 @@ void _printTotals(Map<String, Object> byPath) {
   var summary = <String, int>{};
   for (var file in byPath.values.cast<Map<Object, Object>>()) {
     file.forEach((category, count) {
-      summary.putIfAbsent(category as String, () => 0);
-      summary[category as String] += count as int;
+      summary[category as String] =
+          (summary[category as String] ?? 0) + (count as int);
     });
   }
   var categories = summary.keys.toList()..sort();

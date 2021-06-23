@@ -535,7 +535,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           int index = 0;
           typeArguments = node.typeArguments.arguments
               .map((t) => _pushNullabilityNodeTarget(
-                  target.typeArgument(index++), () => t.accept(this)))
+                  target.typeArgument(index++), () => t.accept(this) /*!*/))
               .toList();
         }
       } else {

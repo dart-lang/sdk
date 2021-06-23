@@ -44,7 +44,7 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
     final migrationInfo =
         MigrationInfo({}, {}, resourceProvider.pathContext, null);
     state = MigrationState(
-        null, null, dartfixListener, null, {}, (String path) => true);
+        null, null, dartfixListener, null, {}, (String /*?*/ path) => true);
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
     logger = TestLogger(false /*isVerbose*/);
@@ -276,7 +276,7 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
   MigrationInfo migrationInfo;
 
   Future<void> setUpMigrationInfo(Map<String, String> files,
-      {bool Function(String) shouldBeMigratedFunction,
+      {bool Function(String /*?*/) shouldBeMigratedFunction,
       Iterable<String> pathsToProcess}) async {
     shouldBeMigratedFunction ??= (String path) => true;
     pathsToProcess ??= files.keys;

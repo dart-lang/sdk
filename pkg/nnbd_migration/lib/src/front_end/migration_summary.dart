@@ -40,8 +40,7 @@ class MigrationSummary {
             var description = info.description;
             if (description != null) {
               var key = _keyForKind(description.kind);
-              changeSummary[key] ??= 0;
-              changeSummary[key]++;
+              changeSummary[key] = (changeSummary[key] ?? 0) + 1;
             }
           }
         }

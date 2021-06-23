@@ -193,7 +193,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// Returns the singular [UnitInfo] which was built.
   Future<List<UnitInfo>> buildInfoForTestFiles(Map<String, String> files,
       {@required String includedRoot,
-      bool Function(String) shouldBeMigratedFunction,
+      bool Function(String /*?*/) shouldBeMigratedFunction,
       Iterable<String> pathsToProcess}) async {
     shouldBeMigratedFunction ??= (String path) => true;
     var testPaths = <String>[];
@@ -223,7 +223,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// should all share a common parent directory, [includedRoot].
   Future<void> _buildMigrationInfo(Iterable<String> testPaths,
       {@required String includedRoot,
-      @required bool Function(String) shouldBeMigratedFunction,
+      @required bool Function(String /*?*/) shouldBeMigratedFunction,
       @required Iterable<String> pathsToProcess,
       bool removeViaComments = true,
       bool warnOnWeakCode = false}) async {

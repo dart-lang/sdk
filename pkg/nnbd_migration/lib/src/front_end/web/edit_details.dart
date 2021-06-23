@@ -166,7 +166,7 @@ class TraceEntry {
         link = _decodeLink(json['link']),
         hintActions = (json['hintActions'] as List)
                 ?.map((value) =>
-                    HintAction.fromJson(value as Map<String, Object>))
+                    HintAction.fromJson(value as Map<String, Object /*?*/ >))
                 ?.toList() ??
             const [];
 

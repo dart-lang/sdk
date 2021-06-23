@@ -645,7 +645,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               _variables.getLateHint(source, member.fields) == null)
             for (var field in member.fields.variables)
               if (!field.declaredElement.isStatic && field.initializer == null)
-                field.declaredElement as FieldElement
+                (field.declaredElement as FieldElement)
       };
       if (_currentClassOrExtension is ClassElement &&
           (_currentClassOrExtension as ClassElement)
@@ -1178,10 +1178,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (staticType is InterfaceType) {
         typeArgumentTypes = staticType.typeArguments;
         int index = 0;
-        decoratedTypeArguments = typeArgumentTypes.map((t) {
+        DecoratedType Function(DartType /*?*/) mapFunc = (DartType /*?*/ t) {
           return DecoratedType.forImplicitType(
               typeProvider, t, _graph, target.typeArgument(index++));
-        }).toList();
+        };
+        Iterable<DecoratedType> mapResult = typeArgumentTypes.map(mapFunc);
+        decoratedTypeArguments = mapResult.toList();
         instrumentation?.implicitTypeArguments(
             source, node, decoratedTypeArguments);
         parameterEdgeOrigins = List.filled(typeArgumentTypes.length,
@@ -1208,7 +1210,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var calleeType =
         getOrComputeElementType(node, callee, targetType: createdType);
     for (var i = 0; i < decoratedTypeArguments.length; ++i) {
-      _checkAssignment(parameterEdgeOrigins?.elementAt(i),
+      _checkAssignment(parameterEdgeOrigins.elementAt(i),
           FixReasonTarget.root.typeArgument(i),
           source: decoratedTypeArguments[i],
           destination:
@@ -2899,7 +2901,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       List<DecoratedType> argumentTypes, List<EdgeOrigin> edgeOrigins) {
     for (var i = 0; i < argumentTypes.length; ++i) {
       _checkAssignment(
-          edgeOrigins?.elementAt(i), FixReasonTarget.root.typeArgument(i),
+          edgeOrigins.elementAt(i), FixReasonTarget.root.typeArgument(i),
           source: argumentTypes[i],
           destination: DecoratedTypeParameterBounds.current
               .get((type.type as FunctionType).typeFormals[i]),

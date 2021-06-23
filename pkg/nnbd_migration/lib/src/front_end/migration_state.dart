@@ -52,7 +52,7 @@ class MigrationState {
 
   /// A function which returns whether a file at a given path should be
   /// migrated.
-  final bool Function(String) shouldBeMigratedFunction;
+  final bool Function(String /*?*/) shouldBeMigratedFunction;
 
   /// Initialize a newly created migration state with the given values.
   MigrationState(

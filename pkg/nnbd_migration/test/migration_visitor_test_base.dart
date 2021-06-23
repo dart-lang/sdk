@@ -362,7 +362,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   TypeSystemImpl get typeSystem =>
       testAnalysisResult.typeSystem as TypeSystemImpl;
 
-  Future<CompilationUnit> analyze(String code) async {
+  Future<CompilationUnit /*!*/ > analyze(String code) async {
     await resolveTestUnit(code);
     variables = InstrumentedVariables(graph, typeProvider, getLineInfo);
     testUnit.accept(NodeBuilder(

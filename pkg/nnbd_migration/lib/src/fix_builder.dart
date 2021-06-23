@@ -811,6 +811,7 @@ class MigrationResolutionHooksImpl
       NodeList<CollectionElement> elements) {
     return elements
         .map(_transformCollectionElement)
+        .whereType<CollectionElement /*!*/ >()
         .where((e) => e != null)
         .toList();
   }

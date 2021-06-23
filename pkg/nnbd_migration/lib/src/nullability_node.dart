@@ -160,7 +160,7 @@ class NullabilityEdge implements EdgeInfo {
     edgeDecorations.addAll(guards);
     var edgeDecoration =
         edgeDecorations.isEmpty ? '' : '-(${edgeDecorations.join(', ')})';
-    return '${sourceNode.toString(idMapper: idMapper)} $edgeDecoration-> '
+    return '${sourceNode /*!*/ .toString(idMapper: idMapper)} $edgeDecoration-> '
         '${destinationNode.toString(idMapper: idMapper)}';
   }
 }
@@ -758,7 +758,7 @@ class ResolveSubstitutionPropagationStep extends ExactNullablePropagationStep {
 
   @override
   String toString({NodeToIdMapper idMapper}) =>
-      '${targetNode.toString(idMapper: idMapper)} becomes $newState due to '
+      '${targetNode /*!*/ .toString(idMapper: idMapper)} becomes $newState due to '
       '${node.toString(idMapper: idMapper)}';
 }
 
@@ -778,7 +778,7 @@ class SimpleDownstreamPropagationStep extends DownstreamPropagationStep {
 
   @override
   String toString({NodeToIdMapper idMapper}) =>
-      '${targetNode.toString(idMapper: idMapper)} becomes $newState due to '
+      '${targetNode /*!*/ .toString(idMapper: idMapper)} becomes $newState due to '
       '${edge.toString(idMapper: idMapper)}';
 }
 
@@ -795,7 +795,7 @@ class SimpleExactNullablePropagationStep extends ExactNullablePropagationStep {
 
   @override
   String toString({NodeToIdMapper idMapper}) =>
-      '${targetNode.toString(idMapper: idMapper)} becomes $newState due to '
+      '${targetNode /*!*/ .toString(idMapper: idMapper)} becomes $newState due to '
       '${edge.toString(idMapper: idMapper)}';
 }
 
