@@ -335,6 +335,8 @@ abstract class CommonElements {
   FunctionEntity findHelperFunction(String name);
 
   ClassEntity get closureClass;
+  ClassEntity get closureClass0Args;
+  ClassEntity get closureClass2Args;
 
   ClassEntity get boundClosureClass;
 
@@ -1535,6 +1537,16 @@ class CommonElementsImpl
   ClassEntity _closureClass;
   @override
   ClassEntity get closureClass => _closureClass ??= _findHelperClass('Closure');
+
+  ClassEntity _closureClass0Args;
+  @override
+  ClassEntity get closureClass0Args =>
+      _closureClass0Args ??= _findHelperClass('Closure0Args');
+
+  ClassEntity _closureClass2Args;
+  @override
+  ClassEntity get closureClass2Args =>
+      _closureClass2Args ??= _findHelperClass('Closure2Args');
 
   ClassEntity _boundClosureClass;
   @override

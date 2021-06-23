@@ -557,7 +557,18 @@ class ProgramBuilder {
     bool onlyForRti = _nativeData.isJsInteropClass(cls);
     bool hasRtiField = _rtiNeed.classNeedsTypeArguments(cls);
     bool onlyForConstructorOrRti = onlyForConstructor || onlyForRti;
+
+    // Recognize the specialized base classes for closures.
     bool isClosureBaseClass = cls == _commonElements.closureClass;
+    int sharedClosureApplyMetadata;
+    if (cls == _commonElements.closureClass) {
+      // The root base class has metadata for single-argument closures.
+      sharedClosureApplyMetadata = 1;
+    } else if (cls == _commonElements.closureClass0Args) {
+      sharedClosureApplyMetadata = 0;
+    } else if (cls == _commonElements.closureClass2Args) {
+      sharedClosureApplyMetadata = 2;
+    }
 
     List<Method> methods = [];
     List<StubMethod> callStubs = [];
@@ -712,6 +723,7 @@ class ProgramBuilder {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
+      assert(sharedClosureApplyMetadata == null);
 
       result = MixinApplication(cls, typeData, name, instanceFields, callStubs,
           checkedSetters, gettersSetters, isChecks, typeTests.functionTypeIndex,
@@ -738,6 +750,7 @@ class ProgramBuilder {
           onlyForConstructor: onlyForConstructor,
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
+          sharedClosureApplyMetadata: sharedClosureApplyMetadata,
           isMixinApplicationWithMembers: isMixinApplicationWithMembers);
     }
     _classes[cls] = result;
@@ -814,6 +827,7 @@ class ProgramBuilder {
     bool tearOffNeedsDirectAccess = false;
     js.Name tearOffName;
     bool isClosureCallMethod = false;
+    bool inheritsApplyMetadata = false;
     bool isNotApplyTarget =
         !element.isFunction || element.isGetter || element.isSetter;
 
@@ -829,6 +843,17 @@ class ProgramBuilder {
       if (element.enclosingClass.isClosure) {
         canTearOff = false;
         isClosureCallMethod = true;
+        ClassEntity superclass =
+            _elementEnvironment.getSuperClass(element.enclosingClass);
+        if (superclass == _commonElements.closureClass &&
+                element.parameterStructure == ParameterStructure.oneArgument ||
+            superclass == _commonElements.closureClass0Args &&
+                element.parameterStructure ==
+                    ParameterStructure.zeroArguments ||
+            superclass == _commonElements.closureClass2Args &&
+                element.parameterStructure == ParameterStructure.twoArguments) {
+          inheritsApplyMetadata = true;
+        }
       } else {
         // Careful with operators.
         bool needsSuperGetter = _codegenWorld.methodsNeedsSuperGetter(element);
@@ -881,6 +906,7 @@ class ProgramBuilder {
         tearOffName: tearOffName,
         tearOffNeedsDirectAccess: tearOffNeedsDirectAccess,
         isClosureCallMethod: isClosureCallMethod,
+        inheritsApplyMetadata: inheritsApplyMetadata,
         isIntercepted: isIntercepted,
         aliasName: aliasName,
         canBeApplied: canBeApplied,

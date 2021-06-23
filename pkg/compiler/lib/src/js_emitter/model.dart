@@ -241,7 +241,14 @@ class Class {
   final bool onlyForConstructor;
   final bool isDirectlyInstantiated;
   final bool isNative;
-  final bool isClosureBaseClass; // Common base class for closures.
+
+  /// `true` if this is the one class that is the root of all 'Closure' classes.
+  final bool isClosureBaseClass;
+
+  /// If non-null, this class is used as a base class for closures with a fixed
+  /// small number of arguments in order to inherit `Function.apply`
+  /// metadata. The value is the fixed number of arguments.
+  final int sharedClosureApplyMetadata;
 
   final bool isMixinApplicationWithMembers;
 
@@ -279,6 +286,7 @@ class Class {
       this.isDirectlyInstantiated,
       this.isNative,
       this.isClosureBaseClass,
+      this.sharedClosureApplyMetadata,
       this.isMixinApplicationWithMembers}) {
     assert(onlyForRti != null);
     assert(onlyForConstructor != null);
@@ -492,6 +500,8 @@ class InstanceMethod extends DartMethod {
   /// functions that can be torn off.
   final bool isClosureCallMethod;
 
+  final bool inheritsApplyMetadata;
+
   /// True if the interceptor calling convention is used for this method.
   final bool isIntercepted;
 
@@ -512,6 +522,7 @@ class InstanceMethod extends DartMethod {
     int requiredParameterCount,
     /* List | Map */ optionalParameterDefaultValues,
     this.isClosureCallMethod,
+    this.inheritsApplyMetadata,
     this.isIntercepted,
     js.Expression functionType,
     int applyIndex,

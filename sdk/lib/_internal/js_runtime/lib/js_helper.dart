@@ -2342,6 +2342,12 @@ closureFromTearOff(parameters) {
   return Closure.fromTearOff(parameters);
 }
 
+/// Base class for closures with no arguments.
+abstract class Closure0Args extends Closure {}
+
+/// Base class for closures with two positional arguments.
+abstract class Closure2Args extends Closure {}
+
 /// Represents an implicit closure of a function.
 abstract class TearOffClosure extends Closure {}
 
