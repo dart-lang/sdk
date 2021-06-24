@@ -563,6 +563,37 @@ class AssemblerBase : public StackResource {
 
   virtual void Breakpoint() = 0;
 
+  virtual void SmiTag(Register r) = 0;
+
+  // Extends a value of size sz in src to a value of size kWordBytes in dst.
+  // That is, bits in the source register that are not part of the sz-sized
+  // value are ignored, and if sz is signed, then the value is sign extended.
+  //
+  // Produces no instructions if dst and src are the same and sz is kWordBytes.
+  virtual void ExtendValue(Register dst, Register src, OperandSize sz) = 0;
+
+  // Extends a value of size sz in src to a tagged Smi value in dst.
+  // That is, bits in the source register that are not part of the sz-sized
+  // value are ignored, and if sz is signed, then the value is sign extended.
+  virtual void ExtendAndSmiTagValue(Register dst,
+                                    Register src,
+                                    OperandSize sz) {
+    ExtendValue(dst, src, sz);
+    SmiTag(dst);
+  }
+
+  // Move the contents of src into dst.
+  //
+  // Produces no instructions if dst and src are the same.
+  virtual void MoveRegister(Register dst, Register src) {
+    ExtendValue(dst, src, kWordBytes);
+  }
+
+  // Move the contents of src into dst and tag the value in dst as a Smi.
+  virtual void MoveAndSmiTagRegister(Register dst, Register src) {
+    ExtendAndSmiTagValue(dst, src, kWordBytes);
+  }
+
   // Inlined allocation in new space of an instance of an object whose instance
   // size is known at compile time with class ID 'cid'. The generated code has
   // no runtime calls. Jump to 'failure' if the instance cannot be allocated

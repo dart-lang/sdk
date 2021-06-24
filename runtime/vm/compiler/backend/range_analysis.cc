@@ -2745,6 +2745,7 @@ static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
     case kUnboxedUint8:  // Overapproximate Uint8 as Int16.
       return RangeBoundary::kRangeBoundaryInt16;
     case kUnboxedInt32:
+    case kUnboxedUint16:  // Overapproximate Uint16 as Int32.
       return RangeBoundary::kRangeBoundaryInt32;
     case kUnboxedInt64:
     case kUnboxedUint32:  // Overapproximate Uint32 as Int64.

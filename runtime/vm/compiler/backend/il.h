@@ -499,7 +499,7 @@ struct InstrAttrs {
   M(UnboxUint32, kNoGC)                                                        \
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
-  M(BoxUint8, kNoGC)                                                           \
+  M(BoxSmallInt, kNoGC)                                                        \
   M(IntConverter, kNoGC)                                                       \
   M(BitCast, kNoGC)                                                            \
   M(Deoptimize, kNoGC)                                                         \
@@ -7060,18 +7060,22 @@ class BoxIntegerInstr : public BoxInstr {
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
 };
 
-class BoxUint8Instr : public BoxIntegerInstr {
+class BoxSmallIntInstr : public BoxIntegerInstr {
  public:
-  explicit BoxUint8Instr(Value* value)
-      : BoxIntegerInstr(kUnboxedUint8, value) {}
+  explicit BoxSmallIntInstr(Representation rep, Value* value)
+      : BoxIntegerInstr(rep, value) {
+    ASSERT(RepresentationUtils::ValueSize(rep) * kBitsPerByte <=
+           compiler::target::kSmiBits);
+  }
 
   virtual bool ValueFitsSmi() const { return true; }
 
-  DECLARE_INSTRUCTION(BoxUint8)
+  DECLARE_INSTRUCTION(BoxSmallInt)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BoxUint8Instr);
+  DISALLOW_COPY_AND_ASSIGN(BoxSmallIntInstr);
 };
+
 class BoxInteger32Instr : public BoxIntegerInstr {
  public:
   BoxInteger32Instr(Representation representation, Value* value)

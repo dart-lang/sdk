@@ -186,6 +186,54 @@ int32_t Assembler::BindImm14Branch(int64_t position, int64_t dest) {
   }
 }
 
+void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
+  switch (sz) {
+    case kEightBytes:
+      if (rd == rn) return;  // No operation needed.
+      return mov(rd, rn);
+    case kUnsignedFourBytes:
+      return uxtw(rd, rn);
+    case kFourBytes:
+      return sxtw(rd, rn);
+    case kUnsignedTwoBytes:
+      return uxth(rd, rn);
+    case kTwoBytes:
+      return sxth(rd, rn);
+    case kUnsignedByte:
+      return uxtb(rd, rn);
+    case kByte:
+      return sxtb(rd, rn);
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+}
+
+// Equivalent to left rotate of kSmiTagSize.
+static constexpr intptr_t kBFMTagRotate = kBitsPerInt64 - kSmiTagSize;
+
+void Assembler::ExtendAndSmiTagValue(Register rd, Register rn, OperandSize sz) {
+  switch (sz) {
+    case kEightBytes:
+      return sbfm(rd, rn, kBFMTagRotate, target::kSmiBits + 1);
+    case kUnsignedFourBytes:
+      return ubfm(rd, rn, kBFMTagRotate, kBitsPerInt32 - 1);
+    case kFourBytes:
+      return sbfm(rd, rn, kBFMTagRotate, kBitsPerInt32 - 1);
+    case kUnsignedTwoBytes:
+      return ubfm(rd, rn, kBFMTagRotate, kBitsPerInt16 - 1);
+    case kTwoBytes:
+      return sbfm(rd, rn, kBFMTagRotate, kBitsPerInt16 - 1);
+    case kUnsignedByte:
+      return ubfm(rd, rn, kBFMTagRotate, kBitsPerInt8 - 1);
+    case kByte:
+      return sbfm(rd, rn, kBFMTagRotate, kBitsPerInt8 - 1);
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+}
+
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
   const intptr_t bound_pc = buffer_.Size();

@@ -665,8 +665,7 @@ class Assembler : public AssemblerBase {
     movl(Address(address, offset), src);
   }
 
-  // Issues a move instruction if 'to' is not the same as 'from'.
-  void MoveRegister(Register to, Register from);
+  void ExtendValue(Register to, Register from, OperandSize sz) override;
   void PushRegister(Register r);
   void PopRegister(Register r);
 
@@ -868,7 +867,7 @@ class Assembler : public AssemblerBase {
   /*
    * Misc. functionality
    */
-  void SmiTag(Register reg) { addl(reg, reg); }
+  void SmiTag(Register reg) override { addl(reg, reg); }
 
   void SmiUntag(Register reg) { sarl(reg, Immediate(kSmiTagSize)); }
 

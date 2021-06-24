@@ -3735,13 +3735,20 @@ bool CheckNullInstr::AttributesEqual(const Instruction& other) const {
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
     case kUnboxedUint8:
-      return new BoxUint8Instr(value);
+    case kUnboxedUint16:
+#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+#endif
+      return new BoxSmallIntInstr(from, value);
 
+#if defined(TARGET_ARCH_IS_32_BIT) || defined(DART_COMPRESSED_POINTERS)
     case kUnboxedInt32:
       return new BoxInt32Instr(value);
 
     case kUnboxedUint32:
       return new BoxUint32Instr(value);
+#endif
 
     case kUnboxedInt64:
       return new BoxInt64Instr(value);
@@ -4606,6 +4613,28 @@ void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Assert that register assignment is correct.
   ASSERT((InputCount() == 0) || (locs()->out(0).reg() == locs()->in(0).reg()));
   __ Drop(num_temps());
+}
+
+LocationSummary* BoxSmallIntInstr::MakeLocationSummary(Zone* zone,
+                                                       bool opt) const {
+  ASSERT(RepresentationUtils::ValueSize(from_representation()) * kBitsPerByte <=
+         compiler::target::kSmiBits);
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void BoxSmallIntInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
+  ASSERT(value != out);
+
+  __ ExtendAndSmiTagValue(
+      out, value, RepresentationUtils::OperandSize(from_representation()));
 }
 
 StrictCompareInstr::StrictCompareInstr(const InstructionSource& source,

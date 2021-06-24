@@ -1082,9 +1082,26 @@ void Assembler::CompareToStack(Register src, intptr_t depth) {
   cmpq(Address(SPREG, depth * target::kWordSize), src);
 }
 
-void Assembler::MoveRegister(Register to, Register from) {
-  if (to != from) {
-    movq(to, from);
+void Assembler::ExtendValue(Register to, Register from, OperandSize sz) {
+  switch (sz) {
+    case kEightBytes:
+      if (to == from) return;  // No operation needed.
+      return movq(to, from);
+    case kUnsignedFourBytes:
+      return movl(to, from);
+    case kFourBytes:
+      return movsxd(to, from);
+    case kUnsignedTwoBytes:
+      return movzxw(to, from);
+    case kTwoBytes:
+      return movsxw(to, from);
+    case kUnsignedByte:
+      return movzxb(to, from);
+    case kByte:
+      return movsxb(to, from);
+    default:
+      UNIMPLEMENTED();
+      break;
   }
 }
 

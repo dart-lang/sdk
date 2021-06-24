@@ -936,6 +936,8 @@ const char* RepresentationToCString(Representation rep) {
       return "float";
     case kUnboxedUint8:
       return "uint8";
+    case kUnboxedUint16:
+      return "uint16";
     case kUnboxedInt32:
       return "int32";
     case kUnboxedUint32:

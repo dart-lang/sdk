@@ -574,6 +574,18 @@ class Assembler : public AssemblerBase {
 
   void dmb();
 
+  // Media instructions.
+  void sbfx(Register rd,
+            Register rn,
+            int32_t lsb,
+            int32_t width,
+            Condition cond = AL);
+  void ubfx(Register rd,
+            Register rn,
+            int32_t lsb,
+            int32_t width,
+            Condition cond = AL);
+
   // Emit code to transition between generated and native modes.
   //
   // These require that CSP and SP are equal and aligned and require two scratch
@@ -1086,7 +1098,34 @@ class Assembler : public AssemblerBase {
     b(label, ZERO);
   }
 
-  void MoveRegister(Register rd, Register rm, Condition cond = AL);
+  void MoveRegister(Register rd, Register rm, Condition cond) {
+    ExtendValue(rd, rm, kFourBytes, cond);
+  }
+  void MoveRegister(Register rd, Register rm) override {
+    MoveRegister(rd, rm, AL);
+  }
+  void MoveAndSmiTagRegister(Register rd, Register rm, Condition cond) {
+    ExtendAndSmiTagValue(rd, rm, kFourBytes, cond);
+  }
+  void MoveAndSmiTagRegister(Register rd, Register rm) override {
+    MoveAndSmiTagRegister(rd, rm, AL);
+  }
+  void ExtendValue(Register rd, Register rm, OperandSize sz, Condition cond);
+  void ExtendValue(Register rd, Register rm, OperandSize sz) override {
+    ExtendValue(rd, rm, sz, AL);
+  }
+  void ExtendAndSmiTagValue(Register rd,
+                            Register rm,
+                            OperandSize sz,
+                            Condition cond) {
+    ExtendValue(rd, rm, sz, cond);
+    SmiTag(rd, cond);
+  }
+  void ExtendAndSmiTagValue(Register rd,
+                            Register rm,
+                            OperandSize sz = kFourBytes) override {
+    ExtendAndSmiTagValue(rd, rm, sz, AL);
+  }
 
   // Convenience shift instructions. Use mov instruction with shifter operand
   // for variants setting the status flags.
@@ -1125,17 +1164,14 @@ class Assembler : public AssemblerBase {
   void Vsqrtqs(QRegister qd, QRegister qm, QRegister temp);
   void Vdivqs(QRegister qd, QRegister qn, QRegister qm);
 
-  void SmiTag(Register reg, Condition cond = AL) {
-    Lsl(reg, reg, Operand(kSmiTagSize), cond);
-  }
+  void SmiTag(Register reg, Condition cond) { SmiTag(reg, reg, cond); }
+  void SmiTag(Register reg) override { SmiTag(reg, AL); }
 
   void SmiTag(Register dst, Register src, Condition cond = AL) {
     Lsl(dst, src, Operand(kSmiTagSize), cond);
   }
 
-  void SmiUntag(Register reg, Condition cond = AL) {
-    Asr(reg, reg, Operand(kSmiTagSize), cond);
-  }
+  void SmiUntag(Register reg, Condition cond = AL) { SmiUntag(reg, reg, cond); }
 
   void SmiUntag(Register dst, Register src, Condition cond = AL) {
     Asr(dst, src, Operand(kSmiTagSize), cond);

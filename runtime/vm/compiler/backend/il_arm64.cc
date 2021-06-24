@@ -3921,27 +3921,6 @@ void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
-LocationSummary* BoxUint8Instr::MakeLocationSummary(Zone* zone,
-                                                    bool opt) const {
-  ASSERT(from_representation() == kUnboxedUint8);
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-void BoxUint8Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register value = locs()->in(0).reg();
-  const Register out = locs()->out(0).reg();
-  ASSERT(value != out);
-
-  ASSERT(compiler::target::kSmiBits >= 8);
-  __ ubfiz(out, value, kSmiTagSize, 8);
-}
-
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   ASSERT((from_representation() == kUnboxedInt32) ||

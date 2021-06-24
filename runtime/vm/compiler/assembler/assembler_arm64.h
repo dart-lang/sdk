@@ -525,11 +525,10 @@ class Assembler : public AssemblerBase {
   // Pop all registers which are callee-saved according to the ARM64 ABI.
   void PopNativeCalleeSavedRegisters();
 
-  void MoveRegister(Register rd, Register rn) {
-    if (rd != rn) {
-      mov(rd, rn);
-    }
-  }
+  void ExtendValue(Register rd, Register rn, OperandSize sz) override;
+  void ExtendAndSmiTagValue(Register rd,
+                            Register rn,
+                            OperandSize sz = kEightBytes) override;
 
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);
@@ -1580,13 +1579,11 @@ class Assembler : public AssemblerBase {
   void VRecps(VRegister vd, VRegister vn);
   void VRSqrts(VRegister vd, VRegister vn);
 
-  void SmiUntag(Register reg) {
-    sbfm(reg, reg, kSmiTagSize, target::kSmiBits + 1);
-  }
+  void SmiUntag(Register reg) { SmiUntag(reg, reg); }
   void SmiUntag(Register dst, Register src) {
     sbfm(dst, src, kSmiTagSize, target::kSmiBits + 1);
   }
-  void SmiTag(Register reg) { LslImmediate(reg, reg, kSmiTagSize); }
+  void SmiTag(Register reg) override { SmiTag(reg, reg); }
   void SmiTag(Register dst, Register src) {
     LslImmediate(dst, src, kSmiTagSize);
   }
