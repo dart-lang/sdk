@@ -74,7 +74,9 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   Builder findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
-    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+    if (accessingLibrary.nameOriginBuilder.origin !=
+            library.nameOriginBuilder.origin &&
+        name.startsWith("_")) {
       return null;
     }
     Builder declaration = isSetter
