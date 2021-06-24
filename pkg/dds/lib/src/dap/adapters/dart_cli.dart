@@ -41,8 +41,17 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
   @override
   final parseLaunchArgs = DartLaunchRequestArguments.fromJson;
 
-  DartCliDebugAdapter(ByteStreamServerChannel channel, [Logger? logger])
-      : super(channel, logger);
+  DartCliDebugAdapter(
+    ByteStreamServerChannel channel, {
+    bool enableDds = true,
+    bool enableAuthCodes = true,
+    Logger? logger,
+  }) : super(
+          channel,
+          enableDds: enableDds,
+          enableAuthCodes: enableAuthCodes,
+          logger: logger,
+        );
 
   Future<void> debuggerConnected(vm.VM vmInfo) async {
     if (!isAttach) {
@@ -97,16 +106,14 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
           );
     }
 
-    // TODO(dantup): Currently this just spawns the new VM and completely
-    // ignores DDS. Figure out how this will ultimately work - will we just wrap
-    // the call to initDebugger() with something that starts DDS?
     final vmServiceInfoFile = _vmServiceInfoFile;
     final vmArgs = <String>[
-      '--no-serve-devtools',
       if (debug) ...[
         '--enable-vm-service=${args.vmServicePort ?? 0}',
         '--pause_isolates_on_start=true',
+        if (!enableAuthCodes) '--disable-service-auth-codes'
       ],
+      '--disable-dart-dev',
       if (debug && vmServiceInfoFile != null) ...[
         '-DSILENT_OBSERVATORY=true',
         '--write-service-info=${Uri.file(vmServiceInfoFile.path)}'

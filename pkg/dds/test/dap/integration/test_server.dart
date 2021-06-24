@@ -16,10 +16,10 @@ import 'package:pedantic/pedantic.dart';
 final _random = Random();
 
 abstract class DapTestServer {
+  List<String> get errorLogs;
   String get host;
   int get port;
   Future<void> stop();
-  List<String> get errorLogs;
 }
 
 /// An instance of a DAP server running in-process (to aid debugging).
@@ -69,17 +69,24 @@ class OutOfProcessDapTestServer extends DapTestServer {
 
   List<String> get errorLogs => _errors;
 
-  OutOfProcessDapTestServer._(this._process, this.host, this.port) {
+  OutOfProcessDapTestServer._(
+    this._process,
+    this.host,
+    this.port,
+    Logger? logger,
+  ) {
     // The DAP server should generally not write to stdout/stderr (unless -v is
     // passed), but it may do if it fails to start or crashes. If this happens,
-    // ensure these are included in the test output.
-    _process.stdout.transform(utf8.decoder).listen(print);
-    _process.stderr.transform(utf8.decoder).listen((s) {
-      _errors.add(s);
-      throw s;
+    // and there's no logger, print to stdout.
+    _process.stdout.transform(utf8.decoder).listen(logger ?? print);
+    _process.stderr.transform(utf8.decoder).listen((error) {
+      logger?.call(error);
+      _errors.add(error);
+      throw error;
     });
     unawaited(_process.exitCode.then((code) {
       final message = 'Out-of-process DAP server terminated with code $code';
+      logger?.call(message);
       _errors.add(message);
       if (!_isShuttingDown && code != 0) {
         throw message;
@@ -94,7 +101,10 @@ class OutOfProcessDapTestServer extends DapTestServer {
     await _process.exitCode;
   }
 
-  static Future<OutOfProcessDapTestServer> create() async {
+  static Future<OutOfProcessDapTestServer> create({
+    Logger? logger,
+    List<String>? additionalArgs,
+  }) async {
     final ddsEntryScript =
         await Isolate.resolvePackageUri(Uri.parse('package:dds/dds.dart'));
     final ddsLibFolder = path.dirname(ddsEntryScript!.toFilePath());
@@ -107,11 +117,14 @@ class OutOfProcessDapTestServer extends DapTestServer {
       Platform.resolvedExecutable,
       [
         dapServerScript,
+        'dap',
         '--host=$host',
         '--port=$port',
+        ...?additionalArgs,
+        if (logger != null) '--verbose'
       ],
     );
 
-    return OutOfProcessDapTestServer._(_process, host, port);
+    return OutOfProcessDapTestServer._(_process, host, port, logger);
   }
 }

@@ -5,11 +5,26 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dds/src/dap/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'test_client.dart';
 import 'test_server.dart';
+
+/// A logger to use to log all traffic (both DAP and VM) to stdout.
+///
+/// If the enviroment variable is `DAP_TEST_VERBOSE` then `print` will be used,
+/// otherwise there will be no verbose logging.
+///
+///   DAP_TEST_VERBOSE=true pub run test --chain-stack-traces test/dap/integration
+///
+///
+/// When using the out-of-process DAP, this causes `--verbose` to be passed to
+/// the server which causes it to write all traffic to `stdout` which is then
+/// picked up by [OutOfProcessDapTestServer] and passed to this logger.
+final logger =
+    Platform.environment['DAP_TEST_VERBOSE'] == 'true' ? print : null;
 
 /// Whether to run the DAP server in-process with the tests, or externally in
 /// another process.
@@ -33,8 +48,11 @@ int lineWith(File file, String searchText) =>
 /// A helper function to wrap all tests in a library with setup/teardown functions
 /// to start a shared server for all tests in the library and an individual
 /// client for each test.
-testDap(Future<void> Function(DapTestSession session) tests) {
-  final session = DapTestSession();
+testDap(
+  Future<void> Function(DapTestSession session) tests, {
+  List<String>? additionalArgs,
+}) {
+  final session = DapTestSession(additionalArgs: additionalArgs);
 
   setUpAll(session.setUpAll);
   tearDownAll(session.tearDownAll);
@@ -51,6 +69,9 @@ class DapTestSession {
   late DapTestServer server;
   late DapTestClient client;
   final _testFolders = <Directory>[];
+  final List<String>? additionalArgs;
+
+  DapTestSession({this.additionalArgs});
 
   /// Creates a file in a temporary folder to be used as an application for testing.
   ///
@@ -68,7 +89,7 @@ class DapTestSession {
   }
 
   Future<void> setUpAll() async {
-    server = await _startServer();
+    server = await _startServer(logger: logger, additionalArgs: additionalArgs);
   }
 
   Future<void> tearDown() => client.stop();
@@ -111,9 +132,15 @@ class DapTestSession {
   }
 
   /// Starts a DAP server that can be shared across tests.
-  Future<DapTestServer> _startServer() async {
+  Future<DapTestServer> _startServer({
+    Logger? logger,
+    List<String>? additionalArgs,
+  }) async {
     return useInProcessDap
-        ? await InProcessDapTestServer.create()
-        : await OutOfProcessDapTestServer.create();
+        ? await InProcessDapTestServer.create(logger: logger)
+        : await OutOfProcessDapTestServer.create(
+            logger: logger,
+            additionalArgs: additionalArgs,
+          );
   }
 }

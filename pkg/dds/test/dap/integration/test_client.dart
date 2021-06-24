@@ -5,12 +5,14 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:dds/src/dap/adapters/dart.dart';
 import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:dds/src/dap/protocol_stream.dart';
 import 'package:dds/src/dap/protocol_stream_transformers.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart' as vm;
 
 import 'test_server.dart';
 
@@ -336,21 +338,44 @@ extension DapTestClientExtension on DapTestClient {
   ///
   /// Launch options can be customised by passing a custom [launch] function that
   /// will be used instead of calling `launch(file.path)`.
-  Future<StoppedEventBody> hitBreakpoint(File file, int line,
-      {Future<Response> Function()? launch}) async {
+  Future<StoppedEventBody> hitBreakpoint(
+    File file,
+    int line, {
+    Future<Response> Function()? launch,
+  }) async {
     final stop = expectStop('breakpoint', file: file, line: line);
 
     await Future.wait([
       initialize(),
       sendRequest(
         SetBreakpointsArguments(
-            source: Source(path: file.path),
-            breakpoints: [SourceBreakpoint(line: line)]),
+          source: Source(path: file.path),
+          breakpoints: [SourceBreakpoint(line: line)],
+        ),
       ),
       launch?.call() ?? this.launch(file.path),
     ], eagerError: true);
 
     return stop;
+  }
+
+  /// Returns whether DDS is available for the VM Service the debug adapter
+  /// is connected to.
+  Future<bool> get ddsAvailable async {
+    final response = await custom(
+      '_getSupportedProtocols',
+      null,
+    );
+
+    // For convenience, use the ProtocolList to deserialise the custom
+    // response to check if included DDS.
+    final protocolList =
+        vm.ProtocolList.parse(response.body as Map<String, Object?>?);
+
+    final ddsProtocol = protocolList?.protocols?.singleWhereOrNull(
+      (protocol) => protocol.protocolName == 'DDS',
+    );
+    return ddsProtocol != null;
   }
 
   /// Runs a script and expects to pause at an exception in [file].

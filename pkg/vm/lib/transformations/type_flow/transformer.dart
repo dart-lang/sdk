@@ -731,9 +731,8 @@ class TreeShaker {
 
       if (func != null) {
         _pass1.transformTypeParameterList(func.typeParameters, func);
-        _pass1.transformVariableDeclarationList(
-            func.positionalParameters, func);
-        _pass1.transformVariableDeclarationList(func.namedParameters, func);
+        addUsedParameters(func.positionalParameters);
+        addUsedParameters(func.namedParameters);
         func.returnType.accept(typeVisitor);
       }
 
@@ -752,6 +751,15 @@ class TreeShaker {
         // shaken)
         addUsedExtension(extension);
       }
+    }
+  }
+
+  void addUsedParameters(List<VariableDeclaration> params) {
+    for (var param in params) {
+      // Do not visit initializer (default value) of a parameter as it is
+      // going to be removed during pass 2.
+      _pass1.transformExpressionList(param.annotations, param);
+      param.type.accept(typeVisitor);
     }
   }
 
@@ -1564,6 +1572,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
           // have a body even if it can never be called.
           _makeUnreachableBody(node.function);
         }
+        _removeDefaultValuesOfParameters(node.function);
         node.function.asyncMarker = AsyncMarker.Sync;
         switch (node.stubKind) {
           case ProcedureStubKind.Regular:
@@ -1586,6 +1595,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
         Statistics.fieldInitializersDropped++;
       } else if (node is Constructor) {
         _makeUnreachableBody(node.function);
+        _removeDefaultValuesOfParameters(node.function);
         node.initializers = const <Initializer>[];
         Statistics.constructorBodiesDropped++;
       } else {
@@ -1626,6 +1636,15 @@ class _TreeShakerPass2 extends RemovingTransformer {
       function.body = new ExpressionStatement(new Throw(new StringLiteral(
           "Attempt to execute method removed by Dart AOT compiler (TFA)")))
         ..parent = function;
+    }
+  }
+
+  void _removeDefaultValuesOfParameters(FunctionNode function) {
+    for (var p in function.positionalParameters) {
+      p.initializer = null;
+    }
+    for (var p in function.namedParameters) {
+      p.initializer = null;
     }
   }
 

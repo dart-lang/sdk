@@ -93,11 +93,6 @@ class IsolateManager {
       return;
     }
 
-    // Delay processing any events until the debugger initialization has
-    // finished running, as events may arrive (for ex. IsolateRunnable) while
-    // it's doing is own initialization that this may interfere with.
-    await _adapter.debuggerInitialized;
-
     final eventKind = event.kind;
     if (eventKind == vm.EventKind.kIsolateStart ||
         eventKind == vm.EventKind.kIsolateRunnable) {
@@ -315,7 +310,12 @@ class IsolateManager {
       await _configureIsolate(isolate);
       await resumeThread(thread.threadId);
     } else if (eventKind == vm.EventKind.kPauseStart) {
-      await resumeThread(thread.threadId);
+      // Don't resume from a PauseStart if this has already happened (see
+      // comments on [thread.hasBeenStarted]).
+      if (!thread.hasBeenStarted) {
+        thread.hasBeenStarted = true;
+        await resumeThread(thread.threadId);
+      }
     } else {
       // PauseExit, PauseBreakpoint, PauseInterrupted, PauseException
       var reason = 'pause';
@@ -466,6 +466,17 @@ class ThreadInfo {
   var atAsyncSuspension = false;
   int? exceptionReference;
   var paused = false;
+
+  /// Tracks whether an isolate has been started from its PauseStart state.
+  ///
+  /// This is used to prevent trying to resume a thread twice if a PauseStart
+  /// event arrives around the same time that are our initialization code (which
+  /// automatically resumes threads that are in the PauseStart state when we
+  /// connect).
+  ///
+  /// If we send a duplicate resume, it could trigger an unwanted resume for a
+  /// breakpoint or exception that occur early on.
+  bool hasBeenStarted = false;
 
   // The most recent pauseEvent for this isolate.
   vm.Event? pauseEvent;
