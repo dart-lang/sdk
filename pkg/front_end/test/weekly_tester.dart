@@ -18,6 +18,7 @@ main(List<String> args) async {
       "\n\n");
 
   List<WrappedProcess> startedProcesses = [];
+  WrappedProcess? leakTest;
   {
     // Very slow: Leak-test.
     Uri leakTester =
@@ -28,13 +29,14 @@ main(List<String> args) async {
     } else {
       // The tools/bots/flutter/compile_flutter.sh script passes `--path`
       // --- we'll just pass everything along.
-      startedProcesses.add(await run(
+      leakTest = await run(
         [
           leakTester.toString(),
           ...args,
         ],
         "leak test",
-      ));
+      );
+      startedProcesses.add(leakTest);
     }
   }
   {
@@ -53,7 +55,9 @@ main(List<String> args) async {
       // ignore: unawaited_futures
       () async {
         for (int i = 0; i < 10 * 60; i++) {
-          if (observatoryLines.isNotEmpty) break;
+          if (leakTest == null || leakTest.observatoryLines.isNotEmpty) {
+            break;
+          }
           await Future.delayed(new Duration(seconds: 1));
         }
 
@@ -124,23 +128,24 @@ main(List<String> args) async {
   List<int> exitCodes =
       await Future.wait(startedProcesses.map((e) => e.process.exitCode));
   if (exitCodes.where((e) => e != 0).isNotEmpty) {
+    print("\n\nFound failures!:\n");
     // At least one failed.
-    exitCode = 1;
     for (WrappedProcess p in startedProcesses) {
       int pExitCode = await p.process.exitCode;
       if (pExitCode != 0) {
         print("${p.id} failed with exist-code $pExitCode");
       }
     }
+
+    throw "There were failures!";
   }
 }
-
-List<String> observatoryLines = [];
 
 Future<WrappedProcess> run(List<String> args, String id) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   Process process = await Process.start(
       Platform.resolvedExecutable, ["--enable-asserts", ...args]);
+  List<String> observatoryLines = [];
   process.stderr
       .transform(utf8.decoder)
       .transform(new LineSplitter())
@@ -162,14 +167,16 @@ Future<WrappedProcess> run(List<String> args, String id) async {
   // ignore: unawaited_futures
   process.exitCode.then((int exitCode) {
     stopwatch.stop();
-    print("$id finished in ${stopwatch.elapsed.toString()}");
+    print("$id finished in ${stopwatch.elapsed.toString()} "
+        "with exit code $exitCode");
   });
-  return new WrappedProcess(process, id);
+  return new WrappedProcess(process, id, observatoryLines);
 }
 
 class WrappedProcess {
   final Process process;
   final String id;
+  final List<String> observatoryLines;
 
-  WrappedProcess(this.process, this.id);
+  WrappedProcess(this.process, this.id, this.observatoryLines);
 }
