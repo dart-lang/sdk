@@ -154,12 +154,15 @@ class CleanupAnnotations extends RecursiveVisitor {
   }
 
   bool _keepAnnotation(Expression annotation) {
-    final constant = (annotation as ConstantExpression).constant;
-    if (constant is InstanceConstant) {
-      final cls = constant.classNode;
-      return (cls == externalNameClass) ||
-          (cls == pragmaClass) ||
-          (protobufHandler != null && protobufHandler.usesAnnotationClass(cls));
+    if (annotation is ConstantExpression) {
+      final constant = annotation.constant;
+      if (constant is InstanceConstant) {
+        final cls = constant.classNode;
+        return (cls == externalNameClass) ||
+            (cls == pragmaClass) ||
+            (protobufHandler != null &&
+                protobufHandler.usesAnnotationClass(cls));
+      }
     }
     return false;
   }
