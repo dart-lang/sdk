@@ -26,7 +26,7 @@ class CreateFieldMixinTest extends FixProcessorTest {
 mixin M {
 }
 
-main(M m) {
+void f(M m) {
   int v = m.test;
   print(v);
 }
@@ -36,7 +36,7 @@ mixin M {
   int test;
 }
 
-main(M m) {
+void f(M m) {
   int v = m.test;
   print(v);
 }
@@ -46,27 +46,27 @@ main(M m) {
   Future<void> test_setter_qualified_instance_hasField() async {
     await resolveTestCode('''
 mixin M {
-  int aaa;
-  int zzz;
+  int aaa = 0;
+  int zzz = 25;
 
   existingMethod() {}
 }
 
-main(M m) {
+void f(M m) {
   m.test = 5;
 }
 ''');
     await assertHasFix('''
 mixin M {
-  int aaa;
-  int zzz;
+  int aaa = 0;
+  int zzz = 25;
 
   int test;
 
   existingMethod() {}
 }
 
-main(M m) {
+void f(M m) {
   m.test = 5;
 }
 ''');
@@ -83,12 +83,12 @@ class CreateFieldTest extends FixProcessorTest {
 class A {
 }
 class B {
-  A a;
+  A a = A();
 }
 class C {
-  B b;
+  B b = B();
 }
-main(C c) {
+void f(C c) {
   int v = c.b.a.test;
   print(v);
 }
@@ -98,12 +98,12 @@ class A {
   int test;
 }
 class B {
-  A a;
+  A a = A();
 }
 class C {
-  B b;
+  B b = B();
 }
-main(C c) {
+void f(C c) {
   int v = c.b.a.test;
   print(v);
 }
@@ -114,7 +114,7 @@ main(C c) {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -123,7 +123,7 @@ main(A a) {
 class A {
   int test;
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -145,7 +145,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/other.dart';
 
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -167,7 +167,7 @@ class A {
   Future<void> test_getter_qualified_instance_dynamicType() async {
     await resolveTestCode('''
 class A {
-  B b;
+  B b = B();
   void f(dynamic context) {
     context + b.test;
   }
@@ -177,7 +177,7 @@ class B {
 ''');
     await assertHasFix('''
 class A {
-  B b;
+  B b = B();
   void f(dynamic context) {
     context + b.test;
   }
@@ -278,7 +278,7 @@ class A {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   var x = a;
   int v = x.test;
   print(v);
@@ -288,7 +288,7 @@ main(A a) {
 class A {
   int test;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   int v = x.test;
   print(v);
@@ -300,7 +300,7 @@ main(A a) {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.test = 0;
 }
@@ -309,7 +309,7 @@ main(A a) {
 class A {
   int test;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.test = 0;
 }
@@ -333,7 +333,7 @@ import 'package:test/b.dart';
 class C {
 }
 
-main(C c) {
+void f(C c) {
   c.test = getA();
 }
 ''');
@@ -346,7 +346,7 @@ class C {
   A test;
 }
 
-main(C c) {
+void f(C c) {
   c.test = getA();
 }
 ''');
@@ -388,7 +388,7 @@ main(A a) {
 part of lib;
 class A {
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -440,7 +440,7 @@ class C {
 class A {
 }
 class B<T> {
-  List<T> items;
+  List<T> items = [];
   main(A a) {
     a.test = items;
   }
@@ -451,7 +451,7 @@ class A {
   List test;
 }
 class B<T> {
-  List<T> items;
+  List<T> items = [];
   main(A a) {
     a.test = items;
   }
@@ -462,7 +462,7 @@ class B<T> {
   Future<void> test_setter_generic_OK_local() async {
     await resolveTestCode('''
 class A<T> {
-  List<T> items;
+  List<T> items = [];
 
   main(A a) {
     test = items;
@@ -471,7 +471,7 @@ class A<T> {
 ''');
     await assertHasFix('''
 class A<T> {
-  List<T> items;
+  List<T> items = [];
 
   List<T> test;
 
@@ -485,25 +485,25 @@ class A<T> {
   Future<void> test_setter_qualified_instance_hasField() async {
     await resolveTestCode('''
 class A {
-  int aaa;
-  int zzz;
+  int aaa = 0;
+  int zzz = 25;
 
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   a.test = 5;
 }
 ''');
     await assertHasFix('''
 class A {
-  int aaa;
-  int zzz;
+  int aaa = 0;
+  int zzz = 25;
 
   int test;
 
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   a.test = 5;
 }
 ''');
@@ -514,7 +514,7 @@ main(A a) {
 class A {
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   a.test = 5;
 }
 ''');
@@ -524,7 +524,7 @@ class A {
 
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   a.test = 5;
 }
 ''');

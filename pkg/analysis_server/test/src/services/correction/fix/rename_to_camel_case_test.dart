@@ -27,7 +27,7 @@ class RenameToCamelCaseTest extends FixProcessorLintTest {
     await resolveTestCode('''
 main() {
   int my_integer_variable = 42;
-  int foo;
+  int foo = 0;
   print(my_integer_variable);
   print(foo);
 }
@@ -35,7 +35,7 @@ main() {
     await assertHasFix('''
 main() {
   int myIntegerVariable = 42;
-  int foo;
+  int foo = 0;
   print(myIntegerVariable);
   print(foo);
 }
@@ -61,12 +61,12 @@ main() {
 
   Future<void> test_parameter_function() async {
     await resolveTestCode('''
-main(int my_integer_variable) {
+void f(int my_integer_variable) {
   print(my_integer_variable);
 }
 ''');
     await assertHasFix('''
-main(int myIntegerVariable) {
+void f(int myIntegerVariable) {
   print(myIntegerVariable);
 }
 ''');
@@ -91,7 +91,7 @@ class A {
 
   Future<void> test_parameter_optionalNamed() async {
     await resolveTestCode('''
-foo({int my_integer_variable}) {
+void f({int? my_integer_variable}) {
   print(my_integer_variable);
 }
 ''');
@@ -100,12 +100,12 @@ foo({int my_integer_variable}) {
 
   Future<void> test_parameter_optionalPositional() async {
     await resolveTestCode('''
-main([int my_integer_variable]) {
+void f([int? my_integer_variable]) {
   print(my_integer_variable);
 }
 ''');
     await assertHasFix('''
-main([int myIntegerVariable]) {
+void f([int? myIntegerVariable]) {
   print(myIntegerVariable);
 }
 ''');

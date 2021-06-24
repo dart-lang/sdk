@@ -28,7 +28,7 @@ class A {
   int get field => _field;
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   void existingMethod() {}
 }
@@ -40,7 +40,7 @@ class A {
   int get field => _field;
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   B(int field) : super(field);
 
@@ -85,7 +85,7 @@ class A {
   int field;
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
   void existingMethod() {}
 }
 ''');
@@ -98,7 +98,7 @@ class A {
 class B extends A {
   B(int field) : super(field);
 
-  int existingField;
+  int existingField = 0;
   void existingMethod() {}
 }
 ''');
@@ -110,7 +110,7 @@ class A {
   A.named(p1, int p2);
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   void existingMethod() {}
 }
@@ -120,7 +120,7 @@ class A {
   A.named(p1, int p2);
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   B.named(p1, int p2) : super.named(p1, p2);
 
@@ -132,20 +132,20 @@ class B extends A {
   Future<void> test_optional() async {
     await resolveTestCode('''
 class A {
-  A(p1, int p2, List<String> p3, [int p4]);
+  A(p1, int p2, List<String> p3, [int p4 = 0]);
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   void existingMethod() {}
 }
 ''');
     await assertHasFix('''
 class A {
-  A(p1, int p2, List<String> p3, [int p4]);
+  A(p1, int p2, List<String> p3, [int p4 = 0]);
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   B(p1, int p2, List<String> p3) : super(p1, p2, p3);
 

@@ -24,7 +24,7 @@ class ChangeToStaticAccessTest extends FixProcessorTest {
 class A {
   static foo() {}
 }
-main(A a) {
+void f(A a) {
   a.foo();
 }
 ''');
@@ -32,7 +32,7 @@ main(A a) {
 class A {
   static foo() {}
 }
-main(A a) {
+void f(A a) {
   A.foo();
 }
 ''');
@@ -71,7 +71,7 @@ class B extends A {}
     await resolveTestCode('''
 import 'package:test/b.dart';
 
-main(B b) {
+void f(B b) {
   b.foo();
 }
 ''');
@@ -79,7 +79,7 @@ main(B b) {
 import 'package:test/a.dart';
 import 'package:test/b.dart';
 
-main(B b) {
+void f(B b) {
   A.foo();
 }
 ''');
@@ -88,13 +88,15 @@ main(B b) {
   Future<void> test_method_prefixLibrary() async {
     await resolveTestCode('''
 import 'dart:async' as pref;
-main(pref.Future f) {
+
+void f(pref.Future f) {
   f.wait([]);
 }
 ''');
     await assertHasFix('''
 import 'dart:async' as pref;
-main(pref.Future f) {
+
+void f(pref.Future f) {
   pref.Future.wait([]);
 }
 ''');
@@ -105,7 +107,7 @@ main(pref.Future f) {
 class A {
   static get foo => 42;
 }
-main(A a) {
+void f(A a) {
   a.foo;
 }
 ''');
@@ -113,7 +115,7 @@ main(A a) {
 class A {
   static get foo => 42;
 }
-main(A a) {
+void f(A a) {
   A.foo;
 }
 ''');
@@ -153,7 +155,7 @@ class B extends A {}
     await resolveTestCode('''
 import 'package:test/b.dart';
 
-main(B b) {
+void f(B b) {
   b.foo;
 }
 ''');
@@ -161,7 +163,7 @@ main(B b) {
 import 'package:test/a.dart';
 import 'package:test/b.dart';
 
-main(B b) {
+void f(B b) {
   A.foo;
 }
 ''');

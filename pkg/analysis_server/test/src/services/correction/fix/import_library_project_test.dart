@@ -31,8 +31,8 @@ class B {}
     await resolveTestCode('''
 import 'lib.dart' show A;
 main() {
-  A a;
-  B b;
+  A? a;
+  B? b;
   print('\$a \$b');
 }
 ''');
@@ -461,7 +461,7 @@ class Test {}
 void f() {
   try {
     print(1);
-  } on Test {
+  } on Test { // ignore: nullable_type_in_catch_clause
     print(2);
   }
 }
@@ -472,7 +472,7 @@ import 'package:test/lib.dart';
 void f() {
   try {
     print(1);
-  } on Test {
+  } on Test { // ignore: nullable_type_in_catch_clause
     print(2);
   }
 }
@@ -947,7 +947,7 @@ class A {}
 import 'package:bbb/b1.dart';
 main() {
   Test t;
-  A a;
+  A? a;
   print('\$t \$a');
 }
 ''');

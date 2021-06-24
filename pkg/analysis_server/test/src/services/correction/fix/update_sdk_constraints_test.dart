@@ -50,7 +50,7 @@ const c = true & false;
 class A {
   const A();
 }
-const a = A();
+const A? a = A();
 const c = a == null;
 ''', to: '^2.2.2');
   }

@@ -23,6 +23,9 @@ class ConvertToListLiteralTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_collection_literals;
 
+  @override
+  String? get testPackageLanguageVersion => '2.9';
+
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''
 List l = List();

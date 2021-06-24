@@ -116,7 +116,7 @@ class C {
   Future<void> test_last_optionalNamed_noDefaultValue() async {
     await resolveTestCode('''
 class C {
-  C({int x});
+  C({int? x});
 }
 ''');
     await assertHasFix('''
@@ -159,7 +159,7 @@ class C {
   Future<void> test_last_optionalPositional_noDefaultValue() async {
     await resolveTestCode('''
 class C {
-  C([int x]);
+  C([int? x]);
 }
 ''');
     await assertHasFix('''

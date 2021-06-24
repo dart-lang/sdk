@@ -26,7 +26,7 @@ class CreateGetterMixinTest extends FixProcessorTest {
 mixin M {
 }
 
-main(M m) {
+void f(M m) {
   int v = m.test;
   print(v);
 }
@@ -36,7 +36,7 @@ mixin M {
   int get test => null;
 }
 
-main(M m) {
+void f(M m) {
   int v = m.test;
   print(v);
 }
@@ -85,7 +85,7 @@ class CreateGetterTest extends FixProcessorTest {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   var x = a;
   int v = x.test;
   print(v);
@@ -95,7 +95,7 @@ main(A a) {
 class A {
   int get test => null;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   int v = x.test;
   print(v);
@@ -146,28 +146,28 @@ extension E on String {
   Future<void> test_location_afterLastGetter() async {
     await resolveTestCode('''
 class A {
-  int existingField;
+  int existingField = 0;
 
-  int get existingGetter => null;
+  int get existingGetter => 0;
 
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
 ''');
     await assertHasFix('''
 class A {
-  int existingField;
+  int existingField = 0;
 
-  int get existingGetter => null;
+  int get existingGetter => 0;
 
   int get test => null;
 
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -179,12 +179,12 @@ main(A a) {
 class A {
 }
 class B {
-  A a;
+  A a = A();
 }
 class C {
-  B b;
+  B b = B();
 }
-main(C c) {
+void f(C c) {
   int v = c.b.a.test;
   print(v);
 }
@@ -194,12 +194,12 @@ class A {
   int get test => null;
 }
 class B {
-  A a;
+  A a = A();
 }
 class C {
-  B b;
+  B b = B();
 }
-main(C c) {
+void f(C c) {
   int v = c.b.a.test;
   print(v);
 }
@@ -211,7 +211,7 @@ main(C c) {
 extension E on String {
 }
 
-main(String s) {
+void f(String s) {
   int v = E(s).test;
   print(v);
 }
@@ -221,7 +221,7 @@ extension E on String {
   int get test => null;
 }
 
-main(String s) {
+void f(String s) {
   int v = E(s).test;
   print(v);
 }
@@ -232,7 +232,7 @@ main(String s) {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -241,7 +241,7 @@ main(A a) {
 class A {
   int get test => null;
 }
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -263,7 +263,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/other.dart';
 
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -285,7 +285,7 @@ class A {
   Future<void> test_qualified_instance_dynamicType() async {
     await resolveTestCode('''
 class A {
-  B b;
+  B b = B();
   void f(dynamic context) {
     context + b.test;
   }
@@ -295,7 +295,7 @@ class B {
 ''');
     await assertHasFix('''
 class A {
-  B b;
+  B b = B();
   void f(dynamic context) {
     context + b.test;
   }
@@ -333,7 +333,7 @@ part of lib;
 class A {
 }
 
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -370,7 +370,7 @@ main() {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   a.test = 42;
 }
 ''');
@@ -382,7 +382,7 @@ main(A a) {
 extension E on String {
 }
 
-main(String s) {
+void f(String s) {
   int v = E.test;
   print(v);
 }
@@ -392,7 +392,7 @@ extension E on String {
   static int get test => null;
 }
 
-main(String s) {
+void f(String s) {
   int v = E.test;
   print(v);
 }

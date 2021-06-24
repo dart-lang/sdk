@@ -41,7 +41,7 @@ foo(int x) {
 
   Future<void> test_function_withAssert() async {
     await resolveTestCode('''
-foo(int x) {
+foo(int? x) {
   assert(x != null);
 }
 ''');
@@ -50,7 +50,7 @@ foo(int x) {
 
   Future<void> test_function_withAssert2() async {
     await resolveTestCode('''
-foo(int x) {
+foo(int? x) {
   print('foo');
   assert(x != null);
 }

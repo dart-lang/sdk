@@ -209,14 +209,14 @@ main() {
 
   Future<void> test_if_else_keyword() async {
     await resolveTestCode('''
-main(int a) {
+void f(int a) {
   if (a == 0)
     print(0);
   /*caret*/else print(1);
 }
 ''');
     await assertHasAssist('''
-main(int a) {
+void f(int a) {
   if (a == 0)
     print(0);
   else {
@@ -228,14 +228,14 @@ main(int a) {
 
   Future<void> test_if_else_statement() async {
     await resolveTestCode('''
-main(int a) {
+void f(int a) {
   if (a == 0)
     print(0);
   else /*caret*/print(1);
 }
 ''');
     await assertHasAssist('''
-main(int a) {
+void f(int a) {
   if (a == 0)
     print(0);
   else {
@@ -247,7 +247,7 @@ main(int a) {
 
   Future<void> test_if_keyword_blockBoth() async {
     await resolveTestCode('''
-main(int a) {
+void f(int a) {
   /*caret*/if (a == 0) {
     print(0);
   } else {
@@ -260,7 +260,7 @@ main(int a) {
 
   Future<void> test_if_keyword_blockElse() async {
     await resolveTestCode('''
-main(int a) {
+void f(int a) {
   /*caret*/if (a == 0) print(0);
   else {
     print(1);
@@ -268,7 +268,7 @@ main(int a) {
 }
 ''');
     await assertHasAssist('''
-main(int a) {
+void f(int a) {
   if (a == 0) {
     print(0);
   } else {
@@ -280,7 +280,7 @@ main(int a) {
 
   Future<void> test_if_keyword_blockThen() async {
     await resolveTestCode('''
-main(int a) {
+void f(int a) {
   /*caret*/if (a == 0) {
     print(0);
   }
@@ -291,14 +291,14 @@ main(int a) {
 
   Future<void> test_if_keyword_withElse() async {
     await resolveTestCode('''
-main(int a) {
+void f(int a) {
   /*caret*/if (a == 0)
     print(0);
   else print(1);
 }
 ''');
     await assertHasAssist('''
-main(int a) {
+void f(int a) {
   if (a == 0) {
     print(0);
   } else {
@@ -310,13 +310,13 @@ main(int a) {
 
   Future<void> test_if_keyword_withoutElse() async {
     await resolveTestCode('''
-main(int a) {
+void f(int a) {
   /*caret*/if (a == 0)
     print(0);
 }
 ''');
     await assertHasAssist('''
-main(int a) {
+void f(int a) {
   if (a == 0) {
     print(0);
   }
@@ -326,14 +326,14 @@ main(int a) {
 
   Future<void> test_if_then_withElse() async {
     await resolveTestCode('''
-main(int a) {
+void f(int a) {
   if (a == 0)
     /*caret*/print(0);
   else print(1);
 }
 ''');
     await assertHasAssist('''
-main(int a) {
+void f(int a) {
   if (a == 0) {
     print(0);
   } else print(1);
@@ -343,12 +343,12 @@ main(int a) {
 
   Future<void> test_if_then_withoutElse() async {
     await resolveTestCode('''
-main(int a) {
+void f(int a) {
   if (a == 0) /*caret*/print(0);
 }
 ''');
     await assertHasAssist('''
-main(int a) {
+void f(int a) {
   if (a == 0) {
     print(0);
   }

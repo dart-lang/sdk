@@ -17,6 +17,11 @@ void main() {
 
 @reflectiveTest
 class FlutterTest extends AbstractSingleUnitTest {
+  @override
+  // TODO(brianwilkerson) Update these tests. I believe that will require
+  //  updating the mock flutter package.
+  String? get testPackageLanguageVersion => '2.9';
+
   Flutter get _flutter => Flutter.instance;
 
   @override

@@ -34,13 +34,13 @@ bool f(_E e) => e == _E.a || e == _E.b;
   Future<void> test_parameter_optional_first() async {
     await resolveTestCode(r'''
 class A {
-  int _f;
-  A([this._f, int x]);
+  int? _f;
+  A([this._f, int? x]);
 }
 ''');
     await assertHasFix(r'''
 class A {
-  A([int x]);
+  A([int? x]);
 }
 ''');
   }
@@ -48,13 +48,13 @@ class A {
   Future<void> test_parameter_optional_first_hasRequired() async {
     await resolveTestCode(r'''
 class A {
-  int _f;
-  A(int x, [this._f, int y]);
+  int? _f;
+  A(int x, [this._f, int? y]);
 }
 ''');
     await assertHasFix(r'''
 class A {
-  A(int x, [int y]);
+  A(int x, [int? y]);
 }
 ''');
   }
@@ -62,13 +62,13 @@ class A {
   Future<void> test_parameter_optional_last() async {
     await resolveTestCode(r'''
 class A {
-  int _f;
-  A([int x, this._f]);
+  int? _f;
+  A([int? x, this._f]);
 }
 ''');
     await assertHasFix(r'''
 class A {
-  A([int x]);
+  A([int? x]);
 }
 ''');
   }
@@ -76,13 +76,13 @@ class A {
   Future<void> test_parameter_optional_middle() async {
     await resolveTestCode(r'''
 class A {
-  int _f;
-  A([int x, this._f, int y]);
+  int? _f;
+  A([int? x, this._f, int? y]);
 }
 ''');
     await assertHasFix(r'''
 class A {
-  A([int x, int y]);
+  A([int? x, int? y]);
 }
 ''');
   }
@@ -90,7 +90,7 @@ class A {
   Future<void> test_parameter_optional_only() async {
     await resolveTestCode(r'''
 class A {
-  int _f;
+  int? _f;
   A([this._f]);
 }
 ''');
@@ -104,7 +104,7 @@ class A {
   Future<void> test_parameter_optional_only_hasRequired() async {
     await resolveTestCode(r'''
 class A {
-  int _f;
+  int? _f;
   A(int x, [this._f]);
 }
 ''');
@@ -119,12 +119,12 @@ class A {
     await resolveTestCode(r'''
 class A {
   int _f;
-  A(this._f, [int x]);
+  A(this._f, [int? x]);
 }
 ''');
     await assertHasFix(r'''
 class A {
-  A([int x]);
+  A([int? x]);
 }
 ''');
   }
@@ -178,7 +178,7 @@ class A {
   Future<void> test_unusedField_notUsed_assign() async {
     await resolveTestCode(r'''
 class A {
-  int _f;
+  int? _f;
   main() {
     _f = 2;
   }
@@ -195,7 +195,7 @@ class A {
   Future<void> test_unusedField_notUsed_compoundAssign() async {
     await resolveTestCode(r'''
 class A {
-  int _f;
+  int _f = 0;
   main() {
     _f += 2;
   }
@@ -258,7 +258,7 @@ class A {
   Future<void> test_unusedField_notUsed_declarationList_first() async {
     await resolveTestCode(r'''
 class A {
-  int _f, x;
+  int _f, x = 0;
   A(this._f) {
     print(x);
   }
@@ -266,7 +266,7 @@ class A {
 ''');
     await assertHasFix(r'''
 class A {
-  int x;
+  int x = 0;
   A() {
     print(x);
   }
@@ -277,7 +277,7 @@ class A {
   Future<void> test_unusedField_notUsed_declarationList_last() async {
     await resolveTestCode(r'''
 class A {
-  int x, _f;
+  int x = 0, _f;
   A(this._f) {
     print(x);
   }
@@ -285,7 +285,7 @@ class A {
 ''');
     await assertHasFix(r'''
 class A {
-  int x;
+  int x = 0;
   A() {
     print(x);
   }

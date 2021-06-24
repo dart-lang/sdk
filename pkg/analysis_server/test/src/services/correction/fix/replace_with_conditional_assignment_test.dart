@@ -26,7 +26,7 @@ class ReplaceWithConditionalAssignmentTest extends FixProcessorLintTest {
   Future<void> test_withCodeBeforeAndAfter() async {
     await resolveTestCode('''
 class Person {
-  String _fullName;
+  String? _fullName;
   void foo() {
     print('hi');
     if (_fullName == null) {
@@ -39,7 +39,7 @@ class Person {
 ''');
     await assertHasFix('''
 class Person {
-  String _fullName;
+  String? _fullName;
   void foo() {
     print('hi');
     _fullName ??= getFullUserName(this);
@@ -53,7 +53,7 @@ class Person {
   Future<void> test_withOneBlock() async {
     await resolveTestCode('''
 class Person {
-  String _fullName;
+  String? _fullName;
   void foo() {
     if (_fullName == null) {
       _fullName = getFullUserName(this);
@@ -64,7 +64,7 @@ class Person {
 ''');
     await assertHasFix('''
 class Person {
-  String _fullName;
+  String? _fullName;
   void foo() {
     _fullName ??= getFullUserName(this);
   }
@@ -76,7 +76,7 @@ class Person {
   Future<void> test_withoutBlock() async {
     await resolveTestCode('''
 class Person {
-  String _fullName;
+  String? _fullName;
   void foo() {
     if (_fullName == null)
       _fullName = getFullUserName(this);
@@ -86,7 +86,7 @@ class Person {
 ''');
     await assertHasFix('''
 class Person {
-  String _fullName;
+  String? _fullName;
   void foo() {
     _fullName ??= getFullUserName(this);
   }
@@ -98,7 +98,7 @@ class Person {
   Future<void> test_withTwoBlock() async {
     await resolveTestCode('''
 class Person {
-  String _fullName;
+  String? _fullName;
   void foo() {
     if (_fullName == null) {{
       _fullName = getFullUserName(this);
@@ -109,7 +109,7 @@ class Person {
 ''');
     await assertHasFix('''
 class Person {
-  String _fullName;
+  String? _fullName;
   void foo() {
     _fullName ??= getFullUserName(this);
   }

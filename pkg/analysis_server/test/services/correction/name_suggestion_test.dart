@@ -33,7 +33,7 @@ main() {
     await resolveTestCode('''
 class TreeNode {}
 main() {
-  TreeNode node = null;
+  TreeNode? node = null;
 }
 ''');
     var excluded = <String>{};
@@ -103,20 +103,20 @@ main() {
     await resolveTestCode('''
 class A {
   void build() {
-    List l = new List();
+    Map l = Map();
   }
 }
 ''');
     var excluded = <String>{};
-    var expr = findNode.instanceCreation('new List');
+    var expr = findNode.instanceCreation('Map(');
     expect(
         getVariableNameSuggestionsForExpression(null, expr, excluded,
             isMethod: false),
-        unorderedEquals(['list']));
+        unorderedEquals(['map']));
     expect(
         getVariableNameSuggestionsForExpression(null, expr, excluded,
             isMethod: true),
-        unorderedEquals(['buildList']));
+        unorderedEquals(['buildMap']));
   }
 
   Future<void> test_forExpression_indexExpression_endsWithE() async {

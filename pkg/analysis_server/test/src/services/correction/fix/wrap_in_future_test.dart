@@ -23,6 +23,9 @@ class WrapInFutureTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_returning_null_for_future;
 
+  @override
+  String? get testPackageLanguageVersion => '2.9';
+
   Future<void> test_asyncFor() async {
     await resolveTestCode('''
 Future<String> f() {

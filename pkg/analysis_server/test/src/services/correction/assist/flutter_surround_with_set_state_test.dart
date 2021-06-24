@@ -49,8 +49,8 @@ other() {
 import 'package:flutter/widgets.dart';
 
 class Stateless {
-  int _count1;
-  int _count2;
+  int _count1 = 0;
+  int _count2 = 0;
 
   void increment() {
 // start
@@ -68,8 +68,8 @@ class Stateless {
 import 'package:flutter/widgets.dart';
 
 class MyState extends State {
-  int _count1;
-  int _count2;
+  int _count1 = 0;
+  int _count2 = 0;
 
   void increment() {
 // start
@@ -83,8 +83,8 @@ class MyState extends State {
 import 'package:flutter/widgets.dart';
 
 class MyState extends State {
-  int _count1;
-  int _count2;
+  int _count1 = 0;
+  int _count2 = 0;
 
   void increment() {
     setState(() {

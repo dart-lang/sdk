@@ -21,20 +21,20 @@ class RemoveInitializerTest extends BulkFixProcessorTest {
   Future<void> test_singleFile() async {
     await resolveTestCode('''
 class T {
-  int x = null;
+  int? x = null;
 }
 
 class T2 {
-  int x = null;
+  int? x = null;
 }
 ''');
     await assertHasFix('''
 class T {
-  int x;
+  int? x;
 }
 
 class T2 {
-  int x;
+  int? x;
 }
 ''');
   }

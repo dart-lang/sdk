@@ -112,7 +112,7 @@ class A {
   Future<void> test_constructor_generative() async {
     await resolveTestCode('''
 class A {
-  int x;
+  int x = 0;
 
   A() {
     x = 3;

@@ -41,7 +41,7 @@ class MyWidget extends StatelessWidget {
   final int b = 2;
   final int c;
 
-  const MyWidget({Key key, this.a, this.c}) : super(key: key);
+  const MyWidget({Key? key, this.a, this.c}) : super(key: key);
 }
 ''', errorFilter: (error) {
       return error.message.contains("'a'");
@@ -67,7 +67,7 @@ class MyWidget extends StatelessWidget {
   final Widget child;
   final int b;
 
-  const MyWidget({Key key, this.a, this.b, this.child}) : super(key: key);
+  const MyWidget({Key? key, this.a, this.b, this.child}) : super(key: key);
 }
 ''', errorFilter: (error) {
       return error.message.contains("'a'");
@@ -93,7 +93,7 @@ class MyWidget extends StatelessWidget {
   final List<Widget> children;
   final int b;
 
-  const MyWidget({Key key, this.a, this.b, this.children}) : super(key: key);
+  const MyWidget({Key? key, this.a, this.b, this.children}) : super(key: key);
 }
 ''', errorFilter: (error) {
       return error.message.contains("'a'");

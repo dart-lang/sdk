@@ -39,7 +39,7 @@ build() {
           width: 200.0,
           height: 300.0,
         ),
-        key: null,
+        key: Key('x'),
       ),
     ),
   );
@@ -51,7 +51,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      key: null,
+      key: Key('x'),
       child: GestureDetector(
         onTap: () => startResize(),
         child: Container(

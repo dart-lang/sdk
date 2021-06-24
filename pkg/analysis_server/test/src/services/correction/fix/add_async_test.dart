@@ -26,14 +26,14 @@ class AddAsyncTest extends FixProcessorTest {
 
   Future<void> test_asyncFor() async {
     await resolveTestCode('''
-void main(Stream<String> names) {
+void f(Stream<String> names) {
   await for (String name in names) {
     print(name);
   }
 }
 ''');
     await assertHasFix('''
-Future<void> main(Stream<String> names) async {
+Future<void> f(Stream<String> names) async {
   await for (String name in names) {
     print(name);
   }
@@ -349,6 +349,10 @@ class AvoidReturningNullForFutureTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.avoid_returning_null_for_future;
+
+  @override
+  // TODO(brianwilkerson) Migrate this test to null safety.
+  String? get testPackageLanguageVersion => '2.9';
 
   Future<void> test_asyncFor() async {
     await resolveTestCode('''

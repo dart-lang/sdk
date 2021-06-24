@@ -142,7 +142,7 @@ void f(C c) {
   Future<void> test_instance_override_deprecated() async {
     setPackageContent('''
 class C {
-  int m({int b, @deprecated int a}) => 0;
+  int m({int? b, @deprecated int? a}) => 0;
 }
 ''');
     setPackageData(_rename(['m', 'C'], 'a', 'b'));
@@ -151,7 +151,7 @@ import '$importUri';
 
 class D extends C {
   @override
-  int m({int a}) => 0;
+  int m({int? a}) => 0;
 }
 ''');
     await assertHasFix('''
@@ -159,7 +159,7 @@ import '$importUri';
 
 class D extends C {
   @override
-  int m({int b, @deprecated int a}) => 0;
+  int m({int? b, @deprecated int? a}) => 0;
 }
 ''');
   }
@@ -167,7 +167,7 @@ class D extends C {
   Future<void> test_instance_override_removed() async {
     setPackageContent('''
 class C {
-  int m({int b}) => 0;
+  int m({int? b}) => 0;
 }
 ''');
     setPackageData(_rename(['m', 'C'], 'a', 'b'));
@@ -176,7 +176,7 @@ import '$importUri';
 
 class D extends C {
   @override
-  int m({int a}) => 0;
+  int m({int? a}) => 0;
 }
 ''');
     await assertHasFix('''
@@ -184,7 +184,7 @@ import '$importUri';
 
 class D extends C {
   @override
-  int m({int b}) => 0;
+  int m({int? b}) => 0;
 }
 ''');
   }

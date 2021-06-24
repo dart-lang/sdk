@@ -25,6 +25,9 @@ class AddRequiredTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.always_require_non_null_named_parameters;
 
+  @override
+  String? get testPackageLanguageVersion => '2.9';
+
   Future<void> test_withAssert() async {
     await resolveTestCode('''
 void function({String param}) {

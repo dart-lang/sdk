@@ -130,7 +130,7 @@ var b = a;
   Future<void> test_right() async {
     await resolveTestCode('''
 var a = '';
-var b = a ?? null;
+var b = a ?? '';
 ''');
     await assertHasFix('''
 var a = '';

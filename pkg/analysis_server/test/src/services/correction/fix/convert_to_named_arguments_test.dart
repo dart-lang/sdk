@@ -22,7 +22,7 @@ class ConvertToNamedArgumentsTest extends FixProcessorTest {
   Future<void> test_ambiguous() async {
     await resolveTestCode('''
 class A {
-  A({int a, int b});
+  A({int? a, int? b});
 }
 
 main() {
@@ -35,19 +35,19 @@ main() {
   Future<void> test_functionExpressionInvocation_getter() async {
     await resolveTestCode('''
 class A {
-  void Function({int aaa}) get g => null;
+  void Function({int? aaa}) get g => throw '';
 }
 
-main(A a) {
+void f(A a) {
   a.g(0);
 }
 ''');
     await assertHasFix('''
 class A {
-  void Function({int aaa}) get g => null;
+  void Function({int? aaa}) get g => throw '';
 }
 
-main(A a) {
+void f(A a) {
   a.g(aaa: 0);
 }
 ''');
@@ -55,16 +55,16 @@ main(A a) {
 
   Future<void> test_functionExpressionInvocation_variable() async {
     await resolveTestCode('''
-typedef F = void Function({int aaa});
+typedef F = void Function({int? aaa});
 
-main(F f) {
+void f(F f) {
   f(0);
 }
 ''');
     await assertHasFix('''
-typedef F = void Function({int aaa});
+typedef F = void Function({int? aaa});
 
-main(F f) {
+void f(F f) {
   f(aaa: 0);
 }
 ''');
@@ -73,7 +73,7 @@ main(F f) {
   Future<void> test_instanceCreation() async {
     await resolveTestCode('''
 class A {
-  A({int a, double b});
+  A({int? a, double? b});
 }
 
 main() {
@@ -82,7 +82,7 @@ main() {
 ''');
     await assertHasFix('''
 class A {
-  A({int a, double b});
+  A({int? a, double? b});
 }
 
 main() {
@@ -94,7 +94,7 @@ main() {
   Future<void> test_instanceCreation_hasPositional() async {
     await resolveTestCode('''
 class A {
-  A(int a, {int b});
+  A(int a, {int? b});
 }
 
 main() {
@@ -103,7 +103,7 @@ main() {
 ''');
     await assertHasFix('''
 class A {
-  A(int a, {int b});
+  A(int a, {int? b});
 }
 
 main() {
@@ -115,19 +115,19 @@ main() {
   Future<void> test_methodInvocation() async {
     await resolveTestCode('''
 class C {
-  void foo({int a}) {}
+  void foo({int? a}) {}
 }
 
-main(C c) {
+void f(C c) {
   c.foo(1);
 }
 ''');
     await assertHasFix('''
 class C {
-  void foo({int a}) {}
+  void foo({int? a}) {}
 }
 
-main(C c) {
+void f(C c) {
   c.foo(a: 1);
 }
 ''');
@@ -136,7 +136,7 @@ main(C c) {
   Future<void> test_noCompatibleParameter() async {
     await resolveTestCode('''
 class A {
-  A({String a});
+  A({String? a});
 }
 
 main() {

@@ -26,12 +26,12 @@ class ExchangeOperandsTest extends AssistProcessorTest {
       var initialOperator = initialOperators[i];
       var resultOperator = resultOperators[i];
       await resolveTestCode('''
-bool main(int a, int b) {
+bool f(int a, int b) {
   return a $initialOperator b;
 }
 ''');
       await assertHasAssistAt(initialOperator, '''
-bool main(int a, int b) {
+bool f(int a, int b) {
   return b $resultOperator a;
 }
 ''');

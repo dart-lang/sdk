@@ -50,7 +50,7 @@ Widget center(int i) => Center(child: i);
     await resolveTestCode('''
 typedef F = void Function();
 
-void foo({F a}) {}
+void foo({F? a}) {}
 
 void bar() {
   foo(a: '');

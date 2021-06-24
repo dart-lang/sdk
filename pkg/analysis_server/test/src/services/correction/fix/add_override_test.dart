@@ -46,19 +46,19 @@ class Sub extends Test {
   Future<void> test_getter() async {
     await resolveTestCode('''
 class Test {
-  int get t => null;
+  int get t => 0;
 }
 class Sub extends Test {
-  int get t => null;
+  int get t => 0;
 }
 ''');
     await assertHasFix('''
 class Test {
-  int get t => null;
+  int get t => 0;
 }
 class Sub extends Test {
   @override
-  int get t => null;
+  int get t => 0;
 }
 ''');
   }
