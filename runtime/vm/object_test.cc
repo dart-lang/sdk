@@ -2178,10 +2178,15 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(2, new_array.Length());
   addr += used_size;
   obj = UntaggedObject::FromAddr(addr);
+#if defined(DART_COMPRESSED_POINTERS)
+  // In compressed pointer mode, the TypedData doesn't fit.
+  EXPECT(obj.IsInstance());
+#else
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.ptr();
   EXPECT_EQ(4 * kWordSize - TypedData::InstanceSize(0),
             left_over_array.Length());
+#endif
 
   // 2. Should produce an array of length 3 and a left over int8 array or
   // instance.
@@ -2201,10 +2206,10 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(3, new_array.Length());
   addr += used_size;
   obj = UntaggedObject::FromAddr(addr);
-  if (TypedData::InstanceSize(0) <= 2 * kWordSize) {
+  if (TypedData::InstanceSize(0) <= 2 * kCompressedWordSize) {
     EXPECT(obj.IsTypedData());
     left_over_array ^= obj.ptr();
-    EXPECT_EQ(2 * kWordSize - TypedData::InstanceSize(0),
+    EXPECT_EQ(2 * kCompressedWordSize - TypedData::InstanceSize(0),
               left_over_array.Length());
   } else {
     EXPECT(obj.IsInstance());
@@ -2227,10 +2232,15 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(1, new_array.Length());
   addr += used_size;
   obj = UntaggedObject::FromAddr(addr);
+#if defined(DART_COMPRESSED_POINTERS)
+  // In compressed pointer mode, the TypedData doesn't fit.
+  EXPECT(obj.IsInstance());
+#else
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.ptr();
   EXPECT_EQ(8 * kWordSize - TypedData::InstanceSize(0),
             left_over_array.Length());
+#endif
 
   // 4. Verify that GC can handle the filler object for a large array.
   array = GrowableObjectArray::New((1 * MB) >> kWordSizeLog2);

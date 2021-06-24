@@ -147,6 +147,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   String get name => library.name;
 
+  @override
+  LibraryBuilder get nameOriginBuilder => this;
+
   void addSyntheticDeclarationOfDynamic() {
     addBuilder("dynamic",
         new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);

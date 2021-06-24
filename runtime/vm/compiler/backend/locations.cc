@@ -66,15 +66,18 @@ compiler::OperandSize RepresentationUtils::OperandSize(Representation rep) {
   ASSERT(IsUnboxedInteger(rep));
   switch (ValueSize(rep)) {
     case 8:
+      ASSERT(!IsUnsigned(rep));
       ASSERT_EQUAL(compiler::target::kWordSize, 8);
       return compiler::kEightBytes;
     case 4:
       return IsUnsigned(rep) ? compiler::kUnsignedFourBytes
                              : compiler::kFourBytes;
     case 2:
-      // No kUnboxed{Uint,Int}16 yet.
-      UNIMPLEMENTED();
-      break;
+      // No kUnboxedInt16 yet.
+      if (!IsUnsigned(rep)) {
+        UNIMPLEMENTED();
+      }
+      return compiler::kUnsignedTwoBytes;
     case 1:
       if (!IsUnsigned(rep)) {
         // No kUnboxedInt8 yet.

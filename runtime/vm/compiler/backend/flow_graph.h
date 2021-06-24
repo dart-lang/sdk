@@ -304,15 +304,55 @@ class FlowGraph : public ZoneAllocated {
   void InsertBefore(Instruction* next,
                     Instruction* instr,
                     Environment* env,
-                    UseKind use_kind);
+                    UseKind use_kind) {
+    InsertAfter(next->previous(), instr, env, use_kind);
+  }
+  void InsertSpeculativeBefore(Instruction* next,
+                               Instruction* instr,
+                               Environment* env,
+                               UseKind use_kind) {
+    InsertSpeculativeAfter(next->previous(), instr, env, use_kind);
+  }
   void InsertAfter(Instruction* prev,
                    Instruction* instr,
                    Environment* env,
                    UseKind use_kind);
+
+  // Inserts a speculative [instr] after existing [prev] instruction.
+  //
+  // If the inserted [instr] deopts eagerly or lazily we will always continue in
+  // unoptimized code at before-call using the given [env].
+  //
+  // This is mainly used during inlining / call specializing when replacing
+  // calls with N specialized instructions where the inserted [1..N[
+  // instructions cannot continue in unoptimized code after-call since they
+  // would miss instructions following the one that lazy-deopted.
+  //
+  // For example specializing an instance call to an implicit field setter
+  //
+  //     InstanceCall:<id>(v0, set:<name>, args = [v1])
+  //
+  // to
+  //
+  //     v2 <- AssertAssignable:<id>(v1, ...)
+  //     StoreInstanceField(v0, v2)
+  //
+  // If the [AssertAssignable] causes a lazy-deopt on return, we'll have to
+  // *re-try* the implicit setter call in unoptimized mode, i.e. lazy deopt to
+  // before-call (otherwise - if we continued after-call - the
+  // StoreInstanceField would not be performed).
+  void InsertSpeculativeAfter(Instruction* prev,
+                              Instruction* instr,
+                              Environment* env,
+                              UseKind use_kind);
   Instruction* AppendTo(Instruction* prev,
                         Instruction* instr,
                         Environment* env,
                         UseKind use_kind);
+  Instruction* AppendSpeculativeTo(Instruction* prev,
+                                   Instruction* instr,
+                                   Environment* env,
+                                   UseKind use_kind);
 
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number,

@@ -654,7 +654,7 @@ class Deserializer : public ThreadStackResource {
   ObjectPtr Ref(intptr_t index) const {
     ASSERT(index > 0);
     ASSERT(index <= num_objects_);
-    return refs_->untag()->data()[index];
+    return refs_->untag()->element(index);
   }
 
   ObjectPtr ReadRef() { return Ref(ReadUnsigned()); }

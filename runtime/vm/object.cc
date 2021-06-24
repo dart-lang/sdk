@@ -2994,7 +2994,7 @@ ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
       for (intptr_t i = 0; i < fields.Length(); ++i) {
         f ^= fields.At(i);
         if (f.is_instance()) {
-          array.SetAt(f.HostOffset() >> kWordSizeLog2, f);
+          array.SetAt(f.HostOffset() >> kCompressedWordSizeLog2, f);
         }
       }
       cls = cls.SuperClass(original_classes);
@@ -3448,8 +3448,8 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
       // The instance needs a type_arguments field.
       host_type_args_field_offset = host_offset;
       target_type_args_field_offset = target_offset;
-      host_offset += kWordSize;
-      target_offset += compiler::target::kWordSize;
+      host_offset += kCompressedWordSize;
+      target_offset += compiler::target::kCompressedWordSize;
     }
   } else {
     ASSERT(target_type_args_field_offset != RTN::Class::kNoTypeArguments);
@@ -3491,13 +3491,14 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
             break;
         }
 
-        const intptr_t host_num_words = field_size / kWordSize;
+        const intptr_t host_num_words = field_size / kCompressedWordSize;
         const intptr_t host_next_offset = host_offset + field_size;
-        const intptr_t host_next_position = host_next_offset / kWordSize;
+        const intptr_t host_next_position =
+            host_next_offset / kCompressedWordSize;
 
         const intptr_t target_next_offset = target_offset + field_size;
         const intptr_t target_next_position =
-            target_next_offset / compiler::target::kWordSize;
+            target_next_offset / compiler::target::kCompressedWordSize;
 
         // The bitmap has fixed length. Checks if the offset position is smaller
         // than its length. If it is not, than the field should be boxed
@@ -3506,8 +3507,8 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
           for (intptr_t j = 0; j < host_num_words; j++) {
             // Activate the respective bit in the bitmap, indicating that the
             // content is not a pointer
-            host_bitmap.Set(host_offset / kWordSize);
-            host_offset += kWordSize;
+            host_bitmap.Set(host_offset / kCompressedWordSize);
+            host_offset += kCompressedWordSize;
           }
 
           ASSERT(host_offset == host_next_offset);
@@ -3515,12 +3516,12 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
         } else {
           // Make the field boxed
           field.set_is_unboxing_candidate(false);
-          host_offset += kWordSize;
-          target_offset += compiler::target::kWordSize;
+          host_offset += kCompressedWordSize;
+          target_offset += compiler::target::kCompressedWordSize;
         }
       } else {
-        host_offset += kWordSize;
-        target_offset += compiler::target::kWordSize;
+        host_offset += kCompressedWordSize;
+        target_offset += compiler::target::kCompressedWordSize;
       }
     }
   }
@@ -7854,6 +7855,9 @@ bool Function::HasRequiredNamedParameters() const {
   ASSERT(!sig.IsNull());
 #endif
   const Array& parameter_names = Array::Handle(sig.parameter_names());
+  if (parameter_names.IsNull()) {
+    return false;
+  }
   return parameter_names.Length() > NumParameters();
 }
 
@@ -11303,9 +11307,9 @@ static StaticTypeExactnessState TrivialTypeExactnessFor(const Class& cls) {
   const intptr_t type_arguments_offset = cls.host_type_arguments_field_offset();
   ASSERT(type_arguments_offset != Class::kNoTypeArguments);
   if (StaticTypeExactnessState::CanRepresentAsTriviallyExact(
-          type_arguments_offset / kWordSize)) {
+          type_arguments_offset / kCompressedWordSize)) {
     return StaticTypeExactnessState::TriviallyExact(type_arguments_offset /
-                                                    kWordSize);
+                                                    kCompressedWordSize);
   } else {
     return StaticTypeExactnessState::NotExact();
   }
@@ -16042,7 +16046,7 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
   const intptr_t data_pos = index * TestEntryLength();
   NoSafepointScope no_safepoint;
   ArrayPtr raw_data = entries();
-  return Smi::Value(Smi::RawCast(raw_data->untag()->data()[data_pos]));
+  return Smi::Value(Smi::RawCast(raw_data->untag()->element(data_pos)));
 }
 
 FunctionPtr ICData::GetTargetAt(intptr_t index) const {
@@ -16056,7 +16060,7 @@ FunctionPtr ICData::GetTargetAt(intptr_t index) const {
 
   NoSafepointScope no_safepoint;
   ArrayPtr raw_data = entries();
-  return static_cast<FunctionPtr>(raw_data->untag()->data()[data_pos]);
+  return static_cast<FunctionPtr>(raw_data->untag()->element(data_pos));
 #endif
 }
 
@@ -17948,10 +17952,12 @@ void MegamorphicCache::SwitchToBareInstructions() {
   intptr_t capacity = mask() + 1;
   for (intptr_t i = 0; i < capacity; ++i) {
     const intptr_t target_index = i * kEntryLength + kTargetFunctionIndex;
-    ObjectPtr* slot = &Array::DataOf(buckets())[target_index];
-    const intptr_t cid = (*slot)->GetClassIdMayBeSmi();
+    CompressedObjectPtr* slot = &Array::DataOf(buckets())[target_index];
+    ObjectPtr decompressed_slot = slot->Decompress(buckets()->heap_base());
+    const intptr_t cid = decompressed_slot->GetClassIdMayBeSmi();
     if (cid == kFunctionCid) {
-      CodePtr code = Function::CurrentCodeOf(Function::RawCast(*slot));
+      CodePtr code =
+          Function::CurrentCodeOf(Function::RawCast(decompressed_slot));
       *slot = Smi::FromAlignedAddress(Code::EntryPointOf(code));
     } else {
       ASSERT(cid == kSmiCid || cid == kNullCid);
@@ -18826,9 +18832,11 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
     uword this_addr = reinterpret_cast<uword>(this->untag());
     uword other_addr = reinterpret_cast<uword>(other.untag());
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
-         offset += kWordSize) {
-      if ((*reinterpret_cast<ObjectPtr*>(this_addr + offset)) !=
-          (*reinterpret_cast<ObjectPtr*>(other_addr + offset))) {
+         offset += kCompressedWordSize) {
+      if ((reinterpret_cast<CompressedObjectPtr*>(this_addr + offset)
+               ->Decompress(untag()->heap_base())) !=
+          (reinterpret_cast<CompressedObjectPtr*>(other_addr + offset)
+               ->Decompress(untag()->heap_base()))) {
         return false;
       }
     }
@@ -18850,7 +18858,7 @@ uint32_t Instance::CanonicalizeHash() const {
   NoSafepointScope no_safepoint(thread);
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
-  hash = instance_size / kWordSize;
+  hash = instance_size / kCompressedWordSize;
   uword this_addr = reinterpret_cast<uword>(this->untag());
   Object& obj = Object::Handle(zone);
   Instance& instance = Instance::Handle(zone);
@@ -18860,9 +18868,9 @@ uint32_t Instance::CanonicalizeHash() const {
           GetClassId());
 
   for (intptr_t offset = Instance::NextFieldOffset();
-       offset < cls.host_next_field_offset(); offset += kWordSize) {
-    if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
-      if (kWordSize == 8) {
+       offset < cls.host_next_field_offset(); offset += kCompressedWordSize) {
+    if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
+      if (kCompressedWordSize == 8) {
         hash = CombineHashes(hash,
                              *reinterpret_cast<uint32_t*>(this_addr + offset));
         hash = CombineHashes(
@@ -18872,7 +18880,8 @@ uint32_t Instance::CanonicalizeHash() const {
                              *reinterpret_cast<uint32_t*>(this_addr + offset));
       }
     } else {
-      obj = *reinterpret_cast<ObjectPtr*>(this_addr + offset);
+      obj = reinterpret_cast<CompressedObjectPtr*>(this_addr + offset)
+                ->Decompress(untag()->heap_base());
       if (obj.IsSentinel()) {
         hash = CombineHashes(hash, 11);
       } else {
@@ -18928,16 +18937,16 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
         thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
             class_id);
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
-         offset += kWordSize) {
-      if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
+         offset += kCompressedWordSize) {
+      if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
         continue;
       }
-      obj ^= *this->FieldAddrAtOffset(offset);
+      obj ^= this->FieldAddrAtOffset(offset)->Decompress(untag()->heap_base());
       obj = obj.CanonicalizeLocked(thread);
       this->SetFieldAtOffset(offset, obj);
     }
   } else {
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(DART_COMPRESSED_POINTERS)
     // Make sure that we are not missing any fields.
     IsolateGroup* group = IsolateGroup::Current();
     CheckForPointers has_pointers(group);
@@ -19014,7 +19023,7 @@ ObjectPtr Instance::GetField(const Field& field) const {
         }
     }
   } else {
-    return *FieldAddr(field);
+    return FieldAddr(field)->Decompress(untag()->heap_base());
   }
 }
 
@@ -19045,7 +19054,7 @@ void Instance::SetField(const Field& field, const Object& value) const {
   } else {
     field.RecordStore(value);
     const Object* stored_value = field.CloneForUnboxed(value);
-    StorePointer(FieldAddr(field), stored_value->ptr());
+    StoreCompressedPointer(FieldAddr(field), stored_value->ptr());
   }
 }
 
@@ -19093,7 +19102,8 @@ TypeArgumentsPtr Instance::GetTypeArguments() const {
   intptr_t field_offset = cls.host_type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
   TypeArguments& type_arguments = TypeArguments::Handle();
-  type_arguments ^= *FieldAddrAtOffset(field_offset);
+  type_arguments ^=
+      FieldAddrAtOffset(field_offset)->Decompress(untag()->heap_base());
   return type_arguments.ptr();
 }
 
@@ -19381,7 +19391,8 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
 
 intptr_t* Instance::NativeFieldsDataAddr() const {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
-  TypedDataPtr native_fields = static_cast<TypedDataPtr>(*NativeFieldsAddr());
+  TypedDataPtr native_fields = static_cast<TypedDataPtr>(
+      NativeFieldsAddr()->Decompress(untag()->heap_base()));
   if (native_fields == TypedData::null()) {
     return NULL;
   }
@@ -19390,11 +19401,12 @@ intptr_t* Instance::NativeFieldsDataAddr() const {
 
 void Instance::SetNativeField(int index, intptr_t value) const {
   ASSERT(IsValidNativeIndex(index));
-  Object& native_fields = Object::Handle(*NativeFieldsAddr());
+  Object& native_fields =
+      Object::Handle(NativeFieldsAddr()->Decompress(untag()->heap_base()));
   if (native_fields.IsNull()) {
     // Allocate backing storage for the native fields.
     native_fields = TypedData::New(kIntPtrCid, NumNativeFields());
-    StorePointer(NativeFieldsAddr(), native_fields.ptr());
+    StoreCompressedPointer(NativeFieldsAddr(), native_fields.ptr());
   }
   intptr_t byte_offset = index * sizeof(intptr_t);
   TypedData::Cast(native_fields).SetIntPtr(byte_offset, value);
@@ -19404,11 +19416,12 @@ void Instance::SetNativeFields(uint16_t num_native_fields,
                                const intptr_t* field_values) const {
   ASSERT(num_native_fields == NumNativeFields());
   ASSERT(field_values != NULL);
-  Object& native_fields = Object::Handle(*NativeFieldsAddr());
+  Object& native_fields =
+      Object::Handle(NativeFieldsAddr()->Decompress(untag()->heap_base()));
   if (native_fields.IsNull()) {
     // Allocate backing storage for the native fields.
     native_fields = TypedData::New(kIntPtrCid, NumNativeFields());
-    StorePointer(NativeFieldsAddr(), native_fields.ptr());
+    StoreCompressedPointer(NativeFieldsAddr(), native_fields.ptr());
   }
   for (uint16_t i = 0; i < num_native_fields; i++) {
     intptr_t byte_offset = i * sizeof(intptr_t);
@@ -19465,7 +19478,8 @@ bool Instance::IsValidFieldOffset(intptr_t offset) const {
   REUSABLE_CLASS_HANDLESCOPE(thread);
   Class& cls = thread->ClassHandle();
   cls = clazz();
-  return (offset >= 0 && offset <= (cls.host_instance_size() - kWordSize));
+  return (offset >= 0 &&
+          offset <= (cls.host_instance_size() - kCompressedWordSize));
 }
 
 intptr_t Instance::ElementSizeFor(intptr_t cid) {

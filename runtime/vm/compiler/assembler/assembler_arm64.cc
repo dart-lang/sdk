@@ -186,6 +186,54 @@ int32_t Assembler::BindImm14Branch(int64_t position, int64_t dest) {
   }
 }
 
+void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
+  switch (sz) {
+    case kEightBytes:
+      if (rd == rn) return;  // No operation needed.
+      return mov(rd, rn);
+    case kUnsignedFourBytes:
+      return uxtw(rd, rn);
+    case kFourBytes:
+      return sxtw(rd, rn);
+    case kUnsignedTwoBytes:
+      return uxth(rd, rn);
+    case kTwoBytes:
+      return sxth(rd, rn);
+    case kUnsignedByte:
+      return uxtb(rd, rn);
+    case kByte:
+      return sxtb(rd, rn);
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+}
+
+// Equivalent to left rotate of kSmiTagSize.
+static constexpr intptr_t kBFMTagRotate = kBitsPerInt64 - kSmiTagSize;
+
+void Assembler::ExtendAndSmiTagValue(Register rd, Register rn, OperandSize sz) {
+  switch (sz) {
+    case kEightBytes:
+      return sbfm(rd, rn, kBFMTagRotate, target::kSmiBits + 1);
+    case kUnsignedFourBytes:
+      return ubfm(rd, rn, kBFMTagRotate, kBitsPerInt32 - 1);
+    case kFourBytes:
+      return sbfm(rd, rn, kBFMTagRotate, kBitsPerInt32 - 1);
+    case kUnsignedTwoBytes:
+      return ubfm(rd, rn, kBFMTagRotate, kBitsPerInt16 - 1);
+    case kTwoBytes:
+      return sbfm(rd, rn, kBFMTagRotate, kBitsPerInt16 - 1);
+    case kUnsignedByte:
+      return ubfm(rd, rn, kBFMTagRotate, kBitsPerInt8 - 1);
+    case kByte:
+      return sbfm(rd, rn, kBFMTagRotate, kBitsPerInt8 - 1);
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+}
+
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
   const intptr_t bound_pc = buffer_.Size();
@@ -937,12 +985,14 @@ void Assembler::LoadCompressedFromOffset(Register dest,
 #if !defined(DART_COMPRESSED_POINTERS)
   LoadFromOffset(dest, base, offset);
 #else
-  if (Address::CanHoldOffset(offset, Address::Offset, kFourBytes)) {
-    ldr(dest, Address(base, offset), kUnsignedFourBytes);  // Zero-extension.
+  if (Address::CanHoldOffset(offset, Address::Offset, kObjectBytes)) {
+    ldr(dest, Address(base, offset, Address::Offset, kObjectBytes),
+        kUnsignedFourBytes);  // Zero-extension.
   } else {
     ASSERT(base != TMP2);
     AddImmediate(TMP2, base, offset);
-    ldr(dest, Address(base, 0), kUnsignedFourBytes);  // Zero-extension.
+    ldr(dest, Address(base, 0, Address::Offset, kObjectBytes),
+        kUnsignedFourBytes);  // Zero-extension.
   }
   add(dest, dest, Operand(HEAP_BITS, LSL, 32));
 #endif
@@ -953,6 +1003,30 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
   ldr(dest, slot);
 #else
   ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
+#endif
+#if defined(DEBUG)
+  Label done;
+  BranchIfSmi(dest, &done);
+  Stop("Expected Smi");
+  Bind(&done);
+#endif
+}
+
+void Assembler::LoadCompressedSmiFromOffset(Register dest,
+                                            Register base,
+                                            int32_t offset) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  LoadFromOffset(dest, base, offset);
+#else
+  if (Address::CanHoldOffset(offset, Address::Offset, kObjectBytes)) {
+    ldr(dest, Address(base, offset, Address::Offset, kObjectBytes),
+        kUnsignedFourBytes);  // Zero-extension.
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset);
+    ldr(dest, Address(base, 0, Address::Offset, kObjectBytes),
+        kUnsignedFourBytes);  // Zero-extension.
+  }
 #endif
 #if defined(DEBUG)
   Label done;
@@ -1112,6 +1186,22 @@ void Assembler::StoreIntoArray(Register object,
                                Register slot,
                                Register value,
                                CanBeSmi can_be_smi) {
+  str(value, Address(slot, 0));
+  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
+}
+
+void Assembler::StoreCompressedIntoArray(Register object,
+                                         Register slot,
+                                         Register value,
+                                         CanBeSmi can_be_smi) {
+  str(value, Address(slot, 0, Address::Offset, kObjectBytes), kObjectBytes);
+  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
+}
+
+void Assembler::StoreIntoArrayBarrier(Register object,
+                                      Register slot,
+                                      Register value,
+                                      CanBeSmi can_be_smi) {
   const bool spill_lr = lr_state().LRContainsReturnAddress();
   ASSERT(object != TMP);
   ASSERT(object != TMP2);
@@ -1119,8 +1209,6 @@ void Assembler::StoreIntoArray(Register object,
   ASSERT(value != TMP2);
   ASSERT(slot != TMP);
   ASSERT(slot != TMP2);
-
-  str(value, Address(slot, 0));
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1803,13 +1891,13 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   const intptr_t count_offset = target::Array::element_offset(1);
 
   // Sadly this cannot use ldp because ldp requires aligned offsets.
-  ldr(R1, FieldAddress(R5, cid_offset));
-  ldr(R2, FieldAddress(R5, count_offset));
+  ldr(R1, FieldAddress(R5, cid_offset, kObjectBytes), kObjectBytes);
+  ldr(R2, FieldAddress(R5, count_offset, kObjectBytes), kObjectBytes);
   LoadClassIdMayBeSmi(IP0, R0);
-  add(R2, R2, Operand(target::ToRawSmi(1)));
-  cmp(R1, Operand(IP0, LSL, 1));
+  add(R2, R2, Operand(target::ToRawSmi(1)), kObjectBytes);
+  cmp(R1, Operand(IP0, LSL, 1), kObjectBytes);
   b(&miss, NE);
-  str(R2, FieldAddress(R5, count_offset));
+  str(R2, FieldAddress(R5, count_offset, kObjectBytes), kObjectBytes);
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction
 
   // Fall through to unchecked entry.
@@ -1837,7 +1925,7 @@ void Assembler::MonomorphicCheckedEntryAOT() {
   ASSERT_EQUAL(CodeSize() - start,
                target::Instructions::kMonomorphicEntryOffsetAOT);
   LoadClassId(IP0, R0);
-  cmp(R5, Operand(IP0, LSL, 1));
+  cmp(R5, Operand(IP0, LSL, 1), kObjectBytes);
   b(&miss, NE);
 
   // Fall through to unchecked entry.
@@ -2103,6 +2191,16 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
   if (offset != 0) {
     AddImmediate(address, offset);
   }
+}
+
+void Assembler::LoadCompressedFieldAddressForRegOffset(
+    Register address,
+    Register instance,
+    Register offset_in_compressed_words_as_smi) {
+  add(address, instance,
+      Operand(offset_in_compressed_words_as_smi, LSL,
+              target::kCompressedWordSizeLog2 - kSmiTagShift));
+  AddImmediate(address, -kHeapObjectTag);
 }
 
 void Assembler::LoadFieldAddressForRegOffset(Register address,

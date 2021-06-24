@@ -49,7 +49,7 @@ It needs AOT snapshot size profile (an output of either
 precompiler trace (an output of --trace-precompiler-to flag).
 ''';
 
-  ExplainCommand() {}
+  ExplainDynamicCallsCommand();
 
   @override
   Future<void> run() async {
@@ -115,7 +115,7 @@ precompiler trace (an output of --trace-precompiler-to flag).
       final callNodes = callGraph.nodes
           .where((n) => n.data == selector || n.data == dynSelector);
 
-      print('\nDynamic call to ${selector}'
+      print('\nDynamic call to $selector'
           ' (retaining ~${histogram.buckets[selector]} bytes) occurs in:');
       for (var node in callNodes) {
         for (var pred in node.pred) {

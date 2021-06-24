@@ -27,10 +27,10 @@ ObjectPtr ReversePc::FindCodeDescriptorInGroup(IsolateGroup* group,
   // through them linearly. If this changes, would could sort the table list
   // during deserialization and binary search for the table.
   GrowableObjectArrayPtr tables = group->object_store()->instructions_tables();
-  intptr_t tables_length = Smi::Value(tables->untag()->length_);
+  intptr_t tables_length = Smi::Value(tables->untag()->length());
   for (intptr_t i = 0; i < tables_length; i++) {
     InstructionsTablePtr table = static_cast<InstructionsTablePtr>(
-        tables->untag()->data_->untag()->data()[i]);
+        tables->untag()->data()->untag()->element(i));
     intptr_t index = InstructionsTable::FindEntry(table, pc);
     if (index >= 0) {
       *code_start = InstructionsTable::PayloadStartAt(table, index);

@@ -509,27 +509,27 @@ class UntaggedObject {
     intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(UntaggedObject);
-    uword to = obj_addr + instance_size - kWordSize;
-    const auto first = reinterpret_cast<ObjectPtr*>(from);
-    const auto last = reinterpret_cast<ObjectPtr*>(to);
+    uword to = obj_addr + instance_size - kCompressedWordSize;
+    const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
+    const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
         visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
-      intptr_t bit = sizeof(UntaggedObject) / kWordSize;
-      for (ObjectPtr* current = first; current <= last; current++) {
+      intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
+      for (CompressedObjectPtr* current = first; current <= last; current++) {
         if (!unboxed_fields_bitmap.Get(bit++)) {
-          visitor->VisitPointer(current);
+          visitor->VisitCompressedPointers(heap_base(), current, current);
         }
       }
     } else {
-      visitor->VisitPointers(first, last);
+      visitor->VisitCompressedPointers(heap_base(), first, last);
     }
 #else
     // Call visitor function virtually
-    visitor->VisitPointers(first, last);
+    visitor->VisitCompressedPointers(heap_base(), first, last);
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
@@ -547,27 +547,27 @@ class UntaggedObject {
     intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(UntaggedObject);
-    uword to = obj_addr + instance_size - kWordSize;
-    const auto first = reinterpret_cast<ObjectPtr*>(from);
-    const auto last = reinterpret_cast<ObjectPtr*>(to);
+    uword to = obj_addr + instance_size - kCompressedWordSize;
+    const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
+    const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
         visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
-      intptr_t bit = sizeof(UntaggedObject) / kWordSize;
-      for (ObjectPtr* current = first; current <= last; current++) {
+      intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
+      for (CompressedObjectPtr* current = first; current <= last; current++) {
         if (!unboxed_fields_bitmap.Get(bit++)) {
-          visitor->V::VisitPointers(current, current);
+          visitor->V::VisitCompressedPointers(heap_base(), current, current);
         }
       }
     } else {
-      visitor->V::VisitPointers(first, last);
+      visitor->V::VisitCompressedPointers(heap_base(), first, last);
     }
 #else
     // Call visitor function non-virtually
-    visitor->V::VisitPointers(first, last);
+    visitor->V::VisitCompressedPointers(heap_base(), first, last);
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
@@ -681,17 +681,20 @@ class UntaggedObject {
     }
   }
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
-  void StoreArrayPointer(type const* addr, type value) {
+  // Note: StoreArrayPointer won't work if value_type is a compressed pointer.
+  template <typename type,
+            std::memory_order order = std::memory_order_relaxed,
+            typename value_type = type>
+  void StoreArrayPointer(type const* addr, value_type value) {
     reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->store(value, order);
+        ->store(type(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }
   }
 
-  template <typename type>
-  void StoreArrayPointer(type const* addr, type value, Thread* thread) {
+  template <typename type, typename value_type = type>
+  void StoreArrayPointer(type const* addr, value_type value, Thread* thread) {
     *const_cast<type*>(addr) = value;
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, thread);
@@ -735,11 +738,11 @@ class UntaggedObject {
 
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
-  template <std::memory_order order = std::memory_order_relaxed>
-  void StoreSmi(SmiPtr const* addr, SmiPtr value) {
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  void StoreSmi(type const* addr, type value) {
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(this));
-    reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
+    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->store(value, order);
   }
   template <std::memory_order order = std::memory_order_relaxed>
@@ -780,9 +783,9 @@ class UntaggedObject {
     }
   }
 
-  template <typename type>
+  template <typename type, typename value_type>
   DART_FORCE_INLINE void CheckArrayPointerStore(type const* addr,
-                                                ObjectPtr value,
+                                                value_type value,
                                                 Thread* thread) {
     uword source_tags = this->tags_;
     uword target_tags = value->untag()->tags_;
@@ -921,6 +924,22 @@ inline intptr_t ObjectPtr::GetClassId() const {
  protected:                                                                    \
   type name##_;
 
+#define COMPRESSED_ARRAY_POINTER_FIELD(type, name)                             \
+ public:                                                                       \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    return LoadPointer<Compressed##type, order>(&name##_).Decompress(          \
+        heap_base());                                                          \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##name(type value) {                                                \
+    StoreArrayPointer<Compressed##type, order>(&name##_,                       \
+                                               Compressed##type(value));       \
+  }                                                                            \
+                                                                               \
+ protected:                                                                    \
+  Compressed##type name##_;
+
 #define VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)               \
  public:                                                                       \
   template <std::memory_order order = std::memory_order_relaxed>               \
@@ -970,7 +989,7 @@ inline intptr_t ObjectPtr::GetClassId() const {
   template <std::memory_order order = std::memory_order_relaxed>               \
   void set_##name(type value) {                                                \
     ASSERT(!value.IsHeapObject());                                             \
-    StoreSmi<order>(&name##_, value);                                          \
+    StoreSmi<type, order>(&name##_, value);                                    \
   }                                                                            \
                                                                                \
  protected:                                                                    \
@@ -2529,6 +2548,13 @@ class UntaggedInstance : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instance);
   friend class Object;
   friend class SnapshotReader;
+
+ public:
+#if defined(DART_COMPRESSED_POINTERS)
+  static constexpr bool kContainsCompressedPointers = true;
+#else
+  static constexpr bool kContainsCompressedPointers = false;
+#endif
 };
 
 class UntaggedLibraryPrefix : public UntaggedInstance {
@@ -2746,13 +2772,13 @@ class UntaggedClosure : public UntaggedInstance {
 
   // The following fields are also declared in the Dart source of class
   // _Closure.
-  POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
   VISIT_FROM(instantiator_type_arguments)
-  POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
-  POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
-  POINTER_FIELD(FunctionPtr, function)
-  POINTER_FIELD(ContextPtr, context)
-  POINTER_FIELD(SmiPtr, hash)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
+  COMPRESSED_POINTER_FIELD(FunctionPtr, function)
+  COMPRESSED_POINTER_FIELD(ContextPtr, context)
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
 
   // We have an extra word in the object due to alignment rounding, so use it in
@@ -2761,7 +2787,7 @@ class UntaggedClosure : public UntaggedInstance {
   // one entry point, as dynamic calls use dynamic closure call dispatchers.
   ONLY_IN_PRECOMPILED(uword entry_point_);
 
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Note that instantiator_type_arguments_, function_type_arguments_ and
   // delayed_type_arguments_ are used to instantiate the signature of function_
@@ -3043,11 +3069,11 @@ class UntaggedBool : public UntaggedInstance {
 class UntaggedArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Array);
 
-  ARRAY_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  COMPRESSED_ARRAY_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
-  SMI_FIELD(SmiPtr, length)
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
   // Variable length data follows here.
-  VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
@@ -3078,12 +3104,12 @@ class UntaggedImmutableArray : public UntaggedArray {
 class UntaggedGrowableObjectArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
 
-  POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
-  SMI_FIELD(SmiPtr, length)
-  POINTER_FIELD(ArrayPtr, data)
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, data)
   VISIT_TO(data)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
   friend class ReversePc;
@@ -3092,15 +3118,15 @@ class UntaggedGrowableObjectArray : public UntaggedInstance {
 class UntaggedLinkedHashMap : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
 
-  POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
-  POINTER_FIELD(TypedDataPtr, index)
-  POINTER_FIELD(SmiPtr, hash_mask)
-  POINTER_FIELD(ArrayPtr, data)
-  POINTER_FIELD(SmiPtr, used_data)
-  POINTER_FIELD(SmiPtr, deleted_keys)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, index)
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash_mask)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, data)
+  COMPRESSED_POINTER_FIELD(SmiPtr, used_data)
+  COMPRESSED_POINTER_FIELD(SmiPtr, deleted_keys)
   VISIT_TO(deleted_keys)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
 };
@@ -3294,15 +3320,15 @@ class UntaggedRegExp : public UntaggedInstance {
 class UntaggedWeakProperty : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
 
-  POINTER_FIELD(ObjectPtr, key)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, key)
   VISIT_FROM(key)
-  POINTER_FIELD(ObjectPtr, value)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, value)
   VISIT_TO(value)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Linked list is chaining all pending weak properties. Not visited by
   // pointer visitors.
-  WeakPropertyPtr next_;
+  CompressedWeakPropertyPtr next_;
 
   friend class GCMarker;
   template <bool>
@@ -3343,7 +3369,7 @@ class UntaggedUserTag : public UntaggedInstance {
 class UntaggedFutureOr : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(FutureOr);
 
-  POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
   VISIT_TO(type_arguments)
 

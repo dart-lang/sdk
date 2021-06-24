@@ -617,7 +617,6 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
       index, value, emit_store_barrier, /*index_unboxed=*/false,
-
       compiler::target::Instance::ElementSizeFor(class_id), class_id,
       kAlignedAccess, DeoptId::kNone, InstructionSource());
   return Fragment(store);

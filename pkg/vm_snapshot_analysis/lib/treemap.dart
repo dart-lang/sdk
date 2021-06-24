@@ -7,9 +7,9 @@ library vm_snapshot_analysis.treemap;
 
 import 'dart:math';
 
-import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
+import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 

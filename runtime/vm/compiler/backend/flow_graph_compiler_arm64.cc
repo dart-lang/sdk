@@ -472,9 +472,10 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   ASSERT(assembler_->constant_pool_allowed());
   __ Comment("Edge counter");
   __ LoadObject(R0, edge_counters_array_);
-  __ LoadFieldFromOffset(TMP, R0, Array::element_offset(edge_id));
-  __ add(TMP, TMP, compiler::Operand(Smi::RawValue(1)));
-  __ StoreFieldToOffset(TMP, R0, Array::element_offset(edge_id));
+  __ LoadCompressedSmiFieldFromOffset(TMP, R0, Array::element_offset(edge_id));
+  __ add(TMP, TMP, compiler::Operand(Smi::RawValue(1)), compiler::kObjectBytes);
+  __ StoreFieldToOffset(TMP, R0, Array::element_offset(edge_id),
+                        compiler::kObjectBytes);
 }
 
 void FlowGraphCompiler::EmitOptimizedInstanceCall(

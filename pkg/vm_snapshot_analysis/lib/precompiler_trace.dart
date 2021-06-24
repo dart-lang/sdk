@@ -5,9 +5,9 @@
 /// Helpers for working with the output of `--trace-precompiler-to` VM flag.
 library vm_snapshot_analysis.precompiler_trace;
 
-import 'package:vm_snapshot_analysis/src/dominators.dart' as dominators;
 import 'package:vm_snapshot_analysis/name.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/src/dominators.dart' as dominators;
 
 /// Build [CallGraph] based on the trace written by `--trace-precompiler-to`
 /// flag.
@@ -32,10 +32,9 @@ class CallGraphNode {
   /// Predecessors of this node.
   final List<CallGraphNode> pred = [];
 
-  /// Datum associated with this node: a [ProgramInfoNode] (function),
-  /// a [String] (dynamic call selector) or an [int] (dispatch table
-  /// selector id).
-  final data;
+  /// Datum associated with this node: a [ProgramInfoNode] (function), a
+  /// [String] (dynamic call selector) or an [int] (dispatch table selector id).
+  final dynamic data;
 
   /// Dominator of this node.
   ///
@@ -201,7 +200,7 @@ class _TraceReader {
   final selectorIdMap = <ProgramInfoNode, int>{};
 
   /// Set of functions which can be reached through dynamic dispatch.
-  final dynamicFunctions = Set<ProgramInfoNode>();
+  final dynamicFunctions = <ProgramInfoNode>{};
 
   _TraceReader(Map<String, dynamic> data)
       : strings = (data['strings'] as List<dynamic>).cast<String>(),
@@ -217,7 +216,7 @@ class _TraceReader {
     final nodes = <CallGraphNode>[];
     final nodeByEntityId = <CallGraphNode?>[];
     final callNodesBySelector = <dynamic, CallGraphNode>{};
-    final allocated = Set<ProgramInfoNode>();
+    final allocated = <ProgramInfoNode>{};
 
     T next<T>() => trace[pos++] as T;
 
@@ -281,7 +280,7 @@ class _TraceReader {
         pos--;
         return false;
       } else {
-        throw FormatException('unexpected ref: ${ref}');
+        throw FormatException('unexpected ref: $ref');
       }
       return true;
     }
@@ -305,7 +304,7 @@ class _TraceReader {
             readRefs();
             break;
           default:
-            throw FormatException('Unknown event: ${op} at ${pos - 1}');
+            throw FormatException('Unknown event: $op at ${pos - 1}');
         }
       }
     }
@@ -413,7 +412,7 @@ class _TraceReader {
             name: fieldName, parent: classNode, type: NodeType.other);
 
       default:
-        throw FormatException('unrecognized entity type ${type}');
+        throw FormatException('unrecognized entity type $type');
     }
   }
 

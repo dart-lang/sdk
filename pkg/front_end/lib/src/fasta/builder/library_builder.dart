@@ -53,6 +53,8 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   LibraryBuilder partOfLibrary;
 
+  LibraryBuilder get nameOriginBuilder;
+
   bool mayImplementRestrictedTypes;
 
   bool get isPart;

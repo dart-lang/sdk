@@ -394,7 +394,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Builder findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
-    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+    if (accessingLibrary.nameOriginBuilder.origin !=
+            library.nameOriginBuilder.origin &&
+        name.startsWith("_")) {
       return null;
     }
     Builder declaration = isSetter
@@ -411,7 +413,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   MemberBuilder findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
-    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+    if (accessingLibrary.nameOriginBuilder.origin !=
+            library.nameOriginBuilder.origin &&
+        name.startsWith("_")) {
       return null;
     }
     MemberBuilder declaration = constructors.lookup(name, charOffset, uri);

@@ -1163,10 +1163,11 @@ void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {
   }
 
   if (entry != 0) {
-    ObjectPtr* const code_array =
+    CompressedObjectPtr* const code_array =
         Array::DataOf(GrowableObjectArray::NoSafepointData(array));
     // RawCast allocates handles in ASSERTs.
-    const CodePtr code = static_cast<CodePtr>(code_array[callback_id]);
+    const CodePtr code = static_cast<CodePtr>(
+        code_array[callback_id].Decompress(array.heap_base()));
     if (!Code::ContainsInstructionAt(code, entry)) {
       FATAL("Cannot invoke callback on incorrect isolate.");
     }

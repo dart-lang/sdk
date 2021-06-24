@@ -15,8 +15,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:path/path.dart' as p;
 import 'package:args/command_runner.dart';
+import 'package:path/path.dart' as p;
 import 'package:vm_snapshot_analysis/treemap.dart';
 
 import 'utils.dart';

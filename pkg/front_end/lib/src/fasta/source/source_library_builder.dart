@@ -213,8 +213,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // A library to use for Names generated when compiling code in this library.
   // This allows code generated in one library to use the private namespace of
   // another, for example during expression compilation (debugging).
-  Library get nameOrigin => _nameOrigin ?? library;
-  final Library _nameOrigin;
+  Library get nameOrigin => _nameOrigin?.library ?? library;
+  LibraryBuilder get nameOriginBuilder => _nameOrigin ?? this;
+  final LibraryBuilder _nameOrigin;
 
   final Library referencesFrom;
   final IndexedLibrary referencesFromIndexed;
@@ -264,7 +265,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Scope scope,
       SourceLibraryBuilder actualOrigin,
       Library library,
-      Library nameOrigin,
+      LibraryBuilder nameOrigin,
       Library referencesFrom,
       bool referenceIsPartOwner)
       : this.fromScopes(
@@ -422,7 +423,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLibraryBuilder actualOrigin,
       {Scope scope,
       Library target,
-      Library nameOrigin,
+      LibraryBuilder nameOrigin,
       Library referencesFrom,
       bool referenceIsPartOwner})
       : this.internal(

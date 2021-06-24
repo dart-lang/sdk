@@ -647,7 +647,7 @@ class SnapshotWriter : public BaseWriter {
                     intptr_t tags,
                     SmiPtr length,
                     TypeArgumentsPtr type_arguments,
-                    ObjectPtr data[],
+                    CompressedObjectPtr data[],
                     bool as_reference);
   ClassPtr GetFunctionOwner(FunctionPtr func);
   void CheckForNativeFields(ClassPtr cls);

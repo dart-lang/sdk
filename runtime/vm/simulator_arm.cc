@@ -2223,7 +2223,7 @@ void Simulator::DoDivision(Instr* instr) {
     return;
   }
 
-  if (instr->Bit(21) == 1) {
+  if (instr->IsDivUnsigned()) {
     // unsigned division.
     uint32_t rn_val = static_cast<uint32_t>(get_register(rn));
     uint32_t rm_val = static_cast<uint32_t>(get_register(rm));
@@ -2245,14 +2245,34 @@ void Simulator::DoDivision(Instr* instr) {
 }
 
 void Simulator::DecodeType3(Instr* instr) {
-  if (instr->IsDivision()) {
-    DoDivision(instr);
-    return;
-  } else if (instr->IsRbit()) {
-    // Format(instr, "rbit'cond 'rd, 'rm");
-    Register rm = instr->RmField();
-    Register rd = instr->RdField();
-    set_register(rd, Utils::ReverseBits32(get_register(rm)));
+  if (instr->IsMedia()) {
+    if (instr->IsDivision()) {
+      DoDivision(instr);
+      return;
+    } else if (instr->IsRbit()) {
+      // Format(instr, "rbit'cond 'rd, 'rm");
+      Register rm = instr->RmField();
+      Register rd = instr->RdField();
+      set_register(rd, Utils::ReverseBits32(get_register(rm)));
+      return;
+    } else if (instr->IsBitFieldExtract()) {
+      // Format(instr, "sbfx'cond 'rd, 'rn, 'lsb, 'width")
+      const Register rd = instr->RdField();
+      const Register rn = instr->BitFieldExtractRnField();
+      const uint8_t width = instr->BitFieldExtractWidthField() + 1;
+      const uint8_t lsb = instr->BitFieldExtractLSBField();
+      const int32_t rn_val = get_register(rn);
+      const uint32_t extracted_bitfield =
+          ((rn_val >> lsb) & Utils::NBitMask(width));
+      const uint32_t sign_extension =
+          (instr->IsBitFieldExtractSignExtended() &&
+           Utils::TestBit(extracted_bitfield, width - 1))
+              ? ~Utils::NBitMask(width)
+              : 0;
+      set_register(rd, sign_extension | extracted_bitfield);
+    } else {
+      UNREACHABLE();
+    }
     return;
   }
   Register rd = instr->RdField();

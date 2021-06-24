@@ -176,20 +176,6 @@ class DynamicSelectorsCollector extends RecursiveVisitor {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-
-    Selector selector;
-    if (node.interfaceTarget == null) {
-      dynamicSelectors.add(new Selector.doInvoke(node.name));
-    } else {
-      if (node.receiver is! ThisExpression) {
-        nonThisSelectors.add(selector ??= new Selector.doInvoke(node.name));
-      }
-    }
-  }
-
-  @override
   visitInstanceInvocation(InstanceInvocation node) {
     super.visitInstanceInvocation(node);
     if (node.receiver is! ThisExpression) {
@@ -208,25 +194,6 @@ class DynamicSelectorsCollector extends RecursiveVisitor {
     super.visitEqualsCall(node);
     if (node.left is! ThisExpression) {
       nonThisSelectors.add(new Selector.doInvoke(Name('==')));
-    }
-  }
-
-  @override
-  visitPropertyGet(PropertyGet node) {
-    super.visitPropertyGet(node);
-
-    Selector selector;
-    if (node.interfaceTarget == null) {
-      dynamicSelectors.add(selector = new Selector.doGet(node.name));
-    } else {
-      if (node.receiver is! ThisExpression) {
-        nonThisSelectors.add(selector ??= new Selector.doGet(node.name));
-      }
-
-      final target = node.interfaceTarget;
-      if (target is Procedure && target.kind == ProcedureKind.Method) {
-        tearOffSelectors.add(new Selector.doInvoke(node.name));
-      }
     }
   }
 
@@ -251,20 +218,6 @@ class DynamicSelectorsCollector extends RecursiveVisitor {
       nonThisSelectors.add(new Selector.doGet(node.name));
     }
     tearOffSelectors.add(new Selector.doInvoke(node.name));
-  }
-
-  @override
-  visitPropertySet(PropertySet node) {
-    super.visitPropertySet(node);
-
-    Selector selector;
-    if (node.interfaceTarget == null) {
-      dynamicSelectors.add(selector = new Selector.doSet(node.name));
-    } else {
-      if (node.receiver is! ThisExpression) {
-        nonThisSelectors.add(selector ??= new Selector.doSet(node.name));
-      }
-    }
   }
 
   @override

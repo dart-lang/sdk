@@ -297,12 +297,6 @@ class _Collect extends RecursiveVisitor {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    collectCall(node.interfaceTarget, node.arguments);
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitInstanceInvocation(InstanceInvocation node) {
     collectCall(node.interfaceTarget, node.arguments);
     super.visitInstanceInvocation(node);
@@ -637,12 +631,6 @@ class _Transform extends RecursiveVisitor {
     }
 
     args.replaceWith(Arguments(positional, named: named, types: args.types));
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-    transformCall(node.interfaceTarget, node, node.receiver, node.arguments);
   }
 
   @override

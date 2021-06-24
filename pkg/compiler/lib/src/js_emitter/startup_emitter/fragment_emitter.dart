@@ -878,8 +878,14 @@ class FragmentEmitter {
         Map<js.Name, js.Expression> propertyMap = emitStaticMethod(method);
         propertyMap.forEach((js.Name key, js.Expression value) {
           var property = new js.Property(js.quoteName(key), value);
-          Entity holderKey =
-              method is StaticStubMethod ? method.library : method.element;
+          Entity holderKey;
+          if (method is StaticStubMethod) {
+            // [StaticStubMethod]s should only be created for interceptors.
+            assert(method.library == _commonElements.interceptorsLibrary);
+            holderKey = method.library;
+          } else {
+            holderKey = method.element;
+          }
           (holderCode[holderKey] ??= []).add(property);
           registerEntityAst(method.element, property, library: library.element);
         });

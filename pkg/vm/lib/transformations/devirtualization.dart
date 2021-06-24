@@ -120,12 +120,6 @@ abstract class Devirtualization extends RecursiveVisitor {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-    _handleMethodInvocation(node, node.interfaceTarget, node.arguments);
-  }
-
-  @override
   visitInstanceInvocation(InstanceInvocation node) {
     super.visitInstanceInvocation(node);
     _handleMethodInvocation(node, node.interfaceTarget, node.arguments);
@@ -163,12 +157,6 @@ abstract class Devirtualization extends RecursiveVisitor {
   }
 
   @override
-  visitPropertyGet(PropertyGet node) {
-    super.visitPropertyGet(node);
-    _handlePropertyGet(node, node.interfaceTarget);
-  }
-
-  @override
   visitInstanceGet(InstanceGet node) {
     super.visitInstanceGet(node);
     _handlePropertyGet(node, node.interfaceTarget);
@@ -186,12 +174,6 @@ abstract class Devirtualization extends RecursiveVisitor {
     if (directCall != null) {
       makeDirectCall(node, target, directCall);
     }
-  }
-
-  @override
-  visitPropertySet(PropertySet node) {
-    super.visitPropertySet(node);
-    _handlePropertySet(node, node.interfaceTarget);
   }
 
   @override

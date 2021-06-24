@@ -2320,12 +2320,6 @@ void KernelReaderHelper::SkipExpression() {
       ReadUInt();        // read kernel position.
       SkipExpression();  // read expression.
       return;
-    case kPropertyGet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipName();                    // read name.
-      SkipInterfaceMemberNameReference();  // read interface_target_reference.
-      return;
     case kInstanceGet:
       ReadByte();                          // read kind.
       ReadPosition();                      // read position.
@@ -2351,13 +2345,6 @@ void KernelReaderHelper::SkipExpression() {
     case kFunctionTearOff:
       ReadPosition();    // read position.
       SkipExpression();  // read receiver.
-      return;
-    case kPropertySet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipName();                    // read name.
-      SkipExpression();              // read value.
-      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kInstanceSet:
       ReadByte();                          // read kind.
@@ -2393,14 +2380,6 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
       SkipExpression();              // read expression.
-      return;
-    case kMethodInvocation:
-      ReadFlags();                   // read flags.
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipName();                    // read name.
-      SkipArguments();               // read arguments.
-      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kInstanceInvocation:
       ReadByte();                          // read kind.

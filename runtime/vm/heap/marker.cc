@@ -50,12 +50,13 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     WeakPropertyPtr cur_weak = delayed_weak_properties_;
     delayed_weak_properties_ = WeakProperty::null();
     while (cur_weak != WeakProperty::null()) {
-      WeakPropertyPtr next_weak = cur_weak->untag()->next_;
-      ObjectPtr raw_key = cur_weak->untag()->key_;
+      WeakPropertyPtr next_weak =
+          cur_weak->untag()->next_.Decompress(cur_weak->heap_base());
+      ObjectPtr raw_key = cur_weak->untag()->key();
       // Reset the next pointer in the weak property.
       cur_weak->untag()->next_ = WeakProperty::null();
       if (raw_key->untag()->IsMarked()) {
-        ObjectPtr raw_val = cur_weak->untag()->value_;
+        ObjectPtr raw_val = cur_weak->untag()->value();
         marked = marked ||
                  (raw_val->IsHeapObject() && !raw_val->untag()->IsMarked());
 
@@ -147,14 +148,17 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     ASSERT(raw_weak->IsOldObject());
     ASSERT(raw_weak->IsWeakProperty());
     ASSERT(raw_weak->untag()->IsMarked());
-    ASSERT(raw_weak->untag()->next_ == WeakProperty::null());
+    ASSERT(raw_weak->untag()->next_ ==
+           CompressedWeakPropertyPtr(WeakProperty::null()));
     raw_weak->untag()->next_ = delayed_weak_properties_;
     delayed_weak_properties_ = raw_weak;
   }
 
   intptr_t ProcessWeakProperty(WeakPropertyPtr raw_weak, bool did_mark) {
     // The fate of the weak property is determined by its key.
-    ObjectPtr raw_key = LoadPointerIgnoreRace(&raw_weak->untag()->key_);
+    ObjectPtr raw_key =
+        LoadCompressedPointerIgnoreRace(&raw_weak->untag()->key_)
+            .Decompress(raw_weak->heap_base());
     if (raw_key->IsHeapObject() && raw_key->IsOldObject() &&
         !raw_key->untag()->IsMarked()) {
       // Key was white. Enqueue the weak property.
@@ -202,9 +206,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     delayed_weak_properties_ = WeakProperty::null();
     intptr_t weak_properties_cleared = 0;
     while (cur_weak != WeakProperty::null()) {
-      WeakPropertyPtr next_weak = cur_weak->untag()->next_;
+      WeakPropertyPtr next_weak =
+          cur_weak->untag()->next_.Decompress(cur_weak->heap_base());
       cur_weak->untag()->next_ = WeakProperty::null();
-      RELEASE_ASSERT(!cur_weak->untag()->key_->untag()->IsMarked());
+      RELEASE_ASSERT(!cur_weak->untag()->key()->untag()->IsMarked());
       WeakProperty::Clear(cur_weak);
       weak_properties_cleared++;
       // Advance to next weak property in the queue.

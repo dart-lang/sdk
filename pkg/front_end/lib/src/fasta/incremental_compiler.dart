@@ -1940,7 +1940,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         userCode.loader,
         null,
         scope: libraryBuilder.scope.createNestedScope("expression"),
-        nameOrigin: libraryBuilder.library,
+        nameOrigin: libraryBuilder,
       );
       ticker.logMs("Created debug library");
 

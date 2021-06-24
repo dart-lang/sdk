@@ -1426,7 +1426,7 @@ void ConstantPropagator::VisitBox(BoxInstr* instr) {
   }
 }
 
-void ConstantPropagator::VisitBoxUint8(BoxUint8Instr* instr) {
+void ConstantPropagator::VisitBoxSmallInt(BoxSmallIntInstr* instr) {
   VisitBox(instr);
 }
 

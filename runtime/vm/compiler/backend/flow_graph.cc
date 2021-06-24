@@ -276,13 +276,6 @@ void FlowGraph::AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
   entry->initial_definitions()->Add(defn);
 }
 
-void FlowGraph::InsertBefore(Instruction* next,
-                             Instruction* instr,
-                             Environment* env,
-                             UseKind use_kind) {
-  InsertAfter(next->previous(), instr, env, use_kind);
-}
-
 void FlowGraph::InsertAfter(Instruction* prev,
                             Instruction* instr,
                             Environment* env,
@@ -295,6 +288,16 @@ void FlowGraph::InsertAfter(Instruction* prev,
   ASSERT(instr->env() == NULL);
   if (env != NULL) {
     env->DeepCopyTo(zone(), instr);
+  }
+}
+
+void FlowGraph::InsertSpeculativeAfter(Instruction* prev,
+                                       Instruction* instr,
+                                       Environment* env,
+                                       UseKind use_kind) {
+  InsertAfter(prev, instr, env, use_kind);
+  if (instr->env() != nullptr) {
+    instr->env()->MarkAsLazyDeoptToBeforeDeoptId();
   }
 }
 
@@ -311,6 +314,16 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
     env->DeepCopyTo(zone(), instr);
   }
   return prev->AppendInstruction(instr);
+}
+Instruction* FlowGraph::AppendSpeculativeTo(Instruction* prev,
+                                            Instruction* instr,
+                                            Environment* env,
+                                            UseKind use_kind) {
+  auto result = AppendTo(prev, instr, env, use_kind);
+  if (instr->env() != nullptr) {
+    instr->env()->MarkAsLazyDeoptToBeforeDeoptId();
+  }
+  return result;
 }
 
 // A wrapper around block entries including an index of the next successor to
