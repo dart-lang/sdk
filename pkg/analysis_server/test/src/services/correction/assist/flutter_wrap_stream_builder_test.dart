@@ -31,10 +31,10 @@ class FlutterWrapStreamBuilderTest extends AssistProcessorTest {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f(Stream<int> s) {
   /*caret*/StreamBuilder(
-    stream: null,
-    builder: (context, snapshot) => null,
+    stream: s,
+    builder: (context, snapshot) => Text(''),
   );
 }
 ''');

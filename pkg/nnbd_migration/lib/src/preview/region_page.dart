@@ -17,7 +17,7 @@ class RegionPage extends PreviewPage {
   /// Initialize a newly created region page within the given [site]. The
   /// [unitInfo] provides the information needed to render the page.
   RegionPage(PreviewSite site, this.unitInfo)
-      : super(site, unitInfo.path.substring(1));
+      : super(site, unitInfo.path!.substring(1));
 
   @override
   bool get requiresAuth => true;
@@ -29,7 +29,7 @@ class RegionPage extends PreviewPage {
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    var region = unitInfo.regionAt(int.parse(params['offset']));
+    var region = unitInfo.regionAt(int.parse(params['offset']!));
     var renderer = RegionRenderer(region, unitInfo, site.migrationInfo,
         site.pathMapper, site.serviceAuthToken);
     buf.write(jsonEncode(renderer.render().toJson()));

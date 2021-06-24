@@ -30,7 +30,7 @@ class _ProvisionalApiTest extends _ProvisionalApiTestBase
 
 /// Base class for provisional API tests.
 abstract class _ProvisionalApiTestBase extends AbstractContextTest {
-  String projectPath;
+  String? projectPath;
 
   bool get _usePermissiveMode;
 
@@ -54,10 +54,10 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       bool warnOnWeakCode = false,
       bool allowErrors = false}) async {
     for (var path in migratedInput.keys) {
-      newFile(path, content: migratedInput[path]);
+      newFile(path, content: migratedInput[path]!);
     }
     for (var path in input.keys) {
-      newFile(path, content: input[path]);
+      newFile(path, content: input[path]!);
     }
     var listener = TestMigrationListener();
     var migration = NullabilityMigration(listener, getLineInfo,
@@ -67,7 +67,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       var resolvedLibrary = await session.getResolvedLibrary2(path);
       if (resolvedLibrary is ResolvedLibraryResult) {
-        for (var unit in resolvedLibrary.units) {
+        for (var unit in resolvedLibrary.units!) {
           var errors =
               unit.errors.where((e) => e.severity == Severity.error).toList();
           if (!allowErrors && errors.isNotEmpty) {
@@ -82,7 +82,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       var resolvedLibrary = await session.getResolvedLibrary2(path);
       if (resolvedLibrary is ResolvedLibraryResult) {
-        for (var unit in resolvedLibrary.units) {
+        for (var unit in resolvedLibrary.units!) {
           migration.processInput(unit);
         }
       }
@@ -91,7 +91,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       var resolvedLibrary = await session.getResolvedLibrary2(path);
       if (resolvedLibrary is ResolvedLibraryResult) {
-        for (var unit in resolvedLibrary.units) {
+        for (var unit in resolvedLibrary.units!) {
           migration.finalizeInput(unit);
         }
       }
@@ -106,7 +106,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in expectedOutput.keys) {
       var sourceEditsForPath = sourceEdits[path] ?? [];
       sourceEditsForPath.sort((a, b) => b.offset.compareTo(a.offset));
-      expect(SourceEdit.applySequence(input[path], sourceEditsForPath),
+      expect(SourceEdit.applySequence(input[path]!, sourceEditsForPath),
           expectedOutput[path]);
     }
   }
@@ -8421,6 +8421,6 @@ class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
 
   @override
   void _betweenStages() {
-    driver.clearLibraryContext();
+    driver!.clearLibraryContext();
   }
 }

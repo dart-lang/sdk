@@ -40,7 +40,7 @@ build() {
           height: 300.0,
         ),
       ),
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -53,7 +53,7 @@ build() {
     body: GestureDetector(
       onTap: () => startResize(),
       child: Center(
-        key: null,
+        key: Key('x'),
         child: Container(
           width: 200.0,
           height: 300.0,

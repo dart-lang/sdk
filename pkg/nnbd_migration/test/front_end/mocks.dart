@@ -24,7 +24,7 @@ class _IsResponseSuccess extends Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    Response response = item as Response;
+    Response? response = item as Response?;
     if (response == null) {
       mismatchDescription.add('is null response');
     } else {
@@ -40,7 +40,7 @@ class _IsResponseSuccess extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    Response response = item as Response;
+    Response? response = item as Response?;
     return response != null && response.id == _id && response.error == null;
   }
 }

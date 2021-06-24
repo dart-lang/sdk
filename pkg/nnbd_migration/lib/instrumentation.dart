@@ -21,22 +21,22 @@ class CodeReference {
   final int offset;
 
   /// Name of the enclosing function, or `null` if not known.
-  String function;
+  String? function;
 
   CodeReference(this.path, this.offset, this.line, this.column, this.function);
 
   /// Creates a [CodeReference] pointing to the given [node].
   factory CodeReference.fromAstNode(AstNode node) {
-    var compilationUnit = node.thisOrAncestorOfType<CompilationUnit>();
-    var source = compilationUnit.declaredElement.source;
-    var location = compilationUnit.lineInfo.getLocation(node.offset);
+    var compilationUnit = node.thisOrAncestorOfType<CompilationUnit>()!;
+    var source = compilationUnit.declaredElement!.source;
+    var location = compilationUnit.lineInfo!.getLocation(node.offset);
     return CodeReference(source.fullName, node.offset, location.lineNumber,
         location.columnNumber, _computeEnclosingName(node));
   }
 
   factory CodeReference.fromElement(
       Element element, LineInfo Function(String) getLineInfo) {
-    var path = element.source.fullName;
+    var path = element.source!.fullName;
     var offset = element.nameOffset;
     var location = getLineInfo(path).getLocation(offset);
     return CodeReference(path, offset, location.lineNumber,
@@ -59,7 +59,7 @@ class CodeReference {
     return '${function ?? 'unknown'} ($pathAsUri:$line:$column)';
   }
 
-  static String _computeElementFullName(Element element) {
+  static String? _computeElementFullName(Element? element) {
     List<String> parts = [];
     while (element != null) {
       var elementName = _computeElementName(element);
@@ -72,21 +72,21 @@ class CodeReference {
     return parts.reversed.join('.');
   }
 
-  static String _computeElementName(Element element) {
+  static String? _computeElementName(Element element) {
     if (element is CompilationUnitElement || element is LibraryElement) {
       return null;
     }
     return element.name;
   }
 
-  static String _computeEnclosingName(AstNode node) {
-    List<String> parts = [];
+  static String? _computeEnclosingName(AstNode? node) {
+    List<String?> parts = [];
     while (node != null) {
       var nodeName = _computeNodeDeclarationName(node);
       if (nodeName != null) {
         parts.add(nodeName);
       } else if (parts.isEmpty && node is VariableDeclarationList) {
-        parts.add(node.variables.first.declaredElement.name);
+        parts.add(node.variables.first.declaredElement!.name);
       }
       node = node.parent;
     }
@@ -94,7 +94,7 @@ class CodeReference {
     return parts.reversed.join('.');
   }
 
-  static String _computeNodeDeclarationName(AstNode node) {
+  static String? _computeNodeDeclarationName(AstNode node) {
     if (node is ExtensionDeclaration) {
       return node.declaredElement?.name ?? '<unnamed extension>';
     } else if (node is Declaration) {
@@ -111,33 +111,33 @@ class CodeReference {
 abstract class DecoratedTypeInfo {
   /// Information about the graph node associated with the decision of whether
   /// or not to make this type into a nullable type.
-  NullabilityNodeInfo get node;
+  NullabilityNodeInfo? get node;
 
   /// If [type] is a function type, information about the set of nullability
   /// nodes decorating the type's return type.
-  DecoratedTypeInfo get returnType;
+  DecoratedTypeInfo? get returnType;
 
   /// The original (pre-migration) type that is being migrated.
-  DartType get type;
+  DartType? get type;
 
   /// If [type] is a function type, looks up information about the set of
   /// nullability nodes decorating one of the type's named parameter types.
-  DecoratedTypeInfo namedParameter(String name);
+  DecoratedTypeInfo? namedParameter(String name);
 
   /// If [type] is a function type, looks up information about the set of
   /// nullability nodes decorating one of the type's positional parameter types.
   /// (This could be an optional or a required positional parameter).
-  DecoratedTypeInfo positionalParameter(int i);
+  DecoratedTypeInfo? positionalParameter(int i);
 
   /// If [type] is an interface type, looks up information about the set of
   /// nullability nodes decorating one of the type's type arguments.
-  DecoratedTypeInfo typeArgument(int i);
+  DecoratedTypeInfo? typeArgument(int i);
 }
 
 /// Information about a propagation step that occurred during downstream
 /// propagation.
 abstract class DownstreamPropagationStepInfo implements PropagationStepInfo {
-  DownstreamPropagationStepInfo get principalCause;
+  DownstreamPropagationStepInfo? get principalCause;
 
   /// The node whose nullability was changed.
   ///
@@ -145,7 +145,7 @@ abstract class DownstreamPropagationStepInfo implements PropagationStepInfo {
   /// Propagation steps that are pending but have not taken effect yet, or that
   /// never had an effect (e.g. because an edge was not triggered) will have a
   /// `null` value for this field.
-  NullabilityNodeInfo get targetNode;
+  NullabilityNodeInfo? get targetNode;
 }
 
 /// Information exposed to the migration client about an edge in the nullability
@@ -167,7 +167,7 @@ abstract class EdgeInfo implements FixReasonInfo {
   /// important to satisfy the graph edge.  (Typically this is because the code
   /// that led to the graph edge being created is only reachable if the guards
   /// are all nullable).
-  Iterable<NullabilityNodeInfo> get guards;
+  Iterable<NullabilityNodeInfo?> get guards;
 
   /// A boolean indicating whether the graph edge is a "hard" edge.  Hard edges
   /// are associated with unconditional control flow, and thus allow information
@@ -207,7 +207,7 @@ abstract class EdgeInfo implements FixReasonInfo {
   bool get isUpstreamTriggered;
 
   /// Information about the graph node that this edge "points away from".
-  NullabilityNodeInfo get sourceNode;
+  NullabilityNodeInfo? get sourceNode;
 }
 
 /// Information exposed to the migration client about the location in source
@@ -218,21 +218,21 @@ abstract class EdgeOriginInfo {
   /// corresponding element; otherwise `null`.
   ///
   /// Note that either [node] or [element] will always be non-null.
-  Element get element;
+  Element? get element;
 
   /// The kind of origin represented by this info.
-  EdgeOriginKind get kind;
+  EdgeOriginKind? get kind;
 
   /// If the proximate cause of the edge being introduced into the graph
   /// corresponds to an AST node in a source file that is being migrated, the
   /// corresponding AST node; otherwise `null`.
   ///
   /// Note that either [node] or [element] will always be non-null.
-  AstNode get node;
+  AstNode? get node;
 
   /// If [node] is non-null, the source file that it appears in.  Otherwise
   /// `null`.
-  Source get source;
+  Source? get source;
 }
 
 /// An enumeration of the various kinds of edge origins created by the migration
@@ -292,7 +292,7 @@ abstract class FixReasonInfo {}
 /// lookups afterwards.
 abstract class NodeMapper extends NodeToIdMapper {
   /// Gets the node corresponding to the given [id].
-  NullabilityNodeInfo nodeForId(int id);
+  NullabilityNodeInfo? nodeForId(int? id);
 }
 
 /// Abstract interface for assigning ids numbers to nodes.
@@ -309,14 +309,14 @@ abstract class NullabilityMigrationInstrumentation {
   ///
   /// The format of the changes is a map from source file offset to a list of
   /// changes to be applied at that offset.
-  void changes(Source source, Map<int, List<AtomicEdit>> changes);
+  void changes(Source source, Map<int?, List<AtomicEdit>> changes);
 
   /// Called whenever an explicit [typeAnnotation] is found in the source code,
   /// to report the nullability [node] that was associated with this type.  If
   /// the migration engine determines that the [node] should be nullable, a `?`
   /// will be inserted after the type annotation.
   void explicitTypeNullability(
-      Source source, TypeAnnotation typeAnnotation, NullabilityNodeInfo node);
+      Source? source, TypeAnnotation typeAnnotation, NullabilityNodeInfo? node);
 
   /// Called whenever reference is made to an [element] outside of the code
   /// being migrated, to report the nullability nodes associated with the type
@@ -351,7 +351,7 @@ abstract class NullabilityMigrationInstrumentation {
   /// function type alias declaration, GenericFunctionType, or a function
   /// expression.
   void implicitReturnType(
-      Source source, AstNode node, DecoratedTypeInfo decoratedReturnType);
+      Source? source, AstNode node, DecoratedTypeInfo? decoratedReturnType);
 
   /// Called whenever the migration engine encounters an implicit type
   /// associated with an AST node, to report the nullability nodes associated
@@ -361,7 +361,7 @@ abstract class NullabilityMigrationInstrumentation {
   /// parameter, a declared identifier, or a variable in a variable declaration
   /// list.
   void implicitType(
-      Source source, AstNode node, DecoratedTypeInfo decoratedType);
+      Source? source, AstNode? node, DecoratedTypeInfo decoratedType);
 
   /// Called whenever the migration engine encounters an AST node with implicit
   /// type arguments, to report the nullability nodes associated with the
@@ -372,7 +372,7 @@ abstract class NullabilityMigrationInstrumentation {
   /// invocation, instance creation expression, list/map/set literal, or type
   /// annotation.
   void implicitTypeArguments(
-      Source source, AstNode node, Iterable<DecoratedTypeInfo> types);
+      Source? source, AstNode node, Iterable<DecoratedTypeInfo> types);
 
   /// Clear any data from the propagation step in preparation for that step
   /// being re-run.
@@ -387,7 +387,7 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
 
   /// Source code location corresponding to this nullability node, or `null` if
   /// not known.
-  CodeReference get codeReference;
+  CodeReference? get codeReference;
 
   /// Some nodes get nullability from downstream, so the downstream edges are
   /// available to query as well.
@@ -399,7 +399,7 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// Each edit is represented as a [Map<int, List<AtomicEdit>>] as is typical
   /// of [AtomicEdit]s since they do not have an offset. See extensions
   /// [AtomicEditMap] and [AtomicEditList] for usage.
-  Map<HintActionKind, Map<int, List<AtomicEdit>>> get hintActions;
+  Map<HintActionKind, Map<int?, List<AtomicEdit>>> get hintActions;
 
   /// After migration is complete, this getter can be used to query whether
   /// the type associated with this node was determined to be "exact nullable."
@@ -419,19 +419,19 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
 
   /// If [isNullable] is false, the propagation step that caused this node to
   /// become non-nullable (if any).
-  UpstreamPropagationStepInfo get whyNotNullable;
+  UpstreamPropagationStepInfo? get whyNotNullable;
 
   /// If [isNullable] is true, the propagation step that caused this node to
   /// become nullable.
-  DownstreamPropagationStepInfo get whyNullable;
+  DownstreamPropagationStepInfo? get whyNullable;
 }
 
 abstract class PropagationStepInfo {
-  CodeReference get codeReference;
+  CodeReference? get codeReference;
 
   /// The nullability edge associated with this propagation step, if any.
   /// Otherwise `null`.
-  EdgeInfo get edge;
+  EdgeInfo? get edge;
 }
 
 /// Reason information for a simple fix that isn't associated with any edges or
@@ -461,7 +461,7 @@ class SimpleNodeMapper extends NodeMapper {
   }
 
   @override
-  NullabilityNodeInfo nodeForId(int id) => _idToNode[id];
+  NullabilityNodeInfo? nodeForId(int? id) => _idToNode[id!];
 }
 
 /// Information exposed to the migration client about a node in the nullability
@@ -495,5 +495,5 @@ abstract class UpstreamPropagationStepInfo implements PropagationStepInfo {
   /// `null` value for this field.
   NullabilityNodeInfo get node;
 
-  UpstreamPropagationStepInfo get principalCause;
+  UpstreamPropagationStepInfo? get principalCause;
 }

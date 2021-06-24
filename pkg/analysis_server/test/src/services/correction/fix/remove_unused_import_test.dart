@@ -107,16 +107,14 @@ class RemoveUnusedImportTest extends FixProcessorTest {
     await resolveTestCode('''
 import 'dart:math'; import 'dart:async';
 
-main() {
-  Completer f;
+void f(Completer f) {
   print(f);
 }
 ''');
     await assertHasFix('''
 import 'dart:async';
 
-main() {
-  Completer f;
+void f(Completer f) {
   print(f);
 }
 ''');

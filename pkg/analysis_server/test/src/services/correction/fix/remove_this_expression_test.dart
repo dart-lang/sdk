@@ -58,7 +58,7 @@ class A {
   Future<void> test_propertyAccess_oneCharacterOperator() async {
     await resolveTestCode('''
 class A {
-  int x;
+  int x = 0;
   void foo() {
     this.x = 2;
   }
@@ -66,7 +66,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  int x;
+  int x = 0;
   void foo() {
     x = 2;
   }

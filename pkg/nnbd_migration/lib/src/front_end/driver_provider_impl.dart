@@ -9,12 +9,12 @@ import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 class DriverProviderImpl {
   final ResourceProvider resourceProvider;
 
-  final AnalysisContext analysisContext;
+  final AnalysisContext? analysisContext;
 
   DriverProviderImpl(this.resourceProvider, this.analysisContext);
 
   /// Return the appropriate analysis session for the file with the given
   /// [path].
-  AnalysisSession getAnalysisSession(String path) =>
-      analysisContext.currentSession;
+  AnalysisSession getAnalysisSession(String? path) =>
+      analysisContext!.currentSession;
 }

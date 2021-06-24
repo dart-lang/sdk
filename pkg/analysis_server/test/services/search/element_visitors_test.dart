@@ -51,12 +51,12 @@ class BBB {}
 
   Future<void> test_topLevelVariable() async {
     await resolveTestCode(r'''
-int aaa, bbb;
-int ccc;
+int? aaa, bbb;
+int? ccc;
 ''');
-    _assertElement(4, ElementKind.TOP_LEVEL_VARIABLE, 'aaa');
-    _assertElement(9, ElementKind.TOP_LEVEL_VARIABLE, 'bbb');
-    _assertElement(18, ElementKind.TOP_LEVEL_VARIABLE, 'ccc');
+    _assertElement(5, ElementKind.TOP_LEVEL_VARIABLE, 'aaa');
+    _assertElement(10, ElementKind.TOP_LEVEL_VARIABLE, 'bbb');
+    _assertElement(20, ElementKind.TOP_LEVEL_VARIABLE, 'ccc');
   }
 
   void _assertElement(int nameOffset, ElementKind kind, String name) {

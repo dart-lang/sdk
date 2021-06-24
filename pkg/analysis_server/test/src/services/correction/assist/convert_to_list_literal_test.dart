@@ -19,6 +19,11 @@ class ConvertToListLiteralTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_LIST_LITERAL;
 
+  @override
+  // This assist doesn't apply in null safety because the default List
+  // constructor is removed.
+  String? get testPackageLanguageVersion => '2.9';
+
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''
 List l = Li/*caret*/st();

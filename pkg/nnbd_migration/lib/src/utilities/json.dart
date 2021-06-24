@@ -6,7 +6,7 @@
 ///
 /// If [map] has key [key], return the value paired with [key]; otherwise throw
 /// a FormatException.
-dynamic expectKey(Map<Object, Object> map, String key) {
+dynamic expectKey(Map<Object?, Object?> map, String key) {
   if (map.containsKey(key)) {
     return map[key];
   }
@@ -18,7 +18,7 @@ dynamic expectKey(Map<Object, Object> map, String key) {
 ///
 /// If [object] is of type [T], return it; otherwise throw a FormatException
 /// with [errorKey] in the message.
-T expectType<T>(Object object, String errorKey) {
+T expectType<T>(Object? object, String errorKey) {
   if (object is T) {
     return object;
   }

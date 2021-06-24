@@ -96,7 +96,7 @@ void f() {
   Future<void> test_insteadOfSyntheticDefault() async {
     await resolveTestCode('''
 class A {
-  int field;
+  int field = 0;
 
   method() {}
 }
@@ -106,7 +106,7 @@ main() {
 ''');
     await assertHasFix('''
 class A {
-  int field;
+  int field = 0;
 
   A(int i, double d);
 

@@ -71,12 +71,12 @@ f() {}
     await resolveTestCode('''
 class A {
   @override
-  String name;
+  String name = '';
 }
 ''');
     await assertHasFix('''
 class A {
-  String name;
+  String name = '';
 }
 ''');
   }
@@ -140,12 +140,12 @@ f({int x = 0}) {}
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
-f([@required int x]) {}
+f([@required int? x]) {}
 ''');
     await assertHasFix('''
 import 'package:meta/meta.dart';
 
-f([int x]) {}
+f([int? x]) {}
 ''');
   }
 

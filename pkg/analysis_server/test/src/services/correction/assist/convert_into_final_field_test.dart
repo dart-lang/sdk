@@ -57,7 +57,7 @@ class A {
   void set foo(_) {}
 }
 class B extends A {
-  int get foo => null;
+  int get foo => 3;
 }
 ''');
     await assertHasAssistAt('get foo', '''
@@ -65,7 +65,7 @@ class A {
   void set foo(_) {}
 }
 class B extends A {
-  final int foo;
+  final int foo = 3;
 }
 ''');
   }
@@ -73,7 +73,7 @@ class B extends A {
   Future<void> test_hasSetter_inThisClass() async {
     await resolveTestCode('''
 class A {
-  int get foo => null;
+  int get foo => 0;
   void set foo(_) {}
 }
 ''');
@@ -143,12 +143,12 @@ class A {
   Future<void> test_null() async {
     await resolveTestCode('''
 class A {
-  int get foo => null;
+  int? get foo => null;
 }
 ''');
     await assertHasAssistAt('get foo', '''
 class A {
-  final int foo;
+  final int? foo;
 }
 ''');
   }
@@ -169,12 +169,12 @@ class A {
   Future<void> test_onReturnType_parameterized() async {
     await resolveTestCode('''
 class A {
-  List<int> get foo => null;
+  List<int>? get foo => null;
 }
 ''');
-    await assertHasAssistAt('nt> get', '''
+    await assertHasAssistAt('nt>? get', '''
 class A {
-  final List<int> foo;
+  final List<int>? foo;
 }
 ''');
   }

@@ -21,7 +21,7 @@ import 'edge_origin.dart';
 abstract class DownstreamPropagationStep extends PropagationStep
     implements DownstreamPropagationStepInfo {
   @override
-  NullabilityNodeMutable targetNode;
+  NullabilityNodeMutable? targetNode;
 
   /// The state that the node's nullability was changed to.
   ///
@@ -29,12 +29,12 @@ abstract class DownstreamPropagationStep extends PropagationStep
   /// Propagation steps that are pending but have not taken effect yet, or that
   /// never had an effect (e.g. because an edge was not triggered) will have a
   /// `null` value for this field.
-  Nullability newState;
+  Nullability? newState;
 
   DownstreamPropagationStep();
 
   @override
-  DownstreamPropagationStep get principalCause;
+  DownstreamPropagationStep? get principalCause;
 }
 
 /// Base class for steps that occur as part of propagating exact nullability
@@ -74,28 +74,28 @@ class NullabilityEdge implements EdgeInfo {
   /// A set of upstream nodes.  By convention, the first node is the source node
   /// and the other nodes are "guards".  The destination node will only need to
   /// be made nullable if all the upstream nodes are nullable.
-  final List<NullabilityNode> upstreamNodes;
+  final List<NullabilityNode?> upstreamNodes;
 
   final _NullabilityEdgeKind _kind;
 
   /// The location in the source code that caused this edge to be built.
-  final CodeReference codeReference;
+  final CodeReference? codeReference;
 
   final String description;
 
   /// Whether this edge is the result of an uninitialized variable declaration.
-  final bool isUninit;
+  final bool? isUninit;
 
   /// Whether this edge is the result of an assignment within the test package's
   /// `setUp` function.
-  final bool isSetupAssignment;
+  final bool? isSetupAssignment;
 
   NullabilityEdge._(
       this.destinationNode, this.upstreamNodes, this._kind, this.description,
       {this.codeReference, this.isUninit, this.isSetupAssignment});
 
   @override
-  Iterable<NullabilityNode> get guards => upstreamNodes.skip(1);
+  Iterable<NullabilityNode?> get guards => upstreamNodes.skip(1);
 
   /// Indicates whether it's possible for migration to cope with this edge being
   /// unsatisfied by inserting a null check.  Graph propagation favors
@@ -118,7 +118,7 @@ class NullabilityEdge implements EdgeInfo {
   @override
   bool get isTriggered {
     for (var upstreamNode in upstreamNodes) {
-      if (!upstreamNode.isNullable) return false;
+      if (!upstreamNode!.isNullable) return false;
     }
     return true;
   }
@@ -133,11 +133,11 @@ class NullabilityEdge implements EdgeInfo {
   }
 
   @override
-  NullabilityNode get sourceNode => upstreamNodes.first;
+  NullabilityNode? get sourceNode => upstreamNodes.first;
 
   @override
-  String toString({NodeToIdMapper idMapper}) {
-    var edgeDecorations = <Object>[];
+  String toString({NodeToIdMapper? idMapper}) {
+    var edgeDecorations = <Object?>[];
     switch (_kind) {
       case _NullabilityEdgeKind.soft:
         break;
@@ -160,7 +160,7 @@ class NullabilityEdge implements EdgeInfo {
     edgeDecorations.addAll(guards);
     var edgeDecoration =
         edgeDecorations.isEmpty ? '' : '-(${edgeDecorations.join(', ')})';
-    return '${sourceNode.toString(idMapper: idMapper)} $edgeDecoration-> '
+    return '${sourceNode!.toString(idMapper: idMapper)} $edgeDecoration-> '
         '${destinationNode.toString(idMapper: idMapper)}';
   }
 }
@@ -176,7 +176,7 @@ class NullabilityGraph {
   /// propagation.
   static const _debugAfterPropagation = false;
 
-  final NullabilityMigrationInstrumentation /*?*/ instrumentation;
+  final NullabilityMigrationInstrumentation? instrumentation;
 
   /// Returns a [NullabilityNode] that is a priori nullable.
   ///
@@ -197,7 +197,7 @@ class NullabilityGraph {
   final _pathsBeingMigrated = <String>{};
 
   /// A set containing all of the nodes in the graph.
-  final Set<NullabilityNode> nodes = {};
+  final Set<NullabilityNode?> nodes = {};
 
   NullabilityGraph({this.instrumentation})
       : always = _NullabilityNodeImmutable('always', true),
@@ -206,11 +206,11 @@ class NullabilityGraph {
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   ///
   /// Returns the edge created by the connection.
-  NullabilityEdge connect(NullabilityNode sourceNode,
+  NullabilityEdge connect(NullabilityNode? sourceNode,
       NullabilityNode destinationNode, EdgeOrigin origin,
       {bool hard = false,
       bool checkable = true,
-      List<NullabilityNode> guards = const []}) {
+      List<NullabilityNode?> guards = const []}) {
     var upstreamNodes = [sourceNode, ...guards];
     var kind = hard
         ? checkable
@@ -224,13 +224,14 @@ class NullabilityGraph {
 
   /// Records that [sourceNode] is immediately upstream from [always], via a
   /// dummy edge.
-  NullabilityEdge connectDummy(NullabilityNode sourceNode, EdgeOrigin origin) =>
+  NullabilityEdge connectDummy(
+          NullabilityNode? sourceNode, EdgeOrigin origin) =>
       _connect([sourceNode], always, _NullabilityEdgeKind.dummy, origin);
 
   /// Prints out a representation of the graph nodes.  Useful in debugging
   /// broken tests.
   void debugDump() {
-    Set<NullabilityNode> visitedNodes = {};
+    Set<NullabilityNode?> visitedNodes = {};
     Map<NullabilityNode, String> shortNames = {};
     int counter = 0;
     String nameNode(NullabilityNode node) {
@@ -249,16 +250,16 @@ class NullabilityGraph {
         print('  $name [label="$label"$styleSuffix]');
         if (node is NullabilityNodeCompound) {
           for (var component in node._components) {
-            print('  ${nameNode(component)} -> $name [style=dashed]');
+            print('  ${nameNode(component!)} -> $name [style=dashed]');
           }
         }
       }
       return name;
     }
 
-    void visitNode(NullabilityNode node) {
+    void visitNode(NullabilityNode? node) {
       if (!visitedNodes.add(node)) return;
-      for (var edge in node._upstreamEdges) {
+      for (var edge in node!._upstreamEdges) {
         String suffix;
         if (edge.isUnion) {
           suffix = ' [label="union"]';
@@ -272,13 +273,13 @@ class NullabilityGraph {
         var upstreamNodes = edge.upstreamNodes;
         if (upstreamNodes.length == 1) {
           print(
-              '  ${nameNode(upstreamNodes.single)} -> ${nameNode(node)}$suffix');
+              '  ${nameNode(upstreamNodes.single!)} -> ${nameNode(node)}$suffix');
         } else {
           var tmpName = 'n${counter++}';
           print('  $tmpName [label=""]');
           print('  $tmpName -> ${nameNode(node)}$suffix}');
           for (var upstreamNode in upstreamNodes) {
-            print('  ${nameNode(upstreamNode)} -> $tmpName');
+            print('  ${nameNode(upstreamNode!)} -> $tmpName');
           }
         }
       }
@@ -305,8 +306,8 @@ class NullabilityGraph {
 
   /// Creates a graph edge that will try to force the given [node] to be
   /// non-nullable.
-  NullabilityEdge makeNonNullable(NullabilityNode node, EdgeOrigin origin,
-      {bool hard = true, List<NullabilityNode> guards = const []}) {
+  NullabilityEdge makeNonNullable(NullabilityNode? node, EdgeOrigin origin,
+      {bool hard = true, List<NullabilityNode?> guards = const []}) {
     return connect(node, never, origin, hard: hard, guards: guards);
   }
 
@@ -361,12 +362,12 @@ class NullabilityGraph {
     // we need to traverse the graph from both directions.
     //
     for (var node in nodes) {
-      node.resetState();
+      node!.resetState();
     }
     //
     // Reset the state of the listener.
     //
-    instrumentation.prepareForUpdate();
+    instrumentation!.prepareForUpdate();
     //
     // Re-run the propagation step.
     //
@@ -374,23 +375,23 @@ class NullabilityGraph {
   }
 
   NullabilityEdge _connect(
-      List<NullabilityNode> upstreamNodes,
+      List<NullabilityNode?> upstreamNodes,
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
-    var isUninit = origin?.kind == EdgeOriginKind.fieldNotInitialized ||
-        origin?.kind == EdgeOriginKind.implicitNullInitializer ||
-        origin?.kind == EdgeOriginKind.uninitializedRead;
+    var isUninit = origin.kind == EdgeOriginKind.fieldNotInitialized ||
+        origin.kind == EdgeOriginKind.implicitNullInitializer ||
+        origin.kind == EdgeOriginKind.uninitializedRead;
     var isSetupAssignment =
         origin is ExpressionChecksOrigin && origin.isSetupAssignment;
     var edge = NullabilityEdge._(
-        destinationNode, upstreamNodes, kind, origin?.description,
-        codeReference: origin?.codeReference,
+        destinationNode, upstreamNodes, kind, origin.description,
+        codeReference: origin.codeReference,
         isUninit: isUninit,
         isSetupAssignment: isSetupAssignment);
     instrumentation?.graphEdge(edge, origin);
     for (var upstreamNode in upstreamNodes) {
-      _connectDownstream(upstreamNode, edge);
+      _connectDownstream(upstreamNode!, edge);
     }
     destinationNode._upstreamEdges.add(edge);
     nodes.addAll(upstreamNodes);
@@ -402,7 +403,7 @@ class NullabilityGraph {
     upstreamNode._downstreamEdges.add(edge);
     if (upstreamNode is NullabilityNodeCompound) {
       for (var component in upstreamNode._components) {
-        _connectDownstream(component, edge);
+        _connectDownstream(component!, edge);
       }
     }
   }
@@ -424,11 +425,11 @@ class NullabilityGraphForTesting extends NullabilityGraph {
 
   /// Retrieves the [EdgeOrigin] object that was used to create [edge].
   @visibleForTesting
-  EdgeOrigin getEdgeOrigin(NullabilityEdge edge) => _edgeOrigins[edge];
+  EdgeOrigin? getEdgeOrigin(NullabilityEdge edge) => _edgeOrigins[edge];
 
   @override
   NullabilityEdge _connect(
-      List<NullabilityNode> upstreamNodes,
+      List<NullabilityNode?> upstreamNodes,
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
@@ -449,7 +450,7 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   LateCondition _lateCondition = LateCondition.notLate;
 
   @override
-  final hintActions = <HintActionKind, Map<int, List<AtomicEdit>>>{};
+  final hintActions = <HintActionKind, Map<int?, List<AtomicEdit>>>{};
 
   bool _isPossiblyOptional = false;
 
@@ -491,8 +492,8 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   /// Creates a [NullabilityNode] representing the nullability of an
   /// expression which is nullable iff either [a] or [b] is nullable.
-  factory NullabilityNode.forLUB(NullabilityNode left, NullabilityNode right) =
-      NullabilityNodeForLUB._;
+  factory NullabilityNode.forLUB(
+      NullabilityNode? left, NullabilityNode? right) = NullabilityNodeForLUB._;
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// substitution where [outerNode] is the nullability node for the type
@@ -502,8 +503,8 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// If either [innerNode] or [outerNode] is `null`, then the other node is
   /// returned.
   factory NullabilityNode.forSubstitution(
-      NullabilityNode innerNode, NullabilityNode outerNode) {
-    if (innerNode == null) return outerNode;
+      NullabilityNode? innerNode, NullabilityNode? outerNode) {
+    if (innerNode == null) return outerNode!;
     if (outerNode == null) return innerNode;
     return NullabilityNodeForSubstitution._(innerNode, outerNode);
   }
@@ -516,7 +517,7 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   NullabilityNode._();
 
   @override
-  CodeReference get codeReference => null;
+  CodeReference? get codeReference => null;
 
   /// Gets a string that can be appended to a type name during debugging to help
   /// annotate the nullability of that type.
@@ -554,14 +555,14 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   Iterable<EdgeInfo> get upstreamEdges => _upstreamEdges;
 
   @override
-  UpstreamPropagationStep get whyNotNullable;
+  UpstreamPropagationStep? get whyNotNullable;
 
-  Nullability get _nullability;
+  Nullability? get _nullability;
 
   /// Records the fact that an invocation was made to a function with named
   /// parameters, and the named parameter associated with this node was not
   /// supplied.
-  void recordNamedParameterNotSupplied(List<NullabilityNode> guards,
+  void recordNamedParameterNotSupplied(List<NullabilityNode?> guards,
       NullabilityGraph graph, NamedParameterNotSuppliedOrigin origin) {
     if (isPossiblyOptional) {
       graph.connect(graph.always, this, origin, guards: guards);
@@ -571,7 +572,7 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// Reset the state of this node to what it was before the graph was solved.
   void resetState();
 
-  String toString({NodeToIdMapper idMapper}) {
+  String toString({NodeToIdMapper? idMapper}) {
     var name = displayName;
     if (idMapper == null) {
       return name;
@@ -595,43 +596,43 @@ abstract class NullabilityNodeCompound extends NullabilityNodeMutable {
   NullabilityNodeCompound() : super._();
 
   /// A map describing each of the node's components by name.
-  Map<String, NullabilityNode> get componentsByName;
+  Map<String, NullabilityNode?> get componentsByName;
 
   @override
-  bool get isExactNullable => _components.any((c) => c.isExactNullable);
+  bool get isExactNullable => _components.any((c) => c!.isExactNullable);
 
   @override
-  bool get isNullable => _components.any((c) => c.isNullable);
+  bool get isNullable => _components.any((c) => c!.isNullable);
 
-  Iterable<NullabilityNode> get _components;
+  Iterable<NullabilityNode?> get _components;
 }
 
 /// Derived class for nullability nodes that arise from the least-upper-bound
 /// implied by a conditional expression.
 class NullabilityNodeForLUB extends NullabilityNodeCompound {
-  final NullabilityNode left;
+  final NullabilityNode? left;
 
-  final NullabilityNode right;
+  final NullabilityNode? right;
 
   NullabilityNodeForLUB._(this.left, this.right) {
-    left.outerCompoundNodes.add(this);
-    right.outerCompoundNodes.add(this);
+    left!.outerCompoundNodes.add(this);
+    right!.outerCompoundNodes.add(this);
   }
 
   @override
-  Map<String, NullabilityNode> get componentsByName =>
+  Map<String, NullabilityNode?> get componentsByName =>
       {'left': left, 'right': right};
 
   @override
-  String get displayName => '${left.displayName} or ${right.displayName}';
+  String get displayName => '${left!.displayName} or ${right!.displayName}';
 
   @override
-  Iterable<NullabilityNode> get _components => [left, right];
+  Iterable<NullabilityNode?> get _components => [left, right];
 
   @override
   void resetState() {
-    left.resetState();
-    right.resetState();
+    left!.resetState();
+    right!.resetState();
   }
 }
 
@@ -673,13 +674,13 @@ class NullabilityNodeForSubstitution extends NullabilityNodeCompound
 /// Nearly all nullability nodes derive from this class; the only exceptions are
 /// the fixed nodes "always "never".
 abstract class NullabilityNodeMutable extends NullabilityNode {
-  Nullability _nullability;
+  Nullability? _nullability;
 
   NonNullIntent _nonNullIntent;
 
-  DownstreamPropagationStep _whyNullable;
+  DownstreamPropagationStep? _whyNullable;
 
-  UpstreamPropagationStep _whyNotNullable;
+  UpstreamPropagationStep? _whyNotNullable;
 
   NullabilityNodeMutable._(
       {Nullability initialNullability = Nullability.nonNullable})
@@ -688,22 +689,22 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
         super._();
 
   @override
-  bool get isExactNullable => _nullability.isExactNullable;
+  bool get isExactNullable => _nullability!.isExactNullable;
 
   @override
   bool get isImmutable => false;
 
   @override
-  bool get isNullable => _nullability.isNullable;
+  bool get isNullable => _nullability!.isNullable;
 
   @override
   NonNullIntent get nonNullIntent => _nonNullIntent;
 
   @override
-  UpstreamPropagationStep get whyNotNullable => _whyNotNullable;
+  UpstreamPropagationStep? get whyNotNullable => _whyNotNullable;
 
   @override
-  DownstreamPropagationStepInfo get whyNullable => _whyNullable;
+  DownstreamPropagationStepInfo? get whyNullable => _whyNullable;
 
   @override
   void resetState() {
@@ -731,14 +732,14 @@ abstract class PropagationStep implements PropagationStepInfo {
 
   /// The location in the source code that caused this step to be necessary,
   /// or `null` if not known.
-  CodeReference get codeReference => null;
+  CodeReference? get codeReference => null;
 
   /// The previous propagation step that led to this one, or `null` if there was
   /// no previous step.
-  PropagationStep get principalCause;
+  PropagationStep? get principalCause;
 
   @override
-  String toString({NodeToIdMapper idMapper});
+  String toString({NodeToIdMapper? idMapper});
 }
 
 /// Propagation step where we consider mark one of the components of a
@@ -754,11 +755,11 @@ class ResolveSubstitutionPropagationStep extends ExactNullablePropagationStep {
   ResolveSubstitutionPropagationStep(this.principalCause, this.node);
 
   @override
-  EdgeInfo get edge => null;
+  EdgeInfo? get edge => null;
 
   @override
-  String toString({NodeToIdMapper idMapper}) =>
-      '${targetNode.toString(idMapper: idMapper)} becomes $newState due to '
+  String toString({NodeToIdMapper? idMapper}) =>
+      '${targetNode!.toString(idMapper: idMapper)} becomes $newState due to '
       '${node.toString(idMapper: idMapper)}';
 }
 
@@ -766,7 +767,7 @@ class ResolveSubstitutionPropagationStep extends ExactNullablePropagationStep {
 /// to its sources becoming nullable.
 class SimpleDownstreamPropagationStep extends DownstreamPropagationStep {
   @override
-  final DownstreamPropagationStep principalCause;
+  final DownstreamPropagationStep? principalCause;
 
   @override
   final NullabilityEdge edge;
@@ -774,11 +775,11 @@ class SimpleDownstreamPropagationStep extends DownstreamPropagationStep {
   SimpleDownstreamPropagationStep(this.principalCause, this.edge);
 
   @override
-  CodeReference get codeReference => edge.codeReference;
+  CodeReference? get codeReference => edge.codeReference;
 
   @override
-  String toString({NodeToIdMapper idMapper}) =>
-      '${targetNode.toString(idMapper: idMapper)} becomes $newState due to '
+  String toString({NodeToIdMapper? idMapper}) =>
+      '${targetNode!.toString(idMapper: idMapper)} becomes $newState due to '
       '${edge.toString(idMapper: idMapper)}';
 }
 
@@ -794,8 +795,8 @@ class SimpleExactNullablePropagationStep extends ExactNullablePropagationStep {
   SimpleExactNullablePropagationStep(this.principalCause, this.edge);
 
   @override
-  String toString({NodeToIdMapper idMapper}) =>
-      '${targetNode.toString(idMapper: idMapper)} becomes $newState due to '
+  String toString({NodeToIdMapper? idMapper}) =>
+      '${targetNode!.toString(idMapper: idMapper)} becomes $newState due to '
       '${edge.toString(idMapper: idMapper)}';
 }
 
@@ -804,7 +805,7 @@ class SimpleExactNullablePropagationStep extends ExactNullablePropagationStep {
 class UpstreamPropagationStep extends PropagationStep
     implements UpstreamPropagationStepInfo {
   @override
-  final UpstreamPropagationStep principalCause;
+  final UpstreamPropagationStep? principalCause;
 
   /// The node being marked as having non-null intent.
   final NullabilityNode node;
@@ -814,7 +815,7 @@ class UpstreamPropagationStep extends PropagationStep
 
   /// The nullability edge connecting [node] to the node it is upstream from, if
   /// any.
-  final NullabilityEdge edge;
+  final NullabilityEdge? edge;
 
   @override
   final bool isStartingPoint;
@@ -824,10 +825,10 @@ class UpstreamPropagationStep extends PropagationStep
       {this.isStartingPoint = false});
 
   @override
-  CodeReference get codeReference => edge?.codeReference;
+  CodeReference? get codeReference => edge?.codeReference;
 
   @override
-  String toString({NodeToIdMapper idMapper}) =>
+  String toString({NodeToIdMapper? idMapper}) =>
       '${node.toString(idMapper: idMapper)} becomes $newNonNullIntent';
 }
 
@@ -872,7 +873,7 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   String get debugSuffix => isNullable ? '?' : '';
 
   @override
-  Map<HintActionKind, Map<int, List<AtomicEdit>>> get hintActions => const {};
+  Map<HintActionKind, Map<int?, List<AtomicEdit>>> get hintActions => const {};
 
   @override
   // Note: the node "always" is not exact nullable, because exact nullability is
@@ -889,10 +890,10 @@ class _NullabilityNodeImmutable extends NullabilityNode {
       isNullable ? NonNullIntent.none : NonNullIntent.direct;
 
   @override
-  UpstreamPropagationStep get whyNotNullable => null;
+  UpstreamPropagationStep? get whyNotNullable => null;
 
   @override
-  DownstreamPropagationStepInfo get whyNullable => null;
+  DownstreamPropagationStepInfo? get whyNullable => null;
 
   @override
   Nullability get _nullability =>
@@ -910,7 +911,7 @@ class _NullabilityNodeSimple extends NullabilityNodeMutable {
   _NullabilityNodeSimple(this.target) : super._();
 
   @override
-  CodeReference get codeReference => target.codeReference;
+  CodeReference? get codeReference => target.codeReference;
 
   @override
   String get displayName => target.displayName;
@@ -957,11 +958,11 @@ class _PropagationState {
         var edge = step.edge;
         if (!edge.isTriggered) continue;
         var node = edge.destinationNode;
-        if (edge.isUninit && !node.isNullable) {
+        if (edge.isUninit! && !node.isNullable) {
           // [edge] is an edge from always to an uninitialized variable
           // declaration.
           var isSetupAssigned = node.upstreamEdges
-              .any((e) => e is NullabilityEdge && e.isSetupAssignment);
+              .any((e) => e is NullabilityEdge && e.isSetupAssignment!);
 
           // Whether all downstream edges go to nodes with non-null intent.
           var allDownstreamHaveNonNullIntent = false;
@@ -1053,7 +1054,7 @@ class _PropagationState {
       // propagate to it.
       for (var node in pendingNode.outerCompoundNodes) {
         if (node._components
-            .any((component) => !component.nonNullIntent.isPresent)) {
+            .any((component) => !component!.nonNullIntent.isPresent)) {
           continue;
         }
         var oldNonNullIntent = node._nonNullIntent;
@@ -1071,7 +1072,7 @@ class _PropagationState {
 
   void _resolvePendingSubstitution(ResolveSubstitutionPropagationStep step) {
     NullabilityNodeForSubstitution substitutionNode = step.node;
-    assert(substitutionNode._nullability.isNullable);
+    assert(substitutionNode._nullability!.isNullable);
     // If both nodes pointed to by the substitution node have non-null intent,
     // then no resolution is needed; the substitution node can’t be satisfied.
     if (substitutionNode.innerNode.nonNullIntent.isPresent &&
@@ -1154,9 +1155,9 @@ class _PropagationState {
   }
 
   Nullability _setNullable(DownstreamPropagationStep step) {
-    var node = step.targetNode;
+    var node = step.targetNode!;
     var newState = step.newState;
-    var oldState = node._nullability;
+    var oldState = node._nullability!;
     node._nullability = newState;
     if (!oldState.isNullable) {
       node._whyNullable = step;

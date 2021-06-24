@@ -820,11 +820,10 @@ class Primitives {
   /// the value of the catch-all property.
   static applyFunction(Function function, List? positionalArguments,
       Map<String, dynamic>? namedArguments) {
-    // Fast shortcut for the common case.
-    if (JS('bool', '# instanceof Array', positionalArguments) &&
+    // Fast path for common cases.
+    if (positionalArguments is JSArray &&
         (namedArguments == null || namedArguments.isEmpty)) {
-      // Let the compiler know that we did a type-test.
-      List arguments = (JS('JSArray', '#', positionalArguments));
+      JSArray arguments = positionalArguments;
       int argumentCount = arguments.length;
       if (argumentCount == 0) {
         String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX0);
@@ -877,18 +876,17 @@ class Primitives {
       }
     }
 
-    return _genericApplyFunction2(
-        function, positionalArguments, namedArguments);
+    return _generalApplyFunction(function, positionalArguments, namedArguments);
   }
 
-  static _genericApplyFunction2(Function function, List? positionalArguments,
+  static _generalApplyFunction(Function function, List? positionalArguments,
       Map<String, dynamic>? namedArguments) {
     List arguments;
     if (positionalArguments != null) {
-      if (JS('bool', '# instanceof Array', positionalArguments)) {
-        arguments = JS('JSArray', '#', positionalArguments);
+      if (positionalArguments is JSArray) {
+        arguments = positionalArguments;
       } else {
-        arguments = new List.from(positionalArguments);
+        arguments = List.of(positionalArguments);
       }
     } else {
       arguments = [];
@@ -934,8 +932,7 @@ class Primitives {
       return functionNoSuchMethod(function, arguments, namedArguments);
     }
 
-    bool acceptsPositionalArguments =
-        JS('bool', '# instanceof Array', defaultValues);
+    bool acceptsPositionalArguments = defaultValues is JSArray;
 
     if (acceptsPositionalArguments) {
       if (namedArguments != null && namedArguments.isNotEmpty) {
@@ -950,9 +947,15 @@ class Primitives {
         // The function expects fewer arguments.
         return functionNoSuchMethod(function, arguments, null);
       }
-      List missingDefaults = JS('JSArray', '#.slice(#)', defaultValues,
-          argumentCount - requiredParameterCount);
-      arguments.addAll(missingDefaults);
+      if (argumentCount < maxArguments) {
+        List missingDefaults = JS('JSArray', '#.slice(#)', defaultValues,
+            argumentCount - requiredParameterCount);
+        if (identical(arguments, positionalArguments)) {
+          // Defensive copy to avoid modifying passed-in List.
+          arguments = List.of(arguments);
+        }
+        arguments.addAll(missingDefaults);
+      }
       return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
     } else {
       // Handle named arguments.
@@ -961,6 +964,11 @@ class Primitives {
         // Tried to invoke a function that takes named parameters with
         // too many positional arguments.
         return functionNoSuchMethod(function, arguments, namedArguments);
+      }
+
+      if (identical(arguments, positionalArguments)) {
+        // Defensive copy to avoid modifying passed-in List.
+        arguments = List.of(arguments);
       }
 
       List keys = JS('JSArray', r'Object.keys(#)', defaultValues);
@@ -987,6 +995,7 @@ class Primitives {
           }
         }
         if (used != namedArguments.length) {
+          // Named argument with name not accected by function.
           return functionNoSuchMethod(function, arguments, namedArguments);
         }
       }

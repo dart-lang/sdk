@@ -31,10 +31,10 @@ class AssignmentTargetInfo {
   /// The type that the assignment target has when read.  This is only relevant
   /// for compound assignments (since they both read and write the assignment
   /// target)
-  final DartType readType;
+  final DartType? readType;
 
   /// The type that the assignment target has when written to.
-  final DartType writeType;
+  final DartType? writeType;
 
   AssignmentTargetInfo(this.readType, this.writeType);
 }
@@ -135,7 +135,7 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           .having((c) => c.replacement, 'replacement', replacement);
 
   Map<AstNode, NodeChange> scopedChanges(
-          FixBuilder fixBuilder, AstNode scope) =>
+          FixBuilder fixBuilder, AstNode? scope) =>
       {
         for (var entry in fixBuilder.changes.entries)
           if (_isInScope(entry.key, scope) && !entry.value.isInformative)
@@ -151,7 +151,7 @@ class FixBuilderTest extends EdgeBuilderTestBase {
       };
 
   Map<AstNode, Set<Problem>> scopedProblems(
-          FixBuilder fixBuilder, AstNode scope) =>
+          FixBuilder fixBuilder, AstNode? scope) =>
       {
         for (var entry in fixBuilder.problems.entries)
           if (_isInScope(entry.key, scope)) entry.key: entry.value
@@ -3799,7 +3799,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
       bool injectNeedsIterableExtension = false}) {
-    var fixBuilder = _createFixBuilder(testUnit);
+    var fixBuilder = _createFixBuilder(testUnit!);
     if (injectNeedsIterableExtension) {
       fixBuilder.needsIterableExtension = true;
     }
@@ -3809,7 +3809,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
   }
 
   void visitAssignmentTarget(
-      Expression node, String expectedReadType, String expectedWriteType,
+      Expression node, String? expectedReadType, String expectedWriteType,
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
     var fixBuilder = _createFixBuilder(node);
@@ -3818,10 +3818,10 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     if (expectedReadType == null) {
       expect(targetInfo.readType, null);
     } else {
-      expect(targetInfo.readType.getDisplayString(withNullability: true),
+      expect(targetInfo.readType!.getDisplayString(withNullability: true),
           expectedReadType);
     }
-    expect(targetInfo.writeType.getDisplayString(withNullability: true),
+    expect(targetInfo.writeType!.getDisplayString(withNullability: true),
         expectedWriteType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
@@ -3837,12 +3837,12 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
   }
 
   FixBuilder visitSubexpression(Expression node, String expectedType,
-      {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
+      {Map<AstNode?, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
       bool warnOnWeakCode = false}) {
     var fixBuilder = _createFixBuilder(node, warnOnWeakCode: warnOnWeakCode);
     fixBuilder.visitAll();
-    var type = node.staticType;
+    var type = node.staticType!;
     expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
@@ -3855,7 +3855,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       dynamic informative = anything}) {
     var fixBuilder = _createFixBuilder(node);
     fixBuilder.visitAll();
-    var type = node.type;
+    var type = node.type!;
     expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
@@ -3868,7 +3868,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       assert(
           identical(ElementTypeProvider.current, const ElementTypeProvider()));
       ElementTypeProvider.current = fixBuilder.migrationResolutionHooks;
-      var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
+      var assignment = node.thisOrAncestorOfType<AssignmentExpression>()!;
       var readType = assignment.readType;
       var writeType = assignment.writeType;
       return AssignmentTargetInfo(readType, writeType);
@@ -3878,8 +3878,8 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
   }
 
   FixBuilder _createFixBuilder(AstNode scope, {bool warnOnWeakCode = false}) {
-    var unit = scope.thisOrAncestorOfType<CompilationUnit>();
-    var definingLibrary = unit.declaredElement.library;
+    var unit = scope.thisOrAncestorOfType<CompilationUnit>()!;
+    var definingLibrary = unit.declaredElement!.library;
     return FixBuilder(
         testSource,
         decoratedClassHierarchy,
@@ -3893,7 +3893,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         graph, {});
   }
 
-  bool _isInScope(AstNode node, AstNode scope) {
+  bool _isInScope(AstNode node, AstNode? scope) {
     return node
             .thisOrAncestorMatching((ancestor) => identical(ancestor, scope)) !=
         null;

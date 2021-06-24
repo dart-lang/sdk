@@ -64,8 +64,8 @@ class WhereOrNullTransformer {
   /// If [expression] is the expression part of the `orElse` argument of a call
   /// that can be transformed, returns information about the transformable call;
   /// otherwise returns `null`.
-  WhereOrNullTransformationInfo tryTransformOrElseArgument(
-      Expression expression) {
+  WhereOrNullTransformationInfo? tryTransformOrElseArgument(
+      Expression? expression) {
     var transformationInfo =
         _tryTransformMethodInvocation(expression?.parent?.parent?.parent);
     if (transformationInfo != null &&
@@ -79,8 +79,8 @@ class WhereOrNullTransformer {
   /// Searches [argumentList] for a named argument with the name "orElse".  If
   /// such an argument is found, and no other named arguments are found, it is
   /// returned; otherwise `null` is returned.
-  NamedExpression _findOrElseArgument(ArgumentList argumentList) {
-    NamedExpression orElseArgument;
+  NamedExpression? _findOrElseArgument(ArgumentList argumentList) {
+    NamedExpression? orElseArgument;
     for (var argument in argumentList.arguments) {
       if (argument is NamedExpression) {
         if (argument.name.label.name == 'orElse') {
@@ -99,7 +99,7 @@ class WhereOrNullTransformer {
 
   /// Determines if [element] is a method that can be transformed; if it can,
   /// the name of the replacement is returned; otherwise, `null` is returned.
-  String _getTransformableMethodReplacementName(Element element) {
+  String? _getTransformableMethodReplacementName(Element? element) {
     if (element is MethodElement) {
       if (element.isStatic) return null;
       var replacementName = _replacementNames[element.name];
@@ -121,7 +121,7 @@ class WhereOrNullTransformer {
   bool _isClosureReturningNull(Expression expression) {
     if (expression is FunctionExpression) {
       if (expression.typeParameters != null) return false;
-      if (expression.parameters.parameters.isNotEmpty) return false;
+      if (expression.parameters!.parameters.isNotEmpty) return false;
       var body = expression.body;
       if (body is ExpressionFunctionBody) {
         if (body.expression is NullLiteral) return true;
@@ -132,7 +132,7 @@ class WhereOrNullTransformer {
 
   /// If [node] is a call that can be transformed, returns information about the
   /// transformable call; otherwise returns `null`.
-  WhereOrNullTransformationInfo _tryTransformMethodInvocation(AstNode node) {
+  WhereOrNullTransformationInfo? _tryTransformMethodInvocation(AstNode? node) {
     if (node is MethodInvocation) {
       var replacementName =
           _getTransformableMethodReplacementName(node.methodName.staticElement);

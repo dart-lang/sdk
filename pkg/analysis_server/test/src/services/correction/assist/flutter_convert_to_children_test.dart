@@ -50,7 +50,7 @@ build() {
         width: 200.0,
         height: 300.0,
       ),
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -66,7 +66,7 @@ build() {
           height: 300.0,
         ),
       ],
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -86,7 +86,7 @@ build() {
         width: 200.0,
         height: 300.0,
       ),
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -102,7 +102,7 @@ build() {
           height: 300.0,
         ),
       ],
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -130,7 +130,7 @@ build() {
   return Scaffold(
     body: Center(
       /*caret*/child: GestureDetector(),
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -141,7 +141,7 @@ build() {
   return Scaffold(
     body: Center(
       children: [GestureDetector()],
-      key: null,
+      key: Key('x'),
     ),
   );
 }

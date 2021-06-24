@@ -19,6 +19,9 @@ class AddRequiredTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.always_require_non_null_named_parameters;
 
+  @override
+  String? get testPackageLanguageVersion => '2.9';
+
   Future<void> test_singleFile() async {
     await resolveTestCode('''
 void function({String p1, int p2}) {

@@ -21,17 +21,17 @@ import 'package:cli_util/cli_logging.dart';
 /// If there is no terminal, the progress bar will not be drawn.
 class ProgressBar {
   /// Whether the progress bar should be drawn.
-  /*late*/ bool _shouldDrawProgress;
+  late bool _shouldDrawProgress;
 
   /// The width of the terminal, in terms of characters.
-  /*late*/ int _width;
+  late int _width;
 
   final Logger _logger;
 
   /// The inner width of the terminal, in terms of characters.
   ///
   /// This represents the number of characters available for drawing progress.
-  /*late*/ int _innerWidth;
+  late int _innerWidth;
 
   final int _totalTickCount;
 

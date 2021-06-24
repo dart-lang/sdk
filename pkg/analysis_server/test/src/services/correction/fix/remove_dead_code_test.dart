@@ -90,14 +90,14 @@ main() {
 
   Future<void> test_condition() async {
     await resolveTestCode('''
-main(int p) {
+void f(int p) {
   if (true || p > 5) {
     print(1);
   }
 }
 ''');
     await assertHasFix('''
-main(int p) {
+void f(int p) {
   if (true) {
     print(1);
   }

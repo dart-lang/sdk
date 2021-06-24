@@ -9,11 +9,11 @@ final HighlightJs hljs = HighlightJs._();
 
 /// A small wrapper around the JavaScript highlight.js APIs.
 class HighlightJs {
-  static JsObject get _hljs => context['hljs'] as JsObject;
+  static JsObject? get _hljs => context['hljs'] as JsObject?;
 
   HighlightJs._();
 
   void highlightBlock(Element block) {
-    _hljs.callMethod('highlightBlock', [block]);
+    _hljs!.callMethod('highlightBlock', [block]);
   }
 }

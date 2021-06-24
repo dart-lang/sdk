@@ -199,18 +199,18 @@ main() {
   Future<void> test_getter_hint() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   print(x.myFild);
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   print(x.myField);
 }
@@ -239,17 +239,17 @@ void f() {
   Future<void> test_getter_qualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   print(a.myFild);
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   print(a.myField);
 }
 ''');
@@ -296,7 +296,7 @@ void f() {
   Future<void> test_getter_unqualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
   main() {
     print(myFild);
   }
@@ -304,7 +304,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
   main() {
     print(myField);
   }
@@ -494,18 +494,18 @@ class A {
   Future<void> test_setter_hint() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.myFild = 42;
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.myField = 42;
 }
@@ -534,17 +534,17 @@ void f() {
   Future<void> test_setter_qualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   a.myFild = 42;
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   a.myField = 42;
 }
 ''');
@@ -572,7 +572,7 @@ void f() {
   Future<void> test_setter_unqualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
   main() {
     myFild = 42;
   }
@@ -580,7 +580,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
   main() {
     myField = 42;
   }

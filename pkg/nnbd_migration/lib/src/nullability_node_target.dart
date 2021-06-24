@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 
-String _computeElementName(Element element) {
+String _computeElementName(Element? element) {
   List<String> parts = [];
   while (element != null && element is! CompilationUnitElement) {
     var name = element.name;
@@ -45,7 +45,7 @@ abstract class NullabilityNodeTarget {
 
   /// The source code location associated with this target, if known.  Otherwise
   /// `null`.
-  CodeReference get codeReference => null;
+  CodeReference? get codeReference => null;
 
   /// Gets a short description of this nullability node target suitable for
   /// displaying to the user, not including a code reference.
@@ -55,7 +55,7 @@ abstract class NullabilityNodeTarget {
   /// after the description in parentheses.
   String get displayName {
     if (codeReference == null) return description;
-    return '$description (${codeReference.shortName})';
+    return '$description (${codeReference!.shortName})';
   }
 
   NullabilityNodeTarget get supertype => _NullabilityNodeTarget_Supertype(this);
@@ -141,7 +141,7 @@ abstract class _NullabilityNodeTarget_Part extends NullabilityNodeTarget {
   _NullabilityNodeTarget_Part(this.inner) : super._();
 
   @override
-  CodeReference get codeReference => inner.codeReference;
+  CodeReference? get codeReference => inner.codeReference;
 }
 
 /// Nullability node target representing the type of a positional function

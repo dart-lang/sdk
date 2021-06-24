@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class MultiFutureTrackerTest {
-  MultiFutureTracker testTracker;
+  MultiFutureTracker? testTracker;
 
   tearDown() {
     // This will leak futures on certain kinds of test failures.  But it is
@@ -28,16 +28,16 @@ class MultiFutureTrackerTest {
     var completer1 = Completer();
 
     testTracker = MultiFutureTracker(1);
-    await testTracker.addFutureFromClosure(() => completer1.future);
+    await testTracker!.addFutureFromClosure(() => completer1.future);
     // The second future added shouldn't be executing until the first
     // future is complete.
-    var secondInQueue = testTracker.addFutureFromClosure(() async {
+    var secondInQueue = testTracker!.addFutureFromClosure(() async {
       expect(completer1.isCompleted, isTrue);
     });
 
     completer1.complete();
     await secondInQueue;
-    return await testTracker.wait();
+    return await testTracker!.wait();
   }
 
   Future<void> test_doesNotBlockWithoutLimit() async {
@@ -45,23 +45,23 @@ class MultiFutureTrackerTest {
 
     // Limit is set above the number of futures we are adding.
     testTracker = MultiFutureTracker(10);
-    await testTracker.addFutureFromClosure(() => completer1.future);
+    await testTracker!.addFutureFromClosure(() => completer1.future);
     // The second future added should be executing even though the first
     // future is not complete.  A test failure will time out.
-    await testTracker.addFutureFromClosure(() async {
+    await testTracker!.addFutureFromClosure(() async {
       expect(completer1.isCompleted, isFalse);
       completer1.complete();
     });
 
-    return await testTracker.wait();
+    return await testTracker!.wait();
   }
 
   Future<void> test_runsSeriallyAtLowLimit() async {
     var completer1 = Completer();
 
     testTracker = MultiFutureTracker(1);
-    var runFuture1 = testTracker.runFutureFromClosure(() => completer1.future);
-    var runFuture2 = testTracker.runFutureFromClosure(() => null);
+    var runFuture1 = testTracker!.runFutureFromClosure(() => completer1.future);
+    var runFuture2 = testTracker!.runFutureFromClosure(() => null);
 
     // Both futures _should_ timeout.
     await expectLater(runFuture1.timeout(Duration(milliseconds: 1)),
@@ -79,9 +79,9 @@ class MultiFutureTrackerTest {
 
   Future<void> test_returnsValueFromRun() async {
     testTracker = MultiFutureTracker(1);
+    await expectLater(await testTracker!.runFutureFromClosure(() async => true),
+        equals(true));
     await expectLater(
-        await testTracker.runFutureFromClosure(() async => true), equals(true));
-    await expectLater(
-        await testTracker.runFutureFromClosure(() => true), equals(true));
+        await testTracker!.runFutureFromClosure(() => true), equals(true));
   }
 }

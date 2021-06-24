@@ -13,7 +13,7 @@ import 'package:nnbd_migration/src/preview/preview_site.dart';
 class NavigationTreePage extends PreviewPage {
   /// Initialize a newly created navigation tree page within the given [site].
   NavigationTreePage(PreviewSite site)
-      : super(site, site.migrationInfo.includedRoot);
+      : super(site, site.migrationInfo!.includedRoot);
 
   @override
   bool get requiresAuth => true;

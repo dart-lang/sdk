@@ -40,8 +40,8 @@ class A {}
 import 'lib.dart' as lib;
 
 main() {
-  lib.A a = null;
-  lib.Test t = null;
+  lib.A? a = null;
+  lib.Test? t = null;
   print('\$a \$t');
 }
 ''');

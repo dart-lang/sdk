@@ -8,27 +8,28 @@ import '../abstract_context.dart';
 
 /// An abstract base for all 'analysis' domain tests.
 class AbstractAnalysisTest extends AbstractContextTest {
-  String projectPath;
-  String testFolder;
-  String testFile;
-  String testCode;
+  String? projectPath;
+  String? testFolder;
+  String? testFile;
+  late String testCode;
 
   AbstractAnalysisTest();
 
   void addAnalysisOptionsFile(String content) {
     newFile(
-        resourceProvider.pathContext.join(projectPath, 'analysis_options.yaml'),
+        resourceProvider.pathContext
+            .join(projectPath!, 'analysis_options.yaml'),
         content: content);
   }
 
-  String addTestFile(String content) {
-    newFile(testFile, content: content);
+  String? addTestFile(String content) {
+    newFile(testFile!, content: content);
     testCode = content;
     return testFile;
   }
 
   /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile({List<String> experiments}) {
+  void createAnalysisOptionsFile({List<String>? experiments}) {
     var buffer = StringBuffer();
     if (experiments != null) {
       buffer.writeln('analyzer:');
@@ -41,8 +42,8 @@ class AbstractAnalysisTest extends AbstractContextTest {
   }
 
   /// Creates a project [projectPath].
-  void createProject({Map<String, String> packageRoots}) {
-    newFolder(projectPath);
+  void createProject({Map<String, String>? packageRoots}) {
+    newFolder(projectPath!);
   }
 
   /// Returns the offset of [search] in the file at the given [path].
@@ -63,8 +64,8 @@ class AbstractAnalysisTest extends AbstractContextTest {
     return offset;
   }
 
-  String modifyTestFile(String content) {
-    modifyFile(testFile, content);
+  String? modifyTestFile(String content) {
+    modifyFile(testFile!, content);
     testCode = content;
     return testFile;
   }

@@ -22,16 +22,18 @@ class AddMissingParameterNamedTest extends FixProcessorTest {
   Future<void> test_constructor_hasNamed() async {
     await resolveTestCode('''
 class A {
-  A(int a, {int b}) {}
+  A(int a, {int b = 0}) {}
 }
 
 main() {
   new A(1, b: 2, named: 3.0);
 }
 ''');
+    // TODO(brianwilkerson) The fix should make added named parameters be
+    //  `required`. I'm leaving it as is to match the current behavior.
     await assertHasFix('''
 class A {
-  A(int a, {int b, double named}) {}
+  A(int a, {int b = 0, double named}) {}
 }
 
 main() {
@@ -178,7 +180,7 @@ class A {
   Future<void> test_method_hasOptionalPositional() async {
     await resolveTestCode('''
 class A {
-  test(int a, [int b]) {}
+  test(int a, [int b = 0]) {}
 
   main() {
     test(1, 2, named: 3.0);
