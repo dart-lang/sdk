@@ -61,19 +61,19 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
   // RAX is new, no barrier needed.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       RAX, FieldAddress(RAX, target::GrowableObjectArray::data_offset()), RCX);
 
   // RAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ movq(RCX, Address(RSP, kTypeArgumentsOffset));  // type argument.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       RAX,
       FieldAddress(RAX, target::GrowableObjectArray::type_arguments_offset()),
       RCX);
 
   // Set the length field in the growable array object to 0.
-  __ ZeroInitSmiField(
+  __ ZeroInitCompressedSmiField(
       FieldAddress(RAX, target::GrowableObjectArray::length_offset()));
   __ ret();  // returns the newly allocated object in RAX.
 
@@ -1111,7 +1111,8 @@ void AsmIntrinsifier::Random_nextState(Assembler* assembler,
   // Receiver.
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));
   // Field '_state'.
-  __ movq(RBX, FieldAddress(RAX, LookupFieldOffsetInBytes(state_field)));
+  __ LoadCompressed(RBX,
+                    FieldAddress(RAX, LookupFieldOffsetInBytes(state_field)));
   // Addresses of _state[0] and _state[1].
   const intptr_t scale =
       target::Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
@@ -1356,9 +1357,9 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
   // Compare type arguments, host_type_arguments_field_offset_in_words in RAX.
   __ movq(RCX, Address(RSP, +1 * target::kWordSize));
   __ movq(RDX, Address(RSP, +2 * target::kWordSize));
-  __ movq(RCX, FieldAddress(RCX, RAX, TIMES_8, 0));
-  __ movq(RDX, FieldAddress(RDX, RAX, TIMES_8, 0));
-  __ cmpq(RCX, RDX);
+  __ OBJ(mov)(RCX, FieldAddress(RCX, RAX, TIMES_COMPRESSED_WORD_SIZE, 0));
+  __ OBJ(mov)(RDX, FieldAddress(RDX, RAX, TIMES_COMPRESSED_WORD_SIZE, 0));
+  __ OBJ(cmp)(RCX, RDX);
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
   // Fall through to equal case if type arguments are equal.
 

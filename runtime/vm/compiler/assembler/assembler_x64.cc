@@ -1507,11 +1507,25 @@ void Assembler::StoreIntoArray(Register object,
                                Register slot,
                                Register value,
                                CanBeSmi can_be_smi) {
+  movq(Address(slot, 0), value);
+  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
+}
+
+void Assembler::StoreCompressedIntoArray(Register object,
+                                         Register slot,
+                                         Register value,
+                                         CanBeSmi can_be_smi) {
+  OBJ(mov)(Address(slot, 0), value);
+  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
+}
+
+void Assembler::StoreIntoArrayBarrier(Register object,
+                                      Register slot,
+                                      Register value,
+                                      CanBeSmi can_be_smi) {
   ASSERT(object != TMP);
   ASSERT(value != TMP);
   ASSERT(slot != TMP);
-
-  movq(Address(slot, 0), value);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1624,11 +1638,12 @@ void Assembler::ZeroInitCompressedSmiField(const Address& dest) {
   OBJ(mov)(dest, zero);
 }
 
-void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
+void Assembler::IncrementCompressedSmiField(const Address& dest,
+                                            int64_t increment) {
   // Note: FlowGraphCompiler::EdgeCounterIncrementSizeInBytes depends on
   // the length of this instruction sequence.
   Immediate inc_imm(target::ToRawSmi(increment));
-  addq(dest, inc_imm);
+  OBJ(add)(dest, inc_imm);
 }
 
 void Assembler::Bind(Label* label) {
@@ -1992,14 +2007,12 @@ void Assembler::MonomorphicCheckedEntryJIT() {
 
   LoadTaggedClassIdMayBeSmi(RAX, RDX);
 
-  cmpq(RAX, FieldAddress(RBX, cid_offset));
+  OBJ(cmp)(RAX, FieldAddress(RBX, cid_offset));
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
-  addl(FieldAddress(RBX, count_offset), Immediate(target::ToRawSmi(1)));
+  OBJ(add)(FieldAddress(RBX, count_offset), Immediate(target::ToRawSmi(1)));
   xorq(R10, R10);  // GC-safe for OptimizeInvokedFunction.
-#if !defined(DART_COMPRESSED_POINTERS)
-  nop(1);
-#else
-  nop(2);
+#if defined(DART_COMPRESSED_POINTERS)
+  nop(3);
 #endif
 
   // Fall through to unchecked entry.

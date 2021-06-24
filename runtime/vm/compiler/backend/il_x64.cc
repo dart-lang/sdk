@@ -1661,8 +1661,13 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     decoder_reg = decoder_location.reg();
   }
   const auto scan_flags_field_offset = scan_flags_field_.offset_in_bytes();
-  __ orq(compiler::FieldAddress(decoder_reg, scan_flags_field_offset),
-         flags_reg);
+  if (scan_flags_field_.is_compressed() && !IsScanFlagsUnboxed()) {
+    __ OBJ(or)(compiler::FieldAddress(decoder_reg, scan_flags_field_offset),
+               flags_reg);
+  } else {
+    __ orq(compiler::FieldAddress(decoder_reg, scan_flags_field_offset),
+           flags_reg);
+  }
 }
 
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
@@ -1809,11 +1814,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(representation() == kTagged);
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid) ||
              (class_id() == kTypeArgumentsCid));
-      if (class_id() == kTypeArgumentsCid) {
-        __ LoadCompressed(result, element_address);
-      } else {
-        __ movq(result, element_address);
-      }
+      __ LoadCompressed(result, element_address);
       break;
   }
 }
@@ -2007,13 +2008,13 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Register value = locs()->in(2).reg();
         Register slot = locs()->temp(0).reg();
         __ leaq(slot, element_address);
-        __ StoreIntoArray(array, slot, value, CanValueBeSmi());
+        __ StoreCompressedIntoArray(array, slot, value, CanValueBeSmi());
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
-        __ StoreIntoObjectNoBarrier(array, element_address, constant);
+        __ StoreCompressedIntoObjectNoBarrier(array, element_address, constant);
       } else {
         Register value = locs()->in(2).reg();
-        __ StoreIntoObjectNoBarrier(array, element_address, value);
+        __ StoreCompressedIntoObjectNoBarrier(array, element_address, value);
       }
       break;
     case kOneByteStringCid:
@@ -2482,13 +2483,14 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
                              intptr_t offset,
                              Register temp) {
   compiler::Label done;
-  __ movq(box_reg, compiler::FieldAddress(instance_reg, offset));
+  __ LoadCompressed(box_reg, compiler::FieldAddress(instance_reg, offset));
   __ CompareObject(box_reg, Object::null_object());
   __ j(NOT_EQUAL, &done);
   BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
   __ movq(temp, box_reg);
-  __ StoreIntoObject(instance_reg, compiler::FieldAddress(instance_reg, offset),
-                     temp, compiler::Assembler::kValueIsNotSmi);
+  __ StoreCompressedIntoObject(instance_reg,
+                               compiler::FieldAddress(instance_reg, offset),
+                               temp, compiler::Assembler::kValueIsNotSmi);
 
   __ Bind(&done);
 }
@@ -2562,11 +2564,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ movq(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         compiler::FieldAddress(instance_reg, offset_in_bytes),
-                         temp2, compiler::Assembler::kValueIsNotSmi);
+      __ StoreCompressedIntoObject(
+          instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
+          temp2, compiler::Assembler::kValueIsNotSmi);
     } else {
-      __ movq(temp, compiler::FieldAddress(instance_reg, offset_in_bytes));
+      __ LoadCompressed(temp,
+                        compiler::FieldAddress(instance_reg, offset_in_bytes));
     }
     switch (cid) {
       case kDoubleCid:
@@ -2793,14 +2796,14 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
 
   // RAX: new object start as a tagged pointer.
   // Store the type argument field.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       AllocateArrayABI::kResultReg,
       compiler::FieldAddress(AllocateArrayABI::kResultReg,
                              Array::type_arguments_offset()),
       AllocateArrayABI::kTypeArgumentsReg);
 
   // Set the length field.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       AllocateArrayABI::kResultReg,
       compiler::FieldAddress(AllocateArrayABI::kResultReg,
                              Array::length_offset()),
@@ -2816,20 +2819,20 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
     __ LoadObject(R12, Object::null_object());
     __ leaq(RDI, compiler::FieldAddress(AllocateArrayABI::kResultReg,
                                         sizeof(UntaggedArray)));
-    if (array_size < (kInlineArraySize * kWordSize)) {
+    if (array_size < (kInlineArraySize * kCompressedWordSize)) {
       intptr_t current_offset = 0;
       while (current_offset < array_size) {
-        __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
-                                    compiler::Address(RDI, current_offset),
-                                    R12);
-        current_offset += kWordSize;
+        __ StoreCompressedIntoObjectNoBarrier(
+            AllocateArrayABI::kResultReg,
+            compiler::Address(RDI, current_offset), R12);
+        current_offset += kCompressedWordSize;
       }
     } else {
       compiler::Label init_loop;
       __ Bind(&init_loop);
-      __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
-                                  compiler::Address(RDI, 0), R12);
-      __ addq(RDI, compiler::Immediate(kWordSize));
+      __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                            compiler::Address(RDI, 0), R12);
+      __ addq(RDI, compiler::Immediate(kCompressedWordSize));
       __ cmpq(RDI, RCX);
       __ j(BELOW, &init_loop, compiler::Assembler::kNearJump);
     }
@@ -2986,7 +2989,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
 
     Register temp = locs()->temp(0).reg();
-    __ movq(temp, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+    __ LoadCompressed(temp,
+                      compiler::FieldAddress(instance_reg, OffsetInBytes()));
     switch (cid) {
       case kDoubleCid:
         __ Comment("UnboxedDoubleLoadFieldInstr");
@@ -3049,7 +3053,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&load_double);
       BoxAllocationSlowPath::Allocate(compiler, this, compiler->double_class(),
                                       result, temp);
-      __ movq(temp, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+      __ LoadCompressed(temp,
+                        compiler::FieldAddress(instance_reg, OffsetInBytes()));
       __ movsd(value, compiler::FieldAddress(temp, Double::value_offset()));
       __ movsd(compiler::FieldAddress(result, Double::value_offset()), value);
       __ jmp(&done);
@@ -3059,7 +3064,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&load_float32x4);
       BoxAllocationSlowPath::Allocate(
           compiler, this, compiler->float32x4_class(), result, temp);
-      __ movq(temp, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+      __ LoadCompressed(temp,
+                        compiler::FieldAddress(instance_reg, OffsetInBytes()));
       __ movups(value, compiler::FieldAddress(temp, Float32x4::value_offset()));
       __ movups(compiler::FieldAddress(result, Float32x4::value_offset()),
                 value);
@@ -3070,7 +3076,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&load_float64x2);
       BoxAllocationSlowPath::Allocate(
           compiler, this, compiler->float64x2_class(), result, temp);
-      __ movq(temp, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+      __ LoadCompressed(temp,
+                        compiler::FieldAddress(instance_reg, OffsetInBytes()));
       __ movups(value, compiler::FieldAddress(temp, Float64x2::value_offset()));
       __ movups(compiler::FieldAddress(result, Float64x2::value_offset()),
                 value);

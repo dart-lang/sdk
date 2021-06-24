@@ -310,7 +310,6 @@ class Address : public ValueObject {
     switch (cid) {
       case kArrayCid:
       case kImmutableArrayCid:
-        return kEightBytes;
       case kTypeArgumentsCid:
         return kObjectBytes;
       case kOneByteStringCid:
@@ -566,12 +565,14 @@ class Assembler : public AssemblerBase {
       ldar(dst, address);
     }
   }
-  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+  void LoadAcquireCompressed(Register dst,
+                             Register address,
+                             int32_t offset = 0) {
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
-      stlr(src, TMP2);
+      ldar(dst, TMP2, kObjectBytes);
     } else {
-      stlr(src, address);
+      ldar(dst, address, kObjectBytes);
     }
   }
 
@@ -1097,8 +1098,12 @@ class Assembler : public AssemblerBase {
   void csel(Register rd, Register rn, Register rm, Condition cond) {
     EmitConditionalSelect(CSEL, rd, rn, rm, cond, kEightBytes);
   }
-  void csinc(Register rd, Register rn, Register rm, Condition cond) {
-    EmitConditionalSelect(CSINC, rd, rn, rm, cond, kEightBytes);
+  void csinc(Register rd,
+             Register rn,
+             Register rm,
+             Condition cond,
+             OperandSize sz = kEightBytes) {
+    EmitConditionalSelect(CSINC, rd, rn, rm, cond, sz);
   }
   void cinc(Register rd, Register rn, Condition cond) {
     csinc(rd, rn, rn, InvertCondition(cond));
@@ -1705,6 +1710,11 @@ class Assembler : public AssemblerBase {
                                      int32_t offset) override {
     LoadCompressedFromOffset(dest, base, offset - kHeapObjectTag);
   }
+  void LoadCompressedSmiFieldFromOffset(Register dest,
+                                        Register base,
+                                        int32_t offset) {
+    LoadCompressedSmiFromOffset(dest, base, offset - kHeapObjectTag);
+  }
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
   // [index] is a Smi, otherwise TIMES_WORD_SIZE if unboxed.
@@ -1767,6 +1777,9 @@ class Assembler : public AssemblerBase {
   void LoadCompressed(Register dest, const Address& slot);
   void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);
   void LoadCompressedSmi(Register dest, const Address& slot);
+  void LoadCompressedSmiFromOffset(Register dest,
+                                   Register base,
+                                   int32_t offset);
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
@@ -1787,6 +1800,14 @@ class Assembler : public AssemblerBase {
                       Register slot,
                       Register value,
                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoArray(Register object,
+                                Register slot,
+                                Register value,
+                                CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreIntoArrayBarrier(Register object,
+                             Register slot,
+                             Register value,
+                             CanBeSmi can_value_be_smi);
 
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
@@ -2068,6 +2089,10 @@ class Assembler : public AssemblerBase {
                                         bool index_unboxed,
                                         Register array,
                                         Register index);
+
+  void LoadCompressedFieldAddressForRegOffset(Register address,
+                                              Register instance,
+                                              Register offset_in_words_as_smi);
 
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,

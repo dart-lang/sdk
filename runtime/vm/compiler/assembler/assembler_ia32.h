@@ -717,6 +717,8 @@ class Assembler : public AssemblerBase {
   void CompareObject(Register reg, const Object& object);
   void LoadDoubleConstant(XmmRegister dst, double value);
 
+  void LoadCompressed(Register dest, const Address& slot) { movl(dest, slot); }
+
   // Store into a heap object and apply the generational write barrier. (Unlike
   // the other architectures, this does not apply the incremental write barrier,
   // and so concurrent marking is not enabled for now on IA32.) All stores into
@@ -852,6 +854,12 @@ class Assembler : public AssemblerBase {
                                            Register array,
                                            Register index,
                                            intptr_t extra_disp = 0);
+
+  void LoadCompressedFieldAddressForRegOffset(Register address,
+                                              Register instance,
+                                              Register offset_in_words_as_smi) {
+    LoadFieldAddressForRegOffset(address, instance, offset_in_words_as_smi);
+  }
 
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,

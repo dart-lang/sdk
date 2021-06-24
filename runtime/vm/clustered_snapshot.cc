@@ -666,7 +666,7 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
 
     ArrayPtr Finish() {
       if (table != Array::null()) {
-        FillGap(Smi::Value(table->untag()->length_) - current_index);
+        FillGap(Smi::Value(table->untag()->length()) - current_index);
       }
       auto result = table;
       table = Array::null();
@@ -682,7 +682,7 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
         d->heap()->old_space()->AllocateSnapshot(instance_size));
     Deserializer::InitializeHeader(table, kArrayCid, instance_size);
     table->untag()->type_arguments_ = TypeArguments::null();
-    table->untag()->length_ = Smi::New(length);
+    table->untag()->length_ = CompressedSmiPtr(Smi::New(length));
     for (intptr_t i = 0; i < SetType::kFirstKeyIndex; i++) {
       table->untag()->data()[i] = Smi::New(0);
     }
@@ -3536,18 +3536,20 @@ class InstanceSerializationCluster : public SerializationCluster {
     InstancePtr instance = Instance::RawCast(object);
     objects_.Add(instance);
     const intptr_t next_field_offset = host_next_field_offset_in_words_
-                                       << kWordSizeLog2;
+                                       << kCompressedWordSizeLog2;
     const auto unboxed_fields_bitmap =
         s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
     intptr_t offset = Instance::NextFieldOffset();
     while (offset < next_field_offset) {
       // Skips unboxed fields
-      if (!unboxed_fields_bitmap.Get(offset / kWordSize)) {
-        ObjectPtr raw_obj = *reinterpret_cast<ObjectPtr*>(
-            reinterpret_cast<uword>(instance->untag()) + offset);
+      if (!unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
+        ObjectPtr raw_obj =
+            reinterpret_cast<CompressedObjectPtr*>(
+                reinterpret_cast<uword>(instance->untag()) + offset)
+                ->Decompress(instance->untag()->heap_base());
         s->Push(raw_obj);
       }
-      offset += kWordSize;
+      offset += kCompressedWordSize;
     }
   }
 
@@ -3564,13 +3566,13 @@ class InstanceSerializationCluster : public SerializationCluster {
     }
 
     const intptr_t instance_size = compiler::target::RoundedAllocationSize(
-        target_instance_size_in_words_ * compiler::target::kWordSize);
+        target_instance_size_in_words_ * compiler::target::kCompressedWordSize);
     target_memory_size_ += instance_size * count;
   }
 
   void WriteFill(Serializer* s) {
     intptr_t next_field_offset = host_next_field_offset_in_words_
-                                 << kWordSizeLog2;
+                                 << kCompressedWordSizeLog2;
     const intptr_t count = objects_.length();
     s->WriteUnsigned64(CalculateTargetUnboxedFieldsBitmap(s, cid_).Value());
     const auto unboxed_fields_bitmap =
@@ -3581,17 +3583,19 @@ class InstanceSerializationCluster : public SerializationCluster {
       AutoTraceObject(instance);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
-        if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
+        if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
           // Writes 32 bits of the unboxed value at a time
-          const uword value = *reinterpret_cast<uword*>(
+          const compressed_uword value = *reinterpret_cast<compressed_uword*>(
               reinterpret_cast<uword>(instance->untag()) + offset);
           s->WriteWordWith32BitWrites(value);
         } else {
-          ObjectPtr raw_obj = *reinterpret_cast<ObjectPtr*>(
-              reinterpret_cast<uword>(instance->untag()) + offset);
+          ObjectPtr raw_obj =
+              reinterpret_cast<CompressedObjectPtr*>(
+                  reinterpret_cast<uword>(instance->untag()) + offset)
+                  ->Decompress(instance->untag()->heap_base());
           s->WriteElementRef(raw_obj, offset);
         }
-        offset += kWordSize;
+        offset += kCompressedWordSize;
       }
     }
   }
@@ -3641,8 +3645,8 @@ class InstanceDeserializationCluster
     const intptr_t count = d->ReadUnsigned();
     next_field_offset_in_words_ = d->Read<int32_t>();
     instance_size_in_words_ = d->Read<int32_t>();
-    intptr_t instance_size =
-        Object::RoundedAllocationSize(instance_size_in_words_ * kWordSize);
+    intptr_t instance_size = Object::RoundedAllocationSize(
+        instance_size_in_words_ * kCompressedWordSize);
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(old_space->AllocateSnapshot(instance_size));
     }
@@ -3650,9 +3654,10 @@ class InstanceDeserializationCluster
   }
 
   void ReadFill(Deserializer* d, bool primary) {
-    intptr_t next_field_offset = next_field_offset_in_words_ << kWordSizeLog2;
-    intptr_t instance_size =
-        Object::RoundedAllocationSize(instance_size_in_words_ * kWordSize);
+    intptr_t next_field_offset = next_field_offset_in_words_
+                                 << kCompressedWordSizeLog2;
+    intptr_t instance_size = Object::RoundedAllocationSize(
+        instance_size_in_words_ * kCompressedWordSize);
     const UnboxedFieldBitmap unboxed_fields_bitmap(d->ReadUnsigned64());
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -3661,23 +3666,23 @@ class InstanceDeserializationCluster
                                      primary && is_canonical());
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
-        if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
-          uword* p = reinterpret_cast<uword*>(
+        if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
+          compressed_uword* p = reinterpret_cast<compressed_uword*>(
               reinterpret_cast<uword>(instance->untag()) + offset);
           // Reads 32 bits of the unboxed value at a time
           *p = d->ReadWordWith32BitReads();
         } else {
-          ObjectPtr* p = reinterpret_cast<ObjectPtr*>(
+          CompressedObjectPtr* p = reinterpret_cast<CompressedObjectPtr*>(
               reinterpret_cast<uword>(instance->untag()) + offset);
           *p = d->ReadRef();
         }
-        offset += kWordSize;
+        offset += kCompressedWordSize;
       }
-      if (offset < instance_size) {
-        ObjectPtr* p = reinterpret_cast<ObjectPtr*>(
+      while (offset < instance_size) {
+        CompressedObjectPtr* p = reinterpret_cast<CompressedObjectPtr*>(
             reinterpret_cast<uword>(instance->untag()) + offset);
         *p = Object::null();
-        offset += kWordSize;
+        offset += kCompressedWordSize;
       }
       ASSERT(offset == instance_size);
     }
@@ -5070,10 +5075,10 @@ class ArraySerializationCluster : public SerializationCluster {
     ArrayPtr array = Array::RawCast(object);
     objects_.Add(array);
 
-    s->Push(array->untag()->type_arguments_);
-    const intptr_t length = Smi::Value(array->untag()->length_);
+    s->Push(array->untag()->type_arguments());
+    const intptr_t length = Smi::Value(array->untag()->length());
     for (intptr_t i = 0; i < length; i++) {
-      s->Push(array->untag()->data()[i]);
+      s->Push(array->untag()->element(i));
     }
   }
 
@@ -5084,7 +5089,7 @@ class ArraySerializationCluster : public SerializationCluster {
       ArrayPtr array = objects_[i];
       s->AssignRef(array);
       AutoTraceObject(array);
-      const intptr_t length = Smi::Value(array->untag()->length_);
+      const intptr_t length = Smi::Value(array->untag()->length());
       s->WriteUnsigned(length);
       target_memory_size_ += compiler::target::Array::InstanceSize(length);
     }
@@ -5095,11 +5100,11 @@ class ArraySerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       ArrayPtr array = objects_[i];
       AutoTraceObject(array);
-      const intptr_t length = Smi::Value(array->untag()->length_);
+      const intptr_t length = Smi::Value(array->untag()->length());
       s->WriteUnsigned(length);
-      WriteField(array, type_arguments_);
+      WriteCompressedField(array, type_arguments);
       for (intptr_t j = 0; j < length; j++) {
-        s->WriteElementRef(array->untag()->data()[j], j);
+        s->WriteElementRef(array->untag()->element(j), j);
       }
     }
   }
@@ -5136,7 +5141,7 @@ class ArrayDeserializationCluster
                                      primary && is_canonical());
       array->untag()->type_arguments_ =
           static_cast<TypeArgumentsPtr>(d->ReadRef());
-      array->untag()->length_ = Smi::New(length);
+      array->untag()->length_ = CompressedSmiPtr(Smi::New(length));
       for (intptr_t j = 0; j < length; j++) {
         array->untag()->data()[j] = d->ReadRef();
       }
@@ -6191,7 +6196,7 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       auto const array = Array::RawCast(obj);
       for (intptr_t i = 0, n = Smi::Value(array->untag()->length()); i < n;
            i++) {
-        ObjectPtr elem = array->untag()->data()[i];
+        ObjectPtr elem = array->untag()->element(i);
         links.Add({elem, V8SnapshotProfileWriter::Reference::Element(i)});
       }
       break;

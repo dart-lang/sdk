@@ -394,6 +394,7 @@ class Assembler : public AssemblerBase {
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset);
   }
+  void LoadCompressed(Register dest, const Address& slot) { ldr(dest, slot); }
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     StoreToOffset(src, base, offset);
   }
@@ -1307,6 +1308,13 @@ class Assembler : public AssemblerBase {
                                      bool index_unboxed,
                                      Register array,
                                      Register index);
+
+  void LoadCompressedFieldAddressForRegOffset(Register address,
+                                              Register instance,
+                                              Register offset_in_words_as_smi) {
+    return LoadFieldAddressForRegOffset(address, instance,
+                                        offset_in_words_as_smi);
+  }
 
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,

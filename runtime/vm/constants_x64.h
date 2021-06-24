@@ -347,6 +347,7 @@ enum ScaleFactor {
 #else
   TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
 #endif
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 #define R(reg) (1 << (reg))

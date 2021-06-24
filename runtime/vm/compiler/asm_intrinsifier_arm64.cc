@@ -64,20 +64,21 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   // Store backing array object in growable array object.
   __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
   // R0 is new, no barrier needed.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       R0, FieldAddress(R0, target::GrowableObjectArray::data_offset()), R1);
 
   // R0: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ ldr(R1, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, target::GrowableObjectArray::type_arguments_offset()),
       R1);
 
   // Set the length field in the growable array object to 0.
   __ LoadImmediate(R1, 0);
-  __ str(R1, FieldAddress(R0, target::GrowableObjectArray::length_offset()));
+  __ StoreCompressedIntoObjectNoBarrier(
+      R0, FieldAddress(R0, target::GrowableObjectArray::length_offset()), R1);
   __ ret();  // Returns the newly allocated object in R0.
 
   __ Bind(normal_ir_body);
@@ -1265,7 +1266,8 @@ void AsmIntrinsifier::Random_nextState(Assembler* assembler,
   // Receiver.
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   // Field '_state'.
-  __ ldr(R1, FieldAddress(R0, LookupFieldOffsetInBytes(state_field)));
+  __ LoadCompressed(R1,
+                    FieldAddress(R0, LookupFieldOffsetInBytes(state_field)));
 
   // Addresses of _state[0].
   const int64_t disp =
@@ -1509,9 +1511,9 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
   // Compare type arguments, host_type_arguments_field_offset_in_words in R0.
   __ ldp(R1, R2, Address(SP, 0 * target::kWordSize, Address::PairOffset));
   __ AddImmediate(R1, -kHeapObjectTag);
-  __ ldr(R1, Address(R1, R0, UXTX, Address::Scaled));
+  __ ldr(R1, Address(R1, R0, UXTX, Address::Scaled), kObjectBytes);
   __ AddImmediate(R2, -kHeapObjectTag);
-  __ ldr(R2, Address(R2, R0, UXTX, Address::Scaled));
+  __ ldr(R2, Address(R2, R0, UXTX, Address::Scaled), kObjectBytes);
   __ CompareObjectRegisters(R1, R2);
   __ b(normal_ir_body, NE);
   // Fall through to equal case if type arguments are equal.

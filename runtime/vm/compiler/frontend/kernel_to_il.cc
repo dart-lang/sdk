@@ -2177,7 +2177,8 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   check_required.current = valid_index;
   check_required += LoadLocal(info.parameter_names);
   check_required += LoadLocal(flags_index);
-  check_required += LoadIndexed(kArrayCid);
+  check_required += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   check_required += LoadLocal(opt_index);
   check_required +=
       IntConstant(compiler::target::kNumParameterFlagsPerElement - 1);
@@ -2375,7 +2376,8 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   // First load the name we need to check against.
   loop_body += LoadLocal(info.parameter_names);
   loop_body += LoadLocal(info.vars->current_param_index);
-  loop_body += LoadIndexed(kArrayCid);
+  loop_body += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   LocalVariable* param_name = MakeTemporary("param_name");  // Read only.
 
   // One additional local value on the stack within the loop body (param_name)
@@ -2598,7 +2600,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   loop_test_flag += LoadLocal(info.vars->current_param_index);
   loop_test_flag += IntConstant(TypeParameters::kFlagsPerSmiShift);
   loop_test_flag += SmiBinaryOp(Token::kSHR);
-  loop_test_flag += LoadIndexed(kArrayCid);
+  loop_test_flag += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   loop_test_flag += LoadLocal(info.vars->current_param_index);
   loop_test_flag += IntConstant(TypeParameters::kFlagsPerSmiMask);
   loop_test_flag += SmiBinaryOp(Token::kBIT_AND);
@@ -2659,7 +2662,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   loop_call_check += LoadLocal(info.type_parameters);
   loop_call_check += LoadNativeField(Slot::TypeParameters_names());
   loop_call_check += LoadLocal(info.vars->current_param_index);
-  loop_call_check += LoadIndexed(kArrayCid);
+  loop_call_check += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   // Assert that the passed-in type argument is consistent with the bound of
   // the corresponding type parameter.
   loop_call_check += AssertSubtype(TokenPosition::kNoSource);
@@ -2688,7 +2692,8 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentTypeCheck(
   // Load destination type.
   instructions += LoadLocal(info.parameter_types);
   instructions += LoadLocal(param_index);
-  instructions += LoadIndexed(kArrayCid);
+  instructions += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   // Load instantiator type arguments.
   instructions += LoadLocal(info.instantiator_type_args);
   // Load the full set of function type arguments.

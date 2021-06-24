@@ -123,7 +123,8 @@ class OldPage {
 
   // 1 card = 128 slots.
   static const intptr_t kSlotsPerCardLog2 = 7;
-  static const intptr_t kBytesPerCardLog2 = kWordSizeLog2 + kSlotsPerCardLog2;
+  static const intptr_t kBytesPerCardLog2 =
+      kCompressedWordSizeLog2 + kSlotsPerCardLog2;
 
   intptr_t card_table_size() const {
     return memory_->size() >> kBytesPerCardLog2;

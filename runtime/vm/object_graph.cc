@@ -938,15 +938,15 @@ class Pass2Visitor : public ObjectVisitor,
     } else if (cid == kArrayCid || cid == kImmutableArrayCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<ArrayPtr>(obj)->untag()->length_));
+          Smi::Value(static_cast<ArrayPtr>(obj)->untag()->length()));
     } else if (cid == kGrowableObjectArrayCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(Smi::Value(
-          static_cast<GrowableObjectArrayPtr>(obj)->untag()->length_));
+          static_cast<GrowableObjectArrayPtr>(obj)->untag()->length()));
     } else if (cid == kLinkedHashMapCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data_));
+          Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data()));
     } else if (cid == kObjectPoolCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(static_cast<ObjectPoolPtr>(obj)->untag()->length_);

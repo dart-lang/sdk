@@ -415,7 +415,7 @@ void TypeTestingStubGenerator::
   // fall through to continue
 
   // b) Then we'll load the values for the type parameters.
-  __ LoadFieldFromOffset(
+  __ LoadCompressedFieldFromOffset(
       TTSInternalRegs::kInstanceTypeArgumentsReg, TypeTestABI::kInstanceReg,
       compiler::target::Class::TypeArgumentsFieldOffset(type_class));
 

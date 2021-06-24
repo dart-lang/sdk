@@ -100,11 +100,12 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   __ SmiUntag(kScratchReg);
   __ SmiTag(kScratchReg);
 #endif
-  __ LoadFieldAddressForRegOffset(kAddressReg, kInstanceReg, kScratchReg);
+  __ LoadCompressedFieldAddressForRegOffset(kAddressReg, kInstanceReg,
+                                            kScratchReg);
 
   Label throw_exception;
   if (is_final) {
-    __ LoadMemoryValue(kScratchReg, kAddressReg, 0);
+    __ LoadCompressed(kScratchReg, Address(kAddressReg, 0));
     __ CompareObject(kScratchReg, SentinelObject());
     __ BranchIf(NOT_EQUAL, &throw_exception);
   }
@@ -115,8 +116,8 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   __ MoveRegister(kScratchReg, InitInstanceFieldABI::kResultReg);
   __ StoreIntoObject(kInstanceReg, Address(kAddressReg, 0), kScratchReg);
 #else
-  __ StoreIntoObject(kInstanceReg, Address(kAddressReg, 0),
-                     InitInstanceFieldABI::kResultReg);
+  __ StoreCompressedIntoObject(kInstanceReg, Address(kAddressReg, 0),
+                               InitInstanceFieldABI::kResultReg);
 #endif  // defined(TARGET_ARCH_IA32)
 
   __ LeaveStubFrame();

@@ -981,42 +981,44 @@ class Class : public Object {
   bool HasCompressedPointers() const;
   intptr_t host_instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
-    return (untag()->host_instance_size_in_words_ * kWordSize);
+    return (untag()->host_instance_size_in_words_ * kCompressedWordSize);
   }
   intptr_t target_instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
 #if defined(DART_PRECOMPILER)
     return (untag()->target_instance_size_in_words_ *
-            compiler::target::kWordSize);
+            compiler::target::kCompressedWordSize);
 #else
     return host_instance_size();
 #endif  // defined(DART_PRECOMPILER)
   }
   static intptr_t host_instance_size(ClassPtr clazz) {
-    return (clazz->untag()->host_instance_size_in_words_ * kWordSize);
+    return (clazz->untag()->host_instance_size_in_words_ * kCompressedWordSize);
   }
   static intptr_t target_instance_size(ClassPtr clazz) {
 #if defined(DART_PRECOMPILER)
     return (clazz->untag()->target_instance_size_in_words_ *
-            compiler::target::kWordSize);
+            compiler::target::kCompressedWordSize);
 #else
     return host_instance_size(clazz);
 #endif  // defined(DART_PRECOMPILER)
   }
   void set_instance_size(intptr_t host_value_in_bytes,
                          intptr_t target_value_in_bytes) const {
-    ASSERT(kWordSize != 0);
+    ASSERT(kCompressedWordSize != 0);
     set_instance_size_in_words(
-        host_value_in_bytes / kWordSize,
-        target_value_in_bytes / compiler::target::kWordSize);
+        host_value_in_bytes / kCompressedWordSize,
+        target_value_in_bytes / compiler::target::kCompressedWordSize);
   }
   void set_instance_size_in_words(intptr_t host_value,
                                   intptr_t target_value) const {
-    ASSERT(Utils::IsAligned((host_value * kWordSize), kObjectAlignment));
+    ASSERT(
+        Utils::IsAligned((host_value * kCompressedWordSize), kObjectAlignment));
     StoreNonPointer(&untag()->host_instance_size_in_words_, host_value);
 #if defined(DART_PRECOMPILER)
-    ASSERT(Utils::IsAligned((target_value * compiler::target::kWordSize),
-                            compiler::target::kObjectAlignment));
+    ASSERT(
+        Utils::IsAligned((target_value * compiler::target::kCompressedWordSize),
+                         compiler::target::kObjectAlignment));
     StoreNonPointer(&untag()->target_instance_size_in_words_, target_value);
 #else
     // Could be different only during cross-compilation.
@@ -1025,12 +1027,12 @@ class Class : public Object {
   }
 
   intptr_t host_next_field_offset() const {
-    return untag()->host_next_field_offset_in_words_ * kWordSize;
+    return untag()->host_next_field_offset_in_words_ * kCompressedWordSize;
   }
   intptr_t target_next_field_offset() const {
 #if defined(DART_PRECOMPILER)
     return untag()->target_next_field_offset_in_words_ *
-           compiler::target::kWordSize;
+           compiler::target::kCompressedWordSize;
 #else
     return host_next_field_offset();
 #endif  // defined(DART_PRECOMPILER)
@@ -1038,25 +1040,25 @@ class Class : public Object {
   void set_next_field_offset(intptr_t host_value_in_bytes,
                              intptr_t target_value_in_bytes) const {
     set_next_field_offset_in_words(
-        host_value_in_bytes / kWordSize,
-        target_value_in_bytes / compiler::target::kWordSize);
+        host_value_in_bytes / kCompressedWordSize,
+        target_value_in_bytes / compiler::target::kCompressedWordSize);
   }
   void set_next_field_offset_in_words(intptr_t host_value,
                                       intptr_t target_value) const {
-    ASSERT((host_value == -1) ||
-           (Utils::IsAligned((host_value * kWordSize), kObjectAlignment) &&
-            (host_value == untag()->host_instance_size_in_words_)) ||
-           (!Utils::IsAligned((host_value * kWordSize), kObjectAlignment) &&
-            ((host_value + 1) == untag()->host_instance_size_in_words_)));
+    // Assert that the next field offset is either negative (ie, this object
+    // can't be extended by dart code), or rounds up to the kObjectAligned
+    // instance size.
+    ASSERT((host_value < 0) ||
+           ((host_value <= untag()->host_instance_size_in_words_) &&
+            (host_value + (kObjectAlignment / kCompressedWordSize) >
+             untag()->host_instance_size_in_words_)));
     StoreNonPointer(&untag()->host_next_field_offset_in_words_, host_value);
 #if defined(DART_PRECOMPILER)
-    ASSERT((target_value == -1) ||
-           (Utils::IsAligned((target_value * compiler::target::kWordSize),
-                             compiler::target::kObjectAlignment) &&
-            (target_value == untag()->target_instance_size_in_words_)) ||
-           (!Utils::IsAligned((target_value * compiler::target::kWordSize),
-                              compiler::target::kObjectAlignment) &&
-            ((target_value + 1) == untag()->target_instance_size_in_words_)));
+    ASSERT((target_value < 0) ||
+           ((target_value <= untag()->target_instance_size_in_words_) &&
+            (target_value + (compiler::target::kObjectAlignment /
+                             compiler::target::kCompressedWordSize) >
+             untag()->target_instance_size_in_words_)));
     StoreNonPointer(&untag()->target_next_field_offset_in_words_, target_value);
 #else
     // Could be different only during cross-compilation.
@@ -1183,7 +1185,8 @@ class Class : public Object {
         kNoTypeArguments) {
       return kNoTypeArguments;
     }
-    return untag()->host_type_arguments_field_offset_in_words_ * kWordSize;
+    return untag()->host_type_arguments_field_offset_in_words_ *
+           kCompressedWordSize;
   }
   intptr_t target_type_arguments_field_offset() const {
 #if defined(DART_PRECOMPILER)
@@ -1193,7 +1196,7 @@ class Class : public Object {
       return compiler::target::Class::kNoTypeArguments;
     }
     return untag()->target_type_arguments_field_offset_in_words_ *
-           compiler::target::kWordSize;
+           compiler::target::kCompressedWordSize;
 #else
     return host_type_arguments_field_offset();
 #endif  // defined(DART_PRECOMPILER)
@@ -1208,9 +1211,10 @@ class Class : public Object {
       host_value = kNoTypeArguments;
       target_value = RTN::Class::kNoTypeArguments;
     } else {
-      ASSERT(kWordSize != 0 && compiler::target::kWordSize);
-      host_value = host_value_in_bytes / kWordSize;
-      target_value = target_value_in_bytes / compiler::target::kWordSize;
+      ASSERT(kCompressedWordSize != 0 && compiler::target::kCompressedWordSize);
+      host_value = host_value_in_bytes / kCompressedWordSize;
+      target_value =
+          target_value_in_bytes / compiler::target::kCompressedWordSize;
     }
     set_type_arguments_field_offset_in_words(host_value, target_value);
   }
@@ -7301,7 +7305,8 @@ class Instance : public Object {
     const Class& cls = Class::Handle(clazz());
     ASSERT(cls.is_finalized() || cls.is_prefinalized());
 #endif
-    return (clazz()->untag()->host_instance_size_in_words_ * kWordSize);
+    return (clazz()->untag()->host_instance_size_in_words_ *
+            kCompressedWordSize);
   }
 
   InstancePtr Canonicalize(Thread* thread) const;
@@ -7448,31 +7453,33 @@ class Instance : public Object {
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments);
 
-  ObjectPtr* FieldAddrAtOffset(intptr_t offset) const {
+  CompressedObjectPtr* FieldAddrAtOffset(intptr_t offset) const {
     ASSERT(IsValidFieldOffset(offset));
-    return reinterpret_cast<ObjectPtr*>(raw_value() - kHeapObjectTag + offset);
+    return reinterpret_cast<CompressedObjectPtr*>(raw_value() - kHeapObjectTag +
+                                                  offset);
   }
-  ObjectPtr* FieldAddr(const Field& field) const {
+  CompressedObjectPtr* FieldAddr(const Field& field) const {
     return FieldAddrAtOffset(field.HostOffset());
   }
-  ObjectPtr* NativeFieldsAddr() const {
+  CompressedObjectPtr* NativeFieldsAddr() const {
     return FieldAddrAtOffset(sizeof(UntaggedObject));
   }
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
-    StorePointer(FieldAddrAtOffset(offset), value.ptr());
+    StoreCompressedPointer(FieldAddrAtOffset(offset), value.ptr());
   }
   bool IsValidFieldOffset(intptr_t offset) const;
 
   // The following raw methods are used for morphing.
   // They are needed due to the extraction of the class in IsValidFieldOffset.
-  ObjectPtr* RawFieldAddrAtOffset(intptr_t offset) const {
-    return reinterpret_cast<ObjectPtr*>(raw_value() - kHeapObjectTag + offset);
+  CompressedObjectPtr* RawFieldAddrAtOffset(intptr_t offset) const {
+    return reinterpret_cast<CompressedObjectPtr*>(raw_value() - kHeapObjectTag +
+                                                  offset);
   }
   ObjectPtr RawGetFieldAtOffset(intptr_t offset) const {
-    return *RawFieldAddrAtOffset(offset);
+    return RawFieldAddrAtOffset(offset)->Decompress(untag()->heap_base());
   }
   void RawSetFieldAtOffset(intptr_t offset, const Object& value) const {
-    StorePointer(RawFieldAddrAtOffset(offset), value.ptr());
+    StoreCompressedPointer(RawFieldAddrAtOffset(offset), value.ptr());
   }
 
   static InstancePtr NewFromCidAndSize(SharedClassTable* shared_class_table,
@@ -9968,10 +9975,11 @@ class Array : public Instance {
     return OFFSET_OF_RETURNED_VALUE(UntaggedArray, data);
   }
   static intptr_t element_offset(intptr_t index) {
-    return OFFSET_OF_RETURNED_VALUE(UntaggedArray, data) + kWordSize * index;
+    return OFFSET_OF_RETURNED_VALUE(UntaggedArray, data) +
+           kBytesPerElement * index;
   }
   static intptr_t index_at_offset(intptr_t offset_in_bytes) {
-    intptr_t index = (offset_in_bytes - data_offset()) / kWordSize;
+    intptr_t index = (offset_in_bytes - data_offset()) / kBytesPerElement;
     ASSERT(index >= 0);
     return index;
   }
@@ -9979,21 +9987,24 @@ class Array : public Instance {
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return Array::data_offset(); }
 
-    static constexpr intptr_t kElementSize = kWordSize;
+    static constexpr intptr_t kElementSize = kCompressedWordSize;
   };
 
   static bool Equals(ArrayPtr a, ArrayPtr b) {
     if (a == b) return true;
     if (a->IsRawNull() || b->IsRawNull()) return false;
     if (a->untag()->length() != b->untag()->length()) return false;
-    if (a->untag()->type_arguments() != b->untag()->type_arguments())
+    if (a->untag()->type_arguments() != b->untag()->type_arguments()) {
       return false;
+    }
     const intptr_t length = LengthOf(a);
-    return memcmp(a->untag()->data(), b->untag()->data(), kWordSize * length) ==
-           0;
+    return memcmp(a->untag()->data(), b->untag()->data(),
+                  kBytesPerElement * length) == 0;
   }
 
-  static ObjectPtr* DataOf(ArrayPtr array) { return array->untag()->data(); }
+  static CompressedObjectPtr* DataOf(ArrayPtr array) {
+    return array->untag()->data();
+  }
 
   template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr At(intptr_t index) const {
@@ -10036,7 +10047,7 @@ class Array : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
 
-  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kBytesPerElement = ArrayTraits::kElementSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
   static const intptr_t kMaxNewSpaceElements =
       (Heap::kNewAllocatableSize - sizeof(UntaggedArray)) / kBytesPerElement;
@@ -10058,7 +10069,7 @@ class Array : public Instance {
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(UntaggedArray) ==
-           (sizeof(UntaggedInstance) + (2 * kWordSize)));
+           (sizeof(UntaggedInstance) + (2 * kBytesPerElement)));
     ASSERT(IsValidLength(len));
     return RoundedAllocationSize(sizeof(UntaggedArray) +
                                  (len * kBytesPerElement));
@@ -10107,7 +10118,7 @@ class Array : public Instance {
                       Heap::Space space = Heap::kNew);
 
  private:
-  ObjectPtr const* ObjectAddr(intptr_t index) const {
+  CompressedObjectPtr const* ObjectAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((index >= 0) && (index < Length()));
     return &untag()->data()[index];
@@ -10118,22 +10129,26 @@ class Array : public Instance {
     untag()->set_length<std::memory_order_release>(Smi::New(value));
   }
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
-  void StoreArrayPointer(type const* addr, type value) const {
-    ptr()->untag()->StoreArrayPointer<type, order>(addr, value);
+  template <typename type,
+            std::memory_order order = std::memory_order_relaxed,
+            typename value_type>
+  void StoreArrayPointer(type const* addr, value_type value) const {
+    ptr()->untag()->StoreArrayPointer<type, order, value_type>(addr, value);
   }
 
   // Store a range of pointers [from, from + count) into [to, to + count).
   // TODO(koda): Use this to fix Object::Clone's broken store buffer logic.
-  void StoreArrayPointers(ObjectPtr const* to,
-                          ObjectPtr const* from,
+  void StoreArrayPointers(CompressedObjectPtr const* to,
+                          CompressedObjectPtr const* from,
                           intptr_t count) {
     ASSERT(Contains(reinterpret_cast<uword>(to)));
     if (ptr()->IsNewObject()) {
-      memmove(const_cast<ObjectPtr*>(to), from, count * kWordSize);
+      memmove(const_cast<CompressedObjectPtr*>(to), from,
+              count * kBytesPerElement);
     } else {
+      const uword heap_base = ptr()->heap_base();
       for (intptr_t i = 0; i < count; ++i) {
-        StoreArrayPointer(&to[i], from[i]);
+        StoreArrayPointer(&to[i], from[i].Decompress(heap_base));
       }
     }
   }
@@ -11507,7 +11522,8 @@ class WeakProperty : public Instance {
   }
 
   static void Clear(WeakPropertyPtr raw_weak) {
-    ASSERT(raw_weak->untag()->next_ == WeakProperty::null());
+    ASSERT(raw_weak->untag()->next_ ==
+           CompressedWeakPropertyPtr(WeakProperty::null()));
     // This action is performed by the GC. No barrier.
     raw_weak->untag()->key_ = Object::null();
     raw_weak->untag()->value_ = Object::null();
@@ -11651,13 +11667,13 @@ void Object::SetPtr(ObjectPtr value, intptr_t default_cid) {
 
 intptr_t Field::HostOffset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
-  return (Smi::Value(untag()->host_offset_or_field_id()) * kWordSize);
+  return (Smi::Value(untag()->host_offset_or_field_id()) * kCompressedWordSize);
 }
 
 intptr_t Field::TargetOffset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  return (untag()->target_offset_ * compiler::target::kWordSize);
+  return (untag()->target_offset_ * compiler::target::kCompressedWordSize);
 #else
   return HostOffset();
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
@@ -11674,13 +11690,14 @@ inline intptr_t Field::TargetOffsetOf(const FieldPtr field) {
 void Field::SetOffset(intptr_t host_offset_in_bytes,
                       intptr_t target_offset_in_bytes) const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
-  ASSERT(kWordSize != 0);
+  ASSERT(kCompressedWordSize != 0);
   untag()->set_host_offset_or_field_id(
-      Smi::New(host_offset_in_bytes / kWordSize));
+      Smi::New(host_offset_in_bytes / kCompressedWordSize));
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(compiler::target::kWordSize != 0);
-  StoreNonPointer(&untag()->target_offset_,
-                  target_offset_in_bytes / compiler::target::kWordSize);
+  ASSERT(compiler::target::kCompressedWordSize != 0);
+  StoreNonPointer(
+      &untag()->target_offset_,
+      target_offset_in_bytes / compiler::target::kCompressedWordSize);
 #else
   ASSERT(host_offset_in_bytes == target_offset_in_bytes);
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
@@ -11713,7 +11730,8 @@ void Context::SetAt(intptr_t index, const Object& value) const {
 intptr_t Instance::GetNativeField(int index) const {
   ASSERT(IsValidNativeIndex(index));
   NoSafepointScope no_safepoint;
-  TypedDataPtr native_fields = static_cast<TypedDataPtr>(*NativeFieldsAddr());
+  TypedDataPtr native_fields = static_cast<TypedDataPtr>(
+      NativeFieldsAddr()->Decompress(untag()->heap_base()));
   if (native_fields == TypedData::null()) {
     return 0;
   }
@@ -11725,7 +11743,8 @@ void Instance::GetNativeFields(uint16_t num_fields,
   NoSafepointScope no_safepoint;
   ASSERT(num_fields == NumNativeFields());
   ASSERT(field_values != NULL);
-  TypedDataPtr native_fields = static_cast<TypedDataPtr>(*NativeFieldsAddr());
+  TypedDataPtr native_fields = static_cast<TypedDataPtr>(
+      NativeFieldsAddr()->Decompress(untag()->heap_base()));
   if (native_fields == TypedData::null()) {
     for (intptr_t i = 0; i < num_fields; i++) {
       field_values[i] = 0;

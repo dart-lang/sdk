@@ -5720,7 +5720,6 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-
  private:
   const bool index_unboxed_;
   const intptr_t index_scale_;
@@ -6029,7 +6028,6 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   void PrintOperandsTo(BaseTextBuffer* f) const;
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
 
  private:
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {

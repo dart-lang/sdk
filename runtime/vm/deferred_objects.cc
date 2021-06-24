@@ -438,7 +438,7 @@ void DeferredObject::Fill() {
 
         for (intptr_t i = 0; i < field_count_; i++) {
           offset ^= GetFieldOffset(i);
-          field ^= offset_map.At(offset.Value() / kWordSize);
+          field ^= offset_map.At(offset.Value() / kCompressedWordSize);
           value = GetValue(i);
           ASSERT((value.ptr() != Object::sentinel().ptr()) ||
                  (!field.IsNull() && field.is_late()));
