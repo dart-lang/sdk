@@ -306,11 +306,9 @@ class AnnotateKernel extends RecursiveVisitor {
     }
 
     final bool markSkipCheck = !callSite.useCheckedEntry &&
-        (node is MethodInvocation ||
-            node is InstanceInvocation ||
+        (node is InstanceInvocation ||
             node is DynamicInvocation ||
             node is EqualsCall ||
-            node is PropertySet ||
             node is InstanceSet ||
             node is DynamicSet);
 
@@ -355,16 +353,12 @@ class AnnotateKernel extends RecursiveVisitor {
     // Tell the table selector assigner about the callsite.
     final Selector selector = callSite.selector;
     if (selector is InterfaceSelector && !_callSiteUsesDirectCall(node)) {
-      if (node is PropertyGet ||
-          node is InstanceGet ||
-          node is InstanceTearOff) {
+      if (node is InstanceGet || node is InstanceTearOff) {
         _tableSelectorAssigner.registerGetterCall(
             selector.member, callSite.isNullableReceiver);
       } else {
-        assert(node is MethodInvocation ||
-            node is InstanceInvocation ||
+        assert(node is InstanceInvocation ||
             node is EqualsCall ||
-            node is PropertySet ||
             node is InstanceSet);
         _tableSelectorAssigner.registerMethodOrSetterCall(
             selector.member, callSite.isNullableReceiver);
@@ -485,12 +479,6 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    _annotateCallSite(node, node.interfaceTarget);
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   visitInstanceInvocation(InstanceInvocation node) {
     _annotateCallSite(node, node.interfaceTarget);
     super.visitInstanceInvocation(node);
@@ -521,12 +509,6 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  visitPropertyGet(PropertyGet node) {
-    _annotateCallSite(node, node.interfaceTarget);
-    super.visitPropertyGet(node);
-  }
-
-  @override
   visitInstanceGet(InstanceGet node) {
     _annotateCallSite(node, node.interfaceTarget);
     super.visitInstanceGet(node);
@@ -548,12 +530,6 @@ class AnnotateKernel extends RecursiveVisitor {
   visitDynamicGet(DynamicGet node) {
     _annotateCallSite(node, null);
     super.visitDynamicGet(node);
-  }
-
-  @override
-  visitPropertySet(PropertySet node) {
-    _annotateCallSite(node, node.interfaceTarget);
-    super.visitPropertySet(node);
   }
 
   @override
@@ -1105,30 +1081,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   @override
-  TreeNode visitMethodInvocation(
-      MethodInvocation node, TreeNode removalSentinel) {
-    node.transformOrRemoveChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall(
-          _flattenArguments(node.arguments, receiver: node.receiver));
-    }
-    if (isComparisonWithNull(node)) {
-      final nullTest = _getNullTest(node);
-      if (nullTest.isAlwaysNull || nullTest.isAlwaysNotNull) {
-        return _evaluateArguments(
-            _flattenArguments(node.arguments, receiver: node.receiver),
-            BoolLiteral(nullTest.isAlwaysNull));
-      }
-    }
-    node.interfaceTarget =
-        fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
-    if (node.interfaceTarget != null) {
-      shaker.addUsedMember(node.interfaceTarget);
-    }
-    return node;
-  }
-
-  @override
   TreeNode visitInstanceInvocation(
       InstanceInvocation node, TreeNode removalSentinel) {
     node.transformOrRemoveChildren(this);
@@ -1201,21 +1153,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   @override
-  TreeNode visitPropertyGet(PropertyGet node, TreeNode removalSentinel) {
-    node.transformOrRemoveChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall([node.receiver]);
-    } else {
-      node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget);
-      }
-      return node;
-    }
-  }
-
-  @override
   TreeNode visitInstanceGet(InstanceGet node, TreeNode removalSentinel) {
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
@@ -1259,21 +1196,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver]);
     } else {
-      return node;
-    }
-  }
-
-  @override
-  TreeNode visitPropertySet(PropertySet node, TreeNode removalSentinel) {
-    node.transformOrRemoveChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall([node.receiver, node.value]);
-    } else {
-      node.interfaceTarget = fieldMorpher
-          .adjustInstanceCallTarget(node.interfaceTarget, isSetter: true);
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget);
-      }
       return node;
     }
   }

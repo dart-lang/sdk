@@ -675,44 +675,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-
-    final Member target = node.interfaceTarget;
-    try {
-      if (target == elementAtMethod) {
-        final DartType pointerType =
-            node.receiver.getStaticType(_staticTypeContext);
-        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
-
-        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
-
-        Expression inlineSizeOf = _inlineSizeOf(nativeType);
-        if (inlineSizeOf != null) {
-          // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
-          return InstanceInvocation(
-              InstanceAccessKind.Instance,
-              node.receiver,
-              offsetByMethod.name,
-              Arguments(
-                  [multiply(node.arguments.positional.single, inlineSizeOf)]),
-              interfaceTarget: offsetByMethod,
-              functionType:
-                  Substitution.fromInterfaceType(pointerType as InterfaceType)
-                          .substituteType(offsetByMethod.getterType)
-                      as FunctionType);
-        }
-      }
-    } on _FfiStaticTypeError {
-      // It's OK to swallow the exception because the diagnostics issued will
-      // cause compilation to fail. By continuing, we can report more
-      // diagnostics before compilation ends.
-    }
-
-    return node;
-  }
-
-  @override
   visitInstanceInvocation(InstanceInvocation node) {
     super.visitInstanceInvocation(node);
 

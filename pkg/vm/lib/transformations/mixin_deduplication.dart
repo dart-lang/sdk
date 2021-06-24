@@ -166,12 +166,6 @@ class ReferenceUpdater extends RecursiveVisitor {
   }
 
   @override
-  visitPropertyGet(PropertyGet node) {
-    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    super.visitPropertyGet(node);
-  }
-
-  @override
   visitInstanceGet(InstanceGet node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget)!;
     super.visitInstanceGet(node);
@@ -185,21 +179,9 @@ class ReferenceUpdater extends RecursiveVisitor {
   }
 
   @override
-  visitPropertySet(PropertySet node) {
-    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    super.visitPropertySet(node);
-  }
-
-  @override
   visitInstanceSet(InstanceSet node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget)!;
     super.visitInstanceSet(node);
-  }
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
-    super.visitMethodInvocation(node);
   }
 
   @override

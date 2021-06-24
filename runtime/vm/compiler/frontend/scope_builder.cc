@@ -686,13 +686,6 @@ void ScopeBuilder::VisitExpression() {
       VisitExpression();  // read expression.
       return;
     }
-    case kPropertyGet:
-      helper_.ReadPosition();  // read position.
-      VisitExpression();       // read receiver.
-      helper_.SkipName();      // read name.
-      // read interface_target_reference.
-      helper_.SkipInterfaceMemberNameReference();
-      return;
     case kInstanceGet:
       helper_.ReadByte();      // read kind.
       helper_.ReadPosition();  // read position.
@@ -720,14 +713,6 @@ void ScopeBuilder::VisitExpression() {
     case kFunctionTearOff:
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read receiver.
-      return;
-    case kPropertySet:
-      helper_.ReadPosition();  // read position.
-      VisitExpression();       // read receiver.
-      helper_.SkipName();      // read name.
-      VisitExpression();       // read value.
-      // read interface_target_reference.
-      helper_.SkipInterfaceMemberNameReference();
       return;
     case kInstanceSet:
       helper_.ReadByte();      // read kind.
@@ -766,15 +751,6 @@ void ScopeBuilder::VisitExpression() {
       helper_.ReadPosition();                // read position.
       helper_.SkipCanonicalNameReference();  // read target_reference.
       VisitExpression();                     // read expression.
-      return;
-    case kMethodInvocation:
-      helper_.ReadFlags();     // read flags.
-      helper_.ReadPosition();  // read position.
-      VisitExpression();       // read receiver.
-      helper_.SkipName();      // read name.
-      VisitArguments();        // read arguments.
-      // read interface_target_reference.
-      helper_.SkipInterfaceMemberNameReference();
       return;
     case kInstanceInvocation:
       helper_.ReadByte();      // read kind.

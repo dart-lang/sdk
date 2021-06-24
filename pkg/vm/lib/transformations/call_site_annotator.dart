@@ -60,31 +60,22 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
   }
 
   @override
-  visitPropertySet(PropertySet node) {
-    super.visitPropertySet(node);
+  visitPropertyGet(PropertyGet node) =>
+      throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
 
-    if (hasGenericCovariantParameters(node.interfaceTarget)) {
-      annotateWithReceiver(node, node.receiver);
-    }
-  }
+  @override
+  visitPropertySet(PropertySet node) =>
+      throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
+
+  @override
+  visitMethodInvocation(MethodInvocation node) =>
+      throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
 
   @override
   visitInstanceSet(InstanceSet node) {
     super.visitInstanceSet(node);
 
     if (hasGenericCovariantParameters(node.interfaceTarget)) {
-      annotateWithReceiver(node, node.receiver);
-    }
-  }
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-
-    // TODO(34162): We don't need to save the type here for calls, just whether
-    // or not it's a statically-checked call.
-    if (node.name.text == 'call' ||
-        hasGenericCovariantParameters(node.interfaceTarget)) {
       annotateWithReceiver(node, node.receiver);
     }
   }

@@ -377,26 +377,6 @@ extension NullabilitySuffix on Nullability {
   String get suffix => nullabilitySuffix[this];
 }
 
-bool isNullLiteral(Expression expr) =>
-    expr is NullLiteral ||
-    (expr is ConstantExpression && expr.constant is NullConstant);
-
-Expression getArgumentOfComparisonWithNull(MethodInvocation node) {
-  if (node.name.text == '==') {
-    final lhs = node.receiver;
-    final rhs = node.arguments.positional.single;
-    if (isNullLiteral(lhs)) {
-      return rhs;
-    } else if (isNullLiteral(rhs)) {
-      return lhs;
-    }
-  }
-  return null;
-}
-
-bool isComparisonWithNull(MethodInvocation node) =>
-    getArgumentOfComparisonWithNull(node) != null;
-
 bool mayHaveSideEffects(Expression node) {
   // Keep this function in sync with mayHaveOrSeeSideEffects:
   // If new false cases are added here, add the corresponding visibility cases

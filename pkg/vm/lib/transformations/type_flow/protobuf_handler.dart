@@ -155,17 +155,6 @@ class ProtobufHandler {
     Statistics.protobufMetadataFieldsPruned += cls.numberOfFieldsPruned;
   }
 
-  bool _isUnusedMetadataMethodInvocation(
-      _MessageClass cls, MethodInvocation node) {
-    if (node.interfaceTarget != null &&
-        node.interfaceTarget.enclosingClass == _builderInfoClass &&
-        fieldAddingMethods.contains(node.name.text)) {
-      final tagNumber = (node.arguments.positional[0] as IntLiteral).value;
-      return !cls._usedTags.contains(tagNumber);
-    }
-    return false;
-  }
-
   bool _isUnusedMetadata(_MessageClass cls, InstanceInvocation node) {
     if (node.interfaceTarget.enclosingClass == _builderInfoClass &&
         fieldAddingMethods.contains(node.name.text)) {
@@ -189,38 +178,6 @@ class _MetadataTransformer extends Transformer {
   int numberOfFieldsPruned = 0;
 
   _MetadataTransformer(this.ph, this.cls);
-
-  @override
-  TreeNode visitMethodInvocation(MethodInvocation node) {
-    if (!ph._isUnusedMetadataMethodInvocation(cls, node)) {
-      super.visitMethodInvocation(node);
-      return node;
-    }
-    // Replace the field metadata method with a dummy call to
-    // `BuilderInfo.add`. This is to preserve the index calculations when
-    // removing a field.
-    // Change the tag-number to 0. Otherwise the decoder will get confused.
-    ++numberOfFieldsPruned;
-    return InstanceInvocation(
-        InstanceAccessKind.Instance,
-        node.receiver,
-        ph._builderInfoAddMethod.name,
-        Arguments(
-          <Expression>[
-            IntLiteral(0), // tagNumber
-            NullLiteral(), // name
-            NullLiteral(), // fieldType
-            NullLiteral(), // defaultOrMaker
-            NullLiteral(), // subBuilder
-            NullLiteral(), // valueOf
-            NullLiteral(), // enumValues
-          ],
-          types: const <DartType>[NullType()],
-        ),
-        interfaceTarget: ph._builderInfoAddMethod,
-        functionType: ph._typeOfBuilderInfoAddOfNull)
-      ..fileOffset = node.fileOffset;
-  }
 
   @override
   TreeNode visitInstanceInvocation(InstanceInvocation node) {

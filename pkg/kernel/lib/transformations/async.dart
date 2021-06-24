@@ -215,8 +215,6 @@ class ExpressionLifter extends Transformer {
   @override
   TreeNode visitVariableSet(VariableSet expr) => unary(expr);
   @override
-  TreeNode visitPropertyGet(PropertyGet expr) => unary(expr);
-  @override
   TreeNode visitInstanceGet(InstanceGet expr) => unary(expr);
   @override
   TreeNode visitDynamicGet(DynamicGet expr) => unary(expr);
@@ -236,14 +234,6 @@ class ExpressionLifter extends Transformer {
   TreeNode visitAsExpression(AsExpression expr) => unary(expr);
   @override
   TreeNode visitThrow(Throw expr) => unary(expr);
-
-  @override
-  TreeNode visitPropertySet(PropertySet expr) {
-    return transformTreeNode(expr, () {
-      expr.value = transform(expr.value)..parent = expr;
-      expr.receiver = transform(expr.receiver)..parent = expr;
-    });
-  }
 
   @override
   TreeNode visitInstanceSet(InstanceSet expr) {
@@ -272,14 +262,6 @@ class ExpressionLifter extends Transformer {
     // Returns the arguments, which is assumed at the call sites because they do
     // not replace the arguments or set parent pointers.
     return args;
-  }
-
-  @override
-  TreeNode visitMethodInvocation(MethodInvocation expr) {
-    return transformTreeNode(expr, () {
-      visitArguments(expr.arguments);
-      expr.receiver = transform(expr.receiver)..parent = expr;
-    });
   }
 
   @override
