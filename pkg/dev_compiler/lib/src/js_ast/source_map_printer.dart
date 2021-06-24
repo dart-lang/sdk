@@ -10,6 +10,19 @@ import 'package:source_maps/source_maps.dart' hide Printer;
 import 'package:source_span/source_span.dart' show SourceLocation;
 import 'js_ast.dart';
 
+/// A source map marker signaling that there is no new source information from
+/// a node and the previous source mapping can continue through it.
+///
+/// Conceptually this works exactly the same as `foo.sourceInformation = null`
+/// but allows the AST emitter to signal there is no new information in a way
+/// that null aware assignments don't override the lack of sourcemap information
+/// later.
+class _ContinueSourceMap {
+  const _ContinueSourceMap();
+}
+
+const continueSourceMap = _ContinueSourceMap();
+
 class NodeEnd {
   final SourceLocation end;
   NodeEnd(this.end);
@@ -68,7 +81,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
   @override
   void enterNode(Node node) {
     var srcInfo = node.sourceInformation;
-    if (srcInfo == null) return;
+    if (srcInfo == null || srcInfo == continueSourceMap) return;
 
     SourceLocation dartStart;
     if (srcInfo is SourceLocation) {
@@ -100,7 +113,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
     if (node is! Expression) _flushPendingMarks();
 
     var srcInfo = node.sourceInformation;
-    if (srcInfo == null) return;
+    if (srcInfo == null || srcInfo == continueSourceMap) return;
 
     SourceLocation dartEnd;
     if (srcInfo is NodeSpan) {

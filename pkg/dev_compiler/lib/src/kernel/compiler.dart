@@ -27,7 +27,8 @@ import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show ModuleItem, js;
-import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
+import '../js_ast/source_map_printer.dart'
+    show NodeEnd, NodeSpan, HoverComment, continueSourceMap;
 import 'constants.dart';
 import 'js_interop.dart';
 import 'js_typerep.dart';
@@ -5765,7 +5766,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Logical negation, `!e`, is a boolean conversion context since it is
     // defined as `e ? false : true`.
-    return js.call('!#', _visitTest(operand));
+    return js
+        .call('!#', _visitTest(operand))
+        .withSourceInformation(continueSourceMap) as js_ast.Expression;
   }
 
   @override
@@ -5785,12 +5788,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitConditionalExpression(ConditionalExpression node) {
-    return js.call('# ? # : #', [
-      _visitTest(node.condition),
-      _visitExpression(node.then),
-      _visitExpression(node.otherwise)
-    ])
-      ..sourceInformation = _nodeStart(node.condition);
+    var condition = _visitTest(node.condition);
+    var then = _visitExpression(node.then);
+    var otherwise = _visitExpression(node.otherwise);
+    return js.call('# ? # : #', [condition, then, otherwise])
+      ..sourceInformation =
+          condition.sourceInformation ?? _nodeStart(node.condition);
   }
 
   @override
