@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import 'exceptions.dart';
-import 'logging.dart';
 import 'protocol_common.dart';
 import 'protocol_generated.dart';
 import 'protocol_stream.dart';
@@ -30,9 +29,8 @@ typedef _VoidNoArgRequestHandler<TArg> = Future<void> Function(
 abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   int _sequence = 1;
   final ByteStreamServerChannel _channel;
-  final Logger? logger;
 
-  BaseDebugAdapter(this._channel, this.logger) {
+  BaseDebugAdapter(this._channel) {
     _channel.listen(_handleIncomingMessage);
   }
 

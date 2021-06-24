@@ -6,8 +6,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
+import '../../../dds.dart';
 import '../base_debug_adapter.dart';
 import '../exceptions.dart';
 import '../isolate_manager.dart';
@@ -97,13 +99,32 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// yet been made.
   vm.VmServiceInterface? vmService;
 
+  /// The DDS instance that was started and that [vmService] is connected to.
+  ///
+  /// `null` if the session is running in noDebug mode of the connection has not
+  /// yet been made.
+  DartDevelopmentService? _dds;
+
+  /// Whether to enable DDS for launched applications.
+  final bool enableDds;
+
+  /// Whether to enable authentication codes for the VM Service/DDS.
+  final bool enableAuthCodes;
+
+  /// A logger for printing diagnostic information.
+  final Logger? logger;
+
   /// Whether the current debug session is an attach request (as opposed to a
   /// launch request). Not available until after launchRequest or attachRequest
   /// have been called.
   late final bool isAttach;
 
-  DartDebugAdapter(ByteStreamServerChannel channel, Logger? logger)
-      : super(channel, logger) {
+  DartDebugAdapter(
+    ByteStreamServerChannel channel, {
+    this.enableDds = true,
+    this.enableAuthCodes = true,
+    this.logger,
+  }) : super(channel) {
     _isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
   }
@@ -166,10 +187,21 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// The caller should handle any other normalisation (such as adding /ws to
   /// the end if required).
   Future<void> connectDebugger(Uri uri) async {
-    // The VM Service library always expects the WebSockets URI so fix the
-    // scheme (http -> ws, https -> wss).
-    final isSecure = uri.isScheme('https') || uri.isScheme('wss');
-    uri = uri.replace(scheme: isSecure ? 'wss' : 'ws');
+    // Start up a DDS instance for this VM.
+    if (enableDds) {
+      // TODO(dantup): Do we need to worry about there already being one connected
+      //   if this URL came from another service that may have started one?
+      logger?.call('Starting a DDS instance for $uri');
+      final dds = await DartDevelopmentService.startDartDevelopmentService(
+        uri,
+        // TODO(dantup): Allow this to be disabled?
+        enableAuthCodes: true,
+      );
+      _dds = dds;
+      uri = dds.wsUri!;
+    } else {
+      uri = _cleanVmServiceUri(uri);
+    }
 
     logger?.call('Connecting to debugger at $uri');
     sendOutput('console', 'Connecting to VM Service at $uri\n');
@@ -311,6 +343,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     void Function() sendResponse,
   ) async {
     await disconnectImpl();
+    await shutdown();
     sendResponse();
   }
 
@@ -597,6 +630,18 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     sendResponse(SetExceptionBreakpointsResponseBody());
   }
 
+  /// Shuts down and cleans up.
+  ///
+  /// This is called by [disconnectRequest] and [terminateRequest] but may also
+  /// be called if the client just disconnects from the server without calling
+  /// either.
+  ///
+  /// This method must tolerate being called multiple times.
+  @mustCallSuper
+  Future<void> shutdown() async {
+    await _dds?.shutdown();
+  }
+
   /// Handles a request from the client for the call stack for [args.threadId].
   ///
   /// This is usually called after we sent a [StoppedEvent] to the client
@@ -734,6 +779,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     void Function() sendResponse,
   ) async {
     await terminateImpl();
+    await shutdown();
     sendResponse();
   }
 
@@ -838,6 +884,25 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     sendResponse(VariablesResponseBody(variables: variables));
   }
 
+  /// Fixes up an Observatory [uri] to a WebSocket URI with a trailing /ws
+  /// for connecting when not using DDS.
+  ///
+  /// DDS does its own cleaning up of the URI.
+  Uri _cleanVmServiceUri(Uri uri) {
+    // The VM Service library always expects the WebSockets URI so fix the
+    // scheme (http -> ws, https -> wss).
+    final isSecure = uri.isScheme('https') || uri.isScheme('wss');
+    uri = uri.replace(scheme: isSecure ? 'wss' : 'ws');
+
+    if (uri.path.endsWith('/ws') || uri.path.endsWith('/ws/')) {
+      return uri;
+    }
+
+    final append = uri.path.endsWith('/') ? 'ws' : '/ws';
+    final newPath = '${uri.path}$append';
+    return uri.replace(path: newPath);
+  }
+
   /// Handles evaluation of an expression that is (or begins with)
   /// `threadExceptionExpression` which corresponds to the exception at the top
   /// of [thread].
@@ -870,12 +935,22 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     );
   }
 
-  void _handleDebugEvent(vm.Event event) {
-    _isolateManager.handleEvent(event);
+  Future<void> _handleDebugEvent(vm.Event event) async {
+    // Delay processing any events until the debugger initialization has
+    // finished running, as events may arrive (for ex. IsolateRunnable) while
+    // it's doing is own initialization that this may interfere with.
+    await debuggerInitialized;
+
+    await _isolateManager.handleEvent(event);
   }
 
-  void _handleIsolateEvent(vm.Event event) {
-    _isolateManager.handleEvent(event);
+  Future<void> _handleIsolateEvent(vm.Event event) async {
+    // Delay processing any events until the debugger initialization has
+    // finished running, as events may arrive (for ex. IsolateRunnable) while
+    // it's doing is own initialization that this may interfere with.
+    await debuggerInitialized;
+
+    await _isolateManager.handleEvent(event);
   }
 
   /// Handles a dart:developer log() event, sending output to the client.
