@@ -110,7 +110,7 @@ precisely based on their source position (which is included in their name).
     final traceJson = args['precompiler-trace'];
     if (traceJson != null) {
       if (!File(traceJson).existsSync()) {
-        usageException('Trace ${traceJson} does not exist!');
+        usageException('Trace $traceJson does not exist!');
       }
 
       if (granularity != HistogramType.byPackage &&
@@ -123,21 +123,20 @@ precisely based on their source position (which is included in their name).
     final columnWidth = args['column-width'];
     final maxWidth = int.tryParse(columnWidth);
     if (maxWidth == null) {
-      usageException(
-          'Specified column width (${columnWidth}) is not an integer');
+      usageException('Specified column width ($columnWidth) is not an integer');
     }
 
     final depsStartDepthStr = args['deps-start-depth'];
     final depsStartDepth = int.tryParse(depsStartDepthStr);
     if (depsStartDepth == null) {
-      usageException('Specified depsStartDepth (${depsStartDepthStr})'
+      usageException('Specified depsStartDepth ($depsStartDepthStr)'
           ' is not an integer');
     }
 
     final depsDisplayDepthStr = args['deps-display-depth'];
     final depsDisplayDepth = int.tryParse(depsDisplayDepthStr);
     if (depsDisplayDepth == null) {
-      usageException('Specified depsDisplayDepth (${depsStartDepthStr})'
+      usageException('Specified depsDisplayDepth ($depsStartDepthStr)'
           ' is not an integer');
     }
 
@@ -329,7 +328,7 @@ void _printDominatedNodes(CallGraphNode node,
     final size = sizes[i];
     isLastPerLevel.add(isLast);
     print(
-        '${_treeLines(isLastPerLevel)}${n.data.qualifiedName} (total ${size} bytes)');
+        '${_treeLines(isLastPerLevel)}${n.data.qualifiedName} (total $size bytes)');
     _printDominatedNodes(n,
         displayDepth: displayDepth,
         isLastPerLevel: isLastPerLevel,

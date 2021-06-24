@@ -17,7 +17,7 @@ List<int> computeDominators({
   required int root,
   required Iterable<int> Function(int) succ,
   required Iterable<int> Function(int) predOf,
-  required void handleEdge(int from, int to),
+  required void Function(int from, int to) handleEdge,
 }) {
   // Compute preorder numbering for the graph using DFS.
   final parent = List<int>.filled(size, -1);
@@ -82,39 +82,39 @@ List<int> computeDominators({
 
   // Loop over the blocks in reverse preorder (not including the graph
   // entry).
-  for (var block_index = size - 1; block_index >= 1; --block_index) {
+  for (var blockIndex = size - 1; blockIndex >= 1; --blockIndex) {
     // Loop over the predecessors.
-    final block = preorder[block_index];
+    final block = preorder[blockIndex];
     // Clear the immediately dominated blocks in case ComputeDominators is
     // used to recompute them.
     for (final pred in predOf(block)) {
       // Look for the semidominator by ascending the semidominator path
       // starting from pred.
-      final pred_index = preorderNumber[pred];
-      var best = pred_index;
-      if (pred_index > block_index) {
-        compressPath(block_index, pred_index);
-        best = label[pred_index];
+      final predIndex = preorderNumber[pred];
+      var best = predIndex;
+      if (predIndex > blockIndex) {
+        compressPath(blockIndex, predIndex);
+        best = label[predIndex];
       }
 
       // Update the semidominator if we've found a better one.
-      semi[block_index] = math.min(semi[block_index], semi[best]);
+      semi[blockIndex] = math.min(semi[blockIndex], semi[best]);
     }
 
     // Now use label for the semidominator.
-    label[block_index] = semi[block_index];
+    label[blockIndex] = semi[blockIndex];
   }
 
   // 2. Compute the immediate dominators as the nearest common ancestor of
   // spanning tree parent and semidominator, for all blocks except the entry.
   final result = List<int>.filled(size, -1);
-  for (var block_index = 1; block_index < size; ++block_index) {
-    var dom_index = idom[block_index];
-    while (dom_index > semi[block_index]) {
-      dom_index = idom[dom_index];
+  for (var blockIndex = 1; blockIndex < size; ++blockIndex) {
+    var domIndex = idom[blockIndex];
+    while (domIndex > semi[blockIndex]) {
+      domIndex = idom[domIndex];
     }
-    idom[block_index] = dom_index;
-    result[preorder[block_index]] = preorder[dom_index];
+    idom[blockIndex] = domIndex;
+    result[preorder[blockIndex]] = preorder[domIndex];
   }
   return result;
 }

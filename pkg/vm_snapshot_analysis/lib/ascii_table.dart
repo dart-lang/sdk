@@ -21,10 +21,10 @@ abstract class Row {
 
 enum Separator {
   /// Line separator looks like this: `+-------+------+`
-  Line,
+  line,
 
   /// Wave separator looks like this: `~~~~~~~~~~~~~~~~`.
-  Wave,
+  wave,
 }
 
 /// A separator row in the [AsciiTable].
@@ -36,7 +36,7 @@ class SeparatorRow extends Row {
   String render(List<int> widths, List<AlignmentDirection> alignments) {
     final sb = StringBuffer();
     switch (filler) {
-      case Separator.Line:
+      case Separator.line:
         sb.write('+');
         for (var i = 0; i < widths.length; i++) {
           sb.write('-' * (widths[i] + 2));
@@ -44,7 +44,7 @@ class SeparatorRow extends Row {
         }
         break;
 
-      case Separator.Wave:
+      case Separator.wave:
         sb.write('~' * Row.totalWidth(widths));
         break;
     }
@@ -56,7 +56,7 @@ class SeparatorRow extends Row {
 class TextSeparatorRow extends Row {
   final Text text;
   TextSeparatorRow(String text)
-      : text = Text(value: text, direction: AlignmentDirection.Center);
+      : text = Text(value: text, direction: AlignmentDirection.center);
 
   @override
   String render(List<int> widths, List<AlignmentDirection> alignments) {
@@ -84,7 +84,7 @@ class NormalRow extends Row {
   }
 }
 
-enum AlignmentDirection { Left, Right, Center }
+enum AlignmentDirection { left, right, center }
 
 /// A chunk of text aligned in the given direction within a cell.
 class Text {
@@ -93,11 +93,11 @@ class Text {
 
   Text({required this.value, required this.direction});
   Text.left(String value)
-      : this(value: value, direction: AlignmentDirection.Left);
+      : this(value: value, direction: AlignmentDirection.left);
   Text.right(String value)
-      : this(value: value, direction: AlignmentDirection.Right);
+      : this(value: value, direction: AlignmentDirection.right);
   Text.center(String value)
-      : this(value: value, direction: AlignmentDirection.Center);
+      : this(value: value, direction: AlignmentDirection.center);
 
   String render(int width) {
     if (value.length > width) {
@@ -105,11 +105,11 @@ class Text {
       return value.substring(0, width - 2) + '..';
     }
     switch (direction) {
-      case AlignmentDirection.Left:
+      case AlignmentDirection.left:
         return value.padRight(width);
-      case AlignmentDirection.Right:
+      case AlignmentDirection.right:
         return value.padLeft(width);
-      case AlignmentDirection.Center:
+      case AlignmentDirection.center:
         final diff = width - value.length;
         return ' ' * (diff ~/ 2) + value + (' ' * (diff - diff ~/ 2));
     }
@@ -135,7 +135,7 @@ class AsciiTable {
 
   void addRow(List<dynamic> columns) => rows.add(NormalRow(columns));
 
-  void addSeparator([Separator filler = Separator.Line]) =>
+  void addSeparator([Separator filler = Separator.line]) =>
       rows.add(SeparatorRow(filler));
 
   void addTextSeparator(String text) => rows.add(TextSeparatorRow(text));
@@ -147,7 +147,7 @@ class AsciiTable {
         .whereType<NormalRow>()
         .first
         .columns
-        .map((v) => v is Text ? v.direction : AlignmentDirection.Left)
+        .map((v) => v is Text ? v.direction : AlignmentDirection.left)
         .toList();
     List<int> widths =
         List<int>.filled(rows.whereType<NormalRow>().first.columns.length, 0);

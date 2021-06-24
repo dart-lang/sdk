@@ -73,8 +73,7 @@ precisely based on their source position (which is included in their name).
     final columnWidth = args['column-width'];
     final maxWidth = int.tryParse(columnWidth);
     if (maxWidth == null) {
-      usageException(
-          'Specified column width (${columnWidth}) is not an integer');
+      usageException('Specified column width ($columnWidth) is not an integer');
     }
 
     final oldJsonPath = _checkExists(args.rest[0]);
@@ -149,9 +148,9 @@ precisely based on their source position (which is included in their name).
         maxWidth: maxWidth);
 
     print('Comparing ${oldJson.path} (old) to ${newJson.path} (new)');
-    print('Old   : ${totalOld} bytes.');
-    print('New   : ${totalNew} bytes.');
-    print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff}'
+    print('Old   : $totalOld bytes.');
+    print('New   : $totalNew bytes.');
+    print('Change: ${totalDiff > 0 ? '+' : ''}$totalDiff'
         ' (${formatPercent(totalDiff, totalOld, withSign: true)}) bytes.');
 
     if (oldSizes.snapshotInfo != null) {
@@ -163,7 +162,7 @@ precisely based on their source position (which is included in their name).
           computeHistogram(newSizes, HistogramType.byNodeType);
 
       final diffTypeHistogram = Histogram.fromIterable<String>(
-          Set<String>()
+          <String>{}
             ..addAll(oldTypeHistogram.buckets.keys)
             ..addAll(newTypeHistogram.buckets.keys),
           sizeOf: (bucket) =>

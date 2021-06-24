@@ -63,7 +63,7 @@ class ProgramInfo {
     void recurse(ProgramInfoNode node) {
       final prevContext = context[node._type];
       if (prevContext != null && node._type == NodeType.functionNode.index) {
-        context[node._type] = '${prevContext}.${node.name}';
+        context[node._type] = '$prevContext.${node.name}';
       } else {
         context[node._type] = node.name;
       }
@@ -187,7 +187,7 @@ class ProgramInfoNode {
 
   @override
   String toString() {
-    return '${_typeToJson(type)} ${qualifiedName}';
+    return '${_typeToJson(type)} $qualifiedName';
   }
 
   /// Returns path to this node such that [ProgramInfo.lookup] would return
@@ -308,7 +308,7 @@ Histogram computeHistogram(ProgramInfo info, HistogramType type,
   if (filter != null) {
     final re = RegExp(filter.replaceAll('*', '.*'), caseSensitive: false);
     matchesFilter =
-        (lib, cls, fun) => re.hasMatch("${lib}::${cls ?? ''}.${fun ?? ''}");
+        (lib, cls, fun) => re.hasMatch("$lib::${cls ?? ''}.${fun ?? ''}");
   } else {
     matchesFilter = (_, __, ___) => true;
   }
@@ -397,9 +397,9 @@ class _BucketBySymbol extends Bucketing {
   @override
   String bucketFor(String? pkg, String lib, String? cls, String? fun) {
     if (fun == null) {
-      return '@other${_nameSeparator}';
+      return '@other$_nameSeparator';
     }
-    return '$lib${_nameSeparator}${cls ?? ''}${cls != '' && cls != null ? '.' : ''}${fun}';
+    return '$lib$_nameSeparator${cls ?? ''}${cls != '' && cls != null ? '.' : ''}$fun';
   }
 
   @override
@@ -412,9 +412,9 @@ class _BucketByClass extends Bucketing {
   @override
   String bucketFor(String? pkg, String lib, String? cls, String? fun) {
     if (cls == null) {
-      return '@other${_nameSeparator}';
+      return '@other$_nameSeparator';
     }
-    return '$lib${_nameSeparator}${cls}';
+    return '$lib$_nameSeparator$cls';
   }
 
   @override
@@ -425,7 +425,7 @@ class _BucketByClass extends Bucketing {
 
 class _BucketByLibrary extends Bucketing {
   @override
-  String bucketFor(String? pkg, String lib, String? cls, String? fun) => '$lib';
+  String bucketFor(String? pkg, String lib, String? cls, String? fun) => lib;
 
   const _BucketByLibrary() : super(nameComponents: const ['Library']);
 }
