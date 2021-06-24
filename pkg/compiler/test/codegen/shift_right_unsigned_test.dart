@@ -49,7 +49,7 @@ int foo(int param) {
 int foo(int value, int shift) {
   return value >>> shift;
   // Default code pattern:
-  // present: 'return C.JSInt_methods.$shru(value, shift);'
+  // present: 'JSInt_methods.$shru(value, shift);'
 }
 int callFoo(int a, int b, int c) => foo(a, b);
 """,

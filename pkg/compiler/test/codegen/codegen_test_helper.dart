@@ -57,7 +57,7 @@ runTestsCommon(List<String> args,
         forUserLibrariesOnly: true,
         args: args,
         options: options,
-        testedConfigs: allInternalConfigs,
+        testedConfigs: allInternalConfigs + [canaryConfig],
         skip: skip,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex == null ? 1 : shards);

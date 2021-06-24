@@ -29,6 +29,7 @@ export '../helpers/memory_compiler.dart' show CollectedMessage;
 
 const String specMarker = 'spec';
 const String prodMarker = 'prod';
+const String canaryMarker = 'canary';
 const String twoDeferredFragmentMarker = 'two-frag';
 const String threeDeferredFragmentMarker = 'three-frag';
 
@@ -36,6 +37,9 @@ const TestConfig specConfig = TestConfig(specMarker, 'compliance mode', []);
 
 const TestConfig prodConfig = TestConfig(prodMarker, 'production mode',
     [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
+
+const TestConfig canaryConfig =
+    TestConfig(canaryMarker, 'canary mode', [Flags.canary]);
 
 const TestConfig twoDeferredFragmentConfig = TestConfig(
     twoDeferredFragmentMarker,

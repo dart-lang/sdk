@@ -16,12 +16,20 @@
   t1.push(1);
   return t1;
 }*/
+/*canary.member: test1:function() {
+  var t1 = B._setArrayType([], type$.JSArray_int);
+  A.JSArray_methods.add$1(t1, 1);
+  return t1;
+}*/
 test1() {
   return <int>[]..add(1);
 }
 
-/*member: main:function() {
+/*spec|prod.member: main:function() {
   F.test1();
+}*/
+/*canary.member: main:function() {
+  B.test1();
 }*/
 main() {
   test1();

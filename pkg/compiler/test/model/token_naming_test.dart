@@ -7,6 +7,7 @@
 import "package:compiler/src/js_backend/js_backend.dart" show TokenScope;
 
 import "package:expect/expect.dart";
+import 'package:front_end/src/api_unstable/dart2js.dart' show $A;
 
 String forwardN(TokenScope scope, int N) {
   for (int i = 1; i < N; ++i) {
@@ -46,7 +47,7 @@ void main() {
 
   // Test a filtered scope.
   Set<String> illegal = new Set.from(["b", "aa"]);
-  scope = new TokenScope(illegal);
+  scope = new TokenScope(illegalNames: illegal);
 
   // We start with 'a'.
   Expect.equals("a", forwardN(scope, 1));
@@ -62,4 +63,21 @@ void main() {
   // Make sure 'aa' is skipped on wrapping
   Expect.equals("ab", forwardN(scope, 1));
   Expect.equals("az", forwardN(scope, 24));
+
+  // Test a initial char
+  {
+    TokenScope scope = new TokenScope(initialChar: $A);
+
+    // We start with 'A'.
+    Expect.equals("A", scope.getNextName());
+
+    // Overflow should still start with 'A'.
+    Expect.equals("A_", forwardN(scope, 26));
+  }
+  {
+    TokenScope scope = new TokenScope(initialChar: $A + 1);
+
+    // We start with 'A'.
+    Expect.equals("B", scope.getNextName());
+  }
 }
