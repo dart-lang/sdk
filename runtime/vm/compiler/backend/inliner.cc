@@ -2655,13 +2655,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
           source, new (Z) Value(stored_value), new (Z) Value(dst_type),
           new (Z) Value(type_args), new (Z) Value(function_type_args),
           Symbols::Value(), call->deopt_id());
-      cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
-                                    FlowGraph::kValue);
-      // The environment is that of the InstanceCall([]=, ..., <env>).
-      // A lazy-deopt of the inserted AssertAssignable must continue in
-      // unoptimzed code.
-      // => We will re-try this []= call in unoptimized code.
-      assert_value->env()->MarkAsLazyDeoptToBeforeDeoptId();
+      cursor = flow_graph->AppendSpeculativeTo(cursor, assert_value,
+                                               call->env(), FlowGraph::kValue);
     }
   }
 
