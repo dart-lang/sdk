@@ -3533,23 +3533,43 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeParameter = null;
       } else {
         if (issue.enclosingType == null && targetReceiver != null) {
-          if (issueInferred) {
-            message =
-                templateIncorrectTypeArgumentQualifiedInferred.withArguments(
-                    argument,
-                    typeParameter.bound,
-                    typeParameter.name,
-                    targetReceiver,
-                    targetName,
-                    isNonNullableByDefault);
+          if (targetName != null) {
+            if (issueInferred) {
+              message =
+                  templateIncorrectTypeArgumentQualifiedInferred.withArguments(
+                      argument,
+                      typeParameter.bound,
+                      typeParameter.name,
+                      targetReceiver,
+                      targetName,
+                      isNonNullableByDefault);
+            } else {
+              message = templateIncorrectTypeArgumentQualified.withArguments(
+                  argument,
+                  typeParameter.bound,
+                  typeParameter.name,
+                  targetReceiver,
+                  targetName,
+                  isNonNullableByDefault);
+            }
           } else {
-            message = templateIncorrectTypeArgumentQualified.withArguments(
-                argument,
-                typeParameter.bound,
-                typeParameter.name,
-                targetReceiver,
-                targetName,
-                isNonNullableByDefault);
+            if (issueInferred) {
+              message = templateIncorrectTypeArgumentInstantiationInferred
+                  .withArguments(
+                      argument,
+                      typeParameter.bound,
+                      typeParameter.name,
+                      targetReceiver,
+                      isNonNullableByDefault);
+            } else {
+              message =
+                  templateIncorrectTypeArgumentInstantiation.withArguments(
+                      argument,
+                      typeParameter.bound,
+                      typeParameter.name,
+                      targetReceiver,
+                      isNonNullableByDefault);
+            }
           }
         } else {
           String enclosingName = issue.enclosingType == null
@@ -4044,6 +4064,41 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         //  invocation to avoid reference to 'call' and use the function type
         //  instead.
         targetName: localName ?? 'call');
+  }
+
+  void checkBoundsInInstantiation(
+      TypeEnvironment typeEnvironment,
+      ClassHierarchy hierarchy,
+      TypeInferrerImpl typeInferrer,
+      FunctionType functionType,
+      List<DartType> typeArguments,
+      Uri fileUri,
+      int offset,
+      {bool inferred}) {
+    assert(inferred != null);
+    if (typeArguments.isEmpty) return;
+
+    List<TypeParameter> functionTypeParameters = functionType.typeParameters;
+    // The error is to be reported elsewhere.
+    if (functionTypeParameters.length != typeArguments.length) return;
+    final DartType bottomType = isNonNullableByDefault
+        ? const NeverType.nonNullable()
+        : const NullType();
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        functionTypeParameters,
+        typeArguments,
+        typeEnvironment,
+        isNonNullableByDefault
+            ? SubtypeCheckMode.withNullabilities
+            : SubtypeCheckMode.ignoringNullabilities,
+        bottomType,
+        isNonNullableByDefault: library.isNonNullableByDefault,
+        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
+    reportTypeArgumentIssues(issues, fileUri, offset,
+        targetReceiver: functionType,
+        typeArgumentsInfo: inferred
+            ? const AllInferredTypeArgumentsInfo()
+            : const NoneInferredTypeArgumentsInfo());
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {

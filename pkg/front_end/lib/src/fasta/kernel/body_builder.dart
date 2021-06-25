@@ -6302,13 +6302,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleTypeArgumentApplication(Token openAngleBracket) {
-    /// TODO(johnniwinther, paulberry): add support for this construct when the
-    /// "constructor-tearoffs" feature is enabled.
+    assert(checkState(openAngleBracket, [
+      ValueKinds.TypeArguments,
+      unionOfKinds([ValueKinds.Generator, ValueKinds.Expression])
+    ]));
     List<UnresolvedType> typeArguments = pop(); // typeArguments
     if (libraryBuilder.enableConstructorTearOffsInLibrary) {
-      Generator generator = pop();
-      push(generator.applyTypeArguments(
-          openAngleBracket.charOffset, typeArguments));
+      Object operand = pop();
+      if (operand is Generator) {
+        push(operand.applyTypeArguments(
+            openAngleBracket.charOffset, typeArguments));
+      } else {
+        push(new Instantiation(
+            toValue(operand), buildDartTypeArguments(typeArguments))
+          ..fileOffset = openAngleBracket.charOffset);
+      }
     } else {
       addProblem(
           templateExperimentNotEnabled.withArguments(

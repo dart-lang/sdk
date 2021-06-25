@@ -4291,6 +4291,27 @@ IncorrectTypeArgumentInSupertypeInferred:
     class A<T extends A<T>> {}
     class B extends A {}
 
+IncorrectTypeArgumentInstantiation:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  experiments: constructor-tearoffs
+  script: |
+    X bounded<X extends num>(X x) => x;
+    main() {
+      bounded<String>;
+    }
+
+IncorrectTypeArgumentInstantiationInferred:
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  script: |
+    X bounded<X extends num>(X x) => x;
+    main() {
+      String Function(String) c = bounded;
+    }
+
 IncorrectTypeArgumentVariable:
   template: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
@@ -5187,3 +5208,27 @@ DeprecateDartExt:
   severity: INFO
   script: |
     import 'dart-ext:foo.dart';
+
+InstantiationNonGenericFunctionType:
+  template: "The static type of the explicit instantiation operand must be a generic function type but is '#type'."
+  tip: "Try changing the operand or remove the type arguments."
+  experiments: constructor-tearoffs
+  script: |
+    f() {}
+    main() => f<int>;
+
+InstantiationTooFewArguments:
+  template: "Too few type arguments: #count required, #count2 given."
+  tip: "Try adding the missing type arguments."
+  experiments: constructor-tearoffs
+  script: |
+    f<X, Y>() {}
+    main() => f<int>;
+
+InstantiationTooManyArguments:
+  template: "Too many type arguments: #count allowed, but #count2 found."
+  tip: "Try removing the extra type arguments."
+  experiments: constructor-tearoffs
+  script: |
+    f<X>() {}
+    main() => f<int, String>;

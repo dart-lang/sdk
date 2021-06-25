@@ -6,6 +6,7 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+constructor_tearoffs/explicit_instantiation_errors: TypeCheckError
 constructor_tearoffs/redirecting_constructors: RuntimeError
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
@@ -22,6 +23,7 @@ general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError
 general/await_in_non_async: RuntimeError
+general/bounded_implicit_instantiation: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError
 general/call: TypeCheckError

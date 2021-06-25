@@ -1,0 +1,4 @@
+T func<T>(T value) => value;
+int Function(int) f = funcValue.call;
+main() {}
+var funcValue = func;

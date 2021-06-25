@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef ListList<T extends core::Object? = dynamic> = core::List<core::List<T%>>;
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  static method stat<T extends core::Object? = dynamic>(self::C::stat::T% value) → self::C::stat::T%
+    ;
+  method inst<T extends core::Object? = dynamic>(self::C::inst::T% value) → self::C::inst::T%
+    ;
+  method method() → void
+    ;
+}
+abstract class M extends self::C /*isMixinDeclaration*/  {
+  static method mstat<T extends core::Object? = dynamic>(self::M::mstat::T% value) → self::M::mstat::T%
+    ;
+  method minst<T extends core::Object? = dynamic>(self::M::minst::T% value) → self::M::minst::T%
+    ;
+  method mmethod() → void
+    ;
+}
+abstract class _D&C&M = self::C with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_D&C&M
+    : super self::C::•()
+    ;
+  mixin-super-stub method minst<T extends core::Object? = dynamic>(self::_D&C&M::minst::T% value) → self::_D&C&M::minst::T%
+    return super.{self::M::minst}<self::_D&C&M::minst::T%>(value);
+  mixin-super-stub method mmethod() → void
+    return super.{self::M::mmethod}();
+}
+class D extends self::_D&C&M {
+  synthetic constructor •() → self::D
+    ;
+  method method() → void
+    ;
+}
+extension Ext on self::C {
+  static method estat = self::Ext|estat;
+  method einst = self::Ext|einst;
+  tearoff einst = self::Ext|get#einst;
+  method emethod = self::Ext|emethod;
+  tearoff emethod = self::Ext|get#emethod;
+}
+static method top<T extends core::Object? = dynamic>(self::top::T% value) → self::top::T%
+  ;
+static method Ext|estat<T extends core::Object? = dynamic>(self::Ext|estat::T% value) → self::Ext|estat::T%
+  ;
+static method Ext|einst<T extends core::Object? = dynamic>(lowered final self::C #this, self::Ext|einst::T% value) → self::Ext|einst::T%
+  ;
+static method Ext|get#einst(lowered final self::C #this) → <T extends core::Object? = dynamic>(T%) → T%
+  return <T extends core::Object? = dynamic>(T% value) → T% => self::Ext|einst<T%>(#this, value);
+static method Ext|emethod(lowered final self::C #this) → void
+  ;
+static method Ext|get#emethod(lowered final self::C #this) → () → void
+  return () → void => self::Ext|emethod(#this);
+static method main() → void
+  ;

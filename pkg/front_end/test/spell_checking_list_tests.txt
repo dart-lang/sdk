@@ -267,9 +267,11 @@ ease
 ec
 echo
 edits
+einst
 elapse
 elegantly
 ell
+emethod
 entrypoint
 entrypoints
 eoo
@@ -278,6 +280,7 @@ erase
 erased
 err
 esc
+estat
 et
 everytime
 evicting
@@ -294,6 +297,10 @@ expanded
 expansive
 explainer
 extern
+f1
+f2
+f3
+f4
 fac
 faking
 falling
@@ -530,6 +537,7 @@ micro
 minimize
 minimizer
 minimizing
+minst
 mintty
 minutes
 mismatched
@@ -539,11 +547,13 @@ misses
 misspelled
 mistake
 mistakes
+mmethod
 mod
 modelled
 month
 moo
 mouse
+mstat
 mul
 mx
 mxn

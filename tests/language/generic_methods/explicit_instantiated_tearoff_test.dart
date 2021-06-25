@@ -17,7 +17,7 @@ class C {
   R instanceMethod<R, T>(T value, [T? other]) => value as R;
 
   void tearOffsOnThis() {
-    const staticTearoff = staticMethod<int, String>;
+    const staticTearOff = staticMethod<int, String>;
     staticMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
     instanceMethod<int, String>
@@ -37,7 +37,7 @@ mixin M on C {
   R mixinInstanceMethod<R, T>(T value, [T? other]) => value as R;
 
   void mixinTearOffsOnThis() {
-    const staticTearoff = staticMethod<int, String>;
+    const staticTearOff = staticMethod<int, String>;
     staticMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
     mixinInstanceMethod<int, String>
@@ -57,8 +57,8 @@ extension E on C {
   static R staticMethod<R, T>(T value, [T? other]) => value as R;
   R extInstanceMethod<R, T>(T value, [T? other]) => value as R;
 
-  void extenstionTearOffsOnThis() {
-    const staticTearoff = staticMethod<int, String>;
+  void extensionTearOffsOnThis() {
+    const staticTearOff = staticMethod<int, String>;
     staticMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
     extInstanceMethod<int, String>
@@ -87,10 +87,10 @@ void main() {
   R local<R, T>(T value, [T? other]) => value as R;
 
   // Check that some tear-offs are constant.
-  const topTearoff = toplevel<int, String>;
-  const staticTearoff = C.staticMethod<int, String>;
-  const mixinStaticTearoff = M.staticMethod<int, String>;
-  const extensionStaticTearoff = E.staticMethod<int, String>;
+  const topTearOff = toplevel<int, String>;
+  const staticTearOff = C.staticMethod<int, String>;
+  const mixinStaticTearOff = M.staticMethod<int, String>;
+  const extensionStaticTearOff = E.staticMethod<int, String>;
 
   // Check that the tear-offs have the correct static type.
 
@@ -105,23 +105,23 @@ void main() {
   E
       .staticMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-  c
+  o
       .instanceMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-  c
+  o
       .mixinInstanceMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-  c
+  o
       .extInstanceMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
   local<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
 
   // Check that the tear-offs are canonicalized where possible.
-  Expect.identical(toplevel<int, String>, topTearoff);
-  Expect.identical(C.staticMethod<int, String>, staticTearoff);
-  Expect.identical(M.staticMethod<int, String>, mixinStaticTearoff);
-  Expect.identical(E.staticMethod<int, String>, extensionStaticTearoff);
+  Expect.identical(toplevel<int, String>, topTearOff);
+  Expect.identical(C.staticMethod<int, String>, staticTearOff);
+  Expect.identical(M.staticMethod<int, String>, mixinStaticTearOff);
+  Expect.identical(E.staticMethod<int, String>, extensionStaticTearOff);
 
   // Instantiated local methods may or may not be equal.
   // (Specification makes no promise about equality.).
@@ -161,7 +161,7 @@ void main() {
   }<int>());
 
   o.tearOffsOnThis();
-  o.tearOffOnSuper();
-  o.mixinTearOffOnThis();
-  o.extensionTearOffOnThis();
+  o.tearOffsOnSuper();
+  o.mixinTearOffsOnThis();
+  o.extensionTearOffsOnThis();
 }

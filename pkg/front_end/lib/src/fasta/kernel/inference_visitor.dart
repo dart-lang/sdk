@@ -215,12 +215,6 @@ class InferenceVisitor
   }
 
   @override
-  ExpressionInferenceResult visitInstantiation(
-      Instantiation node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
   ExpressionInferenceResult visitConstructorTearOff(
       ConstructorTearOff node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
@@ -296,6 +290,63 @@ class InferenceVisitor
     // TODO(johnniwinther): The inferred type should be an InvalidType. Using
     // BottomType leads to cascading errors so we use DynamicType for now.
     return new ExpressionInferenceResult(const DynamicType(), node);
+  }
+
+  @override
+  ExpressionInferenceResult visitInstantiation(
+      Instantiation node, DartType typeContext) {
+    ExpressionInferenceResult operandResult = inferrer.inferExpression(
+        node.expression, const UnknownType(), true,
+        isVoidAllowed: true);
+    node.expression = operandResult.expression..parent = node;
+    DartType operandType = operandResult.inferredType;
+    Expression result = node;
+    DartType resultType = const InvalidType();
+    if (operandType is FunctionType) {
+      if (operandType.typeParameters.length == node.typeArguments.length) {
+        inferrer.checkBoundsInInstantiation(
+            operandType, node.typeArguments, node.fileOffset,
+            inferred: false);
+        resultType = Substitution.fromPairs(
+                operandType.typeParameters, node.typeArguments)
+            .substituteType(operandType.withoutTypeParameters);
+      } else {
+        if (!inferrer.isTopLevel) {
+          if (operandType.typeParameters.isEmpty) {
+            result = inferrer.helper.buildProblem(
+                templateInstantiationNonGenericFunctionType.withArguments(
+                    operandType, inferrer.isNonNullableByDefault),
+                node.fileOffset,
+                noLength);
+          } else if (operandType.typeParameters.length >
+              node.typeArguments.length) {
+            result = inferrer.helper.buildProblem(
+                templateInstantiationTooFewArguments.withArguments(
+                    operandType.typeParameters.length,
+                    node.typeArguments.length),
+                node.fileOffset,
+                noLength);
+          } else if (operandType.typeParameters.length <
+              node.typeArguments.length) {
+            result = inferrer.helper.buildProblem(
+                templateInstantiationTooManyArguments.withArguments(
+                    operandType.typeParameters.length,
+                    node.typeArguments.length),
+                node.fileOffset,
+                noLength);
+          }
+        }
+      }
+    } else {
+      if (!inferrer.isTopLevel) {
+        result = inferrer.helper.buildProblem(
+            templateInstantiationNonGenericFunctionType.withArguments(
+                operandType, inferrer.isNonNullableByDefault),
+            node.fileOffset,
+            noLength);
+      }
+    }
+    return new ExpressionInferenceResult(resultType, result);
   }
 
   @override
