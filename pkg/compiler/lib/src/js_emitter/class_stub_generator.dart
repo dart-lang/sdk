@@ -300,7 +300,7 @@ List<jsAst.Statement> buildTearOffCode(
         return isIntercepted
             ? function(receiver) {
                 if (cache === null) cache = #createTearOffClass(parameters);
-                return new cache(this, receiver);
+                return new cache(receiver, this);
               }
             : function() {
                 if (cache === null) cache = #createTearOffClass(parameters);
@@ -339,7 +339,7 @@ function instanceTearOffGetter(isIntercepted, parameters) {
     return new Function("parameters, createTearOffClass, cache",
         "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
           "if (cache === null) cache = createTearOffClass(parameters);" +
-            "return new cache(this, receiver);" +
+            "return new cache(receiver, this);" +
         "}")(parameters, #createTearOffClass, null);
   else
     return new Function("parameters, createTearOffClass, cache",
