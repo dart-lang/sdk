@@ -6,8 +6,17 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-
 import 'dart:typed_data';
+
+import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
+
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' as codes;
+
+import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart'
+    show AsyncModifier;
+
+import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
+    show NullListener;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration;
@@ -18,11 +27,16 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
+
+import 'package:front_end/src/fasta/command_line_reporting.dart'
+    as command_line_reporting;
+
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 // ignore: import_of_legacy_library_into_null_safe
@@ -39,7 +53,6 @@ import '../test/incremental_suite.dart' show getOptions;
 const _portMessageTest = "test";
 const _portMessageGood = "good";
 const _portMessageBad = "bad";
-const _portMessageBadDetails = "badDetails";
 const _portMessageCrash = "crash";
 const _portMessageParseError = "parseError";
 const _portMessageDone = "done";
@@ -52,27 +65,50 @@ class DartDocTest {
   late CompilerOptions options;
   late ProcessedOptions processedOpts;
   bool errors = false;
+  List<String> errorStrings = [];
+  final FileSystem? underlyingFileSystem;
+  final bool silent;
+
+  DartDocTest({this.underlyingFileSystem, this.silent: false});
+
+  FileSystem _getFileSystem() =>
+      underlyingFileSystem ?? StandardFileSystem.instance;
+
+  void _print(Object? object) {
+    if (!silent) print(object);
+  }
 
   /// All-in-one. Process a file and return if it was good.
-  Future<bool> process(Uri uri) async {
-    print("\n\nProcessing $uri");
+  Future<List<TestResult>> process(Uri uri) async {
+    _print("\n\nProcessing $uri");
     Stopwatch stopwatch = new Stopwatch()..start();
 
     // Extract test cases in file.
-    List<Test> tests = extractTestsFromUri(uri);
+    List<Test> tests = await extractTestsFromUri(uri);
 
     if (tests.isEmpty) {
-      print("No tests found in file in ${stopwatch.elapsedMilliseconds} ms.");
-      return true;
+      _print("No tests found in file in ${stopwatch.elapsedMilliseconds} ms.");
+      return [];
     }
-    print("Found ${tests.length} test(s) in file "
+    _print("Found ${tests.length} test(s) in file "
         "in ${stopwatch.elapsedMilliseconds} ms.");
 
     return await compileAndRun(uri, tests);
   }
 
-  Future<bool> compileAndRun(Uri uri, List<Test> tests) async {
+  Future<List<Test>> extractTestsFromUri(Uri uri) async {
+    // Extract test cases in file.
+    FileSystemEntity file = _getFileSystem().entityForUri(uri);
+    List<int> rawBytes = await file.readAsBytes();
+    return extractTests(
+        rawBytes is Uint8List ? rawBytes : new Uint8List.fromList(rawBytes),
+        uri);
+  }
+
+  Future<List<TestResult>> compileAndRun(Uri uri, List<Test> tests,
+      {bool silent: false}) async {
     errors = false;
+    errorStrings.clear();
 
     // Create code to amend the file with.
     StringBuffer sb = new StringBuffer();
@@ -81,13 +117,16 @@ class DartDocTest {
           r"Future<void> $dart$doc$test$tester(dynamic dartDocTest) async {");
       for (Test test in tests) {
         if (test is TestParseError) {
-          sb.writeln("dartDocTest.parseError(\"${test.message}\");");
-        } else {
+          sb.writeln(
+              "dartDocTest.parseError(\"Parse error @ ${test.position}\");");
+        } else if (test is ExpectTest) {
           sb.writeln("try {");
           sb.writeln("  dartDocTest.test(${test.call}, ${test.result});");
           sb.writeln("} catch (e) {");
           sb.writeln("  dartDocTest.crash(e);");
           sb.writeln("}");
+        } else {
+          throw "Unknown test type: ${test.runtimeType}";
         }
       }
       sb.writeln("}");
@@ -99,8 +138,7 @@ class DartDocTest {
 
     processedOpts.inputs.clear();
     processedOpts.inputs.add(uri);
-    AmendedFileSystem fileSystem =
-        new AmendedFileSystem(StandardFileSystem.instance);
+    AmendedFileSystem fileSystem = new AmendedFileSystem(_getFileSystem());
     fileSystem.amendFileUri = uri;
     fileSystem.amendWith = sb.toString();
     options.fileSystem = fileSystem;
@@ -114,10 +152,13 @@ class DartDocTest {
     Component component =
         await incrementalCompiler!.computeDelta(entryPoints: [uri]);
     if (errors) {
-      print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
-      return false;
+      _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
+      return [
+        new TestResult(null, TestOutcome.CompilationError)
+          ..message = errorStrings.join("\n")
+      ];
     }
-    print("Compiled (1) in ${stopwatch.elapsedMilliseconds} ms.");
+    _print("Compiled (1) in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
 
     fileSystem.amendImportUri = component.uriToSource[uri]?.importUri;
@@ -125,16 +166,16 @@ class DartDocTest {
     Component componentMain = await incrementalCompiler!.computeDelta(
         entryPoints: [AmendedFileSystem.mainUri], fullComponent: true);
     if (errors) {
-      print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
-      return false;
+      _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
+      return [new TestResult(null, TestOutcome.CompilationError)];
     }
-    print("Compiled (2) in ${stopwatch.elapsedMilliseconds} ms.");
+    _print("Compiled (2) in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
 
     Directory tmpDir = Directory.systemTemp.createTempSync();
     Uri dillOutUri = tmpDir.uri.resolve("dartdoctestrun.dill");
     await writeComponentToFile(componentMain, dillOutUri);
-    print("Wrote dill in ${stopwatch.elapsedMilliseconds} ms.");
+    _print("Wrote dill in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
 
     // Spawn URI (dill uri) to run tests.
@@ -150,7 +191,7 @@ class DartDocTest {
       completer.complete();
     });
     errorPort.listen((message) {
-      print("Isolate had an error: $message.");
+      _print("Isolate had an error: $message.");
       error = true;
       exitPort.close();
       errorPort.close();
@@ -163,23 +204,42 @@ class DartDocTest {
     int crashCount = 0;
     int parseErrorCount = 0;
     bool done = false;
+    Test? currentTest;
+
+    List<TestResult> result = [];
+
     communicationPort.listen((message) {
       if (done) {
         throw "Didn't expect any more messages. Got '$message'";
       }
       if (message == _portMessageTest) {
+        currentTest = tests[testCount];
         testCount++;
       } else if (message == _portMessageGood) {
         goodCount++;
-      } else if (message == _portMessageBad) {
+        result.add(new TestResult(currentTest!, TestOutcome.Pass));
+      } else if (message.toString().startsWith("$_portMessageBad: ")) {
         badCount++;
-      } else if (message.toString().startsWith("$_portMessageBadDetails: ")) {
-        print(message.toString().substring("$_portMessageBadDetails: ".length));
-      } else if (message == _portMessageCrash) {
+        String strippedMessage =
+            message.toString().substring("$_portMessageBad: ".length);
+        result.add(new TestResult(currentTest!, TestOutcome.Failed)
+          ..message = strippedMessage);
+        _print(strippedMessage);
+      } else if (message.toString().startsWith("$_portMessageCrash: ")) {
+        String strippedMessage =
+            message.toString().substring("$_portMessageCrash: ".length);
+        result.add(new TestResult(currentTest!, TestOutcome.Crash)
+          ..message = strippedMessage);
         crashCount++;
+        _print(strippedMessage);
       } else if (message.toString().startsWith("$_portMessageParseError: ")) {
+        String strippedMessage =
+            message.toString().substring("$_portMessageParseError: ".length);
+        result.add(
+            new TestResult(currentTest!, TestOutcome.TestCompilationError)
+              ..message = strippedMessage);
         parseErrorCount++;
-        print(message.toString().substring("$_portMessageParseError: ".length));
+        _print(strippedMessage);
       } else if (message == _portMessageDone) {
         done = true;
         // don't complete completer here. Expect the exit port to close.
@@ -198,33 +258,34 @@ class DartDocTest {
     );
     await completer.future;
     tmpDir.deleteSync(recursive: true);
+
     if (error) {
-      print("Completed with an error in ${stopwatch.elapsedMilliseconds} ms.");
-      return false;
+      _print("Completed with an error in ${stopwatch.elapsedMilliseconds} ms.");
+      return [new TestResult(null, TestOutcome.RuntimeError)];
     } else if (!done) {
-      print(
+      _print(
           "Didn't complete correctly in ${stopwatch.elapsedMilliseconds} ms.");
-      return false;
+      return [new TestResult(null, TestOutcome.FrameworkError)];
     } else if (testCount != tests.length) {
-      print("Didn't complete with error but ran "
+      _print("Didn't complete with error but ran "
           "${testCount} tests while expecting ${tests.length} "
           "in ${stopwatch.elapsedMilliseconds} ms.");
-      return false;
+      return [new TestResult(null, TestOutcome.FrameworkError)];
     } else {
-      print("Processed $testCount test(s) "
+      _print("Processed $testCount test(s) "
           "in ${stopwatch.elapsedMilliseconds} ms.");
       if (goodCount == testCount &&
           badCount == 0 &&
           crashCount == 0 &&
           parseErrorCount == 0) {
-        print("All tests passed.");
-        return true;
+        _print("All tests passed.");
+      } else {
+        _print("$goodCount OK; "
+            "$badCount bad; "
+            "$crashCount crashed; "
+            "$parseErrorCount parse errors.");
       }
-      print("$goodCount OK; "
-          "$badCount bad; "
-          "$crashCount crashed; "
-          "$parseErrorCount parse errors.");
-      return false;
+      return result;
     }
   }
 
@@ -237,9 +298,12 @@ class DartDocTest {
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
       if (message.codeName == "InferredPackageUri") return;
-      print(message.plainTextFormatted.first);
+      _print(message.plainTextFormatted.first);
       if (message.severity == Severity.error) {
         errors = true;
+        for (String errorString in message.plainTextFormatted) {
+          errorStrings.add(errorString);
+        }
       }
     };
 
@@ -254,10 +318,28 @@ class DartDocTest {
   }
 }
 
-List<Test> extractTestsFromUri(Uri uri) {
-  // Extract test cases in file.
-  File file = new File.fromUri(uri);
-  Uint8List rawBytes = file.readAsBytesSync();
+List<Test> extractTests(Uint8List rawBytes, Uri uriForReporting) {
+  String rawString = utf8.decode(rawBytes);
+  List<int> lineStarts = [];
+  Token firstToken = scanRawBytes(rawBytes, lineStarts: lineStarts);
+  Source source =
+      new Source(lineStarts, rawBytes, uriForReporting, uriForReporting);
+  Token token = firstToken;
+  List<Test> tests = [];
+  while (true) {
+    CommentToken? comment = token.precedingComments;
+    if (comment != null) {
+      tests.addAll(extractTestsFromComment(comment, rawString, source));
+    }
+    if (token.isEof) break;
+    Token? next = token.next;
+    if (next == null) break;
+    token = next;
+  }
+  return tests;
+}
+
+Token scanRawBytes(Uint8List rawBytes, {List<int>? lineStarts}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
@@ -275,120 +357,311 @@ List<Test> extractTestsFromUri(Uri uri) {
       // configuration won't be reset.
     },
   );
-  Token firstToken = scanner.tokenize();
-  Token token = firstToken;
-  List<Test> tests = [];
-  while (!token.isEof) {
-    CommentToken? comment = token.precedingComments;
-    if (comment != null) {
-      tests.addAll(processComment(comment));
-      // TODO: Use parser to verify there's at least no syntax errors in the
-      // tests.
-    }
-    Token? next = token.next;
-    if (next == null) break;
-    token = next;
+  Token result = scanner.tokenize();
+  if (lineStarts != null) {
+    lineStarts.clear();
+    lineStarts.addAll(scanner.lineStarts);
   }
-  return tests;
+  return result;
 }
 
 const int $LF = 10;
-const int $OPEN_PAREN = 40;
-const int $CLOSE_PAREN = 41;
-const int $COMMA = 44;
+const int $SPACE = 32;
+const int $STAR = 42;
 
-class Test {
+class Test {}
+
+class ExpectTest implements Test {
   final String call;
   final String result;
 
-  Test(this.call, this.result);
+  ExpectTest(this.call, this.result);
+
+  bool operator ==(Object other) {
+    if (other is! ExpectTest) return false;
+    if (other.call != call) return false;
+    if (other.result != result) return false;
+    return true;
+  }
+
+  String toString() {
+    return "ExpectTest[$call, $result]";
+  }
 }
 
 class TestParseError implements Test {
   final String message;
+  final int position;
 
-  TestParseError(this.message);
+  TestParseError(this.message, this.position);
 
-  @override
-  String get call => throw UnimplementedError();
+  bool operator ==(Object other) {
+    if (other is! TestParseError) return false;
+    if (other.message != message) return false;
+    if (other.position != position) return false;
+    return true;
+  }
 
-  @override
-  String get result => throw UnimplementedError();
+  String toString() {
+    return "TestParseError[$position, $message]";
+  }
 }
 
-List<Test> processComment(CommentToken comment) {
+enum TestOutcome {
+  Pass,
+  Failed,
+  Crash,
+  TestCompilationError,
+  CompilationError,
+  RuntimeError,
+  FrameworkError
+}
+
+class TestResult {
+  final Test? test;
+  final TestOutcome outcome;
+  String? message;
+
+  TestResult(this.test, this.outcome);
+
+  bool operator ==(Object other) {
+    if (other is! TestResult) return false;
+    if (other.test != test) return false;
+    if (other.outcome != outcome) return false;
+    if (other.message != message) return false;
+    return true;
+  }
+
+  String toString() {
+    if (message != null) {
+      return "TestResult[$outcome, $test, $message]";
+    }
+    return "TestResult[$outcome, $test]";
+  }
+}
+
+List<Test> extractTestsFromComment(
+    CommentToken comment, String rawString, Source source) {
+  CommentString commentsData = extractComments(comment, rawString);
+  final String comments = commentsData.string;
+  List<Test> result = [];
+  int index = comments.indexOf("DartDocTest(");
+  if (index < 0) {
+    return result;
+  }
+
+  Test scanDartDoc(int scanOffset) {
+    final Token firstToken =
+        scanRawBytes(utf8.encode(comments.substring(scanOffset)) as Uint8List);
+    final ErrorListener listener = new ErrorListener();
+    final Parser parser = new Parser(listener);
+    parser.asyncState = AsyncModifier.Async;
+
+    final Token pastErrors = parser.skipErrorTokens(firstToken);
+    assert(pastErrors.isIdentifier);
+    assert(pastErrors.lexeme == "DartDocTest");
+
+    final Token startParen = pastErrors.next!;
+    assert(identical("(", startParen.stringValue));
+
+    // Advance index so we don't parse the same thing again (for error cases).
+    index = scanOffset + startParen.charEnd;
+
+    final Token beforeComma = parser.parseExpression(startParen);
+    final Token comma = beforeComma.next!;
+
+    if (listener.hasErrors) {
+      StringBuffer sb = new StringBuffer();
+      int firstPosition = _createParseErrorMessages(
+          listener, sb, commentsData, scanOffset, source);
+      return new TestParseError(sb.toString(), firstPosition);
+    } else if (!identical(",", comma.stringValue)) {
+      int position = commentsData.charOffset + scanOffset + comma.charOffset;
+      Message message = codes.templateExpectedButGot.withArguments(',');
+      return new TestParseError(
+        _createParseErrorMessage(source, position, comma, comma, message),
+        position,
+      );
+    }
+
+    Token beforeEndParen = parser.parseExpression(comma);
+    Token endParen = beforeEndParen.next!;
+
+    if (listener.hasErrors) {
+      StringBuffer sb = new StringBuffer();
+      int firstPosition = _createParseErrorMessages(
+          listener, sb, commentsData, scanOffset, source);
+      return new TestParseError(sb.toString(), firstPosition);
+    } else if (!identical(")", endParen.stringValue)) {
+      int position = commentsData.charOffset + scanOffset + endParen.charOffset;
+      Message message = codes.templateExpectedButGot.withArguments(')');
+      return new TestParseError(
+        _createParseErrorMessage(source, position, comma, comma, message),
+        position,
+      );
+    }
+
+    // Advance index so we don't parse the same thing again (success case).
+    index = scanOffset + endParen.charEnd;
+
+    int startPos = scanOffset + startParen.next!.charOffset;
+    int midEndPos = scanOffset + beforeComma.charEnd;
+    int midStartPos = scanOffset + comma.next!.charOffset;
+    int endPos = scanOffset + beforeEndParen.charEnd;
+    return new ExpectTest(
+      comments.substring(startPos, midEndPos),
+      comments.substring(midStartPos, endPos),
+    );
+  }
+
+  while (index >= 0) {
+    result.add(scanDartDoc(index));
+    index = comments.indexOf("DartDocTest(", index);
+  }
+  return result;
+}
+
+int _createParseErrorMessages(ErrorListener listener, StringBuffer sb,
+    CommentString commentsData, int scanOffset, Source source) {
+  assert(listener.recoverableErrors.isNotEmpty);
+  sb.writeln("Parse error(s):");
+  int? firstPosition;
+  for (RecoverableError recoverableError in listener.recoverableErrors) {
+    final int position = commentsData.charOffset +
+        scanOffset +
+        recoverableError.startToken.charOffset;
+    firstPosition ??= position;
+    sb.writeln("");
+    sb.write(_createParseErrorMessage(
+      source,
+      position,
+      recoverableError.startToken,
+      recoverableError.endToken,
+      recoverableError.message,
+    ));
+  }
+  return firstPosition!;
+}
+
+String _createParseErrorMessage(Source source, int position, Token startToken,
+    Token endToken, Message message) {
+  Location location = source.getLocation(source.importUri!, position);
+  return command_line_reporting.formatErrorMessage(
+      source.getTextLine(location.line),
+      location,
+      endToken.charEnd - startToken.charOffset,
+      source.importUri!.toString(),
+      message.message);
+}
+
+CommentString extractComments(CommentToken comment, String rawString) {
+  List<int> fileCodeUnits = rawString.codeUnits;
+  final int charOffset = comment.charOffset;
+  int expectedCharOffset = charOffset;
   StringBuffer sb = new StringBuffer();
   CommentToken? commentToken = comment;
   bool commentBlock = false;
+  bool commentBlockStar = false;
   while (commentToken != null) {
-    String data = commentToken.lexeme.trim();
+    if (expectedCharOffset != commentToken.charOffset) {
+      // Missing spaces/linebreaks.
+      assert(expectedCharOffset < commentToken.offset);
+      for (int i = expectedCharOffset; i < commentToken.offset; i++) {
+        if (fileCodeUnits[i] == $LF) {
+          sb.writeCharCode($LF);
+        } else {
+          sb.write(" ");
+        }
+      }
+    }
+    expectedCharOffset = commentToken.charEnd;
+    String data = commentToken.lexeme;
     if (!commentBlock) {
       if (data.startsWith("///")) {
-        data = data.substring(3).trim();
+        data = data.substring(3);
+        sb.write("   ");
       } else if (data.startsWith("//")) {
-        data = data.substring(2).trim();
-      } else if (data.startsWith("/*")) {
-        data = data.substring(2).trim();
+        data = data.substring(2);
+        sb.write("  ");
+      } else if (data.startsWith("/**")) {
+        data = data.substring(3);
         commentBlock = true;
+        commentBlockStar = true;
+        sb.write("   ");
+      } else if (data.startsWith("/*")) {
+        data = data.substring(2);
+        commentBlock = true;
+        sb.write("  ");
       }
     }
 
     if (commentBlock && data.endsWith("*/")) {
-      data = data.substring(0, data.length - 2).trim();
+      // Remove ending "*/"" as well as "starting" "*" if in a "/**" block.
+      List<int> codeUnits = data.codeUnits;
+      bool sawNewlineLast = false;
+      for (int i = 0; i < codeUnits.length - 2; i++) {
+        int codeUnit = codeUnits[i];
+        if (codeUnit == $LF) {
+          sb.writeCharCode($LF);
+          sawNewlineLast = true;
+        } else if (codeUnit <= $SPACE) {
+          sb.writeCharCode($SPACE);
+        } else if (commentBlockStar && sawNewlineLast && codeUnit == $STAR) {
+          sb.writeCharCode($SPACE);
+          sawNewlineLast = false;
+        } else {
+          sawNewlineLast = false;
+          sb.writeCharCode(codeUnit);
+        }
+      }
+      sb.write("  ");
       commentBlock = false;
-    }
-    if (data.isNotEmpty) {
+      commentBlockStar = false;
+    } else {
       sb.write(data);
     }
     Token? next = commentToken.next;
     commentToken = null;
     if (next is CommentToken) commentToken = next;
   }
-  String comments = sb.toString();
-  List<Test> result = [];
-  int index = comments.indexOf("DartDocTest(");
-  if (index < 0) {
-    return result;
-  }
-  List<int> codeUnits = comments.codeUnits;
+  return new CommentString(sb.toString(), charOffset);
+}
 
-  while (index >= 0) {
-    // DartDocTest starts at (the current) $index --- now find the end,
-    // parenthesis, comma etc.
-    // TODO: This doesn't work for string literals with e.g. '(' and ',' in it.
-    int parenDepth = 0;
-    int firstParen = -1;
-    int commaAt = -1;
-    while (index < comments.length) {
-      int codeUnit = codeUnits[index++];
-      if (codeUnit == $OPEN_PAREN) {
-        parenDepth++;
-        if (parenDepth == 1) {
-          firstParen = index;
-        }
-      } else if (codeUnit == $CLOSE_PAREN) {
-        parenDepth--;
-        if (parenDepth == 0) {
-          break;
-        }
-      } else if (parenDepth == 1 && commaAt < 0 && codeUnit == $COMMA) {
-        commaAt = index;
-      }
-    }
+class CommentString {
+  final String string;
+  final int charOffset;
 
-    int end = index;
-    if (parenDepth != 0 || firstParen < 0 || commaAt < 0) {
-      // TODO: Insert code-snippet that didn't parse...
-      result.add(new TestParseError("Parse error for test"));
-    } else {
-      result.add(new Test(
-        comments.substring(firstParen, commaAt - 1).trim(),
-        comments.substring(commaAt, end - 1).trim(),
-      ));
-    }
-    index = comments.indexOf("DartDocTest(", index);
+  CommentString(this.string, this.charOffset);
+
+  bool operator ==(Object other) {
+    if (other is! CommentString) return false;
+    if (other.string != string) return false;
+    if (other.charOffset != charOffset) return false;
+    return true;
   }
-  return result;
+
+  String toString() {
+    return "CommentString[$charOffset, $string]";
+  }
+}
+
+class ErrorListener extends NullListener {
+  List<RecoverableError> recoverableErrors = [];
+
+  @override
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    super.handleRecoverableError(message, startToken, endToken);
+    recoverableErrors.add(new RecoverableError(message, startToken, endToken));
+  }
+}
+
+class RecoverableError {
+  final Message message;
+  final Token startToken;
+  final Token endToken;
+
+  RecoverableError(this.message, this.startToken, this.endToken);
 }
 
 class AmendedFileSystem implements FileSystem {
@@ -441,14 +714,13 @@ class DartDocTest {
     if (_testImpl(actual, expected)) {
       port.send("$_portMessageGood");
     } else {
-      port.send("$_portMessageBad");
-      port.send("$_portMessageBadDetails: Expected '\$expected'; got '\$actual'.");
+      port.send("$_portMessageBad: Expected '\$expected'; got '\$actual'.");
     }
   }
 
   void crash(dynamic error) {
     port.send("$_portMessageTest");
-    port.send("$_portMessageCrash");
+    port.send("$_portMessageCrash: \$error");
   }
 
   void parseError(String message) {

@@ -35,7 +35,7 @@ class Context extends ChainContext {
 
   Stream<DartDocTestTestDescription> list(Chain suite) async* {
     await for (TestDescription entry in super.list(suite)) {
-      List<Test> tests = extractTestsFromUri(entry.uri);
+      List<Test> tests = await dartDocTest.extractTestsFromUri(entry.uri);
       if (tests.isEmpty) continue;
       yield new DartDocTestTestDescription(entry.shortName, entry.uri, tests);
     }
@@ -60,9 +60,12 @@ class DartDocTestStep extends Step<DartDocTestTestDescription,
 
   Future<Result<DartDocTestTestDescription>> run(
       DartDocTestTestDescription description, Context context) async {
-    bool result = await context.dartDocTest
+    List<TestResult> result = await context.dartDocTest
         .compileAndRun(description.uri, description.tests);
-    if (result) {
+    bool boolResult = result
+        .map((e) => e.outcome == TestOutcome.Pass)
+        .fold(true, (previousValue, element) => previousValue && element);
+    if (boolResult) {
       return new Result<DartDocTestTestDescription>.pass(description);
     } else {
       return new Result<DartDocTestTestDescription>.fail(description);
