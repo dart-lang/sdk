@@ -95,7 +95,13 @@ class Function {
   @patch
   static apply(Function function, List<dynamic>? positionalArguments,
       [Map<Symbol, dynamic>? namedArguments]) {
-    positionalArguments ??= [];
+    if (positionalArguments == null) {
+      positionalArguments = [];
+    } else if (JS<bool>('!', '!Array.isArray(#)', positionalArguments)) {
+      // dcall expects the positionalArguments as a JS array.
+      positionalArguments = List.of(positionalArguments);
+    }
+
     // dcall expects the namedArguments as a JS map in the last slot.
     if (namedArguments != null && namedArguments.isNotEmpty) {
       var map = JS('', '{}');

@@ -320,7 +320,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
   let errorMessage = $_argumentErrors($ftype, $args, $named);
   if (errorMessage == null) {
     if ($typeArgs != null) $args = $typeArgs.concat($args);
-    if ($named != null) $args.push($named);
+    if ($named != null) $args = $args.concat($named);
     return $f.apply($obj, $args);
   }
   return callNSM(errorMessage);
