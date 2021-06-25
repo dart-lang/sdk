@@ -1266,7 +1266,7 @@
         "vm-precomp-ffi-qemu-linux-release-arm"
       ],
       "meta": {
-        "description": "This configuration is used for running FFI tests on qemu and FFI unit tests."
+        "description": "This configuration is used for running vm unit tests and FFI tests on qemu and FFI unit tests."
       },
       "steps": [
         {
@@ -1300,6 +1300,13 @@
           "arguments": [
             "--arch=simarm_x64",
             "gen_snapshot"
+          ]
+        },
+        {
+          "name": "vm unit tests",
+          "arguments": [
+            "-ndartk-linux-${mode}-arm-qemu",
+            "vm/cc"
           ]
         },
         {
