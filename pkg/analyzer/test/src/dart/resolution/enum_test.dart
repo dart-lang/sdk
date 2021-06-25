@@ -24,7 +24,7 @@ var v = [E1.a, E2.b];
 ''');
 
     var v = findElement.topVar('v');
-    assertType(v.type, 'List<Object>');
+    assertType(v.type, 'List<Enum>');
   }
 
   test_isConstantEvaluated() async {

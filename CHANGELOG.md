@@ -4,9 +4,9 @@
 
 ### `dart:html`
 
-* [#44319][]: `convertNativeToDart_Dictionary()` now converts objects
-  recursively, this fixes APIs like MediaStreamTrack.getCapabilities
-  that convert between Maps and browser Dictionaries.
+*   [#44319][]: `convertNativeToDart_Dictionary()` now converts objects
+    recursively, this fixes APIs like MediaStreamTrack.getCapabilities
+    that convert between Maps and browser Dictionaries.
 
 [44319]: (https://github.com/dart-lang/sdk/issues/44319)
 
@@ -22,6 +22,8 @@
     the `unawaited_futures` lint.
 
 #### `dart:core`
+
+*   Introduce `Enum` interface implemented by all `enum` declarations.
 
 *   The native `DateTime` class now better handles local time around
     daylight saving changes that are not precisely one hour.

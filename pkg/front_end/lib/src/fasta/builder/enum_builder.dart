@@ -79,6 +79,8 @@ class EnumBuilder extends SourceClassBuilder {
 
   final NamedTypeBuilder objectType;
 
+  final NamedTypeBuilder enumType;
+
   final NamedTypeBuilder listType;
 
   EnumBuilder.internal(
@@ -91,6 +93,7 @@ class EnumBuilder extends SourceClassBuilder {
       this.intType,
       this.listType,
       this.objectType,
+      this.enumType,
       this.stringType,
       LibraryBuilder parent,
       int startCharOffset,
@@ -147,6 +150,12 @@ class EnumBuilder extends SourceClassBuilder {
         /* charOffset = */ null);
     NamedTypeBuilder objectType = new NamedTypeBuilder(
         "Object",
+        const NullabilityBuilder.omitted(),
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
+    NamedTypeBuilder enumType = new NamedTypeBuilder(
+        "Enum",
         const NullabilityBuilder.omitted(),
         /* arguments = */ null,
         /* fileUri = */ null,
@@ -393,6 +402,7 @@ class EnumBuilder extends SourceClassBuilder {
         intType,
         listType,
         objectType,
+        enumType,
         stringType,
         parent,
         startCharOffsetComputed,
@@ -429,7 +439,11 @@ class EnumBuilder extends SourceClassBuilder {
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     objectType.resolveIn(
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    enumType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+
+    cls.implementedTypes
+        .add(enumType.buildSupertype(libraryBuilder, charOffset, fileUri));
 
     SourceFieldBuilder indexFieldBuilder = firstMemberNamed("index");
     indexFieldBuilder.build(libraryBuilder);

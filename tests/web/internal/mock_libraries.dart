@@ -50,6 +50,10 @@ import 'dart:_internal' as internal;
         static var nan = 0;
         static parse(s) {}
       }''',
+  'Enum': r'''
+      abstract class Enum {
+        int get index;
+      }''',
   'Function': r'''
       class Function {
         static apply(Function fn, List positional, [Map named]) => null;

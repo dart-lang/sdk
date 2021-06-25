@@ -27,6 +27,7 @@ const Set<String> _nonSubtypableDartAsyncClassNames = {
 const Set<String> _nonSubtypableDartCoreClassNames = {
   'bool',
   'double',
+  'Enum',
   'int',
   'Null',
   'num',
@@ -104,6 +105,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   ClassElement? _boolElement;
   ClassElement? _doubleElement;
+  ClassElement? _enumElement;
   ClassElement? _futureElement;
   ClassElement? _futureOrElement;
   ClassElement? _intElement;
@@ -122,6 +124,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType? _deprecatedType;
   InterfaceType? _doubleType;
   InterfaceType? _doubleTypeQuestion;
+  InterfaceType? _enumType;
   InterfaceType? _functionType;
   InterfaceType? _futureDynamicType;
   InterfaceType? _futureNullType;
@@ -151,7 +154,7 @@ class TypeProviderImpl extends TypeProviderBase {
     required LibraryElement coreLibrary,
     required LibraryElement asyncLibrary,
     required bool isNonNullableByDefault,
-  })   : _coreLibrary = coreLibrary,
+  })  : _coreLibrary = coreLibrary,
         _asyncLibrary = asyncLibrary,
         isNonNullableByDefault = isNonNullableByDefault;
 
@@ -218,6 +221,16 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   DartType get dynamicType => DynamicTypeImpl.instance;
+
+  @override
+  ClassElement get enumElement {
+    return _enumElement ??= _getClassElement(_coreLibrary, "Enum");
+  }
+
+  @override
+  InterfaceType get enumType {
+    return _enumType ??= _getType(_coreLibrary, "Enum");
+  }
 
   @override
   InterfaceType get functionType {

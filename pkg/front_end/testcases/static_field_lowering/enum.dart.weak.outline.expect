@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object /*isEnum*/  {
+class A extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   static const field core::List<self::A> values = const <self::A>[self::A::a, self::A::b];

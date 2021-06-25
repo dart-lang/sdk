@@ -38,6 +38,7 @@ class double {}
 class int {}
 class num {}
 class Object {}
+class Enum {}
 class Iterable<E> {}
 class Map<K, V> {}
 class Null {}

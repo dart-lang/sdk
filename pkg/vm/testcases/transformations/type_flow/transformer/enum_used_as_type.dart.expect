@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
-abstract class Enum extends core::Object {
+abstract class Enum extends core::Object implements core::Enum {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  abstract get index() → core::int*;
 }
 class Class extends core::Object {

@@ -6,9 +6,9 @@ import "dart:_internal" as _in;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-abstract class UnusedEnum extends core::Object {
+abstract class UnusedEnum extends core::Object implements core::Enum {
 }
-class UsedEnum extends core::Object /*isEnum*/  {
+class UsedEnum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   method toString() → core::String
@@ -43,7 +43,7 @@ library /*isNonNullableByDefault*/;
 import self as mai;
 import "dart:core" as core;
 
-abstract class ConstEnum extends core::Object {
+abstract class ConstEnum extends core::Object implements core::Enum {
 }
 class ConstClass extends core::Object {
   synthetic constructor •() → mai::ConstClass

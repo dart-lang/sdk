@@ -16,7 +16,7 @@ library /*isNonNullableByDefault*/;
 import self as mai;
 import "dart:core" as core;
 
-class Enum extends core::Object /*isEnum*/  {
+class Enum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   static const field core::List<mai::Enum> values = #C4;
