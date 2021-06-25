@@ -195,10 +195,12 @@ daemon
 dart$doc$test$tester
 dart\$doc\$test\$tester
 dartanalyzer
+dartdocs
 dartdoctest
 dartdoctestrun
 dartfile
 dartfmt
+darttest
 dash
 dashes
 day
@@ -290,6 +292,7 @@ exitcode
 exiting
 expanded
 expansive
+explainer
 extern
 fac
 faking
@@ -714,6 +717,7 @@ shot
 sigint
 signalled
 sigwinch
+slashes
 slight
 sliver
 smoke
@@ -727,6 +731,7 @@ spellcheck
 spelled
 spelling
 spent
+spills
 splay
 splitting
 spurious
@@ -776,6 +781,7 @@ test3b
 theoretically
 thereof
 thread
+ticks
 timed
 timeout
 timer
