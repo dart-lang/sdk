@@ -63,10 +63,35 @@ class InferenceVisitor
 
   InferenceVisitor(this.inferrer);
 
+  /// Computes uri and offset for [node] for internal errors in a way that is
+  /// safe for both top-level and full inference.
+  _UriOffset _computeUriOffset(TreeNode node) {
+    Uri uri;
+    int fileOffset;
+    if (!inferrer.isTopLevel) {
+      // In local inference we have access to the current file uri.
+      uri = inferrer.helper.uri;
+      fileOffset = node.fileOffset;
+    } else {
+      Location location = node.location;
+      if (location != null) {
+        // Use the location file uri, if available.
+        uri = location.file;
+        fileOffset = node.fileOffset;
+      } else {
+        // Otherwise use the library file uri with no offset.
+        uri = inferrer.library.fileUri;
+        fileOffset = TreeNode.noOffset;
+      }
+    }
+    return new _UriOffset(uri, fileOffset);
+  }
+
   ExpressionInferenceResult _unhandledExpression(
       Expression node, DartType typeContext) {
-    unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
-        inferrer.helper.uri);
+    _UriOffset uriOffset = _computeUriOffset(node);
+    unhandled("${node.runtimeType}", "InferenceVisitor", uriOffset.fileOffset,
+        uriOffset.uri);
   }
 
   @override
@@ -220,8 +245,9 @@ class InferenceVisitor
   }
 
   StatementInferenceResult _unhandledStatement(Statement node) {
-    return unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
-        inferrer.helper.uri);
+    _UriOffset uriOffset = _computeUriOffset(node);
+    return unhandled("${node.runtimeType}", "InferenceVisitor",
+        uriOffset.fileOffset, uriOffset.uri);
   }
 
   @override
@@ -991,11 +1017,12 @@ class InferenceVisitor
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
     } else {
+      _UriOffset uriOffset = _computeUriOffset(syntheticAssignment);
       return unhandled(
           "${syntheticAssignment.runtimeType}",
           "handleForInStatementWithoutVariable",
-          syntheticAssignment.fileOffset,
-          inferrer.helper.uri);
+          uriOffset.fileOffset,
+          uriOffset.uri);
     }
   }
 
@@ -7261,4 +7288,11 @@ class InvalidForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) =>
       expression;
+}
+
+class _UriOffset {
+  final Uri uri;
+  final int fileOffset;
+
+  _UriOffset(this.uri, this.fileOffset);
 }
