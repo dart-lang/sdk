@@ -12,8 +12,8 @@ class C extends core::Object {
   method inst<T extends core::Object? = dynamic>(self::C::inst::T% value) → self::C::inst::T%
     return value;
   method method() → void {
-    (core::int) → core::int f1 = #C1<core::int>;
-    core::String f1TypeName = (#C1<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+    (core::int) → core::int f1 = #C2;
+    core::String f1TypeName = (#C2).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f2 = this.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
     core::String f2TypeName = (this.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f3 = this.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
@@ -26,8 +26,8 @@ abstract class M extends self::C /*isMixinDeclaration*/  {
   method minst<T extends core::Object? = dynamic>(self::M::minst::T% value) → self::M::minst::T%
     return value;
   method mmethod() → void {
-    (core::int) → core::int f1 = #C2<core::int>;
-    core::String f1TypeName = (#C2<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+    (core::int) → core::int f1 = #C4;
+    core::String f1TypeName = (#C4).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f2 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
     core::String f2TypeName = (this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f3 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
@@ -68,8 +68,8 @@ static method Ext|einst<T extends core::Object? = dynamic>(lowered final self::C
 static method Ext|get#einst(lowered final self::C #this) → <T extends core::Object? = dynamic>(T%) → T%
   return <T extends core::Object? = dynamic>(T% value) → T% => self::Ext|einst<T%>(#this, value);
 static method Ext|emethod(lowered final self::C #this) → void {
-  (core::int) → core::int f1 = #C3<core::int>;
-  core::String f1TypeName = (#C3<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+  (core::int) → core::int f1 = #C6;
+  core::String f1TypeName = (#C6).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   (core::int) → core::int f2 = self::Ext|get#einst(#this)<core::int>;
   core::String f2TypeName = (self::Ext|get#einst(#this)<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   (core::int) → core::int f3 = self::Ext|get#einst(#this)<core::int>;
@@ -78,8 +78,8 @@ static method Ext|emethod(lowered final self::C #this) → void {
 static method Ext|get#emethod(lowered final self::C #this) → () → void
   return () → void => self::Ext|emethod(#this);
 static method main() → void {
-  core::Type t1 = #C4;
-  core::Type t2 = #C5;
+  core::Type t1 = #C7;
+  core::Type t2 = #C8;
   function local<T extends core::Object? = dynamic>(T% value) → T%
     return value;
   (core::int) → core::int f3 = local<core::int>;
@@ -87,14 +87,17 @@ static method main() → void {
   (core::int) → core::int f4 = d.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
   (core::int) → core::int f5 = d.{self::_D&C&M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
   (core::int) → core::int f6 = self::Ext|get#einst(d)<core::int>;
-  core::String typeName = (#C4).{core::Type::toString}(){() → core::String};
+  core::String typeName = (#C7).{core::Type::toString}(){() → core::String};
   core::String functionTypeName = (local<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
 }
 
 constants  {
   #C1 = tearoff self::C::stat
-  #C2 = tearoff self::M::mstat
-  #C3 = tearoff self::Ext|estat
-  #C4 = TypeLiteralConstant(core::List<core::int>)
-  #C5 = TypeLiteralConstant(core::List<core::List<core::int>>)
+  #C2 = partial-instantiation self::C::stat <core::int>
+  #C3 = tearoff self::M::mstat
+  #C4 = partial-instantiation self::M::mstat <core::int>
+  #C5 = tearoff self::Ext|estat
+  #C6 = partial-instantiation self::Ext|estat <core::int>
+  #C7 = TypeLiteralConstant(core::List<core::int>)
+  #C8 = TypeLiteralConstant(core::List<core::List<core::int>>)
 }

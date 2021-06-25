@@ -86,6 +86,7 @@ Component transformComponent(
     required bool desugarSets,
     required bool enableTripleShift,
     required bool enableConstFunctions,
+    required bool enableConstructorTearOff,
     required bool errorOnUnevaluatedConstant,
     CoreTypes? coreTypes,
     ClassHierarchy? hierarchy}) {
@@ -99,6 +100,8 @@ Component transformComponent(
   assert(enableConstFunctions != null);
   // ignore: unnecessary_null_comparison
   assert(errorOnUnevaluatedConstant != null);
+  // ignore: unnecessary_null_comparison
+  assert(enableConstructorTearOff != null);
   coreTypes ??= new CoreTypes(component);
   hierarchy ??= new ClassHierarchy(component, coreTypes);
 
@@ -110,7 +113,8 @@ Component transformComponent(
       enableTripleShift: enableTripleShift,
       enableConstFunctions: enableConstFunctions,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-      evaluateAnnotations: evaluateAnnotations);
+      evaluateAnnotations: evaluateAnnotations,
+      enableConstructorTearOff: enableConstructorTearOff);
   return component;
 }
 
@@ -124,7 +128,8 @@ ConstantCoverage transformLibraries(
     {required bool evaluateAnnotations,
     required bool enableTripleShift,
     required bool enableConstFunctions,
-    required bool errorOnUnevaluatedConstant}) {
+    required bool errorOnUnevaluatedConstant,
+    required bool enableConstructorTearOff}) {
   // ignore: unnecessary_null_comparison
   assert(evaluateAnnotations != null);
   // ignore: unnecessary_null_comparison
@@ -133,12 +138,15 @@ ConstantCoverage transformLibraries(
   assert(enableConstFunctions != null);
   // ignore: unnecessary_null_comparison
   assert(errorOnUnevaluatedConstant != null);
+  // ignore: unnecessary_null_comparison
+  assert(enableConstructorTearOff != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
       enableConstFunctions,
+      enableConstructorTearOff,
       errorOnUnevaluatedConstant,
       typeEnvironment,
       errorReporter,
@@ -156,10 +164,11 @@ void transformProcedure(
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    {bool evaluateAnnotations: true,
-    bool enableTripleShift: false,
-    bool enableConstFunctions: false,
-    bool errorOnUnevaluatedConstant: false}) {
+    {required bool evaluateAnnotations,
+    required bool enableTripleShift,
+    required bool enableConstFunctions,
+    required bool enableConstructorTearOff,
+    required bool errorOnUnevaluatedConstant}) {
   // ignore: unnecessary_null_comparison
   assert(evaluateAnnotations != null);
   // ignore: unnecessary_null_comparison
@@ -168,12 +177,15 @@ void transformProcedure(
   assert(enableConstFunctions != null);
   // ignore: unnecessary_null_comparison
   assert(errorOnUnevaluatedConstant != null);
+  // ignore: unnecessary_null_comparison
+  assert(enableConstructorTearOff != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
       enableConstFunctions,
+      enableConstructorTearOff,
       errorOnUnevaluatedConstant,
       typeEnvironment,
       errorReporter,
@@ -360,6 +372,7 @@ class ConstantsTransformer extends RemovingTransformer {
   final bool evaluateAnnotations;
   final bool enableTripleShift;
   final bool enableConstFunctions;
+  final bool enableConstructorTearOff;
   final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
@@ -368,6 +381,7 @@ class ConstantsTransformer extends RemovingTransformer {
       this.evaluateAnnotations,
       this.enableTripleShift,
       this.enableConstFunctions,
+      this.enableConstructorTearOff,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
       ErrorReporter errorReporter,
@@ -696,6 +710,18 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitInstantiation(Instantiation node, TreeNode? removalSentinel) {
+    Instantiation result =
+        super.visitInstantiation(node, removalSentinel) as Instantiation;
+    if (enableConstructorTearOff &&
+        result.expression is ConstantExpression &&
+        result.typeArguments.every(isInstantiated)) {
+      return evaluateAndTransformWithContext(node, result);
+    }
+    return node;
+  }
+
+  @override
   TreeNode visitSwitchCase(SwitchCase node, TreeNode? removalSentinel) {
     transformExpressions(node.expressions, node);
     return super.visitSwitchCase(node, removalSentinel);
@@ -871,9 +897,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   final bool enableTripleShift;
   final bool enableConstFunctions;
-
-  final bool Function(DartType) isInstantiated =
-      new IsInstantiatedVisitor().isInstantiated;
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Constant?> nodeCache;
@@ -4477,6 +4500,10 @@ class SimpleErrorReporter implements ErrorReporter {
     io.exitCode = 42;
     io.stderr.writeln('$uri:$offset Constant evaluation error: $message');
   }
+}
+
+bool isInstantiated(DartType type) {
+  return type.accept(new IsInstantiatedVisitor());
 }
 
 class IsInstantiatedVisitor extends DartTypeVisitor<bool> {

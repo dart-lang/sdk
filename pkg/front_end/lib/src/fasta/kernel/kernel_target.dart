@@ -1214,6 +1214,8 @@ class KernelTarget extends TargetImplementation {
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         enableConstFunctions:
             isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
+        enableConstructorTearOff:
+            isExperimentEnabledGlobally(ExperimentalFlag.constructorTearoffs),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 
@@ -1255,18 +1257,21 @@ class KernelTarget extends TargetImplementation {
     constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
     constants.transformProcedure(
-        procedure,
-        backendTarget.constantsBackend(loader.coreTypes),
-        environmentDefines,
-        environment,
-        new KernelConstantErrorReporter(loader),
-        evaluationMode,
-        evaluateAnnotations: true,
-        enableTripleShift:
-            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
-        enableConstFunctions:
-            isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
-        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+      procedure,
+      backendTarget.constantsBackend(loader.coreTypes),
+      environmentDefines,
+      environment,
+      new KernelConstantErrorReporter(loader),
+      evaluationMode,
+      evaluateAnnotations: true,
+      enableTripleShift:
+          isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+      enableConstFunctions:
+          isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
+      enableConstructorTearOff:
+          isExperimentEnabledGlobally(ExperimentalFlag.constructorTearoffs),
+      errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
+    );
     ticker.logMs("Evaluated constants");
 
     backendTarget.performTransformationsOnProcedure(
