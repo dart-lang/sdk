@@ -1,3 +1,7 @@
+## 0.6.5
+
+* Drop unused dependencies.
+
 ## 0.6.4
 
 * Make compatible with the null-safe version of `args`. 
