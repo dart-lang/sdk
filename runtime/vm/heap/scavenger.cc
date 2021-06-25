@@ -826,9 +826,15 @@ class CollectStoreBufferVisitor : public ObjectPointerVisitor {
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
-      RELEASE_ASSERT(!raw_obj->untag()->IsCardRemembered());
       RELEASE_ASSERT(raw_obj->untag()->IsRemembered());
       RELEASE_ASSERT(raw_obj->IsOldObject());
+
+      RELEASE_ASSERT(!raw_obj->untag()->IsCardRemembered());
+      if (raw_obj.GetClassId() == kArrayCid) {
+        const uword length =
+            Smi::Value(static_cast<UntaggedArray*>(raw_obj.untag())->length());
+        RELEASE_ASSERT(!Array::UseCardMarkingForAllocation(length));
+      }
       in_store_buffer_->Add(raw_obj);
     }
   }

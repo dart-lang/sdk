@@ -447,10 +447,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     test('async method call', () async {
       await driver.check(
           breakpointId: 'globalFunctionBP',
-          expression: 'c.asyncMethod(2)',
-          expectedResult: '_Future.new {Symbol(_state): 1, '
-              'Symbol(_resultOrListeners): null, '
-              'Symbol(_zone): _RootZone {}');
+          expression: 'c.asyncMethod(2).runtimeType.toString()',
+          expectedResult: '_Future<int>');
     });
 
     test('extension method call', () async {
@@ -580,10 +578,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     test('async method call', () async {
       await driver.check(
           breakpointId: 'constructorBP',
-          expression: 'asyncMethod(2)',
-          expectedResult: '_Future.new {Symbol(_state): 1, '
-              'Symbol(_resultOrListeners): null, '
-              'Symbol(_zone): _RootZone {}');
+          expression: 'asyncMethod(2).runtimeType.toString()',
+          expectedResult: '_Future<int>');
     });
 
     test('extension method call', () async {
@@ -679,10 +675,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
     test('awaited method call', () async {
       await driver.check(
           breakpointId: 'bp1',
-          expression: 'c.asyncMethod(1)',
-          expectedResult: '_Future.new {Symbol(_state): 1, '
-              'Symbol(_resultOrListeners): null, '
-              'Symbol(_zone): _RootZone {}');
+          expression: 'c.asyncMethod(1).runtimeType.toString()',
+          expectedResult: '_Future<int>');
     }, skip: "'await' is not yet supported in expression evaluation.");
 
     test('awaited method call', () async {

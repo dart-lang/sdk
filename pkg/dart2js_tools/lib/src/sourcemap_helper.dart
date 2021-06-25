@@ -15,9 +15,9 @@ TargetEntry findEnclosingFunction(FileProvider provider, Uri uri, int start) {
   if (sources == null) return null;
   SourceFile file = provider.fileFor(uri);
   SingleMapping mapping = provider.mappingFor(uri).sourceMap;
-  int index = start;
+  var index = start;
   while (true) {
-    index = sources.lastIndexOf('function', index);
+    index = nextDeclarationCandidate(sources, index);
     if (index < 0) return null;
     var line = file.getLine(index);
     var lineEntry = findLine(mapping, line);
@@ -31,6 +31,29 @@ TargetEntry findEnclosingFunction(FileProvider provider, Uri uri, int start) {
     if (result?.column == column) return result;
     index--;
   }
+}
+
+/// Returns the index of a candidate location of a enclosing function
+/// declaration. We try to find the beginning of a `function` keyword or the
+/// `(` of an ES6 method definition, but the search contains some false
+/// positives. To rule out false positives, [findEnclosingFunction]
+/// validates that the returned location contains a source-map entry, searching
+/// for another candidate if not.
+int nextDeclarationCandidate(String sources, int start) {
+  var indexForFunctionKeyword = sources.lastIndexOf('function', start);
+  // We attempt to identify potential method definitions by looking for any '('
+  // that precedes a '{'. This method will fail if 1) Dart2JS starts emitting
+  // functions with initializers or 2) sourcemap boundaries appear at '(' for
+  // non-method-definition constructs.
+  var indexForMethodDefinition = sources.lastIndexOf('{', start);
+  if (indexForFunctionKeyword > indexForMethodDefinition ||
+      indexForFunctionKeyword < 0) {
+    return indexForFunctionKeyword;
+  }
+  indexForMethodDefinition = sources.lastIndexOf('(', indexForMethodDefinition);
+  return indexForFunctionKeyword > indexForMethodDefinition
+      ? indexForFunctionKeyword
+      : indexForMethodDefinition;
 }
 
 /// Returns [TargetLineEntry] which includes the location in the target [line]
