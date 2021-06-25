@@ -27,6 +27,10 @@
     daylight saving changes that are not precisely one hour.
     (No change on the Web which uses the JavaScript `Date` object.)
 
+*   Adds static methods `hash`, `hashAll` and `hashAllUnordered` to the
+    `Object` class. These can be used to combine the hash codes of
+    multiple objects in a consistent way.
+
 #### `dart:ffi`
 
 *   Adds the `DynamicLibrary.providesSymbol` function to check whether a symbol
