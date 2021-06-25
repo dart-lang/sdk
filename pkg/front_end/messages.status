@@ -434,6 +434,9 @@ InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
+InstantiationNonGenericFunctionType/analyzerCode: Fail
+InstantiationTooFewArguments/analyzerCode: Fail
+InstantiationTooManyArguments/analyzerCode: Fail
 IntegerLiteralIsOutOfRange/example: Fail
 InterfaceCheck/analyzerCode: Fail
 InterfaceCheck/example: Fail

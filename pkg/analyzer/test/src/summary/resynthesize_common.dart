@@ -4624,6 +4624,8 @@ library
       enum E @5
         codeOffset: 0
         codeLength: 26
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -9667,6 +9669,8 @@ library
           synthetic @-1
     enums
       enum E @30
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -11764,6 +11768,8 @@ library
   definingUnit
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -11816,6 +11822,8 @@ library
   definingUnit
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -14445,6 +14453,8 @@ library
   definingUnit
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -14467,6 +14477,8 @@ library
           synthetic toString @-1
             returnType: String
       enum E @19
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -14723,6 +14735,8 @@ library
     enums
       enum E @65
         documentationComment: /**\n * Docs\n */
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -14758,6 +14772,8 @@ library
   definingUnit
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -14804,6 +14820,8 @@ library
   definingUnit
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -14863,6 +14881,8 @@ library
   definingUnit
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -14894,6 +14914,8 @@ library
   definingUnit
     enums
       enum E1 @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -14912,6 +14934,8 @@ library
           synthetic toString @-1
             returnType: String
       enum E2 @20
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -14997,6 +15021,8 @@ library
                 superKeyword: super @0
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -22565,6 +22591,8 @@ library
   definingUnit
     enums
       enum E @19
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -22634,6 +22662,8 @@ library
             returnType: dynamic
     enums
       enum E @64
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -22707,6 +22737,8 @@ library
               staticElement: self::@getter::a
               staticType: null
               token: a @15
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -24202,6 +24234,8 @@ library
               staticElement: self::@getter::foo
               staticType: null
               token: foo @17
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -25392,6 +25426,8 @@ library
           synthetic @-1
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -26873,6 +26909,8 @@ library
   definingUnit
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -29182,6 +29220,8 @@ library
           synthetic @-1
     enums
       enum E @16
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -29288,6 +29328,8 @@ library
             synthetic @-1
       enums
         enum E @27
+          interfaces
+            Enum
           fields
             synthetic final index @-1
               type: int
@@ -29328,6 +29370,8 @@ library
           synthetic @-1
     enums
       enum E @42
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int
@@ -29405,6 +29449,8 @@ library
             synthetic @-1
       enums
         enum E @27
+          interfaces
+            Enum
           fields
             synthetic final index @-1
               type: int
@@ -29480,6 +29526,8 @@ library
             synthetic @-1
       enums
         enum E @27
+          interfaces
+            Enum
           fields
             synthetic final index @-1
               type: int
@@ -29623,6 +29671,8 @@ library
   definingUnit
     enums
       enum E @5
+        interfaces
+          Enum
         fields
           synthetic final index @-1
             type: int

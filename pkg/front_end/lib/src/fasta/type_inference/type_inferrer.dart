@@ -3752,6 +3752,19 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
+  void checkBoundsInInstantiation(
+      FunctionType functionType, List<DartType> arguments, int fileOffset,
+      {bool inferred}) {
+    assert(inferred != null);
+    // If [arguments] were inferred, check them.
+    if (!isTopLevel) {
+      // We only perform checks in full inference.
+      library.checkBoundsInInstantiation(typeSchemaEnvironment, classHierarchy,
+          this, functionType, arguments, helper.uri, fileOffset,
+          inferred: inferred);
+    }
+  }
+
   void _checkBoundsInFunctionInvocation(FunctionType functionType,
       String localName, Arguments arguments, int fileOffset) {
     // If [arguments] were inferred, check them.
@@ -3910,6 +3923,9 @@ class TypeInferrerImpl implements TypeInferrer {
         typeSchemaEnvironment.inferGenericFunctionOrType(instantiatedType,
             typeParameters, [], [], context, inferredTypes, library.library);
         if (!isTopLevel) {
+          checkBoundsInInstantiation(
+              functionType, inferredTypes, expression.fileOffset,
+              inferred: true);
           expression = new Instantiation(expression, inferredTypes)
             ..fileOffset = expression.fileOffset;
         }

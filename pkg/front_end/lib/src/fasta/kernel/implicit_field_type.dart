@@ -153,9 +153,6 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
           bodyBuilder.parseFieldInitializer(initializerToken);
       initializerToken = null;
 
-      // The type is needed in the inference below, so the helper should be set.
-      typeInferrer.helper = bodyBuilder;
-
       ExpressionInferenceResult result = typeInferrer.inferExpression(
           initializer, const UnknownType(), true,
           isVoidAllowed: true);

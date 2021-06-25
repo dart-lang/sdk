@@ -24,6 +24,9 @@ class Object {
   String toString() => '';
 }
 
+/*class: Enum:Enum,Object*/
+abstract class Enum {}
+
 /*class: Null:Null,Object*/
 class Null {
   factory Null._uninstantiable() {

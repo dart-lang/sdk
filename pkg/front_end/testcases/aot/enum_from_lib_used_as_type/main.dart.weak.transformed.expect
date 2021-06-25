@@ -17,7 +17,7 @@ library /*isNonNullableByDefault*/;
 import self as mai;
 import "dart:core" as core;
 
-abstract class Enum extends core::Object {
+abstract class Enum extends core::Object implements core::Enum {
   abstract get /*isLegacy*/ index() → core::int;
 }
 class Class extends core::Object {

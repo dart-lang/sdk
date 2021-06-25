@@ -2,6 +2,12 @@ library test;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:26:70: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOOI(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ math.max);
+//                                                                      ^
+//
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:28:73: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
 //       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
 //                                                                         ^
@@ -10,6 +16,24 @@ library test;
 //       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
 //                                                                         ^
 //
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:31:70: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ math.max);
+//                                                                      ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:32:70: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ math.max);
+//                                                                      ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:45:65: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOOI(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
+//                                                                 ^
+//
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:46:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
 //   takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
 //                                                                        ^
@@ -17,6 +41,36 @@ library test;
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:47:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
 //   takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
 //                                                                        ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:48:65: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
+//                                                                 ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:49:65: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
+//                                                                 ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:73:25: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//       . /*@target=C.m*/ m);
+//                         ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:75:25: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//       . /*@target=C.m*/ m);
+//                         ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:82:25: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//       . /*@target=C.m*/ m);
+//                         ^
 //
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
 //           . /*@target=C.m*/ m);

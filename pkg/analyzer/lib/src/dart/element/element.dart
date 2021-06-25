@@ -2668,7 +2668,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  List<InterfaceType> get allSupertypes => <InterfaceType>[supertype];
+  List<InterfaceType> get allSupertypes =>
+      <InterfaceType>[...interfaces, supertype];
 
   List<FieldElement> get constants {
     return fields.where((field) => !field.isSynthetic).toList();
@@ -2700,7 +2701,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
   bool get hasStaticMember => true;
 
   @override
-  List<InterfaceType> get interfaces => const <InterfaceType>[];
+  List<InterfaceType> get interfaces =>
+      <InterfaceType>[library.typeProvider.enumType];
 
   @override
   bool get isAbstract => false;

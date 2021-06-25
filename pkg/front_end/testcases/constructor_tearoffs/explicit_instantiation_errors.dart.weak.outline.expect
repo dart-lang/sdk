@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field <X extends core::Object? = dynamic>(X%) → X% a;
+static field (core::int) → core::int b;
+static field (core::int) → core::int c;
+static field invalid-type d;
+static field invalid-type e;
+static field invalid-type f;
+static field invalid-type g;
+static field (core::String) → core::String h;
+static method id<X extends core::Object? = dynamic>(self::id::X% x) → self::id::X%
+  ;
+static method method<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → void
+  ;
+static method boundedMethod<X extends core::num>(self::boundedMethod::X x) → self::boundedMethod::X
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

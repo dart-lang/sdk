@@ -419,7 +419,7 @@ class Sub extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum#4 extends core::Object /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+class Enum#4 extends core::Object implements core::Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#4*>* values = const <self::Enum#4*>[self::Enum#4::a];
@@ -439,7 +439,7 @@ class Enum#4 extends core::Object /*isEnum*/  { // from org-dartlang-testcase://
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum#3 extends core::Object /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+class Enum#3 extends core::Object implements core::Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#3*>* values = const <self::Enum#3*>[self::Enum#3::a, self::Enum#3::b, self::Enum#3::c];
@@ -461,7 +461,7 @@ class Enum#3 extends core::Object /*isEnum*/  { // from org-dartlang-testcase://
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum#2 extends core::Object /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+class Enum#2 extends core::Object implements core::Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#2*>* values = const <self::Enum#2*>[self::Enum#2::Enum, self::Enum#2::a, self::Enum#2::b];
@@ -483,7 +483,7 @@ class Enum#2 extends core::Object /*isEnum*/  { // from org-dartlang-testcase://
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum#1 extends core::Object /*isEnum*/  {
+class Enum#1 extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum#1*>* values = const <self::Enum#1*>[self::Enum#1::a, self::Enum#1::b, self::Enum#1::c];
@@ -505,7 +505,7 @@ class Enum#1 extends core::Object /*isEnum*/  {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum extends core::Object /*isEnum*/  {
+class Enum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Enum*>* values = const <self::Enum*>[self::Enum::Enum, self::Enum::a, self::Enum::b];
@@ -527,7 +527,7 @@ class Enum extends core::Object /*isEnum*/  {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AnotherEnum extends core::Object /*isEnum*/  {
+class AnotherEnum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::AnotherEnum*>* values = const <self::AnotherEnum*>[self::AnotherEnum::a, self::AnotherEnum::b, self::AnotherEnum::c];

@@ -1,0 +1,26 @@
+typedef ListList<T> = List<List<T>>;
+T top<T>(T value) => value;
+
+class C {
+  static T stat<T>(T value) => value;
+  T inst<T>(T value) => value;
+  void method() {}
+}
+
+mixin M on C {
+  static T mstat<T>(T value) => value;
+  T minst<T>(T value) => value;
+  void mmethod() {}
+}
+
+extension Ext on C {
+  static T estat<T>(T value) => value;
+  T einst<T>(T value) => value;
+  void emethod() {}
+}
+
+class D extends C with M {
+  void method() {}
+}
+
+void main() {}

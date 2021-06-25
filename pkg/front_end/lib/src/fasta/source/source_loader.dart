@@ -1578,6 +1578,9 @@ class Object {
   bool operator==(dynamic) {}
 }
 
+abstract class Enum {
+}
+
 class String {}
 
 class Symbol {}

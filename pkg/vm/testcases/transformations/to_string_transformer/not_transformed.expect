@@ -19,7 +19,7 @@ class Foo extends core::Object implements self::IFoo {
   method toString() → core::String
     return "I am a Foo";
 }
-class FooEnum extends core::Object /*isEnum*/  {
+class FooEnum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   static const field core::List<self::FooEnum> values = #C11;

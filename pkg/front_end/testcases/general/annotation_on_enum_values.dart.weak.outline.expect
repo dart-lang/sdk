@@ -18,7 +18,7 @@ class Fisk<T extends core::Object* = dynamic> extends core::Object /*hasConstCon
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Foo extends core::Object /*isEnum*/  {
+class Foo extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Foo*>* values = const <self::Foo*>[self::Foo::bar, self::Foo::baz, self::Foo::cafebabe];

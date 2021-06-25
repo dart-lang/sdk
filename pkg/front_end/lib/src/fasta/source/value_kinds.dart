@@ -85,6 +85,8 @@ class ValueKinds {
   static const ValueKind Token = const SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull =
       const SingleValueKind<type.Token>(NullValue.Token);
+  static const ValueKind TypeArguments =
+      const SingleValueKind<List<type.UnresolvedType>>();
   static const ValueKind TypeArgumentsOrNull =
       const SingleValueKind<List<type.UnresolvedType>>(NullValue.TypeArguments);
   static const ValueKind TypeBuilder =

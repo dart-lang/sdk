@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-class UnusedEnum extends core::Object /*isEnum*/  {
+class UnusedEnum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   static const field core::List<self::UnusedEnum> values = const <self::UnusedEnum>[self::UnusedEnum::a, self::UnusedEnum::b];
@@ -16,7 +16,7 @@ class UnusedEnum extends core::Object /*isEnum*/  {
   method toString() → core::String
     return this.{self::UnusedEnum::_name}{core::String};
 }
-class UsedEnum extends core::Object /*isEnum*/  {
+class UsedEnum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   static const field core::List<self::UsedEnum> values = const <self::UsedEnum>[self::UsedEnum::unusedValue, self::UsedEnum::usedValue];
@@ -55,7 +55,7 @@ library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
-class ConstEnum extends core::Object /*isEnum*/  {
+class ConstEnum extends core::Object implements core::Enum /*isEnum*/  {
   final field core::int index;
   final field core::String _name;
   static const field core::List<self2::ConstEnum> values = #C4;
