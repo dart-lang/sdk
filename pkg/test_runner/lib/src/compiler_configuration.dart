@@ -844,6 +844,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     String cc, shared, ldFlags;
+    List<String> target;
     if (_isAndroid) {
       cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
           "$host-x86_64/bin/$abiTriple-gcc";
@@ -862,6 +863,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       shared = '-dynamiclib';
       // Tell Mac linker to give up generating eh_frame from dwarf.
       ldFlags = '-Wl,-no_compact_unwind';
+      if ({Architecture.arm64, Architecture.arm64c}
+          .contains(_configuration.architecture)) {
+        target = ['-arch', 'arm64'];
+      }
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
@@ -887,6 +892,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     }
 
     var args = [
+      if (target != null) ...target,
       if (ccFlags != null) ccFlags,
       if (ldFlags != null) ldFlags,
       shared,

@@ -65,7 +65,7 @@ main() {
     List<RegExp> filters = [
       RegExp(r' *//'), // skip comments
       RegExp(r'"Intercepted function with no arguments."'),
-      RegExp(r'f.apply\(s\(this\), arguments\)'),
+      RegExp(r'f.apply\(receiverOf\(this\), arguments\)'),
       RegExp(r'Array.prototype.push.apply\(a, arguments\)'),
     ];
     String filtered = lines
