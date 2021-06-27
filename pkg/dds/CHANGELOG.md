@@ -1,3 +1,43 @@
+# 2.0.1
+- Update `package:vm_service` to ^7.0.0.
+
+# 2.0.0
+- **Breaking change:** add null safety support.
+- **Breaking change:** minimum Dart SDK revision bumped to 2.12.0.
+
+# 1.8.0
+- Add support for launching DevTools from DDS.
+- Fixed issue where two clients subscribing to the same stream in close succession
+  could result in DDS sending multiple `streamListen` requests to the VM service.
+
+# 1.7.6
+- Update dependencies.
+
+# 1.7.5
+- Add 30 second keep alive period for SSE connections.
+
+# 1.7.4
+- Update `package:vm_service` to 6.0.1-nullsafety.0.
+
+# 1.7.3
+- Return an RpcException error with code `kServiceDisappeared` if the VM
+  service connection disappears with an outstanding forwarded request.
+
+# 1.7.2
+- Fixed issue where a null JSON RPC result could be sent if the VM service
+  disconnected with a request in flight (see https://github.com/flutter/flutter/issues/74051).
+
+# 1.7.1
+- Fixed issue where DartDevelopmentServiceException could have a null message.
+
+# 1.7.0
+- Added `package:dds/vm_service_extensions.dart`, which adds DDS functionality to
+  `package:vm_service` when imported.
+  - Added `onEventWithHistory` method and `onLoggingEventWithHistory`, 
+    `onStdoutEventWithHistory`, `onStderrEventWithHistory`, and 
+    `onExtensionEventWithHistory` getters.
+- Added `getStreamHistory` RPC.
+
 # 1.6.1
 - Fixed unhandled `StateError` that could be thrown if the VM service disconnected
   while a request was outstanding.

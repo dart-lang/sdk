@@ -7,14 +7,15 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
@@ -33,7 +34,7 @@ List<AnalysisError> doAnalysisError_listFromEngine(
 /// Adds [edit] to the file containing the given [element].
 void doSourceChange_addElementEdit(
     SourceChange change, engine.Element element, SourceEdit edit) {
-  var source = element.source;
+  var source = element.source!;
   doSourceChange_addSourceEdit(change, source, edit);
 }
 
@@ -45,29 +46,35 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
-String getReturnTypeString(engine.Element element) {
+String? getAliasedTypeString(engine.Element element,
+    {required bool withNullability}) {
+  if (element is engine.TypeAliasElement) {
+    var aliasedType = element.aliasedType;
+    return aliasedType.getDisplayString(withNullability: withNullability);
+  }
+  return null;
+}
+
+String? getReturnTypeString(engine.Element element,
+    {required bool withNullability}) {
   if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType?.getDisplayString(withNullability: false);
+      return element.returnType
+          .getDisplayString(withNullability: withNullability);
     }
   } else if (element is engine.VariableElement) {
     var type = element.type;
-    return type != null
-        ? type.getDisplayString(withNullability: false)
-        : 'dynamic';
+    return type.getDisplayString(withNullability: withNullability);
   } else if (element is engine.TypeAliasElement) {
-    var aliasedElement = element.aliasedElement;
-    if (aliasedElement is engine.GenericFunctionTypeElement) {
-      var returnType = aliasedElement.returnType;
-      return returnType.getDisplayString(withNullability: false);
-    } else {
-      return null;
+    var aliasedType = element.aliasedType;
+    if (aliasedType is FunctionType) {
+      var returnType = aliasedType.returnType;
+      return returnType.getDisplayString(withNullability: withNullability);
     }
-  } else {
-    return null;
   }
+  return null;
 }
 
 /// Translates engine errors through the ErrorProcessor.
@@ -100,7 +107,7 @@ List<T> mapEngineErrors<T>(
 /// If an [errorSeverity] is specified, it will override the one in [error].
 AnalysisError newAnalysisError_fromEngine(
     engine.ResolvedUnitResult result, engine.AnalysisError error,
-    [engine.ErrorSeverity errorSeverity]) {
+    [engine.ErrorSeverity? errorSeverity]) {
   var errorCode = error.errorCode;
   // prepare location
   Location location;
@@ -108,17 +115,18 @@ AnalysisError newAnalysisError_fromEngine(
     var file = error.source.fullName;
     var offset = error.offset;
     var length = error.length;
-    var startLine = -1;
-    var startColumn = -1;
     var lineInfo = result.lineInfo;
-    if (lineInfo != null) {
-      CharacterLocation lineLocation = lineInfo.getLocation(offset);
-      if (lineLocation != null) {
-        startLine = lineLocation.lineNumber;
-        startColumn = lineLocation.columnNumber;
-      }
-    }
-    location = Location(file, offset, length, startLine, startColumn);
+
+    var startLocation = lineInfo.getLocation(offset);
+    var startLine = startLocation.lineNumber;
+    var startColumn = startLocation.columnNumber;
+
+    var endLocation = lineInfo.getLocation(offset + length);
+    var endLine = endLocation.lineNumber;
+    var endColumn = endLocation.columnNumber;
+
+    location = Location(
+        file, offset, length, startLine, startColumn, endLine, endColumn);
   }
 
   // Default to the error's severity if none is specified.
@@ -129,7 +137,7 @@ AnalysisError newAnalysisError_fromEngine(
   var type = AnalysisErrorType(errorCode.type.name);
   var message = error.message;
   var code = errorCode.name.toLowerCase();
-  List<DiagnosticMessage> contextMessages;
+  List<DiagnosticMessage>? contextMessages;
   if (error.contextMessages.isNotEmpty) {
     contextMessages = error.contextMessages
         .map((message) => newDiagnosticMessage(result, message))
@@ -152,16 +160,22 @@ DiagnosticMessage newDiagnosticMessage(
   var offset = message.offset;
   var length = message.length;
 
-  var lineLocation = result.lineInfo.getLocation(offset);
-  var startLine = lineLocation.lineNumber;
-  var startColumn = lineLocation.columnNumber;
+  var startLocation = result.lineInfo.getLocation(offset);
+  var startLine = startLocation.lineNumber;
+  var startColumn = startLocation.columnNumber;
+
+  var endLocation = result.lineInfo.getLocation(offset + length);
+  var endLine = endLocation.lineNumber;
+  var endColumn = endLocation.columnNumber;
 
   return DiagnosticMessage(
-      message.message, Location(file, offset, length, startLine, startColumn));
+      message.messageText(includeUrl: true),
+      Location(
+          file, offset, length, startLine, startColumn, endLine, endColumn));
 }
 
 /// Create a Location based on an [engine.Element].
-Location newLocation_fromElement(engine.Element element) {
+Location? newLocation_fromElement(engine.Element? element) {
   if (element == null || element.source == null) {
     return null;
   }
@@ -185,8 +199,8 @@ Location newLocation_fromMatch(engine.SearchMatch match) {
 
 /// Create a Location based on an [engine.AstNode].
 Location newLocation_fromNode(engine.AstNode node) {
-  var unit = node.thisOrAncestorOfType<engine.CompilationUnit>();
-  var unitElement = unit.declaredElement;
+  var unit = node.thisOrAncestorOfType<engine.CompilationUnit>()!;
+  var unitElement = unit.declaredElement!;
   var range = engine.SourceRange(node.offset, node.length);
   return _locationForArgs(unitElement, range);
 }
@@ -194,13 +208,14 @@ Location newLocation_fromNode(engine.AstNode node) {
 /// Create a Location based on an [engine.CompilationUnit].
 Location newLocation_fromUnit(
     engine.CompilationUnit unit, engine.SourceRange range) {
-  return _locationForArgs(unit.declaredElement, range);
+  return _locationForArgs(unit.declaredElement!, range);
 }
 
 /// Construct based on an element from the analyzer engine.
-OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
-  var element = convertElement(member);
-  var className = member.enclosingElement.displayName;
+OverriddenMember newOverriddenMember_fromEngine(engine.Element member,
+    {required bool withNullability}) {
+  var element = convertElement(member, withNullability: withNullability);
+  var className = member.enclosingElement!.displayName;
   return OverriddenMember(element, className);
 }
 
@@ -237,22 +252,20 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
 
 /// Construct based on a SourceRange.
 SourceEdit newSourceEdit_range(engine.SourceRange range, String replacement,
-    {String id}) {
+    {String? id}) {
   return SourceEdit(range.offset, range.length, replacement, id: id);
 }
 
 List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
-  while (element != null) {
-    path.add(convertElement(element));
-    // go up
-    if (element is engine.PrefixElement) {
-      // imports are library children, but they are physically in the unit
-      engine.LibraryElement library = element.enclosingElement;
-      element = library.definingCompilationUnit;
-    } else {
-      element = element.enclosingElement;
-    }
+
+  if (element is engine.PrefixElement) {
+    element = element.enclosingElement.definingCompilationUnit;
+  }
+
+  var withNullability = element.library?.isNonNullableByDefault ?? false;
+  for (var e in element.withAncestors) {
+    path.add(convertElement(e, withNullability: withNullability));
   }
   return path;
 }
@@ -261,18 +274,23 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
   if (element is engine.CompilationUnitElement) {
     return element;
   }
-  if (element?.enclosingElement is engine.LibraryElement) {
-    element = element.enclosingElement;
+
+  var enclosingElement = element.enclosingElement;
+  if (enclosingElement is engine.LibraryElement) {
+    element = enclosingElement;
   }
+
   if (element is engine.LibraryElement) {
     return element.definingCompilationUnit;
   }
-  for (; element != null; element = element.enclosingElement) {
-    if (element is engine.CompilationUnitElement) {
-      return element;
+
+  for (var e in element.withAncestors) {
+    if (e is engine.CompilationUnitElement) {
+      return e;
     }
   }
-  return null;
+
+  throw StateError('No unit: $element');
 }
 
 /// Creates a new [Location].
@@ -280,17 +298,23 @@ Location _locationForArgs(
     engine.CompilationUnitElement unitElement, engine.SourceRange range) {
   var startLine = 0;
   var startColumn = 0;
+  var endLine = 0;
+  var endColumn = 0;
   try {
     var lineInfo = unitElement.lineInfo;
     if (lineInfo != null) {
-      CharacterLocation offsetLocation = lineInfo.getLocation(range.offset);
-      startLine = offsetLocation.lineNumber;
-      startColumn = offsetLocation.columnNumber;
+      var startLocation = lineInfo.getLocation(range.offset);
+      startLine = startLocation.lineNumber;
+      startColumn = startLocation.columnNumber;
+
+      var endLocation = lineInfo.getLocation(range.end);
+      endLine = endLocation.lineNumber;
+      endColumn = endLocation.columnNumber;
     }
   } on AnalysisException {
     // TODO(brianwilkerson) It doesn't look like the code in the try block
     //  should be able to throw an exception. Try removing the try statement.
   }
   return Location(unitElement.source.fullName, range.offset, range.length,
-      startLine, startColumn);
+      startLine, startColumn, endLine, endColumn);
 }

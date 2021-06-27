@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
+// @dart = 2.9
+
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
 // VMOptions=--no-enable-isolate-groups
 
 import 'dart:async';
@@ -84,7 +86,7 @@ class ServerWorker {
   }
 }
 
-Future<String> get(String url) async {
+Future<String> get(Uri url) async {
   while (true) {
     try {
       await http.get(url);
@@ -98,7 +100,7 @@ void client(int port) async {
     final futures = <Future>[];
     final numAtOnce = 16; // enough to keep the server busy
     for (int i = 0; i < numAtOnce; ++i) {
-      futures.add(get('http://localhost:$port').then((_) {}));
+      futures.add(get(Uri.http('localhost:$port', '')).then((_) {}));
     }
     await Future.wait(futures);
   }

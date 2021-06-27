@@ -1,0 +1,14 @@
+// @dart = 2.9
+class A {
+  bool v1;
+  num v2;
+  A(bool this.v1, num this.v2);
+}
+
+class M1 {
+  num v2 = -1;
+}
+
+class C = A with M1;
+main() {}
+expect(expected, actual) {}

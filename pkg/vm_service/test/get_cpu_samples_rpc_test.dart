@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
-import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 fib(n) {
@@ -22,15 +21,16 @@ testeeDo() {
 
 Future checkSamples(VmService service, IsolateRef isolate) async {
   // Grab all the samples.
-  final result = await service.getCpuSamples(isolate.id, 0, ~0);
+  final isolateId = isolate.id!;
+  final result = await service.getCpuSamples(isolateId, 0, ~0);
 
   final isString = TypeMatcher<String>();
   final isInt = TypeMatcher<int>();
   final isList = TypeMatcher<List>();
-  expect(result.functions.length, greaterThan(10),
-      reason: "Should have many functions");
+  expect(result.functions!.length, greaterThan(10),
+      reason: "Should have many functions!");
 
-  final samples = result.samples;
+  final samples = result.samples!;
   expect(samples.length, greaterThan(10), reason: "Should have many samples");
   expect(samples.length, result.sampleCount);
 
@@ -47,7 +47,7 @@ Future checkSamples(VmService service, IsolateRef isolate) async {
 }
 
 var tests = <IsolateTest>[
-  (VmService service, IsolateRef i) => checkSamples(service, i),
+  ((VmService service, IsolateRef i) => checkSamples(service, i)),
 ];
 
 var vmArgs = [
@@ -55,5 +55,10 @@ var vmArgs = [
   '--profile-vm=false', // So this also works with KBC.
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, testeeBefore: testeeDo, extraArgs: vmArgs);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      tests,
+      'get_cpu_samples_rpc_test.dart',
+      testeeBefore: testeeDo,
+      extraArgs: vmArgs,
+    );

@@ -5,13 +5,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:smith/smith.dart';
-import 'package:test_runner/src/test_configurations.dart';
 import 'package:path/path.dart' as path;
 
 import 'configuration.dart';
 import 'path.dart';
 import 'repository.dart';
+import 'test_configurations.dart';
 import 'utils.dart';
 
 const _defaultTestSelectors = [
@@ -426,7 +425,7 @@ compiler.''',
     if (arguments.contains("--help") || arguments.contains("-h")) {
       _printHelp(
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
-      return null;
+      return const [];
     }
 
     // Parse the command line arguments to a map.
@@ -563,12 +562,12 @@ compiler.''',
 
     if (options.containsKey('find-configurations')) {
       findConfigurations(options);
-      return null;
+      return const [];
     }
 
     if (options.containsKey('list-configurations')) {
       listConfigurations(options);
-      return null;
+      return const [];
     }
 
     // If a named configuration was specified ensure no other options, which are
@@ -828,11 +827,12 @@ compiler.''',
     }
 
     // Expand runtimes.
+    var configurationNumber = 1;
     for (var runtime in runtimes) {
       // Expand architectures.
       var architectures = data["arch"] as String;
       if (architectures == "all") {
-        architectures = "ia32,x64,simarm,simarm64";
+        architectures = "ia32,x64,x64c,simarm,simarm64,simarm64c";
       }
 
       for (var architectureName in architectures.split(",")) {
@@ -852,8 +852,13 @@ compiler.''',
             }
             for (var sanitizerName in sanitizers.split(",")) {
               var sanitizer = Sanitizer.find(sanitizerName);
-              var configuration = Configuration("custom configuration",
-                  architecture, compiler, mode, runtime, system,
+              var configuration = Configuration(
+                  "custom-configuration-${configurationNumber++}",
+                  architecture,
+                  compiler,
+                  mode,
+                  runtime,
+                  system,
                   nnbdMode: nnbdMode,
                   sanitizer: sanitizer,
                   timeout: data["timeout"] as int,

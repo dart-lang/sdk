@@ -9,11 +9,11 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   method method(core::String* node, core::Set<core::String*>* set) → core::List<core::String*>*
-    return set.{core::Set::add}(node) ?{core::List<core::String*>*} block {
+    return set.{core::Set::add}(node){(core::String*) →* core::bool*} ?{core::List<core::String*>*} block {
       final core::List<core::String*>* #t1 = <core::String*>[node];
-      final core::Iterable<core::String*>* #t2 = let final core::Iterable<core::String*>* #t3 = let final core::Set<core::String*>* #t4 = this.{self::Class::map}.{core::Map::[]}(node) in #t4.{core::Object::==}(null) ?{core::Iterable<core::String*>*} null : #t4.{core::Iterable::expand}<core::String*>((core::String* node) → core::List<core::String*>* => this.{self::Class::method}(node, set)) in #t3.{core::Object::==}(null) ?{core::List<core::String*>*} null : #t3.{core::Iterable::toList}();
-      if(!#t2.{core::Object::==}(null))
-        #t1.{core::List::addAll}{Invariant}(#t2);
+      final core::Iterable<core::String*>* #t2 = let final core::Iterable<core::String*>* #t3 = let final core::Set<core::String*>* #t4 = this.{self::Class::map}{core::Map<core::String*, core::Set<core::String*>*>*}.{core::Map::[]}(node){(core::Object*) →* core::Set<core::String*>*} in #t4 == null ?{core::Iterable<core::String*>*} null : #t4.{core::Iterable::expand}<core::String*>((core::String* node) → core::List<core::String*>* => this.{self::Class::method}(node, set){(core::String*, core::Set<core::String*>*) →* core::List<core::String*>*}){((core::String*) →* core::Iterable<core::String*>*) →* core::Iterable<core::String*>*} in #t3 == null ?{core::List<core::String*>*} null : #t3.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<core::String*>*};
+      if(!(#t2 == null))
+        #t1.{core::List::addAll}{Invariant}(#t2){(core::Iterable<core::String*>*) →* void};
     } =>#t1 : <core::String*>[];
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -30,5 +30,5 @@ static method main(dynamic args) → dynamic {
   if(false)
     new self::Class::•().{self::Class::method}("", block {
       final core::Set<core::String*>* #t5 = col::LinkedHashSet::•<core::String*>();
-    } =>#t5);
+    } =>#t5){(core::String*, core::Set<core::String*>*) →* core::List<core::String*>*};
 }

@@ -34,6 +34,6 @@ class CancelRequestHandler extends MessageHandler<CancelParams, void> {
     // cancellation that we processed after already starting to send the response
     // and cleared the token.
     _tokens[params.id.toString()]?.cancel();
-    return success();
+    return success(null);
   }
 }

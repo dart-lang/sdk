@@ -4,6 +4,8 @@
 // Dart test program to test cid guessing optimizations.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

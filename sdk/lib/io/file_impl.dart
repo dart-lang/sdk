@@ -244,7 +244,7 @@ class _File extends FileSystemEntity implements File {
 
   File get absolute => new File(_absolutePath);
 
-  Future<File> create({bool recursive: false}) {
+  Future<File> create({bool recursive = false}) {
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
@@ -265,7 +265,7 @@ class _File extends FileSystemEntity implements File {
 
   external static _linkTarget(_Namespace namespace, Uint8List rawPath);
 
-  void createSync({bool recursive: false}) {
+  void createSync({bool recursive = false}) {
     if (recursive) {
       parent.createSync(recursive: true);
     }
@@ -273,7 +273,7 @@ class _File extends FileSystemEntity implements File {
     throwIfError(result, "Cannot create file", path);
   }
 
-  Future<File> _delete({bool recursive: false}) {
+  Future<File> _delete({bool recursive = false}) {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
@@ -290,7 +290,7 @@ class _File extends FileSystemEntity implements File {
 
   external static _deleteLinkNative(_Namespace namespace, Uint8List rawPath);
 
-  void _deleteSync({bool recursive: false}) {
+  void _deleteSync({bool recursive = false}) {
     if (recursive) {
       return new Directory.fromRawPath(_rawPath).deleteSync(recursive: true);
     }
@@ -341,7 +341,7 @@ class _File extends FileSystemEntity implements File {
     return new File(newPath);
   }
 
-  Future<RandomAccessFile> open({FileMode mode: FileMode.read}) {
+  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) {
     if (mode != FileMode.read &&
         mode != FileMode.write &&
         mode != FileMode.append &&
@@ -467,7 +467,7 @@ class _File extends FileSystemEntity implements File {
 
   external static _open(_Namespace namespace, Uint8List rawPath, int mode);
 
-  RandomAccessFile openSync({FileMode mode: FileMode.read}) {
+  RandomAccessFile openSync({FileMode mode = FileMode.read}) {
     if (mode != FileMode.read &&
         mode != FileMode.write &&
         mode != FileMode.append &&
@@ -494,7 +494,7 @@ class _File extends FileSystemEntity implements File {
     return new _FileStream(path, start, end);
   }
 
-  IOSink openWrite({FileMode mode: FileMode.write, Encoding encoding: utf8}) {
+  IOSink openWrite({FileMode mode = FileMode.write, Encoding encoding = utf8}) {
     if (mode != FileMode.write &&
         mode != FileMode.append &&
         mode != FileMode.writeOnly &&
@@ -566,7 +566,7 @@ class _File extends FileSystemEntity implements File {
     }
   }
 
-  Future<String> readAsString({Encoding encoding: utf8}) {
+  Future<String> readAsString({Encoding encoding = utf8}) {
     // TODO(dart:io): If the change in async semantics to run synchronously
     // until await lands, this is as efficient as
     // return _tryDecode(await readAsBytes(), encoding);
@@ -580,17 +580,17 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  String readAsStringSync({Encoding encoding: utf8}) =>
+  String readAsStringSync({Encoding encoding = utf8}) =>
       _tryDecode(readAsBytesSync(), encoding);
 
-  Future<List<String>> readAsLines({Encoding encoding: utf8}) =>
+  Future<List<String>> readAsLines({Encoding encoding = utf8}) =>
       readAsString(encoding: encoding).then(const LineSplitter().convert);
 
-  List<String> readAsLinesSync({Encoding encoding: utf8}) =>
+  List<String> readAsLinesSync({Encoding encoding = utf8}) =>
       const LineSplitter().convert(readAsStringSync(encoding: encoding));
 
   Future<File> writeAsBytes(List<int> bytes,
-      {FileMode mode: FileMode.write, bool flush: false}) {
+      {FileMode mode = FileMode.write, bool flush = false}) {
     return open(mode: mode).then((file) {
       return file.writeFrom(bytes, 0, bytes.length).then<File>((_) {
         if (flush) return file.flush().then((_) => this);
@@ -600,7 +600,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   void writeAsBytesSync(List<int> bytes,
-      {FileMode mode: FileMode.write, bool flush: false}) {
+      {FileMode mode = FileMode.write, bool flush = false}) {
     RandomAccessFile opened = openSync(mode: mode);
     try {
       opened.writeFromSync(bytes, 0, bytes.length);
@@ -611,9 +611,9 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<File> writeAsString(String contents,
-      {FileMode mode: FileMode.write,
-      Encoding encoding: utf8,
-      bool flush: false}) {
+      {FileMode mode = FileMode.write,
+      Encoding encoding = utf8,
+      bool flush = false}) {
     try {
       return writeAsBytes(encoding.encode(contents), mode: mode, flush: flush);
     } catch (e) {
@@ -622,9 +622,9 @@ class _File extends FileSystemEntity implements File {
   }
 
   void writeAsStringSync(String contents,
-      {FileMode mode: FileMode.write,
-      Encoding encoding: utf8,
-      bool flush: false}) {
+      {FileMode mode = FileMode.write,
+      Encoding encoding = utf8,
+      bool flush = false}) {
     writeAsBytesSync(encoding.encode(contents), mode: mode, flush: flush);
   }
 
@@ -873,14 +873,14 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeString(String string,
-      {Encoding encoding: utf8}) {
+      {Encoding encoding = utf8}) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(encoding, "encoding");
     var data = encoding.encode(string);
     return writeFrom(data, 0, data.length);
   }
 
-  void writeStringSync(String string, {Encoding encoding: utf8}) {
+  void writeStringSync(String string, {Encoding encoding = utf8}) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(encoding, "encoding");
     var data = encoding.encode(string);
@@ -1058,7 +1058,7 @@ class _RandomAccessFile implements RandomAccessFile {
   // count when it is finished with it.
   int _pointer() => _ops.getPointer();
 
-  Future _dispatch(int request, List data, {bool markClosed: false}) {
+  Future _dispatch(int request, List data, {bool markClosed = false}) {
     if (closed) {
       return new Future.error(new FileSystemException("File closed", path));
     }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 library fasta.tool.command_line;
 
 import 'dart:io' show exit;
@@ -11,8 +13,6 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
 
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
@@ -22,13 +22,14 @@ import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
+import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
+    show computePlatformBinariesLocation, computePlatformDillName;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -37,9 +38,10 @@ import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         Message,
-        templateFastaCLIArgumentRequired,
+        PlainAndColorizedString,
         messageFastaUsageLong,
         messageFastaUsageShort,
+        templateFastaCLIArgumentRequired,
         templateUnspecified;
 
 import 'package:front_end/src/fasta/problems.dart' show DebugAbort;
@@ -193,12 +195,15 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.nnbdAgnosticMode: const BoolValue(false),
   Flags.target: const StringValue(),
   Flags.verbose: const BoolValue(false),
+  Flags.verbosity: const StringValue(),
   Flags.verify: const BoolValue(false),
-  Flags.verifySkipPlatform: const BoolValue(false),
+  Flags.skipPlatformVerification: const BoolValue(false),
   Flags.warnOnReachabilityCheck: const BoolValue(false),
   Flags.linkDependencies: const UriListValue(),
   Flags.noDeps: const BoolValue(false),
+  Flags.invocationModes: const StringValue(),
   "-D": const DefineValue(),
+  "--define": const AliasValue("-D"),
   "-h": const AliasValue(Flags.help),
   "--out": const AliasValue(Flags.output),
   "-o": const AliasValue(Flags.output),
@@ -265,7 +270,7 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final bool verify = options[Flags.verify];
 
-  final bool verifySkipPlatform = options[Flags.verifySkipPlatform];
+  final bool skipPlatformVerification = options[Flags.skipPlatformVerification];
 
   final bool dumpIr = options[Flags.dumpIr];
 
@@ -302,6 +307,10 @@ ProcessedOptions analyzeCommandLine(String programName,
   final bool warnOnReachabilityCheck = options[Flags.warnOnReachabilityCheck];
 
   final List<Uri> linkDependencies = options[Flags.linkDependencies] ?? [];
+
+  final String invocationModes = options[Flags.invocationModes] ?? '';
+
+  final String verbosity = options[Flags.verbosity] ?? Verbosity.defaultValue;
 
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
@@ -347,13 +356,15 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..omitPlatform = omitPlatform
     ..verbose = verbose
     ..verify = verify
-    ..verifySkipPlatform = verifySkipPlatform
+    ..skipPlatformVerification = skipPlatformVerification
     ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
     ..nnbdMode = nnbdMode
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
-    ..warnOnReachabilityCheck = warnOnReachabilityCheck;
+    ..warnOnReachabilityCheck = warnOnReachabilityCheck
+    ..invocationModes = InvocationMode.parseArguments(invocationModes)
+    ..verbosity = Verbosity.parseArgument(verbosity);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
@@ -388,32 +399,15 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final Uri librariesJson = options[Flags.librariesJson];
 
-  String computePlatformDillName() {
-    switch (target.name) {
-      case 'dartdevc':
-        return 'dartdevc.dill';
-      case 'dart2js':
-        return 'dart2js_platform.dill';
-      case 'dart2js_server':
-        return 'dart2js_platform.dill';
-      case 'vm':
-        // TODO(johnniwinther): Stop generating 'vm_platform.dill' and rename
-        // 'vm_platform_strong.dill' to 'vm_platform.dill'.
-        return "vm_platform_strong.dill";
-      case 'none':
-        return "vm_platform_strong.dill";
-      default:
-        throwCommandLineProblem("Target '${target.name}' requires an explicit "
-            "'${Flags.platform}' option.");
-    }
-    return null;
-  }
-
   final Uri platform = compileSdk
       ? null
       : (options[Flags.platform] ??
           computePlatformBinariesLocation(forceBuildDir: true)
-              .resolve(computePlatformDillName()));
+              .resolve(computePlatformDillName(target, nnbdMode, () {
+            throwCommandLineProblem(
+                "Target '${target.name}' requires an explicit "
+                "'${Flags.platform}' option.");
+          })));
   compilerOptions
     ..sdkRoot = sdk
     ..sdkSummary = platform
@@ -446,10 +440,18 @@ Future<T> withGlobalOptions<T>(
     problem = e;
   }
 
-  return CompilerContext.runWithOptions<T>(options, (c) {
+  return CompilerContext.runWithOptions<T>(options, (CompilerContext c) {
     if (problem != null) {
       print(computeUsage(programName, options.verbose).message);
-      print(c.formatWithoutLocation(problem.message, Severity.error));
+      PlainAndColorizedString formatted =
+          c.format(problem.message.withoutLocation(), Severity.error);
+      String formattedText;
+      if (enableColors) {
+        formattedText = formatted.colorized;
+      } else {
+        formattedText = formatted.plain;
+      }
+      print(formattedText);
       exit(1);
     }
 

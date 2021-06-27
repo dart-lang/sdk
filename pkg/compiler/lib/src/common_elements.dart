@@ -14,7 +14,6 @@ import 'elements/types.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'js_model/locals.dart';
-import 'kernel/dart2js_target.dart';
 import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
@@ -92,6 +91,9 @@ abstract class CommonElements {
 
   /// The dart:_js_helper library.
   LibraryEntity get jsHelperLibrary;
+
+  /// The dart:_late_helper library
+  LibraryEntity get lateHelperLibrary;
 
   /// The dart:_interceptors library.
   LibraryEntity get interceptorsLibrary;
@@ -286,7 +288,7 @@ abstract class CommonElements {
 
   ClassEntity get jsIntClass;
 
-  ClassEntity get jsDoubleClass;
+  ClassEntity get jsNumNotIntClass;
 
   ClassEntity get jsNullClass;
 
@@ -333,6 +335,8 @@ abstract class CommonElements {
   FunctionEntity findHelperFunction(String name);
 
   ClassEntity get closureClass;
+  ClassEntity get closureClass0Args;
+  ClassEntity get closureClass2Args;
 
   ClassEntity get boundClosureClass;
 
@@ -441,7 +445,7 @@ abstract class CommonElements {
 
   FunctionEntity get defineProperty;
 
-  FunctionEntity get throwLateInitializationError;
+  FunctionEntity get throwLateFieldADI;
 
   bool isExtractTypeArguments(FunctionEntity member);
 
@@ -453,7 +457,7 @@ abstract class CommonElements {
 
   // From dart:_rti
 
-  FunctionEntity get setRuntimeTypeInfo;
+  FunctionEntity get setArrayType;
 
   FunctionEntity get findType;
   FunctionEntity get instanceType;
@@ -514,8 +518,6 @@ abstract class CommonElements {
 
   InterfaceType get externalNameType;
 
-  ConstructorEntity get symbolValidatedConstructor;
-
   // From dart:_js_embedded_names
 
   /// Holds the class for the [JsGetName] enum.
@@ -567,20 +569,9 @@ abstract class KCommonElements implements CommonElements {
 
   bool isCreateInvocationMirrorHelper(MemberEntity member);
 
-  bool isSymbolValidatedConstructor(ConstructorEntity element);
-
   ClassEntity get metaNoInlineClass;
 
   ClassEntity get metaTryInlineClass;
-
-  /// Returns `true` if [function] is allowed to be external.
-  ///
-  /// This returns `true` for foreign helpers, from environment constructors and
-  /// members of libraries that support native.
-  ///
-  /// This returns `false` for JS interop members which therefore must be
-  /// allowed to be external through the JS interop annotation handling.
-  bool isExternalAllowed(FunctionEntity function);
 }
 
 abstract class JCommonElements implements CommonElements {
@@ -782,6 +773,11 @@ class CommonElementsImpl
   @override
   LibraryEntity get jsHelperLibrary =>
       _jsHelperLibrary ??= _env.lookupLibrary(Uris.dart__js_helper);
+
+  LibraryEntity _lateHelperLibrary;
+  @override
+  LibraryEntity get lateHelperLibrary =>
+      _lateHelperLibrary ??= _env.lookupLibrary(Uris.dart__late_helper);
 
   LibraryEntity _interceptorsLibrary;
   @override
@@ -1303,10 +1299,10 @@ class CommonElementsImpl
   @override
   ClassEntity get jsIntClass => _jsIntClass ??= _findInterceptorsClass('JSInt');
 
-  ClassEntity _jsDoubleClass;
+  ClassEntity _jsNumNotIntClass;
   @override
-  ClassEntity get jsDoubleClass =>
-      _jsDoubleClass ??= _findInterceptorsClass('JSDouble');
+  ClassEntity get jsNumNotIntClass =>
+      _jsNumNotIntClass ??= _findInterceptorsClass('JSNumNotInt');
 
   ClassEntity _jsNullClass;
   @override
@@ -1531,9 +1527,22 @@ class CommonElementsImpl
   ClassEntity _findHelperClass(String name) =>
       _findClass(jsHelperLibrary, name);
 
+  FunctionEntity _findLateHelperFunction(String name) =>
+      _findLibraryMember(lateHelperLibrary, name);
+
   ClassEntity _closureClass;
   @override
   ClassEntity get closureClass => _closureClass ??= _findHelperClass('Closure');
+
+  ClassEntity _closureClass0Args;
+  @override
+  ClassEntity get closureClass0Args =>
+      _closureClass0Args ??= _findHelperClass('Closure0Args');
+
+  ClassEntity _closureClass2Args;
+  @override
+  ClassEntity get closureClass2Args =>
+      _closureClass2Args ??= _findHelperClass('Closure2Args');
 
   ClassEntity _boundClosureClass;
   @override
@@ -1797,8 +1806,8 @@ class CommonElementsImpl
   FunctionEntity get defineProperty => _findHelperFunction('defineProperty');
 
   @override
-  FunctionEntity get throwLateInitializationError =>
-      _findHelperFunction('throwLateInitializationError');
+  FunctionEntity get throwLateFieldADI =>
+      _findLateHelperFunction('throwLateFieldADI');
 
   @override
   bool isExtractTypeArguments(FunctionEntity member) {
@@ -1847,10 +1856,10 @@ class CommonElementsImpl
   FunctionEntity _findRtiFunction(String name) =>
       _findLibraryMember(rtiLibrary, name);
 
-  FunctionEntity _setRuntimeTypeInfo;
+  FunctionEntity _setArrayType;
   @override
-  FunctionEntity get setRuntimeTypeInfo =>
-      _setRuntimeTypeInfo ??= _findRtiFunction('setRuntimeTypeInfo');
+  FunctionEntity get setArrayType =>
+      _setArrayType ??= _findRtiFunction('_setArrayType');
 
   FunctionEntity _findType;
   @override
@@ -2060,26 +2069,12 @@ class CommonElementsImpl
   @override
   InterfaceType get externalNameType => _getRawType(externalNameClass);
 
-  @override
-  ConstructorEntity get symbolValidatedConstructor =>
-      _symbolValidatedConstructor ??=
-          _findConstructor(symbolImplementationClass, 'validated');
-
   /// Returns the field that holds the internal name in the implementation class
   /// for `Symbol`.
   FieldEntity _symbolImplementationField;
   FieldEntity get symbolImplementationField => _symbolImplementationField ??=
       _env.lookupLocalClassMember(symbolImplementationClass, '_name',
           required: true);
-
-  ConstructorEntity _symbolValidatedConstructor;
-  @override
-  bool isSymbolValidatedConstructor(ConstructorEntity element) {
-    if (_symbolValidatedConstructor != null) {
-      return element == _symbolValidatedConstructor;
-    }
-    return false;
-  }
 
   // From dart:_native_typed_data
 
@@ -2149,17 +2144,6 @@ class CommonElementsImpl
   bool isForeignHelper(MemberEntity member) {
     return member.library == foreignLibrary ||
         isCreateInvocationMirrorHelper(member);
-  }
-
-  @override
-  bool isExternalAllowed(FunctionEntity function) {
-    return isForeignHelper(function) ||
-        (function is ConstructorEntity &&
-            function.isFromEnvironmentConstructor) ||
-        maybeEnableNative(function.library.canonicalUri) ||
-        // TODO(johnniwinther): Remove this when importing dart:mirrors is
-        // a compile-time error.
-        function.library.canonicalUri == Uris.dart_mirrors;
   }
 
   @override
@@ -2405,9 +2389,11 @@ abstract class JElementEnvironment extends ElementEnvironment {
   void forEachNestedClosure(
       MemberEntity member, void f(FunctionEntity closure));
 
-  /// Returns `true` if [cls] is a mixin application that mixes in methods with
-  /// super calls.
-  bool isSuperMixinApplication(ClassEntity cls);
+  /// Returns `true` if [cls] is a mixin application with its own members.
+  ///
+  /// This occurs when a mixin contains methods with super calls or when
+  /// the mixin application contains concrete forwarding stubs.
+  bool isMixinApplicationWithMembers(ClassEntity cls);
 
   /// The default type of the [typeVariable].
   ///

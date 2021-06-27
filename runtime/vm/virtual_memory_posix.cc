@@ -18,6 +18,7 @@
 #include "platform/utils.h"
 #include "vm/heap/pages.h"
 #include "vm/isolate.h"
+#include "vm/virtual_memory_compressed.h"
 
 // #define VIRTUAL_MEMORY_LOGGING 1
 #if defined(VIRTUAL_MEMORY_LOGGING)
@@ -43,6 +44,29 @@ DECLARE_FLAG(bool, generate_perf_jitdump);
 
 uword VirtualMemory::page_size_ = 0;
 
+static void unmap(uword start, uword end);
+
+static void* GenericMapAligned(void* hint,
+                               int prot,
+                               intptr_t size,
+                               intptr_t alignment,
+                               intptr_t allocated_size,
+                               int map_flags) {
+  void* address = mmap(hint, allocated_size, prot, map_flags, -1, 0);
+  LOG_INFO("mmap(%p, 0x%" Px ", %u, ...): %p\n", hint, allocated_size, prot,
+           address);
+  if (address == MAP_FAILED) {
+    return nullptr;
+  }
+
+  const uword base = reinterpret_cast<uword>(address);
+  const uword aligned_base = Utils::RoundUp(base, alignment);
+
+  unmap(base, aligned_base);
+  unmap(aligned_base + size, base + allocated_size);
+  return reinterpret_cast<void*>(aligned_base);
+}
+
 intptr_t VirtualMemory::CalculatePageSize() {
   const intptr_t page_size = getpagesize();
   ASSERT(page_size != 0);
@@ -51,6 +75,23 @@ intptr_t VirtualMemory::CalculatePageSize() {
 }
 
 void VirtualMemory::Init() {
+#if defined(DART_COMPRESSED_POINTERS)
+  if (VirtualMemoryCompressedHeap::GetRegion() == nullptr) {
+    void* address = GenericMapAligned(
+        nullptr, PROT_NONE, kCompressedHeapSize, kCompressedHeapAlignment,
+        kCompressedHeapSize + kCompressedHeapAlignment,
+        MAP_PRIVATE | MAP_ANONYMOUS);
+    if (address == nullptr) {
+      int error = errno;
+      const int kBufferSize = 1024;
+      char error_buf[kBufferSize];
+      FATAL2("Failed to reserve region for compressed heap: %d (%s)", error,
+             Utils::StrError(error, error_buf, kBufferSize));
+    }
+    VirtualMemoryCompressedHeap::Init(address);
+  }
+#endif  // defined(DART_COMPRESSED_POINTERS)
+
   if (page_size_ != 0) {
     // Already initialized.
     return;
@@ -78,7 +119,7 @@ void VirtualMemory::Init() {
     intptr_t size = PageSize();
     intptr_t alignment = kOldPageSize;
     VirtualMemory* vm = AllocateAligned(size, alignment, true, "memfd-test");
-    if (vm == NULL) {
+    if (vm == nullptr) {
       LOG_INFO("memfd_create not supported; disabling dual mapping of code.\n");
       FLAG_dual_map_code = false;
       return;
@@ -113,6 +154,15 @@ void VirtualMemory::Init() {
     }
   }
 #endif
+}
+
+void VirtualMemory::Cleanup() {
+#if defined(DART_COMPRESSED_POINTERS)
+  uword heap_base =
+      reinterpret_cast<uword>(VirtualMemoryCompressedHeap::GetRegion());
+  unmap(heap_base, heap_base + kCompressedHeapSize);
+  VirtualMemoryCompressedHeap::Cleanup();
+#endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
 bool VirtualMemory::DualMappingEnabled() {
@@ -151,17 +201,18 @@ static inline int memfd_create(const char* name, unsigned int flags) {
 #endif
 }
 
-static void* MapAligned(int fd,
+static void* MapAligned(void* hint,
+                        int fd,
                         int prot,
                         intptr_t size,
                         intptr_t alignment,
                         intptr_t allocated_size) {
   void* address =
-      mmap(NULL, allocated_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  LOG_INFO("mmap(NULL, 0x%" Px ", PROT_NONE, ...): %p\n", allocated_size,
+      mmap(hint, allocated_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  LOG_INFO("mmap(%p, 0x%" Px ", PROT_NONE, ...): %p\n", hint, allocated_size,
            address);
   if (address == MAP_FAILED) {
-    return NULL;
+    return nullptr;
   }
 
   const uword base = reinterpret_cast<uword>(address);
@@ -176,7 +227,7 @@ static void* MapAligned(int fd,
            prot, address);
   if (address == MAP_FAILED) {
     unmap(base, base + allocated_size);
-    return NULL;
+    return nullptr;
   }
   ASSERT(address == reinterpret_cast<void*>(aligned_base));
   unmap(base, aligned_base);
@@ -199,6 +250,19 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, PageSize()));
   ASSERT(name != nullptr);
+
+#if defined(DART_COMPRESSED_POINTERS)
+  if (!is_executable) {
+    MemoryRegion region =
+        VirtualMemoryCompressedHeap::Allocate(size, alignment);
+    if (region.pointer() == nullptr) {
+      return nullptr;
+    }
+    mprotect(region.pointer(), region.size(), PROT_READ | PROT_WRITE);
+    return new VirtualMemory(region, region);
+  }
+#endif  // defined(DART_COMPRESSED_POINTERS)
+
   const intptr_t allocated_size = size + alignment - PageSize();
 #if defined(DUAL_MAPPING_SUPPORTED)
   const bool dual_mapping =
@@ -206,18 +270,18 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (dual_mapping) {
     int fd = memfd_create(name, MFD_CLOEXEC);
     if (fd == -1) {
-      return NULL;
+      return nullptr;
     }
     if (ftruncate(fd, size) == -1) {
       close(fd);
-      return NULL;
+      return nullptr;
     }
     const int region_prot = PROT_READ | PROT_WRITE;
     void* region_ptr =
-        MapAligned(fd, region_prot, size, alignment, allocated_size);
-    if (region_ptr == NULL) {
+        MapAligned(nullptr, fd, region_prot, size, alignment, allocated_size);
+    if (region_ptr == nullptr) {
       close(fd);
-      return NULL;
+      return nullptr;
     }
     // The mapping will be RX and stays that way until it will eventually be
     // unmapped.
@@ -225,13 +289,14 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     // DUAL_MAPPING_SUPPORTED is false in TARGET_OS_MACOS and hence support
     // for MAP_JIT is not required here.
     const int alias_prot = PROT_READ | PROT_EXEC;
+    void* hint = reinterpret_cast<void*>(&Dart_Initialize);
     void* alias_ptr =
-        MapAligned(fd, alias_prot, size, alignment, allocated_size);
+        MapAligned(hint, fd, alias_prot, size, alignment, allocated_size);
     close(fd);
-    if (alias_ptr == NULL) {
+    if (alias_ptr == nullptr) {
       const uword region_base = reinterpret_cast<uword>(region_ptr);
       unmap(region_base, region_base + size);
-      return NULL;
+      return nullptr;
     }
     ASSERT(region_ptr != alias_ptr);
     MemoryRegion alias(alias_ptr, size);
@@ -250,16 +315,17 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (FLAG_dual_map_code) {
     int fd = memfd_create(name, MFD_CLOEXEC);
     if (fd == -1) {
-      return NULL;
+      return nullptr;
     }
     if (ftruncate(fd, size) == -1) {
       close(fd);
-      return NULL;
+      return nullptr;
     }
-    void* region_ptr = MapAligned(fd, prot, size, alignment, allocated_size);
+    void* region_ptr =
+        MapAligned(nullptr, fd, prot, size, alignment, allocated_size);
     close(fd);
-    if (region_ptr == NULL) {
-      return NULL;
+    if (region_ptr == nullptr) {
+      return nullptr;
     }
     MemoryRegion region(region_ptr, size);
     return new VirtualMemory(region, region);
@@ -272,24 +338,34 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     map_flags |= MAP_JIT;
   }
 #endif  // defined(HOST_OS_MACOS)
-  void* address = mmap(NULL, allocated_size, prot, map_flags, -1, 0);
-  LOG_INFO("mmap(NULL, 0x%" Px ", %u, ...): %p\n", allocated_size, prot,
-           address);
-  if (address == MAP_FAILED) {
-    return NULL;
+
+  void* hint = nullptr;
+  // Some 64-bit microarchitectures store only the low 32-bits of targets as
+  // part of indirect branch prediction, predicting that the target's upper bits
+  // will be same as the call instruction's address. This leads to misprediction
+  // for indirect calls crossing a 4GB boundary. We ask mmap to place our
+  // generated code near the VM binary to avoid this.
+  if (is_executable) {
+    hint = reinterpret_cast<void*>(&Dart_Initialize);
+  }
+  void* address =
+      GenericMapAligned(hint, prot, size, alignment, allocated_size, map_flags);
+  if (address == nullptr) {
+    return nullptr;
   }
 
-  const uword base = reinterpret_cast<uword>(address);
-  const uword aligned_base = Utils::RoundUp(base, alignment);
-
-  unmap(base, aligned_base);
-  unmap(aligned_base + size, base + allocated_size);
-
-  MemoryRegion region(reinterpret_cast<void*>(aligned_base), size);
+  MemoryRegion region(reinterpret_cast<void*>(address), size);
   return new VirtualMemory(region, region);
 }
 
 VirtualMemory::~VirtualMemory() {
+#if defined(DART_COMPRESSED_POINTERS)
+  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
+    madvise(reserved_.pointer(), reserved_.size(), MADV_DONTNEED);
+    VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
+    return;
+  }
+#endif  // defined(DART_COMPRESSED_POINTERS)
   if (vm_owns_region()) {
     unmap(reserved_.start(), reserved_.end());
     const intptr_t alias_offset = AliasOffset();
@@ -299,10 +375,16 @@ VirtualMemory::~VirtualMemory() {
   }
 }
 
-void VirtualMemory::FreeSubSegment(void* address,
-                                   intptr_t size) {
+bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
+#if defined(DART_COMPRESSED_POINTERS)
+  // Don't free the sub segment if it's managed by the compressed pointer heap.
+  if (VirtualMemoryCompressedHeap::Contains(address)) {
+    return false;
+  }
+#endif  // defined(DART_COMPRESSED_POINTERS)
   const uword start = reinterpret_cast<uword>(address);
   unmap(start, start + size);
+  return true;
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {

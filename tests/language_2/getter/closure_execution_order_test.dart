@@ -5,6 +5,8 @@
 // Test that a getter is evaluated after the arguments, when a getter is
 // for invoking a method. See chapter 'Method Invocation' in specification.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 var counter = 0;

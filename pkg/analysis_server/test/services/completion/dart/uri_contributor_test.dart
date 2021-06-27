@@ -263,7 +263,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_only_dart_files() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
     newFile('$testPackageRootPath/other.dart');
-    newFile('$testPackageRootPath/analysis_options.yaml');
+    newAnalysisOptionsYamlFile(testPackageRootPath);
 
     addTestSource('import "package:^";');
     await computeSuggestions();

@@ -38,7 +38,7 @@ class DiagnosticDomainHandler implements RequestHandler {
   Future handleGetServerPort(Request request) async {
     try {
       // Open a port (or return the existing one).
-      var port = await server.diagnosticServer.getServerPort();
+      var port = await server.diagnosticServer!.getServerPort();
       server.sendResponse(
           DiagnosticGetServerPortResult(port).toResponse(request.id));
     } catch (error) {
@@ -47,7 +47,7 @@ class DiagnosticDomainHandler implements RequestHandler {
   }
 
   @override
-  Response handleRequest(Request request) {
+  Response? handleRequest(Request request) {
     try {
       var requestName = request.method;
       if (requestName == DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS) {
@@ -61,12 +61,4 @@ class DiagnosticDomainHandler implements RequestHandler {
     }
     return null;
   }
-}
-
-class MemoryCpuSample {
-  final DateTime time;
-  final double cpuPercentage;
-  final int memoryKB;
-
-  MemoryCpuSample(this.time, this.cpuPercentage, this.memoryKB);
 }

@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/jumps.dart';
 import 'package:compiler/src/js_model/element_map.dart';
@@ -39,7 +38,8 @@ class JumpDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
-    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
+    GlobalLocalsMap localsMap =
+        compiler.globalInference.resultsForTesting.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new JumpsIrChecker(
             compiler.reporter, actualMap, localsMap.getLocalsMap(member))

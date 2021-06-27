@@ -21,7 +21,7 @@ class Logger {
   /// The [label] is used to indicate the kind of information being logged,
   /// while the [content] contains the actual information. If a list of
   /// [arguments] is provided, then they will be written after the content.
-  void log(String label, String content, {List<String> arguments}) {
+  void log(String label, String content, {List<String>? arguments}) {
     for (var i = _labelWidth - label.length; i > 0; i--) {
       sink.write(' ');
     }

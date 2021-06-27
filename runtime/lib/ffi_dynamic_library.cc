@@ -28,8 +28,8 @@ static void* LoadExtensionLibrary(const char* library_file) {
   void* handle = dlopen(library_file, RTLD_LAZY);
   if (handle == nullptr) {
     char* error = dlerror();
-    const String& msg = String::Handle(
-        String::NewFormatted("Failed to load dynamic library (%s)", error));
+    const String& msg = String::Handle(String::NewFormatted(
+        "Failed to load dynamic library '%s': %s", library_file, error));
     Exceptions::ThrowArgumentError(msg);
   }
 
@@ -54,8 +54,8 @@ static void* LoadExtensionLibrary(const char* library_file) {
 
   if (ext == nullptr) {
     const int error = GetLastError();
-    const String& msg = String::Handle(
-        String::NewFormatted("Failed to load dynamic library (%i)", error));
+    const String& msg = String::Handle(String::NewFormatted(
+        "Failed to load dynamic library '%s': %i", library_file, error));
     Exceptions::ThrowArgumentError(msg);
   }
 
@@ -99,8 +99,8 @@ static void* ResolveSymbol(void* handle, const char* symbol) {
     defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA)
   dlerror();  // Clear any errors.
   void* pointer = dlsym(handle, symbol);
-  if (pointer == nullptr) {
-    char* error = dlerror();
+  char* error = dlerror();
+  if (error != nullptr) {
     const String& msg = String::Handle(
         String::NewFormatted("Failed to lookup symbol (%s)", error));
     Exceptions::ThrowArgumentError(msg);
@@ -145,6 +145,34 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_getHandle, 0, 1) {
 
   intptr_t handle = reinterpret_cast<intptr_t>(dlib.GetHandle());
   return Integer::NewFromUint64(handle);
+}
+
+static bool SymbolExists(void* handle, const char* symbol) {
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                        \
+    defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA)
+  dlerror();  // Clear previous error, if any.
+  dlsym(handle, symbol);
+  // Checking whether dlsym returns a nullptr is not enough, as the value of
+  // the symbol could actually be NULL. Check the error condition instead.
+  return dlerror() == nullptr;
+#elif defined(HOST_OS_WINDOWS)
+  return GetProcAddress(reinterpret_cast<HMODULE>(handle), symbol) != nullptr;
+#else
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0,
+             String::Handle(String::New(
+                 "The dart:ffi library is not available on this platform.")));
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+#endif
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_dl_providesSymbol, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(DynamicLibrary, dlib, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, argSymbolName,
+                               arguments->NativeArgAt(1));
+
+  void* handle = dlib.GetHandle();
+  return Bool::Get(SymbolExists(handle, argSymbolName.ToCString())).ptr();
 }
 
 }  // namespace dart

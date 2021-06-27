@@ -1,0 +1,15 @@
+// @dart = 2.9
+import 'opt_in_lib1.dart';
+import 'opt_in_lib2.dart';
+import 'opt_out_lib.dart';
+
+class Class1 extends Super with Mixin1 {}
+
+class Class2 extends Base with Mixin2 {}
+
+class Super {
+  B get getter => new B();
+  void set setter(A a) {}
+}
+
+main() {}

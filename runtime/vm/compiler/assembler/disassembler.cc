@@ -6,6 +6,7 @@
 
 #include "platform/text_buffer.h"
 #include "platform/unaligned.h"
+#include "vm/code_comments.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
@@ -161,7 +162,7 @@ void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code& code,
-                               const Code::Comments* comments) {
+                               const CodeComments* comments) {
   if (comments == nullptr) {
     comments = code.IsNull() ? &Code::Comments::New(0) : &code.comments();
   }
@@ -177,9 +178,7 @@ void Disassembler::Disassemble(uword start,
     const intptr_t old_comment_finger = comment_finger;
     while (comment_finger < comments->Length() &&
            comments->PCOffsetAt(comment_finger) <= offset) {
-      formatter->Print(
-          "        ;; %s\n",
-          String::Handle(comments->CommentAt(comment_finger)).ToCString());
+      formatter->Print("        ;; %s\n", comments->CommentAt(comment_finger));
       comment_finger++;
     }
     if (old_comment_finger != comment_finger && !code.IsNull()) {
@@ -309,20 +308,20 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     String& var_name = String::Handle(zone);
     for (intptr_t i = 0; i < var_desc_length; i++) {
       var_name = var_descriptors.GetName(i);
-      LocalVarDescriptorsLayout::VarInfo var_info;
+      UntaggedLocalVarDescriptors::VarInfo var_info;
       var_descriptors.GetInfo(i, &var_info);
       const int8_t kind = var_info.kind();
-      if (kind == LocalVarDescriptorsLayout::kSavedCurrentContext) {
+      if (kind == UntaggedLocalVarDescriptors::kSavedCurrentContext) {
         THR_Print("  saved current CTX reg offset %d\n", var_info.index());
       } else {
-        if (kind == LocalVarDescriptorsLayout::kContextLevel) {
+        if (kind == UntaggedLocalVarDescriptors::kContextLevel) {
           THR_Print("  context level %d scope %d", var_info.index(),
                     var_info.scope_id);
-        } else if (kind == LocalVarDescriptorsLayout::kStackVar) {
+        } else if (kind == UntaggedLocalVarDescriptors::kStackVar) {
           THR_Print("  stack var '%s' offset %d", var_name.ToCString(),
                     var_info.index());
         } else {
-          ASSERT(kind == LocalVarDescriptorsLayout::kContextVar);
+          ASSERT(kind == UntaggedLocalVarDescriptors::kContextVar);
           THR_Print("  context var '%s' level %d offset %d",
                     var_name.ToCString(), var_info.scope_id, var_info.index());
         }
@@ -390,9 +389,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
         dst_type = AbstractType::null();
         if (object.IsAbstractType()) {
-          dst_type = AbstractType::Cast(object).raw();
+          dst_type = AbstractType::Cast(object).ptr();
         } else if (object.IsCode()) {
-          code = Code::Cast(object).raw();
+          code = Code::Cast(object).ptr();
         }
 
         auto kind = Code::KindField::decode(kind_type_and_offset.Value());
@@ -458,11 +457,13 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 void Disassembler::DisassembleCode(const Function& function,
                                    const Code& code,
                                    bool optimized) {
+  if (code.IsUnknownDartCode()) {
+    return;
+  }
   TextBuffer buffer(128);
   const char* function_fullname = function.ToFullyQualifiedCString();
   buffer.Printf("%s", Function::KindToCString(function.kind()));
-  if (function.IsInvokeFieldDispatcher() ||
-      function.IsNoSuchMethodDispatcher()) {
+  if (function.HasSavedArgumentsDescriptor()) {
     const auto& args_desc_array = Array::Handle(function.saved_args_desc());
     const ArgumentsDescriptor args_desc(args_desc_array);
     buffer.AddString(", ");

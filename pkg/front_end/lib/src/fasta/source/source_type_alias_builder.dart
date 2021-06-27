@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.source_type_alias_builder;
 
 import 'package:kernel/ast.dart'
@@ -15,8 +17,12 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         getAsTypeArguments;
 
+import 'package:kernel/core_types.dart';
+
 import 'package:kernel/type_algebra.dart'
     show FreshTypeParameters, getFreshTypeParameters;
+
+import 'package:kernel/type_environment.dart';
 
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
@@ -34,6 +40,8 @@ import '../builder/type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
+
+import '../util/helpers.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -58,6 +66,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 reference: referenceFrom?.reference)
               ..fileOffset = charOffset),
         super(metadata, name, parent, charOffset);
+
+  @override
+  SourceLibraryBuilder get library => super.library;
 
   @override
   List<TypeVariableBuilder> get typeVariables => _typeVariables;
@@ -121,9 +132,12 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   DartType buildThisType() {
     if (thisType != null) {
-      if (identical(thisType, cyclicTypeAliasMarker)) {
+      if (identical(thisType, pendingTypeAliasMarker)) {
+        thisType = cyclicTypeAliasMarker;
         library.addProblem(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
+        return const InvalidType();
+      } else if (identical(thisType, cyclicTypeAliasMarker)) {
         return const InvalidType();
       }
       return thisType;
@@ -131,7 +145,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     // It is a compile-time error for an alias (typedef) to refer to itself. We
     // detect cycles by detecting recursive calls to this method using an
     // instance of InvalidType that isn't identical to `const InvalidType()`.
-    thisType = cyclicTypeAliasMarker;
+    thisType = pendingTypeAliasMarker;
     TypeBuilder type = this.type;
     if (type != null) {
       DartType builtType =
@@ -143,7 +157,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             tv.bound?.build(library);
           }
         }
-        return thisType = builtType;
+        if (identical(thisType, cyclicTypeAliasMarker)) {
+          return thisType = const InvalidType();
+        } else {
+          return thisType = builtType;
+        }
       } else {
         return thisType = const InvalidType();
       }
@@ -161,7 +179,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         new List<DartType>.filled(typedef.typeParameters.length, null);
     for (int i = 0; i < bounds.length; ++i) {
       bounds[i] = typedef.typeParameters[i].bound;
-      if (bounds[i] == null) {
+      if (identical(bounds[i], TypeParameter.unsetBoundSentinel)) {
         typedef.typeParameters[i].bound = const DynamicType();
       }
     }
@@ -170,14 +188,15 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     TypedefType result =
         new TypedefType(typedef, clientLibrary.nonNullable, asTypeArguments);
     for (int i = 0; i < bounds.length; ++i) {
-      if (bounds[i] == null) {
+      if (identical(bounds[i], TypeParameter.unsetBoundSentinel)) {
         // If the bound is not assigned yet, put the corresponding
         // type-parameter type into the list for the nullability re-computation.
         // At this point, [parent] should be a [SourceLibraryBuilder] because
         // otherwise it's a compiled library loaded from a dill file, and the
         // bounds should have been assigned.
         SourceLibraryBuilder parentLibrary = parent;
-        parentLibrary.pendingNullabilities.add(asTypeArguments[i]);
+        parentLibrary.registerPendingNullability(_typeVariables[i].fileUri,
+            _typeVariables[i].charOffset, asTypeArguments[i]);
       }
     }
     return result;
@@ -221,5 +240,26 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       result[i] = arguments[i].build(library);
     }
     return result;
+  }
+
+  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
+    library.checkBoundsInTypeParameters(
+        typeEnvironment, typedef.typeParameters, fileUri);
+    library.checkBoundsInType(
+        typedef.type, typeEnvironment, fileUri, type?.charOffset ?? charOffset,
+        allowSuperBounded: false);
+  }
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    MetadataBuilder.buildAnnotations(
+        typedef, metadata, library, null, null, fileUri);
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables.length; i++) {
+        typeVariables[i].buildOutlineExpressions(
+            library, null, null, coreTypes, delayedActionPerformers);
+      }
+    }
   }
 }

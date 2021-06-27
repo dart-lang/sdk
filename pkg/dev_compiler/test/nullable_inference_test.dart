@@ -6,19 +6,19 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/type_environment.dart';
-import 'package:kernel/src/printer.dart';
-import 'package:kernel/target/targets.dart';
-import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/kernel/command.dart';
-import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/js_typerep.dart';
+import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
+import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/kernel.dart';
+import 'package:kernel/src/printer.dart';
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_environment.dart';
+import 'package:test/test.dart';
 
 const AstTextStrategy astTextStrategy = AstTextStrategy(
     includeLibraryNamesInTypes: true,
@@ -536,7 +536,7 @@ Future expectAllNotNull(String code) async {
 bool useAnnotations = false;
 NullableInference inference;
 
-class _TestRecursiveVisitor extends RecursiveVisitor<void> {
+class _TestRecursiveVisitor extends RecursiveVisitor {
   final Set<Library> librariesFromDill;
   int _functionNesting = 0;
   TypeEnvironment _typeEnvironment;

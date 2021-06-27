@@ -1044,10 +1044,43 @@ class Parser {
   }
 
   /// ```
-  /// annotation:
-  ///   '@' qualified ('.' identifier)? arguments?
-  /// ;
+  /// <metadata> ::= (‘@’ <metadatum>)*
+  /// <metadatum> ::= <identifier>
+  ///   | <qualifiedName>
+  ///   | <constructorDesignation> <arguments>
+  /// <qualifiedName> ::= <typeIdentifier> ‘.’ <identifier>
+  ///   | <typeIdentifier> ‘.’ <typeIdentifier> ‘.’ <identifier>
+  /// <constructorDesignation> ::= <typeIdentifier>
+  ///   | <qualifiedName>
+  ///   | <typeName> <typeArguments> (‘.’ <identifier>)?
+  /// <typeName> ::= <typeIdentifier> (‘.’ <typeIdentifier>)?
   /// ```
+  /// (where typeIdentifier is an identifier that's not on the list of
+  /// built in identifiers)
+  /// So these are legal:
+  /// * identifier
+  /// qualifiedName:
+  /// * typeIdentifier.identifier
+  /// * typeIdentifier.typeIdentifier.identifier
+  /// via constructorDesignation part 1
+  /// * typeIdentifier(arguments)
+  /// via constructorDesignation part 2
+  /// * typeIdentifier.identifier(arguments)
+  /// * typeIdentifier.typeIdentifier.identifier(arguments)
+  /// via constructorDesignation part 3
+  /// * typeIdentifier<typeArguments>(arguments)
+  /// * typeIdentifier<typeArguments>.identifier(arguments)
+  /// * typeIdentifier.typeIdentifier<typeArguments>(arguments)
+  /// * typeIdentifier.typeIdentifier<typeArguments>.identifier(arguments)
+  ///
+  /// So in another way (ignoring the difference between typeIdentifier and
+  /// identifier):
+  /// * 1, 2 or 3 identifiers with or without arguments.
+  /// * 1 or 2 identifiers, then type arguments, then possibly followed by a
+  ///   single identifier, and then (required!) arguments.
+  ///
+  /// Note that if this is updated [skipMetadata] (in util.dart) should be
+  /// updated as well.
   Token parseMetadata(Token token) {
     Token atToken = token.next!;
     assert(optional('@', atToken));
@@ -1055,15 +1088,17 @@ class Parser {
     token = ensureIdentifier(atToken, IdentifierContext.metadataReference);
     token =
         parseQualifiedRestOpt(token, IdentifierContext.metadataContinuation);
-    if (optional("<", token.next!)) {
-      reportRecoverableError(token.next!, codes.messageMetadataTypeArguments);
-    }
+    bool hasTypeArguments = optional("<", token.next!);
     token = computeTypeParamOrArg(token).parseArguments(token, this);
     Token? period = null;
     if (optional('.', token.next!)) {
       period = token.next!;
       token = ensureIdentifier(
           period, IdentifierContext.metadataContinuationAfterTypeArguments);
+    }
+    if (hasTypeArguments && !optional("(", token.next!)) {
+      reportRecoverableError(
+          token, codes.messageMetadataTypeArgumentsUninstantiated);
     }
     token = parseArgumentsOpt(token);
     listener.endMetadata(atToken, period, token.next!);
@@ -1824,6 +1859,7 @@ class Parser {
   Token parseQualifiedRest(Token token, IdentifierContext context) {
     token = token.next!;
     assert(optional('.', token));
+    _tryRewriteNewToIdentifier(token, context);
     Token period = token;
     token = ensureIdentifier(token, context);
     listener.handleQualified(period);
@@ -2275,6 +2311,15 @@ class Parser {
     Token token = extensionKeyword;
     listener.beginExtensionDeclarationPrelude(extensionKeyword);
     Token? name = token.next!;
+    Token? typeKeyword = null;
+    if (name.isIdentifier &&
+        name.lexeme == 'type' &&
+        name.next!.isIdentifier &&
+        !optional('on', name.next!)) {
+      typeKeyword = name;
+      token = token.next!;
+      name = token.next!;
+    }
     if (name.isIdentifier && !optional('on', name)) {
       token = name;
       if (name.type.isBuiltIn) {
@@ -2329,7 +2374,8 @@ class Parser {
     }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.Extension, name?.lexeme);
-    listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
+    listener.endExtensionDeclaration(
+        extensionKeyword, typeKeyword, onKeyword, token);
     return token;
   }
 
@@ -2364,6 +2410,7 @@ class Parser {
   Token ensureIdentifier(Token token, IdentifierContext context) {
     // ignore: unnecessary_null_comparison
     assert(context != null);
+    _tryRewriteNewToIdentifier(token, context);
     Token identifier = token.next!;
     if (identifier.kind != IDENTIFIER_TOKEN) {
       identifier = context.ensureIdentifier(token, this);
@@ -2374,6 +2421,47 @@ class Parser {
     listener.handleIdentifier(identifier, context);
     return identifier;
   }
+
+  /// Returns `true` if [token] is either an identifier or a `new` token.  This
+  /// can be used to match identifiers in contexts where a constructor name can
+  /// appear, since `new` can be used to refer to the unnamed constructor.
+  bool _isNewOrIdentifier(Token token) {
+    if (token.isIdentifier) return true;
+    if (token.kind == KEYWORD_TOKEN) {
+      final String? value = token.stringValue;
+      if (value == 'new') {
+        // Treat `new` as an identifier so that it can represent an unnamed
+        // constructor.
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// If the token following [token] is a `new` keyword, and [context] is a
+  /// context that permits `new` to be treated as an identifier, rewrites the
+  /// `new` token to an identifier token, and reports the rewritten token to the
+  /// listener.  Otherwise does nothing.
+  void _tryRewriteNewToIdentifier(Token token, IdentifierContext context) {
+    if (!context.allowsNewAsIdentifier) return;
+    Token identifier = token.next!;
+    if (identifier.kind == KEYWORD_TOKEN) {
+      final String? value = token.next!.stringValue;
+      if (value == 'new') {
+        // `new` after `.` is treated as an identifier so that it can represent
+        // an unnamed constructor.
+        Token replacementToken = rewriter.replaceTokenFollowing(
+            token,
+            new StringToken(TokenType.IDENTIFIER, identifier.lexeme,
+                token.next!.charOffset));
+        listener.handleNewAsIdentifier(replacementToken);
+      }
+    }
+  }
+
+  /// Checks whether the next token is (directly) an identifier. If this returns
+  /// true a call to [ensureIdentifier] will return the next token.
+  bool isNextIdentifier(Token token) => token.next?.kind == IDENTIFIER_TOKEN;
 
   /// Parse a simple identifier at the given [token], and return the identifier
   /// that was parsed.
@@ -3034,6 +3122,10 @@ class Parser {
       next = token.next!;
       if (optional('.', next)) {
         token = next;
+        Token? afterIdentifier = token.next!.next;
+        if (afterIdentifier != null && optional('(', afterIdentifier)) {
+          _tryRewriteNewToIdentifier(token, IdentifierContext.fieldInitializer);
+        }
         next = token.next!;
         if (next.isIdentifier) {
           token = next;
@@ -3114,6 +3206,8 @@ class Parser {
     Token next = token.next!;
     if (optional('.', next)) {
       token = next;
+      _tryRewriteNewToIdentifier(
+          token, IdentifierContext.constructorReferenceContinuation);
       next = token.next!;
       if (next.kind != IDENTIFIER_TOKEN) {
         next = IdentifierContext.expressionContinuation
@@ -3788,7 +3882,13 @@ class Parser {
         varFinalOrConst, getOrSet, name);
 
     Token token = typeInfo.parseType(beforeType, this);
-    assert(token.next == (getOrSet ?? name));
+    assert(token.next == (getOrSet ?? name) ||
+        // [skipType] and [parseType] for something ending in `>>` is different
+        // because [`>>`] is split to [`>`, `>`] in both cases. For skip it's
+        // cached as the end but for parse a new pair is created (which is also
+        // woven into the token stream). At least for now we allow this and let
+        // the assert not fail because of it.
+        (token.next!.type == name.type && token.next!.offset == name.offset));
     token = getOrSet ?? token;
 
     bool hasQualifiedName = false;
@@ -4018,7 +4118,7 @@ class Parser {
     } else {
       if (varFinalOrConst != null && !optional('native', next)) {
         if (optional('const', varFinalOrConst)) {
-          reportRecoverableError(varFinalOrConst, codes.messageConstFactory);
+          listener.handleConstFactory(varFinalOrConst);
         }
       }
       token = parseFunctionBody(
@@ -4748,7 +4848,10 @@ class Parser {
         listener.handleNonNullAssertExpression(bangToken);
       }
       token = typeArg.parseArguments(bangToken, this);
-      assert(optional('(', token.next!));
+      if (!optional('(', token.next!)) {
+        listener.handleTypeArgumentApplication(bangToken.next!);
+        typeArg = noTypeParamOrArg;
+      }
     }
 
     return _parsePrecedenceExpressionLoop(
@@ -4816,7 +4919,10 @@ class Parser {
                 listener.handleNonNullAssertExpression(bangToken);
               }
               token = typeArg.parseArguments(bangToken, this);
-              assert(optional('(', token.next!));
+              if (!optional('(', token.next!)) {
+                listener.handleTypeArgumentApplication(bangToken.next!);
+                typeArg = noTypeParamOrArg;
+              }
             }
           } else if (identical(type, TokenType.OPEN_PAREN) ||
               identical(type, TokenType.OPEN_SQUARE_BRACKET)) {
@@ -4897,73 +5003,97 @@ class Parser {
   bool _attemptPrecedenceLevelRecovery(Token token, int precedence,
       int currentLevel, bool allowCascades, TypeParamOrArgInfo typeArg) {
     // Attempt recovery.
-    assert(_token_recovery_replacements.containsKey(token.next!.lexeme));
-    TokenType replacement = _token_recovery_replacements[token.next!.lexeme]!;
-    if (currentLevel >= 0) {
-      // Check that the new precedence and currentLevel would have accepted this
-      // replacement here.
-      int newLevel = replacement.precedence;
-      // The loop it would normally have gone through is something like
-      // for (; ; --level) {
-      //   while (identical(tokenLevel, level)) {
-      //   }
-      // }
-      // So if the new tokens level <= the "old" (current) level, [level] (in
-      // the above code snippet) would get down to it and accept it.
-      // But if the new tokens level > the "old" (current) level, normally we
-      // would never get to it - so we shouldn't here either. As the loop starts
-      // by taking the first tokens tokenLevel as level, recursing below won't
-      // weed that out so we need to do it here.
-      if (newLevel > currentLevel) return false;
-    }
-
-    _currentlyRecovering = true;
     _recoverAtPrecedenceLevel = false;
-    Listener originalListener = listener;
-    TokenStreamRewriter? originalRewriter = cachedRewriter;
-    NullListener nullListener = listener = new NullListener();
-    UndoableTokenStreamRewriter undoableTokenStreamRewriter =
-        new UndoableTokenStreamRewriter();
-    cachedRewriter = undoableTokenStreamRewriter;
-    rewriter.replaceNextTokenWithSyntheticToken(token, replacement);
-    bool acceptRecovery = false;
-    Token afterExpression = _parsePrecedenceExpressionLoop(
-        precedence, allowCascades, typeArg, token);
+    assert(_tokenRecoveryReplacements.containsKey(token.next!.lexeme));
+    List<TokenType> replacements =
+        _tokenRecoveryReplacements[token.next!.lexeme]!;
+    for (int i = 0; i < replacements.length; i++) {
+      TokenType replacement = replacements[i];
 
-    if (!nullListener.hasErrors &&
-        isOneOfOrEof(afterExpression.next!, const [';', ',', ')', '{', '}'])) {
-      // Seems good!
-      acceptRecovery = true;
-    }
+      if (currentLevel >= 0) {
+        // Check that the new precedence and currentLevel would have accepted
+        // this replacement here.
+        int newLevel = replacement.precedence;
+        // The loop it would normally have gone through is something like
+        // for (; ; --level) {
+        //   while (identical(tokenLevel, level)) {
+        //   }
+        // }
+        // So if the new tokens level <= the "old" (current) level, [level] (in
+        // the above code snippet) would get down to it and accept it.
+        // But if the new tokens level > the "old" (current) level, normally we
+        // would never get to it - so we shouldn't here either.
+        // As the loop starts by taking the first tokens tokenLevel as level,
+        // recursing below won't weed that out so we need to do it here.
+        if (newLevel > currentLevel) continue;
+      }
 
-    // Undo all changes and reset.
-    _currentlyRecovering = false;
-    undoableTokenStreamRewriter.undo();
-    listener = originalListener;
-    cachedRewriter = originalRewriter;
-
-    if (acceptRecovery) {
-      // Report and redo recovery.
-      reportRecoverableError(
-          token.next!,
-          codes.templateBinaryOperatorWrittenOut
-              .withArguments(token.next!.lexeme, replacement.lexeme));
+      _currentlyRecovering = true;
+      Listener originalListener = listener;
+      TokenStreamRewriter? originalRewriter = cachedRewriter;
+      NullListener nullListener = listener = new NullListener();
+      UndoableTokenStreamRewriter undoableTokenStreamRewriter =
+          new UndoableTokenStreamRewriter();
+      cachedRewriter = undoableTokenStreamRewriter;
       rewriter.replaceNextTokenWithSyntheticToken(token, replacement);
-      return true;
+      bool acceptRecovery = false;
+      Token afterExpression = _parsePrecedenceExpressionLoop(
+          precedence, allowCascades, typeArg, token);
+      Token afterExpressionNext = afterExpression.next!;
+
+      if (!nullListener.hasErrors &&
+          token != afterExpression &&
+          (isOneOfOrEof(afterExpressionNext,
+                  const [';', ',', ')', '{', '}', '|', '||', '&', '&&']) ||
+              (afterExpressionNext.type == TokenType.IDENTIFIER &&
+                  _tokenRecoveryReplacements
+                      .containsKey(afterExpressionNext.lexeme)))) {
+        // Seems good!
+        acceptRecovery = true;
+      }
+
+      // Undo all changes and reset.
+      _currentlyRecovering = false;
+      undoableTokenStreamRewriter.undo();
+      listener = originalListener;
+      cachedRewriter = originalRewriter;
+
+      if (acceptRecovery) {
+        // Report and redo recovery.
+        reportRecoverableError(
+            token.next!,
+            codes.templateBinaryOperatorWrittenOut
+                .withArguments(token.next!.lexeme, replacement.lexeme));
+        rewriter.replaceNextTokenWithSyntheticToken(token, replacement);
+        return true;
+      }
     }
+
     return false;
   }
 
   bool _recoverAtPrecedenceLevel = false;
   bool _currentlyRecovering = false;
-  static const Map<String, TokenType> _token_recovery_replacements = const {
-    // E.g. in Kotlin these are written out, see.
+  static const Map<String, List<TokenType>> _tokenRecoveryReplacements = const {
+    // E.g. in Kotlin binary operators are written out, see.
     // https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/.
-    "xor": TokenType.CARET,
-    "and": TokenType.AMPERSAND,
-    "or": TokenType.BAR,
-    "shl": TokenType.LT_LT,
-    "shr": TokenType.GT_GT,
+    "xor": [
+      TokenType.CARET,
+    ],
+    "and": [
+      TokenType.AMPERSAND,
+      TokenType.AMPERSAND_AMPERSAND,
+    ],
+    "or": [
+      TokenType.BAR,
+      TokenType.BAR_BAR,
+    ],
+    "shl": [
+      TokenType.LT_LT,
+    ],
+    "shr": [
+      TokenType.GT_GT,
+    ],
   };
 
   int _computePrecedence(Token token) {
@@ -4992,7 +5122,7 @@ class Parser {
       // An identifier at this point is not right. So some recovery is going to
       // happen soon. The question is, if we can do a better recovery here.
       if (!_currentlyRecovering &&
-          _token_recovery_replacements.containsKey(token.lexeme)) {
+          _tokenRecoveryReplacements.containsKey(token.lexeme)) {
         _recoverAtPrecedenceLevel = true;
       }
     }
@@ -5105,8 +5235,13 @@ class Parser {
           TypeParamOrArgInfo typeArg = computeTypeParamOrArg(identifier);
           if (typeArg != noTypeParamOrArg) {
             Token endTypeArguments = typeArg.skip(identifier);
-            if (optional(".", endTypeArguments.next!)) {
-              return parseImplicitCreationExpression(token, typeArg);
+            Token afterTypeArguments = endTypeArguments.next!;
+            if (optional(".", afterTypeArguments)) {
+              Token afterPeriod = afterTypeArguments.next!;
+              if (_isNewOrIdentifier(afterPeriod) &&
+                  optional('(', afterPeriod.next!)) {
+                return parseImplicitCreationExpression(token, typeArg);
+              }
             }
           }
         }
@@ -5203,6 +5338,7 @@ class Parser {
   }
 
   Token parsePrimary(Token token, IdentifierContext context) {
+    _tryRewriteNewToIdentifier(token, context);
     final int kind = token.next!.kind;
     if (kind == IDENTIFIER_TOKEN) {
       return parseSendOrFunctionLiteral(token, context);
@@ -5683,8 +5819,66 @@ class Parser {
   Token parseNewExpression(Token token) {
     Token newKeyword = token.next!;
     assert(optional('new', newKeyword));
+
+    TypeParamOrArgInfo? potentialTypeArg;
+
+    if (isNextIdentifier(newKeyword)) {
+      Token identifier = newKeyword.next!;
+      String value = identifier.lexeme;
+      if ((value == "Map" || value == "Set") &&
+          !optional('.', identifier.next!)) {
+        potentialTypeArg = computeTypeParamOrArg(identifier);
+        Token afterToken = potentialTypeArg.skip(identifier).next!;
+        if (optional('{', afterToken)) {
+          // Recover by ignoring both the `new` and the `Map`/`Set` and parse as
+          // a literal map/set.
+          reportRecoverableErrorWithEnd(
+              newKeyword,
+              identifier,
+              codes.templateLiteralWithClassAndNew
+                  .withArguments(value.toLowerCase(), identifier));
+          return parsePrimary(identifier, IdentifierContext.expression);
+        }
+      } else if (value == "List" && !optional('.', identifier.next!)) {
+        potentialTypeArg = computeTypeParamOrArg(identifier);
+        Token afterToken = potentialTypeArg.skip(identifier).next!;
+        if (optional('[', afterToken) || optional('[]', afterToken)) {
+          // Recover by ignoring both the `new` and the `List` and parse as
+          // a literal list.
+          reportRecoverableErrorWithEnd(
+              newKeyword,
+              identifier,
+              codes.templateLiteralWithClassAndNew
+                  .withArguments(value.toLowerCase(), identifier));
+          return parsePrimary(identifier, IdentifierContext.expression);
+        }
+      }
+    } else {
+      // This is probably an error. "Normal" recovery will happen in
+      // parseConstructorReference.
+      // Do special recovery for literal maps/set/list erroneously prepended
+      // with 'new'.
+      Token notIdentifier = newKeyword.next!;
+      String value = notIdentifier.lexeme;
+      if (value == "<") {
+        potentialTypeArg = computeTypeParamOrArg(newKeyword);
+        Token afterToken = potentialTypeArg.skip(newKeyword).next!;
+        if (optional('{', afterToken) ||
+            optional('[', afterToken) ||
+            optional('[]', afterToken)) {
+          // Recover by ignoring the `new` and parse as a literal map/set/list.
+          reportRecoverableError(newKeyword, codes.messageLiteralWithNew);
+          return parsePrimary(newKeyword, IdentifierContext.expression);
+        }
+      } else if (value == "{" || value == "[" || value == "[]") {
+        // Recover by ignoring the `new` and parse as a literal map/set/list.
+        reportRecoverableError(newKeyword, codes.messageLiteralWithNew);
+        return parsePrimary(newKeyword, IdentifierContext.expression);
+      }
+    }
+
     listener.beginNewExpression(newKeyword);
-    token = parseConstructorReference(newKeyword);
+    token = parseConstructorReference(newKeyword, potentialTypeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endNewExpression(newKeyword);
     return token;
@@ -5742,8 +5936,75 @@ class Parser {
       listener.endConstLiteral(token.next!);
       return token;
     }
+    final String lexeme = next.lexeme;
+    Token nextNext = next.next!;
+    TypeParamOrArgInfo? potentialTypeArg;
+    if ((lexeme == "Map" || lexeme == "Set") && !optional('.', nextNext)) {
+      // Special-case-recovery for `const Map<..>?{}` and `const Set<..>?{}`.
+      potentialTypeArg = computeTypeParamOrArg(next);
+      Token afterToken = potentialTypeArg.skip(next).next!;
+      if (optional('{', afterToken)) {
+        final String? nextValue = nextNext.stringValue;
+        if (identical(nextValue, '{')) {
+          // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
+          reportRecoverableError(
+              next,
+              codes.templateLiteralWithClass
+                  .withArguments(lexeme.toLowerCase(), next));
+          listener.beginConstLiteral(nextNext);
+          listener.handleNoTypeArguments(nextNext);
+          token = parseLiteralSetOrMapSuffix(next, constKeyword);
+          listener.endConstLiteral(token.next!);
+          return token;
+        }
+        if (identical(nextValue, '<')) {
+          // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
+          reportRecoverableError(
+              next,
+              codes.templateLiteralWithClass
+                  .withArguments(lexeme.toLowerCase(), next));
+
+          listener.beginConstLiteral(nextNext);
+          token = parseLiteralListSetMapOrFunction(next, constKeyword);
+          listener.endConstLiteral(token.next!);
+          return token;
+        }
+        assert(false, "Expected either { or < but found neither.");
+      }
+    } else if (lexeme == "List" && !optional('.', nextNext)) {
+      // Special-case-recovery for `const List<..>?[` and `const List<..>?[]`.
+      potentialTypeArg = computeTypeParamOrArg(next);
+      Token afterToken = potentialTypeArg.skip(next).next!;
+      if (optional('[', afterToken) || optional('[]', afterToken)) {
+        final String? nextValue = nextNext.stringValue;
+        if (identical(nextValue, '[') || identical(nextValue, '[]')) {
+          // Recover by ignoring the `List` and parse as a literal list.
+          reportRecoverableError(
+              next,
+              codes.templateLiteralWithClass
+                  .withArguments(lexeme.toLowerCase(), next));
+          listener.beginConstLiteral(nextNext);
+          listener.handleNoTypeArguments(nextNext);
+          token = parseLiteralListSuffix(next, constKeyword);
+          listener.endConstLiteral(token.next!);
+          return token;
+        }
+        if (identical(nextValue, '<')) {
+          // Recover by ignoring the `List` and parse as a literal list.
+          reportRecoverableError(
+              next,
+              codes.templateLiteralWithClass
+                  .withArguments(lexeme.toLowerCase(), next));
+          listener.beginConstLiteral(nextNext);
+          token = parseLiteralListSetMapOrFunction(next, constKeyword);
+          listener.endConstLiteral(token.next!);
+          return token;
+        }
+        assert(false, "Expected either [, [] or < but found neither.");
+      }
+    }
     listener.beginConstExpression(constKeyword);
-    token = parseConstructorReference(token);
+    token = parseConstructorReference(token, potentialTypeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endConstExpression(constKeyword);
     return token;
@@ -5899,6 +6160,45 @@ class Parser {
   }
 
   Token parseSend(Token token, IdentifierContext context) {
+    // Least-costly recovery of `Map<...>?{`, `Set<...>?{`, `List<...>[` and
+    // `List<...>?[]`.
+    // Note that we have to "peek" into the identifier because we don't want to
+    // send an `handleIdentifier` if we end up recovering.
+    TypeParamOrArgInfo? potentialTypeArg;
+    Token? afterToken;
+    if (isNextIdentifier(token)) {
+      Token identifier = token.next!;
+      String value = identifier.lexeme;
+      if (value == "Map" || value == "Set") {
+        potentialTypeArg = computeTypeParamOrArg(identifier);
+        afterToken = potentialTypeArg.skip(identifier).next!;
+        if (optional('{', afterToken)) {
+          // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
+          reportRecoverableError(
+              identifier,
+              codes.templateLiteralWithClass
+                  .withArguments(value.toLowerCase(), identifier));
+          return parsePrimary(identifier, context);
+        }
+      } else if (value == "List") {
+        potentialTypeArg = computeTypeParamOrArg(identifier);
+        afterToken = potentialTypeArg.skip(identifier).next!;
+        if ((potentialTypeArg != noTypeParamOrArg &&
+                optional('[', afterToken)) ||
+            optional('[]', afterToken)) {
+          // Recover by ignoring the `List` and parse as a literal List.
+          // Note that we here require the `<...>` for `[` as `List[` would be
+          // an indexed expression. `List[]` wouldn't though, so we don't
+          // require it there.
+          reportRecoverableError(
+              identifier,
+              codes.templateLiteralWithClass
+                  .withArguments(value.toLowerCase(), identifier));
+          return parsePrimary(identifier, context);
+        }
+      }
+    }
+
     Token beginToken = token = ensureIdentifier(token, context);
     // Notice that we don't parse the bang (!) here as we do in many other
     // instances where we call computeMethodTypeArguments.
@@ -5907,7 +6207,18 @@ class Parser {
     // the type arguments and the arguments.
     // By not handling bang here we don't parse any of it, and the parser will
     // parse it correctly in a different recursion step.
-    TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
+
+    // Special-case [computeMethodTypeArguments] to re-use potentialTypeArg if
+    // already computed.
+    potentialTypeArg ??= computeTypeParamOrArg(token);
+    afterToken ??= potentialTypeArg.skip(token).next!;
+    TypeParamOrArgInfo typeArg;
+    if (optional('(', afterToken) && !potentialTypeArg.recovered) {
+      typeArg = potentialTypeArg;
+    } else {
+      typeArg = noTypeParamOrArg;
+    }
+
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);
     } else {

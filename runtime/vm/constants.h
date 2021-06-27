@@ -19,6 +19,20 @@
 
 namespace dart {
 
+// An architecture independent ABI for the InstantiateType stub.
+//
+// We re-use registers from another ABI to avoid duplicating this ABI across 4
+// architectures.
+struct InstantiateTypeABI {
+  static const Register kTypeReg =
+      InstantiationABI::kUninstantiatedTypeArgumentsReg;
+  static const Register kInstantiatorTypeArgumentsReg =
+      InstantiationABI::kInstantiatorTypeArgumentsReg;
+  static const Register kFunctionTypeArgumentsReg =
+      InstantiationABI::kFunctionTypeArgumentsReg;
+  static const Register kResultTypeReg = InstantiationABI::kResultTypeReg;
+};
+
 class RegisterNames {
  public:
   static const char* RegisterName(Register reg) {

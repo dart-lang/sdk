@@ -98,7 +98,7 @@ class _Directory extends FileSystemEntity implements Directory {
 
   Directory get absolute => new Directory(_absolutePath);
 
-  Future<Directory> create({bool recursive: false}) {
+  Future<Directory> create({bool recursive = false}) {
     if (recursive) {
       return exists().then((exists) {
         if (exists) return this;
@@ -121,7 +121,7 @@ class _Directory extends FileSystemEntity implements Directory {
     }
   }
 
-  void createSync({bool recursive: false}) {
+  void createSync({bool recursive = false}) {
     if (recursive) {
       if (existsSync()) return;
       if (path != parent.path) {
@@ -184,7 +184,7 @@ class _Directory extends FileSystemEntity implements Directory {
     return new Directory(result);
   }
 
-  Future<Directory> _delete({bool recursive: false}) {
+  Future<Directory> _delete({bool recursive = false}) {
     return _File._dispatchWithNamespace(
             _IOService.directoryDelete, [null, _rawPath, recursive])
         .then((response) {
@@ -195,7 +195,7 @@ class _Directory extends FileSystemEntity implements Directory {
     });
   }
 
-  void _deleteSync({bool recursive: false}) {
+  void _deleteSync({bool recursive = false}) {
     var result = _deleteNative(_Namespace._namespace, _rawPath, recursive);
     if (result is OSError) {
       throw new FileSystemException("Deletion failed", path, result);
@@ -223,7 +223,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Stream<FileSystemEntity> list(
-      {bool recursive: false, bool followLinks: true}) {
+      {bool recursive = false, bool followLinks = true}) {
     return new _AsyncDirectoryLister(
             // FIXME(bkonyi): here we're using `path` directly, which might cause issues
             // if it is not UTF-8 encoded.
@@ -235,7 +235,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   List<FileSystemEntity> listSync(
-      {bool recursive: false, bool followLinks: true}) {
+      {bool recursive = false, bool followLinks = true}) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(recursive, "recursive");
     ArgumentError.checkNotNull(followLinks, "followLinks");

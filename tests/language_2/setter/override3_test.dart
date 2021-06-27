@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Tests that a setter in a subclass does not shadow the getter in the
 // superclass.
 import "package:expect/expect.dart";

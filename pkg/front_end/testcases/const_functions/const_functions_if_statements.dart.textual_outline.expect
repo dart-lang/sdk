@@ -1,0 +1,19 @@
+import "package:expect/expect.dart";
+
+const var1 = ifTest(1);
+const var2 = ifTest(2);
+const var3 = ifTest(3);
+int ifTest(int a) {}
+const one = 1;
+const var4 = ifTest2(1);
+const var5 = ifTest2(2);
+int ifTest2(int a) {}
+const var6 = ifTest3(1);
+const var6_1 = ifTest3(2);
+const var6_2 = ifTest3(0);
+int ifTest3(int a) {}
+const var7 = ifTest4(1);
+int ifTest4(int a) {}
+const var8 = ifTest5();
+int ifTest5() {}
+void main() {}

@@ -42,7 +42,7 @@ typedef NewName(); // existing
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
-            "Library already declares function type alias with name 'NewName'.",
+            "Library already declares type alias with name 'NewName'.",
         expectedContextSearch: 'NewName(); // existing');
   }
 
@@ -265,11 +265,6 @@ main() {
 class Test {}
 ''');
     createRenameRefactoringAtString('Test {}');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Class name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -291,11 +286,6 @@ class Test {}
 test() {}
 ''');
     createRenameRefactoringAtString('test() {}');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -306,31 +296,11 @@ test() {}
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  Future<void> test_checkNewName_FunctionTypeAliasElement() async {
-    await indexTestUnit('''
-typedef Test();
-''');
-    createRenameRefactoringAtString('Test();');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function type alias name must not be null.');
-    // OK
-    refactoring.newName = 'NewName';
-    assertRefactoringStatusOK(refactoring.checkNewName());
-  }
-
   Future<void> test_checkNewName_TopLevelVariableElement() async {
     await indexTestUnit('''
 var test;
 ''');
     createRenameRefactoringAtString('test;');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Variable name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -338,6 +308,51 @@ var test;
         expectedMessage: 'Variable name must not be empty.');
     // OK
     refactoring.newName = 'newName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_TypeAliasElement_functionType() async {
+    await indexTestUnit('''
+typedef Test = void Function();
+''');
+    createRenameRefactoringAtString('Test =');
+    // empty
+    refactoring.newName = '';
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be empty.');
+    // OK
+    refactoring.newName = 'NewName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_TypeAliasElement_interfaceType() async {
+    await indexTestUnit('''
+typedef Test = List<int>;
+''');
+    createRenameRefactoringAtString('Test =');
+    // empty
+    refactoring.newName = '';
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be empty.');
+    // OK
+    refactoring.newName = 'NewName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_TypeAliasElement_legacy() async {
+    await indexTestUnit('''
+typedef Test();
+''');
+    createRenameRefactoringAtString('Test();');
+    // empty
+    refactoring.newName = '';
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be empty.');
+    // OK
+    refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
@@ -388,12 +403,12 @@ class TestPage extends StatefulWidget {
   const TestPage();
 
   @override
-  TestPageState createState() => new TestPageState();
+  State<TestPage> createState() => new TestPageState();
 }
 
 class TestPageState extends State<TestPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
     createRenameRefactoringAtString('TestPage extends');
@@ -410,12 +425,12 @@ class NewPage extends StatefulWidget {
   const NewPage();
 
   @override
-  NewPageState createState() => new NewPageState();
+  State<NewPage> createState() => new NewPageState();
 }
 
 class NewPageState extends State<NewPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
   }
@@ -430,12 +445,12 @@ class _TestPage extends StatefulWidget {
   const _TestPage();
 
   @override
-  _TestPageState createState() => new _TestPageState();
+  State<_TestPage> createState() => new _TestPageState();
 }
 
 class _TestPageState extends State<_TestPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
     createRenameRefactoringAtString('_TestPage extends');
@@ -452,12 +467,12 @@ class _NewPage extends StatefulWidget {
   const _NewPage();
 
   @override
-  _NewPageState createState() => new _NewPageState();
+  State<_NewPage> createState() => new _NewPageState();
 }
 
 class _NewPageState extends State<_NewPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
   }
@@ -472,12 +487,12 @@ class TestPage extends StatefulWidget {
   const TestPage();
 
   @override
-  _TestPageState createState() => new _TestPageState();
+  State<TestPage> createState() => new _TestPageState();
 }
 
 class _TestPageState extends State<TestPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
     createRenameRefactoringAtString('TestPage extends');
@@ -494,12 +509,12 @@ class NewPage extends StatefulWidget {
   const NewPage();
 
   @override
-  _NewPageState createState() => new _NewPageState();
+  State<NewPage> createState() => new _NewPageState();
 }
 
 class _NewPageState extends State<NewPage> {
   @override
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => throw 0;
 }
 ''');
   }
@@ -531,10 +546,8 @@ main() {
 
   Future<void> test_createChange_ClassElement_parameterTypeNested() async {
     await indexTestUnit('''
-class Test {
-}
-main(f(Test p)) {
-}
+class Test {}
+void f(g(Test p)) {}
 ''');
     // configure refactoring
     createRenameRefactoringAtString('Test {');
@@ -543,10 +556,8 @@ main(f(Test p)) {
     refactoring.newName = 'NewName';
     // validate change
     return assertSuccessfulRefactoring('''
-class NewName {
-}
-main(f(NewName p)) {
-}
+class NewName {}
+void f(g(NewName p)) {}
 ''');
   }
 
@@ -554,8 +565,7 @@ main(f(NewName p)) {
     await indexTestUnit('''
 class A {}
 class Test = Object with A;
-main(Test t) {
-}
+void f(Test t) {}
 ''');
     // configure refactoring
     createRenameRefactoringAtString('Test =');
@@ -567,8 +577,7 @@ main(Test t) {
     return assertSuccessfulRefactoring('''
 class A {}
 class NewName = Object with A;
-main(NewName t) {
-}
+void f(NewName t) {}
 ''');
   }
 
@@ -634,30 +643,6 @@ foo() {}
 ''');
   }
 
-  Future<void> test_createChange_FunctionTypeAliasElement() async {
-    await indexTestUnit('''
-typedef void F();
-void foo<T>() {}
-void main() {
-  foo<F>();
-}
-''');
-    // configure refactoring
-    createRenameRefactoringAtString('F()');
-    expect(refactoring.refactoringName, 'Rename Function Type Alias');
-    expect(refactoring.elementKindName, 'function type alias');
-    expect(refactoring.oldName, 'F');
-    refactoring.newName = 'G';
-    // validate change
-    return assertSuccessfulRefactoring('''
-typedef void G();
-void foo<T>() {}
-void main() {
-  foo<G>();
-}
-''');
-  }
-
   Future<void> test_createChange_outsideOfProject_referenceInPart() async {
     newFile('/home/part.dart', content: r'''
 part of test;
@@ -675,7 +660,7 @@ part '../../part.dart';
 
 class Test {}
 
-Test test;
+void f(Test a) {}
 ''');
     createRenameRefactoringAtString('Test {}');
     refactoring.newName = 'NewName';
@@ -687,7 +672,7 @@ part '../../part.dart';
 
 class NewName {}
 
-NewName test;
+void f(NewName a) {}
 ''');
 
     expect(refactoringChange.edits, hasLength(1));
@@ -730,6 +715,60 @@ NewName test;
 
   Future<void> test_createChange_TopLevelVariableElement_setter() async {
     await _test_createChange_TopLevelVariableElement('test = 1');
+  }
+
+  Future<void> test_createChange_typeAlias_functionType() async {
+    await indexTestUnit('''
+typedef F = void Function();
+void f(F a) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('F =');
+    expect(refactoring.refactoringName, 'Rename Type Alias');
+    expect(refactoring.elementKindName, 'type alias');
+    expect(refactoring.oldName, 'F');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+typedef NewName = void Function();
+void f(NewName a) {}
+''');
+  }
+
+  Future<void> test_createChange_typeAlias_interfaceType() async {
+    await indexTestUnit('''
+typedef A<T> = Map<int, T>;
+void f(A<String> a) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('A<T>');
+    expect(refactoring.refactoringName, 'Rename Type Alias');
+    expect(refactoring.elementKindName, 'type alias');
+    expect(refactoring.oldName, 'A');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+typedef NewName<T> = Map<int, T>;
+void f(NewName<String> a) {}
+''');
+  }
+
+  Future<void> test_createChange_typeAlias_legacy() async {
+    await indexTestUnit('''
+typedef void F();
+void f(F a) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('F()');
+    expect(refactoring.refactoringName, 'Rename Type Alias');
+    expect(refactoring.elementKindName, 'type alias');
+    expect(refactoring.oldName, 'F');
+    refactoring.newName = 'G';
+    // validate change
+    return assertSuccessfulRefactoring('''
+typedef void G();
+void f(G a) {}
+''');
   }
 
   Future<void> _test_createChange_PropertyAccessorElement(String search) async {

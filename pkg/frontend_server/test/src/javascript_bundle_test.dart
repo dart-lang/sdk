@@ -63,14 +63,19 @@ void main() {
   };
   final testCoreLibraries = [
     for (String requiredLibrary in allRequiredLibraries)
-      Library(Uri.parse(requiredLibrary), classes: [
-        for (String requiredClass in allRequiredTypes[requiredLibrary] ?? [])
-          Class(name: requiredClass),
-      ], procedures: [
-        for (var requiredMethod in requiredMethods[requiredLibrary] ?? [])
-          Procedure(Name(requiredMethod), ProcedureKind.Method,
-              FunctionNode(EmptyStatement())),
-      ]),
+      Library(Uri.parse(requiredLibrary),
+          fileUri: Uri.parse(requiredLibrary),
+          classes: [
+            for (String requiredClass
+                in allRequiredTypes[requiredLibrary] ?? [])
+              Class(name: requiredClass, fileUri: Uri.parse(requiredLibrary)),
+          ],
+          procedures: [
+            for (var requiredMethod in requiredMethods[requiredLibrary] ?? [])
+              Procedure(Name(requiredMethod), ProcedureKind.Method,
+                  FunctionNode(EmptyStatement()),
+                  fileUri: Uri.parse(requiredLibrary)),
+          ]),
   ];
 
   final packageConfig = PackageConfig.parseJson({
@@ -86,12 +91,14 @@ void main() {
   final multiRootScheme = 'org-dartlang-app';
 
   test('compiles JavaScript code', () async {
+    final uri = Uri.file('/c.dart');
     final library = Library(
-      Uri.file('/c.dart'),
-      fileUri: Uri.file('/c.dart'),
+      uri,
+      fileUri: uri,
       procedures: [
         Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            FunctionNode(Block([])))
+            FunctionNode(Block([])),
+            fileUri: uri)
       ],
     );
     final testComponent = Component(libraries: [library, ...testCoreLibraries]);
@@ -104,10 +111,19 @@ void main() {
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
     final metadataSink = _MemorySink();
+    final symbolsSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
-    await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
+    final compilers = await javaScriptBundler.compile(
+      ClassHierarchy(testComponent, coreTypes),
+      coreTypes,
+      {},
+      codeSink,
+      manifestSink,
+      sourcemapSink,
+      metadataSink,
+      symbolsSink,
+    );
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -122,6 +138,9 @@ void main() {
 
     // verify source map url is correct.
     expect(code, contains('sourceMappingURL=c.dart.lib.js.map'));
+
+    // verify program compilers are created.
+    expect(compilers.keys, equals([urlForComponentUri(library.importUri)]));
   });
 
   test('converts package: uris into /packages/ uris', () async {
@@ -132,7 +151,8 @@ void main() {
       fileUri: fileUri,
       procedures: [
         Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            FunctionNode(Block([])))
+            FunctionNode(Block([])),
+            fileUri: fileUri)
       ],
     );
 
@@ -145,10 +165,19 @@ void main() {
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
     final metadataSink = _MemorySink();
+    final symbolsSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
-    await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
+    await javaScriptBundler.compile(
+      ClassHierarchy(testComponent, coreTypes),
+      coreTypes,
+      {},
+      codeSink,
+      manifestSink,
+      sourcemapSink,
+      metadataSink,
+      symbolsSink,
+    );
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -173,7 +202,8 @@ void main() {
       fileUri: fileUri,
       procedures: [
         Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            FunctionNode(Block([])))
+            FunctionNode(Block([])),
+            fileUri: fileUri)
       ],
     );
 
@@ -186,10 +216,19 @@ void main() {
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
     final metadataSink = _MemorySink();
+    final symbolsSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
-    await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
+    await javaScriptBundler.compile(
+      ClassHierarchy(testComponent, coreTypes),
+      coreTypes,
+      {},
+      codeSink,
+      manifestSink,
+      sourcemapSink,
+      metadataSink,
+      symbolsSink,
+    );
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -213,15 +252,17 @@ void main() {
     final libraryB = Library(Uri.file('/b.dart'), fileUri: Uri.file('/b.dart'));
     libraryC.dependencies.add(LibraryDependency.import(libraryB));
     libraryB.dependencies.add(LibraryDependency.import(libraryC));
+    final uriA = Uri.file('/a.dart');
     final libraryA = Library(
-      Uri.file('/a.dart'),
-      fileUri: Uri.file('/a.dart'),
+      uriA,
+      fileUri: uriA,
       dependencies: [
         LibraryDependency.import(libraryB),
       ],
       procedures: [
         Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            FunctionNode(Block([])))
+            FunctionNode(Block([])),
+            fileUri: uriA)
       ],
     );
     final testComponent = Component(
@@ -236,10 +277,19 @@ void main() {
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
     final metadataSink = _MemorySink();
+    final symbolsSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
-    javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
+    javaScriptBundler.compile(
+      ClassHierarchy(testComponent, coreTypes),
+      coreTypes,
+      {},
+      codeSink,
+      manifestSink,
+      sourcemapSink,
+      metadataSink,
+      symbolsSink,
+    );
 
     final code = utf8.decode(codeSink.buffer);
     final manifest = json.decode(utf8.decode(manifestSink.buffer));

@@ -14,10 +14,13 @@ void main() {
   group('analyze', defineAnalyze, timeout: longTimeout);
 }
 
-const String _analyzeDescriptionText = "Analyze the project's Dart code.";
+const String _analyzeDescriptionText = 'Analyze Dart code in a directory.';
 
 const String _analyzeUsageText =
     'Usage: dart analyze [arguments] [<directory>]';
+
+const String _analyzeVerboseUsageText =
+    'Usage: dart [vm-options] analyze [arguments] [<directory>]';
 
 const String _unusedImportAnalysisOptions = '''
 analyzer:
@@ -72,14 +75,46 @@ void defineAnalyze() {
     expect(result.stdout, contains(_analyzeUsageText));
   });
 
-  test('multiple directories', () {
+  test('--help --verbose', () {
     p = project();
-    var result = p.runSync(['analyze', '/no/such/dir1/', '/no/such/dir2/']);
+    var result = p.runSync(['analyze', '--help', '--verbose']);
 
-    expect(result.exitCode, 64);
-    expect(result.stdout, isEmpty);
-    expect(result.stderr, contains('Only one directory is expected.'));
-    expect(result.stderr, contains(_analyzeUsageText));
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(_analyzeDescriptionText));
+    expect(result.stdout, contains(_analyzeVerboseUsageText));
+  });
+
+  group('multiple items', () {
+    TestProject secondProject;
+
+    tearDown(() => secondProject?.dispose());
+
+    test('folder and file', () {
+      p = project(mainSrc: "int get foo => 'str';\n");
+      secondProject = project(mainSrc: "int get foo => 'str';\n");
+      var result = p.runSync(['analyze', p.dirPath, secondProject.mainPath]);
+
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('A value of type '));
+      expect(result.stdout, contains('lib/main.dart:1:16 '));
+      expect(result.stdout, contains('return_of_invalid_type'));
+      expect(result.stdout, contains('2 issues found.'));
+    });
+
+    test('two folders', () {
+      p = project(mainSrc: "int get foo => 'str';\n");
+      secondProject = project(mainSrc: "int get foo => 'str';\n");
+      var result = p.runSync(['analyze', p.dirPath, secondProject.dirPath]);
+
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('A value of type '));
+      expect(result.stdout, contains('main.dart:1:16 '));
+      expect(result.stdout, contains('return_of_invalid_type'));
+      expect(result.stdout, contains('2 issues found.'));
+    });
   });
 
   test('no such directory', () {
@@ -88,7 +123,8 @@ void defineAnalyze() {
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
-    expect(result.stderr, contains("Directory doesn't exist: /no/such/dir1/"));
+    expect(result.stderr,
+        contains("Directory or file doesn't exist: /no/such/dir1/"));
     expect(result.stderr, contains(_analyzeUsageText));
   });
 
@@ -102,34 +138,59 @@ void defineAnalyze() {
     expect(result.stdout, contains('No issues found!'));
   });
 
-  test('no errors', () {
-    p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync(['analyze', p.dirPath]);
+  group('single directory', () {
+    test('no errors', () {
+      p = project(mainSrc: 'int get foo => 1;\n');
+      var result = p.runSync(['analyze', p.dirPath]);
 
-    expect(result.exitCode, 0);
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('No issues found!'));
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('No issues found!'));
+    });
+
+    test('one error', () {
+      p = project(mainSrc: "int get foo => 'str';\n");
+      var result = p.runSync(['analyze', p.dirPath]);
+
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('A value of type '));
+      expect(result.stdout, contains('lib/main.dart:1:16 '));
+      expect(result.stdout, contains('return_of_invalid_type'));
+      expect(result.stdout, contains('1 issue found.'));
+    });
+
+    test('two errors', () {
+      p = project(mainSrc: "int get foo => 'str';\nint get bar => 'str';\n");
+      var result = p.runSync(['analyze', p.dirPath]);
+
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('2 issues found.'));
+    });
   });
 
-  test('one error', () {
-    p = project(mainSrc: "int get foo => 'str';\n");
-    var result = p.runSync(['analyze', p.dirPath]);
+  group('single file', () {
+    test('no errors', () {
+      p = project(mainSrc: 'int get foo => 1;\n');
+      var result = p.runSync(['analyze', p.mainPath]);
 
-    expect(result.exitCode, 3);
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('A value of type '));
-    expect(result.stdout, contains('lib/main.dart:1:16 '));
-    expect(result.stdout, contains('return_of_invalid_type'));
-    expect(result.stdout, contains('1 issue found.'));
-  });
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('No issues found!'));
+    });
 
-  test('two errors', () {
-    p = project(mainSrc: "int get foo => 'str';\nint get bar => 'str';\n");
-    var result = p.runSync(['analyze', p.dirPath]);
+    test('one error', () {
+      p = project(mainSrc: "int get foo => 'str';\n");
+      var result = p.runSync(['analyze', p.mainPath]);
 
-    expect(result.exitCode, 3);
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('2 issues found.'));
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('A value of type '));
+      expect(result.stdout, contains('main.dart:1:16 '));
+      expect(result.stdout, contains('return_of_invalid_type'));
+      expect(result.stdout, contains('1 issue found.'));
+    });
   });
 
   test('warning --fatal-warnings', () {
@@ -195,13 +256,11 @@ int f() {
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
     var stdout = result.stdout;
-    expect(stdout, contains("The declaration of 'one' is on line 3."));
+    expect(stdout, contains("The declaration of 'one' is here"));
     expect(
         stdout, contains('Try moving the declaration to before the first use'));
-    expect(
-        stdout,
-        contains(
-            'https://dart.dev/tools/diagnostic-messages#referenced_before_declaration'));
+    expect(stdout, contains('https://dart.dev'));
+    expect(stdout, contains('referenced_before_declaration'));
   });
 
   group('display mode', () {
@@ -210,6 +269,8 @@ int f() {
       'type': 'TODO',
       'code': 'dead_code',
       'location': {
+        'endLine': 16,
+        'endColumn': 12,
         'file': 'lib/test.dart',
         'offset': 362,
         'length': 72,
@@ -219,6 +280,36 @@ int f() {
       'message': 'Foo bar baz.',
       'hasFix': false,
     };
+    final fullDiagnosticJson = {
+      'severity': 'ERROR',
+      'type': 'COMPILE_TIME_ERROR',
+      'location': {
+        'file': 'lib/test.dart',
+        'offset': 19,
+        'length': 1,
+        'startLine': 2,
+        'startColumn': 9
+      },
+      'message':
+          "Local variable 's' can't be referenced before it is declared.",
+      'correction':
+          "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
+      'code': 'referenced_before_declaration',
+      'url': 'https:://dart.dev/diagnostics/referenced_before_declaration',
+      'contextMessages': [
+        {
+          'message': "The declaration of 's' is on line 3.",
+          'location': {
+            'file': 'lib/test.dart',
+            'offset': 29,
+            'length': 1,
+            'startLine': 3,
+            'startColumn': 7
+          }
+        }
+      ],
+      'hasFix': false
+    };
 
     test('default', () {
       final logger = TestLogger(false);
@@ -227,10 +318,54 @@ int f() {
       AnalyzeCommand.emitDefaultFormat(logger, errors);
 
       expect(logger.stderrBuffer, isEmpty);
-      expect(
-        logger.stdoutBuffer.toString().trim(),
-        contains('info - Foo bar baz at lib/test.dart:15:4 - (dead_code)'),
-      );
+      final stdout = logger.stdoutBuffer.toString().trim();
+      expect(stdout, contains('info'));
+      expect(stdout, contains('lib/test.dart:15:4'));
+      expect(stdout, contains('Foo bar baz.'));
+      expect(stdout, contains('dead_code'));
+    });
+
+    group('json', () {
+      test('short', () {
+        final logger = TestLogger(false);
+        final errors = [AnalysisError(sampleInfoJson)];
+
+        AnalyzeCommand.emitJsonFormat(logger, errors);
+
+        expect(logger.stderrBuffer, isEmpty);
+        final stdout = logger.stdoutBuffer.toString().trim();
+        expect(
+            stdout,
+            '{"version":1,"diagnostics":[{"code":"dead_code","severity":"INFO",'
+            '"type":"TODO","location":{"file":"lib/test.dart","range":{'
+            '"start":{"offset":362,"line":15,"column":4},"end":{"offset":434,'
+            '"line":16,"column":12}}},"problemMessage":"Foo bar baz."}]}');
+      });
+      test('full', () {
+        final logger = TestLogger(false);
+        final errors = [AnalysisError(fullDiagnosticJson)];
+
+        AnalyzeCommand.emitJsonFormat(logger, errors);
+
+        expect(logger.stderrBuffer, isEmpty);
+        final stdout = logger.stdoutBuffer.toString().trim();
+        expect(
+            stdout,
+            '{"version":1,"diagnostics":[{'
+            '"code":"referenced_before_declaration","severity":"ERROR",'
+            '"type":"COMPILE_TIME_ERROR","location":{"file":"lib/test.dart",'
+            '"range":{"start":{"offset":19,"line":2,"column":9},"end":{'
+            '"offset":20,"line":null,"column":null}}},"problemMessage":'
+            '"Local variable \'s\' can\'t be referenced before it is declared.",'
+            '"correctionMessage":"Try moving the declaration to before the'
+            ' first use, or renaming the local variable so that it doesn\'t hide'
+            ' a name from an enclosing scope.","contextMessages":[{"location":{'
+            '"file":"lib/test.dart","range":{"start":{"offset":29,"line":3,'
+            '"column":7},"end":{"offset":30,"line":null,"column":null}}},'
+            '"message":"The declaration of \'s\' is on line 3."}],'
+            '"documentation":'
+            '"https:://dart.dev/diagnostics/referenced_before_declaration"}]}');
+      });
     });
 
     test('machine', () {

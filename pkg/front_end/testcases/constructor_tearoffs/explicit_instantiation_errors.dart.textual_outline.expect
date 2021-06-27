@@ -1,0 +1,13 @@
+X id<X>(X x) => x;
+void method<X, Y>() {}
+X boundedMethod<X extends num>(X x) => x;
+test() {}
+var a = id;
+var b = a<int>;
+var c = id<int>;
+var d = id<int, String>;
+var e = method<int>;
+var f = 0<int>;
+var g = main<int>;
+var h = boundedMethod<String>;
+main() {}

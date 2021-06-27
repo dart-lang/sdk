@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test expectations for 'class_mirror_type_variables_data.dart'.
 
 library class_mirror_type_variables_expect;
@@ -70,7 +72,6 @@ void testBAndC(Env env) {
   Expect.isFalse(bZBound.isOriginalDeclaration);
   Expect.isFalse(cZBound.isOriginalDeclaration);
 
-  Expect.notEquals(bZBound, cZBound);
   Expect.equals(b, bZBound.originalDeclaration);
   Expect.equals(b, cZBound.originalDeclaration);
 
@@ -83,10 +84,7 @@ void testBAndC(Env env) {
   Expect.equals(c, cZ.owner);
   Expect.equals(b, bZBoundTypeVariable.owner);
   Expect.equals(b, cZBoundTypeVariable.owner);
-  Expect.equals(b, bZBoundTypeArgument.owner);
-  Expect.equals(c, cZBoundTypeArgument.owner);
 
-  Expect.notEquals(bZ, cZ);
   Expect.equals(bZ, bZBoundTypeArgument);
   Expect.equals(cZ, cZBoundTypeArgument);
   Expect.equals(bZ, bZBoundTypeVariable);
@@ -100,9 +98,9 @@ testD(Env env) {
   values.forEach((e) {
     Expect.equals(true, e is TypeVariableMirror);
   });
-  Expect.equals(#R, values.elementAt(0).simpleName);
-  Expect.equals(#S, values.elementAt(1).simpleName);
-  Expect.equals(#T, values.elementAt(2).simpleName);
+
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
 }
 
 void testE(Env env) {

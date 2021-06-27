@@ -334,7 +334,7 @@ class Rti {
   }
 
   static Rti allocate() {
-    return new Rti();
+    return Rti();
   }
 
   Object? _canonicalRecipe;
@@ -626,7 +626,7 @@ bool _isClosure(Object? object) => _Utils.instanceOf(object,
 // Don't inline.  Let the JS engine inline this.  The call expression is much
 // more compact that the inlined expansion.
 @pragma('dart2js:noInline')
-Object? setRuntimeTypeInfo(Object? target, Object? rti) {
+Object? _setArrayType(Object? target, Object? rti) {
   assert(rti != null);
   var rtiProperty = JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY);
   JS('var', r'#[#] = #', target, rtiProperty, rti);
@@ -875,6 +875,10 @@ bool _installSpecializedIsTest(Object? object) {
       String propertyName =
           '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
       Rti._setSpecializedTestResource(testRti, propertyName);
+      if (name == JS_GET_NAME(JsGetName.LIST_CLASS_TYPE_NAME)) {
+        return _finishIsFn(
+            testRti, object, RAW_DART_FUNCTION_REF(_isListTestViaProperty));
+      }
       return _finishIsFn(
           testRti, object, RAW_DART_FUNCTION_REF(_isTestViaProperty));
     }
@@ -974,6 +978,34 @@ bool _isTestViaProperty(Object? object) {
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
   if (object == null) return _nullIs(testRti);
+  var tag = Rti._getSpecializedTestResource(testRti);
+
+  // This test is redundant with getInterceptor below, but getInterceptor does
+  // the tests in the wrong order for most tags, so it is usually faster to have
+  // this check.
+  if (_isDartObject(object)) {
+    return JS('bool', '!!#[#]', object, tag);
+  }
+
+  var interceptor = getInterceptor(object);
+  return JS('bool', '!!#[#]', interceptor, tag);
+}
+
+/// Specialized version of [_isTestViaProperty] with faster path for Arrays.
+/// Called from generated code.
+bool _isListTestViaProperty(Object? object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _Utils.asRti(JS('', 'this'));
+  if (object == null) return _nullIs(testRti);
+
+  // Only JavaScript values with `typeof x == "object"` are Dart Lists. Other
+  // typeof results (undefined/string/number/boolean/function/symbol/bigint) are
+  // all non-Lists. Dart `null`, being JavaScript `null` or JavaScript
+  // `undefined`, is handled above.
+  if (JS('bool', 'typeof # != "object"', object)) return false;
+
+  if (_Utils.isArray(object)) return true;
   var tag = Rti._getSpecializedTestResource(testRti);
 
   // This test is redundant with getInterceptor below, but getInterceptor does
@@ -2942,86 +2974,94 @@ bool _isInterfaceSubtype(
   String sName = Rti._getInterfaceName(s);
   String tName = Rti._getInterfaceName(t);
 
-  // Interface Compositionality:
-  if (sName == tName) {
-    var sArgs = Rti._getInterfaceTypeArguments(s);
-    var tArgs = Rti._getInterfaceTypeArguments(t);
-    int length = _Utils.arrayLength(sArgs);
-    assert(length == _Utils.arrayLength(tArgs));
+  while (sName != tName) {
+    // The Super-Interface rule says that if [s] has superinterfaces C0,...,Cn,
+    // then we need to check if for some i, Ci <: [t]. However, this requires us
+    // to iterate over the superinterfaces. Instead, we can perform case
+    // analysis on [t]. By this point, [t] can only be Never, a type variable,
+    // or an interface type. (Bindings do not participate in subtype checks and
+    // all other cases have been eliminated.) If [t] is not an interface, then
+    // [s] </: [t]. Therefore, the only remaining case is that [t] is an
+    // interface, so rather than iterating over the Ci, we can instead look up
+    // [t] in our ruleset.
+    // TODO(fishythefish): Handle variance correctly.
 
-    var sVariances;
-    bool? hasVariances;
-    if (JS_GET_FLAG("VARIANCE")) {
-      sVariances = _Universe.findTypeParameterVariances(universe, sName);
-      hasVariances = sVariances != null;
-      assert(!hasVariances || length == _Utils.arrayLength(sVariances));
+    var rule = _Universe._findRule(universe, sName);
+    if (rule == null) return false;
+    if (_Utils.isString(rule)) {
+      sName = _Utils.asString(rule);
+      continue;
     }
 
+    var recipes = TypeRule.lookupSupertype(rule, tName);
+    if (recipes == null) return false;
+    int length = _Utils.arrayLength(recipes);
+    Object? supertypeArgs = length > 0 ? JS('', 'new Array(#)', length) : null;
     for (int i = 0; i < length; i++) {
-      Rti sArg = _Utils.asRti(_Utils.arrayAt(sArgs, i));
-      Rti tArg = _Utils.asRti(_Utils.arrayAt(tArgs, i));
-      if (JS_GET_FLAG("VARIANCE")) {
-        int sVariance = hasVariances != null
-            ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
-            : Variance.legacyCovariant;
-        switch (sVariance) {
-          case Variance.legacyCovariant:
-          case Variance.covariant:
-            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
-              return false;
-            }
-            break;
-          case Variance.contravariant:
-            if (!_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
-              return false;
-            }
-            break;
-          case Variance.invariant:
-            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv) ||
-                !_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
-              return false;
-            }
-            break;
-          default:
-            throw StateError(
-                "Unknown variance given for subtype check: $sVariance");
-        }
-      } else {
-        if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
-          return false;
-        }
-      }
+      String recipe = _Utils.asString(_Utils.arrayAt(recipes, i));
+      Rti supertypeArg = _Universe.evalInEnvironment(universe, s, recipe);
+      _Utils.arraySetAt(supertypeArgs, i, supertypeArg);
     }
-    return true;
+    var tArgs = Rti._getInterfaceTypeArguments(t);
+    return _areArgumentsSubtypes(
+        universe, supertypeArgs, null, sEnv, tArgs, tEnv);
   }
 
-  // The Super-Interface rule says that if [s] has superinterfaces C0,...,Cn,
-  // then we need to check if for some i, Ci <: [t]. However, this requires us
-  // to iterate over the superinterfaces. Instead, we can perform case
-  // analysis on [t]. By this point, [t] can only be Never, a type variable,
-  // or an interface type. (Bindings do not participate in subtype checks and
-  // all other cases have been eliminated.) If [t] is not an interface, then
-  // [s] </: [t]. Therefore, the only remaining case is that [t] is an
-  // interface, so rather than iterating over the Ci, we can instead look up
-  // [t] in our ruleset.
-  // TODO(fishythefish): Handle variance correctly.
-
-  // We don't list Object explicitly as a supertype of each interface, so check
-  // this trivial case first.
-  if (isObjectType(t)) return true;
-  var rule = _Universe.findRule(universe, sName);
-  if (rule == null) return false;
-  var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
-  if (supertypeArgs == null) return false;
-  int length = _Utils.arrayLength(supertypeArgs);
+  // Interface Compositionality:
+  assert(sName == tName);
+  var sArgs = Rti._getInterfaceTypeArguments(s);
   var tArgs = Rti._getInterfaceTypeArguments(t);
+  var sVariances;
+  if (JS_GET_FLAG("VARIANCE")) {
+    sVariances = _Universe.findTypeParameterVariances(universe, sName);
+  }
+  return _areArgumentsSubtypes(universe, sArgs, sVariances, sEnv, tArgs, tEnv);
+}
+
+bool _areArgumentsSubtypes(Object? universe, Object? sArgs, Object? sVariances,
+    Object? sEnv, Object? tArgs, Object? tEnv) {
+  int length = sArgs != null ? _Utils.arrayLength(sArgs) : 0;
   assert(length == _Utils.arrayLength(tArgs));
+  bool hasVariances = sVariances != null;
+  if (JS_GET_FLAG("VARIANCE")) {
+    assert(!hasVariances || length == _Utils.arrayLength(sVariances));
+  } else {
+    assert(!hasVariances);
+  }
+
   for (int i = 0; i < length; i++) {
-    String recipe = _Utils.asString(_Utils.arrayAt(supertypeArgs, i));
-    Rti supertypeArg = _Universe.evalInEnvironment(universe, s, recipe);
+    Rti sArg = _Utils.asRti(_Utils.arrayAt(sArgs, i));
     Rti tArg = _Utils.asRti(_Utils.arrayAt(tArgs, i));
-    if (!_isSubtype(universe, supertypeArg, sEnv, tArg, tEnv)) {
-      return false;
+    if (JS_GET_FLAG("VARIANCE")) {
+      int sVariance = hasVariances
+          ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
+          : Variance.legacyCovariant;
+      switch (sVariance) {
+        case Variance.legacyCovariant:
+        case Variance.covariant:
+          if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
+            return false;
+          }
+          break;
+        case Variance.contravariant:
+          if (!_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
+            return false;
+          }
+          break;
+        case Variance.invariant:
+          if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv) ||
+              !_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
+            return false;
+          }
+          break;
+        default:
+          throw StateError(
+              "Unknown variance given for subtype check: $sVariance");
+      }
+    } else {
+      if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
+        return false;
+      }
     }
   }
   return true;

@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedIdentifierTest extends PubPackageResolutionTest {
+class UndefinedIdentifierTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @failingTest
   test_commentReference() async {
     await assertErrorsInCode('''
@@ -129,6 +130,24 @@ main() {
   String;
 }''', [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 49, 6),
+    ]);
+  }
+
+  test_inheritedGetter_shadowedBy_topLevelSetter() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+void set foo(int _) {}
+
+class B extends A {
+  void bar() {
+    foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 96, 3),
     ]);
   }
 

@@ -87,13 +87,13 @@ class SourceReference {
   }
 
   /// Adds the [SourceEdit] to replace this reference.
-  void addEdit(SourceChange change, String newText, {String id}) {
+  void addEdit(SourceChange change, String newText, {String? id}) {
     var edit = createEdit(newText, id: id);
     doSourceChange_addSourceEdit(change, unitSource, edit);
   }
 
   /// Returns the [SourceEdit] to replace this reference.
-  SourceEdit createEdit(String newText, {String id}) {
+  SourceEdit createEdit(String newText, {String? id}) {
     return newSourceEdit_range(range, newText, id: id);
   }
 

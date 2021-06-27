@@ -44,10 +44,10 @@ class CompletionRequestImpl implements CompletionRequest {
   ResourceProvider get resourceProvider => result.session.resourceProvider;
 
   @override
-  Source get source => result.unit.declaredElement.source;
+  Source get source => result.unit!.declaredElement!.source;
 
   @override
-  String get sourceContents => result?.content;
+  String? get sourceContents => result.content;
 
   /// Abort the current completion request.
   void abort() {

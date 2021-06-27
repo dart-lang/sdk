@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,14 +17,15 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 
 import 'src/utilities/mock_packages.dart';
 
 /// Finds an [Element] with the given [name].
-Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result;
+Element? findChildElement(Element root, String name, [ElementKind? kind]) {
+  Element? result;
   root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
@@ -47,7 +47,12 @@ class AbstractContextTest with ResourceProviderMixin {
   final ByteStore _byteStore = MemoryByteStore();
 
   final Map<String, String> _declaredVariables = {};
-  AnalysisContextCollection _analysisContextCollection;
+  AnalysisContextCollectionImpl? _analysisContextCollection;
+
+  List<AnalysisDriver> get allDrivers {
+    _createAnalysisContexts();
+    return _analysisContextCollection!.contexts.map((e) => e.driver).toList();
+  }
 
   /// The file system specific `/home/test/analysis_options.yaml` path.
   String get analysisOptionsPath =>
@@ -66,7 +71,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   AnalysisSession get session => contextFor('/home/test').currentSession;
 
-  String get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => latestLanguageVersion;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -85,7 +90,7 @@ class AbstractContextTest with ResourceProviderMixin {
     var analysisContext = contextFor(testPackageRootPath);
     var files = analysisContext.contextRoot.analyzedFiles().toList();
     for (var path in files) {
-      await analysisContext.currentSession.getResolvedUnit(path);
+      await analysisContext.currentSession.getResolvedUnit2(path);
     }
   }
 
@@ -95,17 +100,14 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   AnalysisContext contextFor(String path) {
-    _createAnalysisContexts();
-
-    path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _contextFor(path);
   }
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
-    List<String> experiments,
-    bool implicitCasts,
-    List<String> lints,
+    List<String>? experiments,
+    bool? implicitCasts,
+    List<String>? lints,
   }) {
     var buffer = StringBuffer();
 
@@ -137,23 +139,22 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   AnalysisDriver driverFor(String path) {
-    var context = contextFor(path) as DriverBasedAnalysisContext;
-    return context.driver;
+    return _contextFor(path).driver;
   }
 
   /// Return the existing analysis context that should be used to analyze the
   /// given [path], or throw [StateError] if the [path] is not analyzed in any
   /// of the created analysis contexts.
-  AnalysisContext getContext(String path) {
+  DriverBasedAnalysisContext getContext(String path) {
     path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _analysisContextCollection!.contextFor(path);
   }
 
   /// Return the existing analysis driver that should be used to analyze the
   /// given [path], or throw [StateError] if the [path] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisDriver getDriver(String path) {
-    DriverBasedAnalysisContext context = getContext(path);
+    var context = getContext(path);
     return context.driver;
   }
 
@@ -163,12 +164,15 @@ class AbstractContextTest with ResourceProviderMixin {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
+    path = convertPath(path);
+    _addAnalyzedFileToDrivers(path);
     return super.newFile(path, content: content);
   }
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
     path = convertPath(path);
-    return contextFor(path).currentSession.getResolvedUnit(path);
+    var session = contextFor(path).currentSession;
+    return await session.getResolvedUnit2(path) as ResolvedUnitResult;
   }
 
   @mustCallSuper
@@ -205,8 +209,8 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void writeTestPackageConfig({
-    PackageConfigFileBuilder config,
-    String languageVersion,
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
     bool flutter = false,
     bool meta = false,
     bool vector_math = false,
@@ -225,27 +229,55 @@ class AbstractContextTest with ResourceProviderMixin {
 
     if (meta || flutter) {
       var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
+      config.add(name: 'meta', rootPath: libFolder.parent2.path);
     }
 
     if (flutter) {
       {
         var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
+        config.add(name: 'ui', rootPath: libFolder.parent2.path);
       }
       {
         var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
+        config.add(name: 'flutter', rootPath: libFolder.parent2.path);
       }
     }
 
     if (vector_math) {
       var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
+      config.add(name: 'vector_math', rootPath: libFolder.parent2.path);
     }
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
     writePackageConfig(path, config);
+  }
+
+  void _addAnalyzedFilesToDrivers() {
+    for (var analysisContext in _analysisContextCollection!.contexts) {
+      for (var path in analysisContext.contextRoot.analyzedFiles()) {
+        if (file_paths.isDart(resourceProvider.pathContext, path)) {
+          analysisContext.driver.addFile(path);
+        }
+      }
+    }
+  }
+
+  void _addAnalyzedFileToDrivers(String path) {
+    var collection = _analysisContextCollection;
+    if (collection != null) {
+      for (var analysisContext in collection.contexts) {
+        if (analysisContext.contextRoot.isAnalyzed(path)) {
+          analysisContext.driver.addFile(path);
+        }
+      }
+    }
+  }
+
+  DriverBasedAnalysisContext _contextFor(String path) {
+    _createAnalysisContexts();
+
+    path = convertPath(path);
+    return _analysisContextCollection!.contextFor(path);
   }
 
   /// Create all analysis contexts in [collectionIncludedPaths].
@@ -260,10 +292,25 @@ class AbstractContextTest with ResourceProviderMixin {
       enableIndex: true,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: convertPath(sdkRoot),
     );
 
+    _addAnalyzedFilesToDrivers();
     verifyCreatedCollection();
+  }
+}
+
+mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
+  @override
+  String? get testPackageLanguageVersion => null;
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    createAnalysisOptionsFile(
+      experiments: [EnableString.nonfunction_type_aliases],
+    );
   }
 }
 

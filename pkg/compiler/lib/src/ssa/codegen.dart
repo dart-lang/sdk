@@ -414,8 +414,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
     }
 
-    runPhase(
-        new SsaInstructionSelection(_options, _closedWorld, _interceptorData));
+    runPhase(new SsaInstructionSelection(_options, _closedWorld));
     runPhase(new SsaTypeKnownRemover());
     runPhase(new SsaTrustedCheckRemover(_options));
     runPhase(new SsaAssignmentChaining(_closedWorld));
@@ -642,7 +641,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   List<js.Expression> visitArguments(List<HInstruction> inputs,
       {int start: HInvoke.ARGUMENTS_OFFSET}) {
     assert(inputs.length >= start);
-    List<js.Expression> result = new List<js.Expression>.filled(inputs.length - start, null);
+    List<js.Expression> result =
+        new List<js.Expression>.filled(inputs.length - start, null);
     for (int i = start; i < inputs.length; i++) {
       use(inputs[i]);
       result[i - start] = pop();
@@ -1881,8 +1881,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(node.inputs.length == 1);
       _registry.registerSpecializedGetInterceptor(node.interceptedClasses);
       js.Name name = _namer.nameForGetInterceptor(node.interceptedClasses);
-      js.Expression isolate = _namer
-          .readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
+      js.Expression isolate = _namer.readGlobalObjectForInterceptors();
       use(node.receiver);
       List<js.Expression> arguments = <js.Expression>[pop()];
       push(js
@@ -1968,8 +1967,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     _metrics.countHInterceptor.add();
     _metrics.countHInterceptorOneshot.add();
     List<js.Expression> arguments = visitArguments(node.inputs);
-    js.Expression isolate =
-        _namer.readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
+    js.Expression isolate = _namer.readGlobalObjectForInterceptors();
     Selector selector = node.selector;
     Set<ClassEntity> classes =
         _interceptorData.getInterceptedClassesOn(selector.name, _closedWorld);
@@ -2248,7 +2246,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
 
         push(js.js('#.#.call(#)', [
-          _emitter.prototypeAccess(superClass, hasBeenInstantiated: true),
+          _emitter.prototypeAccess(superClass),
           methodName,
           visitArguments(node.inputs, start: 0)
         ]).withSourceInformation(node.sourceInformation));
@@ -2564,6 +2562,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         use(input.inputs[0]);
       } else if (input is HIdentity) {
         emitIdentityComparison(input, sourceInformation, inverse: true);
+      } else if (input is HIsLateSentinel) {
+        _emitIsLateSentinel(input, sourceInformation, inverse: true);
       } else if (canGenerateOptimizedComparison(input)) {
         HRelational relational = input;
         constant_system.BinaryOperation operation = relational.operation();
@@ -2710,7 +2710,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(over != null || under != null);
       js.Expression underOver = under == null
           ? over
-          : over == null ? under : new js.Binary("||", under, over);
+          : over == null
+              ? under
+              : new js.Binary("||", under, over);
       js.Statement thenBody = new js.Block.empty();
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;
@@ -3272,4 +3274,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     _registry.registerStaticUse(
         new StaticUse.directInvoke(method, selector.callStructure, null));
   }
+
+  _emitIsLateSentinel(HIsLateSentinel node, SourceInformation sourceInformation,
+      {inverse: false}) {
+    use(node.inputs[0]);
+    js.Expression value = pop();
+    js.Expression sentinel =
+        _emitter.constantReference(LateSentinelConstantValue());
+    push(js.Binary(mapRelationalOperator('===', inverse), value, sentinel)
+        .withSourceInformation(sourceInformation));
+  }
+
+  @override
+  visitIsLateSentinel(HIsLateSentinel node) =>
+      _emitIsLateSentinel(node, node.sourceInformation);
 }

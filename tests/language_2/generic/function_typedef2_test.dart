@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for a function type test that cannot be eliminated at compile time.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {}
@@ -11,19 +13,19 @@ typedef int F();
 
 typedef G = F;
 //        ^
-// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] Can't create typedef from non-function type.
 typedef H = int;
 //        ^
-// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] Can't create typedef from non-function type.
 typedef I = A;
 //        ^
-// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] Can't create typedef from non-function type.
 typedef J = List<int>;
 //        ^
-// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] Can't create typedef from non-function type.
 typedef K = Function(Function<A>(A<int>));
 //                               ^^^^^^

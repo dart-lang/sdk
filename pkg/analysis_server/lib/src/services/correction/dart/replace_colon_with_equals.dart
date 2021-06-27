@@ -11,16 +11,32 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceColonWithEquals extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_COLON_WITH_EQUALS;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_COLON_WITH_EQUALS_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is DefaultFormalParameter) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-            range.token((node as DefaultFormalParameter).separator), ' =');
-      });
+    final node = this.node;
+    if (node is! DefaultFormalParameter) {
+      return;
     }
+
+    var separator = node.separator;
+    if (separator == null) {
+      return;
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleReplacement(range.token(separator), ' =');
+    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

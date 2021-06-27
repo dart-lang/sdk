@@ -1,0 +1,121 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "never_opt_out_lib.dart" as nev;
+
+import "org-dartlang-testcase:///never_opt_out_lib.dart";
+
+class GenericClass<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends nev::A {
+  field Null neverField;
+  field Null nullField;
+  synthetic constructor •() → self::B*
+    ;
+  method neverMethod(Null value) → Null
+    ;
+  get neverProperty() → Null
+    ;
+  set neverProperty(Null value) → void
+    ;
+  method nullMethod(Null value) → Null
+    ;
+  get nullProperty() → Null
+    ;
+  set nullProperty(Null value) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends nev::A {
+  field Never* neverField;
+  field Never* nullField;
+  synthetic constructor •() → self::C*
+    ;
+  method neverMethod(Null value) → Never*
+    ;
+  get neverProperty() → Never*
+    ;
+  set neverProperty(Null value) → void
+    ;
+  method nullMethod(Null value) → Never*
+    ;
+  get nullProperty() → Never*
+    ;
+  set nullProperty(Null value) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field Never* optOutNever;
+static field dynamic inferredOptOutNever;
+static method genericMethod<T extends core::Object* = dynamic>() → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method throws(() →* void f) → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as nev;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///never_opt_out.dart";
+
+class A extends core::Object {
+  field Never neverField;
+  field Null nullField;
+  synthetic constructor •() → nev::A
+    ;
+  method neverMethod(Never value) → Never
+    ;
+  get neverProperty() → Never
+    ;
+  set neverProperty(Never value) → void
+    ;
+  method nullMethod(Null value) → Null
+    ;
+  get nullProperty() → Null
+    ;
+  set nullProperty(Null value) → void
+    ;
+}
+class BoundedGenericClass<T extends Never> extends core::Object {
+  synthetic constructor •() → nev::BoundedGenericClass<nev::BoundedGenericClass::T>
+    ;
+}
+late static field Never optInNever;
+static method throwing() → Never
+  ;
+static method boundedGenericMethod1<T extends Never>() → nev::boundedGenericMethod1::T
+  ;
+static method boundedGenericMethod2<T extends Never>() → core::List<nev::boundedGenericMethod2::T>
+  ;

@@ -17,7 +17,7 @@ abstract class ProgressReporter {
   /// Creates a reporter for a token that was supplied by the client and does
   /// not need creating prior to use.
   factory ProgressReporter.clientProvided(
-          LspAnalysisServer server, Either2<num, String> token) =>
+          LspAnalysisServer server, Either2<int, String> token) =>
       _TokenProgressReporter(server, token);
 
   /// Creates a reporter for a new token that must be created prior to being
@@ -25,13 +25,13 @@ abstract class ProgressReporter {
   ///
   /// If [token] is not supplied, a random identifier will be used.
   factory ProgressReporter.serverCreated(LspAnalysisServer server,
-          [Either2<num, String> token]) =>
+          [Either2<int, String>? token]) =>
       _ServerCreatedProgressReporter(server, token);
 
   ProgressReporter._();
 
   // TODO(dantup): Add support for cancellable progress notifications.
-  FutureOr<void> begin(String title, {String message});
+  FutureOr<void> begin(String title, {String? message});
 
   FutureOr<void> end([String message]);
 }
@@ -39,25 +39,25 @@ abstract class ProgressReporter {
 class _NoopProgressReporter extends ProgressReporter {
   _NoopProgressReporter() : super._();
   @override
-  void begin(String title, {String message}) {}
+  void begin(String title, {String? message}) {}
   @override
-  void end([String message]) {}
+  void end([String? message]) {}
 }
 
 class _ServerCreatedProgressReporter extends _TokenProgressReporter {
   static final _random = Random();
-  Future<bool> _tokenBeginRequest;
+  Future<bool>? _tokenBeginRequest;
 
   _ServerCreatedProgressReporter(
     LspAnalysisServer server,
-    Either2<num, String> token,
+    Either2<int, String>? token,
   ) : super(
           server,
-          token ?? Either2<num, String>.t2(_randomTokenIdentifier()),
+          token ?? Either2<int, String>.t2(_randomTokenIdentifier()),
         );
 
   @override
-  Future<void> begin(String title, {String message}) async {
+  Future<void> begin(String? title, {String? message}) async {
     assert(_tokenBeginRequest == null,
         'Begin should not be called more than once');
 
@@ -79,12 +79,13 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
   }
 
   @override
-  Future<void> end([String message]) async {
+  Future<void> end([String? message]) async {
     // Only end the token after both create/begin have completed, and return
     // a Future to indicate that has happened to callers know when it's safe
     // to re-use the token identifier.
-    if (_tokenBeginRequest != null) {
-      final didBegin = await _tokenBeginRequest;
+    final beginRequest = _tokenBeginRequest;
+    if (beginRequest != null) {
+      final didBegin = await beginRequest;
       if (didBegin) {
         super.end(message);
       }
@@ -101,20 +102,20 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
 
 class _TokenProgressReporter extends ProgressReporter {
   final LspAnalysisServer _server;
-  final Either2<num, String> _token;
+  final Either2<int, String> _token;
   bool _needsEnd = false;
 
   _TokenProgressReporter(this._server, this._token) : super._();
 
   @override
-  void begin(String title, {String message}) {
+  void begin(String? title, {String? message}) {
     _needsEnd = true;
     _sendNotification(
         WorkDoneProgressBegin(title: title ?? 'Working…', message: message));
   }
 
   @override
-  void end([String message]) {
+  void end([String? message]) {
     if (!_needsEnd) return;
     _needsEnd = false;
     _sendNotification(WorkDoneProgressEnd(message: message));

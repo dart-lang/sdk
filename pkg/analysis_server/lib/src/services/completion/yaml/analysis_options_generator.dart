@@ -47,7 +47,7 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
   /// Initialize a newly created suggestion generator for analysis options
   /// files.
   AnalysisOptionsGenerator(ResourceProvider resourceProvider)
-      : super(resourceProvider);
+      : super(resourceProvider, null);
 
   @override
   Producer get topLevelProducer => analysisOptionsProducer;

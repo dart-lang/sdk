@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Verify that an unbound getter is properly resolved at runtime.
 
+// @dart = 2.9
+
 class A {
   const A();
   foo() {

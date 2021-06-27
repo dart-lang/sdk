@@ -69,7 +69,8 @@ class SocketAddress {
   const char* as_string() const { return as_string_; }
   const RawAddr& addr() const { return addr_; }
 
-  static intptr_t GetAddrLength(const RawAddr& addr);
+  static intptr_t GetAddrLength(const RawAddr& addr,
+                                bool unnamed_unix_socket = false);
   static intptr_t GetInAddrLength(const RawAddr& addr);
   static bool AreAddressesEqual(const RawAddr& a, const RawAddr& b);
   static void GetSockAddr(Dart_Handle obj, RawAddr* addr);

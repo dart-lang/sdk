@@ -31,26 +31,26 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   /// The object used to track the usage of labels within a given label scope.
-  _LabelTracker labelTracker;
+  _LabelTracker? _labelTracker;
 
   DeadCodeVerifier(this._errorReporter);
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
+    _labelTracker?.recordUsage(node.label?.name);
   }
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
+    _labelTracker?.recordUsage(node.label?.name);
   }
 
   @override
   void visitExportDirective(ExportDirective node) {
-    ExportElement exportElement = node.element;
+    ExportElement? exportElement = node.element;
     if (exportElement != null) {
       // The element is null when the URI is invalid.
-      LibraryElement library = exportElement.exportedLibrary;
+      LibraryElement? library = exportElement.exportedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
@@ -62,11 +62,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    ImportElement importElement = node.element;
+    ImportElement? importElement = node.element;
     if (importElement != null) {
       // The element is null when the URI is invalid, but not when the URI is
       // valid but refers to a non-existent file.
-      LibraryElement library = importElement.importedLibrary;
+      LibraryElement? library = importElement.importedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
@@ -78,12 +78,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    _pushLabels(node.labels);
-    try {
+    _withLabelTracker(node.labels, () {
       super.visitLabeledStatement(node);
-    } finally {
-      _popLabels();
-    }
+    });
   }
 
   @override
@@ -92,12 +89,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     for (SwitchMember member in node.members) {
       labels.addAll(member.labels);
     }
-    _pushLabels(labels);
-    try {
+    _withLabelTracker(labels, () {
       super.visitSwitchStatement(node);
-    } finally {
-      _popLabels();
-    }
+    });
   }
 
   /// Resolve the names in the given [combinator] in the scope of the given
@@ -116,7 +110,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
-      Element element = namespace.get(nameStr);
+      Element? element = namespace.get(nameStr);
       element ??= namespace.get("$nameStr=");
       if (element == null) {
         _errorReporter
@@ -125,19 +119,18 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Exit the most recently entered label scope after reporting any labels that
-  /// were not referenced within that scope.
-  void _popLabels() {
-    for (Label label in labelTracker.unusedLabels()) {
-      _errorReporter
-          .reportErrorForNode(HintCode.UNUSED_LABEL, label, [label.label.name]);
+  void _withLabelTracker(List<Label> labels, void Function() f) {
+    var labelTracker = _LabelTracker(_labelTracker, labels);
+    try {
+      _labelTracker = labelTracker;
+      f();
+    } finally {
+      for (Label label in labelTracker.unusedLabels()) {
+        _errorReporter.reportErrorForNode(
+            HintCode.UNUSED_LABEL, label, [label.label.name]);
+      }
+      _labelTracker = labelTracker.outerTracker;
     }
-    labelTracker = labelTracker.outerTracker;
-  }
-
-  /// Enter a new label scope in which the given [labels] are defined.
-  void _pushLabels(List<Label> labels) {
-    labelTracker = _LabelTracker(labelTracker, labels);
   }
 }
 
@@ -152,14 +145,9 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
-  LegacyDeadCodeVerifier(this._errorReporter, {TypeSystemImpl typeSystem})
-      : _typeSystem = typeSystem ??
-            TypeSystemImpl(
-              implicitCasts: true,
-              isNonNullableByDefault: false,
-              strictInference: false,
-              typeProvider: null,
-            );
+  LegacyDeadCodeVerifier(this._errorReporter,
+      {required TypeSystemImpl typeSystem})
+      : _typeSystem = typeSystem;
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -169,22 +157,22 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.leftOperand;
       if (!_isDebugConstant(lhsCondition)) {
-        EvaluationResultImpl lhsResult = _getConstantBooleanValue(lhsCondition);
+        var lhsResult = _getConstantBooleanValue(lhsCondition);
         if (lhsResult != null) {
-          bool value = lhsResult.value.toBoolValue();
+          var value = lhsResult.value?.toBoolValue();
           if (value == true && isBarBar) {
             // Report error on "else" block: true || !e!
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
             // Only visit the LHS:
-            lhsCondition?.accept(this);
+            lhsCondition.accept(this);
             return;
           } else if (value == false && isAmpAmp) {
             // Report error on "if" block: false && !e!
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
             // Only visit the LHS:
-            lhsCondition?.accept(this);
+            lhsCondition.accept(this);
             return;
           }
         }
@@ -224,22 +212,21 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
-    conditionExpression?.accept(this);
+    conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
-      EvaluationResultImpl result =
-          _getConstantBooleanValue(conditionExpression);
+      var result = _getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.value.toBoolValue() == true) {
+        if (result.value?.toBoolValue() == true) {
           // Report error on "else" block: true ? 1 : !2!
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.elseExpression);
-          node.thenExpression?.accept(this);
+          node.thenExpression.accept(this);
           return;
         } else {
           // Report error on "if" block: false ? !1! : 2
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.thenExpression);
-          node.elseExpression?.accept(this);
+          node.elseExpression.accept(this);
           return;
         }
       }
@@ -250,17 +237,16 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     Expression conditionExpression = node.condition;
-    conditionExpression?.accept(this);
+    conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
-      EvaluationResultImpl result =
-          _getConstantBooleanValue(conditionExpression);
+      var result = _getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.value.toBoolValue() == true) {
+        if (result.value?.toBoolValue() == true) {
           // Report error on else block: if(true) {} else {!}
-          CollectionElement elseElement = node.elseElement;
+          var elseElement = node.elseElement;
           if (elseElement != null) {
             _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseElement);
-            node.thenElement?.accept(this);
+            node.thenElement.accept(this);
             return;
           }
         } else {
@@ -278,18 +264,17 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIfStatement(IfStatement node) {
     Expression conditionExpression = node.condition;
-    conditionExpression?.accept(this);
+    conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
-      EvaluationResultImpl result =
-          _getConstantBooleanValue(conditionExpression);
+      var result = _getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.value.toBoolValue() == true) {
+        if (result.value?.toBoolValue() == true) {
           // Report error on else block: if(true) {} else {!}
-          Statement elseStatement = node.elseStatement;
+          var elseStatement = node.elseStatement;
           if (elseStatement != null) {
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, elseStatement);
-            node.thenStatement?.accept(this);
+            node.thenStatement.accept(this);
             return;
           }
         } else {
@@ -318,7 +303,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitTryStatement(TryStatement node) {
-    node.body?.accept(this);
+    node.body.accept(this);
     node.finallyBlock?.accept(this);
 
     var verifier = _CatchClausesVerifier(
@@ -347,19 +332,18 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitWhileStatement(WhileStatement node) {
     Expression conditionExpression = node.condition;
-    conditionExpression?.accept(this);
+    conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
-      EvaluationResultImpl result =
-          _getConstantBooleanValue(conditionExpression);
+      var result = _getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.value.toBoolValue() == false) {
+        if (result.value?.toBoolValue() == false) {
           // Report error on while block: while (false) {!}
           _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.body);
           return;
         }
       }
     }
-    node.body?.accept(this);
+    node.body.accept(this);
   }
 
   /// Given some list of [statements], loop through the list searching for dead
@@ -381,7 +365,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     int size = statements.length;
     for (int i = 0; i < size; i++) {
       Statement currentStatement = statements[i];
-      currentStatement?.accept(this);
+      currentStatement.accept(this);
       if (statementExits(currentStatement) && i != size - 1) {
         Statement nextStatement = statements[i + 1];
         Statement lastStatement = statements[size - 1];
@@ -405,7 +389,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Given some [expression], return [ValidResult.RESULT_TRUE] if it is `true`,
   /// [ValidResult.RESULT_FALSE] if it is `false`, or `null` if the expression
   /// is not a constant boolean value.
-  EvaluationResultImpl _getConstantBooleanValue(Expression expression) {
+  EvaluationResultImpl? _getConstantBooleanValue(Expression expression) {
     if (expression is BooleanLiteral) {
       return EvaluationResultImpl(
         DartObjectImpl(
@@ -433,7 +417,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [expression] is resolved to a constant
   /// variable.
   bool _isDebugConstant(Expression expression) {
-    Element element;
+    Element? element;
     if (expression is Identifier) {
       element = expression.staticElement;
     } else if (expression is PropertyAccess) {
@@ -441,7 +425,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
     if (element is PropertyAccessorElement) {
       PropertyInducingElement variable = element.variable;
-      return variable != null && variable.isConst;
+      return variable.isConst;
     }
     return false;
   }
@@ -474,7 +458,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
 class NullSafetyDeadCodeVerifier {
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
-  final FlowAnalysisHelper _flowAnalysis;
+  final FlowAnalysisHelper? _flowAnalysis;
 
   /// The stack of verifiers of (potentially nested) try statements.
   final List<_CatchClausesVerifier> _catchClausesVerifiers = [];
@@ -488,7 +472,7 @@ class NullSafetyDeadCodeVerifier {
   ///
   /// When this field is not `null`, and we see an unreachable node, this new
   /// node is ignored, because it continues the same dead code range.
-  AstNode _firstDeadNode;
+  AstNode? _firstDeadNode;
 
   NullSafetyDeadCodeVerifier(
     this._typeSystem,
@@ -500,13 +484,14 @@ class NullSafetyDeadCodeVerifier {
   /// not `null`, and is covered by the [node], then we reached the end of
   /// the current dead code interval.
   void flowEnd(AstNode node) {
-    if (_firstDeadNode != null) {
+    var firstDeadNode = _firstDeadNode;
+    if (firstDeadNode != null) {
       if (!_containsFirstDeadNode(node)) {
         return;
       }
 
-      var parent = _firstDeadNode.parent;
-      if (parent is Assertion && identical(_firstDeadNode, parent.message)) {
+      var parent = firstDeadNode.parent;
+      if (parent is Assertion && identical(firstDeadNode, parent.message)) {
         // Don't report "dead code" for the message part of an assert statement,
         // because this causes nuisance warnings for redundant `!= null`
         // asserts.
@@ -514,28 +499,28 @@ class NullSafetyDeadCodeVerifier {
         // We know that [node] is the first dead node, or contains it.
         // So, technically the code code interval ends at the end of [node].
         // But we trim it to the last statement for presentation purposes.
-        if (node != _firstDeadNode) {
+        if (node != firstDeadNode) {
           if (node is FunctionDeclaration) {
-            node = (node as FunctionDeclaration).functionExpression.body;
+            node = node.functionExpression.body;
           }
           if (node is FunctionExpression) {
-            node = (node as FunctionExpression).body;
+            node = node.body;
           }
           if (node is MethodDeclaration) {
-            node = (node as MethodDeclaration).body;
+            node = node.body;
           }
           if (node is BlockFunctionBody) {
-            node = (node as BlockFunctionBody).block;
+            node = node.block;
           }
           if (node is Block && node.statements.isNotEmpty) {
-            node = (node as Block).statements.last;
+            node = node.statements.last;
           }
           if (node is SwitchMember && node.statements.isNotEmpty) {
-            node = (node as SwitchMember).statements.last;
+            node = node.statements.last;
           }
         }
 
-        var offset = _firstDeadNode.offset;
+        var offset = firstDeadNode.offset;
         var length = node.end - offset;
         _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
       }
@@ -579,10 +564,16 @@ class NullSafetyDeadCodeVerifier {
     // So, they look unreachable, but this does not make sense.
     if (node is Comment) return;
 
-    if (_flowAnalysis == null) return;
-    _flowAnalysis.checkUnreachableNode(node);
+    var flowAnalysis = _flowAnalysis;
+    if (flowAnalysis == null) return;
+    flowAnalysis.checkUnreachableNode(node);
 
-    var flow = _flowAnalysis.flow;
+    // If the first dead node is not `null`, even if this new new node is
+    // unreachable, we can ignore it as it is part of the same dead code
+    // range anyway.
+    if (_firstDeadNode != null) return;
+
+    var flow = flowAnalysis.flow;
     if (flow == null) return;
 
     if (flow.isReachable) return;
@@ -594,7 +585,6 @@ class NullSafetyDeadCodeVerifier {
       }
     }
 
-    if (_firstDeadNode != null) return;
     _firstDeadNode = node;
   }
 
@@ -642,7 +632,7 @@ class _CatchClausesVerifier {
     // An on-catch clause was found; verify that the exception type is not a
     // subtype of a previous on-catch exception type.
     for (var type in _visitedTypes) {
-      if (_typeSystem.isSubtypeOf2(currentType, type)) {
+      if (_typeSystem.isSubtypeOf(currentType, type)) {
         _errorReporter(
           catchClause,
           catchClauses.last,
@@ -661,14 +651,14 @@ class _CatchClausesVerifier {
 /// An object used to track the usage of labels within a single label scope.
 class _LabelTracker {
   /// The tracker for the outer label scope.
-  final _LabelTracker outerTracker;
+  final _LabelTracker? outerTracker;
 
   /// The labels whose usage is being tracked.
   final List<Label> labels;
 
   /// A list of flags corresponding to the list of [labels] indicating whether
   /// the corresponding label has been used.
-  List<bool> used;
+  late final List<bool> used;
 
   /// A map from the names of labels to the index of the label in [labels].
   final Map<String, int> labelMap = <String, int>{};
@@ -682,13 +672,13 @@ class _LabelTracker {
   }
 
   /// Record that the label with the given [labelName] has been used.
-  void recordUsage(String labelName) {
+  void recordUsage(String? labelName) {
     if (labelName != null) {
-      int index = labelMap[labelName];
+      var index = labelMap[labelName];
       if (index != null) {
         used[index] = true;
-      } else if (outerTracker != null) {
-        outerTracker.recordUsage(labelName);
+      } else {
+        outerTracker?.recordUsage(labelName);
       }
     }
   }

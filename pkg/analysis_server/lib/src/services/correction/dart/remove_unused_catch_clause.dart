@@ -15,15 +15,20 @@ class RemoveUnusedCatchClause extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is SimpleIdentifier) {
-      var catchClause = node.parent;
-      if (catchClause is CatchClause &&
-          catchClause.exceptionParameter == node) {
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(
-              range.startStart(catchClause.catchKeyword, catchClause.body));
-        });
-      }
+    var catchClause = node.parent;
+    if (catchClause is! CatchClause) {
+      return;
+    }
+
+    var catchKeyword = catchClause.catchKeyword;
+    if (catchKeyword == null) {
+      return;
+    }
+
+    if (catchClause.exceptionParameter == node) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.startStart(catchKeyword, catchClause.body));
+      });
     }
   }
 

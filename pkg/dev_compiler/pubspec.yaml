@@ -28,20 +28,24 @@ dependencies:
     path: ../vm
 
 dev_dependencies:
-  analyzer:
-    path: ../analyzer
+  browser_launcher: ^0.1.9
   expect:
     path: ../expect
+  http_multi_server:
+    path: ../../third_party/pkg/http_multi_server
   js:
     path: ../js
   modular_test:
     path: ../modular_test
   package_config: any
-  pedantic: ^1.8.0
-  pub_semver: any
+  pedantic: ^1.11.0
   sourcemap_testing:
     path: ../sourcemap_testing
   stack_trace: any
+  shelf:
+    path: ../../third_party/pkg/shelf
   test: any
   testing:
     path: ../testing
+  webkit_inspection_protocol: ^0.7.4
+

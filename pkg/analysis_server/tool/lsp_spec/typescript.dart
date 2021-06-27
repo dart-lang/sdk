@@ -20,10 +20,6 @@ bool allowTypeInSignatures(TypeBase type) {
 }
 
 String cleanComment(String comment) {
-  if (comment == null) {
-    return null;
-  }
-
   // Remove the start/end comment markers.
   if (comment.startsWith('/**') && comment.endsWith('*/')) {
     comment = comment.substring(3, comment.length - 2);
@@ -49,7 +45,7 @@ String cleanComment(String comment) {
 
 /// Improves comments in generated code to support where types may have been
 /// altered (for ex. with [getImprovedType] above).
-String getImprovedComment(String interfaceName, String fieldName) {
+String? getImprovedComment(String interfaceName, String fieldName) {
   const _improvedComments = <String, Map<String, String>>{
     'ResponseError': {
       'data':
@@ -71,7 +67,7 @@ String getImprovedComment(String interfaceName, String fieldName) {
 /// - Narrows unions to single types where they're only generated on the server
 ///   and we know we always use a specific type. This avoids wrapping a lot
 ///   of code in `EitherX<Y,Z>.tX()` and simplifies the testing of them.
-String getImprovedType(String interfaceName, String fieldName) {
+String? getImprovedType(String interfaceName, String? fieldName) {
   const _improvedTypeMappings = <String, Map<String, String>>{
     'Diagnostic': {
       'severity': 'DiagnosticSeverity',
@@ -90,7 +86,6 @@ String getImprovedType(String interfaceName, String fieldName) {
     'CompletionItem': {
       'kind': 'CompletionItemKind',
       'data': 'CompletionItemResolutionInfo',
-      'textEdit': 'TextEdit',
     },
     'CallHierarchyItem': {
       'data': 'object',
@@ -123,8 +118,14 @@ String getImprovedType(String interfaceName, String fieldName) {
     'ParameterInformation': {
       'label': 'String',
     },
+    'ProgressParams': {
+      'value': 'object',
+    },
     'ServerCapabilities': {
       'changeNotifications': 'bool',
+    },
+    'TextDocumentEdit': {
+      'edits': 'TextDocumentEditEdits',
     }
   };
 

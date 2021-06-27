@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class LocalVariableTest extends PubPackageResolutionTest {
+class LocalVariableTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_int() async {
     await resolveTestCode('''
 void f() {

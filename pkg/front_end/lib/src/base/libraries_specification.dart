@@ -106,7 +106,7 @@ class LibrariesSpecification {
   /// The library specification for a given [target], or throws if none is
   /// available.
   TargetLibrariesSpecification specificationFor(String target) {
-    TargetLibrariesSpecification targetSpec = _targets[target];
+    TargetLibrariesSpecification? targetSpec = _targets[target];
     if (targetSpec == null) {
       throw new LibrariesSpecificationException(
           'No library specification for target "$target"');
@@ -119,15 +119,15 @@ class LibrariesSpecification {
   ///
   /// May throw an exception if [json] is not properly formatted or contains
   /// invalid values.
-  static LibrariesSpecification parse(Uri baseUri, String json) {
+  static LibrariesSpecification parse(Uri baseUri, String? json) {
     if (json == null) return const LibrariesSpecification();
     Map<String, dynamic> jsonData;
     try {
       dynamic data = jsonDecode(json);
-      if (data is! Map) {
+      if (data is! Map<String, dynamic>) {
         return _reportError('top-level specification is not a map');
       }
-      jsonData = data as Map;
+      jsonData = data;
     } on FormatException catch (e) {
       throw new LibrariesSpecificationException(e);
     }
@@ -145,11 +145,11 @@ class LibrariesSpecification {
             "for '$targetName' doesn't have a libraries entry");
       }
       dynamic librariesData = targetData["libraries"];
-      if (librariesData is! Map) {
+      if (librariesData is! Map<String, dynamic>) {
         return _reportError("libraries entry for '$targetName' is not a map");
       }
       librariesData.forEach((String name, data) {
-        if (data is! Map) {
+        if (data is! Map<String, dynamic>) {
           return _reportError(
               "library data for '$name' in target '$targetName' is not a map");
         }
@@ -233,7 +233,7 @@ class TargetLibrariesSpecification {
       [this._libraries = const <String, LibraryInfo>{}]);
 
   /// Details about a library whose import is `dart:$name`.
-  LibraryInfo libraryInfoFor(String name) => _libraries[name];
+  LibraryInfo? libraryInfoFor(String name) => _libraries[name];
 
   Iterable<LibraryInfo> get allLibraries => _libraries.values;
 }

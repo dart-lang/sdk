@@ -15,10 +15,9 @@ String nullabilityToString(Nullability nullability) {
     case Nullability.nonNullable:
       return '';
   }
-  throw "Unknown Nullability: $nullability";
 }
 
-String nameToString(Name node, {bool includeLibraryName: false}) {
+String nameToString(Name? node, {bool includeLibraryName: false}) {
   if (node == null) {
     return 'null';
   } else if (node.library != null && includeLibraryName) {
@@ -28,7 +27,7 @@ String nameToString(Name node, {bool includeLibraryName: false}) {
   }
 }
 
-String libraryNameToString(Library node) {
+String libraryNameToString(Library? node) {
   return node == null ? 'null' : node.name ?? 'library ${node.importUri}';
 }
 
@@ -47,33 +46,34 @@ String qualifiedCanonicalNameToString(CanonicalName canonicalName,
     {bool includeLibraryName: false}) {
   if (canonicalName.isRoot) {
     return '<root>';
-  } else if (canonicalName.parent.isRoot) {
+  } else if (canonicalName.parent!.isRoot) {
     return canonicalName.name;
-  } else if (canonicalName.parent.parent.isRoot) {
+  } else if (canonicalName.parent!.parent!.isRoot) {
     if (!includeLibraryName) {
       return canonicalName.name;
     }
-    String parentName = qualifiedCanonicalNameToString(canonicalName.parent,
+    String parentName = qualifiedCanonicalNameToString(canonicalName.parent!,
         includeLibraryName: includeLibraryName);
     return '$parentName::${canonicalName.name}';
   } else {
-    String parentName = qualifiedCanonicalNameToString(canonicalName.parent,
+    String parentName = qualifiedCanonicalNameToString(canonicalName.parent!,
         includeLibraryName: includeLibraryName);
     return '$parentName.${canonicalName.name}';
   }
 }
 
-String qualifiedClassNameToStringByReference(Reference reference,
+String qualifiedClassNameToStringByReference(Reference? reference,
     {bool includeLibraryName: false}) {
   if (reference == null) {
     return '<missing-class-reference>';
   } else {
-    Class node = reference.node;
+    Class? node = reference.node as Class?;
     if (node != null) {
       return qualifiedClassNameToString(node,
           includeLibraryName: includeLibraryName);
     } else {
-      CanonicalName canonicalName = reference.canonicalName;
+      CanonicalName? canonicalName = reference.canonicalName;
+      // ignore: unnecessary_null_comparison
       if (canonicalName != null) {
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
@@ -84,10 +84,8 @@ String qualifiedClassNameToStringByReference(Reference reference,
   }
 }
 
-String classNameToString(Class node) {
-  return node == null
-      ? 'null'
-      : node.name ?? 'null-named class ${node.runtimeType} ${node.hashCode}';
+String classNameToString(Class? node) {
+  return node == null ? 'null' : node.name;
 }
 
 String qualifiedExtensionNameToString(Extension node,
@@ -101,17 +99,18 @@ String qualifiedExtensionNameToString(Extension node,
   }
 }
 
-String qualifiedExtensionNameToStringByReference(Reference reference,
+String qualifiedExtensionNameToStringByReference(Reference? reference,
     {bool includeLibraryName: false}) {
   if (reference == null) {
     return '<missing-extension-reference>';
   } else {
-    Extension node = reference.node;
+    Extension? node = reference.node as Extension?;
     if (node != null) {
       return qualifiedExtensionNameToString(node,
           includeLibraryName: includeLibraryName);
     } else {
-      CanonicalName canonicalName = reference.canonicalName;
+      CanonicalName? canonicalName = reference.canonicalName;
+      // ignore: unnecessary_null_comparison
       if (canonicalName != null) {
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
@@ -122,11 +121,8 @@ String qualifiedExtensionNameToStringByReference(Reference reference,
   }
 }
 
-String extensionNameToString(Extension node) {
-  return node == null
-      ? 'null'
-      : node.name ??
-          'null-named extension ${node.runtimeType} ${node.hashCode}';
+String extensionNameToString(Extension? node) {
+  return node == null ? 'null' : node.name;
 }
 
 String qualifiedTypedefNameToString(Typedef node,
@@ -140,17 +136,18 @@ String qualifiedTypedefNameToString(Typedef node,
   }
 }
 
-String qualifiedTypedefNameToStringByReference(Reference reference,
+String qualifiedTypedefNameToStringByReference(Reference? reference,
     {bool includeLibraryName: false}) {
   if (reference == null) {
     return '<missing-typedef-reference>';
   } else {
-    Typedef node = reference.node;
+    Typedef? node = reference.node as Typedef?;
     if (node != null) {
       return qualifiedTypedefNameToString(node,
           includeLibraryName: includeLibraryName);
     } else {
-      CanonicalName canonicalName = reference.canonicalName;
+      CanonicalName? canonicalName = reference.canonicalName;
+      // ignore: unnecessary_null_comparison
       if (canonicalName != null) {
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
@@ -161,16 +158,14 @@ String qualifiedTypedefNameToStringByReference(Reference reference,
   }
 }
 
-String typedefNameToString(Typedef node) {
-  return node == null
-      ? 'null'
-      : node.name ?? 'null-named typedef ${node.runtimeType} ${node.hashCode}';
+String typedefNameToString(Typedef? node) {
+  return node == null ? 'null' : node.name;
 }
 
 String qualifiedMemberNameToString(Member node,
     {bool includeLibraryName: false}) {
   if (node.enclosingClass != null) {
-    return qualifiedClassNameToString(node.enclosingClass,
+    return qualifiedClassNameToString(node.enclosingClass!,
             includeLibraryName: includeLibraryName) +
         '.' +
         memberNameToString(node);
@@ -183,17 +178,18 @@ String qualifiedMemberNameToString(Member node,
   }
 }
 
-String qualifiedMemberNameToStringByReference(Reference reference,
+String qualifiedMemberNameToStringByReference(Reference? reference,
     {bool includeLibraryName: false}) {
   if (reference == null) {
     return '<missing-member-reference>';
   } else {
-    Member node = reference.node;
+    Member? node = reference.node as Member?;
     if (node != null) {
       return qualifiedMemberNameToString(node,
           includeLibraryName: includeLibraryName);
     } else {
-      CanonicalName canonicalName = reference.canonicalName;
+      CanonicalName? canonicalName = reference.canonicalName;
+      // ignore: unnecessary_null_comparison
       if (canonicalName != null) {
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
@@ -205,13 +201,12 @@ String qualifiedMemberNameToStringByReference(Reference reference,
 }
 
 String memberNameToString(Member node) {
-  return node.name?.text ??
-      "null-named member ${node.runtimeType} ${node.hashCode}";
+  return node.name.text;
 }
 
 String qualifiedTypeParameterNameToString(TypeParameter node,
     {bool includeLibraryName: false}) {
-  TreeNode parent = node.parent;
+  TreeNode? parent = node.parent;
   if (parent is Class) {
     return qualifiedClassNameToString(parent,
             includeLibraryName: includeLibraryName) +
@@ -236,7 +231,7 @@ String typeParameterNameToString(TypeParameter node) {
       "null-named TypeParameter ${node.runtimeType} ${node.hashCode}";
 }
 
-String getEscapedCharacter(int codeUnit) {
+String? getEscapedCharacter(int codeUnit) {
   switch (codeUnit) {
     case 9:
       return r'\t';
@@ -264,9 +259,9 @@ String getEscapedCharacter(int codeUnit) {
 }
 
 String escapeString(String string) {
-  StringBuffer buffer;
+  StringBuffer? buffer;
   for (int i = 0; i < string.length; ++i) {
-    String character = getEscapedCharacter(string.codeUnitAt(i));
+    String? character = getEscapedCharacter(string.codeUnitAt(i));
     if (character != null) {
       buffer ??= new StringBuffer(string.substring(0, i));
       buffer.write(character);

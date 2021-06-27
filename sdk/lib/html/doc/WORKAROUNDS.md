@@ -26,7 +26,7 @@ Let’s look at an example. `FileReader` is a `dart:html` interface that is
 missing the API `readAsBinaryString` ([#42834][]). We can work around this by
 doing something like the following:
 
-```
+```dart
 import 'dart:html';
 import 'dart:js_util' as js_util;
 
@@ -50,7 +50,7 @@ In the case where the API is missing a constructor, we can use
 `callConstructor`. For example, instead of using the factory constructor for
 `KeyboardEvent`, we can do the following:
 
-```
+```dart
 import 'dart:html';
 import 'dart:js_util' as js_util;
 
@@ -77,7 +77,7 @@ attributes associated with this interface. We can use the `js_util` library
 again to circumvent this issue. For example, we can manipulate a
 `_SubtleCrypto` object:
 
-```
+```dart
 import 'dart:html';
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
@@ -99,7 +99,7 @@ void main() async {
 What you shouldn’t do is attempt to cast these native objects using your own JS
 interop types, e.g.
 
-```
+```dart
 import 'dart:html';
 
 import 'package:js/js.dart';

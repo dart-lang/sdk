@@ -44,7 +44,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_comments() async {
     final content = '''
-    [[/// This is a comment
+    /// This is a comment[[
     /// that spans many lines]]
     class MyClass2 {}
     ''';
@@ -102,6 +102,32 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     final regions = await getFoldingRegions(mainFileUri);
     expect(regions, containsAll(expectedRegions));
+  }
+
+  Future<void> test_enum() async {
+    final content = '''
+    enum MyEnum {[[
+      one,
+      two,
+      three
+    ]]}
+    ''';
+
+    final range1 = rangeFromMarkers(content);
+    final expectedRegions = [
+      FoldingRange(
+        startLine: range1.start.line,
+        startCharacter: range1.start.character,
+        endLine: range1.end.line,
+        endCharacter: range1.end.character,
+      )
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, unorderedEquals(expectedRegions));
   }
 
   Future<void> test_fromPlugins_dartFile() async {
@@ -164,13 +190,6 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_headersImportsComments() async {
-    // TODO(dantup): Review why the file header and the method comment ranges
-    // are different... one spans only the range to collapse, but the other
-    // just starts at the logical block.
-    // The LSP spec doesn't give any guidance on whether the first part of
-    // the surrounded content should be visible or not after folding
-    // so we'll need to revisit this once there's clarification:
-    // https://github.com/Microsoft/language-server-protocol/issues/659
     final content = '''
     // Copyright some year by some people[[
     // See LICENCE etc.]]
@@ -178,7 +197,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     import[[ 'dart:io';
     import 'dart:async';]]
 
-    [[/// This is not the file header
+    /// This is not the file header[[
     /// It's just a comment]]
     main() {}
     ''';
@@ -276,7 +295,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, containsAll(expectedRegions));
   }
 
-  FoldingRange _toFoldingRange(Range range, FoldingRangeKind kind) {
+  FoldingRange _toFoldingRange(Range range, FoldingRangeKind? kind) {
     return FoldingRange(
       startLine: range.start.line,
       startCharacter: range.start.character,

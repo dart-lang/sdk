@@ -4588,7 +4588,7 @@ ASSEMBLER_TEST_RUN(TestLoadDoubleConstant, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
   const Object& obj = Object::ZoneHandle(object_store->smi_class());
   Label fail;
   __ LoadObject(EAX, obj);

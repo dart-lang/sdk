@@ -44,7 +44,7 @@ class FakeEntryPointsListener implements EntryPointsListener {
   void addRawCall(Selector selector) {}
 
   @override
-  void addDirectFieldAccess(Field field, Type value) {}
+  void addFieldUsedInConstant(Field field, Type instance, Type value) {}
 
   @override
   ConcreteType addAllocatedClass(Class c) {
@@ -61,7 +61,7 @@ class FakeEntryPointsListener implements EntryPointsListener {
   void recordTearOff(Procedure target) {}
 }
 
-class PrintSummaries extends RecursiveVisitor<Null> {
+class PrintSummaries extends RecursiveVisitor {
   SummaryCollector _summaryCollector;
   final StringBuffer _buf = new StringBuffer();
 

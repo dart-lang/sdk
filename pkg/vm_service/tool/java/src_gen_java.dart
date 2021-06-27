@@ -15,7 +15,7 @@ import '../common/src_gen_common.dart';
 int colBoundary = 100;
 
 /// The header for every generated file.
-String fileHeader;
+String? fileHeader;
 
 String classNameFor(String typeName) {
   // Convert ElementList<Foo> param declarations to List<Foo> declarations.
@@ -71,8 +71,8 @@ class JavaGenerator {
 }
 
 class JavaMethodArg {
-  final String name;
-  final String typeName;
+  final String? name;
+  final String? typeName;
 
   JavaMethodArg(this.name, this.typeName);
 }
@@ -115,10 +115,10 @@ class TypeWriter {
   final String className;
   bool isInterface = false;
   bool isEnum = false;
-  String javadoc;
+  String? javadoc;
   String modifiers = 'public';
   final Set<String> _imports = Set<String>();
-  String superclassName;
+  String? superclassName;
   List<String> interfaceNames = <String>[];
   final StringBuffer _content = StringBuffer();
   final List<String> _fields = <String>[];
@@ -135,7 +135,7 @@ class TypeWriter {
   }
 
   void addConstructor(Iterable<JavaMethodArg> args, WriteStatements write,
-      {String javadoc, String modifiers = 'public'}) {
+      {String? javadoc, String modifiers = 'public'}) {
     _content.writeln();
     if (javadoc != null && javadoc.isNotEmpty) {
       _content.writeln('  /**');
@@ -146,22 +146,18 @@ class TypeWriter {
     }
     _content.write('  $modifiers $className(');
     _content.write(
-        args.map((a) => '${classNameFor(a.typeName)} ${a.name}').join(', '));
+        args.map((a) => '${classNameFor(a.typeName!)} ${a.name}').join(', '));
     _content.write(')');
-    if (write != null) {
-      _content.writeln(' {');
-      StatementWriter writer = StatementWriter(this);
-      write(writer);
-      _content.write(writer.toSource());
-      _content.writeln('  }');
-    } else {
-      _content.writeln(';');
-    }
+    _content.writeln(' {');
+    StatementWriter writer = StatementWriter(this);
+    write(writer);
+    _content.write(writer.toSource());
+    _content.writeln('  }');
   }
 
   void addEnumValue(
-    String name, {
-    String javadoc,
+    String? name, {
+    String? javadoc,
     bool isLast = false,
   }) {
     _content.writeln();
@@ -181,7 +177,7 @@ class TypeWriter {
   }
 
   void addField(String name, String typeName,
-      {String modifiers = 'public', String value, String javadoc}) {
+      {String modifiers = 'public', String? value, String? javadoc}) {
     var fieldDecl = StringBuffer();
     if (javadoc != null && javadoc.isNotEmpty) {
       fieldDecl.writeln('  /**');
@@ -191,7 +187,7 @@ class TypeWriter {
       fieldDecl.writeln('   */');
     }
     fieldDecl.write('  ');
-    if (modifiers != null && modifiers.isNotEmpty) {
+    if (modifiers.isNotEmpty) {
       fieldDecl.write('$modifiers ');
     }
     fieldDecl.write('$typeName $name');
@@ -202,7 +198,7 @@ class TypeWriter {
     _fields.add(fieldDecl.toString());
   }
 
-  void addImport(String typeName) {
+  void addImport(String? typeName) {
     if (typeName == null || typeName.isEmpty) return;
     var pkgName = pkgNameFor(typeName);
     if (pkgName.isNotEmpty && pkgName != this.pkgName) {
@@ -213,10 +209,10 @@ class TypeWriter {
   void addMethod(
     String name,
     Iterable<JavaMethodArg> args,
-    WriteStatements write, {
-    String javadoc,
-    String modifiers = 'public',
-    String returnType = 'void',
+    WriteStatements? write, {
+    String? javadoc,
+    String? modifiers = 'public',
+    String? returnType = 'void',
     bool isOverride = false,
   }) {
     var methodDecl = StringBuffer();
@@ -238,7 +234,8 @@ class TypeWriter {
     }
     methodDecl.write('$returnType $name(');
     methodDecl.write(args
-        .map((JavaMethodArg arg) => '${classNameFor(arg.typeName)} ${arg.name}')
+        .map(
+            (JavaMethodArg arg) => '${classNameFor(arg.typeName!)} ${arg.name}')
         .join(', '));
     methodDecl.write(')');
     if (write != null) {
@@ -260,10 +257,8 @@ class TypeWriter {
   String toSource() {
     var buffer = StringBuffer();
     if (fileHeader != null) buffer.write(fileHeader);
-    if (pkgName != null) {
-      buffer.writeln('package $pkgName;');
-      buffer.writeln();
-    }
+    buffer.writeln('package $pkgName;');
+    buffer.writeln();
     buffer.writeln('// This is a generated file.');
     buffer.writeln();
     addImport(superclassName);
@@ -275,9 +270,9 @@ class TypeWriter {
       }
       buffer.writeln();
     }
-    if (javadoc != null && javadoc.isNotEmpty) {
+    if (javadoc != null && javadoc!.isNotEmpty) {
       buffer.writeln('/**');
-      wrap(javadoc.trim(), colBoundary - 4)
+      wrap(javadoc!.trim(), colBoundary - 4)
           .split('\n')
           .forEach((line) => buffer.writeln(' * $line'));
       buffer.writeln(' */');
@@ -287,7 +282,7 @@ class TypeWriter {
 
     buffer.write('$modifiers $kind $className');
     if (superclassName != null) {
-      buffer.write(' extends ${classNameFor(superclassName)}');
+      buffer.write(' extends ${classNameFor(superclassName!)}');
     }
     if (interfaceNames.isNotEmpty) {
       var classNames = interfaceNames.map((t) => classNameFor(t));

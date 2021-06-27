@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  method implementedConcreteMethod() → void {}
+  abstract method implementedAbstractMethod() → void;
+  method declaredConcreteImplementsConcreteMethod() → void {}
+  method declaredAbstractImplementsConcreteMethod() → void {}
+  abstract method declaredConcreteImplementsAbstractMethod() → void;
+  abstract method declaredAbstractImplementsAbstractMethod() → void;
+}
+abstract class AbstractClass extends core::Object implements self::Interface {
+  synthetic constructor •() → self::AbstractClass
+    : super core::Object::•()
+    ;
+  method declaredConcreteMethod() → void {}
+  abstract method declaredAbstractMethod() → void;
+  method declaredConcreteImplementsConcreteMethod() → void {}
+  abstract method declaredAbstractImplementsConcreteMethod() → void;
+  method declaredConcreteImplementsAbstractMethod() → void {}
+  abstract method declaredAbstractImplementsAbstractMethod() → void;
+}
+static method main() → dynamic {}

@@ -141,7 +141,7 @@ class ArgumentAllocator : public ValueObject {
   const NativeLocation& AllocateCompound(
       const NativeCompoundType& payload_type) {
     const intptr_t size = payload_type.SizeInBytes();
-    if (size <= 16 && size > 0) {
+    if (size <= 16 && size > 0 && !payload_type.ContainsUnalignedMembers()) {
       intptr_t required_regs =
           payload_type.NumberOfWordSizeChunksNotOnlyFloat();
       intptr_t required_xmm_regs =
@@ -158,8 +158,8 @@ class ArgumentAllocator : public ValueObject {
             zone_, required_regs + required_xmm_regs);
         for (intptr_t offset = 0; offset < size;
              offset += compiler::target::kWordSize) {
-          if (payload_type.ContainsOnlyFloats(
-                  offset, Utils::Minimum<intptr_t>(size - offset, 8))) {
+          if (payload_type.ContainsOnlyFloats(Range::StartAndEnd(
+                  offset, Utils::Minimum<intptr_t>(size, offset + 8)))) {
             const intptr_t reg_index = FirstFreeFpuRegisterIndex(kQuadFpuReg);
             AllocateFpuRegisterAtIndex(kQuadFpuReg, reg_index);
             const auto& type = *new (zone_) NativePrimitiveType(kDouble);
@@ -383,6 +383,7 @@ class ArgumentAllocator : public ValueObject {
         payload_type, container_type, CallingConventions::kStackPointerRegister,
         stack_height_in_bytes);
     stack_height_in_bytes += size;
+    align_stack(payload_type.AlignmentInBytesStack());
     return result;
   }
 
@@ -516,7 +517,7 @@ static const NativeLocation& CompoundResultLocation(
     Zone* zone,
     const NativeCompoundType& payload_type) {
   const intptr_t size = payload_type.SizeInBytes();
-  if (size <= 16 && size > 0) {
+  if (size <= 16 && size > 0 && !payload_type.ContainsUnalignedMembers()) {
     // Allocate the same as argument, but use return registers instead of
     // argument registers.
     NativeLocations& multiple_locations =
@@ -527,8 +528,8 @@ static const NativeLocation& CompoundResultLocation(
     const auto& double_type = *new (zone) NativePrimitiveType(kDouble);
     const auto& int64_type = *new (zone) NativePrimitiveType(kInt64);
 
-    const bool first_half_in_xmm =
-        payload_type.ContainsOnlyFloats(0, Utils::Minimum<intptr_t>(size, 8));
+    const bool first_half_in_xmm = payload_type.ContainsOnlyFloats(
+        Range::StartAndEnd(0, Utils::Minimum<intptr_t>(size, 8)));
     if (first_half_in_xmm) {
       multiple_locations.Add(new (zone) NativeFpuRegistersLocation(
           double_type, double_type, kQuadFpuReg,
@@ -541,7 +542,7 @@ static const NativeLocation& CompoundResultLocation(
     }
     if (size > 8) {
       const bool second_half_in_xmm = payload_type.ContainsOnlyFloats(
-          8, Utils::Minimum<intptr_t>(size - 8, 8));
+          Range::StartAndEnd(8, Utils::Minimum<intptr_t>(size, 16)));
       if (second_half_in_xmm) {
         const FpuRegister reg = used_xmm_regs == 0
                                     ? CallingConventions::kReturnFpuReg
@@ -715,6 +716,11 @@ intptr_t NativeCallingConvention::StackTopInBytes() const {
   for (intptr_t i = 0; i < num_arguments; i++) {
     max_height_in_bytes = Utils::Maximum(
         max_height_in_bytes, argument_locations_[i]->StackTopInBytes());
+  }
+  if (return_location_.IsPointerToMemory()) {
+    const auto& ret_loc = return_location_.AsPointerToMemory();
+    max_height_in_bytes =
+        Utils::Maximum(max_height_in_bytes, ret_loc.StackTopInBytes());
   }
   return Utils::RoundUp(max_height_in_bytes, compiler::target::kWordSize);
 }

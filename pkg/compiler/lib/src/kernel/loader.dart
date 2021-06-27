@@ -136,10 +136,16 @@ class KernelLoaderTask extends CompilerTask {
         }
       } else {
         bool verbose = false;
-        Target target = Dart2jsTarget(targetName, TargetFlags());
+        Target target =
+            Dart2jsTarget(targetName, TargetFlags(), options: _options);
         fe.FileSystem fileSystem = CompilerFileSystem(_compilerInput);
+        fe.Verbosity verbosity = _options.verbosity;
         fe.DiagnosticMessageHandler onDiagnostic =
-            (e) => reportFrontEndMessage(_reporter, e);
+            (fe.DiagnosticMessage message) {
+          if (fe.Verbosity.shouldPrint(verbosity, message)) {
+            reportFrontEndMessage(_reporter, message);
+          }
+        };
         fe.CompilerOptions options = fe.CompilerOptions()
           ..target = target
           ..librariesSpecificationUri = _options.librariesSpecificationUri
@@ -147,7 +153,8 @@ class KernelLoaderTask extends CompilerTask {
           ..explicitExperimentalFlags = _options.explicitExperimentalFlags
           ..verbose = verbose
           ..fileSystem = fileSystem
-          ..onDiagnostic = onDiagnostic;
+          ..onDiagnostic = onDiagnostic
+          ..verbosity = verbosity;
         bool isLegacy =
             await fe.uriUsesLegacyLanguageVersion(resolvedUri, options);
         inferNullSafetyMode(_options.enableNonNullable && !isLegacy);
@@ -170,7 +177,9 @@ class KernelLoaderTask extends CompilerTask {
             explicitExperimentalFlags: _options.explicitExperimentalFlags,
             nnbdMode: _options.useLegacySubtyping
                 ? fe.NnbdMode.Weak
-                : fe.NnbdMode.Strong);
+                : fe.NnbdMode.Strong,
+            invocationModes: _options.cfeInvocationModes,
+            verbosity: verbosity);
         component = await fe.compile(initializedCompilerState, verbose,
             fileSystem, onDiagnostic, resolvedUri);
         if (component == null) return null;

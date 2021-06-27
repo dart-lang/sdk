@@ -40,7 +40,7 @@ static ScriptPtr FindScript(DartFrameIterator* iterator) {
           return func.script();
         }
         ASSERT(!hit_assertion_error);
-        hit_assertion_error = (func.Owner() == assert_error_class.raw());
+        hit_assertion_error = (func.Owner() == assert_error_class.ptr());
         inlined_iterator.Advance();
       }
       continue;
@@ -52,7 +52,7 @@ static ScriptPtr FindScript(DartFrameIterator* iterator) {
       return func.script();
     }
     ASSERT(!hit_assertion_error);
-    hit_assertion_error = (func.Owner() == assert_error_class.raw());
+    hit_assertion_error = (func.Owner() == assert_error_class.ptr());
   }
   UNREACHABLE();
   return Script::null();
@@ -93,7 +93,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
         script.GetSnippet(from_line, from_column, to_line, to_column);
   }
   if (condition_text.IsNull()) {
-    condition_text = Symbols::OptimizedOut().raw();
+    condition_text = Symbols::OptimizedOut().ptr();
   }
   args.SetAt(0, condition_text);
 

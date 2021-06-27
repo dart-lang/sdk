@@ -29,7 +29,7 @@ static bool Equals(const Object& expected, const Object& actual) {
   }
   if (expected.IsSmi()) {
     if (actual.IsSmi()) {
-      return expected.raw() == actual.raw();
+      return expected.ptr() == actual.ptr();
     }
     return false;
   }
@@ -37,15 +37,15 @@ static bool Equals(const Object& expected, const Object& actual) {
     if (actual.IsDouble()) {
       Double& dbl1 = Double::Handle();
       Double& dbl2 = Double::Handle();
-      dbl1 ^= expected.raw();
-      dbl2 ^= actual.raw();
+      dbl1 ^= expected.ptr();
+      dbl2 ^= actual.ptr();
       return dbl1.value() == dbl2.value();
     }
     return false;
   }
   if (expected.IsBool()) {
     if (actual.IsBool()) {
-      return expected.raw() == actual.raw();
+      return expected.ptr() == actual.ptr();
     }
     return false;
   }
@@ -232,7 +232,7 @@ void CheckMint(int64_t value) {
 // here covers most of the 64-bit range. On 32-bit platforms the smi
 // range covers most of the 32-bit range and values outside that
 // range are also represented as mints.
-#if defined(ARCH_IS_64_BIT)
+#if defined(ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
   EXPECT_EQ(Dart_CObject_kInt64, mint_cobject->type);
   EXPECT_EQ(value, mint_cobject->value.as_int64);
 #else
@@ -726,7 +726,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
   uint8_t* isolate_snapshot_data_buffer;
 
   // Start an Isolate, load a script and create a full snapshot.
-  Timer timer1(true, "Snapshot_test");
+  Timer timer1;
   timer1.Start();
   {
     TestIsolateScope __test_isolate__;
@@ -760,7 +760,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
 
   // Now Create another isolate using the snapshot and execute a method
   // from the script.
-  Timer timer2(true, "Snapshot_test");
+  Timer timer2;
   timer2.Start();
   TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_data_buffer);
   {
@@ -2064,8 +2064,9 @@ VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
     Type& type = Type::Handle();
     type ^= Api::UnwrapHandle(cls);  // Dart_GetClass actually returns a Type.
     const Class& clazz = Class::Handle(type.type_class());
-    const bool required = clazz.RequireLegacyErasureOfConstants(zone.GetZone());
-    EXPECT(required == isolate->null_safety());
+    const bool required =
+        clazz.RequireCanonicalTypeErasureOfConstants(zone.GetZone());
+    EXPECT(required == isolate->group()->null_safety());
 
     // Verify that snapshot writing succeeds if erasure is not required.
     if (!required) {

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -15,21 +16,24 @@ class UseEffectiveIntegerDivision extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    for (var n = node; n != null; n = n.parent) {
-      if (n is MethodInvocation &&
-          n.offset == errorOffset &&
-          n.length == errorLength) {
-        var target = (n as MethodInvocation).target.unParenthesized;
-        await builder.addDartFileEdit(file, (builder) {
-          // replace "/" with "~/"
-          var binary = target as BinaryExpression;
-          builder.addSimpleReplacement(range.token(binary.operator), '~/');
-          // remove everything before and after
-          builder.addDeletion(range.startStart(n, binary.leftOperand));
-          builder.addDeletion(range.endEnd(binary.rightOperand, n));
-        });
-        // done
-        break;
+    for (var n in node.withParents) {
+      if (n is MethodInvocation) {
+        if (n.offset == errorOffset && n.length == errorLength) {
+          var target = n.target;
+          if (target != null) {
+            target = target.unParenthesized;
+            await builder.addDartFileEdit(file, (builder) {
+              // replace "/" with "~/"
+              var binary = target as BinaryExpression;
+              builder.addSimpleReplacement(range.token(binary.operator), '~/');
+              // remove everything before and after
+              builder.addDeletion(range.startStart(n, binary.leftOperand));
+              builder.addDeletion(range.endEnd(binary.rightOperand, n));
+            });
+          }
+          // done
+          break;
+        }
       }
     }
   }

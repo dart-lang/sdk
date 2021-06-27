@@ -201,7 +201,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
   CHECK_CALLBACK_STATE(T);
   const Error& error = Error::Handle(T->zone(), Library::CompileAll());
   if (!error.IsNull()) {
-    return Api::NewHandle(T, error.raw());
+    return Api::NewHandle(T, error.ptr());
   }
   return Api::Success();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -221,7 +221,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeAllClasses() {
   CHECK_CALLBACK_STATE(T);
   const Error& error = Error::Handle(T->zone(), Library::FinalizeAllClasses());
   if (!error.IsNull()) {
-    return Api::NewHandle(T, error.raw());
+    return Api::NewHandle(T, error.ptr());
   }
   return Api::Success();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -233,19 +233,23 @@ struct RunInSafepointAndRWCodeArgs {
 };
 
 DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
-  if (!FLAG_enable_testing_pragmas) return nullptr;
-
   if (strcmp(command, "gc-on-nth-allocation") == 0) {
     TransitionNativeToVM _(Thread::Current());
     intptr_t argument = reinterpret_cast<intptr_t>(arg);
     ASSERT(argument > 0);
-    Isolate::Current()->heap()->CollectOnNthAllocation(argument);
+    IsolateGroup::Current()->heap()->CollectOnNthAllocation(argument);
     return nullptr;
 
   } else if (strcmp(command, "gc-now") == 0) {
     ASSERT(arg == nullptr);  // Don't pass an argument to this command.
     TransitionNativeToVM _(Thread::Current());
-    Isolate::Current()->heap()->CollectAllGarbage();
+    IsolateGroup::Current()->heap()->CollectAllGarbage();
+    return nullptr;
+
+  } else if (strcmp(command, "is-thread-in-generated") == 0) {
+    if (Thread::Current()->execution_state() == Thread::kThreadInGenerated) {
+      return reinterpret_cast<void*>(1);
+    }
     return nullptr;
 
   } else if (strcmp(command, "is-mutator-in-native") == 0) {
@@ -263,10 +267,10 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     Thread::EnterIsolateAsHelper(args->isolate, Thread::TaskKind::kUnknownTask);
     Thread* const thread = Thread::Current();
     {
-      SafepointOperationScope scope(thread);
-      args->isolate->heap()->WriteProtectCode(/*read_only=*/false);
+      GcSafepointOperationScope scope(thread);
+      args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/false);
       (*args->callback)();
-      args->isolate->heap()->WriteProtectCode(/*read_only=*/true);
+      args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/true);
     }
     Thread::ExitIsolateAsHelper();
     return nullptr;

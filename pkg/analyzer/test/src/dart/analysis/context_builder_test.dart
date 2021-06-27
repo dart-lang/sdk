@@ -7,9 +7,9 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/workspace/basic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,8 +21,8 @@ main() {
 
 @reflectiveTest
 class ContextBuilderImplTest with ResourceProviderMixin {
-  ContextBuilderImpl contextBuilder;
-  ContextRoot contextRoot;
+  late final ContextBuilderImpl contextBuilder;
+  late final ContextRoot contextRoot;
 
   void assertEquals(DeclaredVariables actual, DeclaredVariables expected) {
     Iterable<String> actualNames = actual.variableNames;
@@ -36,14 +36,15 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   void setUp() {
     var folder = newFolder('/home/test');
     contextBuilder = ContextBuilderImpl(resourceProvider: resourceProvider);
-    contextRoot = ContextRootImpl(resourceProvider, folder);
+    var workspace = BasicWorkspace.find(resourceProvider, {}, folder.path);
+    contextRoot = ContextRootImpl(resourceProvider, folder, workspace);
   }
 
   test_createContext_declaredVariables() {
     MockSdk(resourceProvider: resourceProvider);
     DeclaredVariables declaredVariables =
         DeclaredVariables.fromMap({'foo': 'true'});
-    DriverBasedAnalysisContext context = contextBuilder.createContext(
+    var context = contextBuilder.createContext(
       contextRoot: contextRoot,
       declaredVariables: declaredVariables,
       sdkPath: resourceProvider.convertPath(sdkRoot),
@@ -57,14 +58,15 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     DeclaredVariables declaredVariables =
         DeclaredVariables.fromMap({'bar': 'true'});
     MockSdk sdk = MockSdk(resourceProvider: resourceProvider);
-    DriverBasedAnalysisContext context = contextBuilder.createContext(
-        contextRoot: contextRoot,
-        declaredVariables: declaredVariables,
-        sdkPath: resourceProvider.convertPath(sdkRoot));
+    var context = contextBuilder.createContext(
+      contextRoot: contextRoot,
+      declaredVariables: declaredVariables,
+      sdkPath: resourceProvider.convertPath(sdkRoot),
+    );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
-    expect(context.driver.sourceFactory.dartSdk.mapDartUri('dart:core'),
+    expect(context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core'),
         sdk.mapDartUri('dart:core'));
   }
 
@@ -80,12 +82,23 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   test_createContext_sdkPath() {
     MockSdk sdk = MockSdk(resourceProvider: resourceProvider);
-    DriverBasedAnalysisContext context = contextBuilder.createContext(
+    var context = contextBuilder.createContext(
+      contextRoot: contextRoot,
+      sdkPath: resourceProvider.convertPath(sdkRoot),
+    );
+    expect(context.analysisOptions, isNotNull);
+    expect(context.contextRoot, contextRoot);
+    expect(context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core'),
+        sdk.mapDartUri('dart:core'));
+  }
+
+  test_createContext_sdkRoot() {
+    MockSdk(resourceProvider: resourceProvider);
+    var context = contextBuilder.createContext(
         contextRoot: contextRoot,
         sdkPath: resourceProvider.convertPath(sdkRoot));
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
-    expect(context.driver.sourceFactory.dartSdk.mapDartUri('dart:core'),
-        sdk.mapDartUri('dart:core'));
+    expect(context.sdkRoot?.path, resourceProvider.convertPath(sdkRoot));
   }
 }

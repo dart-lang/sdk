@@ -16,16 +16,22 @@ void main() {
 }
 
 mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
+  Future<void> expectNoSignature(String fileContent) async {
+    final res =
+        await getSignatureHelp(mainFileUri, positionFromMarker(fileContent));
+    expect(res, isNull);
+  }
+
   Future<void> testSignature(
     String fileContent,
     String expectedLabel,
     String expectedDoc,
     List<ParameterInformation> expectedParams, {
-    MarkupKind expectedFormat = MarkupKind.Markdown,
-    SignatureHelpContext context,
+    MarkupKind? expectedFormat = MarkupKind.Markdown,
+    SignatureHelpContext? context,
   }) async {
-    final res = await getSignatureHelp(
-        mainFileUri, positionFromMarker(fileContent), context);
+    final res = (await getSignatureHelp(
+        mainFileUri, positionFromMarker(fileContent), context))!;
 
     // TODO(dantup): Update this when there is clarification on how to handle
     // no valid selected parameter.
@@ -39,7 +45,7 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     // Test the format matches the tests expectation.
     // For clients that don't support MarkupContent it'll be a plain string,
     // but otherwise it'll be a MarkupContent of type PlainText or Markdown.
-    final doc = sig.documentation;
+    final doc = sig.documentation!;
     if (expectedFormat == null) {
       // Plain string.
       expect(doc.valueEquals(expectedDoc), isTrue);
@@ -82,6 +88,31 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
       ],
       expectedFormat: null,
     );
+  }
+
+  Future<void> test_error_methodInvocation_importPrefix() async {
+    final content = '''
+import 'dart:async' as prefix;
+
+void f() {
+  prefix(^);
+}
+''';
+
+    await initialize(
+      textDocumentCapabilities: withSignatureHelpContentFormat(
+        emptyTextDocumentClientCapabilities,
+        [MarkupKind.Markdown],
+      ),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    // Expect no result.
+    final res = await getSignatureHelp(
+      mainFileUri,
+      positionFromMarker(content),
+    );
+    expect(res, isNull);
   }
 
   Future<void> test_formats_markdown() async {
@@ -220,6 +251,22 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
           triggerKind: SignatureHelpTriggerKind.Invoked,
           isRetrigger: false,
         ));
+  }
+
+  Future<void> test_noDefaultConstructor() async {
+    final content = '''
+    class A {
+      A._();
+    }
+
+    final a = A(^);
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await expectNoSignature(content);
   }
 
   Future<void> test_nonDartFile() async {
@@ -418,6 +465,86 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
         ));
   }
 
+  Future<void> test_typeParams_class() async {
+    final content = '''
+    /// My Foo.
+    class Foo<T1, T2 extends String> {}
+
+    class Bar extends Foo<^> {}
+    ''';
+
+    const expectedLabel = 'class Foo<T1, T2 extends String>';
+    const expectedDoc = 'My Foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'T1'),
+        ParameterInformation(label: 'T2 extends String'),
+      ],
+    );
+  }
+
+  Future<void> test_typeParams_function() async {
+    final content = '''
+    /// My Foo.
+    void foo<T1, T2 extends String>() {
+      foo<^>();
+    }
+    ''';
+
+    const expectedLabel = 'void foo<T1, T2 extends String>()';
+    const expectedDoc = 'My Foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'T1'),
+        ParameterInformation(label: 'T2 extends String'),
+      ],
+    );
+  }
+
+  Future<void> test_typeParams_method() async {
+    final content = '''
+    class Foo {
+      /// My Foo.
+      void foo<T1, T2 extends String>() {
+        foo<^>();
+      }
+    }
+    ''';
+
+    const expectedLabel = 'void foo<T1, T2 extends String>()';
+    const expectedDoc = 'My Foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'T1'),
+        ParameterInformation(label: 'T2 extends String'),
+      ],
+    );
+  }
+
   Future<void> test_unopenFile() async {
     final content = '''
     /// Does foo.
@@ -454,12 +581,12 @@ class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
     // This test requires support for the "required" keyword.
     final content = '''
     /// Does foo.
-    foo(String s, {bool b = true, required bool a}) {
+    foo(String s, {bool? b = true, required bool a}) {
       foo(^);
     }
     ''';
 
-    final expectedLabel = 'foo(String s, {bool b = true, required bool a})';
+    final expectedLabel = 'foo(String s, {bool? b = true, required bool a})';
     final expectedDoc = 'Does foo.';
 
     await initialize(
@@ -472,7 +599,7 @@ class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
       expectedDoc,
       [
         ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool b = true'),
+        ParameterInformation(label: 'bool? b = true'),
         ParameterInformation(label: 'required bool a'),
       ],
     );

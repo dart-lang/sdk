@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 library float64x2_typed_list_test;
 
 import 'dart:typed_data';

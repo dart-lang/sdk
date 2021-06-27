@@ -4,9 +4,7 @@
 
 part of dart.typed_data;
 
-/**
- * A read-only view of a [ByteBuffer].
- */
+/// A read-only view of a [ByteBuffer].
 class UnmodifiableByteBufferView implements ByteBuffer {
   final ByteBuffer _data;
 
@@ -66,9 +64,7 @@ class UnmodifiableByteBufferView implements ByteBuffer {
       new UnmodifiableByteDataView(_data.asByteData(offsetInBytes, length));
 }
 
-/**
- * A read-only view of a [ByteData].
- */
+/// A read-only view of a [ByteData].
 class UnmodifiableByteDataView implements ByteData {
   final ByteData _data;
 
@@ -173,9 +169,7 @@ abstract class _UnmodifiableListMixin<N, L extends List<N>,
   }
 }
 
-/**
- * View of a [Uint8List] that disallows modification.
- */
+/// View of a [Uint8List] that disallows modification.
 class UnmodifiableUint8ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint8List, Uint8List>
     implements Uint8List {
@@ -185,9 +179,7 @@ class UnmodifiableUint8ListView extends UnmodifiableListBase<int>
   Uint8List _createList(int length) => Uint8List(length);
 }
 
-/**
- * View of a [Int8List] that disallows modification.
- */
+/// View of a [Int8List] that disallows modification.
 class UnmodifiableInt8ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int8List, Int8List>
     implements Int8List {
@@ -197,9 +189,7 @@ class UnmodifiableInt8ListView extends UnmodifiableListBase<int>
   Int8List _createList(int length) => Int8List(length);
 }
 
-/**
- * View of a [Uint8ClampedList] that disallows modification.
- */
+/// View of a [Uint8ClampedList] that disallows modification.
 class UnmodifiableUint8ClampedListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint8ClampedList, Uint8ClampedList>
     implements Uint8ClampedList {
@@ -209,9 +199,7 @@ class UnmodifiableUint8ClampedListView extends UnmodifiableListBase<int>
   Uint8ClampedList _createList(int length) => Uint8ClampedList(length);
 }
 
-/**
- * View of a [Uint16List] that disallows modification.
- */
+/// View of a [Uint16List] that disallows modification.
 class UnmodifiableUint16ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint16List, Uint16List>
     implements Uint16List {
@@ -221,9 +209,7 @@ class UnmodifiableUint16ListView extends UnmodifiableListBase<int>
   Uint16List _createList(int length) => Uint16List(length);
 }
 
-/**
- * View of a [Int16List] that disallows modification.
- */
+/// View of a [Int16List] that disallows modification.
 class UnmodifiableInt16ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int16List, Int16List>
     implements Int16List {
@@ -233,9 +219,7 @@ class UnmodifiableInt16ListView extends UnmodifiableListBase<int>
   Int16List _createList(int length) => Int16List(length);
 }
 
-/**
- * View of a [Uint32List] that disallows modification.
- */
+/// View of a [Uint32List] that disallows modification.
 class UnmodifiableUint32ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint32List, Uint32List>
     implements Uint32List {
@@ -245,9 +229,7 @@ class UnmodifiableUint32ListView extends UnmodifiableListBase<int>
   Uint32List _createList(int length) => Uint32List(length);
 }
 
-/**
- * View of a [Int32List] that disallows modification.
- */
+/// View of a [Int32List] that disallows modification.
 class UnmodifiableInt32ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int32List, Int32List>
     implements Int32List {
@@ -257,9 +239,7 @@ class UnmodifiableInt32ListView extends UnmodifiableListBase<int>
   Int32List _createList(int length) => Int32List(length);
 }
 
-/**
- * View of a [Uint64List] that disallows modification.
- */
+/// View of a [Uint64List] that disallows modification.
 class UnmodifiableUint64ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint64List, Uint64List>
     implements Uint64List {
@@ -269,9 +249,7 @@ class UnmodifiableUint64ListView extends UnmodifiableListBase<int>
   Uint64List _createList(int length) => Uint64List(length);
 }
 
-/**
- * View of a [Int64List] that disallows modification.
- */
+/// View of a [Int64List] that disallows modification.
 class UnmodifiableInt64ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int64List, Int64List>
     implements Int64List {
@@ -281,9 +259,7 @@ class UnmodifiableInt64ListView extends UnmodifiableListBase<int>
   Int64List _createList(int length) => Int64List(length);
 }
 
-/**
- * View of a [Int32x4List] that disallows modification.
- */
+/// View of a [Int32x4List] that disallows modification.
 class UnmodifiableInt32x4ListView extends UnmodifiableListBase<Int32x4>
     with _UnmodifiableListMixin<Int32x4, Int32x4List, Int32x4List>
     implements Int32x4List {
@@ -293,9 +269,7 @@ class UnmodifiableInt32x4ListView extends UnmodifiableListBase<Int32x4>
   Int32x4List _createList(int length) => Int32x4List(length);
 }
 
-/**
- * View of a [Float32x4List] that disallows modification.
- */
+/// View of a [Float32x4List] that disallows modification.
 class UnmodifiableFloat32x4ListView extends UnmodifiableListBase<Float32x4>
     with _UnmodifiableListMixin<Float32x4, Float32x4List, Float32x4List>
     implements Float32x4List {
@@ -305,9 +279,7 @@ class UnmodifiableFloat32x4ListView extends UnmodifiableListBase<Float32x4>
   Float32x4List _createList(int length) => Float32x4List(length);
 }
 
-/**
- * View of a [Float64x2List] that disallows modification.
- */
+/// View of a [Float64x2List] that disallows modification.
 class UnmodifiableFloat64x2ListView extends UnmodifiableListBase<Float64x2>
     with _UnmodifiableListMixin<Float64x2, Float64x2List, Float64x2List>
     implements Float64x2List {
@@ -317,9 +289,7 @@ class UnmodifiableFloat64x2ListView extends UnmodifiableListBase<Float64x2>
   Float64x2List _createList(int length) => Float64x2List(length);
 }
 
-/**
- * View of a [Float32List] that disallows modification.
- */
+/// View of a [Float32List] that disallows modification.
 class UnmodifiableFloat32ListView extends UnmodifiableListBase<double>
     with _UnmodifiableListMixin<double, Float32List, Float32List>
     implements Float32List {
@@ -329,9 +299,7 @@ class UnmodifiableFloat32ListView extends UnmodifiableListBase<double>
   Float32List _createList(int length) => Float32List(length);
 }
 
-/**
- * View of a [Float64List] that disallows modification.
- */
+/// View of a [Float64List] that disallows modification.
 class UnmodifiableFloat64ListView extends UnmodifiableListBase<double>
     with _UnmodifiableListMixin<double, Float64List, Float64List>
     implements Float64List {

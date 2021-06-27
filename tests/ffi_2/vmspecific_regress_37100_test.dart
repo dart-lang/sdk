@@ -4,13 +4,15 @@
 //
 // SharedObjects=ffi_test_functions
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
 
 import 'dylib_utils.dart';
 
-class EVP_MD extends Struct {}
+class EVP_MD extends Opaque {}
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 

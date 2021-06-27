@@ -24,7 +24,7 @@ DEFINE_NATIVE_ENTRY(GrowableList_allocate, 0, 2) {
   const GrowableObjectArray& new_array =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data));
   new_array.SetTypeArguments(type_arguments);
-  return new_array.raw();
+  return new_array.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(GrowableList_getIndexed, 0, 2) {
@@ -35,7 +35,7 @@ DEFINE_NATIVE_ENTRY(GrowableList_getIndexed, 0, 2) {
     Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
   }
   const Instance& obj = Instance::CheckedHandle(zone, array.At(index.Value()));
-  return obj.raw();
+  return obj.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(GrowableList_setIndexed, 0, 3) {
@@ -89,7 +89,7 @@ DEFINE_NATIVE_ENTRY(Internal_makeListFixedLength, 0, 1) {
 DEFINE_NATIVE_ENTRY(Internal_makeFixedListUnmodifiable, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, array, arguments->NativeArgAt(0));
   array.MakeImmutable();
-  return array.raw();
+  return array.ptr();
 }
 
 }  // namespace dart

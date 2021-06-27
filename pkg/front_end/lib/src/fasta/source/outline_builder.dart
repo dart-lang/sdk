@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.outline_builder;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -327,8 +329,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (token.isSynthetic) {
         push(new ParserRecovery(token.charOffset));
       } else {
-        push(new EnumConstantInfo(metadata, token.lexeme, token.charOffset,
-            getDocumentationComment(token)));
+        push(new EnumConstantInfo(metadata, token.lexeme, token.charOffset));
       }
     } else {
       super.handleIdentifier(token, context);
@@ -439,10 +440,8 @@ class OutlineBuilder extends StackListenerImpl {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
     popCharOffset();
-    String documentationComment = getDocumentationComment(libraryKeyword);
     Object name = pop();
     List<MetadataBuilder> metadata = pop();
-    libraryBuilder.documentationComment = documentationComment;
     if (name is! ParserRecovery) {
       libraryBuilder.name =
           flattenName(name, offsetForToken(libraryKeyword), uri);
@@ -556,14 +555,13 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleMixinOn(Token onKeyword, int typeCount) {
     debugEvent("handleMixinOn");
-    push(const FixedNullableList<NamedTypeBuilder>().pop(stack, typeCount) ??
+    push(const FixedNullableList<TypeBuilder>().pop(stack, typeCount) ??
         new ParserRecovery(offsetForToken(onKeyword)));
   }
 
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("endClassDeclaration");
-    String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
     int supertypeOffset = pop();
     TypeBuilder supertype = nullIfParserRecovery(pop());
@@ -577,8 +575,10 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder> metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
-      libraryBuilder.endNestedDeclaration(
-          TypeParameterScopeKind.classDeclaration, "<syntax-error>");
+      libraryBuilder
+          .endNestedDeclaration(
+              TypeParameterScopeKind.classDeclaration, "<syntax-error>")
+          .resolveTypes(typeVariables, libraryBuilder);
       return;
     }
 
@@ -632,7 +632,6 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     libraryBuilder.addClass(
-        documentationComment,
         metadata,
         modifiers,
         name,
@@ -654,7 +653,6 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endMixinDeclaration(Token mixinToken, Token endToken) {
     debugEvent("endMixinDeclaration");
-    String documentationComment = getDocumentationComment(mixinToken);
     List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
     List<TypeBuilder> supertypeConstraints = nullIfParserRecovery(pop());
     List<TypeVariableBuilder> typeVariables = pop(NullValue.TypeVariables);
@@ -663,8 +661,10 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder> metadata = pop(NullValue.Metadata);
     checkEmpty(mixinToken.charOffset);
     if (name is ParserRecovery) {
-      libraryBuilder.endNestedDeclaration(
-          TypeParameterScopeKind.mixinDeclaration, "<syntax-error>");
+      libraryBuilder
+          .endNestedDeclaration(
+              TypeParameterScopeKind.mixinDeclaration, "<syntax-error>")
+          .resolveTypes(typeVariables, libraryBuilder);
       return;
     }
     int startOffset =
@@ -713,7 +713,6 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     libraryBuilder.addMixinDeclaration(
-        documentationComment,
         metadata,
         mixinDeclarationMask,
         name,
@@ -753,8 +752,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token extensionKeyword, Token typeKeyword,
+      Token onKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
       ValueKinds.TypeVariableListOrNull,
@@ -763,7 +762,6 @@ class OutlineBuilder extends StackListenerImpl {
       ValueKinds.MetadataListOrNull
     ]));
     debugEvent("endExtensionDeclaration");
-    String documentationComment = getDocumentationComment(extensionKeyword);
     Object onType = pop();
     if (onType is ParserRecovery) {
       ParserRecovery parserRecovery = onType;
@@ -782,14 +780,23 @@ class OutlineBuilder extends StackListenerImpl {
     int startOffset = metadata == null
         ? extensionKeyword.charOffset
         : metadata.first.charOffset;
+    bool isExtensionTypeDeclaration = typeKeyword != null;
+    if (!libraryBuilder.enableExtensionTypesInLibrary &&
+        isExtensionTypeDeclaration) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('extension-types',
+              libraryBuilder.enableExtensionTypesVersionInLibrary.toText()),
+          extensionKeyword.next.charOffset,
+          extensionKeyword.next.length);
+    }
     libraryBuilder.addExtensionDeclaration(
-        documentationComment,
         metadata,
         // TODO(johnniwinther): Support modifiers on extensions?
         0,
         name,
         typeVariables,
         onType,
+        isExtensionTypeDeclaration,
         startOffset,
         nameOffset,
         endToken.charOffset);
@@ -848,9 +855,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (name is ParserRecovery) return;
     final int startCharOffset =
         metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-    String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addProcedure(
-        documentationComment,
         metadata,
         modifiers,
         returnType,
@@ -864,8 +869,8 @@ class OutlineBuilder extends StackListenerImpl {
         endToken.charOffset,
         nativeMethodName,
         asyncModifier,
-        isTopLevel: true,
-        isExtensionInstanceMember: false);
+        isInstanceMember: false,
+        isExtensionMember: false);
     nativeMethodName = null;
   }
 
@@ -1103,7 +1108,6 @@ class OutlineBuilder extends StackListenerImpl {
     bool isConst = (modifiers & constMask) != 0;
     int varFinalOrConstOffset = pop();
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = getDocumentationComment(beginToken);
 
     TypeParameterScopeBuilder declarationBuilder =
         libraryBuilder.endNestedDeclaration(
@@ -1182,7 +1186,9 @@ class OutlineBuilder extends StackListenerImpl {
 
     declarationBuilder.resolveTypes(typeVariables, libraryBuilder);
     if (constructorName != null) {
-      if (isConst && bodyKind != MethodBody.Abstract) {
+      if (isConst &&
+          bodyKind != MethodBody.Abstract &&
+          !libraryBuilder.enableConstFunctionsInLibrary) {
         addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
         modifiers &= ~constMask;
       }
@@ -1194,7 +1200,6 @@ class OutlineBuilder extends StackListenerImpl {
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       libraryBuilder.addConstructor(
-          documentationComment,
           metadata,
           modifiers,
           returnType,
@@ -1216,8 +1221,8 @@ class OutlineBuilder extends StackListenerImpl {
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+      bool isExtensionMember = methodKind == _MethodKind.extensionMethod;
       libraryBuilder.addProcedure(
-          documentationComment,
           metadata,
           modifiers,
           returnType,
@@ -1231,9 +1236,8 @@ class OutlineBuilder extends StackListenerImpl {
           endToken.charOffset,
           nativeMethodName,
           asyncModifier,
-          isTopLevel: false,
-          isExtensionInstanceMember:
-              methodKind == _MethodKind.extensionMethod && !isStatic);
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember);
     }
     nativeMethodName = null;
     inConstructor = false;
@@ -1258,7 +1262,6 @@ class OutlineBuilder extends StackListenerImpl {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
-    String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     Object mixinApplication = pop();
     int modifiers = pop();
@@ -1268,8 +1271,10 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder> metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || mixinApplication is ParserRecovery) {
-      libraryBuilder.endNestedDeclaration(
-          TypeParameterScopeKind.namedMixinApplication, "<syntax-error>");
+      libraryBuilder
+          .endNestedDeclaration(
+              TypeParameterScopeKind.namedMixinApplication, "<syntax-error>")
+          .resolveTypes(typeVariables, libraryBuilder);
       return;
     }
 
@@ -1317,7 +1322,6 @@ class OutlineBuilder extends StackListenerImpl {
     int startCharOffset = beginToken.charOffset;
     int charEndOffset = endToken.charOffset;
     libraryBuilder.addNamedMixinApplication(
-        documentationComment,
         metadata,
         name,
         typeVariables,
@@ -1572,7 +1576,6 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
-    String documentationComment = getDocumentationComment(enumKeyword);
     List<EnumConstantInfo> enumConstantInfos =
         const FixedNullableList<EnumConstantInfo>().pop(stack, count);
     int charOffset = pop(); // identifier char offset.
@@ -1581,14 +1584,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder> metadata = pop();
     checkEmpty(enumKeyword.charOffset);
     if (name is ParserRecovery) return;
-    libraryBuilder.addEnum(
-        documentationComment,
-        metadata,
-        name,
-        enumConstantInfos,
-        startCharOffset,
-        charOffset,
-        leftBrace?.endGroup?.charOffset);
+    libraryBuilder.addEnum(metadata, name, enumConstantInfos, startCharOffset,
+        charOffset, leftBrace?.endGroup?.charOffset);
   }
 
   @override
@@ -1629,6 +1626,7 @@ class OutlineBuilder extends StackListenerImpl {
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
+        uri,
         functionToken.charOffset));
   }
 
@@ -1642,15 +1640,19 @@ class OutlineBuilder extends StackListenerImpl {
     if (!libraryBuilder.isNonNullableByDefault) {
       reportErrorIfNullableType(question);
     }
-    push(libraryBuilder.addFunctionType(returnType, typeVariables, formals,
-        libraryBuilder.nullableBuilderIfTrue(question != null), formalsOffset));
+    push(libraryBuilder.addFunctionType(
+        returnType,
+        typeVariables,
+        formals,
+        libraryBuilder.nullableBuilderIfTrue(question != null),
+        uri,
+        formalsOffset));
   }
 
   @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
-    String documentationComment = getDocumentationComment(typedefKeyword);
     List<TypeVariableBuilder> typeVariables;
     Object name;
     int charOffset;
@@ -1666,8 +1668,10 @@ class OutlineBuilder extends StackListenerImpl {
       // `library.addFunctionType`.
       if (name is ParserRecovery) {
         pop(); // Metadata.
-        libraryBuilder.endNestedDeclaration(
-            TypeParameterScopeKind.typedef, "<syntax-error>");
+        libraryBuilder
+            .endNestedDeclaration(
+                TypeParameterScopeKind.typedef, "<syntax-error>")
+            .resolveTypes(typeVariables, libraryBuilder);
         return;
       }
       libraryBuilder.beginNestedDeclaration(
@@ -1675,7 +1679,7 @@ class OutlineBuilder extends StackListenerImpl {
           hasMembers: false);
       // TODO(dmitryas): Make sure that RHS of typedefs can't have '?'.
       aliasedType = libraryBuilder.addFunctionType(returnType, null, formals,
-          const NullabilityBuilder.omitted(), charOffset);
+          const NullabilityBuilder.omitted(), uri, charOffset);
     } else {
       Object type = pop();
       typeVariables = pop();
@@ -1683,8 +1687,10 @@ class OutlineBuilder extends StackListenerImpl {
       name = pop();
       if (name is ParserRecovery) {
         pop(); // Metadata.
-        libraryBuilder.endNestedDeclaration(
-            TypeParameterScopeKind.functionType, "<syntax-error>");
+        libraryBuilder
+            .endNestedDeclaration(
+                TypeParameterScopeKind.functionType, "<syntax-error>")
+            .resolveTypes(typeVariables, libraryBuilder);
         return;
       }
       if (type is FunctionTypeBuilder &&
@@ -1718,8 +1724,8 @@ class OutlineBuilder extends StackListenerImpl {
     }
     List<MetadataBuilder> metadata = pop();
     checkEmpty(typedefKeyword.charOffset);
-    libraryBuilder.addFunctionTypeAlias(documentationComment, metadata, name,
-        typeVariables, aliasedType, charOffset);
+    libraryBuilder.addFunctionTypeAlias(
+        metadata, name, typeVariables, aliasedType, charOffset);
   }
 
   @override
@@ -1757,9 +1763,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder> metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (fieldInfos == null) return;
-    String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addFields(
-        documentationComment,
         metadata,
         modifiers,
         /* isTopLevel = */ true,
@@ -1824,9 +1828,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
     List<MetadataBuilder> metadata = pop();
     if (fieldInfos == null) return;
-    String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addFields(
-        documentationComment,
         metadata,
         modifiers,
         /* isTopLevel = */ false,
@@ -1859,13 +1861,12 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("beginTypeVariable");
     int charOffset = pop();
     Object name = pop();
-    // TODO(paulberry): type variable metadata should not be ignored.  See
-    // dartbug.com/28981.
-    /* List<MetadataBuilder<TypeBuilder>> metadata = */ pop();
+    List<MetadataBuilder> metadata = pop();
     if (name is ParserRecovery) {
       push(name);
     } else {
-      push(libraryBuilder.addTypeVariable(name, null, charOffset));
+      push(libraryBuilder.addTypeVariable(
+          metadata, name, null, charOffset, uri));
     }
   }
 
@@ -2032,9 +2033,7 @@ class OutlineBuilder extends StackListenerImpl {
           TypeParameterScopeKind.factoryMethod, "<syntax-error>");
       return;
     }
-    String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addFactoryMethod(
-      documentationComment,
       metadata,
       modifiers,
       name,
@@ -2055,6 +2054,14 @@ class OutlineBuilder extends StackListenerImpl {
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody");
     push(MethodBody.RedirectingFactoryBody);
+  }
+
+  @override
+  void handleConstFactory(Token constKeyword) {
+    debugEvent("ConstFactory");
+    if (!libraryBuilder.enableConstFunctionsInLibrary) {
+      handleRecoverableError(messageConstFactory, constKeyword, constKeyword);
+    }
   }
 
   @override
@@ -2168,37 +2175,20 @@ class OutlineBuilder extends StackListenerImpl {
         super.isIgnoredError(code, token);
   }
 
-  /// Return the documentation comment for the entity that starts at the
-  /// given [token], or `null` if there is no preceding documentation comment.
-  static String getDocumentationComment(Token token) {
-    Token docToken = token.precedingComments;
-    if (docToken == null) return null;
-    bool inSlash = false;
-    StringBuffer buffer = new StringBuffer();
-    while (docToken != null) {
-      String lexeme = docToken.lexeme;
-      if (lexeme.startsWith('/**')) {
-        inSlash = false;
-        buffer.clear();
-        buffer.write(lexeme);
-      } else if (lexeme.startsWith('///')) {
-        if (!inSlash) {
-          inSlash = true;
-          buffer.clear();
-        }
-        if (buffer.isNotEmpty) {
-          buffer.writeln();
-        }
-        buffer.write(lexeme);
-      }
-      docToken = docToken.next;
-    }
-    return buffer.toString();
-  }
-
   @override
   void debugEvent(String name) {
     // printEvent('OutlineBuilder: $name');
+  }
+
+  @override
+  void handleNewAsIdentifier(Token token) {
+    // TODO(johnniwinther, paulberry): disable this error when the
+    // "constructor-tearoffs" feature is enabled.
+    addProblem(
+        templateExperimentNotEnabled.withArguments('constructor-tearoffs',
+            libraryBuilder.enableConstructorTearOffsVersionInLibrary.toText()),
+        token.charOffset,
+        token.length);
   }
 }
 

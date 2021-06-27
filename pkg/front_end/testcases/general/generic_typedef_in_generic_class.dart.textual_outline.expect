@@ -1,0 +1,7 @@
+typedef F = T Function<T, S>(T, S);
+
+class Class<A> {
+  method() {}
+}
+
+main() {}

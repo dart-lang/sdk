@@ -55,7 +55,7 @@ var tests = <IsolateTest>[
     var awaiterFrames = stack['awaiterFrames'];
     expect(frames.length, greaterThanOrEqualTo(20));
     expect(asyncFrames.length, greaterThan(frames.length));
-    expect(awaiterFrames.length, 13);
+    expect(awaiterFrames.length, greaterThan(frames.length));
     expect(stack['truncated'], false);
     verifyStack(frames, [
       'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
@@ -75,7 +75,7 @@ var tests = <IsolateTest>[
 
     expect(frames.length, fullStackLength);
     expect(asyncFrames.length, fullStackLength + 1);
-    expect(asyncFrames.length, fullStackLength + 1);
+    expect(awaiterFrames.length, fullStackLength + 1);
     expect(stack['truncated'], true);
     verifyStack(frames, [
       'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',

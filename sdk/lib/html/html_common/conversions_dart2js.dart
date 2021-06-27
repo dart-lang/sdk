@@ -1,14 +1,36 @@
 part of html_common;
 
-/// Converts a JavaScript object with properties into a Dart Map.
-/// Not suitable for nested objects.
+/// Converts native values to their Dart equivalent
+///
+/// This includes other maps, lists, or values that don't need a conversion e.g.
+/// bool, String.
+_convertNativeToDart_Value(value) {
+  if (value == null) return value;
+  if (value is String || value is num || value is bool) return value;
+  if (isJavaScriptSimpleObject(value)) {
+    return convertNativeToDart_Dictionary(value);
+  }
+  if (JS('bool', 'Array.isArray(#)', value)) {
+    List values = [];
+    for (var i = 0; i < JS<int>('int', '#.length', value); i++) {
+      values.add(_convertNativeToDart_Value(JS('var', '#[#]', value, i)));
+    }
+
+    return values;
+  }
+  return value;
+}
+
+/// Recursively converts a JavaScript object with properties into a Dart Map.
+/// This includes maps, lists, and other values that don't need a conversion.
 Map<String, dynamic>? convertNativeToDart_Dictionary(object) {
   if (object == null) return null;
   var dict = <String, dynamic>{};
   var keys = JS<JSExtendableArray>(
       'JSExtendableArray', 'Object.getOwnPropertyNames(#)', object);
   for (final key in keys) {
-    dict[key] = JS('var', '#[#]', object, key);
+    dict[JS('String', '#', key)] =
+        _convertNativeToDart_Value(JS('var', '#[#]', object, key));
   }
   return dict;
 }

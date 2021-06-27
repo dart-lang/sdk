@@ -4,7 +4,6 @@
 
 import '../ast.dart';
 import '../core_types.dart';
-import '../visitor.dart';
 
 class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   final CoreTypes coreTypes;
@@ -30,11 +29,6 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   @override
   bool defaultDartType(DartType node, DartType other) {
     throw new UnsupportedError("${node.runtimeType}");
-  }
-
-  @override
-  bool visitBottomType(BottomType node, DartType other) {
-    return other is BottomType;
   }
 
   @override
@@ -67,7 +61,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         // themselves if the typedef types are equal.
         assert(() {
           DartTypeEquivalence copy = this.copy();
-          if (!copy.areEqual(node.typedefType, other.typedefType)) {
+          if (!copy.areEqual(node.typedefType!, other.typedefType!)) {
             return true;
           }
           FunctionType nodeWithoutTypedefType = new FunctionType(
@@ -88,7 +82,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
               typedefType: null);
           return copy.areEqual(nodeWithoutTypedefType, otherWithoutTypedefType);
         }());
-        return node.typedefType.accept1(this, other.typedefType);
+        return node.typedefType!.accept1(this, other.typedefType);
       }
 
       // Perform simple number checks before the checks on parts.
@@ -133,7 +127,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         String otherName = other.namedParameters[i].name;
         DartType otherType = other.namedParameters[i].type;
         if (!nodeNamedParameters.containsKey(otherName) ||
-            !nodeNamedParameters[otherName].accept1(this, otherType)) {
+            !nodeNamedParameters[otherName]!.accept1(this, otherType)) {
           result = false;
         }
       }
@@ -160,6 +154,32 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         return false;
       }
       if (node.classNode != other.classNode) {
+        return false;
+      }
+      assert(node.typeArguments.length == other.typeArguments.length);
+      for (int i = 0; i < node.typeArguments.length; ++i) {
+        if (!node.typeArguments[i].accept1(this, other.typeArguments[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitExtensionType(ExtensionType node, DartType other) {
+    // First, check Object*, Object?.
+    if (equateTopTypes && coreTypes.isTop(node)) {
+      return coreTypes.isTop(other);
+    }
+
+    if (other is ExtensionType) {
+      if (!_checkAndRegisterNullabilities(
+          node.declaredNullability, other.declaredNullability)) {
+        return false;
+      }
+      if (node.extension != other.extension) {
         return false;
       }
       assert(node.typeArguments.length == other.typeArguments.length);
@@ -228,7 +248,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         return false;
       }
       return nodeIsIntersection
-          ? node.promotedBound.accept1(this, other.promotedBound)
+          ? node.promotedBound!.accept1(this, other.promotedBound)
           : true;
     }
     return false;
@@ -292,7 +312,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   TypeParameter _lookup(TypeParameter parameter) {
     for (int i = _alphaRenamingStack.length - 1; i >= 0; --i) {
       if (_alphaRenamingStack[i].containsKey(parameter)) {
-        return _alphaRenamingStack[i][parameter];
+        return _alphaRenamingStack[i][parameter]!;
       }
     }
     return parameter;

@@ -24,7 +24,7 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Send Workspace Edit';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+  Future<ErrorOr<void>> handle(List<dynamic>? arguments,
       ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 1 ||

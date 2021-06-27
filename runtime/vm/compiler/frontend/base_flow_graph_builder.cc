@@ -17,7 +17,7 @@ namespace dart {
 namespace kernel {
 
 #define Z (zone_)
-#define I (thread_->isolate())
+#define IG (thread_->isolate_group())
 
 Fragment& Fragment::operator+=(const Fragment& other) {
   if (entry == NULL) {
@@ -370,7 +370,8 @@ Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(Fragment present,
 
 Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
                                            intptr_t index_scale,
-                                           bool index_unboxed) {
+                                           bool index_unboxed,
+                                           AlignmentType alignment) {
   Value* index = Pop();
   // A C pointer if index_unboxed, otherwise a boxed Dart value.
   Value* array = Pop();
@@ -379,7 +380,7 @@ Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
   // all cases.
   LoadIndexedInstr* instr = new (Z)
       LoadIndexedInstr(array, index, index_unboxed, index_scale, class_id,
-                       kAlignedAccess, DeoptId::kNone, InstructionSource());
+                       alignment, DeoptId::kNone, InstructionSource());
   Push(instr);
   return Fragment(instr);
 }
@@ -389,13 +390,6 @@ Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {
   auto load = new (Z) LoadUntaggedInstr(object, offset);
   Push(load);
   return Fragment(load);
-}
-
-Fragment BaseFlowGraphBuilder::StoreUntagged(intptr_t offset) {
-  Value* value = Pop();
-  Value* object = Pop();
-  auto store = new (Z) StoreUntaggedInstr(object, value, offset);
-  return Fragment(store);
 }
 
 Fragment BaseFlowGraphBuilder::ConvertUntaggedToUnboxed(
@@ -425,7 +419,7 @@ Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged(
 Fragment BaseFlowGraphBuilder::AddIntptrIntegers() {
   Value* right = Pop();
   Value* left = Pop();
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IS_64_BIT)
   auto add = new (Z) BinaryInt64OpInstr(
       Token::kADD, left, right, DeoptId::kNone, Instruction::kNotSpeculative);
 #else
@@ -507,9 +501,9 @@ const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
   }
 }
 
-Fragment BaseFlowGraphBuilder::StoreInstanceField(
+Fragment BaseFlowGraphBuilder::StoreNativeField(
     TokenPosition position,
-    const Slot& field,
+    const Slot& slot,
     StoreInstanceFieldInstr::Kind
         kind /* = StoreInstanceFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */) {
@@ -518,7 +512,7 @@ Fragment BaseFlowGraphBuilder::StoreInstanceField(
     emit_store_barrier = kNoStoreBarrier;
   }
   StoreInstanceFieldInstr* store =
-      new (Z) StoreInstanceFieldInstr(field, Pop(), value, emit_store_barrier,
+      new (Z) StoreInstanceFieldInstr(slot, Pop(), value, emit_store_barrier,
                                       InstructionSource(position), kind);
   return Fragment(store);
 }
@@ -528,16 +522,9 @@ Fragment BaseFlowGraphBuilder::StoreInstanceField(
     StoreInstanceFieldInstr::Kind
         kind /* = StoreInstanceFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier) {
-  Value* value = Pop();
-  if (value->BindsToConstant()) {
-    emit_store_barrier = kNoStoreBarrier;
-  }
-
-  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      MayCloneField(Z, field), Pop(), value, emit_store_barrier,
-      InstructionSource(), parsed_function_, kind);
-
-  return Fragment(store);
+  return StoreNativeField(TokenPosition::kNoSource,
+                          Slot::Get(MayCloneField(Z, field), parsed_function_),
+                          kind, emit_store_barrier);
 }
 
 Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
@@ -546,7 +533,7 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
         kind /* = StoreInstanceFieldInstr::Kind::kOther */) {
   Fragment instructions;
   const Field& field_clone = MayCloneField(Z, field);
-  if (I->use_field_guards()) {
+  if (IG->use_field_guards()) {
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
     instructions += GuardFieldClass(field_clone, GetNextDeoptId());
@@ -572,7 +559,8 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
           new (Z) GuardFieldTypeInstr(Pop(), field_clone, GetNextDeoptId());
     }
   }
-  instructions += StoreInstanceField(field_clone, kind);
+  instructions +=
+      StoreNativeField(Slot::Get(field_clone, parsed_function_), kind);
   return instructions;
 }
 
@@ -588,7 +576,8 @@ Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field,
 Fragment BaseFlowGraphBuilder::RedefinitionWithType(const AbstractType& type) {
   auto redefinition = new (Z) RedefinitionInstr(Pop());
   redefinition->set_constrained_type(
-      new (Z) CompileType(CompileType::FromAbstractType(type)));
+      new (Z) CompileType(CompileType::FromAbstractType(
+          type, CompileType::kCanBeNull, CompileType::kCannotBeSentinel)));
   Push(redefinition);
   return Fragment(redefinition);
 }
@@ -628,7 +617,6 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
       index, value, emit_store_barrier, /*index_unboxed=*/false,
-
       compiler::target::Instance::ElementSizeFor(class_id), class_id,
       kAlignedAccess, DeoptId::kNone, InstructionSource());
   return Fragment(store);
@@ -636,10 +624,8 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
 
 Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id,
                                                      intptr_t index_scale,
-                                                     bool index_unboxed) {
-  // We use C behavior when dereferencing pointers, we assume alignment.
-  const AlignmentType alignment = kAlignedAccess;
-
+                                                     bool index_unboxed,
+                                                     AlignmentType alignment) {
   Value* value = Pop();
   Value* index = Pop();
   Value* c_pointer = Pop();
@@ -657,7 +643,7 @@ Fragment BaseFlowGraphBuilder::StoreLocal(TokenPosition position,
     LocalVariable* value = MakeTemporary();
     instructions += LoadContextAt(variable->owner()->context_level());
     instructions += LoadLocal(value);
-    instructions += StoreInstanceField(
+    instructions += StoreNativeField(
         position, Slot::GetContextVariableSlotFor(thread_, *variable));
     return instructions;
   }
@@ -874,7 +860,7 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
 
   Fragment failing(nsm);
   const Code& nsm_handler = Code::ZoneHandle(
-      Z, I->object_store()->call_closure_no_such_method_stub());
+      Z, IG->object_store()->call_closure_no_such_method_stub());
   failing += LoadArgDescriptor();
   failing += TailCall(nsm_handler);
 
@@ -897,19 +883,17 @@ Fragment BaseFlowGraphBuilder::BooleanNegate() {
 
 Fragment BaseFlowGraphBuilder::AllocateContext(
     const ZoneGrowableArray<const Slot*>& context_slots) {
-  AllocateContextInstr* allocate =
-      new (Z) AllocateContextInstr(InstructionSource(), context_slots);
+  AllocateContextInstr* allocate = new (Z) AllocateContextInstr(
+      InstructionSource(), context_slots, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }
 
-Fragment BaseFlowGraphBuilder::AllocateClosure(
-    TokenPosition position,
-    const Function& closure_function) {
-  const Class& cls = Class::ZoneHandle(Z, I->object_store()->closure_class());
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(InstructionSource(position), cls);
-  allocate->set_closure_function(closure_function);
+Fragment BaseFlowGraphBuilder::AllocateClosure(TokenPosition position) {
+  auto const context = Pop();
+  auto const function = Pop();
+  auto* allocate = new (Z) AllocateClosureInstr(
+      InstructionSource(position), function, context, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }
@@ -984,8 +968,8 @@ Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
                                               intptr_t argument_count) {
   ASSERT((argument_count == 0) || (argument_count == 1));
   Value* type_arguments = (argument_count > 0) ? Pop() : nullptr;
-  AllocateObjectInstr* allocate = new (Z)
-      AllocateObjectInstr(InstructionSource(position), klass, type_arguments);
+  AllocateObjectInstr* allocate = new (Z) AllocateObjectInstr(
+      InstructionSource(position), klass, GetNextDeoptId(), type_arguments);
   Push(allocate);
   return Fragment(allocate);
 }
@@ -997,7 +981,8 @@ Fragment BaseFlowGraphBuilder::Box(Representation from) {
 }
 
 Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
-    const TypeArguments& signatures) {
+    const TypeArguments& signatures,
+    bool is_leaf) {
   ASSERT(signatures.IsInstantiated());
   ASSERT(signatures.Length() == 2);
 
@@ -1007,13 +992,15 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   ASSERT(dart_type.IsFunctionType() && native_type.IsFunctionType());
   const Function& target =
       Function::ZoneHandle(compiler::ffi::TrampolineFunction(
-          Function::Handle(Z, Type::Cast(dart_type).signature()),
-          Function::Handle(Z, Type::Cast(native_type).signature())));
+          FunctionType::Cast(dart_type), FunctionType::Cast(native_type),
+          is_leaf));
 
   Fragment code;
   // Store the pointer in the context, we cannot load the untagged address
   // here as these can be unoptimized call sites.
   LocalVariable* pointer = MakeTemporary();
+
+  code += Constant(target);
 
   auto& context_slots = CompilerState::Current().GetDummyContextSlots(
       /*context_id=*/0, /*num_variables=*/1);
@@ -1022,23 +1009,12 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
 
   code += LoadLocal(context);
   code += LoadLocal(pointer);
-  code += StoreInstanceField(TokenPosition::kNoSource, *context_slots[0]);
+  code += StoreNativeField(*context_slots[0]);
 
-  code += AllocateClosure(TokenPosition::kNoSource, target);
-  LocalVariable* closure = MakeTemporary();
+  code += AllocateClosure();
 
-  code += LoadLocal(closure);
-  code += LoadLocal(context);
-  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context(),
-                             StoreInstanceFieldInstr::Kind::kInitializing);
-
-  code += LoadLocal(closure);
-  code += Constant(target);
-  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_function(),
-                             StoreInstanceFieldInstr::Kind::kInitializing);
-
-  // Drop address and context.
-  code += DropTempsPreserveTop(2);
+  // Drop address.
+  code += DropTempsPreserveTop(1);
 
   return code;
 }
@@ -1047,9 +1023,9 @@ Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
 #ifdef PRODUCT
   return Fragment();
 #else
-  return Fragment(new (Z) DebugStepCheckInstr(InstructionSource(position),
-                                              PcDescriptorsLayout::kRuntimeCall,
-                                              GetNextDeoptId()));
+  return Fragment(new (Z) DebugStepCheckInstr(
+      InstructionSource(position), UntaggedPcDescriptors::kRuntimeCall,
+      GetNextDeoptId()));
 #endif
 }
 
@@ -1109,7 +1085,7 @@ void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(
 Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   if (!FLAG_enable_testing_pragmas) return Drop();
 
-  auto& function = Function::Handle(Z, parsed_function_->function().raw());
+  auto& function = Function::Handle(Z, parsed_function_->function().ptr());
 
   if (function.IsImplicitClosureFunction()) {
     const auto& parent = Function::Handle(Z, function.parent_function());
@@ -1122,12 +1098,13 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
 
   Object& options = Object::Handle(Z);
   if (!Library::FindPragma(thread_, /*only_core=*/false, function,
-                           Symbols::vm_trace_entrypoints(), &options) ||
+                           Symbols::vm_trace_entrypoints(), /*multiple=*/false,
+                           &options) ||
       options.IsNull() || !options.IsClosure()) {
     return Drop();
   }
-  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
-  LocalVariable* entry_point_num = MakeTemporary();
+  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).ptr());
+  LocalVariable* entry_point_num = MakeTemporary("entry_point_num");
 
   auto& function_name = String::ZoneHandle(
       Z, String::New(function.ToLibNamePrefixedQualifiedCString(), Heap::kOld));
@@ -1144,27 +1121,30 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   call_hook += Constant(closure);
   call_hook += Constant(function_name);
   call_hook += LoadLocal(entry_point_num);
-  call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    call_hook += Constant(closure);
+  } else {
+    call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
+  }
   call_hook += ClosureCall(TokenPosition::kNoSource,
                            /*type_args_len=*/0, /*argument_count=*/3,
                            /*argument_names=*/Array::ZoneHandle(Z));
-  call_hook += Drop();  // result of closure call
-  call_hook += Drop();  // entrypoint number
+  call_hook += Drop();                           // result of closure call
+  call_hook += DropTemporary(&entry_point_num);  // entrypoint number
   return call_hook;
 }
 
 Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
                                            intptr_t type_args_len,
                                            intptr_t argument_count,
-                                           const Array& argument_names,
-                                           bool is_statically_checked) {
-  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0) + 1;
+                                           const Array& argument_names) {
+  const intptr_t total_count =
+      (type_args_len > 0 ? 1 : 0) + argument_count +
+      /*closure (bare instructions) or function (otherwise)*/ 1;
   InputsArray* arguments = GetArguments(total_count);
-  ClosureCallInstr* call = new (Z)
-      ClosureCallInstr(arguments, type_args_len, argument_names,
-                       InstructionSource(position), GetNextDeoptId(),
-                       is_statically_checked ? Code::EntryKind::kUnchecked
-                                             : Code::EntryKind::kNormal);
+  ClosureCallInstr* call =
+      new (Z) ClosureCallInstr(arguments, type_args_len, argument_names,
+                               InstructionSource(position), GetNextDeoptId());
   Push(call);
   return Fragment(call);
 }

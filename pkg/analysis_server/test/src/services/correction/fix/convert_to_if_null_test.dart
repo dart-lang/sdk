@@ -26,12 +26,12 @@ class ConvertToIfNullTest extends FixProcessorLintTest {
 
   Future<void> test_equalEqual() async {
     await resolveTestCode('''
-void f(String s) {
+void f(String? s) {
   print(s == null ? 'default' : s);
 }
 ''');
     await assertHasFix('''
-void f(String s) {
+void f(String? s) {
   print(s ?? 'default');
 }
 ''');
@@ -66,12 +66,12 @@ void f(String s, bool b) {
 
   Future<void> test_notEqual() async {
     await resolveTestCode('''
-void f(String s) {
+void f(String? s) {
   print(s != null ? s : 'default');
 }
 ''');
     await assertHasFix('''
-void f(String s) {
+void f(String? s) {
   print(s ?? 'default');
 }
 ''');

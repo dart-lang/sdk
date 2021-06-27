@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,7 +28,7 @@ class A {
   int get field => _field;
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   void existingMethod() {}
 }
@@ -39,7 +40,7 @@ class A {
   int get field => _field;
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   B(int field) : super(field);
 
@@ -75,13 +76,41 @@ class C extends B {
 ''');
   }
 
+  Future<void> test_lint_sortConstructorsFirst() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await resolveTestCode('''
+class A {
+  A(this.field);
+
+  int field;
+}
+class B extends A {
+  int existingField = 0;
+  void existingMethod() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  A(this.field);
+
+  int field;
+}
+class B extends A {
+  B(int field) : super(field);
+
+  int existingField = 0;
+  void existingMethod() {}
+}
+''');
+  }
+
   Future<void> test_named() async {
     await resolveTestCode('''
 class A {
   A.named(p1, int p2);
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   void existingMethod() {}
 }
@@ -91,7 +120,7 @@ class A {
   A.named(p1, int p2);
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   B.named(p1, int p2) : super.named(p1, p2);
 
@@ -103,20 +132,20 @@ class B extends A {
   Future<void> test_optional() async {
     await resolveTestCode('''
 class A {
-  A(p1, int p2, List<String> p3, [int p4]);
+  A(p1, int p2, List<String> p3, [int p4 = 0]);
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   void existingMethod() {}
 }
 ''');
     await assertHasFix('''
 class A {
-  A(p1, int p2, List<String> p3, [int p4]);
+  A(p1, int p2, List<String> p3, [int p4 = 0]);
 }
 class B extends A {
-  int existingField;
+  int existingField = 0;
 
   B(p1, int p2, List<String> p3) : super(p1, p2, p3);
 

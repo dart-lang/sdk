@@ -67,8 +67,8 @@ class X = Object with A implements A, Function, B;
     assertElementTypes(
       x.interfaces,
       [
-        interfaceTypeStar(a),
-        interfaceTypeStar(b),
+        interfaceTypeNone(a),
+        interfaceTypeNone(b),
       ],
     );
   }
@@ -85,8 +85,8 @@ class X = Object with A, Function, B;
     assertElementTypes(
       x.mixins,
       [
-        interfaceTypeStar(a),
-        interfaceTypeStar(b),
+        interfaceTypeNone(a),
+        interfaceTypeNone(b),
       ],
     );
   }
@@ -177,8 +177,8 @@ class C1 = A with M1;
     await assertNoErrorsInCode(r'''
 class A {
   A.c1(int a);
-  A.c2(int a, [int b, int c]);
-  A.c3(int a, {int b, int c});
+  A.c2(int a, [int? b, int c = 0]);
+  A.c3(int a, {int? b, int c = 0});
 }
 
 class M {}
@@ -190,8 +190,8 @@ class C = A with M;
       findElement.class_('C'),
       [
         'C C.c1(int a)',
-        'C C.c2(int a, [int b, int c])',
-        'C C.c3(int a, {int b, int c})'
+        'C C.c2(int a, [int b, int c = 0])',
+        'C C.c3(int a, {int b, int c = 0})'
       ],
     );
   }

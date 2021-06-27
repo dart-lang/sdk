@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async' show Future, StreamSubscription;
 
 import 'dart:convert' show JsonEncoder, jsonDecode, utf8;
@@ -21,7 +23,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 
@@ -51,7 +53,7 @@ import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
 import 'package:front_end/src/fasta/util/textual_outline.dart'
     show textualOutline;
 
-import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/ast.dart' show Component, LibraryPart;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -62,7 +64,7 @@ import "package:vm/target/flutter.dart" show FlutterTarget;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
-import 'incremental_load_from_dill_suite.dart' show getOptions;
+import 'incremental_suite.dart' show getOptions;
 
 import 'parser_test_listener.dart' show ParserTestListener;
 
@@ -85,12 +87,14 @@ class TestMinimizerSettings {
   bool widgetTransformation = false;
   final List<Uri> invalidate = [];
   String targetString = "VM";
+  bool noTryToDeleteEmptyFilesUpFront = false;
   bool oldBlockDelete = false;
   bool lineDelete = false;
   bool byteDelete = false;
   bool askAboutRedirectCrashTarget = false;
   bool autoUncoverAllCrashes = false;
   int stackTraceMatches = 1;
+  String lookForErrorErrorOnReload;
   final Set<String> askedAboutRedirect = {};
   final List<Map<String, dynamic>> fileSystems = [];
   final Set<String> allAutoRedirects = {};
@@ -114,6 +118,7 @@ class TestMinimizerSettings {
       'widgetTransformation': widgetTransformation,
       'invalidate': invalidate.map((uri) => uri.toString()).toList(),
       'targetString': targetString,
+      'noTryToDeleteEmptyFilesUpFront': noTryToDeleteEmptyFilesUpFront,
       'oldBlockDelete': oldBlockDelete,
       'lineDelete': lineDelete,
       'byteDelete': byteDelete,
@@ -123,6 +128,7 @@ class TestMinimizerSettings {
       'askedAboutRedirect': askedAboutRedirect.toList(),
       'fileSystems': fileSystems,
       'allAutoRedirects': allAutoRedirects.toList(),
+      'lookForErrorErrorOnReload': lookForErrorErrorOnReload,
     };
   }
 
@@ -137,6 +143,7 @@ class TestMinimizerSettings {
     invalidate.addAll(
         (json["invalidate"] as List).map((uriString) => Uri.parse(uriString)));
     targetString = json["targetString"];
+    noTryToDeleteEmptyFilesUpFront = json["noTryToDeleteEmptyFilesUpFront"];
     oldBlockDelete = json["oldBlockDelete"];
     lineDelete = json["lineDelete"];
     byteDelete = json["byteDelete"];
@@ -149,6 +156,7 @@ class TestMinimizerSettings {
     fileSystems.addAll((json["fileSystems"] as List).cast());
     allAutoRedirects.clear();
     allAutoRedirects.addAll((json["allAutoRedirects"] as List).cast());
+    lookForErrorErrorOnReload = json["lookForErrorErrorOnReload"];
 
     _fsNotInitial.initializeFromJson(fileSystems.removeLast());
   }
@@ -170,6 +178,7 @@ class TestMinimizer {
   bool _skip = false;
   bool _check = false;
   int _currentFsNum = -1;
+  bool _gotWantedError = false;
 
   Component _latestComponent;
   IncrementalCompiler _latestCrashingIncrementalCompiler;
@@ -330,20 +339,22 @@ class TestMinimizer {
       }
 
       // Try to delete empty files.
-      bool changedSome2 = true;
-      while (changedSome2) {
-        if (await _shouldQuit()) break;
-        changedSome2 = false;
-        for (int i = 0; i < uris.length; i++) {
+      if (!_settings.noTryToDeleteEmptyFilesUpFront) {
+        bool changedSome2 = true;
+        while (changedSome2) {
           if (await _shouldQuit()) break;
-          Uri uri = uris[i];
-          if (_fs.data[uri] == null || _fs.data[uri].isNotEmpty) continue;
-          print("About to work on file $i of ${uris.length}");
-          await _deleteContent(uris, i, false, initialComponent,
-              deleteFile: true);
-          if (_fs.data[uri] == null) {
-            changedSome = true;
-            changedSome2 = true;
+          changedSome2 = false;
+          for (int i = 0; i < uris.length; i++) {
+            if (await _shouldQuit()) break;
+            Uri uri = uris[i];
+            if (_fs.data[uri] == null || _fs.data[uri].isNotEmpty) continue;
+            print("About to work on file $i of ${uris.length}");
+            await _deleteContent(uris, i, false, initialComponent,
+                deleteFile: true);
+            if (_fs.data[uri] == null) {
+              changedSome = true;
+              changedSome2 = true;
+            }
           }
         }
       }
@@ -433,6 +444,15 @@ class TestMinimizer {
           }
         }
       }
+
+      // Partially a sanity-check, and partially to make sure there's a latest
+      // component for [_tryToRemoveUnreferencedFileContent] to work with (if
+      // crashing after an invalidation).
+      if (!await _crashesOnCompile(initialComponent)) {
+        throw "At a state where we should crash, we didn't!";
+      }
+      await _tryToRemoveUnreferencedFileContent(initialComponent,
+          deleteFile: true);
     }
 
     if (await _shouldQuit()) {
@@ -701,20 +721,20 @@ class TestMinimizer {
 
     // TODO(jensj): don't use full uris.
     print("""
-        # Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
-        # for details. All rights reserved. Use of this source code is governed by a
-        # BSD-style license that can be found in the LICENSE.md file.
-        
-        # Reproduce a crash.
-        
-        type: newworld""");
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Reproduce a crash.
+
+type: newworld""");
     if (_settings.widgetTransformation) {
       print("trackWidgetCreation: true");
       print("target: DDC # basically needed for widget creation to be run");
     }
     print("""
-        worlds:
-          - entry: $_mainUri""");
+worlds:
+  - entry: $_mainUri""");
     if (_settings.experimentalInvalidation) {
       print("    experiments: alternative-invalidation-strategy");
     }
@@ -888,9 +908,11 @@ class TestMinimizer {
     bool removedSome = false;
     if (await _shouldQuit()) return;
     for (MapEntry<Uri, Uint8List> entry in _fs.data.entries) {
-      if (entry.value == null || entry.value.isEmpty) continue;
+      if (entry.value == null) continue;
+      if (!deleteFile && entry.value.isEmpty) continue;
       if (!entry.key.toString().endsWith(".dart")) continue;
-      if (!neededUris.contains(entry.key) && _fs.data[entry.key].length != 0) {
+      if (!neededUris.contains(entry.key) &&
+          (deleteFile || _fs.data[entry.key].length != 0)) {
         if (deleteFile) {
           _fs.data[entry.key] = null;
         } else {
@@ -961,7 +983,8 @@ class TestMinimizer {
       // instead.
       if (uri.toString().endsWith(".dart")) {
         String textualOutlined =
-            textualOutline(data)?.replaceAll(RegExp(r'\n+'), "\n");
+            textualOutline(data, _getScannerConfiguration(uri))
+                ?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
         if (textualOutlined != null) {
@@ -1629,7 +1652,8 @@ class TestMinimizer {
     Uint8List candidate = builder.takeBytes();
     if (candidate.length == data.length) return;
 
-    if (!_parsesWithoutError(candidate, _isUriNnbd(uri))) {
+    if (uri.path.endsWith(".dart") &&
+        !_parsesWithoutError(candidate, _isUriNnbd(uri))) {
       print("WARNING: Parser error after stuff at ${StackTrace.current}");
     }
 
@@ -1743,9 +1767,17 @@ class TestMinimizer {
     return false;
   }
 
-  bool _isUriNnbd(Uri uri) {
+  ScannerConfiguration _getScannerConfiguration(Uri uri) {
+    return new ScannerConfiguration(
+        enableExtensionMethods: true,
+        enableNonNullable: _isUriNnbd(uri, crashOnFail: false),
+        enableTripleShift: false);
+  }
+
+  bool _isUriNnbd(Uri uri, {bool crashOnFail: true}) {
+    Uri asImportUri = _getImportUri(uri);
     LibraryBuilder libraryBuilder = _latestCrashingIncrementalCompiler
-        .userCode.loader.builders[_getImportUri(uri)];
+        .userCode.loader.builders[asImportUri];
     if (libraryBuilder != null) {
       return libraryBuilder.isNonNullableByDefault;
     }
@@ -1753,17 +1785,29 @@ class TestMinimizer {
     for (LibraryBuilder libraryBuilder
         in _latestCrashingIncrementalCompiler.userCode.loader.builders.values) {
       if (libraryBuilder.importUri == uri) {
-        print("Found $uri as ${libraryBuilder.importUri} "
-            "(!= ${_getImportUri(uri)})");
+        print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
         return libraryBuilder.isNonNullableByDefault;
       }
+      // Check parts too.
+      for (LibraryPart part in libraryBuilder.library.parts) {
+        Uri thisPartUri = libraryBuilder.importUri.resolve(part.partUri);
+        if (thisPartUri == uri || thisPartUri == asImportUri) {
+          print("Found $uri as part of ${libraryBuilder.importUri}");
+          return libraryBuilder.isNonNullableByDefault;
+        }
+      }
     }
-    // This might be parts?
-    throw "Couldn't lookup $uri at all!";
+    if (crashOnFail) {
+      throw "Couldn't lookup $uri at all!";
+    } else {
+      return false;
+    }
   }
 
   Future<bool> _crashesOnCompile(Component initialComponent) async {
     IncrementalCompiler incrementalCompiler;
+    _gotWantedError = false;
+    bool didNotGetWantedErrorAfterFirstCompile = true;
     if (_settings.noPlatform) {
       incrementalCompiler = new IncrementalCompiler(_setupCompilerContext());
     } else {
@@ -1779,8 +1823,10 @@ class TestMinimizer {
         ByteSink sink = new ByteSink();
         BinaryPrinter printer = new BinaryPrinter(sink);
         printer.writeComponentFile(_latestComponent);
-        sink.builder.takeBytes();
       }
+
+      if (_gotWantedError) didNotGetWantedErrorAfterFirstCompile = false;
+
       for (Uri uri in _settings.invalidate) {
         incrementalCompiler.invalidate(uri);
         Component delta = await incrementalCompiler.computeDelta();
@@ -1792,6 +1838,13 @@ class TestMinimizer {
           printer.writeComponentFile(delta);
           sink.builder.takeBytes();
         }
+      }
+      if (_settings.lookForErrorErrorOnReload != null &&
+          _gotWantedError &&
+          didNotGetWantedErrorAfterFirstCompile) {
+        // We throw here so the "compile crashes"... This is looking for
+        // crashes after-all :)
+        throw "Got the wanted error!";
       }
       _latestComponent = null; // if it didn't crash this isn't relevant.
       return false;
@@ -1889,6 +1942,9 @@ class TestMinimizer {
       case "ddc":
         target = new DevCompilerTarget(targetFlags);
         break;
+      case "dart2js":
+        target = new Dart2jsTarget("dart2js", targetFlags);
+        break;
       default:
         throw "Unknown target '$target'";
     }
@@ -1899,6 +1955,12 @@ class TestMinimizer {
     options.omitPlatform = false;
     options.onDiagnostic = (DiagnosticMessage message) {
       // don't care.
+      // Except if we're looking to trigger a specific error on reload.
+      if (_settings.lookForErrorErrorOnReload != null &&
+          message.ansiFormatted.first
+              .contains(_settings.lookForErrorErrorOnReload)) {
+        _gotWantedError = true;
+      }
     };
     if (_settings.noPlatform) {
       options.librariesSpecificationUri = null;
@@ -2101,12 +2163,18 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   }
 
   @override
+  Future<bool> existsAsyncIfPossible() => exists();
+
+  @override
   Future<List<int>> readAsBytes() {
     _ensureCachedIfOk();
     Uint8List data = fs.data[uri];
     if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
     return Future.value(data);
   }
+
+  @override
+  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<String> readAsString() {

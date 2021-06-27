@@ -334,10 +334,6 @@ abstract class RuntimeTypesSubstitutionsMixin
       for (InterfaceType type in _types.getSupertypes(cls)) {
         processSupertype(type);
       }
-      FunctionType callType = _types.getCallType(_types.getThisType(cls));
-      if (callType != null) {
-        processSupertype(_closedWorld.commonElements.functionType);
-      }
       return checks;
     }
 
@@ -537,7 +533,6 @@ class RuntimeTypesImpl
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         _elementEnvironment,
         _commonElements,
-        _types,
         codegenWorld,
         _genericInstantiations,
         forRtiNeeds: false);

@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.d
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_case_clauses.dart';
+import 'package:analysis_server/src/services/correction/dart/add_missing_enum_like_case_clauses.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter_named.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_required_argument.dart';
@@ -38,10 +39,12 @@ import 'package:analysis_server/src/services/correction/dart/convert_conditional
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_child.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
@@ -49,6 +52,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_list_lit
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_named_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
@@ -71,6 +75,7 @@ import 'package:analysis_server/src/services/correction/dart/create_no_such_meth
 import 'package:analysis_server/src/services/correction/dart/create_setter.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
+import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
@@ -106,11 +111,14 @@ import 'package:analysis_server/src/services/correction/dart/remove_operator.dar
 import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_stack.dart';
@@ -123,6 +131,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_boolean_wit
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_final_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_future.dart';
@@ -157,8 +166,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
@@ -176,111 +183,144 @@ class DartFixContributor implements FixContributor {
     try {
       var processor = FixProcessor(context);
       var fixes = await processor.compute();
-      var fixAllFixes = await _computeFixAllFixes(context, fixes);
-      return List.from(fixes)..addAll(fixAllFixes);
+      var fixInFileProcessor = FixInFileProcessor(context);
+      var fixInFileFixes = await fixInFileProcessor.compute();
+      fixes.addAll(fixInFileFixes);
+      return fixes;
     } on CancelCorrectionException {
       return const <Fix>[];
     }
   }
+}
 
-  Future<List<Fix>> _computeFixAllFixes(
-      DartFixContext context, List<Fix> fixes) async {
-    final analysisError = context.error;
-    final allAnalysisErrors = context.resolveResult.errors.toList();
+/// Computer for Dart "fix all in file" fixes.
+class FixInFileProcessor {
+  final DartFixContext context;
+  FixInFileProcessor(this.context);
 
-    // Validate inputs:
-    // - return if no fixes
-    // - return if no other analysis errors
-    if (fixes.isEmpty || allAnalysisErrors.length < 2) {
+  Future<List<Fix>> compute() async {
+    var error = context.error;
+    var errors = context.resolveResult.errors
+        .where((e) => error.errorCode.name == e.errorCode.name);
+    if (errors.length < 2) {
       return const <Fix>[];
     }
 
-    // Remove any analysis errors that don't have the expected error code name
-    allAnalysisErrors
-        .removeWhere((e) => analysisError.errorCode.name != e.errorCode.name);
-    if (allAnalysisErrors.length < 2) {
+    var instrumentationService = context.instrumentationService;
+    var workspace = context.workspace;
+    var resolveResult = context.resolveResult;
+
+    var correctionContext = CorrectionProducerContext.create(
+      dartFixContext: context,
+      diagnostic: error,
+      resolvedResult: resolveResult,
+      selectionOffset: context.error.offset,
+      selectionLength: context.error.length,
+      workspace: workspace,
+    );
+    if (correctionContext == null) {
       return const <Fix>[];
     }
 
-    // A map between each FixKind and the List of associated fixes
-    var map = <FixKind, List<Fix>>{};
+    var generators = _getGenerators(error.errorCode, correctionContext);
 
-    // Populate the HashMap by looping through all AnalysisErrors, creating a
-    // new FixProcessor to compute the other fixes that can be applied with this
-    // one.
-    // For each fix, put the fix into the HashMap.
-    for (var i = 0; i < allAnalysisErrors.length; i++) {
-      final FixContext fixContext = DartFixContextImpl(
-        context.instrumentationService,
-        context.workspace,
-        context.resolveResult,
-        allAnalysisErrors[i],
-        (name) => [],
-      );
-      var processorI = FixProcessor(fixContext);
-      var fixesListI = await processorI.compute();
-      for (var f in fixesListI) {
-        if (!map.containsKey(f.kind)) {
-          map[f.kind] = <Fix>[]..add(f);
-        } else {
-          map[f.kind].add(f);
+    var fixes = <Fix>[];
+    for (var generator in generators) {
+      if (generator().canBeAppliedToFile) {
+        _FixState fixState = _EmptyFixState(
+          ChangeBuilder(workspace: workspace),
+        );
+        for (var error in errors) {
+          var fixContext = DartFixContextImpl(
+            instrumentationService,
+            workspace,
+            resolveResult,
+            error,
+            (name) => [],
+            extensionCache: context.extensionCache,
+          );
+          fixState = await _fixError(fixContext, fixState, generator(), error);
+        }
+        if (fixState is _NotEmptyFixState) {
+          var sourceChange = fixState.builder.sourceChange;
+          if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
+            var fixKind = fixState.fixKind;
+            sourceChange.message = fixKind.message;
+            fixes.add(Fix(fixKind, sourceChange));
+          }
         }
       }
     }
-
-    // For each FixKind in the HashMap, union each list together, then return
-    // the set of unioned fixes.
-    var result = <Fix>[];
-    map.forEach((FixKind kind, List<Fix> fixesList) {
-      if (fixesList.first.kind.canBeAppliedTogether()) {
-        var unionFix = _unionFixList(fixesList);
-        if (unionFix != null) {
-          result.add(unionFix);
-        }
-      }
-    });
-    return result;
+    return fixes;
   }
 
-  Fix _unionFixList(List<Fix> fixList) {
-    if (fixList == null || fixList.isEmpty) {
-      return null;
-    } else if (fixList.length == 1) {
-      return fixList[0];
+  Future<_FixState> _fixError(DartFixContext fixContext, _FixState fixState,
+      CorrectionProducer producer, AnalysisError diagnostic) async {
+    var context = CorrectionProducerContext.create(
+      applyingBulkFixes: true,
+      dartFixContext: fixContext,
+      diagnostic: diagnostic,
+      resolvedResult: fixContext.resolveResult,
+      selectionOffset: diagnostic.offset,
+      selectionLength: diagnostic.length,
+      workspace: fixContext.workspace,
+    );
+    if (context == null) {
+      return fixState;
     }
-    var sourceChange = SourceChange(fixList[0].kind.appliedTogetherMessage);
-    sourceChange.edits = List.from(fixList[0].change.edits);
-    var edits = <SourceEdit>[];
-    edits.addAll(fixList[0].change.edits[0].edits);
-    sourceChange.linkedEditGroups =
-        List.from(fixList[0].change.linkedEditGroups);
-    for (var i = 1; i < fixList.length; i++) {
-      edits.addAll(fixList[i].change.edits[0].edits);
-      sourceChange.linkedEditGroups.addAll(fixList[i].change.linkedEditGroups);
+
+    producer.configure(context);
+
+    try {
+      var localBuilder = fixState.builder.copy();
+      await producer.compute(localBuilder);
+
+      var multiFixKind = producer.multiFixKind;
+      if (multiFixKind == null) {
+        return fixState;
+      }
+
+      // todo (pq): consider discarding the change if the producer's fixKind
+      // doesn't match a previously cached one.
+      return _NotEmptyFixState(
+        builder: localBuilder,
+        fixKind: multiFixKind,
+        fixCount: fixState.fixCount + 1,
+      );
+    } on ConflictingEditException {
+      // If a conflicting edit was added in [compute], then the [localBuilder]
+      // is discarded and we revert to the previous state of the builder.
+      return fixState;
     }
-    // Sort the list of SourceEdits so that when the edits are applied, they
-    // are applied from the end of the file to the top of the file.
-    edits.sort((s1, s2) => s2.offset - s1.offset);
+  }
 
-    sourceChange.edits[0].edits = edits;
-
-    return Fix(fixList[0].kind, sourceChange);
+  List<ProducerGenerator> _getGenerators(
+      ErrorCode errorCode, CorrectionProducerContext context) {
+    if (errorCode is LintCode) {
+      return FixProcessor.lintProducerMap[errorCode.name] ?? [];
+    } else {
+      // todo (pq): consider support for multiGenerators
+      return FixProcessor.nonLintProducerMap[errorCode] ?? [];
+    }
   }
 }
 
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
-  /// A map from the names of lint rules to a list of generators used to create
-  /// the correction producers used to build fixes for those diagnostics. The
-  /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
+  /// A map from the names of lint rules to a list of the generators that are
+  /// used to create correction producers. The generators are then used to build
+  /// fixes for those diagnostics. The generators used for non-lint diagnostics
+  /// are in the [nonLintProducerMap].
   static const Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
+      // TODO(brianwilkerson) Consider applying in bulk.
       AddReturnType.newInstance,
     ],
     LintNames.always_require_non_null_named_parameters: [
       AddRequired.newInstance,
     ],
     LintNames.always_specify_types: [
+      // TODO(brianwilkerson) Consider applying in bulk.
       AddTypeAnnotation.newInstance,
     ],
     LintNames.annotate_overrides: [
@@ -291,6 +331,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_empty_else: [
       RemoveEmptyElse.newInstance,
+    ],
+    LintNames.avoid_function_literals_in_foreach_calls: [
+      ConvertForEachToForLoop.newInstance,
     ],
     LintNames.avoid_init_to_null: [
       RemoveInitializer.newInstance,
@@ -308,8 +351,12 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_returning_null_for_future: [
+      // TODO(brianwilkerson) Consider applying in bulk.
       AddAsync.newInstance,
       WrapInFuture.newInstance,
+    ],
+    LintNames.avoid_returning_null_for_void: [
+      RemoveReturnedValue.newInstance,
     ],
     LintNames.avoid_single_cascade_in_expression_statements: [
       // TODO(brianwilkerson) This fix should be applied to some non-lint
@@ -324,6 +371,7 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_unused_constructor_parameters: [
+      // TODO(brianwilkerson) Consider applying in bulk.
       RemoveUnusedParameter.newInstance,
     ],
     LintNames.await_only_futures: [
@@ -347,6 +395,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.empty_statements: [
       RemoveEmptyStatement.newInstance,
       ReplaceWithBrackets.newInstance,
+    ],
+    LintNames.exhaustive_cases: [
+      AddMissingEnumLikeCaseClauses.newInstance,
     ],
     LintNames.hash_and_equals: [
       CreateMethod.equalsOrHashCode,
@@ -375,11 +426,11 @@ class FixProcessor extends BaseProcessor {
       ReplaceWithConditionalAssignment.newInstance,
     ],
     LintNames.prefer_const_constructors: [
-      AddConst.newInstance,
+      AddConst.toInvocation,
       ReplaceNewWithConst.newInstance,
     ],
     LintNames.prefer_const_constructors_in_immutables: [
-      AddConst.newInstance,
+      AddConst.toDeclaration,
     ],
     LintNames.prefer_const_declarations: [
       ReplaceFinalWithConst.newInstance,
@@ -391,6 +442,7 @@ class FixProcessor extends BaseProcessor {
       ReplaceColonWithEquals.newInstance,
     ],
     LintNames.prefer_expression_function_bodies: [
+      // TODO(brianwilkerson) Consider applying in bulk.
       ConvertToExpressionFunctionBody.newInstance,
     ],
     LintNames.prefer_final_fields: [
@@ -415,7 +467,7 @@ class FixProcessor extends BaseProcessor {
       ReplaceWithIsEmpty.newInstance,
     ],
     LintNames.prefer_is_not_empty: [
-      UesIsNotEmpty.newInstance,
+      UseIsNotEmpty.newInstance,
     ],
     LintNames.prefer_if_null_operators: [
       ConvertToIfNull.newInstance,
@@ -428,7 +480,11 @@ class FixProcessor extends BaseProcessor {
       ConvertToIntLiteral.newInstance,
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
+      // TODO(brianwilkerson) Consider applying in bulk.
       ReplaceWithInterpolation.newInstance,
+    ],
+    LintNames.prefer_is_not_operator: [
+      ConvertIntoIsNot.newInstance,
     ],
     LintNames.prefer_iterable_whereType: [
       ConvertToWhereType.newInstance,
@@ -445,6 +501,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_spread_collections: [
       ConvertAddAllToSpread.newInstance,
     ],
+    LintNames.prefer_typing_uninitialized_variables: [
+      AddTypeAnnotation.newInstance,
+    ],
     LintNames.slash_for_doc_comments: [
       ConvertDocumentationIntoLine.newInstance,
     ],
@@ -452,6 +511,7 @@ class FixProcessor extends BaseProcessor {
       SortChildPropertyLast.newInstance,
     ],
     LintNames.type_annotate_public_apis: [
+      // TODO(brianwilkerson) Consider applying in bulk.
       AddTypeAnnotation.newInstance,
     ],
     LintNames.type_init_formals: [
@@ -466,6 +526,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_const: [
       RemoveUnnecessaryConst.newInstance,
     ],
+    LintNames.unnecessary_final: [
+      ReplaceFinalWithVar.newInstance,
+    ],
     LintNames.unnecessary_lambdas: [
       ReplaceWithTearOff.newInstance,
     ],
@@ -475,13 +538,23 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_null_in_if_null_operators: [
       RemoveIfNullOperator.newInstance,
     ],
+    LintNames.unnecessary_nullable_for_final_variable_declarations: [
+      RemoveQuestionMark.newInstance,
+    ],
     LintNames.unnecessary_overrides: [
       RemoveMethodDeclaration.newInstance,
+    ],
+    LintNames.unnecessary_parenthesis: [
+      RemoveUnnecessaryParentheses.newInstance,
+    ],
+    LintNames.unnecessary_string_interpolations: [
+      RemoveUnnecessaryStringInterpolation.newInstance,
     ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.newInstance,
     ],
     LintNames.use_full_hex_values_for_flutter_colors: [
+      // TODO(brianwilkerson) Consider applying in bulk.
       ReplaceWithEightDigitHex.newInstance,
     ],
     LintNames.use_function_type_syntax_for_parameters: [
@@ -577,6 +650,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
       DataDriven.newInstance,
+      ImportLibrary.forExtensionMember,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
@@ -589,6 +663,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
       DataDriven.newInstance,
+      ImportLibrary.forExtensionMember,
       ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],
@@ -596,9 +671,13 @@ class FixProcessor extends BaseProcessor {
       ChangeArgumentName.newInstance,
       DataDriven.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_OPERATOR: [
+      ImportLibrary.forExtensionMember,
+    ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
-      // TODO(brianwilkerson) Support ImportLibrary
+      // TODO(brianwilkerson) Support ImportLibrary for non-extension members.
+      ImportLibrary.forExtensionMember,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
       DataDriven.newInstance,
@@ -626,12 +705,14 @@ class FixProcessor extends BaseProcessor {
     ],
   };
 
-  /// A map from error codes to a list of generators used to create the
-  /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the [lintProducerMap].
+  /// A map from error codes to a list of the generators that are used to create
+  /// correction producers. The generators are then used to build fixes for
+  /// those diagnostics. The generators used for lint rules are in the
+  /// [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.newInstance,
+      AddLate.newInstance,
     ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL: [
       MakeVariableNotFinal.newInstance,
@@ -814,7 +895,32 @@ class FixProcessor extends BaseProcessor {
       CreateClass.newInstance,
       CreateMixin.newInstance,
     ],
+    CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD: [
+      AddNullCheck.newInstance,
+      ConvertToNullAwareSpread.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH: [
       AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
@@ -1084,6 +1190,9 @@ class FixProcessor extends BaseProcessor {
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
       ReplaceWithNotNullAware.newInstance,
     ],
+    StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
+      ReplaceWithNotNullAware.newInstance,
+    ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
       AddMissingEnumCaseClauses.newInstance,
     ],
@@ -1107,27 +1216,31 @@ class FixProcessor extends BaseProcessor {
     return fixes;
   }
 
-  Future<Fix> computeFix() async {
+  Future<Fix?> computeFix() async {
     await _addFromProducers();
     fixes.sort(Fix.SORT_BY_RELEVANCE);
     return fixes.isNotEmpty ? fixes.first : null;
   }
 
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List<Object> args, bool importsOnly = false}) {
-    if (builder == null) return;
+  void _addFixFromBuilder(ChangeBuilder builder, CorrectionProducer producer) {
     var change = builder.sourceChange;
-    if (change.edits.isEmpty && !importsOnly) {
+    if (change.edits.isEmpty) {
       return;
     }
+
+    var kind = producer.fixKind;
+    if (kind == null) {
+      return;
+    }
+
     change.id = kind.id;
-    change.message = formatList(kind.message, args);
+    change.message = formatList(kind.message, producer.fixArguments);
     fixes.add(Fix(kind, change));
   }
 
   Future<void> _addFromProducers() async {
     var error = fixContext.error;
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       dartFixContext: fixContext,
       diagnostic: error,
       resolvedResult: resolvedResult,
@@ -1135,9 +1248,7 @@ class FixProcessor extends BaseProcessor {
       selectionLength: fixContext.error.length,
       workspace: workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
+    if (context == null) {
       return;
     }
 
@@ -1147,8 +1258,7 @@ class FixProcessor extends BaseProcessor {
           workspace: context.workspace, eol: context.utils.endOfLine);
       try {
         await producer.compute(builder);
-        _addFixFromBuilder(builder, producer.fixKind,
-            args: producer.fixArguments);
+        _addFixFromBuilder(builder, producer);
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding a fix based on the producer
         // and (b) logging the exception.
@@ -1158,18 +1268,14 @@ class FixProcessor extends BaseProcessor {
 
     var errorCode = error.errorCode;
     if (errorCode is LintCode) {
-      var generators = lintProducerMap[errorCode.name];
-      if (generators != null) {
-        for (var generator in generators) {
-          await compute(generator());
-        }
+      var generators = lintProducerMap[errorCode.name] ?? [];
+      for (var generator in generators) {
+        await compute(generator());
       }
     } else {
-      var generators = nonLintProducerMap[errorCode];
-      if (generators != null) {
-        for (var generator in generators) {
-          await compute(generator());
-        }
+      var generators = nonLintProducerMap[errorCode] ?? [];
+      for (var generator in generators) {
+        await compute(generator());
       }
       var multiGenerators = nonLintMultiProducerMap[errorCode];
       if (multiGenerators != null) {
@@ -1182,5 +1288,50 @@ class FixProcessor extends BaseProcessor {
         }
       }
     }
+
+    if (errorCode is LintCode || errorCode is HintCode) {
+      var generators = [
+        IgnoreDiagnosticOnLine.newInstance,
+        IgnoreDiagnosticInFile.newInstance,
+      ];
+      for (var generator in generators) {
+        await compute(generator());
+      }
+    }
   }
+}
+
+/// [_FixState] that is still empty.
+class _EmptyFixState implements _FixState {
+  @override
+  final ChangeBuilder builder;
+
+  _EmptyFixState(this.builder);
+
+  @override
+  int get fixCount => 0;
+}
+
+/// State associated with producing fix-all-in-file fixes.
+abstract class _FixState {
+  ChangeBuilder get builder;
+
+  int get fixCount;
+}
+
+/// [_FixState] that has a fix, so knows its kind.
+class _NotEmptyFixState implements _FixState {
+  @override
+  final ChangeBuilder builder;
+
+  final FixKind fixKind;
+
+  @override
+  final int fixCount;
+
+  _NotEmptyFixState({
+    required this.builder,
+    required this.fixKind,
+    required this.fixCount,
+  });
 }

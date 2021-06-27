@@ -21,7 +21,6 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   Dart2jsConstantEvaluator(
       ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
       {Map<String, String> environment: const {},
-      bool enableTripleShift = false,
       bool supportReevaluationForTesting: false,
       ir.EvaluationMode evaluationMode})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
@@ -31,7 +30,7 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
             environment,
             typeEnvironment,
             new ErrorReporter(reportError),
-            enableTripleShift: enableTripleShift,
+            enableTripleShift: true,
             evaluationMode: evaluationMode);
 
   @override
@@ -204,8 +203,18 @@ class ConstantReference extends ir.TreeNode {
   }
 
   @override
+  R accept1<R, A>(ir.TreeVisitor1<R, A> v, A arg) {
+    throw new UnsupportedError("ConstantReference.accept");
+  }
+
+  @override
   transformChildren(ir.Transformer v) {
     throw new UnsupportedError("ConstantReference.transformChildren");
+  }
+
+  @override
+  transformOrRemoveChildren(ir.RemovingTransformer v) {
+    throw new UnsupportedError("ConstantReference.transformOrRemoveChildren");
   }
 
   @override

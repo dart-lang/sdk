@@ -24,7 +24,7 @@ FieldPtr LookupField(Dart_Handle library,
   Field& field =
       Field::ZoneHandle(cls.LookupInstanceFieldAllowPrivate(fieldname));
   EXPECT(!field.IsNull());
-  return field.raw();
+  return field.ptr();
 }
 
 TEST_CASE(GuardFieldSimpleTest) {

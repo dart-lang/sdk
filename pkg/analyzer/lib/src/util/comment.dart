@@ -5,25 +5,39 @@
 import 'package:analyzer/dart/ast/ast.dart';
 
 /// Return the raw text of the given comment node.
-String getCommentNodeRawText(Comment node) {
+String? getCommentNodeRawText(Comment? node) {
   if (node == null) return null;
 
-  return node.tokens
-      .map((token) => token.lexeme)
-      .join('\n')
-      .replaceAll('\r\n', '\n');
+  var tokens = node.tokens;
+  var count = tokens.length;
+  if (count == 1) {
+    // The comment might be a block-style doc comment with embedded end-of-line
+    // markers.
+    return tokens[0].lexeme.replaceAll('\r\n', '\n');
+  }
+
+  var buffer = StringBuffer();
+  for (var i = 0; i < count; i++) {
+    if (i > 0) {
+      buffer.write('\n');
+    }
+    buffer.write(tokens[i].lexeme);
+  }
+  return buffer.toString();
 }
 
 /// Return the plain text from the given DartDoc [rawText], without delimiters.
-String getDartDocPlainText(String rawText) {
+String? getDartDocPlainText(String? rawText) {
   if (rawText == null) return null;
 
   // Remove /** */.
+  var isBlock = false;
   if (rawText.startsWith('/**')) {
+    isBlock = true;
     rawText = rawText.substring(3);
-  }
-  if (rawText.endsWith('*/')) {
-    rawText = rawText.substring(0, rawText.length - 2);
+    if (rawText.endsWith('*/')) {
+      rawText = rawText.substring(0, rawText.length - 2);
+    }
   }
   rawText = rawText.trim();
 
@@ -32,12 +46,12 @@ String getDartDocPlainText(String rawText) {
   var lines = rawText.split('\n');
   for (var line in lines) {
     line = line.trim();
-    if (line.startsWith('*')) {
+    if (isBlock && line.startsWith('*')) {
       line = line.substring(1);
       if (line.startsWith(' ')) {
         line = line.substring(1);
       }
-    } else if (line.startsWith('///')) {
+    } else if (!isBlock && line.startsWith('///')) {
       line = line.substring(3);
       if (line.startsWith(' ')) {
         line = line.substring(1);
@@ -53,13 +67,19 @@ String getDartDocPlainText(String rawText) {
 }
 
 /// Return the DartDoc summary, i.e. the portion before the first empty line.
-String getDartDocSummary(String completeText) {
-  if (completeText == null) return null;
-
-  var result = StringBuffer();
+String? getDartDocSummary(String? completeText) {
+  if (completeText == null) {
+    return null;
+  }
   var lines = completeText.split('\n');
-  for (var line in lines) {
-    if (result.isNotEmpty) {
+  int count = lines.length;
+  if (count == 1) {
+    return lines[0];
+  }
+  var result = StringBuffer();
+  for (var i = 0; i < count; i++) {
+    var line = lines[i];
+    if (i > 0) {
       if (line.isEmpty) {
         return result.toString();
       }

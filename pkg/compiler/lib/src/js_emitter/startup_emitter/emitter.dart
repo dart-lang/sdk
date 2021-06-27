@@ -7,7 +7,6 @@ library dart2js.js_emitter.startup_emitter;
 import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../common/codegen.dart';
-import '../../common/tasks.dart';
 import '../../constants/values.dart';
 import '../../deferred_load.dart' show OutputUnit;
 import '../../dump_info.dart';
@@ -20,7 +19,7 @@ import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart' show JClosedWorld;
-import '../js_emitter.dart' show Emitter, ModularEmitter;
+import '../js_emitter.dart' show CodeEmitterTask, Emitter, ModularEmitter;
 import '../model.dart';
 import '../native_emitter.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
@@ -36,13 +35,6 @@ abstract class ModularEmitterBase implements ModularEmitter {
     js.Name name = _namer.globalPropertyNameForClass(element);
     js.PropertyAccess pa =
         new js.PropertyAccess(_namer.readGlobalObjectForClass(element), name);
-    return pa;
-  }
-
-  js.PropertyAccess globalPropertyAccessForType(Entity element) {
-    js.Name name = _namer.globalPropertyNameForType(element);
-    js.PropertyAccess pa =
-        new js.PropertyAccess(_namer.readGlobalObjectForType(element), name);
     return pa;
   }
 
@@ -75,21 +67,14 @@ abstract class ModularEmitterBase implements ModularEmitter {
   }
 
   @override
-  js.PropertyAccess prototypeAccess(ClassEntity element,
-      {bool hasBeenInstantiated}) {
-    js.Expression constructor =
-        hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
+  js.PropertyAccess prototypeAccess(ClassEntity element) {
+    js.Expression constructor = constructorAccess(element);
     return js.js('#.prototype', constructor);
   }
 
   @override
-  js.Expression typeAccess(Entity element) {
-    return globalPropertyAccessForType(element);
-  }
-
-  @override
-  js.Name typeAccessNewRti(Entity element) {
-    return _namer.globalPropertyNameForType(element);
+  js.Name typeAccessNewRti(ClassEntity element) {
+    return _namer.className(element);
   }
 
   @override
@@ -118,7 +103,7 @@ class ModularEmitterImpl extends ModularEmitterBase {
 
   ModularEmitterImpl(
       ModularNamer namer, this._registry, CompilerOptions options)
-      : _constantEmitter = new ModularConstantEmitter(options),
+      : _constantEmitter = new ModularConstantEmitter(options, namer),
         super(namer);
 
   @override
@@ -150,7 +135,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   final DiagnosticReporter _reporter;
   final JClosedWorld _closedWorld;
   final RecipeEncoder _rtiRecipeEncoder;
-  final CompilerTask _task;
+  final CodeEmitterTask _task;
   ModelEmitter _emitter;
   final NativeEmitter _nativeEmitter;
 
@@ -159,6 +144,15 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
 
   @override
   List<PreFragment> preDeferredFragmentsForTesting;
+
+  @override
+  Set<OutputUnit> omittedOutputUnits;
+
+  @override
+  Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad;
+
+  @override
+  FragmentMerger fragmentMerger;
 
   EmitterImpl(
       CompilerOptions options,
@@ -201,6 +195,12 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
     }
     return _task.measureSubtask('emit program', () {
       var size = _emitter.emitProgram(program, codegenWorld);
+      omittedOutputUnits = _emitter.omittedOutputUnits;
+      finalizedFragmentsToLoad = _emitter.finalizedFragmentsToLoad;
+      fragmentMerger = _emitter.fragmentMerger;
+      finalizedFragmentsToLoad.values.forEach((fragments) {
+        _task.metrics.hunkListElements.add(fragments.length);
+      });
       if (retainDataForTesting) {
         preDeferredFragmentsForTesting =
             _emitter.preDeferredFragmentsForTesting;

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.transform_collections;
+// @dart = 2.9
 
-import 'dart:core' hide MapEntry;
+library fasta.transform_collections;
 
 import 'package:kernel/ast.dart';
 
@@ -14,8 +14,6 @@ import 'package:kernel/type_algebra.dart';
 
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
-
-import 'package:kernel/visitor.dart' show Transformer;
 
 import 'collections.dart'
     show
@@ -255,8 +253,10 @@ class CollectionTransformer extends Transformer {
           ? elseStatements.first
           : _createBlock(elseStatements);
     }
-    body.add(_createIf(element.fileOffset,
-        element.condition.accept<TreeNode>(this), thenBody, elseBody));
+    IfStatement ifStatement = _createIf(element.fileOffset,
+        element.condition.accept<TreeNode>(this), thenBody, elseBody);
+    _dataForTesting?.registerAlias(element, ifStatement);
+    body.add(ifStatement);
   }
 
   void _translateForElement(
@@ -277,8 +277,8 @@ class CollectionTransformer extends Transformer {
         element.condition?.accept<TreeNode>(this),
         element.updates,
         loopBody);
-    transformList(loop.variables, this, loop);
-    transformList(loop.updates, this, loop);
+    transformList(loop.variables, loop);
+    transformList(loop.updates, loop);
     _dataForTesting?.registerAlias(element, loop);
     body.add(loop);
   }
@@ -459,7 +459,7 @@ class CollectionTransformer extends Transformer {
   }
 
   void _translateEntry(
-      MapEntry entry,
+      MapLiteralEntry entry,
       InterfaceType receiverType,
       DartType keyType,
       DartType valueType,
@@ -480,7 +480,7 @@ class CollectionTransformer extends Transformer {
     }
   }
 
-  void _addNormalEntry(MapEntry entry, InterfaceType receiverType,
+  void _addNormalEntry(MapLiteralEntry entry, InterfaceType receiverType,
       VariableDeclaration result, List<Statement> body) {
     body.add(_createExpressionStatement(_createIndexSet(entry.fileOffset,
         _createVariableGet(result), receiverType, entry.key, entry.value)));
@@ -508,8 +508,10 @@ class CollectionTransformer extends Transformer {
       elseStatement =
           elseBody.length == 1 ? elseBody.first : _createBlock(elseBody);
     }
-    body.add(_createIf(entry.fileOffset, entry.condition.accept<TreeNode>(this),
-        thenStatement, elseStatement));
+    IfStatement ifStatement = _createIf(entry.fileOffset,
+        entry.condition.accept<TreeNode>(this), thenStatement, elseStatement);
+    _dataForTesting?.registerAlias(entry, ifStatement);
+    body.add(ifStatement);
   }
 
   void _translateForEntry(
@@ -527,8 +529,8 @@ class CollectionTransformer extends Transformer {
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
         entry.condition?.accept<TreeNode>(this), entry.updates, loopBody);
     _dataForTesting?.registerAlias(entry, loop);
-    transformList(loop.variables, this, loop);
-    transformList(loop.updates, this, loop);
+    transformList(loop.variables, loop);
+    transformList(loop.updates, loop);
     body.add(loop);
   }
 
@@ -572,7 +574,7 @@ class CollectionTransformer extends Transformer {
       List<Statement> body) {
     Expression value = entry.expression.accept<TreeNode>(this);
 
-    final DartType entryType = new InterfaceType(_mapEntryClass,
+    final InterfaceType entryType = new InterfaceType(_mapEntryClass,
         _currentLibrary.nonNullable, <DartType>[keyType, valueType]);
     final bool typeMatches = entry.entryType != null &&
         _typeEnvironment.isSubtypeOf(
@@ -594,22 +596,23 @@ class CollectionTransformer extends Transformer {
     VariableDeclaration variable;
     Statement loopBody;
     if (!typeMatches) {
-      variable = _createForInVariable(
-          entry.fileOffset,
-          new InterfaceType(_mapEntryClass, _currentLibrary.nonNullable,
-              <DartType>[const DynamicType(), const DynamicType()]));
+      final InterfaceType variableType = new InterfaceType(
+          _mapEntryClass,
+          _currentLibrary.nonNullable,
+          <DartType>[const DynamicType(), const DynamicType()]);
+      variable = _createForInVariable(entry.fileOffset, variableType);
       VariableDeclaration keyVar = _createVariable(
           _createImplicitAs(
               entry.expression.fileOffset,
-              _createGetKey(
-                  entry.expression.fileOffset, _createVariableGet(variable)),
+              _createGetKey(entry.expression.fileOffset,
+                  _createVariableGet(variable), variableType),
               keyType),
           keyType);
       VariableDeclaration valueVar = _createVariable(
           _createImplicitAs(
               entry.expression.fileOffset,
-              _createGetValue(
-                  entry.expression.fileOffset, _createVariableGet(variable)),
+              _createGetValue(entry.expression.fileOffset,
+                  _createVariableGet(variable), variableType),
               valueType),
           valueType);
       loopBody = _createBlock(<Statement>[
@@ -628,13 +631,13 @@ class CollectionTransformer extends Transformer {
           entry.expression.fileOffset,
           _createVariableGet(result),
           receiverType,
-          _createGetKey(
-              entry.expression.fileOffset, _createVariableGet(variable)),
-          _createGetValue(
-              entry.expression.fileOffset, _createVariableGet(variable))));
+          _createGetKey(entry.expression.fileOffset,
+              _createVariableGet(variable), entryType),
+          _createGetValue(entry.expression.fileOffset,
+              _createVariableGet(variable), entryType)));
     }
     Statement statement = _createForInStatement(entry.fileOffset, variable,
-        _createGetEntries(entry.fileOffset, value), loopBody);
+        _createGetEntries(entry.fileOffset, value, receiverType), loopBody);
 
     if (entry.isNullAware) {
       statement = _createIf(
@@ -739,7 +742,7 @@ class CollectionTransformer extends Transformer {
     // If there were no control-flow entries we are done.
     if (i == node.entries.length) return node;
 
-    MapLiteral makeLiteral(int fileOffset, List<MapEntry> entries) {
+    MapLiteral makeLiteral(int fileOffset, List<MapLiteralEntry> entries) {
       return _createMapLiteral(
           fileOffset, node.keyType, node.valueType, entries,
           isConst: true);
@@ -747,13 +750,14 @@ class CollectionTransformer extends Transformer {
 
     // Build a concatenation node.
     List<Expression> parts = [];
-    List<MapEntry> currentPart = i > 0 ? node.entries.sublist(0, i) : null;
+    List<MapLiteralEntry> currentPart =
+        i > 0 ? node.entries.sublist(0, i) : null;
 
     DartType collectionType = _typeEnvironment.mapType(
         node.keyType, node.valueType, _currentLibrary.nonNullable);
 
     for (; i < node.entries.length; ++i) {
-      MapEntry entry = node.entries[i];
+      MapLiteralEntry entry = node.entries[i];
       if (entry is SpreadMapEntry) {
         if (currentPart != null) {
           parts.add(makeLiteral(node.fileOffset, currentPart));
@@ -787,7 +791,7 @@ class CollectionTransformer extends Transformer {
         unhandled("${entry.runtimeType}", "_translateConstMap",
             entry.fileOffset, getFileUri(entry));
       } else {
-        currentPart ??= <MapEntry>[];
+        currentPart ??= <MapLiteralEntry>[];
         currentPart.add(entry.accept<TreeNode>(this));
       }
     }
@@ -844,7 +848,7 @@ class CollectionTransformer extends Transformer {
   }
 
   MapLiteral _createMapLiteral(int fileOffset, DartType keyType,
-      DartType valueType, List<MapEntry> entries,
+      DartType valueType, List<MapLiteralEntry> entries,
       {bool isConst: false}) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
@@ -942,22 +946,22 @@ class CollectionTransformer extends Transformer {
   Expression _createEqualsNull(Expression expression, {bool notEquals: false}) {
     assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
+    Expression check;
     if (useNewMethodInvocationEncoding) {
-      return new EqualsNull(expression, isNot: notEquals)
-        ..fileOffset = expression.fileOffset;
+      check = new EqualsNull(expression)..fileOffset = expression.fileOffset;
     } else {
-      Expression check = new MethodInvocation(
+      check = new MethodInvocation(
           expression,
           new Name('=='),
           new Arguments(
               [new NullLiteral()..fileOffset = expression.fileOffset]),
           _objectEquals)
         ..fileOffset = expression.fileOffset;
-      if (notEquals) {
-        check = new Not(check)..fileOffset = expression.fileOffset;
-      }
-      return check;
     }
+    if (notEquals) {
+      check = new Not(check)..fileOffset = expression.fileOffset;
+    }
+    return check;
   }
 
   Expression _createIndexSet(int fileOffset, Expression receiver,
@@ -1000,25 +1004,55 @@ class CollectionTransformer extends Transformer {
     return new IfStatement(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
-  PropertyGet _createGetKey(int fileOffset, Expression receiver) {
+  Expression _createGetKey(
+      int fileOffset, Expression receiver, InterfaceType entryType) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new PropertyGet(receiver, new Name('key'), _mapEntryKey)
-      ..fileOffset = fileOffset;
+    if (useNewMethodInvocationEncoding) {
+      DartType resultType = Substitution.fromInterfaceType(entryType)
+          .substituteType(_mapEntryKey.type);
+      return new InstanceGet(
+          InstanceAccessKind.Instance, receiver, new Name('key'),
+          interfaceTarget: _mapEntryKey, resultType: resultType)
+        ..fileOffset = fileOffset;
+    } else {
+      return new PropertyGet(receiver, new Name('key'), _mapEntryKey)
+        ..fileOffset = fileOffset;
+    }
   }
 
-  PropertyGet _createGetValue(int fileOffset, Expression receiver) {
+  Expression _createGetValue(
+      int fileOffset, Expression receiver, InterfaceType entryType) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new PropertyGet(receiver, new Name('value'), _mapEntryValue)
-      ..fileOffset = fileOffset;
+    if (useNewMethodInvocationEncoding) {
+      DartType resultType = Substitution.fromInterfaceType(entryType)
+          .substituteType(_mapEntryValue.type);
+      return new InstanceGet(
+          InstanceAccessKind.Instance, receiver, new Name('value'),
+          interfaceTarget: _mapEntryValue, resultType: resultType)
+        ..fileOffset = fileOffset;
+    } else {
+      return new PropertyGet(receiver, new Name('value'), _mapEntryValue)
+        ..fileOffset = fileOffset;
+    }
   }
 
-  PropertyGet _createGetEntries(int fileOffset, Expression receiver) {
+  Expression _createGetEntries(
+      int fileOffset, Expression receiver, InterfaceType mapType) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    return new PropertyGet(receiver, new Name('entries'), _mapEntries)
-      ..fileOffset = fileOffset;
+    if (useNewMethodInvocationEncoding) {
+      DartType resultType = Substitution.fromInterfaceType(mapType)
+          .substituteType(_mapEntries.getterType);
+      return new InstanceGet(
+          InstanceAccessKind.Instance, receiver, new Name('entries'),
+          interfaceTarget: _mapEntries, resultType: resultType)
+        ..fileOffset = fileOffset;
+    } else {
+      return new PropertyGet(receiver, new Name('entries'), _mapEntries)
+        ..fileOffset = fileOffset;
+    }
   }
 
   ForStatement _createForStatement(

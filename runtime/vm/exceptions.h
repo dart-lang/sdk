@@ -88,8 +88,8 @@ class Exceptions : AllStatic {
       const String& name);
   DART_NORETURN static void ThrowLateFieldNotInitialized(const String& name);
 
-  // Returns a RawInstance if the exception is successfully created,
-  // otherwise returns a RawError.
+  // Returns an InstancePtr if the exception is successfully created,
+  // otherwise returns an ErrorPtr.
   static ObjectPtr Create(ExceptionType type, const Array& arguments);
 
   // Returns RawUnhandledException that wraps exception of type [type] with

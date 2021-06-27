@@ -116,13 +116,16 @@ Future<ProcessResult> runHelper(String executable, List<String> args) async {
   print('Running $executable ${args.join(' ')}');
 
   final result = await Process.run(executable, args);
+  print('Subcommand terminated with exit code ${result.exitCode}.');
   if (result.stdout.isNotEmpty) {
     print('Subcommand stdout:');
     print(result.stdout);
   }
-  if (result.stderr.isNotEmpty) {
-    print('Subcommand stderr:');
-    print(result.stderr);
+  if (result.exitCode != 0) {
+    if (result.stderr.isNotEmpty) {
+      print('Subcommand stderr:');
+      print(result.stderr);
+    }
   }
 
   return result;

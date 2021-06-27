@@ -16,7 +16,7 @@ import 'package:test/test.dart';
 Future<Uri> startTestServer() async {
   final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen((Socket request) async {
-    await request.destroy();
+    request.destroy();
     await server.close();
   });
   return Uri(scheme: 'http', host: server.address.host, port: server.port);

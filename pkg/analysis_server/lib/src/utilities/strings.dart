@@ -4,22 +4,20 @@
 
 import 'dart:math';
 
-import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
-
 /// "$"
 const int CHAR_DOLLAR = 0x24;
 
 /// "_"
 const int CHAR_UNDERSCORE = 0x5F;
 
-String capitalize(String str) {
-  if (isEmpty(str)) {
+String? capitalize(String? str) {
+  if (str == null || str.isEmpty) {
     return str;
   }
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
 
-int compareStrings(String a, String b) {
+int compareStrings(String? a, String? b) {
   if (a == b) {
     return 0;
   }
@@ -60,8 +58,8 @@ int countLeadingWhitespaces(String str) {
 }
 
 /// Counts how many times [sub] appears in [str].
-int countMatches(String str, String sub) {
-  if (isEmpty(str) || isEmpty(sub)) {
+int countMatches(String? str, String? sub) {
+  if (str == null || str.isEmpty || sub == null || sub.isEmpty) {
     return 0;
   }
   var count = 0;
@@ -109,11 +107,8 @@ int findCommonSuffix(String a, String b) {
 }
 
 /// Checks if [str] is `null`, empty or is whitespace.
-bool isBlank(String str) {
-  if (str == null) {
-    return true;
-  }
-  if (str.isEmpty) {
+bool isBlank(String? str) {
+  if (str == null || str.isEmpty) {
     return true;
   }
   return str.codeUnits.every(isSpace);
@@ -141,8 +136,8 @@ bool isWhitespace(int c) {
   return isSpace(c) || isEOL(c);
 }
 
-String removeEnd(String str, String remove) {
-  if (isEmpty(str) || isEmpty(remove)) {
+String? removeEnd(String? str, String? remove) {
+  if (str == null || str.isEmpty || remove == null || remove.isEmpty) {
     return str;
   }
   if (str.endsWith(remove)) {

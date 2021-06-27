@@ -33,11 +33,11 @@ class ImplicitTypeArgument extends DartType {
 
   @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
-    throw unhandled("$runtimeType", "${v.runtimeType}", -1, null);
+    return unhandled("$runtimeType", "${v.runtimeType}", -1, null);
   }
 
   @override
-  visitChildren(Visitor<Object> v) {
+  visitChildren(Visitor v) {
     unhandled("$runtimeType", "${v.runtimeType}", -1, null);
   }
 
@@ -47,7 +47,12 @@ class ImplicitTypeArgument extends DartType {
   }
 
   @override
-  bool equals(Object other, Assumptions assumptions) => this == other;
+  ImplicitTypeArgument toNonNull() {
+    return unsupported("toNonNullable", -1, null);
+  }
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) => this == other;
 
   @override
   void toTextInternal(AstPrinter printer) {

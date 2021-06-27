@@ -134,7 +134,7 @@ void SimulatorDebugger::Stop(Instr* instr, const char* message) {
 }
 
 static Register LookupCpuRegisterByName(const char* name) {
-  static const char* kNames[] = {
+  static const char* const kNames[] = {
       "r0",  "r1",  "r2",  "r3",  "r4",  "r5", "r6", "r7", "r8", "r9", "r10",
       "r11", "r12", "r13", "r14", "r15", "pc", "lr", "sp", "ip", "fp", "pp"};
   static const Register kRegisters[] = {R0, R1, R2,  R3,  R4,  R5,  R6,  R7,
@@ -238,7 +238,7 @@ TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   uword pc_offset = pc - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
@@ -307,7 +307,7 @@ void SimulatorDebugger::PrintBacktrace() {
   auto const Z = T->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
   auto const vm_instructions = reinterpret_cast<uword>(
-      Dart::vm_isolate()->group()->source()->snapshot_instructions);
+      Dart::vm_isolate_group()->source()->snapshot_instructions);
   auto const isolate_instructions = reinterpret_cast<uword>(
       T->isolate_group()->source()->snapshot_instructions);
   OS::PrintErr("vm_instructions=0x%" Px ", isolate_instructions=0x%" Px "\n",
@@ -538,7 +538,7 @@ void SimulatorDebugger::Debug() {
           // Make the dereferencing '*' optional.
           if (((arg1[0] == '*') && GetValue(arg1 + 1, &value)) ||
               GetValue(arg1, &value)) {
-            if (Isolate::Current()->heap()->Contains(value)) {
+            if (IsolateGroup::Current()->heap()->Contains(value)) {
               OS::PrintErr("%s: \n", arg1);
 #if defined(DEBUG)
               const Object& obj = Object::Handle(static_cast<ObjectPtr>(value));
@@ -2223,7 +2223,7 @@ void Simulator::DoDivision(Instr* instr) {
     return;
   }
 
-  if (instr->Bit(21) == 1) {
+  if (instr->IsDivUnsigned()) {
     // unsigned division.
     uint32_t rn_val = static_cast<uint32_t>(get_register(rn));
     uint32_t rm_val = static_cast<uint32_t>(get_register(rm));
@@ -2245,14 +2245,34 @@ void Simulator::DoDivision(Instr* instr) {
 }
 
 void Simulator::DecodeType3(Instr* instr) {
-  if (instr->IsDivision()) {
-    DoDivision(instr);
-    return;
-  } else if (instr->IsRbit()) {
-    // Format(instr, "rbit'cond 'rd, 'rm");
-    Register rm = instr->RmField();
-    Register rd = instr->RdField();
-    set_register(rd, Utils::ReverseBits32(get_register(rm)));
+  if (instr->IsMedia()) {
+    if (instr->IsDivision()) {
+      DoDivision(instr);
+      return;
+    } else if (instr->IsRbit()) {
+      // Format(instr, "rbit'cond 'rd, 'rm");
+      Register rm = instr->RmField();
+      Register rd = instr->RdField();
+      set_register(rd, Utils::ReverseBits32(get_register(rm)));
+      return;
+    } else if (instr->IsBitFieldExtract()) {
+      // Format(instr, "sbfx'cond 'rd, 'rn, 'lsb, 'width")
+      const Register rd = instr->RdField();
+      const Register rn = instr->BitFieldExtractRnField();
+      const uint8_t width = instr->BitFieldExtractWidthField() + 1;
+      const uint8_t lsb = instr->BitFieldExtractLSBField();
+      const int32_t rn_val = get_register(rn);
+      const uint32_t extracted_bitfield =
+          ((rn_val >> lsb) & Utils::NBitMask(width));
+      const uint32_t sign_extension =
+          (instr->IsBitFieldExtractSignExtended() &&
+           Utils::TestBit(extracted_bitfield, width - 1))
+              ? ~Utils::NBitMask(width)
+              : 0;
+      set_register(rd, sign_extension | extracted_bitfield);
+    } else {
+      UNREACHABLE();
+    }
     return;
   }
   Register rd = instr->RdField();
@@ -2837,15 +2857,18 @@ void Simulator::DecodeType7(Instr* instr) {
                  (instr->Bit(8) == 1) && (instr->Bits(5, 2) == 0)) {
         DRegister dn = instr->DnField();
         Register rd = instr->RdField();
+        const int32_t src_value = get_register(rd);
+        const int64_t dst_value = get_dregister_bits(dn);
+        int32_t dst_lo = Utils::Low32Bits(dst_value);
+        int32_t dst_hi = Utils::High32Bits(dst_value);
         if (instr->Bit(21) == 0) {
-          // Format(instr, "vmovd'cond 'dd[0], 'rd");
-          SRegister sd = EvenSRegisterOf(dn);
-          set_sregister_bits(sd, get_register(rd));
+          // Format(instr, "vmovd'cond 'dn[0], 'rd");
+          dst_lo = src_value;
         } else {
-          // Format(instr, "vmovd'cond 'dd[1], 'rd");
-          SRegister sd = OddSRegisterOf(dn);
-          set_sregister_bits(sd, get_register(rd));
+          // Format(instr, "vmovd'cond 'dn[1], 'rd");
+          dst_hi = src_value;
         }
+        set_dregister_bits(dn, Utils::LowHighTo64Bits(dst_lo, dst_hi));
       } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0)) {
         if (instr->Bits(12, 4) == 0xf) {
           // Format(instr, "vmrs'cond APSR, FPSCR");

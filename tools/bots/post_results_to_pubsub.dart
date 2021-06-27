@@ -28,12 +28,10 @@ ${parser.usage}''');
   exit(exitCode);
 }
 
-const resultsPerMessage = 100;
+const resultsPerMessage = 50;
 
-String getPostUrl(String project) {
-  return 'https://pubsub.googleapis.com/v1/projects/$project'
-      '/topics/results:publish';
-}
+Uri _postUrl(String project) => Uri.https(
+    'pubsub.googleapis.com', 'v1/projects/$project/topics/results:publish');
 
 main(List<String> args) async {
   final parser = new ArgParser();
@@ -114,7 +112,7 @@ main(List<String> args) async {
       ]
     });
     final headers = {'Authorization': 'Bearer $token'};
-    final postUrl = getPostUrl(project);
+    final postUrl = _postUrl(project);
     final response =
         await client.post(postUrl, headers: headers, body: jsonMessage);
 

@@ -11,12 +11,104 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentTypeNotAssignableTest);
-    defineReflectiveTests(ArgumentTypeNotAssignableWithNullSafetyTest);
+    defineReflectiveTests(ArgumentTypeNotAssignableWithNoImplicitCastsTest);
+    defineReflectiveTests(ArgumentTypeNotAssignableWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest {
+class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest
+    with ArgumentTypeNotAssignableTestCases {
+  test_annotation_namedConstructor_generic() async {
+    await assertErrorsInCode('''
+class A<T> {
+  const A.fromInt(T p);
+}
+@A<int>.fromInt('0')
+main() {
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 55, 3),
+    ]);
+  }
+
+  test_binary_eqEq_covariantParameterType() async {
+    await assertErrorsInCode(r'''
+class A {
+  bool operator==(covariant A other) => false;
+}
+
+void f(A a, A? aq) {
+  a == 0;
+  aq == 1;
+  aq == aq;
+  aq == null;
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
+    ]);
+  }
+
+  test_downcast() async {
+    await assertErrorsInCode(r'''
+m() {
+  num y = 1;
+  n(y);
+}
+n(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 23, 1),
+    ]);
+  }
+
+  test_downcast_nullableNonNullable() async {
+    await assertErrorsInCode(r'''
+m() {
+  int? y;
+  n(y);
+}
+n(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 20, 1),
+    ]);
+  }
+
+  test_dynamicCast() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  dynamic i;
+  n(i);
+}
+n(int i) {}
+''');
+  }
+
+  test_invocation_functionTypes_optional() async {
+    await assertErrorsInCode('''
+void acceptFunOptBool(void funNumOptBool([bool b])) {}
+void funBool(bool b) {}
+main() {
+  acceptFunOptBool(funBool);
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 7),
+    ]);
+  }
+
+  test_invocation_functionTypes_optional_method() async {
+    await assertErrorsInCode('''
+void acceptFunOptBool(void funOptBool([bool b])) {}
+class C {
+  static void funBool(bool b) {}
+}
+main() {
+  acceptFunOptBool(C.funBool);
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9),
+    ]);
+  }
+}
+
+mixin ArgumentTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_ambiguousClassName() async {
     // See dartbug.com/19624
     newFile('$testPackageLibPath/lib2.dart', content: '''
@@ -289,30 +381,6 @@ class A<K, V> {
     ]);
   }
 
-  test_invocation_functionTypes_optional() async {
-    await assertErrorsInCode('''
-void acceptFunOptBool(void funNumOptBool([bool b])) {}
-void funBool(bool b) {}
-main() {
-  acceptFunOptBool(funBool);
-}''', [
-      error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 107, 7),
-    ]);
-  }
-
-  test_invocation_functionTypes_optional_method() async {
-    await assertErrorsInCode('''
-void acceptFunOptBool(void funOptBool([bool b])) {}
-class C {
-  static void funBool(bool b) {}
-}
-main() {
-  acceptFunOptBool(C.funBool);
-}''', [
-      error(CompileTimeErrorCode.INVALID_CAST_METHOD, 125, 9),
-    ]);
-  }
-
   test_invocation_generic() async {
     await assertErrorsInCode('''
 class A<T> {
@@ -331,7 +399,7 @@ f({String p = ''}) {}
 main() {
   f(p: 42);
 }''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 35, 5),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 38, 2),
     ]);
   }
 
@@ -384,6 +452,40 @@ f(A a) {
   a('1');
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 3),
+    ]);
+  }
+
+  test_map_indexGet() async {
+    // Any type may be passed to Map.operator[].
+    await assertNoErrorsInCode('''
+main() {
+  Map<int, int> m = <int, int>{};
+  m['x'];
+}
+''');
+  }
+
+  test_map_indexSet() async {
+    // The type passed to Map.operator[]= must match the key type.
+    await assertErrorsInCode('''
+main() {
+  Map<int, int> m = <int, int>{};
+  m['x'] = 0;
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 47, 3),
+    ]);
+  }
+
+  test_map_indexSet_ifNull() async {
+    // The type passed to Map.operator[]= must match the key type.
+    await assertErrorsInCode('''
+main() {
+  Map<int, int> m = <int, int>{};
+  m['x'] ??= 0;
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 47, 3),
     ]);
   }
 
@@ -440,69 +542,45 @@ g(C c) {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableWithNullSafetyTest
-    extends ArgumentTypeNotAssignableTest with WithNullSafetyMixin {
-  test_binary_eqEq_covariantParameterType() async {
-    await assertErrorsInCode(r'''
-class A {
-  bool operator==(covariant A other) => false;
-}
-
-void f(A a, A? aq) {
-  a == 0;
-  aq == 1;
-  aq == aq;
-  aq == null;
-}
+class ArgumentTypeNotAssignableWithNoImplicitCastsTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
+  test_functionCall() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+int f(int i) => i;
+num n = 0;
+var v = f(n);
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 1),
     ]);
   }
 
-  test_downcast() async {
-    await assertErrorsInCode(r'''
-m() {
-  num y = 1;
-  n(y);
-}
-n(int x) {}
+  test_operator() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+num n = 0;
+int i = 0;
+var v = i & n;
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 23, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 34, 1),
     ]);
   }
-
-  @failingTest
-  test_downcast_nullableNonNullable() async {
-    await assertErrorsInCode(r'''
-m() {
-  int? y;
-  n(y);
 }
-n(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 24, 1),
-    ]);
-  }
 
-  test_dynamicCast() async {
-    await assertNoErrorsInCode(r'''
-m() {
-  dynamic i;
-  n(i);
-}
-n(int i) {}
-''');
-  }
-
-  @failingTest
-  @override
+@reflectiveTest
+class ArgumentTypeNotAssignableWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, ArgumentTypeNotAssignableTestCases {
   test_invocation_functionTypes_optional() async {
-    // The test is currently generating an error where none is expected.
-    await super.test_invocation_functionTypes_optional();
+    await assertErrorsInCode('''
+void acceptFunOptBool(void funNumOptBool([bool b])) {}
+void funBool(bool b) {}
+main() {
+  acceptFunOptBool(funBool);
+}''', [
+      error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 107, 7),
+    ]);
   }
 
-  @override
   test_invocation_functionTypes_optional_method() async {
     await assertErrorsInCode('''
 void acceptFunOptBool(void funOptBool([bool b])) {}
@@ -512,7 +590,7 @@ class C {
 main() {
   acceptFunOptBool(C.funBool);
 }''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9),
+      error(CompileTimeErrorCode.INVALID_CAST_METHOD, 125, 9),
     ]);
   }
 }

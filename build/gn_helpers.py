@@ -5,12 +5,30 @@
 exec_script function."""
 
 
+import sys
+
+
 class GNException(Exception):
     pass
 
 
+# Computes ASCII code of an element of encoded Python 2 str / Python 3 bytes.
+_Ord = ord if sys.version_info.major < 3 else lambda c: c
+
+
+def _TranslateToGnChars(s):
+    for decoded_ch in s.encode('utf-8'):  # str in Python 2, bytes in Python 3.
+        code = _Ord(decoded_ch)  # int
+        if code in (34, 36, 92):  # For '"', '$', or '\\'.
+            yield '\\' + chr(code)
+        elif 32 <= code < 127:
+            yield chr(code)
+        else:
+            yield '$0x%02X' % code
+
+
 def ToGNString(value, allow_dicts=True):
-    """Prints the given value to stdout.
+    """Returns a stringified GN equivalent of a Python value.
 
   allow_dicts indicates if this function will allow converting dictionaries
   to GN scopes. This is only possible at the top level, you can't nest a
@@ -18,10 +36,10 @@ def ToGNString(value, allow_dicts=True):
     if isinstance(value, str) or isinstance(value, unicode):
         if value.find('\n') >= 0:
             raise GNException("Trying to print a string with a newline in it.")
-        return '"' + value.replace('"', '\\"') + '"'
+        return '"' + ''.join(_TranslateToGnChars(value)) + '"'
 
     if isinstance(value, list):
-        return '[ %s ]' % ', '.join(ToGNString(v) for v in value)
+        return '[ %s ]' % ', '.join(ToGNString(v, False) for v in value)
 
     if isinstance(value, dict):
         if not allow_dicts:

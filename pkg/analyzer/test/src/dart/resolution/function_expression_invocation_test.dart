@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class FunctionExpressionInvocationTest extends PubPackageResolutionTest {
+class FunctionExpressionInvocationTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_dynamic_withoutTypeArguments() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -51,7 +52,7 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionInvocationWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_call_infer_fromArguments() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -145,6 +146,7 @@ void f(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 26, 8),
     ]);
 
     assertFunctionExpressionInvocation(
@@ -164,7 +166,7 @@ void f(Never? x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertFunctionExpressionInvocation(

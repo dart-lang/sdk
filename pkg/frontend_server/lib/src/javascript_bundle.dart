@@ -27,9 +27,10 @@ class JavaScriptBundler {
       this._fileSystemScheme, this._packageConfig,
       {this.useDebuggerModuleNames = false,
       this.emitDebugMetadata = false,
+      this.emitDebugSymbols = false,
+      this.soundNullSafety = false,
       String moduleFormat})
-      : compilers = <String, ProgramCompiler>{},
-        _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd') {
+      : _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd') {
     _summaries = <Component>[];
     _summaryUris = <Uri>[];
     _moduleImportForSummary = <Uri, String>{};
@@ -63,8 +64,9 @@ class JavaScriptBundler {
   final PackageConfig _packageConfig;
   final bool useDebuggerModuleNames;
   final bool emitDebugMetadata;
-  final Map<String, ProgramCompiler> compilers;
+  final bool emitDebugSymbols;
   final ModuleFormat _moduleFormat;
+  final bool soundNullSafety;
 
   List<Component> _summaries;
   List<Uri> _summaryUris;
@@ -73,19 +75,23 @@ class JavaScriptBundler {
   Map<Uri, Component> _uriToComponent;
 
   /// Compile each component into a single JavaScript module.
-  Future<void> compile(
-      ClassHierarchy classHierarchy,
-      CoreTypes coreTypes,
-      Set<Library> loadedLibraries,
-      IOSink codeSink,
-      IOSink manifestSink,
-      IOSink sourceMapsSink,
-      IOSink metadataSink) async {
+  Future<Map<String, ProgramCompiler>> compile(
+    ClassHierarchy classHierarchy,
+    CoreTypes coreTypes,
+    Set<Library> loadedLibraries,
+    IOSink codeSink,
+    IOSink manifestSink,
+    IOSink sourceMapsSink,
+    IOSink metadataSink,
+    IOSink symbolsSink,
+  ) async {
     var codeOffset = 0;
     var sourceMapOffset = 0;
     var metadataOffset = 0;
+    var symbolsOffset = 0;
     final manifest = <String, Map<String, List<int>>>{};
     final Set<Uri> visited = <Uri>{};
+    final Map<String, ProgramCompiler> kernel2JsCompilers = {};
 
     final importToSummary = Map<Library, Component>.identity();
     final summaryToModule = Map<Component, String>.identity();
@@ -134,7 +140,9 @@ class JavaScriptBundler {
           sourceMap: true,
           summarizeApi: false,
           emitDebugMetadata: emitDebugMetadata,
+          emitDebugSymbols: emitDebugSymbols,
           moduleName: moduleName,
+          soundNullSafety: soundNullSafety,
         ),
         importToSummary,
         summaryToModule,
@@ -143,13 +151,8 @@ class JavaScriptBundler {
 
       final jsModule = compiler.emitModule(summaryComponent);
 
-      // TODO:(annagrin): create symbol tables and pass to expression compiler
-      // so it can map dart symbols to js symbols
-      // [issue 40273](https://github.com/dart-lang/sdk/issues/40273)
-
-      // program compiler is used by ExpressionCompiler to evaluate expressions
-      // on demand
-      compilers[moduleName] = compiler;
+      // Save program compiler to reuse for expression evaluation.
+      kernel2JsCompilers[moduleName] = compiler;
 
       final moduleUrl = urlForComponentUri(moduleUri);
       String sourceMapBase;
@@ -167,21 +170,28 @@ class JavaScriptBundler {
         inlineSourceMap: true,
         buildSourceMap: true,
         emitDebugMetadata: emitDebugMetadata,
+        emitDebugSymbols: emitDebugSymbols,
         jsUrl: '$moduleUrl.lib.js',
         mapUrl: '$moduleUrl.lib.js.map',
         sourceMapBase: sourceMapBase,
         customScheme: _fileSystemScheme,
+        compiler: compiler,
         component: summaryComponent,
       );
       final codeBytes = utf8.encode(code.code);
       final sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
       final metadataBytes =
           emitDebugMetadata ? utf8.encode(json.encode(code.metadata)) : null;
+      final symbolsBytes =
+          emitDebugSymbols ? utf8.encode(json.encode(code.symbols)) : null;
 
       codeSink.add(codeBytes);
       sourceMapsSink.add(sourceMapBytes);
       if (emitDebugMetadata) {
         metadataSink.add(metadataBytes);
+      }
+      if (emitDebugSymbols) {
+        symbolsSink.add(symbolsBytes);
       }
       final String moduleKey = _moduleImportForSummary[moduleUri];
       manifest[moduleKey] = {
@@ -195,9 +205,16 @@ class JavaScriptBundler {
             metadataOffset,
             metadataOffset += metadataBytes.length
           ],
+        if (emitDebugSymbols)
+          'symbols': <int>[
+            symbolsOffset,
+            symbolsOffset += symbolsBytes.length,
+          ],
       };
     }
     manifestSink.add(utf8.encode(json.encode(manifest)));
+
+    return kernel2JsCompilers;
   }
 }
 

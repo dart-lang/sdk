@@ -17,7 +17,7 @@ Set<String> computeReferencedNames(CompilationUnit unit) {
 Set<String> computeSubtypedNames(CompilationUnit unit) {
   Set<String> subtypedNames = <String>{};
 
-  void _addSubtypedName(TypeName type) {
+  void _addSubtypedName(TypeName? type) {
     if (type != null) {
       Identifier name = type.name;
       if (name is SimpleIdentifier) {
@@ -28,7 +28,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
     }
   }
 
-  void _addSubtypedNames(List<TypeName> types) {
+  void _addSubtypedNames(List<TypeName>? types) {
     types?.forEach(_addSubtypedName);
   }
 
@@ -39,7 +39,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
       _addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is ClassTypeAlias) {
       _addSubtypedName(declaration.superclass);
-      _addSubtypedNames(declaration.withClause?.mixinTypes);
+      _addSubtypedNames(declaration.withClause.mixinTypes);
       _addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is MixinDeclaration) {
       _addSubtypedNames(declaration.onClause?.superclassConstraints);
@@ -52,8 +52,8 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
 
 /// Chained set of local names, that hide corresponding external names.
 class _LocalNameScope {
-  final _LocalNameScope enclosing;
-  Set<String> names;
+  final _LocalNameScope? enclosing;
+  Set<String>? names;
 
   _LocalNameScope(this.enclosing);
 
@@ -132,14 +132,13 @@ class _LocalNameScope {
     return scope;
   }
 
-  void add(SimpleIdentifier identifier) {
+  void add(SimpleIdentifier? identifier) {
     if (identifier != null) {
-      names ??= <String>{};
-      names.add(identifier.name);
+      (names ??= <String>{}).add(identifier.name);
     }
   }
 
-  void addFormalParameters(FormalParameterList parameterList) {
+  void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
       parameterList.parameters
           .map((p) => p is NormalFormalParameter ? p.identifier : null)
@@ -147,7 +146,7 @@ class _LocalNameScope {
     }
   }
 
-  void addTypeParameters(TypeParameterList typeParameterList) {
+  void addTypeParameters(TypeParameterList? typeParameterList) {
     if (typeParameterList != null) {
       typeParameterList.typeParameters.map((p) => p.name).forEach(add);
     }
@@ -160,11 +159,11 @@ class _LocalNameScope {
   }
 
   bool contains(String name) {
-    if (names != null && names.contains(name)) {
+    if (names != null && names!.contains(name)) {
       return true;
     }
     if (enclosing != null) {
-      return enclosing.contains(name);
+      return enclosing!.contains(name);
     }
     return false;
   }
@@ -257,8 +256,9 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    if (node.prefix != null) {
-      importPrefixNames.add(node.prefix.name);
+    var prefix = node.prefix;
+    if (prefix != null) {
+      importPrefixNames.add(prefix.name);
     }
     super.visitImportDirective(node);
   }
@@ -281,7 +281,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
       return;
     }
     // Ignore class names references from constructors.
-    AstNode parent = node.parent;
+    var parent = node.parent!;
     if (parent is ConstructorDeclaration && parent.returnType == node) {
       return;
     }
@@ -304,7 +304,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
 
   static bool _isNameExpressionLabel(AstNode parent) {
     if (parent is Label) {
-      AstNode parent2 = parent?.parent;
+      var parent2 = parent.parent;
       return parent2 is NamedExpression && parent2.name == parent;
     }
     return false;

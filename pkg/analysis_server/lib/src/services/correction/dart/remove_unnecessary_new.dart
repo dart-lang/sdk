@@ -11,17 +11,32 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnnecessaryNew extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_NEW;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_NEW_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    final instanceCreationExpression = node;
-    if (instanceCreationExpression is InstanceCreationExpression) {
-      final newToken = instanceCreationExpression.keyword;
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.startStart(newToken, newToken.next));
-      });
+    final creation = node;
+    if (creation is! InstanceCreationExpression) {
+      return;
     }
+
+    final newToken = creation.keyword;
+    if (newToken == null) {
+      return;
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addDeletion(range.startStart(newToken, newToken.next!));
+    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

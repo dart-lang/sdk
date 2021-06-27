@@ -31,7 +31,7 @@ void main() {
 }
 ''');
     var property = await getWidgetProperty('Text(', 'Container');
-    var childrenNames = property.children.map((p) => p.name).toList();
+    var childrenNames = property.children!.map((p) => p.name).toList();
 
     expect(
       childrenNames,
@@ -61,7 +61,7 @@ void main() {
 }
 ''');
     var property = await getWidgetProperty('Text(', 'Container');
-    var childrenNames = property.children.map((p) => p.name).toList();
+    var childrenNames = property.children!.map((p) => p.name).toList();
 
     expect(
       childrenNames,

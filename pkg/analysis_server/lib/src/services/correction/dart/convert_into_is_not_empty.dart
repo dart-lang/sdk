@@ -18,8 +18,8 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // prepare "expr.isEmpty"
-    AstNode isEmptyAccess;
-    SimpleIdentifier isEmptyIdentifier;
+    SimpleIdentifier? isEmptyIdentifier;
+    AstNode? isEmptyAccess;
     if (node is SimpleIdentifier) {
       var identifier = node as SimpleIdentifier;
       var parent = identifier.parent;
@@ -34,7 +34,7 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
         isEmptyAccess = parent;
       }
     }
-    if (isEmptyIdentifier == null) {
+    if (isEmptyIdentifier == null || isEmptyAccess == null) {
       return;
     }
     // should be "isEmpty"
@@ -58,10 +58,12 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
       return;
     }
 
+    final isEmptyIdentifier_final = isEmptyIdentifier;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
           range.startStart(prefixExpression, prefixExpression.operand));
-      builder.addSimpleReplacement(range.node(isEmptyIdentifier), 'isNotEmpty');
+      builder.addSimpleReplacement(
+          range.node(isEmptyIdentifier_final), 'isNotEmpty');
     });
   }
 

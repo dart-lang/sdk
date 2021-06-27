@@ -17,6 +17,9 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
+    defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
+    defineReflectiveTests(InlineLocalVariableRefactorCodeActionsTest);
+    defineReflectiveTests(InlineMethodRefactorCodeActionsTest);
   });
 }
 
@@ -24,25 +27,32 @@ void main() {
 class ExtractMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
   final extractMethodTitle = 'Extract Method';
 
-  /// A stream of strings (CREATE, BEGIN, END) corresponding to progress requests
-  /// and notifications for convenience in testing.
+  /// A stream of strings (CREATE, BEGIN, END) corresponding to progress
+  /// requests and notifications for convenience in testing.
+  ///
+  /// Analyzing statuses are not included.
   Stream<String> get progressUpdates {
     final controller = StreamController<String>();
 
     requestsFromServer
         .where((r) => r.method == Method.window_workDoneProgress_create)
         .listen((request) async {
-      controller.add('CREATE');
+      final params = WorkDoneProgressCreateParams.fromJson(request.params);
+      if (params.token != analyzingProgressToken) {
+        controller.add('CREATE');
+      }
     }, onDone: controller.close);
     notificationsFromServer
         .where((n) => n.method == Method.progress)
         .listen((notification) {
       final params = ProgressParams.fromJson(notification.params);
-      if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
-        controller.add('BEGIN');
-      } else if (WorkDoneProgressEnd.canParse(
-          params.value, nullLspJsonReporter)) {
-        controller.add('END');
+      if (params.token != analyzingProgressToken) {
+        if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
+          controller.add('BEGIN');
+        } else if (WorkDoneProgressEnd.canParse(
+            params.value, nullLspJsonReporter)) {
+          controller.add('END');
+        }
       }
     });
 
@@ -72,8 +82,7 @@ void newMethod() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
-    expect(codeAction, isNotNull);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
@@ -102,12 +111,11 @@ void newMethod() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
-    expect(codeAction, isNotNull);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
     // Respond to any applyEdit requests from the server with successful responses
     // and capturing the last edit.
-    WorkspaceEdit edit;
+    late WorkspaceEdit edit;
     requestsFromServer.listen((request) async {
       if (request.method == Method.workspace_applyEdit) {
         final params = ApplyWorkspaceEditParams.fromJson(request.params);
@@ -129,7 +137,7 @@ void newMethod() {
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyChanges(contents, edit.changes);
+    applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -146,8 +154,7 @@ main() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
-    expect(codeAction, isNotNull);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
     // Send an edit request immediately after the refactor request.
     final req1 = executeCodeAction(codeAction);
@@ -156,6 +163,62 @@ main() {
     // Expect the first to fail because of the modified content.
     await expectLater(
         req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
+  }
+
+  Future<void> test_filtersCorrectly() async {
+    const content = '''
+main() {
+  print('Test!');
+  [[print('Test!');]]
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final ofKind = (CodeActionKind kind) => getCodeActions(
+          mainFileUri.toString(),
+          range: rangeFromMarkers(content),
+          kinds: [kind],
+        );
+
+    // The code above will return a RefactorExtract that should be included
+    // by both Refactor and RefactorExtract, but not RefactorExtractFoo or
+    // RefactorRewrite
+    expect(await ofKind(CodeActionKind.Refactor), isNotEmpty);
+    expect(await ofKind(CodeActionKind.RefactorExtract), isNotEmpty);
+    expect(await ofKind(CodeActionKind('refactor.extract.foo')), isEmpty);
+    expect(await ofKind(CodeActionKind.RefactorRewrite), isEmpty);
+  }
+
+  Future<void> test_generatesNames() async {
+    const content = '''
+Object main() {
+  return Container([[Text('Test!')]]);
+}
+
+Object Container(Object text) => null;
+Object Text(Object text) => null;
+    ''';
+    const expectedContent = '''
+Object main() {
+  return Container(text());
+}
+
+Object text() => Text('Test!');
+
+Object Container(Object text) => null;
+Object Text(Object text) => null;
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
   }
 
   Future<void> test_invalidLocation() async {
@@ -202,7 +265,8 @@ void newMethod() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent,
         workDoneToken: clientProvidedTestWorkDoneToken);
@@ -236,7 +300,8 @@ void newMethod() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
 
@@ -265,34 +330,79 @@ void newMethod() {
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
 
-    // Capture progress-related messages in a list in the order they arrive.
-    final progressRequests = <String>[];
-    requestsFromServer
-        .where((r) => r.method == Method.window_workDoneProgress_create)
-        .listen((request) async {
-      progressRequests.add('CREATE');
-    });
-    notificationsFromServer
-        .where((n) => n.method == Method.progress)
-        .listen((notification) {
-      final params = ProgressParams.fromJson(notification.params);
-      if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
-        progressRequests.add('BEGIN');
-      } else if (WorkDoneProgressEnd.canParse(
-          params.value, nullLspJsonReporter)) {
-        progressRequests.add('END');
-      }
-    });
-
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
+    // Ensure the progress messages come through and in the correct order.
+    expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
+
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
+  }
+}
 
-    // Ensure the progress messages came through and in the correct order.
-    expect(progressRequests, equals(['CREATE', 'BEGIN', 'END']));
+@reflectiveTest
+class ExtractVariableRefactorCodeActionsTest extends AbstractCodeActionsTest {
+  final extractVariableTitle = 'Extract Local Variable';
+
+  Future<void> test_appliesCorrectEdits() async {
+    const content = '''
+main() {
+  foo([[1 + 2]]);
+}
+
+void foo(int arg) {}
+    ''';
+    const expectedContent = '''
+main() {
+  var arg = 1 + 2;
+  foo(arg);
+}
+
+void foo(int arg) {}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, extractVariableTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_doesNotCreateNameConflicts() async {
+    const content = '''
+main() {
+  var arg = "test";
+  foo([[1 + 2]]);
+}
+
+void foo(int arg) {}
+    ''';
+    const expectedContent = '''
+main() {
+  var arg = "test";
+  var arg2 = 1 + 2;
+  foo(arg2);
+}
+
+void foo(int arg) {}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, extractVariableTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
   }
 }
 
@@ -369,8 +479,7 @@ class NewWidget extends StatelessWidget {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
-    expect(codeAction, isNotNull);
+        findCommand(codeActions, Commands.performRefactor, extractWidgetTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
@@ -389,5 +498,118 @@ main() {}
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
     expect(codeAction, isNull);
+  }
+}
+
+@reflectiveTest
+class InlineLocalVariableRefactorCodeActionsTest
+    extends AbstractCodeActionsTest {
+  final inlineVariableTitle = 'Inline Local Variable';
+
+  Future<void> test_appliesCorrectEdits() async {
+    const content = '''
+void main() {
+  var a^ = 1;
+  print(a);
+  print(a);
+  print(a);
+}
+    ''';
+    const expectedContent = '''
+void main() {
+  print(1);
+  print(1);
+  print(1);
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, inlineVariableTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+}
+
+@reflectiveTest
+class InlineMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
+  final inlineMethodTitle = 'Inline Method';
+
+  Future<void> test_inlineAtCallSite() async {
+    const content = '''
+void foo1() {
+  ba^r();
+}
+
+void foo2() {
+  bar();
+}
+
+void bar() {
+  print('test');
+}
+    ''';
+    const expectedContent = '''
+void foo1() {
+  print('test');
+}
+
+void foo2() {
+  bar();
+}
+
+void bar() {
+  print('test');
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_inlineAtMethod() async {
+    const content = '''
+void foo1() {
+  bar();
+}
+
+void foo2() {
+  bar();
+}
+
+void ba^r() {
+  print('test');
+}
+    ''';
+    const expectedContent = '''
+void foo1() {
+  print('test');
+}
+
+void foo2() {
+  print('test');
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
   }
 }

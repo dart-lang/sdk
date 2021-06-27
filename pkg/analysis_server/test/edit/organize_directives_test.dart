@@ -19,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractAnalysisTest {
-  SourceFileEdit fileEdit;
+  late SourceFileEdit fileEdit;
 
   @override
   void setUp() {

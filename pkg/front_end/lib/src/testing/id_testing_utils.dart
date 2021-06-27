@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart';
 
 import '../fasta/builder/class_builder.dart';
@@ -22,6 +24,14 @@ import '../kernel_generator_impl.dart';
 String getMemberName(Member member) {
   if (member is Procedure && member.isSetter) return '${member.name.text}=';
   return member.name.text;
+}
+
+/// Returns a canonical qualified name for [member].
+String getQualifiedMemberName(Member member) {
+  if (member.enclosingClass != null) {
+    return '${member.enclosingClass.name}.${getMemberName(member)}';
+  }
+  return getMemberName(member);
 }
 
 /// Returns the enclosing [Member] for [node].
@@ -456,10 +466,6 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     sb.write('void');
   }
 
-  void visitBottomType(BottomType node) {
-    sb.write('<bottom>');
-  }
-
   void visitNeverType(NeverType node) {
     sb.write('Never');
     if (node.nullability != Nullability.nonNullable) {
@@ -563,6 +569,16 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       sb.write('>');
     }
     sb.write(nullabilityToText(node.nullability, typeRepresentation));
+  }
+
+  void visitExtensionType(ExtensionType node) {
+    sb.write(node.extension.name);
+    if (node.typeArguments.isNotEmpty) {
+      sb.write('<');
+      visitList(node.typeArguments);
+      sb.write('>');
+    }
+    sb.write(nullabilityToText(node.declaredNullability, typeRepresentation));
   }
 }
 

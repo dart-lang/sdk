@@ -34,7 +34,7 @@ List<List<T>> computeStrongComponents<T>(Graph<T> graph) {
 
     // Step 3: For each edge from [vertex] to a neighboring vertex [neighbor]:
     for (T neighbor in graph.neighborsOf(vertex)) {
-      int neighborPreorderNumber = preorderNumbers[neighbor];
+      int? neighborPreorderNumber = preorderNumbers[neighbor];
       if (neighborPreorderNumber == null) {
         // If the preorder number of [neighbor] has not yet been assigned,
         // recursively search [neighbor];
@@ -46,7 +46,7 @@ List<List<T>> computeStrongComponents<T>(Graph<T> graph) {
         // * Repeatedly pop vertices from [candidates] until the top element of
         //   [candidates] has a preorder number less than or equal to the
         //   preorder number of [neighbor].
-        while (preorderNumbers[candidates.last] > neighborPreorderNumber) {
+        while (preorderNumbers[candidates.last]! > neighborPreorderNumber) {
           candidates.removeLast();
         }
       }

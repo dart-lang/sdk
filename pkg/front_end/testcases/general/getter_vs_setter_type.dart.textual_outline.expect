@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class A {
   int get property1;
   void set property1(int i);

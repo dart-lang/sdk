@@ -471,7 +471,7 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
     free(kernel_buffer);
   } else {
     Dart_KernelCompilationResult result =
-        dfe.CompileScript(script_name, false, package_config);
+        dfe.CompileScript(script_name, false, package_config, true);
     if (result.status != Dart_KernelCompilationStatus_Ok) {
       ErrorExit(kErrorExitCode, "%s\n", result.error);
     }

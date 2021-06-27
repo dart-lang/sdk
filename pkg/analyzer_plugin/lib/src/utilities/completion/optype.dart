@@ -1,7 +1,6 @@
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -13,15 +12,16 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:collection/collection.dart';
 
-typedef SuggestionsFilter = int Function(DartType dartType, int relevance);
+typedef SuggestionsFilter = int? Function(DartType dartType, int relevance);
 
 /// An [AstVisitor] for determining whether top level suggestions or invocation
 /// suggestions should be made based upon the type of node in which the
 /// suggestions were requested.
 class OpType {
   /// The [TypeSystem] used during resolution of the current unit.
-  TypeSystem _typeSystem;
+  TypeSystem? _typeSystem;
 
   /// Indicates whether constructor suggestions should be included.
   bool includeConstructorSuggestions = false;
@@ -74,11 +74,11 @@ class OpType {
   CompletionSuggestionKind suggestKind = CompletionSuggestionKind.INVOCATION;
 
   /// An representation of the location at which completion was requested.
-  String completionLocation;
+  String? completionLocation;
 
   /// The type that is required by the context in which the completion was
   /// activated, or `null` if there is no such type, or it cannot be determined.
-  DartType _requiredType;
+  DartType? _requiredType;
 
   /// Determine the suggestions that should be made based upon the given
   /// [CompletionTarget] and [offset].
@@ -90,7 +90,7 @@ class OpType {
       return optype;
     }
 
-    optype._typeSystem = target.unit?.declaredElement?.library?.typeSystem;
+    optype._typeSystem = target.unit.declaredElement?.library.typeSystem;
 
     var targetNode = target.containingNode;
     targetNode.accept(_OpTypeAstVisitor(optype, target.entity, offset));
@@ -112,7 +112,7 @@ class OpType {
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
       // Careful: in angular plugin, `target.unit` may be null!
-      var unitElement = target.unit?.declaredElement;
+      var unitElement = target.unit.declaredElement;
       if (unitElement != null) {
         optype.includeConstructorSuggestions = true;
       }
@@ -145,7 +145,7 @@ class OpType {
   /// Try to determine the required context type, and configure filters.
   void _computeRequiredTypeAndFilters(CompletionTarget target) {
     var entity = target.entity;
-    var node = target.containingNode;
+    AstNode? node = target.containingNode;
 
     if (node is InstanceCreationExpression &&
         node.keyword != null &&
@@ -157,28 +157,29 @@ class OpType {
     if (node is AssignmentExpression &&
         node.operator.type == TokenType.EQ &&
         node.rightHandSide == entity) {
-      _requiredType = node.leftHandSide?.staticType;
+      _requiredType = node.leftHandSide.staticType;
     } else if (node is BinaryExpression &&
         node.operator.type == TokenType.EQ_EQ &&
         node.rightOperand == entity) {
-      _requiredType = node.leftOperand?.staticType;
+      _requiredType = node.leftOperand.staticType;
     } else if (node is NamedExpression && node.expression == entity) {
       _requiredType = node.staticParameterElement?.type;
     } else if (node is SwitchCase && node.expression == entity) {
       var parent = node.parent;
       if (parent is SwitchStatement) {
-        _requiredType = parent.expression?.staticType;
+        _requiredType = parent.expression.staticType;
       }
     } else if (node is VariableDeclaration && node.initializer == entity) {
       _requiredType = node.declaredElement?.type;
     } else if (entity is Expression && entity.staticParameterElement != null) {
-      _requiredType = entity.staticParameterElement.type;
+      _requiredType = entity.staticParameterElement?.type;
     }
 
-    if (_requiredType == null) {
+    var requiredType = _requiredType;
+    if (requiredType == null) {
       return;
     }
-    if (_requiredType.isDynamic || _requiredType.isDartCoreObject) {
+    if (requiredType.isDynamic || requiredType.isDartCoreObject) {
       _requiredType = null;
       return;
     }
@@ -186,16 +187,17 @@ class OpType {
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   bool _isSubtypeOf(DartType leftType, DartType rightType) {
-    if (_typeSystem == null) {
+    var typeSystem = _typeSystem;
+    if (typeSystem == null) {
       return false;
     }
 
-    return _typeSystem.isSubtypeOf(leftType, rightType);
+    return typeSystem.isSubtypeOf(leftType, rightType);
   }
 
   /// Return the statement before [entity]
   /// where [entity] can be a statement or the `}` closing the given block.
-  static Statement getPreviousStatement(Block node, Object entity) {
+  static Statement? getPreviousStatement(Block node, Object? entity) {
     if (entity == node.rightBracket) {
       return node.statements.isNotEmpty ? node.statements.last : null;
     }
@@ -213,7 +215,7 @@ class OpType {
 class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   /// The entity (AstNode or Token) that will be replaced or displaced by the
   /// added text.
-  final SyntacticEntity entity;
+  final SyntacticEntity? entity;
 
   /// The offset within the source at which the completion is requested.
   final int offset;
@@ -245,14 +247,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitArgumentList(ArgumentList node) {
     var parent = node.parent;
-    List<ParameterElement> parameters;
+    List<ParameterElement>? parameters;
     if (parent is InstanceCreationExpression) {
-      Element constructor;
-      var name = parent.constructorName?.name;
+      Element? constructor;
+      var name = parent.constructorName.name;
       if (name != null) {
         constructor = name.staticElement;
       } else {
-        var classElem = parent.constructorName?.type?.name?.staticElement;
+        var classElem = parent.constructorName.type.name.staticElement;
         if (classElem is ClassElement) {
           constructor = classElem.unnamedConstructor;
         }
@@ -306,7 +308,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       }
       if (0 <= index && index < parameters.length) {
         var param = parameters[index];
-        if (param?.isNamed == true) {
+        var paramType = param.type;
+        if (paramType is FunctionType && paramType.returnType.isVoid) {
+          optype.includeVoidReturnSuggestions = true;
+        }
+        if (param.isNamed == true) {
           var context = _argumentListContext(node);
           optype.completionLocation = 'ArgumentList_${context}_named';
           optype.includeNamedArgumentSuggestions = true;
@@ -476,6 +482,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         return node.end;
       }
 
+      final entity = this.entity;
       if (entity != null) {
         if (entity.offset <= declarationStart()) {
           optype.completionLocation = 'CompilationUnit_declaration';
@@ -522,14 +529,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
     if (identical(entity, node.name)) {
-      var type = node.type;
-      if (type != null) {
-        var prefix = type.name;
-        if (prefix != null) {
-          optype.includeConstructorSuggestions = true;
-          optype.isPrefixed = true;
-        }
-      }
+      optype.includeConstructorSuggestions = true;
+      optype.isPrefixed = true;
     }
   }
 
@@ -538,6 +539,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (node.label == null || identical(entity, node.label)) {
       optype.includeStatementLabelSuggestions = true;
       optype.includeCaseLabelSuggestions = true;
+    }
+  }
+
+  @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    var identifier = node.identifier;
+    if (identifier == entity &&
+        offset < identifier.offset &&
+        node.type == null) {
+      // Adding a type before the identifier.
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -577,10 +589,40 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (identical(entity, node.expression)) {
+    var expression = node.expression;
+    if (identical(entity, expression)) {
       optype.completionLocation = 'ExpressionFunctionBody_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+      var parent = node.parent;
+      DartType? type;
+      if (parent is FunctionExpression) {
+        type = parent.staticType;
+        if (type is FunctionType) {
+          if (type.returnType.isVoid) {
+            // TODO(brianwilkerson) Determine whether the return type can ever
+            //  be inferred as void and remove this case if it can't be.
+            optype.includeVoidReturnSuggestions = true;
+          } else {
+            var grandparent = parent.parent;
+            if (grandparent is ArgumentList) {
+              var parameter = parent.staticParameterElement;
+              if (parameter != null) {
+                var parameterType = parameter.type;
+                if (parameterType is FunctionType &&
+                    parameterType.returnType.isVoid) {
+                  optype.includeVoidReturnSuggestions = true;
+                }
+              }
+            }
+          }
+        }
+      } else if (parent is MethodDeclaration) {
+        type = parent.declaredElement?.returnType;
+        if (type != null && type.isVoid) {
+          optype.includeVoidReturnSuggestions = true;
+        }
+      }
     }
   }
 
@@ -635,6 +677,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (offset <= node.fields.offset) {
       optype.includeTypeNameSuggestions = true;
     }
+
+    // If there is no type then the first "field" could be intended as a type
+    // so also include type name suggestions. eg:
+    //     class MyClass2 { static MyCl^ }
+    if (node.fields.type == null &&
+        (node.fields.variables.isEmpty ||
+            offset <= node.fields.variables.first.end)) {
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override
@@ -650,8 +701,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitForEachParts(ForEachParts node) {
     if (identical(entity, node.inKeyword) && offset <= node.inKeyword.offset) {
-      if (!(node is ForEachPartsWithIdentifier && node.identifier != null ||
-          node is ForEachPartsWithDeclaration && node.loopVariable != null)) {
+      if (!(node is ForEachPartsWithIdentifier ||
+          node is ForEachPartsWithDeclaration)) {
         optype.includeTypeNameSuggestions = true;
       }
     }
@@ -702,7 +753,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     optype.completionLocation = 'FormalParameterList_parameter';
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is Token) {
       var previous = node.findPrevious(entity);
       if (previous != null) {
@@ -719,7 +770,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
     // Handle default normal parameter just as a normal parameter.
     if (parameter is DefaultFormalParameter) {
-      parameter = (parameter as DefaultFormalParameter).parameter;
+      parameter = parameter.parameter;
     }
 
     // "(^ this.field)"
@@ -738,7 +789,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitForParts(ForParts node) {
-    var entity = this.entity;
+    final entity = this.entity;
     if (_isEntityPrevTokenSynthetic()) {
       // Actual: for (var v i^)
       // Parsed: for (var i; i^;)
@@ -804,8 +855,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (entity == node.functionType) {
-      optype.completionLocation = 'GenericTypeAlias_functionType';
+    if (entity == node.type) {
+      optype.includeTypeNameSuggestions = true;
+      optype.completionLocation = 'GenericTypeAlias_type';
     }
   }
 
@@ -945,7 +997,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     var isThis = node.target is ThisExpression;
-    if (identical(entity, node.operator) && offset > node.operator.offset) {
+    var operator = node.operator;
+    if (operator != null &&
+        identical(entity, operator) &&
+        offset > operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.
       optype.includeReturnValueSuggestions = true;
@@ -994,21 +1049,24 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeTypeNameSuggestions = true;
 
       // Check for named parameters in constructor calls.
-      var grandparent = node.parent.parent;
+      var grandparent = node.parent?.parent;
+      Element? element;
       if (grandparent is ConstructorReferenceNode) {
-        var element = grandparent.staticElement;
-        if (element != null) {
-          var parameters = element.parameters;
-          var parameterElement = parameters.firstWhere((e) {
-            if (e is DefaultFieldFormalParameterElementImpl) {
-              return e.field?.name == node.name.label?.name;
-            }
-            return e.isNamed && e.name == node.name.label?.name;
-          }, orElse: () => null);
-          // Suggest tear-offs.
-          if (parameterElement?.type is FunctionType) {
-            optype.includeVoidReturnSuggestions = true;
+        element = grandparent.staticElement;
+      } else if (grandparent is MethodInvocation) {
+        element = grandparent.methodName.staticElement;
+      }
+      if (element is ExecutableElement) {
+        var parameters = element.parameters;
+        var parameterElement = parameters.firstWhereOrNull((e) {
+          if (e is DefaultFieldFormalParameterElementImpl) {
+            return e.field?.name == node.name.label.name;
           }
+          return e.isNamed && e.name == node.name.label.name;
+        });
+        // Suggest tear-offs.
+        if (parameterElement?.type is FunctionType) {
+          optype.includeVoidReturnSuggestions = true;
         }
       }
     }
@@ -1054,8 +1112,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         // In addition to the standard case,
         // handle the exceptional case where the parser considers the would-be
         // identifier to be a keyword and inserts a synthetic identifier
-        (node.identifier != null &&
-            node.identifier.isSynthetic &&
+        (node.identifier.isSynthetic &&
             identical(entity, node.findPrevious(node.identifier.beginToken)))) {
       if (node.prefix.isSynthetic) {
         // If the access has no target (empty string)
@@ -1063,7 +1120,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         return;
       }
       optype.isPrefixed = true;
-      if (node.parent is TypeName && node.parent.parent is ConstructorName) {
+      if (node.parent is TypeName && node.parent?.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
       } else if (node.parent is Annotation) {
         optype.includeConstructorSuggestions = true;
@@ -1152,15 +1209,18 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     }
 
     // If "(^ Type)", then include types.
-    if (type == null && offset < name.offset) {
+    if (type == null && name != null && offset < name.offset) {
       optype.includeTypeNameSuggestions = true;
       return;
     }
 
     // If "(Type ^)", then include parameter names.
-    if (type == null && name.end < offset && offset <= name.token.next.offset) {
-      optype.includeVarNameSuggestions = true;
-      return;
+    if (type == null && name != null && name.end < offset) {
+      var nextToken = name.token.next;
+      if (nextToken != null && offset <= nextToken.offset) {
+        optype.includeVarNameSuggestions = true;
+        return;
+      }
     }
 
     // If inside of "Type" in "(Type^ name)", then include types.
@@ -1322,7 +1382,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    if (node.keyword == null || node.keyword.lexeme != 'var') {
+    if (node.keyword == null || node.keyword?.lexeme != 'var') {
       if (node.type == null || identical(entity, node.type)) {
         optype.completionLocation = 'VariableDeclarationList_type';
         optype.includeTypeNameSuggestions = true;
@@ -1365,7 +1425,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   /// Return the context in which the [node] occurs. The [node] is expected to
   /// be the parent of the argument expression.
-  String _argumentListContext(AstNode node) {
+  String _argumentListContext(AstNode? node) {
     if (node is ArgumentList) {
       var parent = node.parent;
       if (parent is Annotation) {
@@ -1396,11 +1456,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       return 'index';
     }
     throw ArgumentError(
-        'Unknown parent of ${node.runtimeType}: ${node.parent.runtimeType}');
+        'Unknown parent of ${node.runtimeType}: ${node?.parent.runtimeType}');
   }
 
   bool _isEntityPrevTokenSynthetic() {
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is AstNode) {
       var previous = entity.findPrevious(entity.beginToken);
       if (previous?.isSynthetic ?? false) {
@@ -1412,7 +1472,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   /// A filter used to disable everything except classes (such as functions and
   /// mixins).
-  int _nonMixinClasses(DartType type, int relevance) {
+  int? _nonMixinClasses(DartType type, int relevance) {
     if (type is InterfaceType) {
       if (type.element.isMixin) {
         return null;

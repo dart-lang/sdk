@@ -30,6 +30,7 @@ class ARM64Decoder : public ValueObject {
  private:
   // Bottleneck functions to print into the out_buffer.
   void Print(const char* str);
+  void PrintInt(int value);
 
   // Printing of common values.
   void PrintRegister(int reg, R31Type r31t);
@@ -80,14 +81,11 @@ void ARM64Decoder::Print(const char* str) {
   buffer_[buffer_pos_] = '\0';
 }
 
-// These register names are defined in a way to match the native disassembler
-// formatting, except for register aliases ctx (r9), pp (r10) and sp (r19).
-// See for example the command "objdump -d <binary file>".
-static const char* reg_names[kNumberOfCpuRegisters] = {
-    "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8", "r9",  "r10",
-    "r11", "r12", "r13", "r14", "r15", "ip0", "ip1", "r18", "sp", "r20", "r21",
-    "nr",  "r23", "r24", "r25", "thr", "pp",  "ctx", "fp",  "lr", "r31",
-};
+void ARM64Decoder::PrintInt(int value) {
+  buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                remaining_size_in_buffer(), "%d", value);
+  buffer_[buffer_pos_] = '\0';
+}
 
 // Print the register name according to the active name converter.
 void ARM64Decoder::PrintRegister(int reg, R31Type r31t) {
@@ -97,7 +95,7 @@ void ARM64Decoder::PrintRegister(int reg, R31Type r31t) {
     const char* rstr = (r31t == R31IsZR) ? "zr" : "csp";
     Print(rstr);
   } else {
-    Print(reg_names[reg]);
+    Print(cpu_reg_names[reg]);
   }
 }
 
@@ -800,6 +798,7 @@ void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeBitfield(Instr* instr) {
+  int reg_size = instr->SFField() == 0 ? 32 : 64;
   int op = instr->Bits(29, 2);
   int r_imm = instr->ImmRField();
   int s_imm = instr->ImmSField();
@@ -817,6 +816,10 @@ void ARM64Decoder::DecodeBitfield(Instr* instr) {
           break;
         }
       }
+      if (s_imm == (reg_size - 1)) {
+        Format(instr, "asr'sf 'rd, 'rn, 'immr");
+        break;
+      }
       Format(instr, "sbfm'sf 'rd, 'rn, 'immr, 'imms");
       break;
     case 1:
@@ -831,6 +834,15 @@ void ARM64Decoder::DecodeBitfield(Instr* instr) {
           Format(instr, "uxth 'rd, 'rn");
           break;
         }
+      }
+      if ((s_imm != (reg_size - 1)) && ((s_imm + 1) == r_imm)) {
+        int shift = reg_size - s_imm;
+        Format(instr, "lsl'sf 'rd, 'rn, ");
+        PrintInt(shift);
+        break;
+      } else if (s_imm == (reg_size - 1)) {
+        Format(instr, "lsr'sf 'rd, 'rn, 'immr");
+        break;
       }
       Format(instr, "ubfm'sf 'rd, 'rn, 'immr, 'imms");
       break;

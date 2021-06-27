@@ -81,6 +81,7 @@ class Dart : public AllStatic {
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }
+  static IsolateGroup* vm_isolate_group() { return vm_isolate_->group(); }
   static ThreadPool* thread_pool() { return thread_pool_; }
   static bool VmIsolateNameEquals(const char* name);
 
@@ -100,7 +101,7 @@ class Dart : public AllStatic {
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
 
-  static const char* FeaturesString(Isolate* isolate,
+  static const char* FeaturesString(IsolateGroup* isolate_group,
                                     bool is_vm_snapshot,
                                     Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }

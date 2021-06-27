@@ -4,6 +4,8 @@
 //
 // VMOptions=--no-background-compilation --optimization-counter-threshold=10
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A<T> {

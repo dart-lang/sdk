@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.dill_library_builder;
 
 import 'dart:convert' show jsonDecode;
@@ -20,15 +22,13 @@ import 'package:kernel/ast.dart'
         Member,
         NamedNode,
         NeverType,
-        Nullability,
         Procedure,
         ProcedureKind,
         Reference,
         StaticGet,
         StringConstant,
         StringLiteral,
-        Typedef,
-        Version;
+        Typedef;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -139,10 +139,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   bool get isNonNullableByDefault => library.isNonNullableByDefault;
 
   @override
-  void setLanguageVersion(Version version,
-      {int offset: 0, int length, bool explicit}) {}
-
-  @override
   Uri get importUri => library.importUri;
 
   @override
@@ -150,6 +146,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   String get name => library.name;
+
+  @override
+  LibraryBuilder get nameOriginBuilder => this;
 
   void addSyntheticDeclarationOfDynamic() {
     addBuilder("dynamic",
@@ -160,7 +159,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     addBuilder(
         "Never",
         new NeverTypeDeclarationBuilder(
-            const NeverType(Nullability.nonNullable), this, -1),
+            const NeverType.nonNullable(), this, -1),
         -1);
   }
 

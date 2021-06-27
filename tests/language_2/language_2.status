@@ -27,10 +27,12 @@ parameter/named_type_test/02: SkipByDesign # Requires checked mode.
 parameter/named_type_test/03: SkipByDesign # Requires checked mode.
 parameter/positional_type_test/01: SkipByDesign # Requires checked mode.
 parameter/positional_type_test/02: SkipByDesign # Requires checked mode.
-regress/regress13474_test: SkipByDesign # Requires checked mode.
 regress/regress29784_test/02: SkipByDesign # Requires checked mode.
 stack_trace/demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type/checks_in_factory_method_test: SkipByDesign # Requires checked mode.
+
+[ $runtime != vm ]
+unsorted/disassemble_test: Skip # VM only test
 
 [ $compiler != dart2analyzer && $compiler != fasta ]
 identifier/built_in_type_annotation_test/*: SkipByDesign # Analyzer/CFE only tests.

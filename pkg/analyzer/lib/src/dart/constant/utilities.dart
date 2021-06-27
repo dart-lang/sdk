@@ -5,134 +5,13 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
 typedef ReferenceFinderCallback = void Function(
     ConstantEvaluationTarget dependency);
-
-/// An [AstCloner] that copies the necessary information from the AST to allow
-/// constants to be evaluated.
-class ConstantAstCloner extends AstCloner {
-  ConstantAstCloner() : super(true);
-
-  @override
-  Annotation visitAnnotation(Annotation node) {
-    Annotation annotation = super.visitAnnotation(node);
-    annotation.element = node.element;
-    return annotation;
-  }
-
-  @override
-  ConstructorName visitConstructorName(ConstructorName node) {
-    ConstructorName name = super.visitConstructorName(node);
-    name.staticElement = node.staticElement;
-    return name;
-  }
-
-  @override
-  FunctionExpression visitFunctionExpression(FunctionExpression node) {
-    FunctionExpressionImpl expression = super.visitFunctionExpression(node);
-    expression.declaredElement = node.declaredElement;
-    return expression;
-  }
-
-  @override
-  InstanceCreationExpression visitInstanceCreationExpression(
-      InstanceCreationExpression node) {
-    InstanceCreationExpression expression =
-        super.visitInstanceCreationExpression(node);
-    if (node.keyword == null) {
-      if (node.isConst) {
-        expression.keyword = KeywordToken(Keyword.CONST, node.offset);
-      } else {
-        expression.keyword = KeywordToken(Keyword.NEW, node.offset);
-      }
-    }
-    return expression;
-  }
-
-  @override
-  IntegerLiteral visitIntegerLiteral(IntegerLiteral node) {
-    IntegerLiteral integer = super.visitIntegerLiteral(node);
-    integer.staticType = node.staticType;
-    return integer;
-  }
-
-  @override
-  ListLiteral visitListLiteral(ListLiteral node) {
-    ListLiteral literal = super.visitListLiteral(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
-  @override
-  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
-    PrefixedIdentifierImpl copy = super.visitPrefixedIdentifier(node);
-    copy.staticType = node.staticType;
-    return copy;
-  }
-
-  @override
-  PropertyAccess visitPropertyAccess(PropertyAccess node) {
-    PropertyAccessImpl copy = super.visitPropertyAccess(node);
-    copy.staticType = node.staticType;
-    return copy;
-  }
-
-  @override
-  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    RedirectingConstructorInvocation invocation =
-        super.visitRedirectingConstructorInvocation(node);
-    invocation.staticElement = node.staticElement;
-    return invocation;
-  }
-
-  @override
-  SetOrMapLiteral visitSetOrMapLiteral(SetOrMapLiteral node) {
-    SetOrMapLiteral literal = super.visitSetOrMapLiteral(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
-  @override
-  SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifierImpl copy = super.visitSimpleIdentifier(node);
-    copy.staticElement = node.staticElement;
-    copy.staticType = node.staticType;
-    copy.tearOffTypeArgumentTypes = node.tearOffTypeArgumentTypes;
-    return copy;
-  }
-
-  @override
-  SuperConstructorInvocation visitSuperConstructorInvocation(
-      SuperConstructorInvocation node) {
-    SuperConstructorInvocation invocation =
-        super.visitSuperConstructorInvocation(node);
-    invocation.staticElement = node.staticElement;
-    return invocation;
-  }
-
-  @override
-  TypeName visitTypeName(TypeName node) {
-    TypeName typeName = super.visitTypeName(node);
-    typeName.type = node.type;
-    return typeName;
-  }
-}
 
 /// A visitor used to traverse the AST structures of all of the compilation
 /// units being resolved and build the full set of dependencies for all constant
@@ -190,10 +69,8 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   /// Add dependencies of a [CollectionElement] or [Expression] (which is a type
   /// of [CollectionElement]).
   void _find(CollectionElement node) {
-    if (node != null) {
-      ReferenceFinder referenceFinder = ReferenceFinder(dependencies.add);
-      node.accept(referenceFinder);
-    }
+    ReferenceFinder referenceFinder = ReferenceFinder(dependencies.add);
+    node.accept(referenceFinder);
   }
 }
 
@@ -213,11 +90,12 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
-    ElementAnnotation elementAnnotation = node.elementAnnotation;
+    var elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
       // Analyzer ignores annotations on "part of" directives and on enum
       // constant declarations.
-      assert(node.parent is PartOfDirective ||
+      assert(node.parent is PartDirective ||
+          node.parent is PartOfDirective ||
           node.parent is EnumConstantDeclaration);
     } else {
       constantsToCompute.add(elementAnnotation);
@@ -227,7 +105,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
-    if (node.declaredElement.constructors
+    if (node.declaredElement!.constructors
         .any((ConstructorElement e) => e.isConst)) {
       // Instance vars marked "final" need to be included in the dependency
       // graph, since constant constructors implicitly use the values in their
@@ -245,7 +123,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     if (node.constKeyword != null) {
-      ConstructorElement element = node.declaredElement;
+      var element = node.declaredElement;
       if (element != null) {
         constantsToCompute.add(element);
         constantsToCompute.addAll(element.parameters);
@@ -256,26 +134,24 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
-    Expression defaultValue = node.defaultValue;
+    var defaultValue = node.defaultValue;
     if (defaultValue != null && node.declaredElement != null) {
-      constantsToCompute.add(node.declaredElement);
+      constantsToCompute.add(node.declaredElement!);
     }
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
-    Expression initializer = node.initializer;
-    VariableElement element = node.declaredElement;
+    var initializer = node.initializer;
+    var element = node.declaredElement!;
     if (initializer != null &&
         (node.isConst ||
             treatFinalInstanceVarAsConst &&
                 element is FieldElement &&
                 node.isFinal &&
                 !element.isStatic)) {
-      if (element != null) {
-        constantsToCompute.add(element);
-      }
+      constantsToCompute.add(element);
     }
   }
 }
@@ -295,8 +171,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      ConstructorElement constructor =
-          node.constructorName.staticElement?.declaration;
+      var constructor = node.constructorName.staticElement?.declaration;
       if (constructor != null) {
         _callback(constructor);
       }
@@ -317,7 +192,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     super.visitRedirectingConstructorInvocation(node);
-    ConstructorElement target = node.staticElement?.declaration;
+    var target = node.staticElement?.declaration;
     if (target != null) {
       _callback(target);
     }
@@ -325,8 +200,8 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element staticElement = node.staticElement;
-    Element element = staticElement is PropertyAccessorElement
+    var staticElement = node.staticElement;
+    var element = staticElement is PropertyAccessorElement
         ? staticElement.variable
         : staticElement;
     if (element is VariableElement && element.isConst) {
@@ -337,7 +212,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     super.visitSuperConstructorInvocation(node);
-    ConstructorElement constructor = node.staticElement?.declaration;
+    var constructor = node.staticElement?.declaration;
     if (constructor != null) {
       _callback(constructor);
     }

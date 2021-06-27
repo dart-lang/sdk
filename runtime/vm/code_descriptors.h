@@ -24,7 +24,7 @@ class DescriptorList : public ZoneAllocated {
 
   ~DescriptorList() {}
 
-  void AddDescriptor(PcDescriptorsLayout::Kind kind,
+  void AddDescriptor(UntaggedPcDescriptors::Kind kind,
                      intptr_t pc_offset,
                      intptr_t deopt_id,
                      TokenPosition token_pos,
@@ -240,7 +240,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
 
   void BeginCodeSourceRange(int32_t pc_offset, const InstructionSource& source);
   void EndCodeSourceRange(int32_t pc_offset, const InstructionSource& source);
-  void NoteDescriptor(PcDescriptorsLayout::Kind kind,
+  void NoteDescriptor(UntaggedPcDescriptors::Kind kind,
                       int32_t pc_offset,
                       const InstructionSource& source);
   void NoteNullCheck(int32_t pc_offset,

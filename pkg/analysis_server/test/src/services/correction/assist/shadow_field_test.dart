@@ -44,7 +44,7 @@ class C {
   num f = 0;
 
   void m() {
-    while (true) 
+    while (true)
       if (f is int) {
         print((f as int).abs());
       }

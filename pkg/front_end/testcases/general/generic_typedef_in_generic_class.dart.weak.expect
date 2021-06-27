@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F = <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%) → T%;
+class Class<A extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::A%>
+    : super core::Object::•()
+    ;
+  method method() → dynamic {
+    core::print(#C1);
+    core::print(#C1);
+  }
+}
+static method main() → dynamic {
+  new self::Class::•<core::int>().{self::Class::method}(){() → dynamic};
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T*, S*) →* T*)
+}

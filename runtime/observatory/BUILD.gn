@@ -21,23 +21,10 @@ prebuilt_dart2js_action("build_observatory") {
     outputs += [ "$target_gen_dir/observatory/web/main.dart.js.map" ]
   }
 
-  version_string = exec_script("../../tools/make_version.py",
-                               [
-                                 "--quiet",
-                                 "--no_git_hash",
-                               ],  # Arguments to the script
-                               "trim string",  # Input conversions
-                               [
-                                 "../../tools/VERSION",
-                                 "../tools/utils.py",
-                               ])  # Dependencies
-
   args = [
-    "-DOBS_VER=${version_string}",
     "-o",
     rebase_path(output),
     "--packages=" + rebase_path("../../.packages"),
-    "--enable-experiment=non-nullable",
     "--no-sound-null-safety",
   ]
   if (is_debug) {

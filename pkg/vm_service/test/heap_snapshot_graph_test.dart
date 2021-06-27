@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
-import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 class Foo {
@@ -13,9 +12,9 @@ class Foo {
   dynamic right;
 }
 
-Foo r;
+late Foo r;
 
-List lst;
+late List lst;
 
 void script() {
   // Create 3 instances of Foo, with out-degrees
@@ -44,7 +43,8 @@ var tests = <IsolateTest>[
     int actualShallowSize = 0;
     int actualRefCount = 0;
     snapshotGraph.objects.forEach((HeapSnapshotObject o) {
-      expect(o.classId >= 0, isTrue);
+      // -1 is the CID used by the sentinel.
+      expect(o.classId >= -1, isTrue);
       expect(o.data, isNotNull);
       expect(o.references, isNotNull);
       actualShallowSize += o.shallowSize;
@@ -91,7 +91,7 @@ var tests = <IsolateTest>[
     foosFound = 0;
     snapshotGraph.objects.forEach((HeapSnapshotObject o) {
       if (o.classId == 0) return;
-      if (o.classId - 1 == fooClassId) {
+      if (o.classId == fooClassId) {
         foosFound++;
       }
     });
@@ -104,5 +104,9 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, testeeBefore: script);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      tests,
+      'heap_snapshot_graph_test.dart',
+      testeeBefore: script,
+    );

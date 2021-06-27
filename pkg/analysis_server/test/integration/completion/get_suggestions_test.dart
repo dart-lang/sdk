@@ -17,17 +17,24 @@ void main() {
 
 @reflectiveTest
 class GetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
-  String path;
-  String content;
-  int completionOffset;
+  bool initialized = false;
+  late String path;
+  late String content;
+  late int completionOffset;
 
   void setTestSource(String relPath, String content) {
+    if (initialized) {
+      fail('Call addTestUnit exactly once');
+    }
+
     path = sourcePath(relPath);
-    expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
+
     completionOffset = content.indexOf('^');
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+
     var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
+
     this.content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
   }
@@ -97,7 +104,7 @@ main() {
         (CompletionSuggestion suggestion) => suggestion.completion == 'length');
   }
 
-  Future<void> test_getSuggestions_sourceMissing_noWait() {
+  Future<void> test_getSuggestions_sourceMissing_noWait() async {
     path = sourcePath('does_not_exist.dart');
     // Do not write the file to "disk"
     //   writeFile(pathname, text);
@@ -105,11 +112,7 @@ main() {
     standardAnalysisSetup(subscribeStatus: false);
     // Missing file and no overlay
     //sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
-    return sendCompletionGetSuggestions(path, 0).catchError((e) {
-      // Exception expected
-      return null;
-    }).then((result) {
-      expect(result, const TypeMatcher<CompletionGetSuggestionsResult>());
-    });
+    var result = await sendCompletionGetSuggestions(path, 0);
+    expect(result, const TypeMatcher<CompletionGetSuggestionsResult>());
   }
 }

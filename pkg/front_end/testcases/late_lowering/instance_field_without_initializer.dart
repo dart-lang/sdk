@@ -85,7 +85,7 @@ throws(f(), String message) {
   dynamic value;
   try {
     value = f();
-  } on LateInitializationError catch (e) {
+  } on Error catch (e) {
     print(e);
     return;
   }

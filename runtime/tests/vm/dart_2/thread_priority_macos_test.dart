@@ -34,11 +34,11 @@ class SchedParam extends Struct {
 
 main(args) {
   if (Platform.isMacOS) {
-    final policy = allocate<Int32>(count: 1);
-    final param = allocate<SchedParam>(count: 1);
+    final policy = calloc<Int32>(1);
+    final param = calloc<SchedParam>(1);
     Expect.equals(0, pthreadGetSchedParam(pthreadSelf(), policy, param));
     Expect.equals(15, param.ref.schedPriority);
-    free(policy);
-    free(param);
+    calloc.free(policy);
+    calloc.free(param);
   }
 }

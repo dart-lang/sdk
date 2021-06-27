@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 library fasta.tool.entry_points;
 
 import 'dart:convert' show LineSplitter, jsonDecode, jsonEncode, utf8;
@@ -331,7 +333,8 @@ class CompileTask {
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.debugDump && output != null) {
-      printComponentText(outline, libraryFilter: kernelTarget.isSourceLibrary);
+      printComponentText(outline,
+          libraryFilter: kernelTarget.isSourceLibraryForDebugging);
     }
     if (output != null) {
       if (omitPlatform) {
@@ -357,6 +360,7 @@ class CompileTask {
 
   Future<Uri> compile(
       {bool omitPlatform: false, bool supportAdditionalDills: true}) async {
+    c.options.reportNullSafetyCompilationModeInfo();
     KernelTarget kernelTarget =
         await buildOutline(supportAdditionalDills: supportAdditionalDills);
     Uri uri = c.options.output;
@@ -364,7 +368,7 @@ class CompileTask {
         await kernelTarget.buildComponent(verify: c.options.verify);
     if (c.options.debugDump) {
       printComponentText(component,
-          libraryFilter: kernelTarget.isSourceLibrary);
+          libraryFilter: kernelTarget.isSourceLibraryForDebugging);
     }
     if (omitPlatform) {
       component.computeCanonicalNames();

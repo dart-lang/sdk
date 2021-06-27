@@ -27,13 +27,13 @@ class BoolState extends InstanceState {
   static BoolState UNKNOWN_VALUE = BoolState(null);
 
   /// The value of this instance.
-  final bool value;
+  final bool? value;
 
   /// Initialize a newly created state to represent the given [value].
   BoolState(this.value);
 
   @override
-  int get hashCode => value == null ? 0 : (value ? 2 : 3);
+  int get hashCode => value == null ? 0 : (value! ? 2 : 3);
 
   @override
   bool get isBool => true;
@@ -59,22 +59,22 @@ class BoolState extends InstanceState {
     if (value == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return StringState(value ? "true" : "false");
+    return StringState(value! ? "true" : "false");
   }
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is BoolState) {
-      bool rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -84,28 +84,23 @@ class BoolState extends InstanceState {
   }
 
   @override
-  BoolState lazyAnd(InstanceState Function() rightOperandComputer) {
+  BoolState lazyAnd(InstanceState? Function() rightOperandComputer) {
     if (value == false) {
       return FALSE_STATE;
     }
-    InstanceState rightOperand = rightOperandComputer();
+    var rightOperand = rightOperandComputer();
     assertBool(rightOperand);
-    return value == null ? UNKNOWN_VALUE : rightOperand.convertToBool();
+    return value == null ? UNKNOWN_VALUE : rightOperand!.convertToBool();
   }
 
   @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
-  }
-
-  @override
-  BoolState lazyOr(InstanceState Function() rightOperandComputer) {
+  BoolState lazyOr(InstanceState? Function() rightOperandComputer) {
     if (value == true) {
       return TRUE_STATE;
     }
-    InstanceState rightOperand = rightOperandComputer();
+    var rightOperand = rightOperandComputer();
     assertBool(rightOperand);
-    return value == null ? UNKNOWN_VALUE : rightOperand.convertToBool();
+    return value == null ? UNKNOWN_VALUE : rightOperand!.convertToBool();
   }
 
   @override
@@ -113,11 +108,12 @@ class BoolState extends InstanceState {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
-    return value ? FALSE_STATE : TRUE_STATE;
+    return value! ? FALSE_STATE : TRUE_STATE;
   }
 
   @override
-  String toString() => value == null ? "-unknown-" : (value ? "true" : "false");
+  String toString() =>
+      value == null ? "-unknown-" : (value! ? "true" : "false");
 
   /// Return the boolean state representing the given boolean [value].
   static BoolState from(bool value) =>
@@ -131,7 +127,7 @@ class ConstructorInvocation {
 
   /// Values of specified arguments, actual values for positional, and `null`
   /// for named (which are provided as [namedArguments]).
-  final List<DartObjectImpl> _argumentValues;
+  final List<DartObjectImpl?> _argumentValues;
 
   /// The named arguments passed to the constructor.
   final Map<String, DartObjectImpl> namedArguments;
@@ -141,7 +137,15 @@ class ConstructorInvocation {
 
   /// The positional arguments passed to the constructor.
   List<DartObjectImpl> get positionalArguments {
-    return _argumentValues.takeWhile((v) => v != null).toList();
+    var result = <DartObjectImpl>[];
+    for (var argument in _argumentValues) {
+      if (argument != null) {
+        result.add(argument);
+      } else {
+        break;
+      }
+    }
+    return result;
   }
 }
 
@@ -163,7 +167,7 @@ class DartObjectImpl implements DartObject {
     TypeSystemImpl typeSystem,
     ParameterizedType type,
   ) {
-    if (type.element.library.isDartCore) {
+    if (type.element!.library!.isDartCore) {
       if (type.isDartCoreBool) {
         return DartObjectImpl(typeSystem, type, BoolState.UNKNOWN_VALUE);
       } else if (type.isDartCoreDouble) {
@@ -177,7 +181,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(typeSystem, type, GenericState.UNKNOWN_VALUE);
   }
 
-  Map<String, DartObjectImpl> get fields => _state.fields;
+  Map<String, DartObjectImpl>? get fields => _state.fields;
 
   @override
   int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
@@ -262,13 +266,18 @@ class DartObjectImpl implements DartObject {
     _assertType(castType);
     var resultType = (castType._state as TypeState)._type;
 
+    // If we don't know the type, we cannot prove that the cast will fail.
+    if (resultType == null) {
+      return this;
+    }
+
     // We don't know the actual value of a type parameter.
     // So, the object type might be a subtype of the result type.
     if (hasTypeParameterReference(resultType)) {
       return this;
     }
 
-    if (!typeSystem.isSubtypeOf2(type, resultType)) {
+    if (!typeSystem.isSubtypeOf(type, resultType)) {
       throw EvaluationException(
           CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }
@@ -332,8 +341,8 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerAnd(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
-    if (allowBool && isBool && rightOperand.isBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
@@ -355,8 +364,8 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerOr(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
-    if (allowBool && isBool && rightOperand.isBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
@@ -378,8 +387,8 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerXor(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
-    if (allowBool && isBool && rightOperand.isBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
@@ -415,7 +424,7 @@ class DartObjectImpl implements DartObject {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.equalEqual(rightOperand._state),
+        _state.equalEqual(typeSystem, rightOperand._state),
       );
     }
     throw EvaluationException(
@@ -423,7 +432,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  DartObject getField(String name) {
+  DartObject? getField(String name) {
     InstanceState state = _state;
     if (state is GenericState) {
       return state.fields[name];
@@ -433,7 +442,7 @@ class DartObjectImpl implements DartObject {
 
   /// Gets the constructor that was called to create this value, if this is a
   /// const constructor invocation. Otherwise returns null.
-  ConstructorInvocation getInvocation() {
+  ConstructorInvocation? getInvocation() {
     InstanceState state = _state;
     if (state is GenericState) {
       return state.invocation;
@@ -473,7 +482,7 @@ class DartObjectImpl implements DartObject {
   /// [testedType].
   DartObjectImpl hasType(TypeSystemImpl typeSystem, DartObjectImpl testedType) {
     _assertType(testedType);
-    DartType typeType = (testedType._state as TypeState)._type;
+    var typeType = (testedType._state as TypeState)._type;
     BoolState state;
     if (isNull) {
       if (typeType == typeSystem.typeProvider.objectType ||
@@ -483,8 +492,10 @@ class DartObjectImpl implements DartObject {
       } else {
         state = BoolState.FALSE_STATE;
       }
+    } else if (typeType == null) {
+      state = BoolState.TRUE_STATE;
     } else {
-      state = BoolState.from(typeSystem.isSubtypeOf2(type, typeType));
+      state = BoolState.from(typeSystem.isSubtypeOf(type, typeType));
     }
     return DartObjectImpl(typeSystem, typeSystem.typeProvider.boolType, state);
   }
@@ -544,7 +555,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      _state.isIdentical(rightOperand._state),
+      _state.isIdentical(typeSystem, rightOperand._state),
     );
   }
 
@@ -554,7 +565,7 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lazyAnd(TypeSystemImpl typeSystem,
-      DartObjectImpl Function() rightOperandComputer) {
+      DartObjectImpl? Function() rightOperandComputer) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
@@ -582,7 +593,7 @@ class DartObjectImpl implements DartObject {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.lazyEqualEqual(rightOperand._state),
+        _state.lazyEqualEqual(typeSystem, rightOperand._state),
       );
     }
     throw EvaluationException(
@@ -595,7 +606,7 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lazyOr(TypeSystemImpl typeSystem,
-          DartObjectImpl Function() rightOperandComputer) =>
+          DartObjectImpl? Function() rightOperandComputer) =>
       DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
@@ -815,7 +826,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  bool toBoolValue() {
+  bool? toBoolValue() {
     InstanceState state = _state;
     if (state is BoolState) {
       return state.value;
@@ -824,7 +835,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  double toDoubleValue() {
+  double? toDoubleValue() {
     InstanceState state = _state;
     if (state is DoubleState) {
       return state.value;
@@ -833,13 +844,13 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  ExecutableElement toFunctionValue() {
+  ExecutableElement? toFunctionValue() {
     InstanceState state = _state;
     return state is FunctionState ? state._element : null;
   }
 
   @override
-  int toIntValue() {
+  int? toIntValue() {
     InstanceState state = _state;
     if (state is IntState) {
       return state.value;
@@ -848,7 +859,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  List<DartObject> toListValue() {
+  List<DartObject>? toListValue() {
     InstanceState state = _state;
     if (state is ListState) {
       return state._elements;
@@ -857,7 +868,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  Map<DartObject, DartObject> toMapValue() {
+  Map<DartObjectImpl, DartObjectImpl>? toMapValue() {
     InstanceState state = _state;
     if (state is MapState) {
       return state._entries;
@@ -866,7 +877,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  Set<DartObject> toSetValue() {
+  Set<DartObject>? toSetValue() {
     InstanceState state = _state;
     if (state is SetState) {
       return state._elements;
@@ -880,7 +891,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  String toStringValue() {
+  String? toStringValue() {
     InstanceState state = _state;
     if (state is StringState) {
       return state.value;
@@ -889,7 +900,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  String toSymbolValue() {
+  String? toSymbolValue() {
     InstanceState state = _state;
     if (state is SymbolState) {
       return state.value;
@@ -898,7 +909,7 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  DartType toTypeValue() {
+  DartType? toTypeValue() {
     InstanceState state = _state;
     if (state is TypeState) {
       return state._type;
@@ -921,7 +932,7 @@ class DoubleState extends NumState {
   static DoubleState UNKNOWN_VALUE = DoubleState(null);
 
   /// The value of this instance.
-  final double value;
+  final double? value;
 
   /// Initialize a newly created state to represent a double with the given
   /// [value].
@@ -947,17 +958,17 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value + rightValue.toDouble());
+      return DoubleState(value! + rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value + rightValue);
+      return DoubleState(value! + rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -977,17 +988,17 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value / rightValue.toDouble());
+      return DoubleState(value! / rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value / rightValue);
+      return DoubleState(value! / rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -999,17 +1010,17 @@ class DoubleState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value > rightValue.toDouble());
+      return BoolState.from(value! > rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value > rightValue);
+      return BoolState.from(value! > rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1021,17 +1032,17 @@ class DoubleState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value >= rightValue.toDouble());
+      return BoolState.from(value! >= rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value >= rightValue);
+      return BoolState.from(value! >= rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1043,20 +1054,20 @@ class DoubleState extends NumState {
       return IntState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return IntState.UNKNOWN_VALUE;
       }
-      double result = value / rightValue.toDouble();
+      var result = value! / rightValue.toDouble();
       if (result.isFinite) {
         return IntState(result.toInt());
       }
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return IntState.UNKNOWN_VALUE;
       }
-      double result = value / rightValue;
+      double result = value! / rightValue;
       if (result.isFinite) {
         return IntState(result.toInt());
       }
@@ -1065,18 +1076,18 @@ class DoubleState extends NumState {
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value == rightValue);
     } else if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -1086,28 +1097,23 @@ class DoubleState extends NumState {
   }
 
   @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
-  }
-
-  @override
   BoolState lessThan(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value < rightValue.toDouble());
+      return BoolState.from(value! < rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value < rightValue);
+      return BoolState.from(value! < rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1119,17 +1125,17 @@ class DoubleState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value <= rightValue.toDouble());
+      return BoolState.from(value! <= rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value <= rightValue);
+      return BoolState.from(value! <= rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1141,17 +1147,17 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value - rightValue.toDouble());
+      return DoubleState(value! - rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value - rightValue);
+      return DoubleState(value! - rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1161,7 +1167,7 @@ class DoubleState extends NumState {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
-    return DoubleState(-value);
+    return DoubleState(-value!);
   }
 
   @override
@@ -1171,17 +1177,17 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value % rightValue.toDouble());
+      return DoubleState(value! % rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value % rightValue);
+      return DoubleState(value! % rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1193,17 +1199,17 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value * rightValue.toDouble());
+      return DoubleState(value! * rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return DoubleState(value * rightValue);
+      return DoubleState(value! * rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1224,7 +1230,7 @@ class EvaluationException {
 /// The state of an object representing a function.
 class FunctionState extends InstanceState {
   /// The element representing the function being modeled.
-  final ExecutableElement _element;
+  final ExecutableElement? _element;
 
   /// Initialize a newly created state to represent the function with the given
   /// [element].
@@ -1245,21 +1251,21 @@ class FunctionState extends InstanceState {
     if (_element == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return StringState(_element.name);
+    return StringState(_element!.name);
   }
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (_element == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is FunctionState) {
-      ExecutableElement rightElement = rightOperand._element;
+      var rightElement = rightOperand._element;
       if (rightElement == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -1269,12 +1275,7 @@ class FunctionState extends InstanceState {
   }
 
   @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
-  }
-
-  @override
-  String toString() => _element == null ? "-unknown-" : _element.name;
+  String toString() => _element?.name ?? "-unknown-";
 }
 
 /// The state of an object representing a Dart object for which there is no more
@@ -1291,7 +1292,7 @@ class GenericState extends InstanceState {
   final Map<String, DartObjectImpl> _fieldMap;
 
   /// Information about the constructor invoked to generate this instance.
-  final ConstructorInvocation invocation;
+  final ConstructorInvocation? invocation;
 
   /// Initialize a newly created state to represent a newly created object. The
   /// [fieldMap] contains the values of the fields of the instance.
@@ -1340,19 +1341,14 @@ class GenericState extends InstanceState {
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -1379,7 +1375,7 @@ class GenericState extends InstanceState {
 abstract class InstanceState {
   /// If this represents a generic dart object, return a map from its field
   /// names to their values. Otherwise return null.
-  Map<String, DartObjectImpl> get fields => null;
+  Map<String, DartObjectImpl>? get fields => null;
 
   /// Return `true` if this object represents an object whose type is 'bool'.
   bool get isBool => false;
@@ -1415,7 +1411,7 @@ abstract class InstanceState {
   }
 
   /// Throw an exception if the given [state] does not represent a boolean value.
-  void assertBool(InstanceState state) {
+  void assertBool(InstanceState? state) {
     if (state is! BoolState) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
@@ -1536,7 +1532,7 @@ abstract class InstanceState {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState equalEqual(InstanceState rightOperand);
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand);
 
   /// Return the result of invoking the '&gt;' operator on this object with the
   /// [rightOperand].
@@ -1573,21 +1569,21 @@ abstract class InstanceState {
 
   /// Return the result of invoking the identical function on this object with
   /// the [rightOperand].
-  BoolState isIdentical(InstanceState rightOperand);
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand);
 
   /// Return the result of invoking the '&&' operator on this object with the
   /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState lazyAnd(InstanceState Function() rightOperandComputer) {
+  BoolState lazyAnd(InstanceState? Function() rightOperandComputer) {
     assertBool(this);
     if (convertToBool() == BoolState.FALSE_STATE) {
-      return this;
+      return this as BoolState;
     }
-    InstanceState rightOperand = rightOperandComputer();
+    var rightOperand = rightOperandComputer();
     assertBool(rightOperand);
-    return rightOperand.convertToBool();
+    return rightOperand!.convertToBool();
   }
 
   /// Return the result of invoking the '==' operator on this object with the
@@ -1595,21 +1591,26 @@ abstract class InstanceState {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState lazyEqualEqual(InstanceState rightOperand);
+  BoolState lazyEqualEqual(
+    TypeSystemImpl typeSystem,
+    InstanceState rightOperand,
+  ) {
+    return isIdentical(typeSystem, rightOperand);
+  }
 
   /// Return the result of invoking the '||' operator on this object with the
   /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState lazyOr(InstanceState Function() rightOperandComputer) {
+  BoolState lazyOr(InstanceState? Function() rightOperandComputer) {
     assertBool(this);
     if (convertToBool() == BoolState.TRUE_STATE) {
-      return this;
+      return this as BoolState;
     }
-    InstanceState rightOperand = rightOperandComputer();
+    var rightOperand = rightOperandComputer();
     assertBool(rightOperand);
-    return rightOperand.convertToBool();
+    return rightOperand!.convertToBool();
   }
 
   /// Return the result of invoking the '&lt;' operator on this object with the
@@ -1642,8 +1643,8 @@ abstract class InstanceState {
   BoolState logicalAnd(InstanceState rightOperand) {
     assertBool(this);
     assertBool(rightOperand);
-    bool leftValue = convertToBool().value;
-    bool rightValue = rightOperand.convertToBool().value;
+    var leftValue = convertToBool().value;
+    var rightValue = rightOperand.convertToBool().value;
     if (leftValue == null || rightValue == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -1667,16 +1668,16 @@ abstract class InstanceState {
   BoolState logicalOr(InstanceState rightOperand) {
     assertBool(this);
     assertBool(rightOperand);
-    bool leftValue = convertToBool().value;
-    bool rightValue = rightOperand.convertToBool().value;
+    var leftValue = convertToBool().value;
+    var rightValue = rightOperand.convertToBool().value;
     if (leftValue == null || rightValue == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.from(leftValue | rightValue);
   }
 
-  /// Return the result of invoking the '&gt;&gt;' operator on this object with
-  /// the [rightOperand].
+  /// Return the result of invoking the '&gt;&gt;&gt;' operator on this object
+  /// with the [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
@@ -1694,8 +1695,8 @@ abstract class InstanceState {
   BoolState logicalXor(InstanceState rightOperand) {
     assertBool(this);
     assertBool(rightOperand);
-    bool leftValue = convertToBool().value;
-    bool rightValue = rightOperand.convertToBool().value;
+    var leftValue = convertToBool().value;
+    var rightValue = rightOperand.convertToBool().value;
     if (leftValue == null || rightValue == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -1782,7 +1783,7 @@ class IntState extends NumState {
   static IntState UNKNOWN_VALUE = IntState(null);
 
   /// The value of this instance.
-  final int value;
+  final int? value;
 
   /// Initialize a newly created state to represent an int with the given
   /// [value].
@@ -1814,17 +1815,17 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return IntState(value + rightValue);
+      return IntState(value! + rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return DoubleState(value.toDouble() + rightValue);
+      return DoubleState(value!.toDouble() + rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1836,11 +1837,11 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return IntState(value & rightValue);
+      return IntState(value! & rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1850,7 +1851,7 @@ class IntState extends NumState {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
-    return IntState(~value);
+    return IntState(~value!);
   }
 
   @override
@@ -1860,11 +1861,11 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return IntState(value | rightValue);
+      return IntState(value! | rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1876,11 +1877,11 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return IntState(value ^ rightValue);
+      return IntState(value! ^ rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1900,18 +1901,18 @@ class IntState extends NumState {
       return DoubleState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       } else {
-        return DoubleState(value.toDouble() / rightValue.toDouble());
+        return DoubleState(value!.toDouble() / rightValue.toDouble());
       }
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return DoubleState(value.toDouble() / rightValue);
+      return DoubleState(value!.toDouble() / rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1923,17 +1924,17 @@ class IntState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value.compareTo(rightValue) > 0);
+      return BoolState.from(value!.compareTo(rightValue) > 0);
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value.toDouble() > rightValue);
+      return BoolState.from(value!.toDouble() > rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1945,17 +1946,17 @@ class IntState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value.compareTo(rightValue) >= 0);
+      return BoolState.from(value!.compareTo(rightValue) >= 0);
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value.toDouble() >= rightValue);
+      return BoolState.from(value!.toDouble() >= rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1967,19 +1968,19 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue == 0) {
         throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
       }
-      return IntState(value ~/ rightValue);
+      return IntState(value! ~/ rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      double result = value.toDouble() / rightValue;
+      double result = value!.toDouble() / rightValue;
       if (result.isFinite) {
         return IntState(result.toInt());
       }
@@ -1988,29 +1989,24 @@ class IntState extends NumState {
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value == rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(rightValue == value.toDouble());
+      return BoolState.from(rightValue == value!.toDouble());
     }
     return BoolState.FALSE_STATE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2020,17 +2016,17 @@ class IntState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value.compareTo(rightValue) < 0);
+      return BoolState.from(value!.compareTo(rightValue) < 0);
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value.toDouble() < rightValue);
+      return BoolState.from(value!.toDouble() < rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -2042,17 +2038,17 @@ class IntState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value.compareTo(rightValue) <= 0);
+      return BoolState.from(value!.compareTo(rightValue) <= 0);
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value.toDouble() <= rightValue);
+      return BoolState.from(value!.toDouble() <= rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -2064,24 +2060,16 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
-      } else if (rightValue.bitLength > 31) {
-        return UNKNOWN_VALUE;
-      }
-      if (rightValue >= 0) {
-        // TODO(brianwilkerson) After the analyzer package has a minimum SDK
-        // constraint that includes support for the real operator, consider
-        // changing the line below to
-        //   return new IntState(value >>> rightValue);
-        int divisor = 1 << rightValue;
-        if (divisor == 0) {
-          // The `rightValue` is large enough to cause all of the non-zero bits
-          // in the left operand to be shifted out of the value.
-          return IntState(0);
-        }
-        return IntState(value ~/ divisor);
+      } else if (rightValue >= 64) {
+        return IntState(0);
+      } else if (rightValue >= 0) {
+        // TODO(srawlins): Replace with real operator once stable, like:
+        //     return new IntState(value >>> rightValue);
+        return IntState(
+            (value! >> rightValue) & ((1 << (64 - rightValue)) - 1));
       }
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2097,17 +2085,17 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return IntState(value - rightValue);
+      return IntState(value! - rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return DoubleState(value.toDouble() - rightValue);
+      return DoubleState(value!.toDouble() - rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -2117,7 +2105,7 @@ class IntState extends NumState {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
-    return IntState(-value);
+    return IntState(-value!);
   }
 
   @override
@@ -2130,19 +2118,19 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       if (rightValue != 0) {
-        return IntState(value % rightValue);
+        return IntState(value! % rightValue);
       }
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return DoubleState(value.toDouble() % rightValue);
+      return DoubleState(value!.toDouble() % rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -2154,14 +2142,14 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue.bitLength > 31) {
         return UNKNOWN_VALUE;
       }
       if (rightValue >= 0) {
-        return IntState(value << rightValue);
+        return IntState(value! << rightValue);
       }
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2174,14 +2162,14 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue.bitLength > 31) {
         return UNKNOWN_VALUE;
       }
       if (rightValue >= 0) {
-        return IntState(value >> rightValue);
+        return IntState(value! >> rightValue);
       }
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2197,17 +2185,17 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return IntState(value * rightValue);
+      return IntState(value! * rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return DoubleState(value.toDouble() * rightValue);
+      return DoubleState(value!.toDouble() * rightValue);
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -2262,19 +2250,14 @@ class ListState extends InstanceState {
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2327,8 +2310,8 @@ class MapState extends InstanceState {
         return true;
       }
       for (DartObjectImpl key in _entries.keys) {
-        DartObjectImpl value = _entries[key];
-        DartObjectImpl otherValue = otherElements[key];
+        var value = _entries[key];
+        var otherValue = otherElements[key];
         if (value != otherValue) {
           return false;
         }
@@ -2342,19 +2325,14 @@ class MapState extends InstanceState {
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2406,19 +2384,14 @@ class NullState extends InstanceState {
   StringState convertToString() => StringState("null");
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(rightOperand is NullState);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2436,9 +2409,9 @@ abstract class NumState extends InstanceState {
   bool get isBoolNumStringOrNull => true;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 }
 
@@ -2488,19 +2461,14 @@ class SetState extends InstanceState {
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2527,7 +2495,7 @@ class StringState extends InstanceState {
   static StringState UNKNOWN_VALUE = StringState(null);
 
   /// The value of this instance.
-  final String value;
+  final String? value;
 
   /// Initialize a newly created state to represent the given [value].
   StringState(this.value);
@@ -2554,7 +2522,7 @@ class StringState extends InstanceState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is StringState) {
-      String rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -2567,18 +2535,18 @@ class StringState extends InstanceState {
   StringState convertToString() => this;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is StringState) {
-      String rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -2588,16 +2556,11 @@ class StringState extends InstanceState {
   }
 
   @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
-  }
-
-  @override
   IntState stringLength() {
     if (value == null) {
       return IntState.UNKNOWN_VALUE;
     }
-    return IntState(value.length);
+    return IntState(value!.length);
   }
 
   @override
@@ -2607,7 +2570,7 @@ class StringState extends InstanceState {
 /// The state of an object representing a symbol.
 class SymbolState extends InstanceState {
   /// The value of this instance.
-  final String value;
+  final String? value;
 
   /// Initialize a newly created state to represent the given [value].
   SymbolState(this.value);
@@ -2631,18 +2594,18 @@ class SymbolState extends InstanceState {
   }
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is SymbolState) {
-      String rightValue = rightOperand.value;
+      var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -2652,18 +2615,13 @@ class SymbolState extends InstanceState {
   }
 
   @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
-  }
-
-  @override
   String toString() => value == null ? "-unknown-" : "#$value";
 }
 
 /// The state of an object representing a type.
 class TypeState extends InstanceState {
   /// The element representing the type being modeled.
-  final DartType _type;
+  final DartType? _type;
 
   /// Initialize a newly created state to represent the given [value].
   TypeState(this._type);
@@ -2683,33 +2641,31 @@ class TypeState extends InstanceState {
     if (_type == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return StringState(_type.getDisplayString(withNullability: false));
+    return StringState(_type!.getDisplayString(withNullability: false));
   }
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (_type == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is TypeState) {
-      DartType rightType = rightOperand._type;
+      var rightType = rightOperand._type;
       if (rightType == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(_type == rightType);
+
+      return BoolState.from(
+        typeSystem.runtimeTypesEqual(_type!, rightType),
+      );
     }
     return BoolState.FALSE_STATE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override

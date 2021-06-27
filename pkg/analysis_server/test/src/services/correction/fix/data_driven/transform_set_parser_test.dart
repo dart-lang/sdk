@@ -15,7 +15,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/rename.d
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
-import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -66,7 +65,7 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, false);
     expect(modification.isPositional, false);
-    var components = modification.argumentValue.components;
+    var components = modification.argumentValue!.components;
     expect(components, hasLength(1));
     var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
@@ -141,7 +140,7 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, true);
     expect(modification.isPositional, false);
-    var components = modification.argumentValue.components;
+    var components = modification.argumentValue!.components;
     expect(components, hasLength(1));
     var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
@@ -183,7 +182,7 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, true);
     expect(modification.isPositional, true);
-    var components = modification.argumentValue.components;
+    var components = modification.argumentValue!.components;
     expect(components, hasLength(1));
     var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
@@ -228,7 +227,7 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, true);
     expect(modification.isPositional, true);
-    var components = modification.argumentValue.components;
+    var components = modification.argumentValue!.components;
     expect(components, hasLength(4));
     var extractorA = _accessor(components[0]) as ArgumentAccessor;
     var parameterA = extractorA.parameter as PositionalParameterReference;
@@ -350,7 +349,7 @@ transforms:
     expect(change.index, 0);
     expect(change.name, 'T');
 
-    var extendsComponents = change.extendedType.components;
+    var extendsComponents = change.extendedType!.components;
     expect(extendsComponents, hasLength(1));
     expect((extendsComponents[0] as TemplateText).text, 'Object');
 
@@ -394,7 +393,7 @@ transforms:
     expect(change.index, 0);
     expect(change.name, 'T');
 
-    var extendsComponents = change.extendedType.components;
+    var extendsComponents = change.extendedType!.components;
     expect(extendsComponents, hasLength(1));
     expect((extendsComponents[0] as TemplateText).text, 'Object');
 
@@ -668,7 +667,7 @@ transforms:
     expect((condition.leftOperand as LiteralString).value, 'a');
     expect(condition.operator, Operator.equal);
     expect((condition.rightOperand as LiteralString).value, 'b');
-    var changes = changeMap[condition];
+    var changes = changeMap[condition]!;
     expect(changes, hasLength(1));
     var rename = changes[0] as Rename;
     expect(rename.newName, 'B');
@@ -710,7 +709,7 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, false);
     expect(modification.isPositional, false);
-    var argumentValue = modification.argumentValue;
+    var argumentValue = modification.argumentValue!;
     expect(argumentValue.requiredIfCondition, isNotNull);
     var components = argumentValue.components;
     expect(components, hasLength(1));
@@ -729,8 +728,8 @@ transforms:
       (transform.changesSelector as UnconditionalChangesSelector).changes;
 
   ElementMatcher _matcher(String name) =>
-      ElementMatcher(importedUris: uris, name: name);
+      ElementMatcher(importedUris: uris, components: [name]);
 
   List<Transform> _transforms(String name) =>
-      result.transformsFor(_matcher(name), applyingBulkFixes: false);
+      result!.transformsFor(_matcher(name), applyingBulkFixes: false);
 }

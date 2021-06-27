@@ -64,6 +64,12 @@ class CallSpecializer : public FlowGraphVisitor {
                     FlowGraph::UseKind use_kind) {
     flow_graph_->InsertBefore(next, instr, env, use_kind);
   }
+  void InsertSpeculativeBefore(Instruction* next,
+                               Instruction* instr,
+                               Environment* env,
+                               FlowGraph::UseKind use_kind) {
+    flow_graph_->InsertSpeculativeBefore(next, instr, env, use_kind);
+  }
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
 
@@ -74,7 +80,7 @@ class CallSpecializer : public FlowGraphVisitor {
 
  protected:
   Thread* thread() const { return flow_graph_->thread(); }
-  Isolate* isolate() const { return flow_graph_->isolate(); }
+  IsolateGroup* isolate_group() const { return flow_graph_->isolate_group(); }
   Zone* zone() const { return flow_graph_->zone(); }
   const Function& function() const { return flow_graph_->function(); }
 

@@ -9,8 +9,9 @@ import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'integration_test_methods.dart';
@@ -40,7 +41,7 @@ Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 
 /// Assert that [actual] matches [matcher].
 void outOfTestExpect(actual, Matcher matcher,
-    {String reason, skip, bool verbose = false}) {
+    {String? reason, skip, bool verbose = false}) {
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
@@ -51,7 +52,7 @@ void outOfTestExpect(actual, Matcher matcher,
 }
 
 String _defaultFailFormatter(
-    actual, Matcher matcher, String reason, Map matchState, bool verbose) {
+    actual, Matcher matcher, String? reason, Map matchState, bool verbose) {
   var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
@@ -88,7 +89,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   final Server server = Server();
 
   /// Temporary directory in which source files can be stored.
-  Directory sourceDirectory;
+  late Directory sourceDirectory;
 
   /// Map from file path to the list of analysis errors which have most recently
   /// been received for the file.
@@ -96,7 +97,7 @@ abstract class AbstractAnalysisServerIntegrationTest
       HashMap<String, List<AnalysisError>>();
 
   /// The last list of analyzed files received.
-  List<String> lastAnalyzedFiles;
+  late List<String> lastAnalyzedFiles;
 
   /// True if the teardown process should skip sending a "server.shutdown"
   /// request (e.g. because the server is known to have already shutdown).
@@ -119,12 +120,13 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// analysis to finish.
   Future<ServerStatusParams> get analysisFinished {
     var completer = Completer<ServerStatusParams>();
-    StreamSubscription<ServerStatusParams> subscription;
+    late StreamSubscription<ServerStatusParams> subscription;
     // This will only work if the caller has already subscribed to
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
     outOfTestExpect(_subscribedToServerStatus, isTrue);
     subscription = onServerStatus.listen((ServerStatusParams params) {
-      if (params.analysis != null && !params.analysis.isAnalyzing) {
+      var analysisStatus = params.analysis;
+      if (analysisStatus != null && !analysisStatus.isAnalyzing) {
         completer.complete(params);
         subscription.cancel();
       }
@@ -138,7 +140,17 @@ abstract class AbstractAnalysisServerIntegrationTest
     server.debugStdio();
   }
 
-  List<AnalysisError> getErrors(String pathname) =>
+  /// If there was a set of errors (might be empty) received for the file
+  /// with the given [path], return it. If no errors - fail.
+  List<AnalysisError> existingErrorsForFile(String path) {
+    var errors = currentAnalysisErrors[path];
+    if (errors == null) {
+      fail('Expected errors for: $path');
+    }
+    return errors;
+  }
+
+  List<AnalysisError>? getErrors(String pathname) =>
       currentAnalysisErrors[pathname];
 
   /// Read a source file with the given absolute [pathname].
@@ -156,6 +168,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     sourceDirectory = Directory(Directory.systemTemp
         .createTempSync('analysisServer')
         .resolveSymbolicLinksSync());
+    writeTestPackageConfig();
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
@@ -199,7 +212,8 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// relative to [sourceDirectory].  On Windows any forward slashes in
   /// [relativePath] are converted to backslashes.
   String sourcePath(String relativePath) {
-    return join(sourceDirectory.path, relativePath.replaceAll('/', separator));
+    return path.join(
+        sourceDirectory.path, relativePath.replaceAll('/', path.separator));
   }
 
   /// Send the server an 'analysis.setAnalysisRoots' command directing it to
@@ -217,8 +231,8 @@ abstract class AbstractAnalysisServerIntegrationTest
 
   /// Start [server].
   Future startServer({
-    int diagnosticPort,
-    int servicesPort,
+    int? diagnosticPort,
+    int? servicesPort,
   }) {
     return server.start(
         diagnosticPort: diagnosticPort, servicesPort: servicesPort);
@@ -240,10 +254,44 @@ abstract class AbstractAnalysisServerIntegrationTest
   ///
   /// Return a normalized path to the file (with symbolic links resolved).
   String writeFile(String pathname, String contents) {
-    Directory(dirname(pathname)).createSync(recursive: true);
+    Directory(path.dirname(pathname)).createSync(recursive: true);
     var file = File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
+  }
+
+  void writePackageConfig(
+    String pathname, {
+    required PackageConfigFileBuilder config,
+  }) {
+    writeFile(
+      pathname,
+      config.toContent(
+        toUriStr: (p) => '${path.toUri(p)}',
+      ),
+    );
+  }
+
+  void writeTestPackageConfig({
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
+  }) {
+    if (config == null) {
+      config = PackageConfigFileBuilder();
+    } else {
+      config = config.copy();
+    }
+
+    config.add(
+      name: 'test',
+      rootPath: sourceDirectory.path,
+      languageVersion: languageVersion,
+    );
+
+    writePackageConfig(
+      sourcePath('.dart_tool/package_config.json'),
+      config: config,
+    );
   }
 }
 
@@ -257,33 +305,30 @@ class LazyMatcher implements Matcher {
 
   /// The matcher returned by [_creator], if it has already been called.
   /// Otherwise null.
-  Matcher _wrappedMatcher;
+  Matcher? _wrappedMatcher;
 
   LazyMatcher(this._creator);
 
+  /// Create the wrapped matcher object, if it hasn't been created already.
+  Matcher get _matcher {
+    return _wrappedMatcher ??= _creator();
+  }
+
   @override
   Description describe(Description description) {
-    _createMatcher();
-    return _wrappedMatcher.describe(description);
+    return _matcher.describe(description);
   }
 
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    _createMatcher();
-    return _wrappedMatcher.describeMismatch(
+    return _matcher.describeMismatch(
         item, mismatchDescription, matchState, verbose);
   }
 
   @override
   bool matches(item, Map matchState) {
-    _createMatcher();
-    return _wrappedMatcher.matches(item, matchState);
-  }
-
-  /// Create the wrapped matcher object, if it hasn't been created already.
-  void _createMatcher() {
-    _wrappedMatcher ??= _creator();
+    return _matcher.matches(item, matchState);
   }
 }
 
@@ -315,11 +360,11 @@ class MatchesJsonObject extends _RecursiveMatcher {
 
   /// Fields that are required to be in the JSON object, and [Matcher]s
   /// describing their expected types.
-  final Map<String, Matcher> requiredFields;
+  final Map<String, Matcher>? requiredFields;
 
   /// Fields that are optional in the JSON object, and [Matcher]s describing
   /// their expected types.
-  final Map<String, Matcher> optionalFields;
+  final Map<String, Matcher>? optionalFields;
 
   const MatchesJsonObject(this.description, this.requiredFields,
       {this.optionalFields});
@@ -334,9 +379,11 @@ class MatchesJsonObject extends _RecursiveMatcher {
       mismatches.add(simpleDescription('is not a map'));
       return;
     }
+    final requiredFields = this.requiredFields;
+    final optionalFields = this.optionalFields;
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
-        if (!(item as Map).containsKey(key)) {
+        if (!item.containsKey(key)) {
           mismatches.add((Description mismatchDescription) =>
               mismatchDescription
                   .add('is missing field ')
@@ -352,13 +399,18 @@ class MatchesJsonObject extends _RecursiveMatcher {
     item.forEach((key, value) {
       if (requiredFields != null && requiredFields.containsKey(key)) {
         // Already checked this field
-      } else if (optionalFields != null && optionalFields.containsKey(key)) {
-        _checkField(key, value, optionalFields[key], mismatches);
-      } else {
-        mismatches.add((Description mismatchDescription) => mismatchDescription
-            .add('has unexpected field ')
-            .addDescriptionOf(key));
+        return;
       }
+      if (optionalFields != null) {
+        var optionalValue = optionalFields[key];
+        if (optionalValue != null) {
+          _checkField(key, value, optionalValue, mismatches);
+          return;
+        }
+      }
+      mismatches.add((Description mismatchDescription) => mismatchDescription
+          .add('has unexpected field ')
+          .addDescriptionOf(key));
     });
   }
 
@@ -380,13 +432,12 @@ class MatchesJsonObject extends _RecursiveMatcher {
 /// facilitate communication to and from the server.
 class Server {
   /// Server process object, or null if server hasn't been started yet.
-  Process _process;
+  late final Process _process;
 
   /// Commands that have been sent to the server but not yet acknowledged, and
   /// the [Completer] objects which should be completed when acknowledgement is
   /// received.
-  final Map<String, Completer<Map<String, dynamic>>> _pendingCommands =
-      <String, Completer<Map<String, dynamic>>>{};
+  final Map<String, Completer<Map<String, Object?>?>> _pendingCommands = {};
 
   /// Number which should be used to compute the 'id' to send in the next
   /// command sent to the server.
@@ -409,7 +460,7 @@ class Server {
 
   /// The [currentElapseTime] at which the last communication was received from
   /// the server or `null` if no communication has been received.
-  double lastCommunicationTime;
+  double? lastCommunicationTime;
 
   /// The current elapse time (seconds) since the server was started.
   double get currentElapseTime => _time.elapsedTicks / _time.frequency;
@@ -432,14 +483,14 @@ class Server {
   /// Find the root directory of the analysis_server package by proceeding
   /// upward to the 'test' dir, and then going up one more directory.
   String findRoot(String pathname) {
-    while (!['benchmark', 'test'].contains(basename(pathname))) {
-      var parent = dirname(pathname);
+    while (!['benchmark', 'test'].contains(path.basename(pathname))) {
+      var parent = path.dirname(pathname);
       if (parent.length >= pathname.length) {
         throw Exception("Can't find root directory");
       }
       pathname = parent;
     }
-    return dirname(pathname);
+    return path.dirname(pathname);
   }
 
   /// Return a future that will complete when all commands that have been sent
@@ -518,7 +569,7 @@ class Server {
       }
     });
     _process.stderr
-        .transform((Utf8Codec()).decoder)
+        .transform(Utf8Codec().decoder)
         .transform(LineSplitter())
         .listen((String line) {
       var trimmedLine = line.trim();
@@ -533,14 +584,14 @@ class Server {
   /// normal (non-error) response, the future will be completed with the
   /// 'result' field from the response.  If the server acknowledges the command
   /// with an error response, the future will be completed with an error.
-  Future<Map<String, dynamic>> send(
-      String method, Map<String, dynamic> params) {
+  Future<Map<String, Object?>?> send(
+      String method, Map<String, Object?>? params) {
     var id = '${_nextId++}';
-    var command = <String, dynamic>{'id': id, 'method': method};
+    var command = <String, Object?>{'id': id, 'method': method};
     if (params != null) {
       command['params'] = params;
     }
-    var completer = Completer<Map<String, dynamic>>();
+    var completer = Completer<Map<String, Object?>?>();
     _pendingCommands[id] = completer;
     var line = json.encode(command);
     _recordStdio('==> $line');
@@ -552,16 +603,13 @@ class Server {
   /// with "--observe" and "--pause-isolates-on-exit", allowing the observatory
   /// to be used.
   Future start({
-    int diagnosticPort,
-    String instrumentationLogFile,
+    int? diagnosticPort,
+    String? instrumentationLogFile,
     bool profileServer = false,
-    String sdkPath,
-    int servicesPort,
+    String? sdkPath,
+    int? servicesPort,
     bool useAnalysisHighlight2 = false,
   }) async {
-    if (_process != null) {
-      throw Exception('Process already started');
-    }
     _time.start();
     var dartBinary = Platform.executable;
 
@@ -572,18 +620,24 @@ class Server {
 
     if (useSnapshot) {
       // Look for snapshots/analysis_server.dart.snapshot.
-      serverPath = normalize(join(dirname(Platform.resolvedExecutable),
-          'snapshots', 'analysis_server.dart.snapshot'));
+      serverPath = path.normalize(path.join(
+          path.dirname(Platform.resolvedExecutable),
+          'snapshots',
+          'analysis_server.dart.snapshot'));
 
       if (!FileSystemEntity.isFileSync(serverPath)) {
         // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
-        serverPath = normalize(join(dirname(Platform.resolvedExecutable),
-            'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
+        serverPath = path.normalize(path.join(
+            path.dirname(Platform.resolvedExecutable),
+            'dart-sdk',
+            'bin',
+            'snapshots',
+            'analysis_server.dart.snapshot'));
       }
     } else {
       var rootDir =
           findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
-      serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+      serverPath = path.normalize(path.join(rootDir, 'bin', 'server.dart'));
     }
 
     var arguments = <String>[
@@ -831,7 +885,7 @@ abstract class _RecursiveMatcher extends Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    var mismatches = matchState['mismatches'] as List<MismatchDescriber>;
+    var mismatches = matchState['mismatches'] as List<MismatchDescriber>?;
     if (mismatches != null) {
       for (var i = 0; i < mismatches.length; i++) {
         var mismatch = mismatches[i];

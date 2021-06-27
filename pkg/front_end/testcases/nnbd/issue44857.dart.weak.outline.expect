@@ -1,0 +1,6 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+typedef F = (<T extends Never = dynamic>(T) → void) → Never;
+static method main() → void
+  ;

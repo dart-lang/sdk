@@ -18,7 +18,7 @@ import '../js_backend/string_reference.dart'
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
-import 'field_analysis.dart' show JFieldAnalysis;
+import 'namer.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
 import 'runtime_types_resolution.dart';
 
@@ -31,8 +31,9 @@ typedef jsAst.Expression _ConstantListGenerator(jsAst.Expression array);
 class ModularConstantEmitter
     implements ConstantValueVisitor<jsAst.Expression, Null> {
   final CompilerOptions _options;
+  final ModularNamer _namer;
 
-  ModularConstantEmitter(this._options);
+  ModularConstantEmitter(this._options, this._namer);
 
   /// Constructs a literal expression that evaluates to the constant. Uses a
   /// canonical name unless the constant can be emitted multiple times (as for
@@ -147,7 +148,7 @@ class ModularConstantEmitter
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
     String value = constant.stringValue;
     if (value.length < StringReferencePolicy.minimumLength) {
-      return js.escapedString(value, ascii: true);
+      return js.string(value);
     }
     return StringReference(constant);
   }
@@ -157,6 +158,10 @@ class ModularConstantEmitter
       [_]) {
     return new jsAst.LiteralNumber('0');
   }
+
+  @override
+  jsAst.Expression visitLateSentinel(LateSentinelConstantValue constant, [_]) =>
+      _namer.globalObjectForStaticState();
 
   @override
   jsAst.Expression visitUnreachable(UnreachableConstantValue constant, [_]) {
@@ -226,6 +231,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   /// can be inlined.
   ConstantEmitter(
       CompilerOptions options,
+      ModularNamer _namer,
       this._commonElements,
       this._elementEnvironment,
       this._rtiNeed,
@@ -234,7 +240,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       this._emitter,
       this._constantReferenceGenerator,
       this._makeConstantList)
-      : super(options);
+      : super(options, _namer);
 
   @override
   jsAst.Expression visitList(ListConstantValue constant, [_]) {
@@ -282,8 +288,7 @@ class ConstantEmitter extends ModularConstantEmitter {
         }
 
         // Keys in literal maps must be emitted in place.
-        jsAst.Literal keyExpression =
-            js.escapedString(key.stringValue, ascii: true);
+        jsAst.Literal keyExpression = js.string(key.stringValue);
         jsAst.Expression valueExpression =
             _constantReferenceGenerator(constant.values[i]);
         properties.add(new jsAst.Property(keyExpression, valueExpression));
@@ -431,8 +436,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       ConstantValue constant, InterfaceType type, jsAst.Expression value) {
     assert(type.element == _commonElements.jsArrayClass);
     if (_rtiNeed.classNeedsTypeArguments(type.element)) {
-      return new jsAst.Call(
-          getHelperProperty(_commonElements.setRuntimeTypeInfo),
+      return new jsAst.Call(getHelperProperty(_commonElements.setArrayType),
           [value, _reifiedTypeNewRti(type)]);
     }
     return value;

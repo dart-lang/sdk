@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 library fontface_loaded_test;
 
 import 'package:async_helper/async_minitest.dart';

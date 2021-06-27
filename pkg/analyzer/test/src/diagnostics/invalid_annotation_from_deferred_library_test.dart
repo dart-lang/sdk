@@ -31,6 +31,21 @@ import 'lib1.dart' deferred as a;
     ]);
   }
 
+  test_constructor_argument() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+const x = 0;
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+class C { const C(int i); }
+@C(a.x) main () {}
+''', [
+      error(CompileTimeErrorCode
+          .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY, 79, 3),
+    ]);
+  }
+
   test_from_deferred_library() async {
     newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;

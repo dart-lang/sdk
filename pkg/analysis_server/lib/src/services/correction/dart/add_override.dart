@@ -13,7 +13,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddOverride extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_OVERRIDE;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.ADD_OVERRIDE_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -27,7 +36,7 @@ class AddOverride extends CorrectionProducer {
     // Handle doc comments.
     var token = member.beginToken;
     if (token is CommentToken) {
-      token = (token as CommentToken).parent;
+      token = token.parent!;
     }
 
     var exitPosition = Position(file, token.offset - 1);

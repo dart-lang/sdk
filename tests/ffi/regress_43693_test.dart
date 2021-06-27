@@ -27,10 +27,10 @@ final int Function(Pointer<Struct43693>) readMyStructSomeValue =
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 void main() {
-  final myStructs = allocate<Struct43693>();
+  final myStructs = calloc<Struct43693>();
   myStructs[0].somePtr = nullptr;
   myStructs[0].someValue = 0xAAAAAAAABBBBBBBB;
   final result = readMyStructSomeValue(myStructs);
   Expect.equals(0xAAAAAAAABBBBBBBB, result);
-  free(myStructs);
+  calloc.free(myStructs);
 }

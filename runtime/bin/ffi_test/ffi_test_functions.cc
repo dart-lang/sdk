@@ -170,8 +170,7 @@ DART_EXPORT intptr_t TakeMaxUint8x10(uint8_t a,
             << static_cast<int>(d) << ", " << static_cast<int>(e) << ", "
             << static_cast<int>(f) << ", " << static_cast<int>(g) << ", "
             << static_cast<int>(h) << ", " << static_cast<int>(i) << ", "
-            << static_cast<int>(j) << ", "
-            << ")\n";
+            << static_cast<int>(j) << ")\n";
   return (a == 0xff && b == 0xff && c == 0xff && d == 0xff && e == 0xff &&
           f == 0xff && g == 0xff && h == 0xff && i == 0xff && j == 0xff)
              ? 1
@@ -1111,6 +1110,27 @@ struct Struct43693 {
 
 DART_EXPORT uint64_t Regress43693(Struct43693* my_struct) {
   return my_struct->someValue;
+}
+
+struct Struct46127 {
+  uint64_t val;
+};
+
+DART_EXPORT Struct46127 Regress46127() {
+  struct Struct46127 myStruct;
+  myStruct.val = 123;
+  return myStruct;
+}
+
+#pragma pack(push, 1)
+struct Struct3BytesPackedIntCopy {
+  int8_t a0;
+  int16_t a1;
+};
+#pragma pack(pop)
+
+DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
+  return sizeof(Struct3BytesPackedIntCopy);
 }
 
 }  // namespace dart

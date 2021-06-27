@@ -8,14 +8,14 @@
 
 // @dart = 2.9
 
-import 'pool_isolate_shutdown_sample.dart' as pool_isolate;
-import 'pool_sample.dart' as pool;
-import 'pool_zoned_sample.dart' as pool_zoned;
+import 'arena_isolate_shutdown_sample.dart' as arena_isolate;
+import 'arena_sample.dart' as arena;
+import 'arena_zoned_sample.dart' as arena_zoned;
 import 'unmanaged_sample.dart' as unmanaged;
 
 main() {
-  pool_isolate.main();
-  pool.main();
-  pool_zoned.main();
+  arena_isolate.main();
+  arena.main();
+  arena_zoned.main();
   unmanaged.main();
 }

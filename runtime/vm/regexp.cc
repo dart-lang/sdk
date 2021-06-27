@@ -2683,18 +2683,28 @@ intptr_t ChoiceNode::CalculatePreloadCharacters(RegExpCompiler* compiler,
                                                 intptr_t eats_at_least) {
   intptr_t preload_characters =
       Utils::Minimum(static_cast<intptr_t>(4), eats_at_least);
-  if (compiler->macro_assembler()->CanReadUnaligned()) {
-    bool one_byte = compiler->one_byte();
-    if (one_byte) {
-      if (preload_characters > 4) preload_characters = 4;
-      // We can't preload 3 characters because there is no machine instruction
-      // to do that.  We can't just load 4 because we could be reading
-      // beyond the end of the string, which could cause a memory fault.
-      if (preload_characters == 3) preload_characters = 2;
-    } else {
-      if (preload_characters > 2) preload_characters = 2;
-    }
+  if (compiler->one_byte()) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    if (preload_characters > 4) preload_characters = 4;
+    // We can't preload 3 characters because there is no machine instruction
+    // to do that.  We can't just load 4 because we could be reading
+    // beyond the end of the string, which could cause a memory fault.
+    if (preload_characters == 3) preload_characters = 2;
+#else
+    // Ensure LoadCodeUnitsInstr can always produce a Smi. See
+    // https://github.com/dart-lang/sdk/issues/29951
+    if (preload_characters > 2) preload_characters = 2;
+#endif
   } else {
+#if !defined(DART_COMPRESSED_POINTERS)
+    if (preload_characters > 2) preload_characters = 2;
+#else
+    // Ensure LoadCodeUnitsInstr can always produce a Smi. See
+    // https://github.com/dart-lang/sdk/issues/29951
+    if (preload_characters > 1) preload_characters = 1;
+#endif
+  }
+  if (!compiler->macro_assembler()->CanReadUnaligned()) {
     if (preload_characters > 1) preload_characters = 1;
   }
   return preload_characters;
@@ -5505,17 +5515,19 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
   return result;
 }
 
-static void CreateSpecializedFunction(Thread* thread,
-                                      Zone* zone,
-                                      const RegExp& regexp,
-                                      intptr_t specialization_cid,
-                                      bool sticky,
-                                      const Object& owner) {
+void CreateSpecializedFunction(Thread* thread,
+                               Zone* zone,
+                               const RegExp& regexp,
+                               intptr_t specialization_cid,
+                               bool sticky,
+                               const Object& owner) {
   const intptr_t kParamCount = RegExpMacroAssembler::kParamCount;
 
+  const FunctionType& signature =
+      FunctionType::Handle(zone, FunctionType::New());
   Function& fn =
-      Function::Handle(zone, Function::New(Symbols::ColonMatcher(),
-                                           FunctionLayout::kIrregexpFunction,
+      Function::Handle(zone, Function::New(signature, Symbols::ColonMatcher(),
+                                           UntaggedFunction::kIrregexpFunction,
                                            true,   // Static.
                                            false,  // Not const.
                                            false,  // Not abstract.
@@ -5524,24 +5536,25 @@ static void CreateSpecializedFunction(Thread* thread,
                                            owner, TokenPosition::kMinSource));
 
   // TODO(zerny): Share these arrays between all irregexp functions.
+  // TODO(regis): Better, share a common signature.
   fn.set_num_fixed_parameters(kParamCount);
-  fn.set_parameter_types(
+  signature.set_parameter_types(
       Array::Handle(zone, Array::New(kParamCount, Heap::kOld)));
-  fn.CreateNameArrayIncludingFlags(Heap::kOld);
-  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
-                        Object::dynamic_type());
-  fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
-                        Symbols::This());
-  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
-                        Object::dynamic_type());
-  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
-                        Symbols::string_param());
-  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
-                        Object::dynamic_type());
-  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
-                        Symbols::start_index_param());
-  fn.set_result_type(Type::Handle(zone, Type::ArrayType()));
-  fn.TruncateUnusedParameterFlags();
+  signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  signature.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
+                               Object::dynamic_type());
+  signature.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
+                               Symbols::This());
+  signature.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
+                               Object::dynamic_type());
+  signature.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
+                               Symbols::string_param());
+  signature.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                               Object::dynamic_type());
+  signature.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                               Symbols::start_index_param());
+  signature.set_result_type(Type::Handle(zone, Type::ArrayType()));
+  signature.FinalizeNameArrays(fn);
 
   // Cache the result.
   regexp.set_function(specialization_cid, sticky, fn);
@@ -5556,7 +5569,7 @@ RegExpPtr RegExpEngine::CreateRegExp(Thread* thread,
                                      const String& pattern,
                                      RegExpFlags flags) {
   Zone* zone = thread->zone();
-  const RegExp& regexp = RegExp::Handle(RegExp::New());
+  const RegExp& regexp = RegExp::Handle(RegExp::New(zone));
 
   regexp.set_pattern(pattern);
   regexp.set_flags(flags);
@@ -5580,7 +5593,7 @@ RegExpPtr RegExpEngine::CreateRegExp(Thread* thread,
     }
   }
 
-  return regexp.raw();
+  return regexp.ptr();
 }
 
 }  // namespace dart

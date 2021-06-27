@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -17,12 +16,13 @@ class JoinVariableDeclaration extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    final node = this.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is AssignmentExpression &&
           parent.leftHandSide == node &&
           parent.parent is ExpressionStatement) {
-        await _joinOnAssignment(builder, parent);
+        await _joinOnAssignment(builder, node, parent);
         return;
       }
     }
@@ -34,58 +34,57 @@ class JoinVariableDeclaration extends CorrectionProducer {
 
   /// Join the declaration when the variable is on the left-hand side of an
   /// assignment.
-  Future<void> _joinOnAssignment(
-      ChangeBuilder builder, AssignmentExpression assignExpression) async {
+  Future<void> _joinOnAssignment(ChangeBuilder builder, SimpleIdentifier left,
+      AssignmentExpression assignment) async {
     // Check that assignment is not a compound assignment.
-    if (assignExpression.operator.type != TokenType.EQ) {
+    if (assignment.operator.type != TokenType.EQ) {
       return;
     }
-    // prepare "declaration" statement
-    var element = (node as SimpleIdentifier).staticElement;
-    if (element == null) {
+
+    // The assignment must be a separate statement.
+    var assignmentStatement = assignment.parent;
+    if (assignmentStatement is! ExpressionStatement) {
       return;
     }
-    var declOffset = element.nameOffset;
-    var unit = resolvedResult.unit;
-    var declNode = NodeLocator(declOffset).searchWithin(unit);
-    if (declNode != null &&
-        declNode.parent is VariableDeclaration &&
-        (declNode.parent as VariableDeclaration).name == declNode &&
-        declNode.parent.parent is VariableDeclarationList &&
-        declNode.parent.parent.parent is VariableDeclarationStatement) {
-    } else {
+
+    // ...in a Block.
+    var block = assignmentStatement.parent;
+    if (block is! Block) {
       return;
     }
-    var decl = declNode.parent as VariableDeclaration;
-    var declStatement = decl.parent.parent as VariableDeclarationStatement;
-    // may be has initializer
-    if (decl.initializer != null) {
+
+    // Prepare the index in the enclosing Block.
+    var statements = block.statements;
+    var assignmentStatementIndex = statements.indexOf(assignmentStatement);
+    if (assignmentStatementIndex < 1) {
       return;
     }
-    // check that "declaration" statement declared only one variable
-    if (declStatement.variables.variables.length != 1) {
+
+    // The immediately previous statement must be a declaration.
+    var declarationStatement = statements[assignmentStatementIndex - 1];
+    if (declarationStatement is! VariableDeclarationStatement) {
       return;
     }
-    // check that the "declaration" and "assignment" statements are
-    // parts of the same Block
-    var assignStatement = node.parent.parent as ExpressionStatement;
-    if (assignStatement.parent is Block &&
-        assignStatement.parent == declStatement.parent) {
-    } else {
+
+    // Only one variable must be declared.
+    var declaredVariables = declarationStatement.variables.variables;
+    if (declaredVariables.length != 1) {
       return;
     }
-    var block = assignStatement.parent as Block;
-    // check that "declaration" and "assignment" statements are adjacent
-    List<Statement> statements = block.statements;
-    if (statements.indexOf(assignStatement) ==
-        statements.indexOf(declStatement) + 1) {
-    } else {
+
+    // The declared variable must be the one that is assigned.
+    // There must be no initializer.
+    var declaredVariable = declaredVariables.single;
+    if (declaredVariable.declaredElement != left.staticElement ||
+        declaredVariable.initializer != null) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          range.endStart(declNode, assignExpression.operator), ' ');
+        range.endStart(declaredVariable, assignment.operator),
+        ' ',
+      );
     });
   }
 
@@ -93,50 +92,65 @@ class JoinVariableDeclaration extends CorrectionProducer {
   /// assignment.
   Future<void> _joinOnDeclaration(
       ChangeBuilder builder, VariableDeclarationList declList) async {
-    // prepare enclosing VariableDeclarationList
-    var decl = declList.variables[0];
-    // already initialized
-    if (decl.initializer != null) {
+    // Only one variable must be declared.
+    var declaredVariables = declList.variables;
+    if (declaredVariables.length != 1) {
       return;
     }
-    // prepare VariableDeclarationStatement in Block
-    if (declList.parent is VariableDeclarationStatement &&
-        declList.parent.parent is Block) {
-    } else {
+
+    // The declared variable must not be initialized.
+    var declaredVariable = declaredVariables.single;
+    if (declaredVariable.initializer != null) {
       return;
     }
-    var declStatement = declList.parent as VariableDeclarationStatement;
-    var block = declStatement.parent as Block;
-    List<Statement> statements = block.statements;
-    // prepare assignment
-    // declaration should not be last Statement
-    var declIndex = statements.indexOf(declStatement);
-    if (declIndex < statements.length - 1) {
-    } else {
+
+    // The declaration must be a separate statement.
+    var declarationStatement = declList.parent;
+    if (declarationStatement is! VariableDeclarationStatement) {
       return;
     }
-    // next Statement should be assignment
-    var assignStatement = statements[declIndex + 1];
-    if (assignStatement is ExpressionStatement) {
-    } else {
+
+    // ...in a Block.
+    var block = declarationStatement.parent;
+    if (block is! Block) {
       return;
     }
-    var expressionStatement = assignStatement as ExpressionStatement;
-    // expression should be assignment
-    if (expressionStatement.expression is AssignmentExpression) {
-    } else {
+
+    // The declaration statement must not be the last in the block.
+    var statements = block.statements;
+    var declarationStatementIndex = statements.indexOf(declarationStatement);
+    if (declarationStatementIndex < 0 ||
+        declarationStatementIndex >= statements.length - 1) {
       return;
     }
-    var assignExpression =
-        expressionStatement.expression as AssignmentExpression;
-    // check that pure assignment
-    if (assignExpression.operator.type != TokenType.EQ) {
+
+    // The immediately following statement must be an assignment statement.
+    var assignmentStatement = statements[declarationStatementIndex + 1];
+    if (assignmentStatement is! ExpressionStatement) {
+      return;
+    }
+
+    // Really an assignment.
+    var assignment = assignmentStatement.expression;
+    if (assignment is! AssignmentExpression) {
+      return;
+    }
+
+    // The assignment should write into the declared variable.
+    if (assignment.writeElement != declaredVariable.declaredElement) {
+      return;
+    }
+
+    // The assignment must be pure.
+    if (assignment.operator.type != TokenType.EQ) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          range.endStart(decl.name, assignExpression.operator), ' ');
+        range.endStart(declaredVariable.name, assignment.operator),
+        ' ',
+      );
     });
   }
 

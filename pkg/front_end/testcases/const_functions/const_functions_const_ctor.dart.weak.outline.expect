@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+class Simple extends core::Object /*hasConstConstructor*/  {
+  final field core::String name;
+  const constructor •(core::String name) → self::Simple
+    : self::Simple::name = name, super core::Object::•()
+    ;
+}
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+static const field core::String printString = "print";
+static const field self::Simple var1 = const self::Simple::•(self::printString);
+static const field self::A var2 = const self::A::•();
+static const field self::A var3 = self::fn();
+static method fn() → self::A
+  ;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor.dart:10:14 -> InstanceConstant(const Simple{Simple.name: "print"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor.dart:19:14 -> InstanceConstant(const A{})
+Extra constant evaluation: evaluated: 4, effectively constant: 2

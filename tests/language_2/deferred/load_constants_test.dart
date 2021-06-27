@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart version of two-argument Ackermann-Peter function.
 
+// @dart = 2.9
+
 library deferred_load_constants;
 
 import "package:expect/expect.dart";
@@ -28,31 +30,31 @@ main() {
     //                  ^
     // [cfe] Constant evaluation error:
     //                         ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
+    // [analyzer] COMPILE_TIME_ERROR.COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     // [cfe] 'foo' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
     Expect.throws(() => const [foo.C]);
     //                  ^
     // [cfe] Constant evaluation error:
     //                         ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
+    // [analyzer] COMPILE_TIME_ERROR.COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     // [cfe] 'foo' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
     Expect.throws(() => const [foo.funtype]);
     //                  ^
     // [cfe] Constant evaluation error:
     //                         ^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
+    // [analyzer] COMPILE_TIME_ERROR.COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     // [cfe] 'foo' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
     Expect.throws(() => const [foo.toplevel]);
     //                  ^
     // [cfe] Constant evaluation error:
     //                         ^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
+    // [analyzer] COMPILE_TIME_ERROR.COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     // [cfe] 'foo' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
     Expect.throws(() => const [foo.C.staticfun]);
     //                  ^
     // [cfe] Constant evaluation error:
     //                         ^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
+    // [analyzer] COMPILE_TIME_ERROR.COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     // [cfe] 'foo' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
 
     asyncEnd();

@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 class NavigationTreeDirectoryNode extends NavigationTreeNode {
   /// If this is a directory node, list of nodes nested under this one.
   /// Otherwise `null`.
-  final List<NavigationTreeNode> subtree;
+  final List<NavigationTreeNode>? subtree;
 
   /// Creates a navigation tree node representing a directory.
   NavigationTreeDirectoryNode(
-      {@required String name, @required String path, @required this.subtree})
+      {required String? name, required String? path, required this.subtree})
       : super._(name: name, path: path);
 
   /// Returns the status by examining [subtree]:
@@ -23,11 +21,11 @@ class NavigationTreeDirectoryNode extends NavigationTreeNode {
   ///   'opting out', then [UnitMigrationStatus.optingOut] is returned.
   /// * Otherwise, [UnitMigrationStatus.indeterminate] is returned.
   UnitMigrationStatus get migrationStatus {
-    if (subtree.isEmpty) return UnitMigrationStatus.alreadyMigrated;
-    var sharedStatus = subtree.first.migrationStatus;
+    if (subtree!.isEmpty) return UnitMigrationStatus.alreadyMigrated;
+    var sharedStatus = subtree!.first.migrationStatus;
     var allAreMigratedOrMigrating = true;
     var allAreMigratedOrOptingOut = true;
-    for (var child in subtree) {
+    for (var child in subtree!) {
       var childMigrationStatus = child.migrationStatus;
 
       if (childMigrationStatus != sharedStatus) {
@@ -61,7 +59,7 @@ class NavigationTreeDirectoryNode extends NavigationTreeNode {
 
   void setSubtreeParents() {
     if (subtree != null) {
-      for (var child in subtree) {
+      for (var child in subtree!) {
         child.parent = this;
       }
     }
@@ -72,10 +70,11 @@ class NavigationTreeDirectoryNode extends NavigationTreeNode {
   /// Only child nodes with 'opting out' or 'keep opted out' status are changed.
   void toggleChildrenToMigrate() {
     //assert(type == NavigationTreeNodeType.directory);
-    for (var child in subtree) {
+    for (var child in subtree!) {
       if (child is NavigationTreeDirectoryNode) {
         child.toggleChildrenToMigrate();
       } else if (child is NavigationTreeFileNode &&
+          child.migrationStatusCanBeChanged! &&
           child.migrationStatus == UnitMigrationStatus.optingOut) {
         child.migrationStatus = UnitMigrationStatus.migrating;
       }
@@ -86,20 +85,21 @@ class NavigationTreeDirectoryNode extends NavigationTreeNode {
   ///
   /// Only child nodes with 'migrating' status are changed.
   void toggleChildrenToOptOut() {
-    for (var child in subtree) {
+    for (var child in subtree!) {
       if (child is NavigationTreeDirectoryNode) {
         child.toggleChildrenToOptOut();
       } else if (child is NavigationTreeFileNode &&
+          child.migrationStatusCanBeChanged! &&
           child.migrationStatus == UnitMigrationStatus.migrating) {
         child.migrationStatus = UnitMigrationStatus.optingOut;
       }
     }
   }
 
-  Map<String, Object> toJson() => {
+  Map<String, Object?> toJson() => {
         'type': 'directory',
         'name': name,
-        'subtree': NavigationTreeNode.listToJson(subtree),
+        'subtree': NavigationTreeNode.listToJson(subtree!),
         if (path != null) 'path': path,
       };
 }
@@ -107,29 +107,32 @@ class NavigationTreeDirectoryNode extends NavigationTreeNode {
 class NavigationTreeFileNode extends NavigationTreeNode {
   /// If this is a file node, href that should be used if the file is clicked
   /// on, otherwise `null`.
-  final String href;
+  final String? href;
 
   /// If this is a file node, number of edits that were made in the file,
   /// otherwise `null`.
-  final int editCount;
+  final int? editCount;
 
-  final bool wasExplicitlyOptedOut;
+  final bool? wasExplicitlyOptedOut;
 
-  UnitMigrationStatus migrationStatus;
+  UnitMigrationStatus? migrationStatus;
+
+  final bool? migrationStatusCanBeChanged;
 
   /// Creates a navigation tree node representing a file.
   NavigationTreeFileNode(
-      {@required String name,
-      @required String path,
-      @required this.href,
-      @required this.editCount,
-      @required this.wasExplicitlyOptedOut,
-      @required this.migrationStatus})
+      {required String? name,
+      required String? path,
+      required this.href,
+      required this.editCount,
+      required this.wasExplicitlyOptedOut,
+      required this.migrationStatus,
+      required this.migrationStatusCanBeChanged})
       : super._(name: name, path: path);
 
   NavigationTreeNodeType get type => NavigationTreeNodeType.file;
 
-  Map<String, Object> toJson() => {
+  Map<String, Object?> toJson() => {
         'type': 'file',
         'name': name,
         if (path != null) 'path': path,
@@ -137,49 +140,54 @@ class NavigationTreeFileNode extends NavigationTreeNode {
         if (editCount != null) 'editCount': editCount,
         if (wasExplicitlyOptedOut != null)
           'wasExplicitlyOptedOut': wasExplicitlyOptedOut,
-        if (migrationStatus != null) 'migrationStatus': migrationStatus.index,
+        if (migrationStatus != null) 'migrationStatus': migrationStatus!.index,
+        if (migrationStatusCanBeChanged != null)
+          'migrationStatusCanBeChanged': migrationStatusCanBeChanged,
       };
 }
 
 /// Information about a node in the migration tool's navigation tree.
 abstract class NavigationTreeNode {
   /// Name of the node.
-  final String name;
+  final String? name;
 
   /// Parent of this node, or `null` if this is a top-level node.
-  /*late final*/ NavigationTreeNode parent;
+  late final NavigationTreeNode? parent;
 
   /// Relative path to the file or directory from the package root.
-  final String path;
+  final String? path;
 
   factory NavigationTreeNode.fromJson(dynamic json) {
-    var type = _decodeType(json['type'] as String);
+    var type = _decodeType(json['type'] as String?);
     if (type == NavigationTreeNodeType.directory) {
       return NavigationTreeDirectoryNode(
-          name: json['name'] as String,
-          path: json['path'] as String,
+          name: json['name'] as String?,
+          path: json['path'] as String?,
           subtree: listFromJsonOrNull(json['subtree']))
         ..setSubtreeParents();
     } else {
       return NavigationTreeFileNode(
-          name: json['name'] as String,
-          path: json['path'] as String,
-          href: json['href'] as String,
-          editCount: json['editCount'] as int,
-          wasExplicitlyOptedOut: json['wasExplicitlyOptedOut'] as bool,
-          migrationStatus:
-              _decodeMigrationStatus(json['migrationStatus'] as int));
+        name: json['name'] as String?,
+        path: json['path'] as String?,
+        href: json['href'] as String?,
+        editCount: json['editCount'] as int?,
+        wasExplicitlyOptedOut: json['wasExplicitlyOptedOut'] as bool?,
+        migrationStatus:
+            _decodeMigrationStatus(json['migrationStatus'] as int?),
+        migrationStatusCanBeChanged:
+            json['migrationStatusCanBeChanged'] as bool?,
+      );
     }
   }
 
-  NavigationTreeNode._({@required this.name, @required this.path});
+  NavigationTreeNode._({required this.name, required this.path});
 
   /// The migration status of the file or directory.
-  UnitMigrationStatus get migrationStatus;
+  UnitMigrationStatus? get migrationStatus;
 
   NavigationTreeNodeType get type;
 
-  Map<String, Object> toJson();
+  Map<String, Object?> toJson();
 
   /// Deserializes a list of navigation tree nodes from a JSON list.
   static List<NavigationTreeNode> listFromJson(dynamic json) =>
@@ -187,19 +195,20 @@ abstract class NavigationTreeNode {
 
   /// Deserializes a list of navigation tree nodes from a possibly null JSON
   /// list.  If the argument is `null`, `null` is returned.
-  static List<NavigationTreeNode> listFromJsonOrNull(dynamic json) =>
+  static List<NavigationTreeNode>? listFromJsonOrNull(dynamic json) =>
       json == null ? null : listFromJson(json);
 
   /// Serializes a list of navigation tree nodes into JSON.
-  static List<Map<String, Object>> listToJson(List<NavigationTreeNode> nodes) =>
+  static List<Map<String, Object?>> listToJson(
+          List<NavigationTreeNode> nodes) =>
       [for (var node in nodes) node.toJson()];
 
-  static UnitMigrationStatus _decodeMigrationStatus(int migrationStatus) {
+  static UnitMigrationStatus? _decodeMigrationStatus(int? migrationStatus) {
     if (migrationStatus == null) return null;
     return UnitMigrationStatus.values[migrationStatus];
   }
 
-  static NavigationTreeNodeType _decodeType(String json) {
+  static NavigationTreeNodeType _decodeType(String? json) {
     switch (json) {
       case 'directory':
         return NavigationTreeNodeType.directory;

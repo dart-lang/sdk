@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // OtherResources=process_detached_script.dart
 
 // Process test program to test detached processes.
@@ -20,6 +22,7 @@ void test() {
       Platform.executable,
       []
         ..addAll(Platform.executableArguments)
+        ..add('--verbosity=warning')
         ..add(script),
       mode: ProcessStartMode.detached);
   future.then((process) {
@@ -39,8 +42,12 @@ void testWithStdio() {
   asyncStart();
   var script =
       Platform.script.resolve('process_detached_script.dart').toFilePath();
-  var future = Process.start(Platform.executable,
-      []..addAll(Platform.executableArguments)..addAll([script, 'echo']),
+  var future = Process.start(
+      Platform.executable,
+      []
+        ..addAll(Platform.executableArguments)
+        ..add('--verbosity=warning')
+        ..addAll([script, 'echo']),
       mode: ProcessStartMode.detachedWithStdio);
   future.then((process) {
     Expect.isNotNull(process.pid);

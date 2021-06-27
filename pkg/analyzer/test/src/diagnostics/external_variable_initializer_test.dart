@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ExternalVariableInitializerTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ExternalVariableInitializerTest extends PubPackageResolutionTest {
   test_external_variable_final_initializer() async {
     await assertErrorsInCode('''
 external final int x = 0;

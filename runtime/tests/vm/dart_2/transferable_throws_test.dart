@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
 // VMOptions=--no-enable-isolate-groups
 
 // Test that ensures correct exceptions are thrown when misusing
@@ -95,10 +95,6 @@ class MyList<T> extends ListBase<T> {
   void operator []=(int index, T value) {}
 }
 
-class MyTypedData implements TypedData {
-  noSuchMethod(_) {}
-}
-
 main() async {
   await throwsIfMaterializeAfterSend();
   await throwsIfSendMoreThanOnce();
@@ -110,6 +106,4 @@ main() async {
   Expect.throwsArgumentError(() => TransferableTypedData.fromList([null]));
   Expect.throwsArgumentError(
       () => TransferableTypedData.fromList(MyList<Uint8List>()));
-  Expect.throwsArgumentError(
-      () => TransferableTypedData.fromList([MyTypedData()]));
 }

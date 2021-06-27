@@ -2,23 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core' hide MapEntry;
+// @dart = 2.9
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-import '../fasta_codes.dart' show templateInternalProblemNotFoundIn;
+import '../fasta_codes.dart'
+    show templateInternalProblemNotFoundIn, templateTypeArgumentMismatch;
 import '../scope.dart';
+import '../source/source_library_builder.dart';
 import '../problems.dart';
+import '../util/helpers.dart';
 
 import 'builder.dart';
+import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
-import 'declaration_builder.dart';
 
 abstract class ExtensionBuilder implements DeclarationBuilder {
   List<TypeVariableBuilder> get typeParameters;
@@ -27,13 +30,19 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// Return the [Extension] built by this builder.
   Extension get extension;
 
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers);
 
   /// Looks up extension member by [name] taking privacy into account.
   ///
   /// If [setter] is `true` the sought member is a setter or assignable field.
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
+  ///
+  /// If the extension member is a duplicate, `null` is returned.
+  // TODO(johnniwinther): Support [AmbiguousBuilder] here and in instance
+  // member lookup to avoid reporting that the member doesn't exist when it is
+  // duplicate.
   Builder lookupLocalMemberByName(Name name,
       {bool setter: false, bool required: false});
 
@@ -65,7 +74,9 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   Builder findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
-    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+    if (accessingLibrary.nameOriginBuilder.origin !=
+            library.nameOriginBuilder.origin &&
+        name.startsWith("_")) {
       return null;
     }
     Builder declaration = isSetter
@@ -79,14 +90,72 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
       [bool notInstanceContext]) {
-    throw new UnsupportedError("ExtensionBuilder.buildType is not supported.");
+    if (library is SourceLibraryBuilder &&
+        library.enableExtensionTypesInLibrary) {
+      return buildTypesWithBuiltArguments(
+          library,
+          nullabilityBuilder.build(library),
+          buildTypeArguments(library, arguments, notInstanceContext));
+    } else {
+      throw new UnsupportedError("ExtensionBuilder.buildType is not supported"
+          "in library '${library.importUri}'.");
+    }
   }
 
   @override
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
-    throw new UnsupportedError("ExtensionBuilder.buildTypesWithBuiltArguments "
-        "is not supported.");
+    if (library is SourceLibraryBuilder &&
+        library.enableExtensionTypesInLibrary) {
+      return new ExtensionType(extension, nullability, arguments);
+    } else {
+      throw new UnsupportedError(
+          "ExtensionBuilder.buildTypesWithBuiltArguments "
+          "is not supported in library '${library.importUri}'.");
+    }
+  }
+
+  @override
+  int get typeVariablesCount => typeParameters?.length ?? 0;
+
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
+    if (arguments == null && typeParameters == null) {
+      return <DartType>[];
+    }
+
+    if (arguments == null && typeParameters != null) {
+      List<DartType> result = new List<DartType>.filled(
+          typeParameters.length, null,
+          growable: true);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = typeParameters[i].defaultType.build(library);
+      }
+      if (library is SourceLibraryBuilder) {
+        library.inferredTypes.addAll(result);
+      }
+      return result;
+    }
+
+    if (arguments != null && arguments.length != typeVariablesCount) {
+      // That should be caught and reported as a compile-time error earlier.
+      return unhandled(
+          templateTypeArgumentMismatch
+              .withArguments(typeVariablesCount)
+              .message,
+          "buildTypeArguments",
+          -1,
+          null);
+    }
+
+    assert(arguments.length == typeVariablesCount);
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
+    }
+    return result;
   }
 
   @override
@@ -120,26 +189,22 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       {bool setter: false, bool required: false}) {
     Builder builder =
         lookupLocalMember(name.text, setter: setter, required: required);
-    if (builder != null && name.isPrivate && library.library != name.library) {
-      builder = null;
+    if (builder != null) {
+      if (name.isPrivate && library.library != name.library) {
+        builder = null;
+      } else if (builder.isDuplicate) {
+        // Duplicates are not visible in the instance scope.
+        builder = null;
+      } else if (builder is MemberBuilder && builder.isConflictingSetter) {
+        // Conflicting setters are not visible in the instance scope.
+        // TODO(johnniwinther): Should we return an [AmbiguousBuilder] here and
+        // above?
+        builder = null;
+      }
     }
     return builder;
   }
 
   @override
   String get debugName => "ExtensionBuilder";
-
-  @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
-    void build(String ignore, Builder declaration) {
-      MemberBuilder member = declaration;
-      member.buildOutlineExpressions(library, coreTypes);
-    }
-
-    // TODO(johnniwinther): Handle annotations on the extension declaration.
-    //MetadataBuilder.buildAnnotations(
-    //    isPatch ? origin.extension : extension,
-    //    metadata, library, this, null);
-    scope.forEach(build);
-  }
 }

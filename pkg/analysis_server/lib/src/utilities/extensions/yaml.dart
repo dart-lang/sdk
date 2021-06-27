@@ -4,34 +4,10 @@
 
 import 'package:yaml/yaml.dart';
 
-extension YamlMapExtensions on YamlMap {
-  /// Return the node representing the key that corresponds to the value
-  /// represented by the [value] node.
-  YamlNode keyAtValue(YamlNode value) {
-    for (var entry in nodes.entries) {
-      if (entry.value == value) {
-        return entry.key;
-      }
-    }
-    return null;
-  }
-
-  /// Return the value associated with the key whose value matches the given
-  /// [key], or `null` if there is no matching key.
-  YamlNode valueAt(String key) {
-    for (var keyNode in nodes.keys) {
-      if (keyNode is YamlScalar && keyNode.value == key) {
-        return nodes[key];
-      }
-    }
-    return null;
-  }
-}
-
 extension YamlNodeExtensions on YamlNode {
   /// Return the child of this node that contains the given [offset], or `null`
   /// if none of the children contains the offset.
-  YamlNode childContainingOffset(int offset) {
+  YamlNode? childContainingOffset(int offset) {
     var node = this;
     if (node is YamlList) {
       for (var element in node.nodes) {
@@ -47,16 +23,22 @@ extension YamlNodeExtensions on YamlNode {
         }
       }
     } else if (node is YamlMap) {
-      for (var entry in node.nodes.entries) {
+      var entries = node.nodes.entries.toList();
+      for (var i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        var nextEntryOffset = i + 1 < entries.length
+            ? (entries[i + 1].key as YamlNode).span.start.offset
+            : null;
         if ((entry.key as YamlNode).containsOffset(offset)) {
           return entry.key;
         }
         var value = entry.value;
         if (value.containsOffset(offset) ||
-            (value is YamlScalar && value.value == null)) {
-          // TODO(brianwilkerson) Testing for a null value probably gets
-          //  confused when there are multiple null values or when there is a
-          //  null value before the node that actually contains the offset.
+            (value is YamlScalar &&
+                value.value == null &&
+                // To match a null, we need to be the last node, or the offset
+                // needs to be before the next key.
+                (nextEntryOffset == null || offset < nextEntryOffset))) {
           return entry.value;
         }
       }

@@ -22,16 +22,16 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   FreeListElement* result = reinterpret_cast<FreeListElement*>(addr);
 
   uword tags = 0;
-  tags = ObjectLayout::SizeTag::update(size, tags);
-  tags = ObjectLayout::ClassIdTag::update(kFreeListElement, tags);
+  tags = UntaggedObject::SizeTag::update(size, tags);
+  tags = UntaggedObject::ClassIdTag::update(kFreeListElement, tags);
   ASSERT((addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset);
-  tags = ObjectLayout::OldBit::update(true, tags);
-  tags = ObjectLayout::OldAndNotMarkedBit::update(true, tags);
-  tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
-  tags = ObjectLayout::NewBit::update(false, tags);
+  tags = UntaggedObject::OldBit::update(true, tags);
+  tags = UntaggedObject::OldAndNotMarkedBit::update(true, tags);
+  tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
+  tags = UntaggedObject::NewBit::update(false, tags);
   result->tags_ = tags;
 
-  if (size > ObjectLayout::SizeTag::kMaxSizeTag) {
+  if (size > UntaggedObject::SizeTag::kMaxSizeTag) {
     *result->SizeAddress() = size;
   }
   result->set_next(NULL);
@@ -47,7 +47,7 @@ void FreeListElement::Init() {
 
 intptr_t FreeListElement::HeaderSizeFor(intptr_t size) {
   if (size == 0) return 0;
-  return ((size > ObjectLayout::SizeTag::kMaxSizeTag) ? 3 : 2) * kWordSize;
+  return ((size > UntaggedObject::SizeTag::kMaxSizeTag) ? 3 : 2) * kWordSize;
 }
 
 FreeList::FreeList() : mutex_() {
@@ -220,16 +220,12 @@ intptr_t FreeList::LengthLocked(int index) const {
 }
 
 void FreeList::PrintSmall() const {
-  int small_sizes = 0;
-  int small_objects = 0;
   intptr_t small_bytes = 0;
   for (int i = 0; i < kNumLists; ++i) {
     if (free_lists_[i] == NULL) {
       continue;
     }
-    small_sizes += 1;
     intptr_t list_length = LengthLocked(i);
-    small_objects += list_length;
     intptr_t list_bytes = list_length * i * kObjectAlignment;
     small_bytes += list_bytes;
     OS::PrintErr(
@@ -265,20 +261,16 @@ class IntptrPair {
 };
 
 void FreeList::PrintLarge() const {
-  int large_sizes = 0;
-  int large_objects = 0;
   intptr_t large_bytes = 0;
   MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> > map;
   FreeListElement* node;
   for (node = free_lists_[kNumLists]; node != NULL; node = node->next()) {
     IntptrPair* pair = map.Lookup(node->HeapSize());
     if (pair == NULL) {
-      large_sizes += 1;
       map.Insert(IntptrPair(node->HeapSize(), 1));
     } else {
       pair->set_second(pair->second() + 1);
     }
-    large_objects += 1;
   }
 
   MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> >::Iterator it =

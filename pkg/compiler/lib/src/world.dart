@@ -26,7 +26,6 @@ import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
 import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
 import 'js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
-import 'js_model/locals.dart';
 import 'js_emitter/sorter.dart';
 import 'universe/class_hierarchy.dart';
 import 'universe/member_usage.dart';
@@ -78,7 +77,6 @@ abstract class JClosedWorld implements World {
 
   AnnotationsData get annotationsData;
 
-  GlobalLocalsMap get globalLocalsMap;
   ClosureData get closureDataLookup;
 
   OutputUnitData get outputUnitData;
@@ -251,6 +249,8 @@ abstract class OpenWorld implements World {
 
 /// A [BuiltWorld] is an immutable result of a [WorldBuilder].
 abstract class BuiltWorld {
+  ClassHierarchy get classHierarchy;
+
   /// Calls [f] for each live generic method.
   void forEachGenericMethod(void Function(FunctionEntity) f);
 
@@ -310,6 +310,8 @@ abstract class KClosedWorld implements BuiltWorld {
   InterceptorData get interceptorData;
   KElementEnvironment get elementEnvironment;
   KCommonElements get commonElements;
+
+  @override
   ClassHierarchy get classHierarchy;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.

@@ -2,37 +2,55 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert' show utf8;
+
 import 'dart:io'
     show Directory, File, FileSystemEntity, exitCode, stdin, stdout;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show CommentToken, Token;
-import 'package:front_end/src/api_prototype/compiler_options.dart' as api;
-import 'package:front_end/src/api_prototype/file_system.dart' as api;
-import 'package:front_end/src/api_unstable/ddc.dart'
-    show CompilerContext, IncrementalCompiler, ProcessedOptions, Severity;
+
+import 'package:front_end/src/api_prototype/compiler_options.dart' as api
+    show CompilerOptions, DiagnosticMessage;
+
+import 'package:front_end/src/api_prototype/file_system.dart' as api
+    show FileSystem;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
+
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
+
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler, IncrementalKernelTarget;
+
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
+
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show SourceLibraryBuilder;
+
 import 'package:front_end/src/fasta/source/source_loader.dart'
     show SourceLoader;
+
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-import 'package:kernel/kernel.dart';
+
+import 'package:kernel/ast.dart';
+
 import 'package:kernel/target/targets.dart' show TargetFlags;
+
 import "package:vm/target/vm.dart" show VmTarget;
 
-import "utils/io_utils.dart";
+import "utils/io_utils.dart" show computeRepoDirUri;
 
 final Uri repoDir = computeRepoDirUri();
 
@@ -157,7 +175,7 @@ api.CompilerOptions getOptions() {
   return options;
 }
 
-class InvocationVisitor extends RecursiveVisitor<void> {
+class InvocationVisitor extends RecursiveVisitor {
   void visitProcedure(Procedure node) {
     if (node.isNoSuchMethodForwarder) return;
     super.visitProcedure(node);

@@ -8,25 +8,23 @@ import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../abstract_single_unit.dart';
 
-@reflectiveTest
 class WidgetDescriptionBase extends AbstractSingleUnitTest {
   final descriptions = WidgetDescriptions();
 
   void assertExpectedChange(SetPropertyValueResult result, String expected) {
     expect(result.errorCode, isNull);
 
-    var change = result.change;
+    var change = result.change!;
 
     expect(change.edits, hasLength(1));
     var fileEdit = change.edits[0];
     expect(fileEdit.file, testAnalysisResult.path);
 
     var actual = SourceEdit.applySequence(
-      testAnalysisResult.content,
+      testAnalysisResult.content!,
       fileEdit.edits,
     );
     expect(actual, expected);
@@ -50,9 +48,9 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
     expect(actual, expected);
   }
 
-  Future<protocol.FlutterGetWidgetDescriptionResult> getDescription(
+  Future<protocol.FlutterGetWidgetDescriptionResult?> getDescription(
       String search) async {
-    var content = testAnalysisResult.content;
+    var content = testAnalysisResult.content!;
 
     var offset = content.indexOf(search);
     if (offset == -1) {
@@ -68,7 +66,7 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
 
   protocol.FlutterWidgetProperty getNestedProperty(
       protocol.FlutterWidgetProperty parentProperty, String name) {
-    var nestedProperties = parentProperty.children;
+    var nestedProperties = parentProperty.children!;
     return nestedProperties.singleWhere(
       (property) => property.name == name,
     );
@@ -76,8 +74,7 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
 
   Future<protocol.FlutterWidgetProperty> getWidgetProperty(
       String widgetSearch, String name) async {
-    var widgetDescription = await getDescription(widgetSearch);
-    expect(widgetDescription, isNotNull);
+    var widgetDescription = (await getDescription(widgetSearch))!;
 
     var properties = widgetDescription.properties;
     return properties.singleWhere(
@@ -99,10 +96,10 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
     var id = json.remove('id') as int;
     expect(id, isNotNull);
 
-    Object editor = json['editor'];
+    var editor = json['editor'];
     if (editor is Map<String, dynamic>) {
       if (editor['kind'] == 'ENUM' || editor['kind'] == 'ENUM_LIKE') {
-        Object items = editor['enumItems'];
+        var items = editor['enumItems'];
         if (items is List<Map<String, dynamic>>) {
           for (var item in items) {
             item.remove('documentation');
@@ -111,15 +108,15 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
       }
     }
 
-    Object value = json['value'];
+    var value = json['value'];
     if (value is Map<String, dynamic>) {
-      Object enumItem = value['enumValue'];
+      var enumItem = value['enumValue'];
       if (enumItem is Map<String, dynamic>) {
         enumItem.remove('documentation');
       }
     }
 
-    Object children = json['children'];
+    var children = json['children'];
     if (children is List<Map<String, dynamic>>) {
       children.forEach(_removeNotInterestingElements);
     }

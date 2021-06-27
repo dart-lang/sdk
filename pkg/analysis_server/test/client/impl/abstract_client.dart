@@ -11,6 +11,7 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -24,7 +25,7 @@ import '../../mocks.dart';
 abstract class AbstractClient {
   final MockServerChannel serverChannel;
   final TestPluginManager pluginManager;
-  AnalysisServer server;
+  late AnalysisServer server;
 
   final List<GeneralAnalysisService> generalServices =
       <GeneralAnalysisService>[];
@@ -32,18 +33,18 @@ abstract class AbstractClient {
 
   final String projectPath;
   final String testFilePath;
-  String testCode;
+  late String testCode;
 
-  MockSdk sdk;
+  late MockSdk sdk;
 
   final AnalysisServerOptions serverOptions;
 
   AbstractClient({
-    @required this.projectPath,
-    @required this.testFilePath,
-    @required String sdkPath,
-    @required this.serverOptions,
-  })  : serverChannel = MockServerChannel(),
+    required this.projectPath,
+    required this.testFilePath,
+    required String sdkPath,
+    required this.serverOptions,
+  })   : serverChannel = MockServerChannel(),
         pluginManager = TestPluginManager() {
     server = createAnalysisServer(sdkPath);
     var notificationStream = serverChannel.notificationController.stream;
@@ -52,17 +53,18 @@ abstract class AbstractClient {
     });
   }
 
-  AnalysisDomainHandler get analysisHandler => server.handlers
-      .singleWhere((handler) => handler is AnalysisDomainHandler);
+  AnalysisDomainHandler get analysisHandler =>
+      server.handlers.singleWhere((handler) => handler is AnalysisDomainHandler)
+          as AnalysisDomainHandler;
 
   AnalysisOptions get analysisOptions => testDriver.analysisOptions;
 
   CompletionDomainHandler get completionHandler =>
       server.handlers.whereType<CompletionDomainHandler>().single;
 
-  ResourceProvider get resourceProvider;
+  MemoryResourceProvider get resourceProvider;
 
-  AnalysisDriver get testDriver => server.getAnalysisDriver(testFilePath);
+  AnalysisDriver get testDriver => server.getAnalysisDriver(testFilePath)!;
 
   void addAnalysisOptionsFile(String content) {
     newFile(
@@ -116,7 +118,7 @@ abstract class AbstractClient {
 
   /// Create a project at [projectPath].
   @mustCallSuper
-  void createProject({Map<String, String> packageRoots}) {
+  void createProject({Map<String, String>? packageRoots}) {
     newFolder(projectPath);
     var request = AnalysisSetAnalysisRootsParams([projectPath], [],
             packageRoots: packageRoots)
@@ -127,9 +129,9 @@ abstract class AbstractClient {
   void expect(actual, matcher, {String reason});
 
   /// Validate that the given [request] is handled successfully.
-  Response handleSuccessfulRequest(Request request, {RequestHandler handler}) {
+  Response handleSuccessfulRequest(Request request, {RequestHandler? handler}) {
     handler ??= analysisHandler;
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request)!;
     expect(response, isResponseSuccess(request.id));
     return response;
   }

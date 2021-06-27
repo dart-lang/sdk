@@ -1,0 +1,23 @@
+class ClassMixin extends Super with Mixin {}
+
+class Mixin {
+  void extendedAbstractMixedInAbstractMethod();
+  void extendedAbstractMixedInConcreteMethod() {}
+  void extendedConcreteMixedInAbstractMethod();
+  void extendedConcreteMixedInConcreteMethod() {}
+  void mixedInAbstractMethod();
+  void mixedInConcreteMethod() {}
+}
+
+class NamedMixin = Super with Mixin;
+
+class Super {
+  void extendedAbstractMethod();
+  void extendedAbstractMixedInAbstractMethod();
+  void extendedAbstractMixedInConcreteMethod();
+  void extendedConcreteMethod() {}
+  void extendedConcreteMixedInAbstractMethod() {}
+  void extendedConcreteMixedInConcreteMethod() {}
+}
+
+main() {}

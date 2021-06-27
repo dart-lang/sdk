@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f() → dynamic {
+  core::List<core::int*>* o;
+  o.{core::Iterable::forEach}((core::int* i) → core::int* => i.{core::num::+}(1){(core::num*) →* core::int*}){((core::int*) →* void) →* void};
+}
+static method main() → dynamic {}

@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
-import 'package:front_end/src/fasta/kernel/kernel_ast_api.dart';
+import 'package:kernel/ast.dart';
 import 'package:front_end/src/fasta/kernel/member_covariance.dart';
 
 main() {
@@ -89,8 +91,9 @@ main() {
       'types:1)',
       covariance.toString());
 
-  Procedure noParameterProcedure =
-      new Procedure(null, ProcedureKind.Method, new FunctionNode(null));
+  Procedure noParameterProcedure = new Procedure(
+      new Name('foo'), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
   Covariance noParameterProcedureCovariance =
       new Covariance.fromMember(noParameterProcedure, forSetter: false);
   Expect.isTrue(noParameterProcedureCovariance.isEmpty);
@@ -101,10 +104,11 @@ main() {
   Expect.isTrue(noParameterProcedureCovariance.isEmpty);
 
   Procedure oneParameterProcedure = new Procedure(
-      null,
+      new Name('foo'),
       ProcedureKind.Method,
       new FunctionNode(null,
-          positionalParameters: [new VariableDeclaration(null)]));
+          positionalParameters: [new VariableDeclaration(null)]),
+      fileUri: dummyUri);
   Covariance oneParameterProcedureCovariance =
       new Covariance.fromMember(oneParameterProcedure, forSetter: false);
   Expect.isTrue(oneParameterProcedureCovariance.isEmpty);
@@ -117,7 +121,7 @@ main() {
       oneParameterProcedureCovariance);
 
   Procedure positionalParametersProcedure = new Procedure(
-      null,
+      new Name('foo'),
       ProcedureKind.Method,
       new FunctionNode(null, positionalParameters: [
         new VariableDeclaration(null),
@@ -125,7 +129,8 @@ main() {
         new VariableDeclaration(null),
         new VariableDeclaration(null),
         new VariableDeclaration(null)
-      ]));
+      ]),
+      fileUri: dummyUri);
   Covariance positionalParametersProcedureCovariance =
       new Covariance.fromMember(positionalParametersProcedure,
           forSetter: false);
@@ -146,7 +151,7 @@ main() {
       positionalParametersProcedureCovariance);
 
   Procedure namedParametersProcedure = new Procedure(
-      null,
+      new Name('foo'),
       ProcedureKind.Method,
       new FunctionNode(null, namedParameters: [
         new VariableDeclaration('a'),
@@ -154,7 +159,8 @@ main() {
         new VariableDeclaration('c'),
         new VariableDeclaration('d'),
         new VariableDeclaration('e')
-      ]));
+      ]),
+      fileUri: dummyUri);
   Covariance namedParametersProcedureCovariance =
       new Covariance.fromMember(namedParametersProcedure, forSetter: false);
   Expect.isTrue(namedParametersProcedureCovariance.isEmpty);
@@ -175,13 +181,14 @@ main() {
       namedParametersProcedureCovariance);
 
   Procedure typeParametersProcedure = new Procedure(
-      null,
+      new Name('foo'),
       ProcedureKind.Method,
       new FunctionNode(null, typeParameters: [
         new TypeParameter(null),
         new TypeParameter(null),
         new TypeParameter(null),
-      ]));
+      ]),
+      fileUri: dummyUri);
   Covariance typeParametersProcedureCovariance =
       new Covariance.fromMember(typeParametersProcedure, forSetter: false);
   Expect.isTrue(typeParametersProcedureCovariance.isEmpty);

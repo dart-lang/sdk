@@ -1,0 +1,25 @@
+abstract class AbstractClass implements Interface1, Interface2 {
+  abstract int declareAbstractImplementMultipleField;
+  int declareConcreteImplementMultipleField = 0;
+}
+
+class ConcreteClass implements Interface1, Interface2 {
+  abstract int declareAbstractImplementMultipleField;
+  int declareConcreteImplementMultipleField = 0;
+}
+
+class ConcreteSub extends AbstractClass {}
+
+class Interface1 {
+  int declareAbstractImplementMultipleField = 0;
+  int declareConcreteImplementMultipleField = 0;
+  int implementMultipleField = 0;
+}
+
+class Interface2 {
+  int declareAbstractImplementMultipleField = 0;
+  int declareConcreteImplementMultipleField = 0;
+  int implementMultipleField = 0;
+}
+
+main() {}

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 main() {
   new C(42);
   //  ^
   // [cfe] Can't use 'C' because it is declared more than once.
-  //   ^^^^
+  //    ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
 }
 

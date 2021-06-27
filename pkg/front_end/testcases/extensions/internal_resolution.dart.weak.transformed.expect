@@ -1,0 +1,58 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int* field = null;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension _extension#0 on self::Class* {
+  get property1 = self::_extension#0|get#property1;
+  set property1 = self::_extension#0|set#property1;
+}
+extension _extension#1 on self::Class* {
+  get property2 = self::_extension#1|get#property2;
+  set property2 = self::_extension#1|set#property2;
+}
+static method _extension#0|get#property1(lowered final self::Class* #this) → core::int*
+  return self::_extension#1|get#property2(#this);
+static method _extension#0|set#property1(lowered final self::Class* #this, core::int* value) → void
+  return #this.{self::Class::field} = value;
+static method _extension#1|get#property2(lowered final self::Class* #this) → core::int*
+  return #this.{self::Class::field}{core::int*};
+static method _extension#1|set#property2(lowered final self::Class* #this, core::int* value) → void
+  return let final core::int* #t1 = value in let final void #t2 = self::_extension#0|set#property1(#this, #t1) in #t1;
+static method main() → dynamic {
+  self::Class* c = new self::Class::•();
+  self::expect(null, self::_extension#0|get#property1(c));
+  self::expect(null, self::_extension#1|get#property2(c));
+  self::expect(42, let final core::int* #t3 = 42 in let final void #t4 = self::_extension#0|set#property1(c, #t3) in #t3);
+  self::expect(42, self::_extension#1|get#property2(c));
+  self::expect(87, let final core::int* #t5 = 87 in let final void #t6 = self::_extension#1|set#property2(c, #t5) in #t5);
+  self::expect(87, self::_extension#0|get#property1(c));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:23:28 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:23:28 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:25:28 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:25:28 -> IntConstant(87)
+Extra constant evaluation: evaluated: 49, effectively constant: 4

@@ -29,6 +29,7 @@ export '../helpers/memory_compiler.dart' show CollectedMessage;
 
 const String specMarker = 'spec';
 const String prodMarker = 'prod';
+const String canaryMarker = 'canary';
 const String twoDeferredFragmentMarker = 'two-frag';
 const String threeDeferredFragmentMarker = 'three-frag';
 
@@ -36,6 +37,9 @@ const TestConfig specConfig = TestConfig(specMarker, 'compliance mode', []);
 
 const TestConfig prodConfig = TestConfig(prodMarker, 'production mode',
     [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
+
+const TestConfig canaryConfig =
+    TestConfig(canaryMarker, 'canary mode', [Flags.canary]);
 
 const TestConfig twoDeferredFragmentConfig = TestConfig(
     twoDeferredFragmentMarker,
@@ -464,9 +468,9 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 }
 
 Uri createUriForFileName(String fileName) {
-  // Pretend this is a dart2js_native test to allow use of 'native'
+  // Pretend this is a web/native test to allow use of 'native'
   // keyword and import of private libraries.
-  return Uri.parse('memory:sdk/tests/dart2js/native/$fileName');
+  return Uri.parse('memory:sdk/tests/web/native/$fileName');
 }
 
 Future<TestResult<T>> runTestForConfiguration<T>(TestConfig testConfiguration,

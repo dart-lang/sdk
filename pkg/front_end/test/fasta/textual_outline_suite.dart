@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 library fasta.test.textual_outline_test;
 
 import 'dart:io';
@@ -59,6 +61,9 @@ class Context extends ChainContext with MatchContext {
   @override
   String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
 
+  @override
+  bool get canBeFixWithUpdateExpectations => true;
+
   Context(this.updateExpectations);
 
   final List<Step> steps = const <Step>[
@@ -78,12 +83,15 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       TestDescription description, Context context) async {
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
-      String result = textualOutline(bytes,
-          throwOnUnexpected: true,
-          performModelling: modelled,
-          addMarkerForUnknownForTest: modelled,
-          configuration:
-              const ScannerConfiguration(enableExtensionMethods: true));
+      // TODO(jensj): NNBD should be configured correctly.
+      String result = textualOutline(
+        bytes,
+        const ScannerConfiguration(enableExtensionMethods: true),
+        throwOnUnexpected: true,
+        performModelling: modelled,
+        addMarkerForUnknownForTest: modelled,
+        returnNullOnError: false,
+      );
       if (result == null) {
         return new Result(
             null, context.expectationSet["EmptyOutput"], description.uri);

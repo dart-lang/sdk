@@ -29,6 +29,7 @@ Future<void> main(List<String> args) async {
 
     {
       final result = await Process.run(dart, [
+        '--verbosity=warning',
         '--snapshot-kind=kernel',
         '--snapshot=$dillPath',
         sourcePath,

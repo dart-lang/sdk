@@ -6,8 +6,12 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -22,8 +26,11 @@ class AddTypeAnnotation extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_TYPE_ANNOTATION;
 
   @override
+  FixKind get multiFixKind => DartFixKind.ADD_TYPE_ANNOTATION_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is SimpleFormalParameter) {
@@ -31,7 +38,8 @@ class AddTypeAnnotation extends CorrectionProducer {
         return;
       }
     }
-    while (node != null) {
+
+    for (var node in this.node.withParents) {
       if (node is VariableDeclarationList) {
         await _forVariableDeclaration(builder, node);
         return;
@@ -42,8 +50,7 @@ class AddTypeAnnotation extends CorrectionProducer {
         var forLoopParts = node.forLoopParts;
         if (forLoopParts is ForEachParts) {
           var offset = this.node.offset;
-          if (forLoopParts.iterable != null &&
-              offset < forLoopParts.iterable.offset) {
+          if (offset < forLoopParts.iterable.offset) {
             if (forLoopParts is ForEachPartsWithDeclaration) {
               await _forDeclaredIdentifier(builder, forLoopParts.loopVariable);
             }
@@ -51,7 +58,31 @@ class AddTypeAnnotation extends CorrectionProducer {
         }
         return;
       }
-      node = node.parent;
+    }
+  }
+
+  Future<void> _applyChange(
+      ChangeBuilder builder, Token? keyword, int offset, DartType type) async {
+    Future<bool> tryToApplyChange(ChangeBuilder builder) async {
+      var validChange = true;
+      await builder.addDartFileEdit(file, (builder) {
+        if (keyword != null && keyword.keyword == Keyword.VAR) {
+          builder.addReplacement(range.token(keyword), (builder) {
+            validChange = builder.writeType(type);
+          });
+        } else {
+          builder.addInsertion(offset, (builder) {
+            validChange = builder.writeType(type);
+            builder.write(' ');
+          });
+        }
+      });
+      return validChange;
+    }
+
+    _configureTargetLocation(node);
+    if (await tryToApplyChange(_temporaryBuilder(builder))) {
+      await tryToApplyChange(builder);
     }
   }
 
@@ -73,33 +104,12 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (declaredIdentifier.type != null) {
       return;
     }
-    var type = declaredIdentifier.declaredElement.type;
+    var type = declaredIdentifier.declaredElement!.type;
     if (type is! InterfaceType && type is! FunctionType) {
       return;
     }
-    _configureTargetLocation(node);
-
-    Future<bool> applyChange(ChangeBuilder builder) async {
-      var validChange = true;
-      await builder.addDartFileEdit(file, (builder) {
-        var keyword = declaredIdentifier.keyword;
-        if (keyword.keyword == Keyword.VAR) {
-          builder.addReplacement(range.token(keyword), (builder) {
-            validChange = builder.writeType(type);
-          });
-        } else {
-          builder.addInsertion(declaredIdentifier.identifier.offset, (builder) {
-            validChange = builder.writeType(type);
-            builder.write(' ');
-          });
-        }
-      });
-      return validChange;
-    }
-
-    if (await applyChange(_temporaryBuilder(builder))) {
-      await applyChange(builder);
-    }
+    await _applyChange(builder, declaredIdentifier.keyword,
+        declaredIdentifier.identifier.offset, type);
   }
 
   Future<void> _forSimpleFormalParameter(ChangeBuilder builder,
@@ -109,7 +119,7 @@ class AddTypeAnnotation extends CorrectionProducer {
       return;
     }
     // Prepare the type.
-    var type = parameter.declaredElement.type;
+    var type = parameter.declaredElement!.type;
     // TODO(scheglov) If the parameter is in a method declaration, and if the
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden
@@ -117,24 +127,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (type is! InterfaceType) {
       return;
     }
-    _configureTargetLocation(node);
-
-    Future<bool> applyChange(ChangeBuilder builder) async {
-      var validChange = true;
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(name.offset, (builder) {
-          validChange = builder.writeType(type);
-          if (validChange) {
-            builder.write(' ');
-          }
-        });
-      });
-      return validChange;
-    }
-
-    if (await applyChange(_temporaryBuilder(builder))) {
-      await applyChange(builder);
-    }
+    await _applyChange(builder, null, name.offset, type);
   }
 
   Future<void> _forVariableDeclaration(
@@ -154,44 +147,82 @@ class AddTypeAnnotation extends CorrectionProducer {
       return;
     }
     // Ensure that there is an initializer to get the type from.
-    var initializer = variable.initializer;
-    if (initializer == null) {
+    var type = _typeForVariable(variable);
+    if (type == null) {
       return;
     }
-    var type = initializer.staticType;
-    // prepare type source
     if ((type is! InterfaceType || type.isDartCoreNull) &&
         type is! FunctionType) {
       return;
     }
-    _configureTargetLocation(node);
-
-    Future<bool> applyChange(ChangeBuilder builder) async {
-      var validChange = true;
-      await builder.addDartFileEdit(file, (builder) {
-        var keyword = declarationList.keyword;
-        if (keyword?.keyword == Keyword.VAR) {
-          builder.addReplacement(range.token(keyword), (builder) {
-            validChange = builder.writeType(type);
-          });
-        } else {
-          builder.addInsertion(variable.offset, (builder) {
-            validChange = builder.writeType(type);
-            builder.write(' ');
-          });
-        }
-      });
-      return validChange;
-    }
-
-    if (await applyChange(_temporaryBuilder(builder))) {
-      await applyChange(builder);
-    }
+    await _applyChange(builder, declarationList.keyword, variable.offset, type);
   }
 
   ChangeBuilder _temporaryBuilder(ChangeBuilder builder) =>
       ChangeBuilder(workspace: (builder as ChangeBuilderImpl).workspace);
 
+  DartType? _typeForVariable(VariableDeclaration variable) {
+    var initializer = variable.initializer;
+    if (initializer != null) {
+      return initializer.staticType;
+    }
+    // The parents should be a [VariableDeclarationList],
+    // [VariableDeclarationStatement], and [Block], in that order.
+    var statement = variable.parent?.parent;
+    var block = statement?.parent;
+    if (statement is! VariableDeclarationStatement || block is! Block) {
+      return null;
+    }
+    var element = variable.declaredElement;
+    if (element is! LocalVariableElement) {
+      return null;
+    }
+    var statements = block.statements;
+    var index = statements.indexOf(statement);
+    var visitor = _AssignedTypeCollector(typeSystem, element);
+    for (var i = index + 1; i < statements.length; i++) {
+      statements[i].accept(visitor);
+    }
+    return visitor.bestType;
+  }
+
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static AddTypeAnnotation newInstance() => AddTypeAnnotation();
+}
+
+class _AssignedTypeCollector extends RecursiveAstVisitor<void> {
+  /// The type system used to compute the best type.
+  final TypeSystem typeSystem;
+
+  final LocalVariableElement variable;
+
+  /// The types that are assigned to the variable.
+  final Set<DartType> assignedTypes = {};
+
+  _AssignedTypeCollector(this.typeSystem, this.variable);
+
+  DartType? get bestType {
+    if (assignedTypes.isEmpty) {
+      return null;
+    }
+    var types = assignedTypes.toList();
+    var bestType = types[0];
+    for (var i = 1; i < assignedTypes.length; i++) {
+      bestType = typeSystem.leastUpperBound(bestType, types[i]);
+    }
+    return bestType;
+  }
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    var leftHandSide = node.leftHandSide;
+    if (leftHandSide is SimpleIdentifier &&
+        leftHandSide.staticElement == variable) {
+      var type = node.rightHandSide.staticType;
+      if (type != null) {
+        assignedTypes.add(type);
+      }
+    }
+    return super.visitAssignmentExpression(node);
+  }
 }

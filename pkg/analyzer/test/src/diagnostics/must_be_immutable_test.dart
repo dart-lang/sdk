@@ -26,7 +26,7 @@ class MustBeImmutableTest extends PubPackageResolutionTest {
 import 'package:meta/meta.dart';
 @immutable
 class A {
-  int x;
+  int x = 0;
 }
 ''', [
       error(HintCode.MUST_BE_IMMUTABLE, 50, 1),
@@ -38,7 +38,7 @@ class A {
 import 'package:meta/meta.dart';
 @immutable
 mixin A {
-  int x;
+  int x = 0;
 }
 ''', [
       error(HintCode.MUST_BE_IMMUTABLE, 50, 1),
@@ -51,7 +51,7 @@ import 'package:meta/meta.dart';
 @immutable
 class A {}
 class B extends A {
-  int x;
+  int x = 0;
 }
 ''', [
       error(HintCode.MUST_BE_IMMUTABLE, 61, 1),
@@ -74,11 +74,11 @@ import 'package:meta/meta.dart';
 @immutable
 class A {}
 class B {
-  int x;
+  int x = 0;
 }
 class C extends A with B {}
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 82, 1),
+      error(HintCode.MUST_BE_IMMUTABLE, 86, 1),
     ]);
   }
 
@@ -88,11 +88,11 @@ import 'package:meta/meta.dart';
 @immutable
 class A {}
 class B {
-  int x;
+  int x = 0;
 }
 class C = A with B;
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 82, 1),
+      error(HintCode.MUST_BE_IMMUTABLE, 86, 1),
     ]);
   }
 
@@ -100,13 +100,13 @@ class C = A with B;
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
-  int x;
+  int x = 0;
 }
 class B {}
 @immutable
 class C = A with B;
 ''', [
-      error(HintCode.MUST_BE_IMMUTABLE, 82, 1),
+      error(HintCode.MUST_BE_IMMUTABLE, 86, 1),
     ]);
   }
 
@@ -115,7 +115,7 @@ class C = A with B;
 import 'package:meta/meta.dart';
 @immutable
 class A {
-  static int x;
+  static int x = 0;
 }
 ''');
   }

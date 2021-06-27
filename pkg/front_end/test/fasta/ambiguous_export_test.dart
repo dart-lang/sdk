@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
@@ -20,9 +22,11 @@ import 'package:kernel/ast.dart'
 
 main() async {
   await asyncTest(() async {
-    Library library = new Library(Uri.parse("org.dartlang.fasta:library"));
-    Field field = new Field(new Name("_exports#", library),
-        initializer: new StringLiteral('{"main":"Problem with main"}'));
+    Uri uri = Uri.parse("org.dartlang.fasta:library");
+    Library library = new Library(uri, fileUri: uri);
+    Field field = new Field.immutable(new Name("_exports#", library),
+        initializer: new StringLiteral('{"main":"Problem with main"}'),
+        fileUri: library.fileUri);
     library.addField(field);
     Component component = new Component(libraries: <Library>[library]);
     await CompilerContext.runWithDefaultOptions((CompilerContext c) async {

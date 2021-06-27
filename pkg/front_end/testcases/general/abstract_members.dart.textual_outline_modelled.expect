@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class A implements Interface1, Interface2, Interface3 {
   aMethod() {}
   abstractMethod();

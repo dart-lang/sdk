@@ -104,24 +104,11 @@ void ARMDecoder::PrintCondition(Instr* instr) {
   Print(cond_names[instr->ConditionField()]);
 }
 
-// These register names are defined in a way to match the native disassembler
-// formatting, except for register alias pp (r5).
-// See for example the command "objdump -d <binary file>".
-static const char* reg_names[kNumberOfCpuRegisters] = {
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-    "r0", "r1", "r2",  "r3",  "r4", "pp", "r6", "fp",
-    "r8", "r9", "thr", "r11", "ip", "sp", "lr", "pc",
-#else
-    "r0", "r1", "r2",  "r3", "r4", "pp", "r6", "r7",
-    "r8", "r9", "thr", "fp", "ip", "sp", "lr", "pc",
-#endif
-};
-
 // Print the register name according to the active name converter.
 void ARMDecoder::PrintRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfCpuRegisters);
-  Print(reg_names[reg]);
+  Print(cpu_reg_names[reg]);
 }
 
 void ARMDecoder::PrintSRegister(int reg) {
@@ -465,11 +452,20 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
                          remaining_size_in_buffer(), "0x%x", immed16);
       return 7;
     }
-    case 'l': {  // 'l: branch and link
-      if (instr->HasLink()) {
-        Print("l");
+    case 'l': {
+      if (format[1] == 's') {
+        ASSERT(STRING_STARTS_WITH(format, "lsb"));
+        buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                      remaining_size_in_buffer(), "%u",
+                                      instr->BitFieldExtractLSBField());
+        return 3;
+      } else {
+        // 'l: branch and link
+        if (instr->HasLink()) {
+          Print("l");
+        }
+        return 1;
       }
-      return 1;
     }
     case 'm': {  // 'memop: load/store instructions
       ASSERT(STRING_STARTS_WITH(format, "memop"));
@@ -584,11 +580,22 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
       }
       return 1;
     }
-    case 'w': {  // 'w: W field of load and store instructions.
-      if (instr->HasW()) {
-        Print("!");
+    case 'w': {
+      if (format[1] == 'i') {
+        ASSERT(STRING_STARTS_WITH(format, "width"));
+        // 'width: width field of bit field extract instructions
+        // (field value in encoding is 1 less than in mnemonic)
+        buffer_pos_ = Utils::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(), "%u",
+                                     instr->BitFieldExtractWidthField() + 1);
+        return 5;
+      } else {
+        // 'w: W field of load and store instructions.
+        if (instr->HasW()) {
+          Print("!");
+        }
+        return 1;
       }
-      return 1;
     }
     case 'x': {  // 'x: type of extra load/store instructions.
       if (!instr->HasSign()) {
@@ -926,15 +933,37 @@ void ARMDecoder::DecodeType2(Instr* instr) {
 }
 
 void ARMDecoder::DecodeType3(Instr* instr) {
-  if (instr->IsDivision()) {
-    if (!TargetCPUFeatures::integer_division_supported()) {
-      Unknown(instr);
-      return;
-    }
-    if (instr->Bit(21)) {
-      Format(instr, "udiv'cond 'rn, 'rs, 'rm");
+  if (instr->IsMedia()) {
+    if (instr->IsDivision()) {
+      if (!TargetCPUFeatures::integer_division_supported()) {
+        Unknown(instr);
+        return;
+      }
+      // Check differences between A8.8.{165,248} and FormatRegister.
+      static_assert(kDivRdShift == kRnShift,
+                    "div 'rd does not corresspond to 'rn");
+      static_assert(kDivRmShift == kRsShift,
+                    "div 'rm does not corresspond to 'rs");
+      static_assert(kDivRnShift == kRmShift,
+                    "div 'rn does not corresspond to 'rm");
+      if (instr->IsDivUnsigned()) {
+        Format(instr, "udiv'cond 'rn, 'rs, 'rm");
+      } else {
+        Format(instr, "sdiv'cond 'rn, 'rs, 'rm");
+      }
+    } else if (instr->IsRbit()) {
+      Format(instr, "rbit'cond 'rd, 'rm");
+    } else if (instr->IsBitFieldExtract()) {
+      // Check differences between A8.8.{164,246} and FormatRegister.
+      static_assert(kBitFieldExtractRnShift == kRmShift,
+                    "bfx 'rn does not correspond to 'rm");
+      if (instr->IsBitFieldExtractSignExtended()) {
+        Format(instr, "sbfx'cond 'rd, 'rm, 'lsb, 'width");
+      } else {
+        Format(instr, "ubfx'cond 'rd, 'rm, 'lsb, 'width");
+      }
     } else {
-      Format(instr, "sdiv'cond 'rn, 'rs, 'rm");
+      UNREACHABLE();
     }
     return;
   }

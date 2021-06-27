@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -19,7 +18,7 @@ void main() {
 @reflectiveTest
 class ExtractMethodTest extends RefactoringTest {
   @override
-  ExtractMethodRefactoringImpl refactoring;
+  late ExtractMethodRefactoringImpl refactoring;
 
   Future<void> test_bad_assignmentLeftHandSide() async {
     await indexTestUnit('''
@@ -318,8 +317,8 @@ main() {
 class A {
   var fff;
 }
-main() {
-  A a;
+
+void f(A a) {
   a.fff = 1;
 }
 ''');
@@ -471,7 +470,7 @@ main() {
 
   Future<void> test_bad_statements_exit_notAllExecutionFlows() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
 // start
   if (p == 0) {
     return;
@@ -704,7 +703,7 @@ class A {
 
   Future<void> test_canExtractGetter_false_hasParameters() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
   int a = p + 1;
 }
 ''');
@@ -718,7 +717,7 @@ main(int p) {
   Future<void> test_canExtractGetter_false_returnNotUsed_assignment() async {
     await indexTestUnit('''
 var topVar = 0;
-f(int p) {
+void f(int p) {
   topVar = 5;
 }
 ''');
@@ -789,11 +788,6 @@ main() {
 }
 ''');
     _createRefactoringForString('1 + 2');
-    // null
-    refactoring.name = null;
-    assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Method name must not be null.');
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
@@ -897,7 +891,7 @@ class A {
 
   Future<void> test_closure_atArgumentName() async {
     await indexTestUnit('''
-void process({int fff(int x)}) {}
+void process({int fff(int x)?}) {}
 class C {
   main() {
     process(fff: (int x) => x * 2);
@@ -907,7 +901,7 @@ class C {
     _createRefactoring(findOffset('ff: (int x)'), 0);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-void process({int fff(int x)}) {}
+void process({int fff(int x)?}) {}
 class C {
   main() {
     process(fff: res);
@@ -960,7 +954,7 @@ main() {
   Future<void> test_closure_bad_referencesParameter() async {
     await indexTestUnit('''
 process(f(x)) {}
-main(int k) {
+void f(int k) {
   process((x) => x * k);
 }
 ''');
@@ -1114,7 +1108,7 @@ main() {
   Future<void> test_names_singleExpression() async {
     await indexTestUnit('''
 class TreeItem {}
-TreeItem getSelectedItem() => null;
+TreeItem getSelectedItem() => throw 0;
 process(my) {}
 main() {
   process(getSelectedItem()); // marker
@@ -1203,7 +1197,7 @@ main() {
 
   Future<void> test_returnType_statements_nullMix() async {
     await indexTestUnit('''
-main(bool p) {
+f(bool p) {
 // start
   if (p) {
     return 42;
@@ -1215,7 +1209,7 @@ main(bool p) {
     _createRefactoringForStartEndComments();
     // do check
     await refactoring.checkInitialConditions();
-    expect(refactoring.returnType, 'int');
+    expect(refactoring.returnType, 'int?');
   }
 
   Future<void> test_returnType_statements_void() async {
@@ -1291,7 +1285,7 @@ String res(String s) => s..length;
 
   Future<void> test_singleExpression_coveringExpression() async {
     await indexTestUnit('''
-main(int n) {
+void f(int n) {
   var v = new FooBar(n);
 }
 
@@ -1301,7 +1295,7 @@ class FooBar {
 ''');
     _createRefactoringForStringOffset('Bar(n);');
     return _assertSuccessfulRefactoring('''
-main(int n) {
+void f(int n) {
   var v = res(n);
 }
 
@@ -1535,7 +1529,7 @@ class A {
   Future<void> test_singleExpression_parameter_functionTypeAlias() async {
     await indexTestUnit('''
 typedef R Foo<S, R>(S s);
-void main(Foo<String, int> foo, String s) {
+void f(Foo<String, int> foo, String s) {
   int a = foo(s);
 }
 ''');
@@ -1543,7 +1537,7 @@ void main(Foo<String, int> foo, String s) {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 typedef R Foo<S, R>(S s);
-void main(Foo<String, int> foo, String s) {
+void f(Foo<String, int> foo, String s) {
   int a = res(foo, s);
 }
 
@@ -2298,7 +2292,7 @@ void res() {
 
   Future<void> test_statements_exit_throws() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
 // start
   if (p == 0) {
     return;
@@ -2334,7 +2328,7 @@ main() async {
   print(v);
 }
 
-Future res() async {
+Future<dynamic> res() async {
   var v = await getValue();
   return v;
 }
@@ -2376,7 +2370,7 @@ Future<int> res() async {
   Future<void> test_statements_hasAwait_forEach() async {
     await indexTestUnit('''
 import 'dart:async';
-Stream<int> getValueStream() => null;
+Stream<int> getValueStream() => throw 0;
 main() async {
 // start
   int sum = 0;
@@ -2391,7 +2385,7 @@ main() async {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
-Stream<int> getValueStream() => null;
+Stream<int> getValueStream() => throw 0;
 main() async {
 // start
   int sum = await res();
@@ -2431,7 +2425,7 @@ main() async {
 // end
 }
 
-Future res() async {
+Future<void> res() async {
   int v = await getValue();
   print(v);
 }
@@ -2672,7 +2666,7 @@ int res() {
 
   Future<void> test_statements_return_multiple_ifElse() async {
     await indexTestUnit('''
-num main(bool b) {
+num f(bool b) {
 // start
   if (b) {
     return 1;
@@ -2685,7 +2679,7 @@ num main(bool b) {
     _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-num main(bool b) {
+num f(bool b) {
 // start
   return res(b);
 // end
@@ -2703,7 +2697,7 @@ num res(bool b) {
 
   Future<void> test_statements_return_multiple_ifThen() async {
     await indexTestUnit('''
-num main(bool b) {
+num f(bool b) {
 // start
   if (b) {
     return 1;
@@ -2715,7 +2709,7 @@ num main(bool b) {
     _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-num main(bool b) {
+num f(bool b) {
 // start
   return res(b);
 // end
@@ -2761,7 +2755,7 @@ int res() {
 
   Future<void> test_statements_return_multiple_interfaceFunction() async {
     await indexTestUnit('''
-main(bool b) {
+f(bool b) {
 // start
   if (b) {
     return 1;
@@ -2773,7 +2767,7 @@ main(bool b) {
     _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(bool b) {
+f(bool b) {
 // start
   return res(b);
 // end
@@ -2791,7 +2785,7 @@ Object res(bool b) {
   Future<void>
       test_statements_return_multiple_sameElementDifferentTypeArgs() async {
     await indexTestUnit('''
-main(bool b) {
+f(bool b) {
 // start
   if (b) {
     print(true);
@@ -2806,13 +2800,13 @@ main(bool b) {
     _createRefactoringForStartEndComments();
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(bool b) {
+f(bool b) {
 // start
   return res(b);
 // end
 }
 
-List res(bool b) {
+List<dynamic> res(bool b) {
   if (b) {
     print(true);
     return <int>[];
@@ -2917,7 +2911,7 @@ Completer<int> newCompleter() => null;
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = ExtractMethodRefactoring(
+    refactoring = ExtractMethodRefactoringImpl(
         searchEngine, testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }

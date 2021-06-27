@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
 /// Returns `true` if type contains a promoted type variable.
@@ -26,7 +26,8 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
     for (NamedType namedParameterType in node.namedParameters) {
       if (namedParameterType.type.accept(this)) return true;
     }
-    if (node.typedefType != null && node.typedefType.accept(this)) {
+    TypedefType? typedefType = node.typedefType;
+    if (typedefType != null && typedefType.accept(this)) {
       return true;
     }
     return false;
@@ -63,12 +64,16 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
 /// with legacy types.
 DartType demoteTypeInLibrary(DartType type, Library library) {
   if (library.isNonNullableByDefault) {
-    return type.accept(const _DemotionNullabilityNormalization(
-            demoteTypeVariables: true, forNonNullableByDefault: true)) ??
+    return type.accept1(
+            const _DemotionNullabilityNormalization(
+                demoteTypeVariables: true, forNonNullableByDefault: true),
+            Variance.covariant) ??
         type;
   } else {
-    return type.accept(const _DemotionNullabilityNormalization(
-            demoteTypeVariables: true, forNonNullableByDefault: false)) ??
+    return type.accept1(
+            const _DemotionNullabilityNormalization(
+                demoteTypeVariables: true, forNonNullableByDefault: false),
+            Variance.covariant) ??
         type;
   }
 }
@@ -83,8 +88,10 @@ DartType normalizeNullabilityInLibrary(DartType type, Library library) {
   if (library.isNonNullableByDefault) {
     return type;
   } else {
-    return type.accept(const _DemotionNullabilityNormalization(
-            demoteTypeVariables: false, forNonNullableByDefault: false)) ??
+    return type.accept1(
+            const _DemotionNullabilityNormalization(
+                demoteTypeVariables: false, forNonNullableByDefault: false),
+            Variance.covariant) ??
         type;
   }
 }
@@ -98,12 +105,15 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   final bool forNonNullableByDefault;
 
   const _DemotionNullabilityNormalization(
-      {this.demoteTypeVariables, this.forNonNullableByDefault})
+      {required this.demoteTypeVariables,
+      required this.forNonNullableByDefault})
+      // ignore: unnecessary_null_comparison
       : assert(demoteTypeVariables != null),
+        // ignore: unnecessary_null_comparison
         assert(forNonNullableByDefault != null);
 
   @override
-  Nullability visitNullability(DartType node) {
+  Nullability? visitNullability(DartType node) {
     if (forNonNullableByDefault) {
       if (node.declaredNullability == Nullability.legacy) {
         return Nullability.nonNullable;
@@ -117,8 +127,8 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node) {
-    Nullability newNullability = visitNullability(node);
+  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+    Nullability? newNullability = visitNullability(node);
     if (demoteTypeVariables && node.promotedBound != null) {
       return new TypeParameterType(
           node.parameter, newNullability ?? node.declaredNullability);

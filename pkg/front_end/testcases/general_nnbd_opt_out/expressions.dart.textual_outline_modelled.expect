@@ -1,4 +1,0 @@
-// @dart = 2.6
-caller(f) {}
-foo({fisk}) {}
-main() {}

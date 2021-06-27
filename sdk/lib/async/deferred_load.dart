@@ -4,12 +4,12 @@
 
 part of dart.async;
 
-/**
- * Indicates that loading of [libraryName] is deferred.
- *
- * This class is obsolete. Instead use the syntax:
- * import "library.dart" deferred as prefix;
- */
+/// Indicates that loading of [libraryName] is deferred.
+///
+/// This class is obsolete. Instead use the syntax:
+/// ```dart
+/// import "library.dart" deferred as prefix;
+/// ```
 @Deprecated("Dart sdk v. 1.8")
 class DeferredLibrary {
   final String libraryName;
@@ -17,18 +17,14 @@ class DeferredLibrary {
 
   const DeferredLibrary(this.libraryName, {this.uri});
 
-  /**
-   * Ensure that [libraryName] has been loaded.
-   *
-   * If the library fails to load, the Future will complete with a
-   * DeferredLoadException.
-   */
+  /// Ensure that [libraryName] has been loaded.
+  ///
+  /// If the library fails to load, the [Future] will complete with a
+  /// [DeferredLoadException].
   external Future<Null> load();
 }
 
-/**
- * Thrown when a deferred library fails to load.
- */
+/// Thrown when a deferred library fails to load.
 class DeferredLoadException implements Exception {
   DeferredLoadException(String message) : _s = message;
   String toString() => "DeferredLoadException: '$_s'";

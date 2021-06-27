@@ -20,13 +20,13 @@ abstract class AssistContributorMixin implements AssistContributor {
   /// priority, and use the change [builder] to get the edits that comprise the
   /// assist. If the message has parameters, then use the list of [args] to
   /// populate the message.
-  void addAssist(AssistKind kind, ChangeBuilder builder, {List<Object> args}) {
+  void addAssist(AssistKind kind, ChangeBuilder builder, {List<Object>? args}) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
     }
+    change.id = kind.id;
     change.message = formatList(kind.message, args);
-    collector.addAssist(
-        PrioritizedSourceChange(kind.priority, builder.sourceChange));
+    collector.addAssist(PrioritizedSourceChange(kind.priority, change));
   }
 }

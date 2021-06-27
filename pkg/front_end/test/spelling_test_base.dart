@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show File, Platform;
 
 import 'dart:typed_data' show Uint8List;
@@ -9,9 +11,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show ErrorToken;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show Token, KeywordToken, BeginToken;
-
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+    show BeginToken, KeywordToken, StringToken, Token;
 
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
@@ -19,7 +19,7 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
 
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' show Location, Source;
 
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription;

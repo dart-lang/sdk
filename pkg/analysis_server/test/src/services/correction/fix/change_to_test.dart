@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -198,18 +199,18 @@ main() {
   Future<void> test_getter_hint() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   print(x.myFild);
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   print(x.myField);
 }
@@ -238,17 +239,17 @@ void f() {
   Future<void> test_getter_qualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   print(a.myFild);
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   print(a.myField);
 }
 ''');
@@ -295,7 +296,7 @@ void f() {
   Future<void> test_getter_unqualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
   main() {
     print(myFild);
   }
@@ -303,9 +304,78 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
   main() {
     print(myField);
+  }
+}
+''');
+  }
+
+  Future<void> test_getterSetter_qualified() async {
+    await resolveTestCode('''
+class A {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a.foo2 += 2;
+}
+''');
+    await assertHasFix('''
+class A {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a.foo += 2;
+}
+''', errorFilter: (e) => e.errorCode == CompileTimeErrorCode.UNDEFINED_GETTER);
+  }
+
+  Future<void> test_getterSetter_qualified_static() async {
+    await resolveTestCode('''
+class A {
+  static int get foo => 0;
+  static set foo(int _) {}
+}
+
+void f() {
+  A.foo2 += 2;
+}
+''');
+    await assertHasFix('''
+class A {
+  static int get foo => 0;
+  static set foo(int _) {}
+}
+
+void f() {
+  A.foo += 2;
+}
+''', errorFilter: (e) => e.errorCode == CompileTimeErrorCode.UNDEFINED_GETTER);
+  }
+
+  Future<void> test_getterSetter_unqualified() async {
+    await resolveTestCode('''
+class A {
+  int get foo => 0;
+  set foo(int _) {}
+
+  void f() {
+    foo2 += 2;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int get foo => 0;
+  set foo(int _) {}
+
+  void f() {
+    foo += 2;
   }
 }
 ''');
@@ -424,18 +494,18 @@ class A {
   Future<void> test_setter_hint() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.myFild = 42;
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.myField = 42;
 }
@@ -464,17 +534,17 @@ void f() {
   Future<void> test_setter_qualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   a.myFild = 42;
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   a.myField = 42;
 }
 ''');
@@ -502,7 +572,7 @@ void f() {
   Future<void> test_setter_unqualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
   main() {
     myFild = 42;
   }
@@ -510,7 +580,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
   main() {
     myField = 42;
   }

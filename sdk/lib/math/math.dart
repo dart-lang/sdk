@@ -5,9 +5,9 @@
 /// Mathematical constants and functions, plus a random number generator.
 ///
 /// To use this library in your code:
-///
-///     import 'dart:math';
-///
+/// ```dart
+/// import 'dart:math';
+/// ```
 /// {@category Core}
 library dart.math;
 

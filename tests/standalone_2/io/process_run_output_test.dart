@@ -5,6 +5,8 @@
 // Test script for testing that output is handled correctly for
 // non-interactive processes started with Process.run.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "dart:convert";
 import "dart:io";
@@ -37,6 +39,7 @@ test(scriptFile, String encoding, stream) {
 
   var args = <String>[]
     ..addAll(Platform.executableArguments)
+    ..add('--verbosity=warning')
     ..addAll([scriptFile, encoding, stream]);
 
   if (stream == 'stdout') {

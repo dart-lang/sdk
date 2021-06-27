@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class A {
   const A(a);
   const A.named({a: 42});
@@ -15,8 +17,9 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
   // [cfe] Too few positional arguments: 1 required, 0 given.
   const A(1, 2);
-  //     ^^^^^^
+  //         ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //     ^^^^^^
   // [cfe] Too many positional arguments: 1 allowed, but 2 found.
   const A.named();
   const A.named(b: 1);
@@ -34,7 +37,8 @@ main() {
   const A.optional();
   const A.optional(42);
   const A.optional(42, 54);
-  //              ^^^^^^^^
+  //                   ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //              ^^^^^^^^
   // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 }

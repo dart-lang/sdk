@@ -12,7 +12,7 @@ import '../text/text_reader.dart' show TextIterator;
 
 import '../text/text_serializer.dart';
 
-const Uri noUri = null;
+const Uri? noUri = null;
 
 const int noOffset = -1;
 
@@ -26,12 +26,12 @@ abstract class RoundTripStatus implements Comparable<RoundTripStatus> {
   /// round-trip serialization failed on or to the closest parent with location.
   final TreeNode context;
 
-  RoundTripStatus(this.node, {TreeNode context})
+  RoundTripStatus(this.node, {required TreeNode context})
       : context = node is TreeNode && node.location != null ? node : context;
 
-  Uri get uri => context?.location?.file;
+  Uri? get uri => context.location?.file;
 
-  int get offset => context?.fileOffset;
+  int get offset => context.fileOffset;
 
   bool get isSuccess;
 
@@ -40,11 +40,11 @@ abstract class RoundTripStatus implements Comparable<RoundTripStatus> {
   String get nameForDebugging;
 
   int compareTo(RoundTripStatus other) {
-    if (node is TreeNode && other.node is TreeNode) {
-      TreeNode thisNode = this.node;
-      TreeNode otherNode = other.node;
-      Uri thisUri = thisNode.location?.file;
-      Uri otherUri = otherNode.location?.file;
+    Node thisNode = this.node;
+    Node otherNode = other.node;
+    if (thisNode is TreeNode && otherNode is TreeNode) {
+      Uri? thisUri = thisNode.location?.file;
+      Uri? otherUri = otherNode.location?.file;
       int thisOffset = thisNode.fileOffset;
       int otherOffset = otherNode.fileOffset;
 
@@ -56,16 +56,20 @@ abstract class RoundTripStatus implements Comparable<RoundTripStatus> {
       } else if (otherUri == null) {
         compareUri = -1;
       } else {
+        // ignore: unnecessary_null_comparison
         assert(thisUri != null && otherUri != null);
         compareUri = thisUri.toString().compareTo(otherUri.toString());
       }
       if (compareUri != 0) return compareUri;
 
       int compareOffset;
+      // ignore: unnecessary_null_comparison
       if (thisOffset == null && otherOffset == null) {
         compareOffset = 0;
+        // ignore: unnecessary_null_comparison
       } else if (thisOffset == null) {
         compareOffset = 1;
+        // ignore: unnecessary_null_comparison
       } else if (otherOffset == null) {
         compareOffset = -1;
       } else {
@@ -97,12 +101,12 @@ abstract class RoundTripStatus implements Comparable<RoundTripStatus> {
     sb.writeln("Status: ${nameForDebugging}");
     sb.writeln("Node type: ${node.runtimeType}");
     sb.writeln("Node: ${json.encode(node.leakingDebugToString())}");
-    if (node is TreeNode) {
-      TreeNode treeNode = node;
+    Node treeNode = node;
+    if (treeNode is TreeNode) {
       if (treeNode.parent != null) {
         sb.writeln("Parent type: ${treeNode.parent.runtimeType}");
         sb.writeln(
-            "Parent: ${json.encode(treeNode.parent.leakingDebugToString())}");
+            "Parent: ${json.encode(treeNode.parent!.leakingDebugToString())}");
       }
     }
   }
@@ -117,7 +121,7 @@ abstract class RoundTripStatus implements Comparable<RoundTripStatus> {
 class RoundTripSuccess extends RoundTripStatus {
   final String serialized;
 
-  RoundTripSuccess(Node node, this.serialized, {TreeNode context})
+  RoundTripSuccess(Node node, this.serialized, {required TreeNode context})
       : super(node, context: context);
 
   @override
@@ -137,7 +141,7 @@ class RoundTripInitialSerializationFailure extends RoundTripStatus {
   final String message;
 
   RoundTripInitialSerializationFailure(Node node, this.message,
-      {TreeNode context})
+      {required TreeNode context})
       : super(node, context: context);
 
   @override
@@ -156,7 +160,8 @@ class RoundTripInitialSerializationFailure extends RoundTripStatus {
 class RoundTripDeserializationFailure extends RoundTripStatus {
   final String message;
 
-  RoundTripDeserializationFailure(Node node, this.message, {TreeNode context})
+  RoundTripDeserializationFailure(Node node, this.message,
+      {required TreeNode context})
       : super(node, context: context);
 
   @override
@@ -177,7 +182,7 @@ class RoundTripSecondSerializationFailure extends RoundTripStatus {
   final String serialized;
 
   RoundTripSecondSerializationFailure(Node node, this.initial, this.serialized,
-      {TreeNode context})
+      {required TreeNode context})
       : super(node, context: context);
 
   @override
@@ -204,7 +209,7 @@ class TextSerializationVerifier {
 
   final CanonicalName root;
 
-  TextSerializationVerifier({CanonicalName root})
+  TextSerializationVerifier({CanonicalName? root})
       : root = root ?? new CanonicalName.root() {
     initializeSerializers();
   }
@@ -218,7 +223,7 @@ class TextSerializationVerifier {
     makeRoundTrip<Library>(node, librarySerializer);
   }
 
-  T readNode<T extends TreeNode>(
+  T? readNode<T extends TreeNode>(
       T node, String input, TextSerializer<T> serializer) {
     TextIterator stream = new TextIterator(input, 0);
     stream.moveNext();
@@ -238,6 +243,7 @@ class TextSerializationVerifier {
           node, "unexpected trailing text",
           context: node));
     }
+    // ignore: unnecessary_null_comparison
     if (result == null) {
       _status.add(new RoundTripDeserializationFailure(
           node, "Deserialization of the following returned null: '${input}'",
@@ -268,7 +274,7 @@ class TextSerializationVerifier {
     }
 
     // Do the round trip.
-    T deserialized = readNode(node, initial, serializer);
+    T? deserialized = readNode(node, initial, serializer);
     if (_failures.length != failureCount) {
       return;
     }

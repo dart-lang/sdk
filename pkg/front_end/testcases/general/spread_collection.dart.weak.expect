@@ -1,0 +1,49 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/spread_collection.dart:21:21: Error: Not enough type information to disambiguate between literal set and literal map.
+// Try providing type arguments for the literal explicitly to disambiguate it.
+//   final aSetOrMap = {...foo()};
+//                     ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  final core::List<core::int*>* aList = block {
+    final core::List<core::int*>* #t1 = <core::int*>[1];
+    #t1.{core::List::addAll}{Invariant}(<core::int*>[2]){(core::Iterable<core::int*>*) →* void};
+    final core::Iterable<core::int*>* #t2 = <core::int*>[3];
+    if(!(#t2 == null))
+      #t1.{core::List::addAll}{Invariant}(#t2){(core::Iterable<core::int*>*) →* void};
+  } =>#t1;
+  final core::Map<core::int*, core::int*>* aMap = block {
+    final core::Map<core::int*, core::int*>* #t3 = <core::int*, core::int*>{};
+    #t3.{core::Map::[]=}{Invariant}(1, 1){(core::int*, core::int*) →* void};
+    for (final core::MapEntry<core::int*, core::int*>* #t4 in <core::int*, core::int*>{2: 2}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>})
+      #t3.{core::Map::[]=}{Invariant}(#t4.{core::MapEntry::key}{core::int*}, #t4.{core::MapEntry::value}{core::int*}){(core::int*, core::int*) →* void};
+    final core::Map<core::int*, core::int*>* #t5 = <core::int*, core::int*>{3: 3};
+    if(!(#t5 == null))
+      for (final core::MapEntry<core::int*, core::int*>* #t6 in #t5.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>})
+        #t3.{core::Map::[]=}{Invariant}(#t6.{core::MapEntry::key}{core::int*}, #t6.{core::MapEntry::value}{core::int*}){(core::int*, core::int*) →* void};
+  } =>#t3;
+  final core::Set<core::int*>* aSet = block {
+    final core::Set<core::int*>* #t7 = col::LinkedHashSet::•<core::int*>();
+    #t7.{core::Set::add}{Invariant}(1){(core::int*) →* core::bool*};
+    #t7.{core::Set::addAll}{Invariant}(<core::int*>[2]){(core::Iterable<core::int*>*) →* void};
+    final core::Iterable<core::int*>* #t8 = <core::int*>[3];
+    if(!(#t8 == null))
+      #t7.{core::Set::addAll}{Invariant}(#t8){(core::Iterable<core::int*>*) →* void};
+  } =>#t7;
+  final Never* aSetOrMap = invalid-expression "pkg/front_end/testcases/general/spread_collection.dart:21:21: Error: Not enough type information to disambiguate between literal set and literal map.
+Try providing type arguments for the literal explicitly to disambiguate it.
+  final aSetOrMap = {...foo()};
+                    ^";
+  core::print(aList);
+  core::print(aSet);
+  core::print(aMap);
+}
+static method foo() → dynamic
+  return null;

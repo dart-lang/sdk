@@ -28,7 +28,7 @@ final _underscores = RegExp(r'^[_]+$');
 /// Create a library name prefix based on [libraryPath], [projectRoot] and
 /// current [packageName].
 String createLibraryNamePrefix(
-    {String libraryPath, String projectRoot, String packageName}) {
+    {required String libraryPath, String? projectRoot, String? packageName}) {
   // Use the posix context to canonicalize separators (`\`).
   var libraryDirectory = path.posix.dirname(libraryPath);
   var relativePath = path.posix.relative(libraryDirectory, from: projectRoot);
@@ -86,7 +86,7 @@ class Spelunker {
   final IOSink sink;
   FeatureSet featureSet;
 
-  Spelunker(this.path, {IOSink sink, FeatureSet featureSet})
+  Spelunker(this.path, {IOSink? sink, FeatureSet? featureSet})
       : sink = sink ?? stdout,
         featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 
@@ -118,7 +118,7 @@ class _SourceVisitor extends GeneralizingAstVisitor {
     var comment = token.precedingComments;
     while (comment is CommentToken) {
       comments.add(comment);
-      comment = comment.next;
+      comment = comment.next as CommentToken?;
     }
     return comments;
   }

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--new_gen_semi_max_size=1 --no_inline_alloc
 
+// @dart = 2.9
+
 // Regression test for slow-path allocation in the allocation stub.
 
 library map_test;

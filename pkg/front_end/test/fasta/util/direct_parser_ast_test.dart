@@ -1,3 +1,9 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -337,10 +343,13 @@ List<String> processItem(DirectParserASTContent item, List<int> data) {
           fields.endToken.offset + fields.endToken.length)
     ];
   } else if (item.isEnum()) {
-    DirectParserASTContentEnumEnd enm = item.asEnum();
+    DirectParserASTContentEnumEnd declaration = item.asEnum();
     return [
-      getCutContent(data, enm.enumKeyword.offset,
-          enm.leftBrace.endGroup.offset + enm.leftBrace.endGroup.length)
+      getCutContent(
+          data,
+          declaration.enumKeyword.offset,
+          declaration.leftBrace.endGroup.offset +
+              declaration.leftBrace.endGroup.length)
     ];
   } else if (item.isMixinDeclaration()) {
     DirectParserASTContentMixinDeclarationEnd mixinDecl =

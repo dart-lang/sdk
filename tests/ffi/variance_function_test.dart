@@ -12,10 +12,10 @@
 
 import 'dart:ffi';
 
-import 'dylib_utils.dart';
-
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
+
+import 'dylib_utils.dart';
 
 typedef Int64PointerParamOpDart = void Function(Pointer<Int64>);
 typedef Int64PointerParamOp = Void Function(Pointer<Int64>);
@@ -38,19 +38,19 @@ void paramInvariant1() {
   final fp =
       ffiTestFunctions.lookup<NativeFunction<Int64PointerParamOp>>(paramOpName);
   final f = fp.asFunction<Int64PointerParamOpDart>();
-  final arg = allocate<Int64>();
+  final arg = calloc<Int64>();
   f(arg);
-  free(arg);
+  calloc.free(arg);
 }
 
 void paramInvariant2() {
   final fp =
       ffiTestFunctions.lookup<NativeFunction<NaTyPointerParamOp>>(paramOpName);
   final f = fp.asFunction<NaTyPointerParamOpDart>();
-  final arg = allocate<Int64>().cast<NativeType>();
+  final arg = calloc<Int64>().cast<NativeType>();
   Expect.type<Pointer<NativeType>>(arg);
   f(arg);
-  free(arg);
+  calloc.free(arg);
 }
 
 // Pass a statically and dynamically subtyped argument.
@@ -58,10 +58,10 @@ void paramSubtype1() {
   final fp =
       ffiTestFunctions.lookup<NativeFunction<NaTyPointerParamOp>>(paramOpName);
   final f = fp.asFunction<NaTyPointerParamOpDart>();
-  final arg = allocate<Int64>();
+  final arg = calloc<Int64>();
   Expect.type<Pointer<Int64>>(arg);
   f(arg);
-  free(arg);
+  calloc.free(arg);
 }
 
 // Pass a statically subtyped but dynamically invariant argument.
@@ -69,10 +69,10 @@ void paramSubtype2() {
   final fp =
       ffiTestFunctions.lookup<NativeFunction<NaTyPointerParamOp>>(paramOpName);
   final f = fp.asFunction<NaTyPointerParamOpDart>();
-  final Pointer<NativeType> arg = allocate<Int64>();
+  final Pointer<NativeType> arg = calloc<Int64>();
   Expect.type<Pointer<Int64>>(arg);
   f(arg);
-  free(arg);
+  calloc.free(arg);
 }
 
 void returnInvariant1() {
@@ -220,7 +220,7 @@ void callbackReturnInvariant2() {
 }
 
 void fromFunctionTests() {
-  data = allocate();
+  data = calloc();
   for (int i = 0; i < 100; ++i) {
     callbackParamInvariant1(); // Pointer<Int64> invariant
     callbackParamInvariant2(); // Pointer<NativeType> invariant
@@ -229,7 +229,7 @@ void fromFunctionTests() {
     callbackReturnInvariant1(); // Pointer<Int64> invariant
     callbackReturnInvariant2(); // Pointer<NativeType> invariant
   }
-  free(data);
+  calloc.free(data);
 }
 
 void main() {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
@@ -24,7 +26,6 @@ class TypeSchemaEnvironmentTest {
 
   final Map<String, DartType Function()> additionalTypes = {
     "UNKNOWN": () => new UnknownType(),
-    "BOTTOM": () => new BottomType(),
   };
 
   Library _coreLibrary;
@@ -267,8 +268,8 @@ class TypeSchemaEnvironmentTest {
     parseTestLibrary("class A;");
 
     for (String type in ["A*", "A?", "A"]) {
-      checkLowerBound(type1: "bottom", type2: type, lowerBound: "bottom");
-      checkLowerBound(type1: type, type2: "bottom", lowerBound: "bottom");
+      checkLowerBound(type1: "Never", type2: type, lowerBound: "Never");
+      checkLowerBound(type1: type, type2: "Never", lowerBound: "Never");
     }
 
     // DOWN(T1, T2) where BOTTOM(T1) and BOTTOM(T2) =
@@ -382,13 +383,9 @@ class TypeSchemaEnvironmentTest {
     parseTestLibrary("");
 
     checkLowerBound(
-        type1: "Object",
-        type2: "FutureOr<Null>",
-        lowerBound: "FutureOr<Never>");
+        type1: "Object", type2: "FutureOr<Null>", lowerBound: "Never");
     checkLowerBound(
-        type1: "FutureOr<Null>",
-        type2: "Object",
-        lowerBound: "FutureOr<Never>");
+        type1: "FutureOr<Null>", type2: "Object", lowerBound: "Never");
 
     // FutureOr<dynamic> is top.
     checkLowerBound(
@@ -1328,6 +1325,59 @@ class TypeSchemaEnvironmentTest {
         type2: "T",
         upperBound: "List<Object?>",
         typeParameters: "T extends List<T>, U extends List<Never>");
+    checkUpperBound(
+        type1: "T",
+        type2: "T",
+        upperBound: "T",
+        typeParameters: "T extends Object?");
+
+    // These cases are observed through `a ?? b`. Here the resulting type
+    // is `UP(NonNull(a),b)`, if `b` is `null`, is `NonNull(a)?`.
+
+    // We have
+    //
+    //     NonNull(T extends Object?) = T & Object
+    //
+    // resulting in
+    //
+    //     (T & Object)? = T? & Object
+    //
+    checkUpperBound(
+        type1: "T",
+        type2: "Null",
+        upperBound: "T? & Object",
+        typeParameters: "T extends Object?",
+        nonNull1: true);
+
+    // We have
+    //
+    //     NonNull(T extends bool?) = T & bool
+    //
+    // resulting in
+    //
+    //     (T & bool)? = T? & bool
+    //
+    checkUpperBound(
+        type1: "T",
+        type2: "Null",
+        upperBound: "T? & bool",
+        typeParameters: "T extends bool?",
+        nonNull1: true);
+
+    // We have
+    //
+    //     NonNull(T extends bool) = T
+    //
+    // resulting in
+    //
+    //     (T)? = T?
+    //
+    checkUpperBound(
+        type1: "T",
+        type2: "Null",
+        upperBound: "T?",
+        typeParameters: "T extends bool",
+        nonNull1: true);
   }
 
   void test_upper_bound_unknown() {
@@ -1353,8 +1403,10 @@ class TypeSchemaEnvironmentTest {
     // Solve(? <: T <: ?) => ?
     checkConstraintSolving("", "UNKNOWN", grounded: false);
 
-    // Solve(? <: T <: ?, grounded) => dynamic
-    checkConstraintSolving("", "dynamic", grounded: true);
+    // Solve(? <: T <: ?, grounded) => ?
+    // Fully unconstrained variables are inferred via instantiate-to-bounds
+    // rather than constraint solving.
+    checkConstraintSolving("", "UNKNOWN", grounded: true);
 
     // Solve(A <: T <: ?) => A
     checkConstraintSolving(":> A<dynamic>*", "A<dynamic>*", grounded: false);
@@ -1459,7 +1511,7 @@ class TypeSchemaEnvironmentTest {
         typeSchemaEnvironment.solveTypeConstraint(
             parseConstraint(constraint),
             coreTypes.objectNullableRawType,
-            new NeverType(Nullability.nonNullable),
+            new NeverType.internal(Nullability.nonNullable),
             grounded: grounded),
         parseType(expected));
   }
@@ -1520,16 +1572,29 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkUpperBound(
-      {String type1, String type2, String upperBound, String typeParameters}) {
+      {String type1,
+      String type2,
+      String upperBound,
+      String typeParameters,
+      bool nonNull1: false,
+      bool nonNull2: false}) {
     assert(type1 != null);
     assert(type2 != null);
     assert(upperBound != null);
 
     typeParserEnvironment.withTypeParameters(typeParameters,
         (List<TypeParameter> typeParameterNodes) {
+      DartType dartType1 = parseType(type1);
+      DartType dartType2 = parseType(type2);
+      if (nonNull1) {
+        dartType1 = dartType1.toNonNull();
+      }
+      if (nonNull2) {
+        dartType2 = dartType2.toNonNull();
+      }
       expect(
           typeSchemaEnvironment.getStandardUpperBound(
-              parseType(type1), parseType(type2), testLibrary),
+              dartType1, dartType2, testLibrary),
           parseType(upperBound));
     });
   }

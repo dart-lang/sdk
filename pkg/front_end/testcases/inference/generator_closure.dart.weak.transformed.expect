@@ -1,0 +1,47 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method foo(() →* asy::Stream<core::int*>* values) → void {}
+static method main() → void {
+  self::foo(() → asy::Stream<core::int*>* /* originally async* */ {
+    asy::_AsyncStarStreamController<core::int*>* :controller;
+    dynamic :controller_stream;
+    (dynamic) →* dynamic :async_op_then;
+    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    dynamic :saved_try_context_var1;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try
+        try {
+          #L1:
+          {
+            if(:controller.{asy::_AsyncStarStreamController::add}(0){(core::int*) → core::bool})
+              return null;
+            else
+              [yield] null;
+            if(:controller.{asy::_AsyncStarStreamController::add}(1){(core::int*) → core::bool})
+              return null;
+            else
+              [yield] null;
+          }
+          return;
+        }
+        on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+          :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace){(core::Object, core::StackTrace) → void};
+        }
+      finally {
+        :controller.{asy::_AsyncStarStreamController::close}(){() → dynamic};
+      }
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :controller = new asy::_AsyncStarStreamController::•<core::int*>(:async_op);
+    :controller_stream = :controller.{asy::_AsyncStarStreamController::stream}{asy::Stream<core::int*>};
+    return :controller_stream;
+  });
+}

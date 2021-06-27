@@ -15,14 +15,31 @@ main() {
 
 @reflectiveTest
 class InvalidFieldTypeInStructTest extends PubPackageResolutionTest {
+  // TODO(https://dartbug.com/44677): Remove Pointer notEmpty field.
   test_instance_invalid() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  String str;
+  external String str;
+
+  external Pointer notEmpty;
 }
 ''', [
-      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 46, 6),
+      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 55, 6),
+    ]);
+  }
+
+  // TODO(https://dartbug.com/44677): Remove Pointer notEmpty field.
+  test_instance_invalid2() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+class C extends Union {
+  external String str;
+
+  external Pointer notEmpty;
+}
+''', [
+      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 54, 6),
     ]);
   }
 
@@ -30,7 +47,7 @@ class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  Pointer p;
+  external Pointer p;
 }
 ''');
   }
@@ -39,7 +56,9 @@ class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  static String str;
+  static String? str;
+
+  external Pointer notEmpty;
 }
 ''');
   }

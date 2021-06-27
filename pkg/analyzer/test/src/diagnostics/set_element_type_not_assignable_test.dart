@@ -10,12 +10,27 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetElementTypeNotAssignableTest);
+    defineReflectiveTests(SetElementTypeNotAssignableWithNoImplicitCastsTest);
+    defineReflectiveTests(SetElementTypeNotAssignableWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class SetElementTypeNotAssignableTest extends PubPackageResolutionTest
-    with SetElementTypeNotAssignableTestCases {}
+    with SetElementTypeNotAssignableTestCases {
+  test_const_stringQuestion_null_dynamic() async {
+    await assertNoErrorsInCode('''
+const a = null;
+var v = const <String?>{a};
+''');
+  }
+
+  test_const_stringQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <String?>{null};
+''');
+  }
+}
 
 mixin SetElementTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt() async {
@@ -67,42 +82,59 @@ var v = const <int>{if (true) a};
     ]);
   }
 
-  test_const_spread_intInt() async {
+  test_const_intInt_dynamic() async {
     await assertNoErrorsInCode('''
-var v = const <int>{...[0, 1]};
+const dynamic a = 42;
+var v = const <int>{a};
 ''');
   }
 
-  test_explicitTypeArgs_const() async {
-    await assertErrorsInCode('''
-var v = const <String>{42};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
-    ]);
-  }
-
-  test_explicitTypeArgs_const_actualTypeMatch() async {
+  test_const_intInt_value() async {
     await assertNoErrorsInCode('''
-const dynamic x = null;
-var v = const <String>{x};
+var v = const <int>{42};
 ''');
   }
 
-  test_explicitTypeArgs_const_actualTypeMismatch() async {
+  test_const_intNull_dynamic() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+    ], legacy: []);
     await assertErrorsInCode('''
-const dynamic x = 42;
-var v = const <String>{x};
+const a = null;
+var v = const <int>{a};
+''', errors);
+  }
+
+  test_const_intNull_value() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
+    ], legacy: []);
+    await assertErrorsInCode('''
+var v = const <int>{null};
+''', errors);
+  }
+
+  test_const_intString_dynamic() async {
+    await assertErrorsInCode('''
+const dynamic x = 'abc';
+var v = const <int>{x};
 ''', [
       error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1),
     ]);
   }
 
-  test_explicitTypeArgs_notConst() async {
+  test_const_intString_value() async {
     await assertErrorsInCode('''
-var v = <String>{42};
+var v = const <int>{'abc'};
 ''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 2),
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 5),
     ]);
+  }
+
+  test_const_spread_intInt() async {
+    await assertNoErrorsInCode('''
+var v = const <int>{...[0, 1]};
+''');
   }
 
   test_nonConst_ifElement_thenElseFalse_intDynamic() async {
@@ -148,4 +180,79 @@ var v = <int>{if (true) a};
 var v = <int>{...[0, 1]};
 ''');
   }
+
+  test_notConst_intString_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic x = 'abc';
+var v = <int>{x};
+''');
+  }
+
+  test_notConst_intString_value() async {
+    await assertErrorsInCode('''
+var v = <int>{'abc'};
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
+    ]);
+  }
 }
+
+@reflectiveTest
+class SetElementTypeNotAssignableWithNoImplicitCastsTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
+  test_ifElement_falseBranch_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, dynamic a) {
+  <int>{if (c) 0 else a};
+}
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
+    ]);
+  }
+
+  test_ifElement_falseBranch_supertype() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, num a) {
+  <int>{if (c) 0 else a};
+}
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 46, 1),
+    ]);
+  }
+
+  test_ifElement_trueBranch_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, dynamic a) {
+  <int>{if (c) a};
+}
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 43, 1),
+    ]);
+  }
+
+  test_ifElement_trueBranch_supertype() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, num a) {
+  <int>{if (c) a};
+}
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 39, 1),
+    ]);
+  }
+
+  test_spread_supertype() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(Iterable<num> a) {
+  <int>{...a};
+}
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 37, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class SetElementTypeNotAssignableWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, SetElementTypeNotAssignableTestCases {}

@@ -517,7 +517,7 @@ method() {
   }
 
   CompletionSuggestion _assertOverride(String completion,
-      {String displayText, int selectionOffset, int selectionLength}) {
+      {String? displayText, int? selectionOffset, int? selectionLength}) {
     var cs = getSuggest(
         completion: completion,
         csKind: CompletionSuggestionKind.OVERRIDE,

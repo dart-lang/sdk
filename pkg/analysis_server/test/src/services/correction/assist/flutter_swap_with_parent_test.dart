@@ -40,7 +40,7 @@ build() {
           height: 300.0,
         ),
       ),
-      key: null,
+      key: Key('x'),
     ),
   );
 }
@@ -53,7 +53,7 @@ build() {
     body: GestureDetector(
       onTap: () => startResize(),
       child: Center(
-        key: null,
+        key: Key('x'),
         child: Container(
           width: 200.0,
           height: 300.0,
@@ -72,7 +72,7 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => _State();
+  State<Foo> createState() => _State();
 }
 
 class _State extends State<Foo> {
@@ -95,7 +95,7 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => _State();
+  State<Foo> createState() => _State();
 }
 
 class _State extends State<Foo> {

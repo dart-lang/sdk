@@ -16,6 +16,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
+import 'package:collection/collection.dart';
 
 class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
         Either2<List<Location>, List<LocationLink>>>
@@ -46,14 +47,15 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
   }
 
   Future<AnalysisNavigationParams> getServerResult(
-      bool clientSupportsLocationLink, String path, int offset) async {
-    final collector = NavigationCollectorImpl(
-        collectCodeLocations: clientSupportsLocationLink);
+      bool supportsLocationLink, String path, int offset) async {
+    final collector =
+        NavigationCollectorImpl(collectCodeLocations: supportsLocationLink);
 
     final result = await server.getResolvedUnit(path);
-    if (result?.state == ResultState.VALID) {
+    final unit = result?.unit;
+    if (result?.state == ResultState.VALID && unit != null) {
       computeDartNavigation(
-          server.resourceProvider, collector, result.unit, offset, 0);
+          server.resourceProvider, collector, unit, offset, 0);
       collector.createRegions();
     }
 
@@ -64,11 +66,14 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
   @override
   Future<ErrorOr<Either2<List<Location>, List<LocationLink>>>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
-    final definitionCapabilities =
-        server?.clientCapabilities?.textDocument?.definition;
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
 
-    final clientSupportsLocationLink =
-        definitionCapabilities?.linkSupport == true;
+    final supportsLocationLink = clientCapabilities.definitionLocationLink;
 
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
@@ -87,7 +92,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
 
       return offset.mapResult((offset) async {
         final allResults = [
-          await getServerResult(clientSupportsLocationLink, path, offset),
+          await getServerResult(supportsLocationLink, path, offset),
           ...await getPluginResults(path, offset),
         ];
 
@@ -95,20 +100,27 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
         final mergedResults = merger.mergeNavigation(allResults);
         final mergedTargets = mergedResults?.targets ?? [];
 
+        if (mergedResults == null) {
+          return success(
+            Either2<List<Location>, List<LocationLink>>.t1(const []),
+          );
+        }
+
         // Convert and filter the results using the correct type of Location class
         // depending on the client capabilities.
-        if (clientSupportsLocationLink) {
+        if (supportsLocationLink) {
           final convertedResults = convert(
             mergedTargets,
-            (target) => _toLocationLink(mergedResults, lineInfo, target),
-          ).toList();
+            (NavigationTarget target) =>
+                _toLocationLink(mergedResults, lineInfo, target),
+          ).whereNotNull().toList();
 
           final results = _filterResults(
             convertedResults,
             params.textDocument.uri,
             pos.line,
-            (element) => element.targetUri,
-            (element) => element.targetSelectionRange,
+            (LocationLink element) => element.targetUri,
+            (LocationLink element) => element.targetSelectionRange,
           );
 
           return success(
@@ -117,15 +129,15 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
         } else {
           final convertedResults = convert(
             mergedTargets,
-            (target) => _toLocation(mergedResults, target),
-          ).toList();
+            (NavigationTarget target) => _toLocation(mergedResults, target),
+          ).whereNotNull().toList();
 
           final results = _filterResults(
             convertedResults,
             params.textDocument.uri,
             pos.line,
-            (element) => element.uri,
-            (element) => element.range,
+            (Location element) => element.uri,
+            (Location element) => element.range,
           );
 
           return success(
@@ -160,19 +172,24 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
     return otherResults.isNotEmpty ? otherResults : results;
   }
 
-  Location _toLocation(
+  Location? _toLocation(
       AnalysisNavigationParams mergedResults, NavigationTarget target) {
     final targetFilePath = mergedResults.files[target.fileIndex];
     final targetLineInfo = server.getLineInfo(targetFilePath);
-    return navigationTargetToLocation(targetFilePath, target, targetLineInfo);
+    return targetLineInfo != null
+        ? navigationTargetToLocation(targetFilePath, target, targetLineInfo)
+        : null;
   }
 
-  LocationLink _toLocationLink(AnalysisNavigationParams mergedResults,
+  LocationLink? _toLocationLink(AnalysisNavigationParams mergedResults,
       LineInfo sourceLineInfo, NavigationTarget target) {
     final region = mergedResults.regions.first;
     final targetFilePath = mergedResults.files[target.fileIndex];
     final targetLineInfo = server.getLineInfo(targetFilePath);
-    return navigationTargetToLocationLink(
-        region, sourceLineInfo, targetFilePath, target, targetLineInfo);
+
+    return targetLineInfo != null
+        ? navigationTargetToLocationLink(
+            region, sourceLineInfo, targetFilePath, target, targetLineInfo)
+        : null;
   }
 }

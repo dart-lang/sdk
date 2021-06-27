@@ -15,8 +15,8 @@ void main() {
 
 @reflectiveTest
 class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
-  String workspaceFolder1Path, workspaceFolder2Path, workspaceFolder3Path;
-  Uri workspaceFolder1Uri, workspaceFolder2Uri, workspaceFolder3Uri;
+  late String workspaceFolder1Path, workspaceFolder2Path, workspaceFolder3Path;
+  late Uri workspaceFolder1Uri, workspaceFolder2Uri, workspaceFolder3Uri;
 
   @override
   void setUp() {
@@ -24,9 +24,17 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     workspaceFolder1Path = convertPath('/workspace1');
     workspaceFolder2Path = convertPath('/workspace2');
     workspaceFolder3Path = convertPath('/workspace3');
+    newFolder(workspaceFolder1Path);
+    newFolder(workspaceFolder2Path);
+    newFolder(workspaceFolder3Path);
+
     workspaceFolder1Uri = Uri.file(workspaceFolder1Path);
     workspaceFolder2Uri = Uri.file(workspaceFolder2Path);
     workspaceFolder3Uri = Uri.file(workspaceFolder3Path);
+
+    newFile(join(workspaceFolder1Path, 'pubspec.yaml'));
+    newFile(join(workspaceFolder2Path, 'pubspec.yaml'));
+    newFile(join(workspaceFolder3Path, 'pubspec.yaml'));
   }
 
   Future<void> test_changeWorkspaceFolders_add() async {
@@ -73,23 +81,27 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     // Expect implicit root for the open file.
     expect(
       server.contextManager.includedPaths,
-      unorderedEquals([nestedFolderPath]),
+      unorderedEquals([workspaceFolder1Path]),
     );
 
-    // Add the real project root to the workspace (which should become an
-    // explicit root).
+    // Add the real project root to the workspace (which will become an
+    // explicit root but not change anything or rebuild contexts).
+    resetContextBuildCounter();
     await changeWorkspaceFolders(add: [workspaceFolder1Uri]);
     expect(
       server.contextManager.includedPaths,
-      unorderedEquals([workspaceFolder1Path, nestedFolderPath]),
+      unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
 
-    // Closing the file should not result in the project being removed.
+    // Closing the file should not change roots nor trigger a rebuild.
+    resetContextBuildCounter();
     await closeFile(nestedFileUri);
     expect(
       server.contextManager.includedPaths,
       unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
   }
 
   Future<void>
@@ -106,24 +118,28 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     // Expect implicit root for the open file.
     expect(
       server.contextManager.includedPaths,
-      unorderedEquals([nestedFolderPath]),
+      unorderedEquals([workspaceFolder1Path]),
     );
 
-    // Add the real project root to the workspace (which should become an
-    // explicit root).
+    // Add the real project root to the workspace (which will become an
+    // explicit root but not change anything or rebuild contexts).
+    resetContextBuildCounter();
     await changeWorkspaceFolders(add: [workspaceFolder1Uri]);
     expect(
       server.contextManager.includedPaths,
-      unorderedEquals([workspaceFolder1Path, nestedFolderPath]),
+      unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
 
-    // Removing the workspace folder should result in falling back to just the
-    // nested folder.
-    await changeWorkspaceFolders(remove: [workspaceFolder1Uri]);
+    // Removing the workspace folder should not change roots nor trigger a
+    // rebuild because the root is still the implicit root for the open file.
+    resetContextBuildCounter();
+    await closeFile(nestedFileUri);
     expect(
       server.contextManager.includedPaths,
-      unorderedEquals([nestedFolderPath]),
+      unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
   }
 
   Future<void>
@@ -142,20 +158,23 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
       unorderedEquals([workspaceFolder1Path]),
     );
 
-    // Open a file, though no new root is expected as it was mapped to the existing
-    // open folder.
+    // An open file should not trigger any changes or rebuilds.
+    resetContextBuildCounter();
     await openFile(nestedFileUri, '');
     expect(
       server.contextManager.includedPaths,
       unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
 
-    // Closing the file should not result in the project being removed.
+    // Closing the file should also not trigger any changes.
+    resetContextBuildCounter();
     await closeFile(nestedFileUri);
     expect(
       server.contextManager.includedPaths,
       unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
   }
 
   Future<void>
@@ -174,32 +193,61 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
       unorderedEquals([workspaceFolder1Path]),
     );
 
-    // Open a file, though no new root is expected as it was mapped to the existing
-    // open folder.
+    // Open a file, though no new root (or rebuild) is expected as it was mapped
+    // to the existing open project folder.
+    resetContextBuildCounter();
     await openFile(nestedFileUri, '');
     expect(
       server.contextManager.includedPaths,
       unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
 
     // Removing the workspace folder will retain the workspace folder, as that's
-    // the folder we picked when the file was opened since there was already
-    // a root for it.
+    // the project root.
+    resetContextBuildCounter();
     await changeWorkspaceFolders(remove: [workspaceFolder1Uri]);
     expect(
       server.contextManager.includedPaths,
       unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
+  }
+
+  Future<void> test_changeWorkspaceFolders_implicitFile_noProject() async {
+    final nestedFolderPath =
+        join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
+    final nestedFilePath = join(nestedFolderPath, 'test.dart');
+    final nestedFileUri = Uri.file(nestedFilePath);
+    newFile(nestedFilePath);
+    deleteFile(join(
+        workspaceFolder1Path, 'pubspec.yaml')); // Ensure no pubspecs in tree.
+
+    await initialize(allowEmptyRootUri: true);
+    await openFile(nestedFileUri, '');
+
+    // Because there is no pubspec in the tree and we don't locate a root, we
+    // expect the file to be analyzed solo.
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([nestedFilePath]),
+    );
+
+    // Adding the parent folder will switch to using that as the root and rebuild
+    // the root.
+    resetContextBuildCounter();
+    await changeWorkspaceFolders(add: [workspaceFolder1Uri]);
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+    expectContextBuilds();
   }
 
   Future<void> test_changeWorkspaceFolders_openFileOutsideRoot() async {
     // When a file is opened that is outside of the analysis roots, the first
-    // analysis driver will be used (see [AbstractAnalysisServer.getAnalysisDriver]).
-    // This means as long as there is already an analysis root, the implicit root
-    // will be the original root and not the path of the opened file.
-    // For example, Go-to-Definition into a file in PubCache must *not* result in
-    // the pub cache folder being added as an analysis root, it should be analyzed
-    // by the existing project's driver.
+    // analysis driver will be used (see [AbstractAnalysisServer.getAnalysisDriver])
+    // and no new root will be created.
     final workspace1FilePath = join(workspaceFolder1Path, 'test.dart');
     newFile(workspace1FilePath);
     final workspace2FilePath = join(workspaceFolder2Path, 'test.dart');
@@ -214,19 +262,24 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
       unorderedEquals([workspaceFolder1Path]),
     );
 
-    // Open a file in workspaceFolder2 (which is not in the analysis roots).
+    // Open a file in workspaceFolder2 which will reuse the existing driver for
+    // workspace1 so not change roots/trigger a rebuild.
+    resetContextBuildCounter();
     await openFile(workspace2FileUri, '');
     expect(
       server.contextManager.includedPaths,
       unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
 
-    // Closing the file should not result in the project being removed.
+    // Closing the file will also not trigger any changes.
+    resetContextBuildCounter();
     await closeFile(workspace2FileUri);
     expect(
       server.contextManager.includedPaths,
       unorderedEquals([workspaceFolder1Path]),
     );
+    expectNoContextBuilds();
   }
 
   Future<void> test_changeWorkspaceFolders_remove() async {

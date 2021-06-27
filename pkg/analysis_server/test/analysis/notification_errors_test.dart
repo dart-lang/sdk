@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -24,8 +25,8 @@ void main() {
 
 @reflectiveTest
 class NotificationErrorsTest extends AbstractAnalysisTest {
-  Folder pedanticFolder;
-  Map<String, List<AnalysisError>> filesErrors = {};
+  late Folder pedanticFolder;
+  Map<String, List<AnalysisError>?> filesErrors = {};
 
   @override
   void processNotification(Notification notification) {
@@ -66,7 +67,7 @@ linter:
     //
     // Verify the error result.
     //
-    var errors = filesErrors[analysisOptionsFile];
+    var errors = filesErrors[analysisOptionsFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -87,7 +88,7 @@ include: package:pedantic/analysis_options.yaml
     await pumpEventQueue();
 
     // Verify there's an error for the import.
-    var errors = filesErrors[analysisOptionsFile];
+    var errors = filesErrors[analysisOptionsFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -95,14 +96,14 @@ include: package:pedantic/analysis_options.yaml
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
 
     // Write a package file that allows resolving the include.
-    newFile('$projectPath/.packages', content: '''
+    newDotPackagesFile(projectPath, content: '''
 pedantic:${pedanticFolder.toUri()}
 ''');
 
     // Ensure the errors disappear.
     await waitForTasksFinished();
     await pumpEventQueue();
-    errors = filesErrors[analysisOptionsFile];
+    errors = filesErrors[analysisOptionsFile]!;
     expect(errors, hasLength(0));
   }
 
@@ -115,7 +116,7 @@ pedantic:${pedanticFolder.toUri()}
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''').path;
-    newFile(join(projectPath, 'analysis_options.yaml'), content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -129,7 +130,7 @@ analyzer:
     //
     // Verify the error result.
     //
-    var errors = filesErrors[manifestFile];
+    var errors = filesErrors[manifestFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -146,7 +147,7 @@ analyzer:
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''').path;
-    newFile(join(projectPath, 'analysis_options.yaml'), content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -164,6 +165,40 @@ analyzer:
     expect(errors, isNull);
   }
 
+  Future<void> test_dartToolGeneratedProject_referencedByUserProject() async {
+    // Although errors are not generated for dotfolders, their contents should
+    // still be analyzed so that code that references them (for example
+    // flutter_gen) should still be updated.
+    final configPath = join(projectPath, '.dart_tool/package_config.json');
+    final generatedProject = join(projectPath, '.dart_tool/foo');
+    final generatedFile = join(generatedProject, 'lib', 'foo.dart');
+
+    // Add the generated project into package_config.json.
+    final config = PackageConfigFileBuilder();
+    config.add(name: 'foo', rootPath: generatedProject);
+    newFile(configPath, content: config.toContent(toUriStr: toUriStr));
+
+    // Set up project that references the class prior to initial analysis.
+    newFile(generatedFile, content: 'class A {}');
+    addTestFile('''
+import 'package:foo/foo.dart';
+A? a;
+    ''');
+
+    createProject();
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[testFile], isEmpty);
+
+    // Remove the class, which should cause the main project to have an analysis
+    // error.
+    modifyFile(generatedFile, '');
+
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[testFile], isNotEmpty);
+  }
+
   Future<void> test_dataFile() async {
     var filePath = join(projectPath, 'lib', 'fix_data.yaml');
     var dataFile = newFile(filePath, content: '''
@@ -179,7 +214,7 @@ transforms:
     //
     // Verify the error result.
     //
-    var errors = filesErrors[dataFile];
+    var errors = filesErrors[dataFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -236,7 +271,7 @@ transforms:
   }
 
   Future<void> test_excludedFolder() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   exclude:
     - excluded/**
@@ -272,7 +307,7 @@ import 'does_not_exist.dart';
 ''');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
-    var errors = filesErrors[testFile];
+    var errors = filesErrors[testFile]!;
     // Verify that we are generating only 1 error for the bad URI.
     // https://github.com/dart-lang/sdk/issues/23754
     expect(errors, hasLength(1));
@@ -285,7 +320,7 @@ import 'does_not_exist.dart';
   Future<void> test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    newFile(join(projectPath, 'analysis_options.yaml'), content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - $camelCaseTypesLintName
@@ -299,7 +334,7 @@ linter:
 
     await waitForTasksFinished();
 
-    var testDriver = server.getAnalysisDriver(testFile);
+    var testDriver = server.getAnalysisDriver(testFile)!;
     var lints = testDriver.analysisOptions.lintRules;
 
     // Registry should only contain single lint rule.
@@ -308,7 +343,7 @@ linter:
     expect(lint.name, camelCaseTypesLintName);
 
     // Verify lint error result.
-    var errors = filesErrors[testFile];
+    var errors = filesErrors[testFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, join(projectPath, 'bin', 'test.dart'));
@@ -437,7 +472,7 @@ main() {
     addTestFile('library lib');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
-    var errors = filesErrors[testFile];
+    var errors = filesErrors[testFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, join(projectPath, 'bin', 'test.dart'));
@@ -462,7 +497,7 @@ version: 1.3.2
     //
     // Verify the error result.
     //
-    var errors = filesErrors[pubspecFile];
+    var errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -478,13 +513,12 @@ version: 1.3.2
     await waitForTasksFinished();
     await pumpEventQueue();
 
-    errors = filesErrors[pubspecFile];
+    errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(0));
   }
 
   Future<void> test_pubspecFile_lint() async {
-    var optionsPath = join(projectPath, 'analysis_options.yaml');
-    newFile(optionsPath, content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - sort_pub_dependencies
@@ -507,7 +541,7 @@ dependencies:
     //
     // Verify the error result.
     //
-    var errors = filesErrors[pubspecFile];
+    var errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -526,7 +560,7 @@ dependencies:
     await waitForTasksFinished();
     await pumpEventQueue();
 
-    errors = filesErrors[pubspecFile];
+    errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(0));
   }
 
@@ -545,7 +579,7 @@ void f(E e) {
 ''');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
-    var errors = filesErrors[testFile];
+    var errors = filesErrors[testFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.severity, AnalysisErrorSeverity.WARNING);

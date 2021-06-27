@@ -30,18 +30,17 @@ dart_2/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart_2/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart_2/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 
+[ $arch == ia32 ]
+dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+dart_2/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
 [ $builder_tag == obfuscated ]
-dart/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/async_throws_stack_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/causal_stacks/async_throws_stack_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
 
 [ $builder_tag == optimization_counter_threshold ]
@@ -90,25 +89,24 @@ dart/b162922506_test: SkipByDesign # Only run in JIT
 dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 dart_2/b162922506_test: SkipByDesign # Only run in JIT
 dart_2/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
+dart_2/isolates/reload_*: SkipByDesign # These tests only run on normal JIT.
 
 [ $compiler == dartkp ]
 dart/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart/causal_stacks/async_throws_stack_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart/causal_stacks/async_throws_stack_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart/scavenger_abort_test: SkipSlow
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 dart_2/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart_2/causal_stacks/async_throws_stack_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart_2/causal_stacks/async_throws_stack_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart_2/scavenger_abort_test: SkipSlow
 dart_2/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 
 [ $compiler != dartkp ]
 dart/base_il_serialization: SkipByDesign # Serialization currently supported only when compiling with --aot.
+dart/disassemble_aot_test: SkipByDesign # runs gen snapshot.
 dart/entrypoints/aot/*: SkipByDesign # These tests should only run on AOT.
 dart_2/base_il_serialization: SkipByDesign # Serialization currently supported only when compiling with --aot.
+dart_2/disassemble_aot_test: SkipByDesign # runs gen snapshot.
 dart_2/entrypoints/aot/*: SkipByDesign # These tests should only run on AOT.
 
 [ $compiler == fasta ]
@@ -136,7 +134,9 @@ dart_2/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
+dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
+dart_2/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
 dart_2/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $nnbd == legacy ]
@@ -185,7 +185,7 @@ dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https:/
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 dart_2/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 
-[ $arch != simarm && $arch != simarm64 && $compiler == dartk && $hot_reload ]
+[ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $compiler == dartk && $hot_reload ]
 dart/data_uri_import_test/base64: Crash
 dart/data_uri_import_test/nocharset: Crash
 dart/data_uri_import_test/nomime: Crash
@@ -216,7 +216,7 @@ dart_2/regress_37382_test: SkipByDesign # Matches the type arguments names
 # Enabling of dartk for sim{arm,arm64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $compiler == dartk && $mode == debug && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && $mode == debug && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 cc/StackTraceMallocHookLengthTest: Fail # Please triage.
 
 [ $compiler == dartk && $mode == product && $runtime == vm ]
@@ -254,7 +254,7 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 dart/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.
 dart_2/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.
 
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/appjit*: SkipSlow # DFE too slow
 dart/b162922506_test: SkipSlow # Generates large input file
 dart/data_uri_spawn_test: Skip # Please triage.
@@ -288,6 +288,12 @@ dart_2/minimal_kernel_test: SkipByDesign # Test needs to run from source
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
 dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
+[ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
+dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart/regress_45898_test: Pass, Slow
+dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart_2/regress_45898_test: Pass, Slow
+
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
@@ -316,14 +322,17 @@ dart_2/catch_entry_state: SkipByDesign
 [ $system != fuchsia && ($arch != x64 || $system != linux) ]
 cc/CodeExecutability: SkipByDesign # --dual-map-code not supported on non-Linux/Fuchsia
 
-[ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64) ]
+[ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 
 # On the simluator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
-[ $arch == simarm || $arch == simarm64 ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+cc/Dart_SetFfiNativeResolver: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
+cc/Dart_SetFfiNativeResolver_DoesNotResolve: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
+cc/Dart_SetFfiNativeResolver_MissingResolver: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 cc/LargeMap: SkipByDesign
 cc/Profiler_AllocationSampleTest: SkipByDesign
 cc/Profiler_ArrayAllocation: SkipByDesign
@@ -365,24 +374,26 @@ dart_2/unboxed_param_args_descriptor_test: SkipByDesign # FFI helper not support
 dart_2/unboxed_param_tear_off_test: SkipByDesign # FFI helper not supported on simulator
 dart_2/unboxed_param_test: SkipByDesign # FFI helper not supported on simulator
 
-[ $arch == simarm || $arch == simarm64 || $system != macos ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $system != macos ]
 dart/thread_priority_macos_test: SkipByDesign
 dart_2/thread_priority_macos_test: SkipByDesign
 
-[ $arch == simarm || $arch == simarm64 || $system != windows ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $system != windows ]
 dart/thread_priority_windows_test: SkipByDesign
 dart_2/thread_priority_windows_test: SkipByDesign
 
-[ $arch == simarm || $arch == simarm64 || $system != android && $system != linux ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $system != android && $system != linux ]
 dart/thread_priority_linux_test: SkipByDesign
 dart_2/thread_priority_linux_test: SkipByDesign
 
 [ $builder_tag == crossword || $builder_tag == crossword_ast ]
 dart/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot determine the location of gen_snapshot (only tools/test.py knows where it is).
+dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot.
 dart/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart/split_aot_kernel_generation2_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart/split_aot_kernel_generation_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart_2/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot determine the location of gen_snapshot (only tools/test.py knows where it is).
+dart_2/gen_snapshot_include_resolved_urls_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot.
 dart_2/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart_2/split_aot_kernel_generation2_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart_2/split_aot_kernel_generation_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
@@ -415,7 +426,7 @@ dart_2/*: SkipByDesign # Legacy tests are not supposed to run on NNBD bots.
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart_2/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
@@ -449,7 +460,6 @@ dart_2/isolates/thread_pool_test: Skip # Only AOT has lightweight enough isolate
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
-dart/compilation_trace_test: Pass, Slow
 dart/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
 dart/isolates/spawn_function_test: Skip # This test explicitly enables isolate groups (off-by-default atm). It will be enabled once full IG reloading is implemented.
 dart/issue_31959_31960_test: SkipSlow
@@ -461,9 +471,7 @@ dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloa
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/splay_test: SkipSlow
 dart/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
-dart/type_feedback_test: Pass, Slow
 dart_2/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
-dart_2/compilation_trace_test: Pass, Slow
 dart_2/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
 dart_2/isolates/spawn_function_test: Skip # This test explicitly enables isolate groups (off-by-default atm). It will be enabled once full IG reloading is implemented.
 dart_2/issue_31959_31960_test: SkipSlow
@@ -475,7 +483,6 @@ dart_2/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it rel
 dart_2/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart_2/splay_test: SkipSlow
 dart_2/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
-dart_2/type_feedback_test: Pass, Slow
 
 [ $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkp ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.

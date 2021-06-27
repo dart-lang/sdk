@@ -12,7 +12,7 @@ import '../benchmarks.dart';
 Future<int> _runProcess(
   String command,
   List<String> args, {
-  String cwd,
+  String? cwd,
   bool failOnError = true,
 }) async {
   print('\n$command ${args.join(' ')}');
@@ -41,7 +41,7 @@ Future<int> _runProcess(
 /// benchmarks:
 ///   - analysis-flutter-analyze
 class FlutterAnalyzeBenchmark extends Benchmark {
-  Directory flutterDir;
+  late Directory flutterDir;
 
   FlutterAnalyzeBenchmark()
       : super(

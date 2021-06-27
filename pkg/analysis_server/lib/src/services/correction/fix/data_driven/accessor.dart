@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 abstract class Accessor {
   /// Return the result of using this accessor to access a value from the
   /// [target].
-  AccessorResult getValue(Object target);
+  AccessorResult getValue(Object? target);
 }
 
 /// The result of using an accessor to get a result.
@@ -33,10 +33,10 @@ class ArgumentAccessor extends Accessor {
 
   /// Initialize a newly created accessor to access the argument that
   /// corresponds to the given [parameter].
-  ArgumentAccessor(this.parameter) : assert(parameter != null);
+  ArgumentAccessor(this.parameter);
 
   @override
-  AccessorResult getValue(Object target) {
+  AccessorResult getValue(Object? target) {
     if (target is AstNode) {
       var argumentList = _getArgumentList(target);
       if (argumentList != null) {
@@ -49,8 +49,11 @@ class ArgumentAccessor extends Accessor {
     return const InvalidResult();
   }
 
+  @override
+  String toString() => 'arguments[$parameter]';
+
   /// Return the argument list associated with the [node].
-  ArgumentList _getArgumentList(AstNode node) {
+  ArgumentList? _getArgumentList(AstNode node) {
     if (node is Annotation) {
       return node.arguments;
     } else if (node is ExtensionOverride) {
@@ -87,27 +90,27 @@ class TypeArgumentAccessor extends Accessor {
 
   /// Initialize a newly created accessor to access the type argument at the
   /// given [index].
-  TypeArgumentAccessor(this.index) : assert(index != null);
+  TypeArgumentAccessor(this.index);
 
   @override
-  AccessorResult getValue(Object target) {
+  AccessorResult getValue(Object? target) {
     if (target is AstNode) {
       var typeArgumentList = _getTypeArgumentList(target);
       if (typeArgumentList != null) {
         var arguments = typeArgumentList.arguments;
         if (arguments.length > index) {
-          var argument = arguments[index];
-          if (argument != null) {
-            return ValidResult(argument);
-          }
+          return ValidResult(arguments[index]);
         }
       }
     }
     return const InvalidResult();
   }
 
+  @override
+  String toString() => 'typeArguments[$index]';
+
   /// Return the type argument list associated with the [node].
-  TypeArgumentList _getTypeArgumentList(AstNode node) {
+  TypeArgumentList? _getTypeArgumentList(AstNode node) {
     if (node is ExtensionOverride) {
       return node.typeArguments;
     } else if (node is InstanceCreationExpression) {

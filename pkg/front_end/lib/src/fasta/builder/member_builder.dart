@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.member_builder;
+// @dart = 2.9
 
-import 'dart:core' hide MapEntry;
+library fasta.member_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
@@ -16,6 +16,7 @@ import '../modifier.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
+import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -68,7 +69,12 @@ abstract class MemberBuilder implements ModifierBuilder {
 
   bool get isAbstract;
 
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
+  /// Returns `true` if this member is a setter that conflicts with the implicit
+  /// setter of a field.
+  bool get isConflictingSetter;
+
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
@@ -135,6 +141,19 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
 
+  bool _isConflictingSetter;
+
+  @override
+  bool get isConflictingSetter {
+    return _isConflictingSetter ??= false;
+  }
+
+  void set isConflictingSetter(bool value) {
+    assert(_isConflictingSetter == null,
+        '$this.isConflictingSetter has already been fixed.');
+    _isConflictingSetter = value;
+  }
+
   @override
   LibraryBuilder get library {
     if (parent is LibraryBuilder) {
@@ -154,7 +173,8 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   ProcedureKind get kind => unsupported("kind", charOffset, fileUri);
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {}
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {}
 
   /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(
@@ -259,20 +279,10 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isAbstract => memberBuilder.member.isAbstract;
 
   @override
-  bool get needsComputation => false;
-
-  @override
   bool get isSynthesized => false;
 
   @override
   bool get isInternalImplementation => false;
-
-  @override
-  bool get isInheritableConflict => false;
-
-  @override
-  ClassMember withParent(ClassBuilder classBuilder) =>
-      throw new UnsupportedError("$runtimeType.withParent");
 
   @override
   bool get hasDeclarations => false;
@@ -282,11 +292,18 @@ abstract class BuilderClassMember implements ClassMember {
       throw new UnsupportedError("$runtimeType.declarations");
 
   @override
-  ClassMember get abstract => this;
-
-  @override
-  ClassMember get concrete => this;
+  ClassMember get interfaceMember => this;
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
+}
+
+/// If the name of [member] is private, update it to use the library reference
+/// of [libraryBuilder].
+// TODO(johnniwinther): Avoid having to update private names by setting
+// the correct library reference when creating parts.
+void updatePrivateMemberName(Member member, LibraryBuilder libraryBuilder) {
+  if (member.name.isPrivate) {
+    member.name = new Name(member.name.text, libraryBuilder.library);
+  }
 }

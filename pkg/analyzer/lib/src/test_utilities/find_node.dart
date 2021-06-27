@@ -12,7 +12,8 @@ class FindNode {
   FindNode(this.content, this.unit);
 
   LibraryDirective get libraryDirective {
-    return unit.directives.singleWhere((d) => d is LibraryDirective);
+    return unit.directives.singleWhere((d) => d is LibraryDirective)
+        as LibraryDirective;
   }
 
   Annotation annotation(String search) {
@@ -151,6 +152,10 @@ class FindNode {
     return _node(search, (n) => n is FunctionExpressionInvocation);
   }
 
+  FunctionReference functionReference(String search) {
+    return _node(search, (n) => n is FunctionReference);
+  }
+
   FunctionTypeAlias functionTypeAlias(String search) {
     return _node(search, (n) => n is FunctionTypeAlias);
   }
@@ -167,6 +172,10 @@ class FindNode {
     return _node(search, (n) => n is IfElement);
   }
 
+  IfStatement ifStatement(String search) {
+    return _node(search, (n) => n is IfStatement);
+  }
+
   ImportDirective import(String search) {
     return _node(search, (n) => n is ImportDirective);
   }
@@ -181,6 +190,10 @@ class FindNode {
 
   IntegerLiteral integerLiteral(String search) {
     return _node(search, (n) => n is IntegerLiteral);
+  }
+
+  IsExpression isExpression(String search) {
+    return _node(search, (n) => n is IsExpression);
   }
 
   Label label(String search) {
@@ -353,7 +366,7 @@ class FindNode {
     return _node(search, (n) => n is WhileStatement);
   }
 
-  AstNode _node(String search, bool Function(AstNode) predicate) {
+  T _node<T>(String search, bool Function(AstNode) predicate) {
     int offset = this.offset(search);
 
     var node = NodeLocator2(offset).searchWithin(unit);
@@ -367,6 +380,6 @@ class FindNode {
       throw StateError(
           'The node for |$search| had no matching ancestor in:\n$content');
     }
-    return result;
+    return result as T;
   }
 }

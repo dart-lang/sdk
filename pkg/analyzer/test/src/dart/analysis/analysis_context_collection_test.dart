@@ -5,9 +5,11 @@
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:meta/meta.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,6 +21,7 @@ main() {
 class AnalysisContextCollectionTest with ResourceProviderMixin {
   void setUp() {
     MockSdk(resourceProvider: resourceProvider);
+    registerLintRules();
   }
 
   test_contextFor_noContext() {
@@ -45,6 +48,59 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
     );
   }
 
+  test_new_analysisOptions_includes() {
+    var rootFolder = newFolder('/home/test');
+    var fooFolder = newFolder('/home/packages/foo');
+    newFile('${fooFolder.path}/lib/included.yaml', content: r'''
+linter:
+  rules:
+    - empty_statements
+''');
+
+    var packageConfigFileBuilder = PackageConfigFileBuilder()
+      ..add(name: 'foo', rootPath: fooFolder.path);
+    newPackageConfigJsonFile(
+      rootFolder.path,
+      content: packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+    );
+
+    newAnalysisOptionsYamlFile(rootFolder.path, content: r'''
+include: package:foo/included.yaml
+
+linter:
+  rules:
+    - unnecessary_parenthesis
+''');
+
+    var collection = _newCollection(includedPaths: [rootFolder.path]);
+    var analysisContext = collection.contextFor(rootFolder.path);
+    var analysisOptions = analysisContext.analysisOptions;
+
+    expect(
+      analysisOptions.lintRules.map((e) => e.name),
+      unorderedEquals(['empty_statements', 'unnecessary_parenthesis']),
+    );
+  }
+
+  test_new_analysisOptions_lintRules() {
+    var rootFolder = newFolder('/home/test');
+    newAnalysisOptionsYamlFile(rootFolder.path, content: r'''
+linter:
+  rules:
+    - non_existent_lint_rule
+    - unnecessary_parenthesis
+''');
+
+    var collection = _newCollection(includedPaths: [rootFolder.path]);
+    var analysisContext = collection.contextFor(rootFolder.path);
+    var analysisOptions = analysisContext.analysisOptions;
+
+    expect(
+      analysisOptions.lintRules.map((e) => e.name),
+      unorderedEquals(['unnecessary_parenthesis']),
+    );
+  }
+
   test_new_includedPaths_notAbsolute() {
     expect(
       () => AnalysisContextCollectionImpl(includedPaths: ['root']),
@@ -65,7 +121,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
     newFile('/test/outer/lib/outer.dart');
 
     var innerFolder = newFolder('/test/outer/inner');
-    newOptionsFile('/test/outer/inner');
+    newAnalysisOptionsYamlFile('/test/outer/inner');
     newFile('/test/outer/inner/inner.dart');
 
     var collection = _newCollection(includedPaths: [outerFolder.path]);
@@ -108,7 +164,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
   }
 
   AnalysisContextCollectionImpl _newCollection(
-      {@required List<String> includedPaths}) {
+      {required List<String> includedPaths}) {
     return AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       includedPaths: includedPaths,

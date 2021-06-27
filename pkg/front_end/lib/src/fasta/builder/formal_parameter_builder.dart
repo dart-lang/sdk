@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.formal_parameter_builder;
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
@@ -17,7 +19,9 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:front_end/src/fasta/builder/procedure_builder.dart';
 
 import 'package:kernel/ast.dart'
-    show DynamicType, Expression, VariableDeclaration;
+    show DartType, DynamicType, Expression, VariableDeclaration;
+
+import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -25,13 +29,15 @@ import '../modifier.dart';
 
 import '../scope.dart' show Scope;
 
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart';
 
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+
+import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -117,8 +123,12 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       SourceLibraryBuilder library, int functionNestingLevel,
       [bool notInstanceContext]) {
     if (variable == null) {
+      DartType builtType = type?.build(library, null, notInstanceContext);
+      if (!library.isNonNullableByDefault && builtType != null) {
+        builtType = legacyErasure(builtType);
+      }
       variable = new VariableDeclarationImpl(name, functionNestingLevel,
-          type: type?.build(library, null, notInstanceContext),
+          type: builtType,
           isFinal: isFinal,
           isConst: isConst,
           isFieldFormal: isInitializingFormal,
@@ -131,12 +141,21 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     return variable;
   }
 
-  FormalParameterBuilder clone(List<TypeBuilder> newTypes) {
+  FormalParameterBuilder clone(
+      List<TypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
     // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
     // how it should be cloned.  Consider cloning it instead of reusing it.
     return new FormalParameterBuilder(
-        metadata, modifiers, type?.clone(newTypes), name, parent, charOffset,
-        fileUri: fileUri, isExtensionThis: isExtensionThis)
+        metadata,
+        modifiers,
+        type?.clone(newTypes, contextLibrary, contextDeclaration),
+        name,
+        parent,
+        charOffset,
+        fileUri: fileUri,
+        isExtensionThis: isExtensionThis)
       ..kind = kind;
   }
 
@@ -169,7 +188,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     if (initializerToken != null) {
       // For modular compilation we need to include initializers for optional
       // and named parameters of const constructors into the outline - to enable
@@ -205,6 +225,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         }
         initializerWasInferred = true;
         bodyBuilder.resolveRedirectingFactoryTargets();
+        if (bodyBuilder.hasDelayedActions) {
+          delayedActionPerformers.add(bodyBuilder);
+        }
       }
     }
     initializerToken = null;

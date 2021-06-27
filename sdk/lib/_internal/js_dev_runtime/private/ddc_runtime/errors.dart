@@ -17,6 +17,11 @@ throwUnimplementedError(String message) {
   throw UnimplementedError(message);
 }
 
+throwDeferredIsLoadedError(
+    @notNull String enclosingLibrary, @notNull String importPrefix) {
+  throw DeferredNotLoadedError(enclosingLibrary, importPrefix);
+}
+
 // TODO(nshahan) Cleanup embeded strings and extract file location at runtime
 // from the stacktrace.
 assertFailed(String? message,
@@ -97,8 +102,23 @@ String _castErrorMessage(from, to) {
   //     }
   //   }
   // }
-  return "Expected a value of type '${typeName(to)}', "
-      "but got one of type '${typeName(from)}'";
+  var fromName = "'${typeName(from)}'";
+  var toName = "'${typeName(to)}'";
+
+  var toType = to;
+  if (_jsInstanceOf(to, NullableType) || _jsInstanceOf(to, LegacyType)) {
+    toType = to.type;
+  }
+  var fromType = from;
+  if (_jsInstanceOf(from, NullableType) || _jsInstanceOf(from, LegacyType)) {
+    fromType = from.type;
+  }
+
+  if (typeName(fromType) == typeName(toType)) {
+    fromName += ' (in ${getLibraryUri(fromType)})';
+    toName += ' (in ${getLibraryUri(toType)})';
+  }
+  return 'Expected a value of type $toName, but got one of type $fromName';
 }
 
 /// The symbol that references the thrown Dart Object (typically but not

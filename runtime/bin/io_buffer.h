@@ -20,6 +20,9 @@ class IOBuffer {
   // Allocate IO buffer storage.
   static uint8_t* Allocate(intptr_t size);
 
+  // Reallocate IO buffer storage.
+  static uint8_t* Reallocate(uint8_t* buffer, intptr_t new_size);
+
   // Function for disposing of IO buffer storage. All backing storage
   // for IO buffers must be freed using this function.
   static void Free(void* buffer) { free(buffer); }

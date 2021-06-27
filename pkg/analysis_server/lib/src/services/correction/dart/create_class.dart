@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateClass extends CorrectionProducer {
-  String className;
+  String className = '';
 
   @override
   List<Object> get fixArguments => [className];
@@ -22,29 +22,29 @@ class CreateClass extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    Element prefixElement;
+    var targetNode = node;
+    Element? prefixElement;
     SimpleIdentifier nameNode;
-    ArgumentList arguments;
-    if (node is Annotation) {
-      var annotation = node as Annotation;
-      var name = annotation.name;
-      arguments = annotation.arguments;
-      if (name == null || name.staticElement != null || arguments == null) {
+    ArgumentList? arguments;
+
+    if (targetNode is Annotation) {
+      var name = targetNode.name;
+      arguments = targetNode.arguments;
+      if (name.staticElement != null || arguments == null) {
         // TODO(brianwilkerson) Consider supporting creating a class when the
         //  arguments are missing by also adding an empty argument list.
         return;
       }
-      node = name;
+      targetNode = name;
     }
-    if (node is SimpleIdentifier) {
-      nameNode = node;
-    } else if (node is PrefixedIdentifier) {
-      prefixElement = node.prefix.staticElement;
+    if (targetNode is SimpleIdentifier) {
+      nameNode = targetNode;
+    } else if (targetNode is PrefixedIdentifier) {
+      prefixElement = targetNode.prefix.staticElement;
       if (prefixElement == null) {
         return;
       }
-      nameNode = node.identifier;
+      nameNode = targetNode.identifier;
     } else {
       return;
     }
@@ -57,10 +57,10 @@ class CreateClass extends CorrectionProducer {
     var prefix = '';
     var suffix = '';
     var offset = -1;
-    String filePath;
+    String? filePath;
     if (prefixElement == null) {
-      targetUnit = unit.declaredElement;
-      var enclosingMember = node.thisOrAncestorMatching((node) =>
+      targetUnit = unit.declaredElement!;
+      var enclosingMember = targetNode.thisOrAncestorMatching((node) =>
           node is CompilationUnitMember && node.parent is CompilationUnit);
       if (enclosingMember == null) {
         return;
@@ -74,7 +74,7 @@ class CreateClass extends CorrectionProducer {
           var library = import.importedLibrary;
           if (library != null) {
             targetUnit = library.definingCompilationUnit;
-            var targetSource = targetUnit.source;
+            var targetSource = targetUnit.source!;
             try {
               offset = targetSource.contents.data.length;
               filePath = targetSource.fullName;
@@ -89,7 +89,7 @@ class CreateClass extends CorrectionProducer {
         }
       }
     }
-    if (offset < 0) {
+    if (filePath == null || offset < 0) {
       return;
     }
     await builder.addDartFileEdit(filePath, (builder) {
@@ -111,7 +111,7 @@ class CreateClass extends CorrectionProducer {
         builder.write(suffix);
       });
       if (prefixElement == null) {
-        builder.addLinkedPosition(range.node(node), 'NAME');
+        builder.addLinkedPosition(range.node(targetNode), 'NAME');
       }
     });
   }

@@ -7,41 +7,42 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/change.d
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:meta/meta.dart';
 
 /// The data related to an element that has been renamed.
-class Rename extends Change<SimpleIdentifier> {
+class Rename extends Change<_Data> {
   /// The new name of the element.
   final String newName;
 
   /// Initialize a newly created transform to describe a renaming of an element
   /// to the [newName].
-  Rename({@required this.newName});
+  Rename({required this.newName});
 
   @override
-  void apply(DartFileEditBuilder builder, DataDrivenFix fix,
-      SimpleIdentifier nameNode) {
+  void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
+    var nameNode = data.nameNode;
     if (fix.element.isConstructor) {
-      var parent = nameNode.parent;
+      var parent = nameNode?.parent;
       if (parent is ConstructorName) {
         if (nameNode != null && newName.isEmpty) {
           // The constructor was renamed from a named constructor to an unnamed
           // constructor.
-          builder.addDeletion(range.startEnd(parent.period, parent));
+          builder.addDeletion(range.startEnd(parent.period!, parent));
         } else if (nameNode == null && newName.isNotEmpty) {
           // The constructor was renamed from an unnamed constructor to a named
           // constructor.
           builder.addSimpleInsertion(parent.end, '.$newName');
-        } else {
+        } else if (nameNode != null) {
           // The constructor was renamed from a named constructor to another
           // named constructor.
           builder.addSimpleReplacement(range.node(nameNode), newName);
         }
+      } else if (nameNode == null) {
+        return;
       } else if (parent is MethodInvocation) {
         if (newName.isEmpty) {
           // The constructor was renamed from a named constructor to an unnamed
           // constructor.
-          builder.addDeletion(range.startEnd(parent.operator, nameNode));
+          builder.addDeletion(range.startEnd(parent.operator!, nameNode));
         } else {
           // The constructor was renamed from a named constructor to another
           // named constructor.
@@ -56,30 +57,38 @@ class Rename extends Change<SimpleIdentifier> {
         // constructor.
         builder.addSimpleReplacement(range.node(nameNode), newName);
       }
-    } else {
+    } else if (nameNode != null) {
       // The name is a simple identifier.
       builder.addSimpleReplacement(range.node(nameNode), newName);
     }
   }
 
   @override
-  SimpleIdentifier validate(DataDrivenFix fix) {
+  _Data? validate(DataDrivenFix fix) {
     var node = fix.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
-      if (parent is Label && parent.parent is NamedExpression) {
-        var invocation = parent.parent.parent.parent;
+      var grandParent = parent?.parent;
+      if (parent is Label && grandParent is NamedExpression) {
+        var invocation = grandParent.parent?.parent;
         if (invocation is InstanceCreationExpression) {
           invocation.constructorName.name;
         } else if (invocation is MethodInvocation) {
-          return invocation.methodName;
+          return _Data(invocation.methodName);
         }
         return null;
       }
-      return node;
+      return _Data(node);
     } else if (node is ConstructorName) {
-      return node.name;
+      return _Data(node.name);
     }
     return null;
   }
+}
+
+/// The data renaming a declaration.
+class _Data {
+  final SimpleIdentifier? nameNode;
+
+  _Data(this.nameNode);
 }

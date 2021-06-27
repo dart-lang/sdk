@@ -1,0 +1,15 @@
+import "package:expect/expect.dart";
+
+const var1 = basicSwitch(1);
+const var2 = basicSwitch(2);
+const var3 = multipleCaseSwitch(1);
+const var4 = multipleCaseSwitch(2);
+const var5 = multipleCaseSwitch(3);
+const var6 = continueLabelSwitch(1);
+const var7 = continueLabelSwitch(2);
+const var8 = continueLabelSwitch(3);
+const var9 = continueLabelSwitch(4);
+int basicSwitch(int x) {}
+int continueLabelSwitch(int x) {}
+int multipleCaseSwitch(int x) {}
+void main() {}

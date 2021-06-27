@@ -52,18 +52,14 @@ Future<void> main(List<String> args) async {
   migrationTest.setUp();
   print('Migrating');
   await migrationTest.run(packageRoot, port);
-  if (port == null) {
-    print('Done');
-    io.exit(0);
-  } else {
-    print('Done.  Please point your browser to localhost:$port/\$filePath');
-  }
+  migrationTest.tearDown();
+  print('Done.  Please point your browser to localhost:$port/\$filePath');
 }
 
 class MigrationBase {
   ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-  MockServerChannel serverChannel;
-  AnalysisServer server;
+  late MockServerChannel serverChannel;
+  late AnalysisServer server;
 
   AnalysisServer createAnalysisServer() {
     //
@@ -112,8 +108,6 @@ class MigrationBase {
 
   void tearDown() {
     server.done();
-    server = null;
-    serverChannel = null;
   }
 
   /// Returns a [Future] that completes when the server's analysis is complete.
@@ -155,11 +149,11 @@ class TestInfo {
   Map<String, String> get externalPackages =>
       ((testInfoJson['external_packages'] ?? {}) as Map).cast<String, String>();
 
-  String get outputRoot => testInfoJson['output_root'];
+  String get outputRoot => testInfoJson['output_root'] as String;
 
-  int get port => testInfoJson['port'];
+  int get port => testInfoJson['port'] as int;
 
-  String get sdkRoot => testInfoJson['sdk_root'];
+  String get sdkRoot => testInfoJson['sdk_root'] as String;
 
   String packageRoot(String packageName) {
     if (thirdPartyPackages.contains(packageName)) {
@@ -167,7 +161,7 @@ class TestInfo {
     } else if (builtInPackages.contains(packageName)) {
       return path.join(sdkRoot, 'pkg', packageName);
     } else if (externalPackages.containsKey(packageName)) {
-      return externalPackages[packageName];
+      return externalPackages[packageName] as String;
     } else {
       throw StateError('Unrecognized package $packageName');
     }

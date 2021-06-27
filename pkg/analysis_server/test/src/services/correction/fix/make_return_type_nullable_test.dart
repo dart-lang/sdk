@@ -133,6 +133,21 @@ class C {
 ''');
   }
 
+  Future<void> test_method_sync_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  String m(String? s);
+}
+
+class B extends A {
+  m(String? s) {
+    return s;
+  }
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_returnTypeHasTypeArguments() async {
     await resolveTestCode('''
 List<String> f() {

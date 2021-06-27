@@ -216,17 +216,8 @@ void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
 
   const intptr_t entries_count = entry_block_->indirect_entries().length();
 
-  TypedData& offsets = TypedData::ZoneHandle(
-      Z, TypedData::New(kTypedDataInt32ArrayCid, entries_count, Heap::kOld));
-
-  Value* block_offsets_push = Bind(new (Z) ConstantInstr(offsets));
   Value* block_id_push = Bind(PopStack());
-
-  Value* offset_value =
-      Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                        block_offsets_push, block_id_push));
-
-  backtrack_goto_ = new (Z) IndirectGotoInstr(&offsets, offset_value);
+  backtrack_goto_ = new (Z) IndirectGotoInstr(entries_count, block_id_push);
   CloseBlockWith(backtrack_goto_);
 
   // Add an edge from the "indirect" goto to each of the targets.
@@ -241,7 +232,7 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   TAG();
 
   Value* type = Bind(new (Z) ConstantInstr(TypeArguments::ZoneHandle(
-      Z, Isolate::Current()->object_store()->type_argument_int())));
+      Z, IsolateGroup::Current()->object_store()->type_argument_int())));
   Value* length = Bind(Uint64Constant(saved_registers_count_));
   Value* array = Bind(new (Z) CreateArrayInstr(InstructionSource(), type,
                                                length, GetNextDeoptId()));
@@ -323,7 +314,7 @@ ArrayPtr IRRegExpMacroAssembler::Execute(const RegExp& regexp,
   }
 
   ASSERT(retval.IsArray());
-  return Array::Cast(retval).raw();
+  return Array::Cast(retval).ptr();
 }
 
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
@@ -376,18 +367,14 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   ASSERT(!word_character_field.IsNull());
 
   DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsSetJump());
-  if (word_character_field.IsUninitialized()) {
-    ASSERT(!Compiler::IsBackgroundCompilation());
-    const Error& error =
-        Error::Handle(Z, word_character_field.InitializeStatic());
-    if (!error.IsNull()) {
-      Report::LongJump(error);
-    }
-  }
-  ASSERT(!word_character_field.IsUninitialized());
 
-  return new (Z) ConstantInstr(
-      Instance::ZoneHandle(Z, word_character_field.StaticValue()));
+  const auto& value =
+      Object::Handle(Z, word_character_field.StaticConstFieldValue());
+  if (value.IsError()) {
+    Report::LongJump(Error::Cast(value));
+  }
+  return new (Z)
+      ConstantInstr(Instance::ZoneHandle(Z, Instance::RawCast(value.ptr())));
 }
 
 ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,

@@ -17,14 +17,14 @@ static method main() → void {
   self::expect(self::assertLegacySubtyping2a, #C3);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 
 constants  {
   #C1 = <Null>[]
   #C2 = true
-  #C3 = <core::int*>[]
+  #C3 = <core::int?>[]
 }
 
 Extra constant evaluation status:

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.6
+
 // This test was adapted from samples/ffi/coordinate.dart
 
 import 'dart:ffi';
@@ -18,8 +20,9 @@ class Coordinate extends Struct {
 
   Pointer<Coordinate> next;
 
-  factory Coordinate.allocate(double x, double y, Pointer<Coordinate> next) {
-    return allocate<Coordinate>().ref
+  factory Coordinate.allocate(
+      Allocator allocator, double x, double y, Pointer<Coordinate> next) {
+    return allocator<Coordinate>().ref
       ..x = x
       ..y = y
       ..next = next;

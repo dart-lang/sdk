@@ -1,0 +1,5 @@
+typedef F = void Function();
+typedef F = void Function();
+typedef G<T> = void Function(T);
+typedef G<T> = void Function(T);
+main() {}

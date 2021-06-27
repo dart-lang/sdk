@@ -20,16 +20,16 @@ bool hasCrashed = false;
 /// Tracks the first source URI that has been read and is used as a fall-back
 /// for [reportCrash]. Should be reset between each compilation by calling
 /// [resetCrashReporting].
-Uri firstSourceUri;
+Uri? firstSourceUri;
 
 class Crash {
-  final Uri uri;
+  final Uri? uri;
 
-  final int charOffset;
+  final int? charOffset;
 
   final Object error;
 
-  final StackTrace trace;
+  final StackTrace? trace;
 
   Crash(this.uri, this.charOffset, this.error, this.trace);
 
@@ -48,7 +48,7 @@ void resetCrashReporting() {
 }
 
 Future<T> reportCrash<T>(error, StackTrace trace,
-    [Uri uri, int charOffset]) async {
+    [Uri? uri, int? charOffset]) async {
   note(String note) async {
     stderr.write(note);
     await stderr.flush();
@@ -83,12 +83,13 @@ Future<T> reportCrash<T>(error, StackTrace trace,
       return new Future<T>.error(
           new Crash(uri, charOffset, error, trace), trace);
     }
+    // ignore: unnecessary_null_comparison
     if (request != null) {
       await note("\nSending crash report data");
       request.persistentConnection = false;
       request.bufferOutput = false;
-      String host = request?.connectionInfo?.remoteAddress?.host;
-      int port = request?.connectionInfo?.remotePort;
+      String? host = request.connectionInfo?.remoteAddress.host;
+      int? port = request.connectionInfo?.remotePort;
       await note(" to $host:$port");
       await request
         ..headers.contentType = ContentType.json

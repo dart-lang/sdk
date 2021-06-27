@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/selection_analyzer.dart'
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -18,7 +18,7 @@ class FlutterWrap extends MultiCorrectionProducer {
   Iterable<CorrectionProducer> get producers sync* {
     var widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr != null) {
-      var widgetType = widgetExpr.staticType;
+      var widgetType = widgetExpr.typeOrThrow;
       yield _FlutterWrapGeneric(widgetExpr);
       if (!flutter.isExactWidgetTypeCenter(widgetType)) {
         yield _FlutterWrapCenter(widgetExpr);
@@ -39,12 +39,13 @@ class FlutterWrap extends MultiCorrectionProducer {
   Iterable<CorrectionProducer> _wrapMultipleWidgets() sync* {
     var selectionRange = SourceRange(selectionOffset, selectionLength);
     var analyzer = SelectionAnalyzer(selectionRange);
-    resolvedResult.unit.accept(analyzer);
+    resolvedResult.unit!.accept(analyzer);
 
     var widgetExpressions = <Expression>[];
     if (analyzer.hasSelectedNodes) {
       for (var selectedNode in analyzer.selectedNodes) {
-        if (!flutter.isWidgetExpression(selectedNode)) {
+        if (selectedNode is! Expression ||
+            !flutter.isWidgetExpression(selectedNode)) {
           return;
         }
         widgetExpressions.add(selectedNode);
@@ -143,8 +144,7 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
 
   @override
   List<String> get _leadingLines {
-    var keyword =
-        (widgetExpr as ExpressionImpl).inConstantContext ? '' : ' const';
+    var keyword = widgetExpr.inConstantContext ? '' : ' const';
     return ['padding:$keyword EdgeInsets.all(8.0),'];
   }
 
@@ -249,9 +249,9 @@ abstract class _WrapSingleWidget extends CorrectionProducer {
 
   List<String> get _leadingLines => const [];
 
-  String get _parentClassName => null;
+  String? get _parentClassName => null;
 
-  String get _parentLibraryUri => null;
+  String? get _parentLibraryUri => null;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -260,7 +260,7 @@ abstract class _WrapSingleWidget extends CorrectionProducer {
     // If the wrapper class is specified, find its element.
     var parentLibraryUri = _parentLibraryUri;
     var parentClassName = _parentClassName;
-    ClassElement parentClassElement;
+    ClassElement? parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
       parentClassElement =
           await sessionHelper.getClass(parentLibraryUri, parentClassName);

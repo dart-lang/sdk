@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,9 +24,6 @@ mixin M {
 }
 ''', [
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
-      // TODO(srawlins): Don't report this from within a mixin.
-      error(
-          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 29, 6),
     ]);
 
     var element = findElement.mixin('M');
@@ -36,7 +32,7 @@ mixin M {
     var fpNode = findNode.fieldFormalParameter('f);');
     assertElement(fpNode.identifier, constructorElement.parameters[0]);
 
-    FieldFormalParameterElement fpElement = fpNode.declaredElement;
+    var fpElement = fpNode.declaredElement as FieldFormalParameterElement;
     assertElement(fpElement.field, findElement.field('f'));
   }
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // OtherResources=certificates/server_chain.pem
 // OtherResources=certificates/server_key.pem
 // OtherResources=certificates/trusted_certs.pem
@@ -65,16 +67,27 @@ Future testClientCertificate(
   var clientEndFuture =
       SecureSocket.connect(HOST, server.port, context: clientContext);
   if (required && !sendCert) {
-    try {
-      await server.first;
-    } catch (e) {
-      try {
-        await clientEndFuture;
-      } catch (e) {
-        return;
-      }
-    }
-    Expect.fail("Connection succeeded with no required client certificate");
+    final serverErrorCompleter = Completer<Exception>();
+    server.listen((request) {
+      Expect.fail('Should not get a request through');
+    }, onError: (e) => serverErrorCompleter.complete(e));
+
+    final clientDisconnected = Completer();
+    final clientEnd = await clientEndFuture;
+    clientEnd.write(<int>[5, 6, 7, 8]);
+    clientEnd.close();
+    clientEnd.listen((data) {
+      Expect.fail('Should not get data through');
+    }, onError: (e) {
+      Expect.isTrue(e is SocketException);
+    }, onDone: () {
+      clientDisconnected.complete();
+    });
+    Expect.isTrue(await serverErrorCompleter.future is HandshakeException);
+    // Client might not report an error, might get just disconnected.
+    await clientDisconnected.future;
+    server.close();
+    return;
   }
   var serverEnd = await server.first;
   var clientEnd = await clientEndFuture;

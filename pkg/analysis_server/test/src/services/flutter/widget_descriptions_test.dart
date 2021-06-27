@@ -244,8 +244,9 @@ void main() {
 ''');
     var property = await getWidgetProperty('Text(', 'overflow');
 
+    var json = property.toJson().cast<String, dynamic>();
     expect(
-      property.toJson()['editor']['enumItems'][0]['documentation'],
+      json['editor']['enumItems'][0]['documentation'],
       startsWith('Clip the overflowing'),
     );
 
@@ -441,7 +442,7 @@ void main() {
 }
 
 class MyWidget<T> {
-  MyWidget({int xxx = 0, @required Widget child});
+  MyWidget({int xxx = 0, required Widget child});
 }
 ''');
     var property = await getWidgetProperty('MyWidget<int>', 'xxx');
@@ -462,7 +463,7 @@ void main() {
 }
 
 class MyWidget<T> {
-  MyWidget({int xxx = 0, @required Widget child});
+  MyWidget({int xxx = 0, required Widget child});
 }
 ''');
   }
@@ -478,7 +479,7 @@ void main() {
 }
 
 class MyWidget<T> {
-  MyWidget({int xxx = 0, @required List<Widget> children});
+  MyWidget({int xxx = 0, required List<Widget> children});
 }
 ''');
     var property = await getWidgetProperty('MyWidget<int>', 'xxx');
@@ -499,7 +500,7 @@ void main() {
 }
 
 class MyWidget<T> {
-  MyWidget({int xxx = 0, @required List<Widget> children});
+  MyWidget({int xxx = 0, required List<Widget> children});
 }
 ''');
   }

@@ -32,7 +32,7 @@ class IntegerLiteralImpreciseAsDoubleTest extends PubPackageResolutionTest {
     // Check that we suggest the max double instead.
     expect(
         true,
-        firstError.correction.contains(
+        firstError.correction!.contains(
             '179769313486231570814527423731704356798070567525844996598917476803'
             '157260780028538760589558632766878171540458953514382464234321326889'
             '464182768467546703537516986049910576551282076245490090389328944075'
@@ -48,6 +48,6 @@ double x = 9223372036854775809;
     ]);
     AnalysisError firstError = result.errors[0];
     // Check that we suggest a valid double instead.
-    expect(true, firstError.correction.contains('9223372036854775808'));
+    expect(true, firstError.correction!.contains('9223372036854775808'));
   }
 }

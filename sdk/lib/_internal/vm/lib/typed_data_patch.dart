@@ -58,7 +58,11 @@ class ByteData implements TypedData {
 // to instances of _TypeListBase. Instead the subclasses use type specific
 // mixins (like _IntListMixin, _DoubleListMixin) to implement ListBase<T>.
 abstract class _TypedListBase {
-  int get length;
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
+  int get length native "TypedDataBase_length";
+
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -108,8 +112,13 @@ abstract class _TypedListBase {
   // match the cids of 'this' and 'from'.
   // Uses toCid and fromCid to decide if clamping is necessary.
   // Element size of toCid and fromCid must match (test at caller).
-  bool _setRange(int startInBytes, int lengthInBytes, _TypedListBase from,
-      int startFromInBytes, int toCid, int fromCid) native "TypedData_setRange";
+  bool _setRange(
+      int startInBytes,
+      int lengthInBytes,
+      _TypedListBase from,
+      int startFromInBytes,
+      int toCid,
+      int fromCid) native "TypedDataBase_setRange";
 }
 
 mixin _IntListMixin implements List<int> {
@@ -150,13 +159,7 @@ mixin _IntListMixin implements List<int> {
     return -1;
   }
 
-  List<int> operator +(List<int> other) {
-    int totalLength = this.length + other.length;
-    return <int>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<int> operator +(List<int> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -506,13 +509,7 @@ mixin _DoubleListMixin implements List<double> {
     return -1;
   }
 
-  List<double> operator +(List<double> other) {
-    int totalLength = this.length + other.length;
-    return <double>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<double> operator +(List<double> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -868,13 +865,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     return -1;
   }
 
-  List<Float32x4> operator +(List<Float32x4> other) {
-    int totalLength = this.length + other.length;
-    return <Float32x4>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<Float32x4> operator +(List<Float32x4> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -1228,13 +1219,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     return -1;
   }
 
-  List<Int32x4> operator +(List<Int32x4> other) {
-    int totalLength = this.length + other.length;
-    return <Int32x4>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<Int32x4> operator +(List<Int32x4> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -1587,13 +1572,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     return -1;
   }
 
-  List<Float64x2> operator +(List<Float64x2> other) {
-    int totalLength = this.length + other.length;
-    return <Float64x2>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<Float64x2> operator +(List<Float64x2> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -2064,13 +2043,6 @@ abstract class _TypedList extends _TypedListBase {
   }
 
   _ByteBuffer get buffer => new _ByteBuffer(this);
-
-  // Methods implementing the collection interface.
-
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:prefer-inline")
-  int get length native "TypedData_length";
 
   // Internal utility methods.
 
@@ -4039,11 +4011,6 @@ abstract class _TypedListView extends _TypedListBase implements TypedData {
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
   int get offsetInBytes native "TypedDataView_offsetInBytes";
-
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:prefer-inline")
-  int get length native "TypedDataView_length";
 }
 
 @pragma("vm:entry-point")
@@ -4889,7 +4856,7 @@ class _ByteDataView implements ByteData {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get length native "TypedDataView_length";
+  int get length native "TypedDataBase_length";
 }
 
 @pragma("vm:prefer-inline")

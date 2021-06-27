@@ -97,7 +97,7 @@ class TestResourceProvider implements ResourceProvider {
 
   @override
   Folder getStateLocation(String pluginId) =>
-      _provider.getStateLocation(pluginId);
+      _provider.getStateLocation(pluginId)!;
 
   /// Assert that the given path is valid for the OS platform on which the
   /// tests are running.

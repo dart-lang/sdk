@@ -18,7 +18,6 @@ class UserTag {
 class _UserTag implements UserTag {
   factory _UserTag(String label) native "UserTag_new";
   String get label native "UserTag_label";
-  @pragma("vm:recognized", "asm-intrinsic")
   UserTag makeCurrent() native "UserTag_makeCurrent";
 }
 

@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field core::int y;
+  const constructor •(core::int y) → self::A
+    : self::A::y = y, super core::Object::•()
+    ;
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •(core::int x) → self::B
+    : super self::A::•(x)
+    ;
+}
+class C extends self::A /*hasConstConstructor*/  {
+  @core::override
+  final field core::int y = 2;
+  const constructor •() → self::C
+    : super self::A::•(100)
+    ;
+}
+static const field core::int var1 = self::fn();
+static const field core::int var2 = self::fn2();
+static const field core::int var3 = const self::A::•(1).{self::A::y}{core::int};
+static const field core::int var4 = self::fn4();
+static const field core::int var5 = self::fn5();
+static method fn() → core::int
+  ;
+static method fn2() → core::int
+  ;
+static method fn4() → core::int
+  ;
+static method fn5() → core::int
+  ;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///const_functions_instance_fields.dart:34:4 -> InstanceConstant(const _Override{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_instance_fields.dart:24:20 -> InstanceConstant(const A{A.y: 1})
+Extra constant evaluation: evaluated: 9, effectively constant: 2

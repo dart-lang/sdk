@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,7 +22,7 @@ class AnalysisSignatureTest extends AbstractAnalysisTest {
     return prepareRawSignatureAt(offset);
   }
 
-  Future<Response> prepareRawSignatureAt(int offset, {String file}) async {
+  Future<Response> prepareRawSignatureAt(int offset, {String? file}) async {
     await waitForTasksFinished();
     var request =
         AnalysisGetSignatureParams(file ?? testFile, offset).toRequest('0');
@@ -37,7 +35,7 @@ class AnalysisSignatureTest extends AbstractAnalysisTest {
   }
 
   Future<AnalysisGetSignatureResult> prepareSignatureAt(int offset,
-      {String file}) async {
+      {String? file}) async {
     var response = await prepareRawSignatureAt(offset, file: file);
     return AnalysisGetSignatureResult.fromResponse(response);
   }
@@ -131,17 +129,15 @@ main() {
 }
 ''');
     var result = await prepareRawSignature('/*^*/');
-    expect(result.error, isNotNull);
-    expect(result.error.code,
-        equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
+    var error = result.error!;
+    expect(error.code, equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
 
   Future<void> test_error_file_not_analyzed() async {
     var result = await prepareRawSignatureAt(0,
         file: convertPath('/not/in/project.dart'));
-    expect(result.error, isNotNull);
-    expect(
-        result.error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_FILE));
+    var error = result.error!;
+    expect(error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_FILE));
   }
 
   Future<void> test_error_function_unknown() async {
@@ -149,9 +145,8 @@ main() {
 someFunc(/*^*/);
 ''');
     var result = await prepareRawSignature('/*^*/');
-    expect(result.error, isNotNull);
-    expect(result.error.code,
-        equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
+    var error = result.error!;
+    expect(error.code, equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
 
   Future<void> test_error_offset_invalid() async {
@@ -159,9 +154,8 @@ someFunc(/*^*/);
 a() {}
 ''');
     var result = await prepareRawSignatureAt(1000);
-    expect(result.error, isNotNull);
-    expect(result.error.code,
-        equals(RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET));
+    var error = result.error!;
+    expect(error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET));
   }
 
   Future<void> test_function_expression() async {

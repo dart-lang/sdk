@@ -1,0 +1,12 @@
+S+0 Struct(size: 8)
+S+8 Struct(size: 8)
+S+16 Struct(size: 8)
+S+24 Struct(size: 8)
+S+32 Struct(size: 8)
+S+40 Struct(size: 8)
+S+48 Struct(size: 8)
+S+56 Struct(size: 8)
+S+64 Struct(size: 8)
+S+72 Struct(size: 8)
+=>
+M(eax uint32, edx uint32) Struct(size: 8)

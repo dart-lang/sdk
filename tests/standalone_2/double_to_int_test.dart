@@ -6,6 +6,8 @@
 // unless we encounter a non-Smi result, in which case we deoptimize and
 // optimize it later to DoubleToInt.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

@@ -1,0 +1,8 @@
+P(rcx int64) Struct(size: 12)
+P(rdx int64) Struct(size: 12)
+P(r8 int64) Struct(size: 12)
+P(r9 int64) Struct(size: 12)
+P(S+0 int64) Struct(size: 12)
+P(S+8 int64) Struct(size: 12)
+=>
+rax int64

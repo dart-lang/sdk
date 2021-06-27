@@ -20,7 +20,7 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
       var typeName = type.typeName;
       var referencedDefinition = api.types[typeName];
       if (_typeRenames.containsKey(typeName)) {
-        return _typeRenames[typeName];
+        return _typeRenames[typeName]!;
       }
       if (referencedDefinition == null) {
         return typeName;
@@ -35,9 +35,15 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
     } else if (type is TypeMap) {
       return 'Map<${dartType(type.keyType)}, ${dartType(type.valueType)}>';
     } else if (type is TypeUnion) {
-      return 'dynamic';
+      return 'Object';
     } else {
       throw Exception("Can't convert to a dart type");
     }
+  }
+
+  /// Return the Dart type for [field], nullable if the field is optional.
+  String fieldDartType(TypeObjectField field) {
+    var typeStr = dartType(field.type);
+    return field.optional ? '$typeStr?' : typeStr;
   }
 }

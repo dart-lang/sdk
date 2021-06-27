@@ -1,6 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 library kernel.import_table;
 
 import 'ast.dart';
@@ -40,7 +41,7 @@ class LibraryImportTable implements ImportTable {
   List<Library> get importedLibraries => _importedLibraries;
 
   int addImport(Library target, String importPath) {
-    int index = _libraryIndex[target];
+    int? index = _libraryIndex[target];
     if (index != null) return index;
     index = _importPaths.length;
     _importPaths.add(importPath);
@@ -73,11 +74,12 @@ class _ImportTableBuilder extends RecursiveVisitor {
     table.addImport(referenceLibrary, '');
   }
 
-  void addLibraryImport(Library target) {
+  void addLibraryImport(Library? target) {
     if (target == referenceLibrary) return; // Self-reference is special.
     if (target == null) return;
     Uri referenceUri = referenceLibrary.importUri;
-    Uri targetUri = target.importUri;
+    Uri? targetUri = target.importUri;
+    // ignore: unnecessary_null_comparison
     if (targetUri == null) {
       throw '$referenceUri cannot refer to library without an import URI';
     }
@@ -108,7 +110,7 @@ class _ImportTableBuilder extends RecursiveVisitor {
   visitLibrary(Library node) {
     super.visitLibrary(node);
     for (Reference exportedReference in node.additionalExports) {
-      addLibraryImport(exportedReference.node.parent);
+      addLibraryImport(exportedReference.node!.parent as Library);
     }
   }
 
@@ -123,6 +125,34 @@ class _ImportTableBuilder extends RecursiveVisitor {
   }
 }
 
+/// DartDocTest(
+///   relativeUriPath(
+///     Uri.parse("file:///path/to/file1.dart"),
+///     Uri.parse("file:///path/to/file2.dart"),
+///   ),
+///   "file1.dart"
+/// )
+/// DartDocTest(
+///   relativeUriPath(
+///     Uri.parse("file:///path/to/a/file1.dart"),
+///     Uri.parse("file:///path/to/file2.dart"),
+///   ),
+///   "a/file1.dart"
+/// )
+/// DartDocTest(
+///   relativeUriPath(
+///     Uri.parse("file:///path/to/file1.dart"),
+///     Uri.parse("file:///path/to/b/file2.dart"),
+///   ),
+///   "../file1.dart"
+/// )
+/// DartDocTest(
+///   relativeUriPath(
+///     Uri.parse("file:///path/to/file1.dart"),
+///     Uri.parse("file:///different/path/to/file2.dart"),
+///   ),
+///   "../../../path/to/file1.dart"
+/// )
 String relativeUriPath(Uri target, Uri ref) {
   List<String> targetSegments = target.pathSegments;
   List<String> refSegments = ref.pathSegments;

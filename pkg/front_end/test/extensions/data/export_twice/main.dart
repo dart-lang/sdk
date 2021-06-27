@@ -4,7 +4,9 @@
 
 // @dart = 2.9
 
-/*library: scope=[lib1.dart.E]*/
+/*library: scope=[
+  async.dart.FutureExtensions,
+  lib1.dart.E]*/
 
 import 'lib1.dart';
 import 'lib2.dart';

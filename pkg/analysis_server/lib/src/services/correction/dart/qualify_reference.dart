@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class QualifyReference extends CorrectionProducer {
-  String _qualifiedName;
+  String _qualifiedName = '';
 
   @override
   List<Object> get fixArguments => [_qualifiedName];
@@ -19,12 +19,13 @@ class QualifyReference extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! SimpleIdentifier) {
+    var memberName = node;
+    if (memberName is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier memberName = node;
+
+    AstNode? target;
     var parent = node.parent;
-    AstNode target;
     if (parent is MethodInvocation && node == parent.methodName) {
       target = parent.target;
     } else if (parent is PropertyAccess && node == parent.propertyName) {
@@ -33,14 +34,22 @@ class QualifyReference extends CorrectionProducer {
     if (target != null) {
       return;
     }
-    var enclosingElement = memberName.staticElement.enclosingElement;
-    if (enclosingElement.library != libraryElement) {
+
+    var memberElement = memberName.staticElement;
+    if (memberElement == null) {
+      return;
+    }
+
+    var enclosingElement = memberElement.enclosingElement;
+    if (enclosingElement == null ||
+        enclosingElement.library != libraryElement) {
       // TODO(brianwilkerson) Support qualifying references to members defined
       //  in other libraries. `DartEditBuilder` currently defines the method
       //  `writeType`, which is close, but we also need to handle extensions,
       //  which don't have a type.
       return;
     }
+
     var containerName = enclosingElement.name;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.offset, '$containerName.');

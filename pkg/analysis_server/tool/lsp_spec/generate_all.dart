@@ -91,7 +91,7 @@ code, run the same script with an argument of "--download".''',
     licenseResp.body,
     specResp.body
   ];
-  return File(localSpecPath).writeAsString(text.join('\n\n---\n\n'));
+  await File(localSpecPath).writeAsString(text.join('\n\n---\n\n'));
 }
 
 Namespace extractMethodsEnum(String spec) {
@@ -134,7 +134,8 @@ List<AstNode> extractResultsInlineTypes(String spec) {
     final parsed = parseString(typeAlias);
 
     // Extract the InlineInterface that was created.
-    InlineInterface interface = parsed.firstWhere((t) => t is InlineInterface);
+    final interface =
+        parsed.firstWhere((t) => t is InlineInterface) as InlineInterface;
 
     // Create a new name based on the fields.
     var newName = interface.members.map((m) => capitalize(m.name)).join('And');
@@ -144,7 +145,7 @@ List<AstNode> extractResultsInlineTypes(String spec) {
 
   return _resultsInlineTypesPattern
       .allMatches(spec)
-      .map((m) => m.group(1).trim())
+      .map((m) => m.group(1)!.trim())
       .toList()
       .map(toInterface)
       .toList();
@@ -160,11 +161,7 @@ String generatedFileHeader(int year, {bool importCustom = false}) => '''
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: deprecated_member_use
-// ignore_for_file: deprecated_member_use_from_same_package
-// ignore_for_file: unnecessary_brace_in_string_interps
-// ignore_for_file: unused_import
-// ignore_for_file: unused_shown_name
+// ignore_for_file: unnecessary_parenthesis
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
@@ -172,17 +169,15 @@ import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol${importCustom ? '_custom' : ''}_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart'
-    show listEqual, mapEqual;
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:meta/meta.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
 ''';
 
 List<AstNode> getCustomClasses() {
-  Interface interface(String name, List<Member> fields, {String baseType}) {
+  Interface interface(String name, List<Member> fields, {String? baseType}) {
     return Interface(
       null,
       Token.identifier(name),
@@ -192,8 +187,13 @@ List<AstNode> getCustomClasses() {
     );
   }
 
-  Field field(String name,
-      {String type, array = false, canBeNull = false, canBeUndefined = false}) {
+  Field field(
+    String name, {
+    required String type,
+    array = false,
+    canBeNull = false,
+    canBeUndefined = false,
+  }) {
     var fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
 
@@ -202,7 +202,7 @@ List<AstNode> getCustomClasses() {
   }
 
   final customTypes = <AstNode>[
-    interface('DartDiagnosticServer', [field('port', type: 'number')]),
+    interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [
       field('uri', type: 'string'),
@@ -255,19 +255,49 @@ List<AstNode> getCustomClasses() {
       'CompletionItemResolutionInfo',
       [
         field('file', type: 'string'),
-        field('offset', type: 'number'),
+        field('offset', type: 'int'),
       ],
     ),
     interface(
       'DartCompletionItemResolutionInfo',
       [
-        field('libId', type: 'number'),
+        // These fields have short-ish names because they're on the payload
+        // for all suggestion-set backed completions.
+        field('libId', type: 'int'),
         field('displayUri', type: 'string'),
-        field('rOffset', type: 'number'),
-        field('rLength', type: 'number'),
+        field('rOffset', type: 'int'), // replacementOffset
+        field('iLength', type: 'int'), // insertLength
+        field('rLength', type: 'int'), // replacementLength
       ],
       baseType: 'CompletionItemResolutionInfo',
     ),
+    interface(
+      'PubPackageCompletionItemResolutionInfo',
+      [
+        field('packageName', type: 'string'),
+      ],
+      baseType: 'CompletionItemResolutionInfo',
+    ),
+    // Custom types for experimental SnippetTextEdits
+    // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
+    interface(
+      'SnippetTextEdit',
+      [
+        field('insertTextFormat', type: 'InsertTextFormat'),
+      ],
+      baseType: 'TextEdit',
+    ),
+    TypeAlias(
+      null,
+      Token.identifier('TextDocumentEditEdits'),
+      ArrayType(
+        UnionType([
+          Type.identifier('SnippetTextEdit'),
+          Type.identifier('AnnotatedTextEdit'),
+          Type.identifier('TextEdit'),
+        ]),
+      ),
+    )
   ];
   return customTypes;
 }

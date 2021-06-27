@@ -9,10 +9,13 @@
 #include "vm/dwarf.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
+#include "vm/stack_frame.h"
 #include "vm/thread.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
+
+#if defined(DART_PRECOMPILER)
 
 // A wrapper around BaseWriteStream that provides methods useful for
 // writing ELF files (e.g., using ELF definitions of data sizes).
@@ -535,8 +538,7 @@ class StringTable : public Section {
         dynamic_(allocate),
         text_(zone, 128),
         text_indices_(zone) {
-    text_.AddChar('\0');
-    text_indices_.Insert({"", 1});
+    AddString("");
   }
 
   intptr_t FileSize() const { return text_.length(); }
@@ -549,11 +551,13 @@ class StringTable : public Section {
 
   intptr_t AddString(const char* str) {
     ASSERT(str != nullptr);
-    if (auto const kv = text_indices_.Lookup(str)) return kv->value - 1;
+    if (auto const kv = text_indices_.Lookup(str)) {
+      return kv->value;
+    }
     intptr_t offset = text_.length();
     text_.AddString(str);
     text_.AddChar('\0');
-    text_indices_.Insert({str, offset + 1});
+    text_indices_.Insert({str, offset});
     return offset;
   }
 
@@ -561,14 +565,18 @@ class StringTable : public Section {
     ASSERT(index < text_.length());
     return text_.buffer() + index;
   }
+
+  static const intptr_t kNotIndexed = CStringIntMapKeyValueTrait::kNoValue;
+
+  // Returns the index of |str| if it is present in the string table
+  // and |kNotIndexed| otherwise.
   intptr_t Lookup(const char* str) const {
-    return text_indices_.LookupValue(str) - 1;
+    return text_indices_.LookupValue(str);
   }
 
   const bool dynamic_;
   ZoneTextBuffer text_;
-  // To avoid kNoValue for intptr_t (0), we store an index n as n + 1.
-  CStringMap<intptr_t> text_indices_;
+  CStringIntMap text_indices_;
 };
 
 class Symbol : public ZoneAllocated {
@@ -1206,6 +1214,126 @@ const Section* Elf::FindSectionForAddress(intptr_t address) const {
   return nullptr;
 }
 
+void Elf::FinalizeEhFrame() {
+#if defined(DART_PRECOMPILER) &&                                               \
+    (defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64))
+  // Multiplier which will be used to scale operands of DW_CFA_offset and
+  // DW_CFA_val_offset.
+  const intptr_t kDataAlignment = compiler::target::kWordSize;
+
+  const uint8_t DW_CFA_offset = 0x80;
+  const uint8_t DW_CFA_val_offset = 0x14;
+  const uint8_t DW_CFA_def_cfa = 0x0c;
+
+  // Relocation from .eh_frame into bytes within some previously emitted
+  // section.
+  struct Reloc {
+    intptr_t target_memory_offset;
+    intptr_t source_offset;
+  };
+
+  GrowableArray<Reloc> relocs(2);
+  ZoneWriteStream stream(zone(), kInitialDwarfBufferSize);
+  DwarfElfStream dwarf_stream(zone_, &stream, /*symtab=*/nullptr);
+
+  // Emits length prefixed CIE or FDE, returns starting offset.
+  auto emit_record = [&](auto&& body) -> intptr_t {
+    const intptr_t start = stream.Position();
+    stream.WriteFixed<uint32_t>(0);
+    body();
+    stream.Align(compiler::target::kWordSize);
+    const intptr_t end = stream.Position();
+    stream.SetPosition(start);
+    // Write length not counting the length field itself.
+    stream.WriteFixed(static_cast<uint32_t>(end - start - 4));
+    stream.SetPosition(end);
+    return start;
+  };
+
+  // Emit pcrel|sdata4 reference to the target memory offset.
+  auto add_pcrel_ref = [&](intptr_t target_memory_offset) {
+    relocs.Add({target_memory_offset, stream.Position()});
+    dwarf_stream.u4(0);
+  };
+
+  // Emit CIE.
+  const intptr_t cie_position = emit_record([&]() {
+    dwarf_stream.u4(0);  // CIE
+    dwarf_stream.u1(1);  // Version (must be 1 or 3)
+    // Augmentation String
+    dwarf_stream.string("zR");             // NOLINT
+    dwarf_stream.uleb128(1);               // Code alignment (must be 1).
+    dwarf_stream.sleb128(kDataAlignment);  // Data alignment
+    dwarf_stream.u1(
+        ConcreteRegister(LINK_REGISTER));  // Return address register
+    dwarf_stream.uleb128(1);               // Augmentation size
+    dwarf_stream.u1(0x1b);  // FDE encoding: DW_EH_PE_pcrel | DW_EH_PE_sdata4
+    // CFA is FP+0
+    dwarf_stream.u1(DW_CFA_def_cfa);
+    dwarf_stream.uleb128(FP);
+    dwarf_stream.uleb128(0);
+  });
+
+  // Emit an FDE covering each .text section.
+  const auto text_name = shstrtab_->Lookup(".text");
+  ASSERT(text_name != StringTable::kNotIndexed);
+  for (auto section : sections_) {
+    if (section->name() == text_name) {
+      RELEASE_ASSERT(section->memory_offset_is_set());
+      emit_record([&]() {
+        // Offset to CIE. Note that unlike pcrel this offset is encoded
+        // backwards: it will be subtracted from the current position.
+        dwarf_stream.u4(stream.Position() - cie_position);
+        add_pcrel_ref(section->memory_offset());  // Start address.
+        dwarf_stream.u4(section->MemorySize());   // Size.
+        dwarf_stream.u1(0);                       // Augmentation Data length.
+
+        // FP at FP+kSavedCallerPcSlotFromFp*kWordSize
+        COMPILE_ASSERT(kSavedCallerFpSlotFromFp >= 0);
+        dwarf_stream.u1(DW_CFA_offset | FP);
+        dwarf_stream.uleb128(kSavedCallerFpSlotFromFp);
+
+        // LR at FP+kSavedCallerPcSlotFromFp*kWordSize
+        COMPILE_ASSERT(kSavedCallerPcSlotFromFp >= 0);
+        dwarf_stream.u1(DW_CFA_offset | ConcreteRegister(LINK_REGISTER));
+        dwarf_stream.uleb128(kSavedCallerPcSlotFromFp);
+
+        // SP is FP+kCallerSpSlotFromFp*kWordSize
+        COMPILE_ASSERT(kCallerSpSlotFromFp >= 0);
+        dwarf_stream.u1(DW_CFA_val_offset);
+#if defined(TARGET_ARCH_ARM64)
+        dwarf_stream.uleb128(ConcreteRegister(CSP));
+#elif defined(TARGET_ARCH_ARM)
+        dwarf_stream.uleb128(SP);
+#else
+#error "Unsupported .eh_frame architecture"
+#endif
+        dwarf_stream.uleb128(kCallerSpSlotFromFp);
+      });
+    }
+  }
+
+  dwarf_stream.u4(0);  // end of section
+
+  // Add section and then relocate its contents.
+  auto const eh_frame = new (zone_) BitsContainer(
+      type_, false, false, stream.bytes_written(), stream.buffer());
+  AddSection(eh_frame, ".eh_frame");
+
+  // Relocate contents now that we have memory_offset assigned.
+  for (auto& reloc : relocs) {
+    const intptr_t pcrel_offset =
+        reloc.target_memory_offset -
+        (eh_frame->memory_offset() + reloc.source_offset);
+    // Note: IsInt<int32_t>(32, ...) does not work correctly.
+    RELEASE_ASSERT(kBitsPerWord == 32 || Utils::IsInt(32, pcrel_offset));
+    *reinterpret_cast<int32_t*>(stream.buffer() + reloc.source_offset) =
+        static_cast<int32_t>(pcrel_offset);
+  }
+#endif  // defined(DART_PRECOMPILER) && \
+        //   (defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64))
+}
+
 void Elf::FinalizeDwarfSections() {
   if (dwarf_ == nullptr) return;
 #if defined(DART_PRECOMPILER)
@@ -1250,6 +1378,10 @@ void Elf::Finalize() {
 
   auto const hash = new (zone_) SymbolHashTable(zone_, dynstrtab_, dynsym_);
   AddSection(hash, ".hash");
+
+  // Must come before .dynamic, because .dynamic is writable and
+  // .eh_frame is not. See restriction in Elf::WriteProgramTable.
+  FinalizeEhFrame();
 
   auto const dynamic =
       new (zone_) DynamicTable(zone_, dynstrtab_, dynsym_, hash);
@@ -1573,5 +1705,7 @@ void Elf::WriteSections(ElfWriteStream* stream) {
                  section->file_offset() + section->FileSize());
   }
 }
+
+#endif  // DART_PRECOMPILER
 
 }  // namespace dart

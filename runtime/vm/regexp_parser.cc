@@ -1262,7 +1262,7 @@ ArrayPtr RegExpParser::CreateCaptureNameMap() {
     array.SetAt(i * 2 + 1, smi);
   }
 
-  return array.raw();
+  return array.ptr();
 }
 
 bool RegExpParser::HasNamedCaptures() {

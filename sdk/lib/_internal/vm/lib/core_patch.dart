@@ -24,7 +24,7 @@ import "dart:_internal"
         POWERS_OF_TEN,
         SubListIterable,
         UnmodifiableListBase,
-        is64Bit,
+        has63BitSmis,
         makeFixedListUnmodifiable,
         makeListFixedLength,
         patch,
@@ -48,6 +48,8 @@ import "dart:collection"
         UnmodifiableMapView;
 
 import "dart:convert" show ascii, Encoding, json, latin1, utf8;
+
+import "dart:ffi" show Pointer, Struct, Union;
 
 import "dart:isolate" show Isolate;
 

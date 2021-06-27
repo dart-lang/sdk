@@ -26,40 +26,30 @@ class C extends B {
 C? nullC() => null;
 
 main() {
-  // Make sure the "none" test fails if method invocation using "?." is not
-  // implemented.  This makes status files easier to maintain.
-  nullC()?.f(null);
-
   // o?.m(...) is equivalent to ((x) => x == null ? null : x.m(...))(o).
-
-
-
+  Expect.equals(null, nullC()?.f(bad()));
+  C? c = C() as dynamic;
+  Expect.equals(1, c?.f(() => 1));
   // C?.m(...) is equivalent to C.m(...).
-
-
+  Expect.equals(1, C?.staticF(() => 1));
+  Expect.equals(1, h.C?.staticF(() => 1));
 
   // The static type of o?.m(...) is the same as the static type of
   // o.m(...).
-
-
-
-
-
-
-
-
-
-  // Let T be the static type of o and let y be a fresh variable of type T.
-  // Exactly the same static warnings that would be caused by y.m(...) are also
-  // generated in the case of o?.m(...).
-
-
-
-  // '?.' can't be used to access toplevel functions in libraries imported via
-  // prefix.
-
-
-  // Nor can it be used to access the toString method on the class Type.
-
-
+  {
+    int? i = nullC()?.g(bad());
+    Expect.equals(null, i);
+  }
+  {
+    int? i = c?.g(() => 1);
+    Expect.equals(1, i);
+  }
+  {
+    int? i = C?.staticG(() => 1);
+    Expect.equals(1, i);
+  }
+  {
+    int? i = h.C?.staticG(() => 1);
+    Expect.equals(1, i);
+  }
 }

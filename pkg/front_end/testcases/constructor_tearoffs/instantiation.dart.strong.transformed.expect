@@ -1,0 +1,78 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:10:35: Error: Getter not found: 'foo'.
+// A<num> Function(num) test1() => A.foo; // Ok.
+//                                   ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:11:35: Error: Getter not found: 'foo'.
+// A<int> Function(int) test2() => A.foo; // Ok.
+//                                   ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:12:35: Error: Getter not found: 'new'.
+// A<num> Function(num) test3() => A.new; // Ok.
+//                                   ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:13:35: Error: Getter not found: 'new'.
+// A<int> Function(int) test4() => A.new; // Ok.
+//                                   ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:15:42: Error: Getter not found: 'foo'.
+// A<dynamic> Function(String) test5() => A.foo; // Error.
+//                                          ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:16:42: Error: Getter not found: 'new'.
+// A<dynamic> Function(String) test6() => A.new; // Error.
+//                                          ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:17:44: Error: Getter not found: 'foo'.
+// A<dynamic> Function(num) test7() => A<num>.foo; // Error.
+//                                            ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:18:44: Error: Getter not found: 'new'.
+// A<dynamic> Function(num) test8() => A<num>.new; // Error.
+//                                            ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::num> extends core::Object {
+  constructor foo(self::A::X x) → self::A<self::A::X>
+    : super core::Object::•() {}
+  constructor •(self::A::X x) → self::A<self::A::X>
+    : super core::Object::•() {}
+}
+static method test1() → (core::num) → self::A<core::num>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:10:35: Error: Getter not found: 'foo'.
+A<num> Function(num) test1() => A.foo; // Ok.
+                                  ^^^";
+static method test2() → (core::int) → self::A<core::int>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:11:35: Error: Getter not found: 'foo'.
+A<int> Function(int) test2() => A.foo; // Ok.
+                                  ^^^";
+static method test3() → (core::num) → self::A<core::num>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:12:35: Error: Getter not found: 'new'.
+A<num> Function(num) test3() => A.new; // Ok.
+                                  ^^^";
+static method test4() → (core::int) → self::A<core::int>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:13:35: Error: Getter not found: 'new'.
+A<int> Function(int) test4() => A.new; // Ok.
+                                  ^^^";
+static method test5() → (core::String) → self::A<dynamic>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:15:42: Error: Getter not found: 'foo'.
+A<dynamic> Function(String) test5() => A.foo; // Error.
+                                         ^^^";
+static method test6() → (core::String) → self::A<dynamic>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:16:42: Error: Getter not found: 'new'.
+A<dynamic> Function(String) test6() => A.new; // Error.
+                                         ^^^";
+static method test7() → (core::num) → self::A<dynamic>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:17:44: Error: Getter not found: 'foo'.
+A<dynamic> Function(num) test7() => A<num>.foo; // Error.
+                                           ^^^";
+static method test8() → (core::num) → self::A<dynamic>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:18:44: Error: Getter not found: 'new'.
+A<dynamic> Function(num) test8() => A<num>.new; // Error.
+                                           ^^^";
+static method main() → dynamic {}

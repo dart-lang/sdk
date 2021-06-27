@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///const_is_lib.dart";
+
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+typedef fnTypeWithNullableObjectBound = <T extends core::Object?>() → void;
+typedef fnTypeWithNeverBound = <T extends Never = dynamic>() → void;
+static method fnWithNonNullObjectBound<T extends core::Object>() → void
+  ;
+static method fnWithNullBound<T extends Null>() → void
+  ;

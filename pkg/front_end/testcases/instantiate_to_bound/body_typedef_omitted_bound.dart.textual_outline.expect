@@ -1,3 +1,4 @@
+// @dart = 2.9
 typedef A<T>(T p);
 
 class C {

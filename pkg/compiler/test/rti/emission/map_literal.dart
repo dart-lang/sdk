@@ -7,11 +7,12 @@
 /*spec.class: global#Map:instance*/
 
 /*class: global#LinkedHashMap:*/
-/*class: global#JsLinkedHashMap:checks=[],instance*/
+/*spec.class: global#JsLinkedHashMap:checkedInstance,checks=[],instance*/
+/*prod.class: global#JsLinkedHashMap:checks=[],instance*/
 
 /*spec.class: global#double:checkedInstance,instance,typeArgument*/
 
-/*class: global#JSDouble:checks=[],instance*/
+/*class: global#JSNumNotInt:checks=[],instance*/
 
 main() {
   <int, double>{}[0] = 0.5;

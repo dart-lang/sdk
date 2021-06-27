@@ -1,0 +1,100 @@
+main = <No Member>;
+library from "package:flutter/object.dart" as obj {
+
+  class RenderFoo extends obj::RenderObject {
+    synthetic constructor •() → obj::RenderFoo
+      : super obj::RenderObject::•()
+      ;
+    get constraints() → obj::FooConstraints
+      return super.{obj::RenderObject::constraints} as{ForNonNullableByDefault} obj::FooConstraints;
+  }
+  class FooConstraints extends obj::Constraints {
+    synthetic constructor •() → obj::FooConstraints
+      : super obj::Constraints::•()
+      ;
+    get axis() → dart.core::String
+      return "hello";
+  }
+  class Constraints extends dart.core::Object {
+    synthetic constructor •() → obj::Constraints
+      : super dart.core::Object::•()
+      ;
+  }
+  class RenderObject extends dart.core::Object {
+    synthetic constructor •() → obj::RenderObject
+      : super dart.core::Object::•()
+      ;
+    get constraints() → obj::Constraints
+      return new obj::Constraints::•();
+    get renderObject() → obj::RenderObject
+      return this;
+  }
+}
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  import "package:flutter/object.dart";
+
+  abstract class LibMixin extends obj::RenderObject /*isMixinDeclaration*/  {
+    abstract member-signature get constraints() → obj::Constraints*; -> obj::RenderObject::constraints
+    abstract member-signature get renderObject() → obj::RenderObject*; -> obj::RenderObject::renderObject
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:flutter/object.dart";
+  import "org-dartlang-test:///lib.dart";
+
+  abstract class _Adaptor&RenderFoo&LibMixin extends obj::RenderFoo implements lib::LibMixin /*isAnonymousMixin,isEliminatedMixin*/  {
+    synthetic constructor •() → main::_Adaptor&RenderFoo&LibMixin*
+      : super obj::RenderFoo::•()
+      ;
+    abstract member-signature get constraints() → obj::FooConstraints*; -> obj::RenderFoo::constraints
+    abstract member-signature get renderObject() → obj::RenderObject*; -> obj::RenderObject::renderObject
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+  class Adaptor extends main::_Adaptor&RenderFoo&LibMixin {
+    synthetic constructor •() → main::Adaptor*
+      : super main::_Adaptor&RenderFoo&LibMixin::•()
+      ;
+  }
+  class AdaptorElement extends obj::RenderObject {
+    synthetic constructor •() → main::AdaptorElement*
+      : super obj::RenderObject::•()
+      ;
+    get renderObject() → main::Adaptor*
+      return super.{obj::RenderObject::renderObject} as{TypeError} main::Adaptor*;
+    method foo() → void {
+      dart.core::print(this.{main::AdaptorElement::renderObject}{main::Adaptor*}.{main::_Adaptor&RenderFoo&LibMixin::constraints}{obj::FooConstraints*}.{obj::FooConstraints::axis}{dart.core::String*});
+    }
+    abstract member-signature get constraints() → obj::Constraints*; -> obj::RenderObject::constraints
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+}

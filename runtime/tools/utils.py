@@ -5,17 +5,17 @@
 # This file contains a set of utilities functions used by other Python-based
 # scripts.
 
-import commands
 import os
 import platform
-import Queue
+import queue
 import re
-import StringIO
 import subprocess
 import sys
 import threading
 import time
 
+from io import StringIO
+from subprocess import getoutput
 
 # Try to guess the host operating system.
 def GuessOS():
@@ -55,11 +55,11 @@ def GuessArchitecture():
 def GuessCpus():
     if os.path.exists("/proc/cpuinfo"):
         return int(
-            commands.getoutput(
+            getoutput(
                 "GREP_OPTIONS= grep -E '^processor' /proc/cpuinfo | wc -l"))
     if os.path.exists("/usr/bin/hostinfo"):
         return int(
-            commands.getoutput(
+            getoutput(
                 '/usr/bin/hostinfo | GREP_OPTIONS= grep "processors are logically available." | awk "{ print \$1 }"'
             ))
     win_cpu_count = os.getenv("NUMBER_OF_PROCESSORS")
@@ -197,14 +197,14 @@ def RunCommand(command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
     except OSError as e:
-        if not isinstance(command, basestring):
+        if not isinstance(command, str):
             command = ' '.join(command)
         if printErrorInfo:
             sys.stderr.write("Command failed: '%s'\n" % command)
         raise Error(e)
 
     def StartThread(out):
-        queue = Queue.Queue()
+        queue = queue.Queue()
 
         def EnqueueOutput(out, queue):
             for line in iter(out.readline, b''):
@@ -226,7 +226,7 @@ def RunCommand(command,
                 out.write(line)
                 if out2 != None:
                     out2.write(line)
-        except Queue.Empty:
+        except queue.Empty:
             pass
 
     outBuf = StringIO.StringIO()
@@ -252,7 +252,7 @@ def RunCommand(command,
     out = outBuf.getvalue()
     error = errorBuf.getvalue()
     if returncode:
-        if not isinstance(command, basestring):
+        if not isinstance(command, str):
             command = ' '.join(command)
         if printErrorInfo:
             sys.stderr.write("Command failed: '%s'\n" % command)
@@ -266,10 +266,10 @@ def RunCommand(command,
 
 
 def Main(argv):
-    print "GuessOS() -> ", GuessOS()
-    print "GuessArchitecture() -> ", GuessArchitecture()
-    print "GuessCpus() -> ", GuessCpus()
-    print "IsWindows() -> ", IsWindows()
+    print("GuessOS() -> ", GuessOS())
+    print("GuessArchitecture() -> ", GuessArchitecture())
+    print("GuessCpus() -> ", GuessCpus())
+    print("IsWindows() -> ", IsWindows())
 
 
 class Error(Exception):

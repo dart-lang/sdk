@@ -18,7 +18,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Organize Imports';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+  Future<ErrorOr<void>> handle(List<dynamic>? arguments,
       ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
       return ErrorOr.error(ResponseError(
@@ -41,8 +41,8 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     }
 
     return result.mapResult((result) {
-      final code = result.content;
-      final unit = result.unit;
+      final code = result.content!;
+      final unit = result.unit!;
 
       if (hasScanParseErrors(result.errors)) {
         // It's not uncommon for editors to run this command automatically on-save
@@ -51,7 +51,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         // LSP requests return errors).
         server.instrumentationService.logInfo(
             'Unable to $commandName because the file contains parse errors');
-        return success();
+        return success(null);
       }
 
       final organizer = ImportOrganizer(code, unit, result.errors);

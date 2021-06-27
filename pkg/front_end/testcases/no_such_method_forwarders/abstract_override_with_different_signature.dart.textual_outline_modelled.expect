@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class HungryCat {
   bool eatFood(String food, {double amount, double yetAnother});
 }

@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 static method main() → dynamic {
-  core::bool b = (() → core::bool => false).call();
+  core::bool b = (() → core::bool => false)(){() → core::bool};
   lowered final core::int? #lateLocal;
   lowered core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int
@@ -17,14 +17,14 @@ static method main() → dynamic {
       return #lateLocal = #t1;
     }
   if(b) {
-    #lateLocal#set.call(123);
+    #lateLocal#set(123){(core::int) → dynamic};
   }
-  self::throws(() → core::int => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
+  self::throws(() → core::int => #lateLocal#get(){() → core::int}, "Read value from uninitialized lateLocal");
   if(!b) {
-    self::expect(123, #lateLocal#set.call(123));
-    self::expect(123, #lateLocal#get.call());
+    self::expect(123, #lateLocal#set(123){(core::int) → dynamic});
+    self::expect(123, #lateLocal#get(){() → core::int});
   }
-  self::throws(() → core::int => #lateLocal#set.call(124), "Write value to initialized lateLocal");
+  self::throws(() → core::int => #lateLocal#set(124){(core::int) → dynamic}, "Write value to initialized lateLocal");
   function local<T extends core::Object? = dynamic>(T% value) → Null {
     lowered final T? #lateGenericLocal;
     lowered core::bool #lateGenericLocal#isSet = false;
@@ -38,29 +38,29 @@ static method main() → dynamic {
         return #lateGenericLocal = #t2;
       }
     if(b) {
-      #lateGenericLocal#set.call(value);
+      #lateGenericLocal#set(value){(T%) → dynamic};
     }
-    self::throws(() → T% => #lateGenericLocal#get.call(), "Read value from uninitialized lateGenericLocal");
+    self::throws(() → T% => #lateGenericLocal#get(){() → T%}, "Read value from uninitialized lateGenericLocal");
     if(!b) {
-      self::expect(value, #lateGenericLocal#set.call(value));
-      self::expect(value, #lateGenericLocal#get.call());
+      self::expect(value, #lateGenericLocal#set(value){(T%) → dynamic});
+      self::expect(value, #lateGenericLocal#get(){() → T%});
     }
-    self::throws(() → T% => #lateGenericLocal#set.call(value), "Write value to initialized lateGenericLocal");
+    self::throws(() → T% => #lateGenericLocal#set(value){(T%) → dynamic}, "Write value to initialized lateGenericLocal");
   }
-  local.call<core::int?>(null);
-  local.call<core::int?>(42);
-  local.call<core::int>(42);
+  local<core::int?>(null){(core::int?) → Null};
+  local<core::int?>(42){(core::int?) → Null};
+  local<core::int>(42){(core::int) → Null};
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → dynamic f, core::String message) → dynamic {
   dynamic value;
   try {
-    value = f.call();
+    value = f(){() → dynamic};
   }
-  on core::LateInitializationError catch(final core::LateInitializationError e) {
+  on core::Error catch(final core::Error e) {
     core::print(e);
     return;
   }

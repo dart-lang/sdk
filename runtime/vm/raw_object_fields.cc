@@ -10,7 +10,6 @@ namespace dart {
 
 #define COMMON_CLASSES_AND_FIELDS(F)                                           \
   F(Class, name_)                                                              \
-  F(Class, user_name_)                                                         \
   F(Class, functions_)                                                         \
   F(Class, functions_hash_table_)                                              \
   F(Class, fields_)                                                            \
@@ -20,33 +19,21 @@ namespace dart {
   F(Class, library_)                                                           \
   F(Class, type_parameters_)                                                   \
   F(Class, super_type_)                                                        \
-  F(Class, signature_function_)                                                \
   F(Class, constants_)                                                         \
   F(Class, declaration_type_)                                                  \
   F(Class, invocation_dispatcher_cache_)                                       \
-  F(Class, allocation_stub_)                                                   \
-  F(Class, direct_implementors_)                                               \
-  F(Class, direct_subclasses_)                                                 \
-  F(Class, dependent_code_)                                                    \
   F(PatchClass, patched_class_)                                                \
   F(PatchClass, origin_class_)                                                 \
   F(PatchClass, script_)                                                       \
   F(PatchClass, library_kernel_data_)                                          \
   F(Function, name_)                                                           \
   F(Function, owner_)                                                          \
-  F(Function, result_type_)                                                    \
-  F(Function, parameter_types_)                                                \
-  F(Function, parameter_names_)                                                \
-  F(Function, type_parameters_)                                                \
   F(Function, data_)                                                           \
   F(Function, ic_data_array_)                                                  \
   F(Function, code_)                                                           \
   F(ClosureData, context_scope_)                                               \
   F(ClosureData, parent_function_)                                             \
-  F(ClosureData, signature_type_)                                              \
   F(ClosureData, closure_)                                                     \
-  F(SignatureData, parent_function_)                                           \
-  F(SignatureData, signature_type_)                                            \
   F(Field, name_)                                                              \
   F(Field, owner_)                                                             \
   F(Field, type_)                                                              \
@@ -56,7 +43,6 @@ namespace dart {
   F(Field, host_offset_or_field_id_)                                           \
   F(Script, url_)                                                              \
   F(Script, resolved_url_)                                                     \
-  F(Script, compile_time_constants_)                                           \
   F(Script, line_starts_)                                                      \
   F(Script, debug_positions_)                                                  \
   F(Script, kernel_program_info_)                                              \
@@ -92,6 +78,8 @@ namespace dart {
   F(KernelProgramInfo, libraries_cache_)                                       \
   F(KernelProgramInfo, classes_cache_)                                         \
   F(KernelProgramInfo, retained_kernel_blob_)                                  \
+  F(WeakSerializationReference, target_)                                       \
+  F(WeakSerializationReference, replacement_)                                  \
   F(Code, object_pool_)                                                        \
   F(Code, instructions_)                                                       \
   F(Code, owner_)                                                              \
@@ -112,6 +100,7 @@ namespace dart {
   F(CallSiteData, args_descriptor_)                                            \
   F(ICData, entries_)                                                          \
   F(ICData, owner_)                                                            \
+  F(InstructionsTable, descriptors_)                                           \
   F(MegamorphicCache, buckets_)                                                \
   F(MegamorphicCache, mask_)                                                   \
   F(SubtypeTestCache, cache_)                                                  \
@@ -137,14 +126,21 @@ namespace dart {
   F(Type, type_class_id_)                                                      \
   F(Type, arguments_)                                                          \
   F(Type, hash_)                                                               \
-  F(Type, signature_)                                                          \
+  F(FunctionType, type_test_stub_)                                             \
+  F(FunctionType, hash_)                                                       \
+  F(FunctionType, result_type_)                                                \
+  F(FunctionType, parameter_types_)                                            \
+  F(FunctionType, parameter_names_)                                            \
+  F(FunctionType, type_parameters_)                                            \
   F(TypeRef, type_test_stub_)                                                  \
   F(TypeRef, type_)                                                            \
   F(TypeParameter, type_test_stub_)                                            \
-  F(TypeParameter, name_)                                                      \
   F(TypeParameter, hash_)                                                      \
   F(TypeParameter, bound_)                                                     \
-  F(TypeParameter, parameterized_function_)                                    \
+  F(TypeParameters, names_)                                                    \
+  F(TypeParameters, flags_)                                                    \
+  F(TypeParameters, bounds_)                                                   \
+  F(TypeParameters, defaults_)                                                 \
   F(Closure, instantiator_type_arguments_)                                     \
   F(Closure, function_type_arguments_)                                         \
   F(Closure, delayed_type_arguments_)                                          \
@@ -188,7 +184,6 @@ namespace dart {
   F(PointerBase, data_)                                                        \
   F(Pointer, type_arguments_)                                                  \
   F(DynamicLibrary, handle_)                                                   \
-  F(FfiTrampolineData, signature_type_)                                        \
   F(FfiTrampolineData, c_signature_)                                           \
   F(FfiTrampolineData, callback_target_)                                       \
   F(FfiTrampolineData, callback_exceptional_return_)                           \
@@ -197,18 +192,26 @@ namespace dart {
   F(TypedDataView, offset_in_bytes_)                                           \
   F(FutureOr, type_arguments_)
 
-#define AOT_CLASSES_AND_FIELDS(F) F(WeakSerializationReference, cid_)
+#define AOT_CLASSES_AND_FIELDS(F)
+
+#define AOT_NON_PRODUCT_CLASSES_AND_FIELDS(F)                                  \
+  F(Class, direct_implementors_)                                               \
+  F(Class, direct_subclasses_)
 
 #define JIT_CLASSES_AND_FIELDS(F)                                              \
+  F(Class, allocation_stub_)                                                   \
+  F(Class, dependent_code_)                                                    \
+  F(Class, direct_implementors_)                                               \
+  F(Class, direct_subclasses_)                                                 \
   F(Code, active_instructions_)                                                \
   F(Code, deopt_info_array_)                                                   \
   F(Code, static_calls_target_table_)                                          \
   F(ICData, receivers_static_type_)                                            \
   F(Function, unoptimized_code_)                                               \
-  F(Field, type_test_cache_)                                                   \
-  F(WeakSerializationReference, target_)
+  F(Field, type_test_cache_)
 
 #define NON_PRODUCT_CLASSES_AND_FIELDS(F)                                      \
+  F(Class, user_name_)                                                         \
   F(ReceivePort, debug_name_)                                                  \
   F(ReceivePort, allocation_location_)
 
@@ -228,10 +231,10 @@ const char* OffsetsTable::FieldNameForOffset(intptr_t class_id,
 
 #define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
   {class_name::kClassId, #field_name,                                          \
-   OFFSET_OF(class_name##Layout, field_name)},
+   OFFSET_OF(Untagged##class_name, field_name)},
 
 // clang-format off
-OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
+const OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
     COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
     NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
@@ -243,6 +246,9 @@ OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
     AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#if !defined(PRODUCT)
+    AOT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#endif
 #else
     JIT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif

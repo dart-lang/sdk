@@ -145,6 +145,11 @@ class NullableInference extends ExpressionVisitor<bool> {
           node.interfaceTarget, node.name.text, node, node.receiver);
 
   @override
+  bool visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
+      _invocationIsNullable(
+          node.interfaceTarget, node.name.text, node, node.receiver);
+
+  @override
   bool visitDynamicInvocation(DynamicInvocation node) =>
       _invocationIsNullable(null, node.name.text, node, node.receiver);
 
@@ -364,7 +369,7 @@ class NullableInference extends ExpressionVisitor<bool> {
 /// variables that have already been determined to be nullable.
 ///
 // TODO(jmesserly): Introduce flow analysis.
-class _NullableVariableInference extends RecursiveVisitor<void> {
+class _NullableVariableInference extends RecursiveVisitor {
   NullableInference _nullInference;
 
   /// Variables that are currently believed to be not-null.

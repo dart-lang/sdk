@@ -278,6 +278,26 @@ class TemplateSlowPathCode : public SlowPathCode {
   }
 };
 
+class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
+ public:
+  BoxAllocationSlowPath(Instruction* instruction,
+                        const Class& cls,
+                        Register result)
+      : TemplateSlowPathCode(instruction), cls_(cls), result_(result) {}
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  static void Allocate(FlowGraphCompiler* compiler,
+                       Instruction* instruction,
+                       const Class& cls,
+                       Register result,
+                       Register temp);
+
+ private:
+  const Class& cls_;
+  const Register result_;
+};
+
 // Slow path code which calls runtime entry to throw an exception.
 class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:
@@ -436,7 +456,6 @@ class FlowGraphCompiler : public ValueObject {
   ~FlowGraphCompiler();
 
   static bool SupportsUnboxedDoubles();
-  static bool SupportsUnboxedInt64();
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
   static bool CanConvertInt64ToDouble();
@@ -591,6 +610,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateAssertAssignable(CompileType* receiver_type,
                                 const InstructionSource& source,
                                 intptr_t deopt_id,
+                                Environment* env,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
@@ -601,6 +621,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateTTSCall(const InstructionSource& source,
                        intptr_t deopt_id,
+                       Environment* env,
                        Register reg_with_type,
                        const AbstractType& dst_type,
                        const String& dst_name,
@@ -611,41 +632,41 @@ class FlowGraphCompiler : public ValueObject {
                                       intptr_t sub_type_cache_index);
 #endif
 
-  void GenerateRuntimeCall(const InstructionSource& source,
-                           intptr_t deopt_id,
-                           const RuntimeEntry& entry,
-                           intptr_t argument_count,
-                           LocationSummary* locs);
-
   void GenerateStubCall(const InstructionSource& source,
                         const Code& stub,
-                        PcDescriptorsLayout::Kind kind,
+                        UntaggedPcDescriptors::Kind kind,
                         LocationSummary* locs,
-                        intptr_t deopt_id = DeoptId::kNone,
-                        Environment* env = nullptr);
+                        intptr_t deopt_id,
+                        Environment* env);
+
+  void GenerateNonLazyDeoptableStubCall(const InstructionSource& source,
+                                        const Code& stub,
+                                        UntaggedPcDescriptors::Kind kind,
+                                        LocationSummary* locs);
 
   void GeneratePatchableCall(const InstructionSource& source,
                              const Code& stub,
-                             PcDescriptorsLayout::Kind kind,
+                             UntaggedPcDescriptors::Kind kind,
                              LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
                         const InstructionSource& source,
                         const Code& stub,
-                        PcDescriptorsLayout::Kind kind,
+                        UntaggedPcDescriptors::Kind kind,
                         LocationSummary* locs,
                         Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateStaticDartCall(
       intptr_t deopt_id,
       const InstructionSource& source,
-      PcDescriptorsLayout::Kind kind,
+      UntaggedPcDescriptors::Kind kind,
       LocationSummary* locs,
       const Function& target,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateInstanceOf(const InstructionSource& source,
                           intptr_t deopt_id,
+                          Environment* env,
                           const AbstractType& type,
                           LocationSummary* locs);
 
@@ -765,8 +786,7 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t total_ic_calls,
                        Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void EmitDispatchTableCall(Register cid_reg,
-                             int32_t selector_offset,
+  void EmitDispatchTableCall(int32_t selector_offset,
                              const Array& arguments_descriptor);
 
   Condition EmitEqualityRegConstCompare(Register reg,
@@ -785,7 +805,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitEdgeCounter(intptr_t edge_id);
 
-  void RecordCatchEntryMoves(Environment* env = NULL,
+  void RecordCatchEntryMoves(Environment* env,
                              intptr_t try_index = kInvalidTryIndex);
 
   void EmitCallToStub(const Code& stub);
@@ -802,9 +822,9 @@ class FlowGraphCompiler : public ValueObject {
   // `pending_deoptimization_env`.
   void EmitCallsiteMetadata(const InstructionSource& source,
                             intptr_t deopt_id,
-                            PcDescriptorsLayout::Kind kind,
+                            UntaggedPcDescriptors::Kind kind,
                             LocationSummary* locs,
-                            Environment* env = nullptr);
+                            Environment* env);
 
   void EmitYieldPositionMetadata(const InstructionSource& source,
                                  intptr_t yield_index);
@@ -841,16 +861,16 @@ class FlowGraphCompiler : public ValueObject {
                            const Array& handler_types,
                            bool needs_stacktrace);
   void SetNeedsStackTrace(intptr_t try_index);
-  void AddCurrentDescriptor(PcDescriptorsLayout::Kind kind,
+  void AddCurrentDescriptor(UntaggedPcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             const InstructionSource& source);
   void AddDescriptor(
-      PcDescriptorsLayout::Kind kind,
+      UntaggedPcDescriptors::Kind kind,
       intptr_t pc_offset,
       intptr_t deopt_id,
       const InstructionSource& source,
       intptr_t try_index,
-      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
+      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
 
   // Add NullCheck information for the current PC.
   void AddNullCheck(const InstructionSource& source, const String& name);
@@ -862,7 +882,7 @@ class FlowGraphCompiler : public ValueObject {
                                 ICData::DeoptReasonId reason,
                                 uint32_t flags = 0);
 
-  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id);
+  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id, Environment* env);
   CompilerDeoptInfo* AddSlowPathDeoptInfo(intptr_t deopt_id, Environment* env);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
@@ -945,13 +965,13 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Zone* zone() const { return zone_; }
 
   void AddStubCallTarget(const Code& code);
   void AddDispatchTableCallTarget(const compiler::TableSelector* selector);
 
-  ArrayPtr edge_counters_array() const { return edge_counters_array_.raw(); }
+  ArrayPtr edge_counters_array() const { return edge_counters_array_.ptr(); }
 
   ArrayPtr InliningIdToFunction() const;
 
@@ -984,8 +1004,6 @@ class FlowGraphCompiler : public ValueObject {
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
-  friend class CheckedSmiSlowPath;          // Same.
-  friend class CheckedSmiComparisonSlowPath;  // Same.
   friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
 
   // Architecture specific implementation of simple native moves.
@@ -1133,7 +1151,7 @@ class FlowGraphCompiler : public ValueObject {
   void CompactBlocks();
 
   bool IsListClass(const Class& cls) const {
-    return cls.raw() == list_class_.raw();
+    return cls.ptr() == list_class_.ptr();
   }
 
   void EmitSourceLine(Instruction* instr);

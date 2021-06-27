@@ -86,6 +86,7 @@
         "uri": "ffi/ffi.dart",
         "patches": [
           "_internal/vm/lib/ffi_patch.dart",
+          "_internal/vm/lib/ffi_allocation_patch.dart",
           "_internal/vm/lib/ffi_dynamic_library_patch.dart",
           "_internal/vm/lib/ffi_native_type_patch.dart",
           "_internal/vm/lib/ffi_struct_patch.dart"
@@ -241,6 +242,9 @@
       "_js_helper": {
         "uri": "_internal/js_runtime/lib/js_helper.dart"
       },
+      "_late_helper": {
+        "uri": "_internal/js_runtime/lib/late_helper.dart"
+      },
       "_rti": {
         "uri": "_internal/js_runtime/lib/rti.dart"
       },
@@ -336,6 +340,9 @@
       },
       "_js_helper": {
         "uri": "_internal/js_runtime/lib/js_helper.dart"
+      },
+      "_late_helper": {
+        "uri": "_internal/js_runtime/lib/late_helper.dart"
       },
       "_rti": {
         "uri": "_internal/js_runtime/lib/rti.dart"

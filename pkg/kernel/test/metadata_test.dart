@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -64,14 +66,15 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
     expect(metadata, equals(mapping[node]));
     sink.writeByteList(utf8.encode(metadata.string));
     sink.writeStringReference(metadata.string);
-    sink.writeNullAllowedCanonicalNameReference(metadata.member?.canonicalName);
+    sink.writeNullAllowedCanonicalNameReference(
+        metadata.member?.reference?.canonicalName);
     sink.writeDartType(metadata.type);
   }
 
   Metadata readFromBinary(Node node, BinarySource source) {
     final string1 = utf8.decode(source.readByteList());
     final string2 = source.readStringReference();
-    final memberRef = source.readCanonicalNameReference()?.reference;
+    final memberRef = source.readNullableCanonicalNameReference()?.reference;
     final type = source.readDartType();
     expect(string1, equals(string2));
     return new Metadata(string2, memberRef, type);
@@ -94,7 +97,7 @@ typedef NodePredicate = bool Function(TreeNode node);
 
 /// Visitor calling [handle] function on every node which can have metadata
 /// associated with it and also satisfies the given [predicate].
-class Visitor extends RecursiveVisitor<Null> {
+class Visitor extends RecursiveVisitor {
   final NodePredicate predicate;
   final void Function(TreeNode) handle;
 

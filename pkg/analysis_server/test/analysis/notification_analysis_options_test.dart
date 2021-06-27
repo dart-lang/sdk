@@ -31,13 +31,13 @@ main() {
   print(y);
 }''';
 
-  List<AnalysisError> get errors => filesErrors[testFile];
+  List<AnalysisError> get errors => filesErrors[testFile]!;
 
-  List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath];
+  List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath]!;
 
   String get optionsFilePath => '$projectPath/analysis_options.yaml';
 
-  List<AnalysisError> get testFileErrors => filesErrors[testFile];
+  List<AnalysisError> get testFileErrors => filesErrors[testFile]!;
 
   void addOptionsFile(String contents) {
     newFile(optionsFilePath, content: contents);

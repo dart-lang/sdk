@@ -1,0 +1,23 @@
+class ClassMixin extends Super with Mixin {}
+
+class Mixin {
+  abstract int extendedAbstractMixedInAbstractField;
+  abstract int extendedConcreteMixedInAbstractField;
+  abstract int mixedInAbstractField;
+  int extendedAbstractMixedInConcreteField = 0;
+  int extendedConcreteMixedInConcreteField = 0;
+  int mixedInConcreteField = 0;
+}
+
+class NamedMixin = Super with Mixin;
+
+class Super {
+  abstract int extendedAbstractField;
+  abstract int extendedAbstractMixedInAbstractField;
+  abstract int extendedAbstractMixedInConcreteField;
+  int extendedConcreteField = 0;
+  int extendedConcreteMixedInAbstractField = 0;
+  int extendedConcreteMixedInConcreteField = 0;
+}
+
+main() {}

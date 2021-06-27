@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dart2js' inferrer: if we closurize a method, we
 // still need to collect the users of the parameters for the trace
 // container pass to work.

@@ -5,13 +5,12 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/context/context_root.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
@@ -25,14 +24,14 @@ class MockServerChannel implements ServerCommunicationChannel {
       StreamController<Response>.broadcast();
   StreamController<Notification> notificationController =
       StreamController<Notification>(sync: true);
-  Completer<Response> errorCompleter;
+  Completer<Response>? errorCompleter;
 
   List<Response> responsesReceived = [];
   List<Notification> notificationsReceived = [];
 
   bool _closed = false;
 
-  String name;
+  String? name;
 
   MockServerChannel();
 
@@ -48,7 +47,7 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   @override
   void listen(void Function(Request request) onRequest,
-      {Function onError, void Function() onDone}) {
+      {Function? onError, void Function()? onDone}) {
     requestController.stream
         .listen(onRequest, onError: onError, onDone: onDone);
   }
@@ -60,11 +59,12 @@ class MockServerChannel implements ServerCommunicationChannel {
       return;
     }
     notificationsReceived.add(notification);
+    final errorCompleter = this.errorCompleter;
     if (errorCompleter != null && notification.event == 'server.error') {
-      print(
-          '[server.error] test: $name message: ${notification.params['message']}');
-      errorCompleter.completeError(ServerError(notification.params['message']),
-          StackTrace.fromString(notification.params['stackTrace']));
+      var params = notification.params!;
+      print('[server.error] test: $name message: ${params['message']}');
+      errorCompleter.completeError(ServerError(params['message'] as String),
+          StackTrace.fromString(params['stackTrace'] as String));
     }
     // Wrap send notification in future to simulate websocket
     // TODO(scheglov) ask Dan why and decide what to do
@@ -116,9 +116,9 @@ class MockServerChannel implements ServerCommunicationChannel {
     var response =
         responseController.stream.firstWhere((response) => response.id == id);
     if (throwOnError) {
-      errorCompleter = Completer<Response>();
+      var completer = errorCompleter = Completer<Response>();
       try {
-        return Future.any([response, errorCompleter.future]);
+        return Future.any([response, completer.future]);
       } finally {
         errorCompleter = null;
       }
@@ -141,11 +141,11 @@ class ServerError implements Exception {
 /// A plugin manager that simulates broadcasting requests to plugins by
 /// hard-coding the responses.
 class TestPluginManager implements PluginManager {
-  plugin.AnalysisSetPriorityFilesParams analysisSetPriorityFilesParams;
-  plugin.AnalysisSetSubscriptionsParams analysisSetSubscriptionsParams;
-  plugin.AnalysisUpdateContentParams analysisUpdateContentParams;
-  plugin.RequestParams broadcastedRequest;
-  Map<PluginInfo, Future<plugin.Response>> broadcastResults;
+  plugin.AnalysisSetPriorityFilesParams? analysisSetPriorityFilesParams;
+  plugin.AnalysisSetSubscriptionsParams? analysisSetSubscriptionsParams;
+  plugin.AnalysisUpdateContentParams? analysisUpdateContentParams;
+  plugin.RequestParams? broadcastedRequest;
+  Map<PluginInfo, Future<plugin.Response>>? broadcastResults;
 
   @override
   List<PluginInfo> plugins = [];
@@ -190,7 +190,7 @@ class TestPluginManager implements PluginManager {
   @override
   Map<PluginInfo, Future<plugin.Response>> broadcastRequest(
       plugin.RequestParams params,
-      {analyzer.ContextRoot contextRoot}) {
+      {analyzer.ContextRoot? contextRoot}) {
     broadcastedRequest = params;
     return broadcastResults ?? <PluginInfo, Future<plugin.Response>>{};
   }
@@ -207,7 +207,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
+  List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot? contextRoot) {
     fail('Unexpected invocation of pluginsForContextRoot');
   }
 

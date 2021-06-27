@@ -30,7 +30,7 @@ class C {
   C.named({int b, @deprecated int a});
 }
 ''');
-    setPackageData(_rename(['C', 'named'], 'a', 'b'));
+    setPackageData(_rename(['named', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -53,7 +53,7 @@ class C {
   C.named({int b});
 }
 ''');
-    setPackageData(_rename(['C', 'named'], 'a', 'b'));
+    setPackageData(_rename(['named', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -76,7 +76,7 @@ class C {
   C({int b, @deprecated int a});
 }
 ''');
-    setPackageData(_rename(['C', ''], 'a', 'b'));
+    setPackageData(_rename(['', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -99,7 +99,7 @@ class C {
   C({int b});
 }
 ''');
-    setPackageData(_rename(['C', ''], 'a', 'b'));
+    setPackageData(_rename(['', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -128,7 +128,7 @@ class C {
   int m({int b, @deprecated int a}) => 0;
 }
 ''');
-    setPackageData(_rename(['D', 'm'], 'a', 'nbew'));
+    setPackageData(_rename(['m', 'D'], 'a', 'nbew'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -142,16 +142,16 @@ void f(C c) {
   Future<void> test_instance_override_deprecated() async {
     setPackageContent('''
 class C {
-  int m({int b, @deprecated int a}) => 0;
+  int m({int? b, @deprecated int? a}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
 class D extends C {
   @override
-  int m({int a}) => 0;
+  int m({int? a}) => 0;
 }
 ''');
     await assertHasFix('''
@@ -159,7 +159,7 @@ import '$importUri';
 
 class D extends C {
   @override
-  int m({int b, @deprecated int a}) => 0;
+  int m({int? b, @deprecated int? a}) => 0;
 }
 ''');
   }
@@ -167,16 +167,16 @@ class D extends C {
   Future<void> test_instance_override_removed() async {
     setPackageContent('''
 class C {
-  int m({int b}) => 0;
+  int m({int? b}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
 class D extends C {
   @override
-  int m({int a}) => 0;
+  int m({int? a}) => 0;
 }
 ''');
     await assertHasFix('''
@@ -184,7 +184,7 @@ import '$importUri';
 
 class D extends C {
   @override
-  int m({int b}) => 0;
+  int m({int? b}) => 0;
 }
 ''');
   }
@@ -195,7 +195,7 @@ class C {
   int m({int b, @deprecated int a}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -218,7 +218,7 @@ class C {
   int m({int b}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -241,7 +241,7 @@ class C {
   static int m({int b, @deprecated int a}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -264,7 +264,7 @@ class C {
   static int m({int b}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -331,9 +331,10 @@ abstract class _AbstractRenameParameterInTest
   Transform _rename(List<String> components, String oldName, String newName) =>
       Transform(
           title: 'title',
+          date: DateTime.now(),
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
-              kind: ElementKindUtilities.fromName(_kind),
+              kind: ElementKindUtilities.fromName(_kind)!,
               components: components),
           bulkApply: false,
           changesSelector: UnconditionalChangesSelector([

@@ -16,8 +16,8 @@ void main() {
 
 @reflectiveTest
 class PluginIsolateChannelTest {
-  TestSendPort sendPort;
-  PluginIsolateChannel channel;
+  late TestSendPort sendPort;
+  late PluginIsolateChannel channel;
 
   void setUp() {
     sendPort = TestSendPort();
@@ -50,11 +50,11 @@ class PluginIsolateChannelTest {
 
   Future<void> test_listen() async {
     var sentRequest = PluginShutdownParams().toRequest('5');
-    Request receivedRequest;
+    Request? receivedRequest;
     channel.listen((Request request) {
       receivedRequest = request;
     });
-    sendPort.receivePort.send(sentRequest.toJson());
+    sendPort.receivePort?.send(sentRequest.toJson());
     await _pumpEventQueue(1);
     expect(receivedRequest, sentRequest);
   }
@@ -89,7 +89,7 @@ class PluginIsolateChannelTest {
 /// A send port used in tests.
 class TestSendPort implements SendPort {
   /// The receive port used to receive messages from the server.
-  SendPort receivePort;
+  SendPort? receivePort;
 
   /// The messages sent to the server.
   List<Object> sentMessages = <Object>[];
@@ -103,7 +103,7 @@ class TestSendPort implements SendPort {
         fail('Did not receive a receive port as the first communication.');
       }
     } else {
-      sentMessages.add(message);
+      sentMessages.add(message!);
     }
   }
 }

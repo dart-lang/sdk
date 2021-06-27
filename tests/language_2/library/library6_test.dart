@@ -1,0 +1,15 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
+// This tests that it is not a compile-time error to both import a library
+// that defines a function type alias and to have a local definition for
+// another function type alias with the same name.
+
+import "library5a.dart"; // Defines function type alias Fun
+
+typedef int Fun(); // Does not conflict with definition of Fun from library5a
+
+main() {}

@@ -61,7 +61,7 @@ namespace dart {
 // by the profiler.
 class TokenPosition {
  public:
-  intptr_t Hash() const;
+  uword Hash() const;
 
   // Returns whether the token positions are equal.  Defined for all token
   // positions.

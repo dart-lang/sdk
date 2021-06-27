@@ -58,9 +58,22 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
-        isOneOfOrEof(identifier,
-            const ['<', '{', 'extends', 'with', 'implements', 'on'])) {
+    const List<String> afterIdentifier = const [
+      '<',
+      '{',
+      'extends',
+      'with',
+      'implements',
+      'on',
+      '=',
+    ];
+    if (identifier.isEof ||
+        (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
+            (identifier.next == null ||
+                !isOneOfOrEof(identifier.next!, afterIdentifier))) ||
+        (isOneOfOrEof(identifier, afterIdentifier) &&
+            (identifier.next == null ||
+                !isOneOfOrEof(identifier.next!, afterIdentifier)))) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else if (identifier.type.isBuiltIn) {
@@ -145,6 +158,9 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
   const ConstructorReferenceIdentifierContext.continuationAfterTypeArguments()
       : super('constructorReferenceContinuationAfterTypeArguments',
             isContinuation: true);
+
+  @override
+  bool get allowsNewAsIdentifier => isContinuation;
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -296,6 +312,9 @@ class ExpressionIdentifierContext extends IdentifierContext {
       : super('expressionContinuation', isContinuation: true);
 
   @override
+  bool get allowsNewAsIdentifier => isContinuation;
+
+  @override
   Token ensureIdentifier(Token token, Parser parser) {
     Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
@@ -408,6 +427,9 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
 class FieldInitializerIdentifierContext extends IdentifierContext {
   const FieldInitializerIdentifierContext()
       : super('fieldInitializer', isContinuation: true);
+
+  @override
+  bool get allowsNewAsIdentifier => true;
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -539,8 +561,16 @@ class LiteralSymbolIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    return parser.insertSyntheticIdentifier(token, this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier));
+    if (!identifier.isKeywordOrIdentifier) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: codes.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      // Use the keyword as the identifier.
+      parser.reportRecoverableErrorWithToken(
+          identifier, codes.templateExpectedIdentifierButGotKeyword);
+    }
+
+    return identifier;
   }
 }
 
@@ -809,6 +839,9 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
 
   const MethodDeclarationIdentifierContext.operatorName()
       : super('operatorName', inDeclaration: true);
+
+  @override
+  bool get allowsNewAsIdentifier => isContinuation;
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -1103,14 +1136,23 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
       return identifier;
     }
 
-    // Recovery
+    // Recovery: If the next token  (the one currently in 'identifier') is any
+    // of these values we don't "eat" the it but instead insert an identifier
+    // between "token" and "token.next" and return that as the last consumed
+    // token. Otherwise such a token would be consumed: an identifier would be
+    // inserted after "token.next" and that would be returned as the last
+    // consumed token, effectively skipping the token.
     const List<String> followingValues = const [
       '<',
       '>',
       ';',
       '}',
       'extends',
-      'super'
+      'super',
+      // If currently adding type variables to a typedef this could easily
+      // occur and we don't want to 'eat' the equal sign.
+      '=',
+      '>=',
     ];
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         looksLikeStartOfNextClassMember(identifier) ||

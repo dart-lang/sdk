@@ -10,7 +10,7 @@ class VariableScope {
   static final empty = VariableScope(null, {});
 
   /// The outer scope in which this scope is nested.
-  final VariableScope outerScope;
+  final VariableScope? outerScope;
 
   /// A table mapping variable names to generators.
   final Map<String, ValueGenerator> _generators;
@@ -22,7 +22,7 @@ class VariableScope {
 
   /// Return the generator used to generate the value of the variable with the
   /// given [variableName], or `null` if the variable is not defined.
-  ValueGenerator lookup(String variableName) {
+  ValueGenerator? lookup(String variableName) {
     return _generators[variableName] ?? outerScope?.lookup(variableName);
   }
 }

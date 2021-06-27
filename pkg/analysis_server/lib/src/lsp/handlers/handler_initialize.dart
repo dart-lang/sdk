@@ -30,19 +30,30 @@ class InitializeMessageHandler
     );
 
     final openWorkspacePaths = <String>[];
+    final workspaceFolders = params.workspaceFolders;
+    final rootUri = params.rootUri;
+    final rootPath = params.rootPath;
     // The onlyAnalyzeProjectsWithOpenFiles flag allows opening huge folders
     // without setting them as analysis roots. Instead, analysis roots will be
     // based only on the open files.
     if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
-      if (params.workspaceFolders != null) {
-        params.workspaceFolders.forEach((wf) {
-          openWorkspacePaths.add(Uri.parse(wf.uri).toFilePath());
+      if (workspaceFolders != null) {
+        workspaceFolders.forEach((wf) {
+          final uri = Uri.parse(wf.uri);
+          // Only file URIs are supported, but there's no way to signal this to
+          // the LSP client (and certainly not before initialization).
+          if (uri.isScheme('file')) {
+            openWorkspacePaths.add(uri.toFilePath());
+          }
         });
       }
-      if (params.rootUri != null) {
-        openWorkspacePaths.add(Uri.parse(params.rootUri).toFilePath());
-      } else if (params.rootPath != null) {
-        openWorkspacePaths.add(params.rootPath);
+      if (rootUri != null) {
+        final uri = Uri.parse(rootUri);
+        if (uri.isScheme('file')) {
+          openWorkspacePaths.add(uri.toFilePath());
+        }
+      } else if (rootPath != null) {
+        openWorkspacePaths.add(rootPath);
       }
     }
 
@@ -51,8 +62,9 @@ class InitializeMessageHandler
       openWorkspacePaths,
     );
 
-    server.capabilities = server.capabilitiesComputer
-        .computeServerCapabilities(params.capabilities);
+    final capabilities = server.capabilitiesComputer
+        .computeServerCapabilities(server.clientCapabilities!);
+    server.capabilities = capabilities;
 
     var sdkVersion = Platform.version;
     if (sdkVersion.contains(' ')) {
@@ -60,7 +72,7 @@ class InitializeMessageHandler
     }
 
     return success(InitializeResult(
-      capabilities: server.capabilities,
+      capabilities: capabilities,
       serverInfo: InitializeResultServerInfo(
         name: 'Dart SDK LSP Analysis Server',
         version: sdkVersion,

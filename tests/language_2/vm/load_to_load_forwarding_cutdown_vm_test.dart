@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test correctness of side effects tracking used by load to load forwarding.
 // In this cutdown version of the load_to_load_forwarding_vm test, the function
 // being compiled ends up in a single basic block, which tests load

@@ -110,7 +110,7 @@ main() { int x =
   }
 
   EditFormatResult _formatAt(int selectionOffset, int selectionLength,
-      {int lineLength}) {
+      {int? lineLength}) {
     var request = EditFormatParams(testFile, selectionOffset, selectionLength,
             lineLength: lineLength)
         .toRequest('0');

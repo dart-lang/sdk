@@ -10,12 +10,14 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeTest);
+    defineReflectiveTests(ReturnOfInvalidTypeWithNoImplicitCastsTest);
     defineReflectiveTests(ReturnOfInvalidTypeWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ReturnOfInvalidTypeTest extends PubPackageResolutionTest {
+class ReturnOfInvalidTypeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_closure() async {
     await assertErrorsInCode('''
 typedef Td = int Function();
@@ -68,6 +70,16 @@ Future<int> f(Future<Future<int>> a) async {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 1),
+    ]);
+  }
+
+  test_function_async_block_Future_String__to_Future_int() async {
+    await assertErrorsInCode('''
+Future<int> f(Future<String> a) async {
+  return a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 49, 1),
     ]);
   }
 
@@ -381,6 +393,28 @@ class A {
 }
 
 @reflectiveTest
+class ReturnOfInvalidTypeWithNoImplicitCastsTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
+  test_return() async {
+    await assertErrorsWithNoImplicitCasts('int f(num n) => n;', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 16, 1),
+    ]);
+  }
+
+  test_return_async() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+Future<List<String>> f() async {
+  List<Object> x = <Object>['hello', 'world'];
+  return x;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 89, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
 class ReturnOfInvalidTypeWithNullSafetyTest extends ReturnOfInvalidTypeTest
     with WithNullSafetyMixin {
   test_function_async_block_int__to_Future_void() async {
@@ -417,7 +451,7 @@ FutureOr<Object?> f(void a) async {
 
   test_function_async_expression_dynamic__to_Future_int() async {
     await assertNoErrorsInCode(r'''
-Future<int> f(dynamic a) async => a; 
+Future<int> f(dynamic a) async => a;
 ''');
   }
 

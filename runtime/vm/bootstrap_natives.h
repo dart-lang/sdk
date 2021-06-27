@@ -18,7 +18,7 @@ namespace dart {
   V(DartAsync_fatal, 1)                                                        \
   V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
-  V(Object_setHash, 2)                                                         \
+  V(Object_setHashIfNotSetYet, 2)                                              \
   V(Object_toString, 1)                                                        \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \
@@ -30,6 +30,8 @@ namespace dart {
   V(AbstractType_toString, 1)                                                  \
   V(Type_getHashCode, 1)                                                       \
   V(Type_equality, 2)                                                          \
+  V(FunctionType_getHashCode, 1)                                               \
+  V(FunctionType_equality, 2)                                                  \
   V(LibraryPrefix_isLoaded, 1)                                                 \
   V(LibraryPrefix_setLoaded, 1)                                                \
   V(LibraryPrefix_loadingUnit, 1)                                              \
@@ -49,6 +51,7 @@ namespace dart {
   V(Integer_parse, 1)                                                          \
   V(Integer_shlFromInteger, 2)                                                 \
   V(Integer_shrFromInteger, 2)                                                 \
+  V(Integer_ushrFromInteger, 2)                                                \
   V(Bool_fromEnvironment, 3)                                                   \
   V(Bool_hasEnvironment, 2)                                                    \
   V(CapabilityImpl_factory, 1)                                                 \
@@ -63,7 +66,6 @@ namespace dart {
   V(SendPortImpl_get_hashcode, 1)                                              \
   V(SendPortImpl_sendInternal_, 2)                                             \
   V(SendPortImpl_sendAndExitInternal_, 2)                                      \
-  V(Smi_bitAndFromSmi, 2)                                                      \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
   V(Mint_bitNegate, 1)                                                         \
@@ -128,7 +130,6 @@ namespace dart {
   V(StringBase_joinReplaceAllResult, 4)                                        \
   V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
-  V(OneByteString_splitWithCharCode, 2)                                        \
   V(OneByteString_allocateFromOneByteList, 3)                                  \
   V(TwoByteString_allocateFromTwoByteList, 3)                                  \
   V(String_getHashCode, 1)                                                     \
@@ -188,8 +189,8 @@ namespace dart {
   V(TypedData_Float32x4Array_new, 2)                                           \
   V(TypedData_Int32x4Array_new, 2)                                             \
   V(TypedData_Float64x2Array_new, 2)                                           \
-  V(TypedData_length, 1)                                                       \
-  V(TypedData_setRange, 7)                                                     \
+  V(TypedDataBase_length, 1)                                                   \
+  V(TypedDataBase_setRange, 7)                                                 \
   V(TypedData_GetInt8, 2)                                                      \
   V(TypedData_SetInt8, 3)                                                      \
   V(TypedData_GetUint8, 2)                                                     \
@@ -231,7 +232,6 @@ namespace dart {
   V(TypedDataView_Float32x4ArrayView_new, 4)                                   \
   V(TypedDataView_Int32x4ArrayView_new, 4)                                     \
   V(TypedDataView_Float64x2ArrayView_new, 4)                                   \
-  V(TypedDataView_length, 1)                                                   \
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
   V(Float32x4_fromDoubles, 4)                                                  \
@@ -331,11 +331,12 @@ namespace dart {
   V(GrowableList_setLength, 2)                                                 \
   V(GrowableList_setData, 2)                                                   \
   V(Internal_unsafeCast, 1)                                                    \
+  V(Internal_nativeEffect, 1)                                                  \
   V(Internal_reachabilityFence, 1)                                             \
   V(Internal_collectAllGarbage, 0)                                             \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
-  V(Internal_inquireIs64Bit, 0)                                                \
+  V(Internal_has63BitSmis, 0)                                                  \
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
   V(Internal_boundsCheckForPartialInstantiation, 2)                            \
@@ -345,16 +346,6 @@ namespace dart {
   V(Internal_writeIntoTwoByteString, 3)                                        \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
-  V(LinkedHashMap_getIndex, 1)                                                 \
-  V(LinkedHashMap_setIndex, 2)                                                 \
-  V(LinkedHashMap_getData, 1)                                                  \
-  V(LinkedHashMap_setData, 2)                                                  \
-  V(LinkedHashMap_getHashMask, 1)                                              \
-  V(LinkedHashMap_setHashMask, 2)                                              \
-  V(LinkedHashMap_getUsedData, 1)                                              \
-  V(LinkedHashMap_setUsedData, 2)                                              \
-  V(LinkedHashMap_getDeletedKeys, 1)                                           \
-  V(LinkedHashMap_setDeletedKeys, 2)                                           \
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_setKey, 2)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
@@ -403,16 +394,17 @@ namespace dart {
   V(Ffi_storePointer, 3)                                                       \
   V(Ffi_address, 1)                                                            \
   V(Ffi_fromAddress, 1)                                                        \
-  V(Ffi_sizeOf, 0)                                                             \
-  V(Ffi_asFunctionInternal, 1)                                                 \
+  V(Ffi_asFunctionInternal, 2)                                                 \
   V(Ffi_nativeCallbackFunction, 2)                                             \
   V(Ffi_pointerFromFunction, 1)                                                \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
+  V(Ffi_dl_providesSymbol, 2)                                                  \
   V(Ffi_asExternalTypedData, 2)                                                \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
+  V(Ffi_GetFfiNativeResolver, 0)                                               \
   V(DartApiDLInitializeData, 0)                                                \
   V(DartApiDLMajorVersion, 0)                                                  \
   V(DartApiDLMinorVersion, 0)                                                  \
@@ -469,8 +461,6 @@ namespace dart {
   V(MethodMirror_return_type, 2)                                               \
   V(MethodMirror_source, 1)                                                    \
   V(ParameterMirror_type, 3)                                                   \
-  V(TypedefMirror_referent, 1)                                                 \
-  V(TypedefMirror_declaration, 1)                                              \
   V(VariableMirror_type, 2)
 
 class BootstrapNatives : public AllStatic {

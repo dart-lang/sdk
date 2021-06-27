@@ -17,87 +17,128 @@ class ConvertToFieldParameter extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node == null) {
-      return;
-    }
-    // prepare ConstructorDeclaration
-    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
-    if (constructor == null) {
-      return;
-    }
-    var parameterList = constructor.parameters;
-    List<ConstructorInitializer> initializers = constructor.initializers;
     // prepare parameter
-    SimpleFormalParameter parameter;
-    if (node.parent is SimpleFormalParameter &&
-        node.parent.parent is FormalParameterList &&
-        node.parent.parent.parent is ConstructorDeclaration) {
-      parameter = node.parent;
+    var context = _findParameter(node);
+    if (context == null) {
+      return;
     }
-    if (node is SimpleIdentifier &&
-        node.parent is ConstructorFieldInitializer) {
-      var name = (node as SimpleIdentifier).name;
-      ConstructorFieldInitializer initializer = node.parent;
-      if (initializer.expression == node) {
-        for (var formalParameter in parameterList.parameters) {
-          if (formalParameter is SimpleFormalParameter &&
-              formalParameter.identifier.name == name) {
-            parameter = formalParameter;
-          }
-        }
-      }
-    }
-    // analyze parameter
-    if (parameter != null) {
-      var parameterName = parameter.identifier.name;
-      var parameterElement = parameter.declaredElement;
-      // check number of references
-      var visitor = _ReferenceCounter(parameterElement);
-      for (var initializer in initializers) {
-        initializer.accept(visitor);
-      }
-      if (visitor.count != 1) {
-        return;
-      }
-      // find the field initializer
-      ConstructorFieldInitializer parameterInitializer;
-      for (var initializer in initializers) {
-        if (initializer is ConstructorFieldInitializer) {
-          var expression = initializer.expression;
-          if (expression is SimpleIdentifier &&
-              expression.name == parameterName) {
-            parameterInitializer = initializer;
-          }
-        }
-      }
-      if (parameterInitializer == null) {
-        return;
-      }
-      var fieldName = parameterInitializer.fieldName.name;
 
-      await builder.addDartFileEdit(file, (builder) {
-        // replace parameter
-        builder.addSimpleReplacement(range.node(parameter), 'this.$fieldName');
-        // remove initializer
-        var initializerIndex = initializers.indexOf(parameterInitializer);
-        if (initializers.length == 1) {
-          builder
-              .addDeletion(range.endEnd(parameterList, parameterInitializer));
-        } else {
-          if (initializerIndex == 0) {
-            var next = initializers[initializerIndex + 1];
-            builder.addDeletion(range.startStart(parameterInitializer, next));
-          } else {
-            var prev = initializers[initializerIndex - 1];
-            builder.addDeletion(range.endEnd(prev, parameterInitializer));
-          }
-        }
-      });
+    // analyze parameter
+    var parameterName = context.identifier.name;
+    var parameterElement = context.parameter.declaredElement!;
+    var initializers = context.constructor.initializers;
+
+    // check number of references
+    var visitor = _ReferenceCounter(parameterElement);
+    for (var initializer in initializers) {
+      initializer.accept(visitor);
     }
+    if (visitor.count != 1) {
+      return;
+    }
+    // find the field initializer
+    ConstructorFieldInitializer? parameterInitializer;
+    for (var initializer in initializers) {
+      if (initializer is ConstructorFieldInitializer) {
+        var expression = initializer.expression;
+        if (expression is SimpleIdentifier &&
+            expression.name == parameterName) {
+          parameterInitializer = initializer;
+        }
+      }
+    }
+    if (parameterInitializer == null) {
+      return;
+    }
+    var fieldName = parameterInitializer.fieldName.name;
+
+    final context_final = context;
+    final parameterInitializer_final = parameterInitializer;
+    await builder.addDartFileEdit(file, (builder) {
+      // replace parameter
+      builder.addSimpleReplacement(
+        range.node(context_final.parameter),
+        'this.$fieldName',
+      );
+      // remove initializer
+      var initializerIndex = initializers.indexOf(parameterInitializer_final);
+      if (initializers.length == 1) {
+        builder.addDeletion(
+          range.endEnd(
+            context_final.constructor.parameters,
+            parameterInitializer_final,
+          ),
+        );
+      } else {
+        if (initializerIndex == 0) {
+          var next = initializers[initializerIndex + 1];
+          builder.addDeletion(
+            range.startStart(parameterInitializer_final, next),
+          );
+        } else {
+          var prev = initializers[initializerIndex - 1];
+          builder.addDeletion(
+            range.endEnd(prev, parameterInitializer_final),
+          );
+        }
+      }
+    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
   static ConvertToFieldParameter newInstance() => ConvertToFieldParameter();
+
+  static _Context? _findParameter(AstNode node) {
+    var parent = node.parent;
+    if (parent is SimpleFormalParameter) {
+      var identifier = parent.identifier;
+      if (identifier == null) return null;
+
+      var formalParameterList = parent.parent;
+      if (formalParameterList is! FormalParameterList) return null;
+
+      var constructor = formalParameterList.parent;
+      if (constructor is! ConstructorDeclaration) return null;
+
+      return _Context(
+        parameter: parent,
+        identifier: identifier,
+        constructor: constructor,
+      );
+    }
+
+    if (node is SimpleIdentifier && parent is ConstructorFieldInitializer) {
+      var constructor = parent.parent;
+      if (constructor is! ConstructorDeclaration) return null;
+
+      if (parent.expression == node) {
+        for (var formalParameter in constructor.parameters.parameters) {
+          if (formalParameter is SimpleFormalParameter) {
+            var identifier = formalParameter.identifier;
+            if (identifier != null && identifier.name == node.name) {
+              return _Context(
+                parameter: formalParameter,
+                identifier: identifier,
+                constructor: constructor,
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+class _Context {
+  final SimpleFormalParameter parameter;
+  final SimpleIdentifier identifier;
+  final ConstructorDeclaration constructor;
+
+  _Context({
+    required this.parameter,
+    required this.identifier,
+    required this.constructor,
+  });
 }
 
 class _ReferenceCounter extends RecursiveAstVisitor<void> {

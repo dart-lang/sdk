@@ -1,0 +1,77 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/extend_with_type_variable.dart:13:7: Error: The type 'M' can't be mixed in.
+// class Class2<T, M extends Mixin<T>> extends SuperClass with M {}
+//       ^
+//
+// pkg/front_end/testcases/general/extend_with_type_variable.dart:11:7: Error: The type variable 'S' can't be used as supertype.
+// class Class1<T, S extends SuperClass> extends S with Mixin<T> {}
+//       ^
+//
+// pkg/front_end/testcases/general/extend_with_type_variable.dart:13:7: Error: The type variable 'M' can't be used as supertype.
+// class Class2<T, M extends Mixin<T>> extends SuperClass with M {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class SuperClass extends core::Object {
+  synthetic constructor •() → self::SuperClass*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class Mixin<T extends core::Object* = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _Class1&S&Mixin<T extends core::Object* = dynamic, S extends self::SuperClass*> extends core::Object implements self::Mixin<self::_Class1&S&Mixin::T*> /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_Class1&S&Mixin<self::_Class1&S&Mixin::T*, self::_Class1&S&Mixin::S*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class1<T extends core::Object* = dynamic, S extends self::SuperClass*> extends self::_Class1&S&Mixin<self::Class1::T*, self::Class1::S*> {
+  synthetic constructor •() → self::Class1<self::Class1::T*, self::Class1::S*>*
+    : super self::_Class1&S&Mixin::•()
+    ;
+}
+abstract class _Class2&SuperClass&M<T extends core::Object* = dynamic, M extends self::Mixin<self::_Class2&SuperClass&M::T*>* = self::Mixin<dynamic>*> extends self::SuperClass /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class2&SuperClass&M<self::_Class2&SuperClass&M::T*, self::_Class2&SuperClass&M::M*>*
+    : super self::SuperClass::•()
+    ;
+}
+class Class2<T extends core::Object* = dynamic, M extends self::Mixin<self::Class2::T*>* = self::Mixin<dynamic>*> extends self::_Class2&SuperClass&M<self::Class2::T*, self::Class2::M*> {
+  synthetic constructor •() → self::Class2<self::Class2::T*, self::Class2::M*>*
+    : super self::_Class2&SuperClass&M::•()
+    ;
+}
+static method main() → dynamic {}

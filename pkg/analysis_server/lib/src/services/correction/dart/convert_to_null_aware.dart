@@ -18,20 +18,31 @@ class ConvertToNullAware extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_NULL_AWARE;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_NULL_AWARE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node.parent is BinaryExpression &&
-        node.parent.parent is ConditionalExpression) {
-      node = node.parent.parent;
+    var targetNode = node;
+    var parent = targetNode.parent;
+    if (parent is BinaryExpression) {
+      var grandParent = parent.parent;
+      if (grandParent is ConditionalExpression) {
+        targetNode = grandParent;
+      }
     }
-    if (node is! ConditionalExpression) {
+    if (targetNode is! ConditionalExpression) {
       return;
     }
-    ConditionalExpression conditional = node;
-    var condition = conditional.condition.unParenthesized;
+    var condition = targetNode.condition.unParenthesized;
     SimpleIdentifier identifier;
     Expression nullExpression;
     Expression nonNullExpression;
@@ -62,21 +73,20 @@ class ConvertToNullAware extends CorrectionProducer {
       // is the save variable being compared to `null`.
       //
       if (condition.operator.type == TokenType.EQ_EQ) {
-        nullExpression = conditional.thenExpression;
-        nonNullExpression = conditional.elseExpression;
+        nullExpression = targetNode.thenExpression;
+        nonNullExpression = targetNode.elseExpression;
       } else if (condition.operator.type == TokenType.BANG_EQ) {
-        nonNullExpression = conditional.thenExpression;
-        nullExpression = conditional.elseExpression;
-      }
-      if (nullExpression == null || nonNullExpression == null) {
+        nonNullExpression = targetNode.thenExpression;
+        nullExpression = targetNode.elseExpression;
+      } else {
         return;
       }
       if (nullExpression.unParenthesized is! NullLiteral) {
         return;
       }
       var unwrappedExpression = nonNullExpression.unParenthesized;
-      Expression target;
-      Token operator;
+      Expression? target;
+      Token? operator;
       if (unwrappedExpression is MethodInvocation) {
         target = unwrappedExpression.target;
         operator = unwrappedExpression.operator;
@@ -96,9 +106,9 @@ class ConvertToNullAware extends CorrectionProducer {
       periodOffset = operator.offset;
 
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.startStart(node, nonNullExpression));
+        builder.addDeletion(range.startStart(targetNode, nonNullExpression));
         builder.addSimpleInsertion(periodOffset, '?');
-        builder.addDeletion(range.endEnd(nonNullExpression, node));
+        builder.addDeletion(range.endEnd(nonNullExpression, targetNode));
       });
     }
   }

@@ -25,7 +25,7 @@ class DartGenerator {
   /// Write out the given dartdoc text, wrapping lines as necessary to flow
   /// along the column boundary. If [preferSingle] is true, and the docs would
   /// fit on a single line, use `///` dartdoc style.
-  void writeDocs(String docs) {
+  void writeDocs(String? docs) {
     if (docs == null) return;
 
     docs = wrap(docs.trim(), colBoundary - _indent.length - 4);

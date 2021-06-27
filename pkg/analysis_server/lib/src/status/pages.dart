@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 
 final NumberFormat numberFormat = NumberFormat.decimalPattern();
 
-String escape(String text) => text == null ? '' : htmlEscape.convert(text);
+String escape(String? text) => text == null ? '' : htmlEscape.convert(text);
 
 String printInteger(int value) => numberFormat.format(value);
 
@@ -24,13 +24,13 @@ abstract class Page {
 
   final String id;
   final String title;
-  final String description;
+  final String? description;
 
   Page(this.id, this.title, {this.description});
 
   String get path => '/$id';
 
-  Future<void> asyncDiv(void Function() gen, {String classes}) async {
+  Future<void> asyncDiv(void Function() gen, {String? classes}) async {
     if (classes != null) {
       buf.writeln('<div class="$classes">');
     } else {
@@ -46,7 +46,7 @@ abstract class Page {
     div(() => buf.writeln(str), classes: 'blankslate');
   }
 
-  void div(void Function() gen, {String classes}) {
+  void div(void Function() gen, {String? classes}) {
     if (classes != null) {
       buf.writeln('<div class="$classes">');
     } else {
@@ -66,7 +66,7 @@ abstract class Page {
 
   Future<void> generatePage(Map<String, String> params);
 
-  void h1(String text, {String classes}) {
+  void h1(String text, {String? classes}) {
     if (classes != null) {
       buf.writeln('<h1 class="$classes">${escape(text)}</h1>');
     } else {
@@ -98,7 +98,7 @@ abstract class Page {
 
   bool isCurrentPage(String pathToTest) => path == pathToTest;
 
-  void p(String text, {String style, bool raw = false, String classes}) {
+  void p(String text, {String? style, bool raw = false, String? classes}) {
     var c = classes == null ? '' : ' class="$classes"';
 
     if (style != null) {
@@ -108,7 +108,7 @@ abstract class Page {
     }
   }
 
-  void pre(void Function() gen, {String classes}) {
+  void pre(void Function() gen, {String? classes}) {
     if (classes != null) {
       buf.write('<pre class="$classes">');
     } else {
@@ -118,14 +118,14 @@ abstract class Page {
     buf.writeln('</pre>');
   }
 
-  void prettyJson(Map<String, dynamic> data) {
+  void prettyJson(Object? data) {
     const jsonEncoder = JsonEncoder.withIndent('  ');
     pre(() {
       buf.write(jsonEncoder.convert(data));
     });
   }
 
-  void ul<T>(Iterable<T> items, void Function(T item) gen, {String classes}) {
+  void ul<T>(Iterable<T> items, void Function(T item) gen, {String? classes}) {
     buf.writeln('<ul${classes == null ? '' : ' class=$classes'}>');
     for (var item in items) {
       buf.write('<li>');
@@ -211,7 +211,7 @@ abstract class Site {
     HttpRequest request, {
     int code = HttpStatus.ok,
   }) async {
-    if (request.headers.contentType.subType == 'json') {
+    if (request.headers.contentType?.subType == 'json') {
       return respondJson(request, {'success': true}, code);
     }
 

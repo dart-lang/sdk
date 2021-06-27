@@ -102,21 +102,20 @@ class CodeGeneratorDart(object):
         # Set global type info
         idl_types.set_ancestors(
             dict((interface_name, interface_info['ancestors'])
-                 for interface_name, interface_info in interfaces_info.
-                 iteritems()
+                 for interface_name, interface_info in interfaces_info.items()
                  if interface_info['ancestors']))
         IdlType.set_callback_interfaces(
-            set(interface_name for interface_name, interface_info in
-                interfaces_info.iteritems()
+            set(interface_name
+                for interface_name, interface_info in interfaces_info.items()
                 if interface_info['is_callback_interface']))
         IdlType.set_implemented_as_interfaces(
             dict((interface_name, interface_info['implemented_as'])
-                 for interface_name, interface_info in interfaces_info.
-                 iteritems()
+                 for interface_name, interface_info in interfaces_info.items()
                  if interface_info['implemented_as']))
         IdlType.set_garbage_collected_types(
-            set(interface_name for interface_name, interface_info in
-                interfaces_info.iteritems() if 'GarbageCollected' in
+            set(interface_name
+                for interface_name, interface_info in interfaces_info.items()
+                if 'GarbageCollected' in
                 interface_info['inherited_extended_attributes']))
 
     def generate_code(self, definitions, interface_name, idl_pickle_filename,
@@ -238,10 +237,9 @@ class CodeGeneratorDart(object):
                             world['callbacks'].append(idl_world['callback'])
                     idl_pickle_file.close()
 
-        world['interfaces'] = sorted(
-            world['interfaces'], key=lambda (x): x['name'])
-        world['callbacks'] = sorted(
-            world['callbacks'], key=lambda (x): x['name'])
+        world['interfaces'] = sorted(world['interfaces'],
+                                     key=lambda x: x['name'])
+        world['callbacks'] = sorted(world['callbacks'], key=lambda x: x['name'])
 
         template_contents = world
         template_contents['code_generator'] = module_pyname
@@ -299,7 +297,7 @@ def main(argv):
         cache_dir = argv[1]
         dummy_filename = argv[2]
     except IndexError as err:
-        print 'Usage: %s OUTPUT_DIR DUMMY_FILENAME' % argv[0]
+        print('Usage: %s OUTPUT_DIR DUMMY_FILENAME' % argv[0])
         return 1
 
     # Cache templates

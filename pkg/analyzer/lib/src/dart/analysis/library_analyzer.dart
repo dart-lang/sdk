@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -46,7 +45,7 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -69,18 +68,16 @@ class LibraryAnalyzer {
   final FileState _library;
 
   final InheritanceManager3 _inheritance;
-  final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
-  final LinkedElementFactory _elementFactory;
 
-  LibraryElement _libraryElement;
+  final LibraryElementImpl _libraryElement;
 
   final Map<FileState, LineInfo> _fileToLineInfo = {};
 
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
-  final TestingData _testingData;
+  final TestingData? _testingData;
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
 
@@ -90,12 +87,11 @@ class LibraryAnalyzer {
       this._analysisOptions,
       this._declaredVariables,
       this._sourceFactory,
-      this._isLibraryUri,
       this._context,
-      this._elementFactory,
+      this._libraryElement,
       this._inheritance,
       this._library,
-      {TestingData testingData})
+      {TestingData? testingData})
       : _testingData = testingData;
 
   TypeProviderImpl get _typeProvider => _libraryElement.typeProvider;
@@ -109,12 +105,8 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyzeSync() {
-    // Analyzer understands null safety, so it should set
-    // NullSafetyUnderstandingFlag.
-    assert(NullSafetyUnderstandingFlag.isEnabled);
-
     timerLibraryAnalyzer.start();
-    Map<FileState, CompilationUnit> units = {};
+    Map<FileState, CompilationUnitImpl> units = {};
 
     // Parse all files.
     timerLibraryAnalyzerFreshUnit.start();
@@ -123,10 +115,8 @@ class LibraryAnalyzer {
     }
     timerLibraryAnalyzerFreshUnit.stop();
 
-    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
-
     // Resolve URIs in directives to corresponding sources.
-    FeatureSet featureSet = units[_library].featureSet;
+    FeatureSet featureSet = units[_library]!.featureSet;
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
       _resolveUriBasedDirectives(file, unit);
@@ -170,7 +160,7 @@ class LibraryAnalyzer {
 
     if (_analysisOptions.lint) {
       var allUnits = _library.libraryFiles
-          .map((file) => LinterContextUnit(file.content, units[file]))
+          .map((file) => LinterContextUnit(file.content, units[file]!))
           .toList();
       for (int i = 0; i < allUnits.length; i++) {
         _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
@@ -184,11 +174,13 @@ class LibraryAnalyzer {
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
     for (var file in _library.libraryFiles) {
-      if (file.source != null) {
-        IgnoreValidator(_getErrorReporter(file), _getErrorListener(file).errors,
-                _fileToIgnoreInfo[file], _fileToLineInfo[file])
-            .reportErrors();
-      }
+      IgnoreValidator(
+        _getErrorReporter(file),
+        _getErrorListener(file).errors,
+        _fileToIgnoreInfo[file]!,
+        _fileToLineInfo[file]!,
+        _analysisOptions.unignorableNames,
+      ).reportErrors();
     }
 
     timerLibraryAnalyzerVerify.stop();
@@ -214,7 +206,7 @@ class LibraryAnalyzer {
     var elementToUnit = <CompilationUnitElement, CompilationUnit>{};
     for (var entry in units.entries) {
       var unit = entry.value;
-      elementToUnit[unit.declaredElement] = unit;
+      elementToUnit[unit.declaredElement!] = unit;
     }
 
     for (var directive in libraryUnit.directives) {
@@ -248,9 +240,8 @@ class LibraryAnalyzer {
 
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
-    ConstantVerifier constantVerifier = ConstantVerifier(
-        errorReporter, _libraryElement, _declaredVariables,
-        featureSet: unit.featureSet);
+    ConstantVerifier constantVerifier =
+        ConstantVerifier(errorReporter, _libraryElement, _declaredVariables);
     unit.accept(constantVerifier);
   }
 
@@ -261,10 +252,6 @@ class LibraryAnalyzer {
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
-    if (file.source == null) {
-      return;
-    }
-
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
@@ -312,6 +299,9 @@ class LibraryAnalyzer {
       verifier.generateDuplicateShownHiddenNameHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
+      // TODO(srawlins): Re-enable this check once Flutter engine path is clear.
+      // verifier.generateUnnecessaryImportHints(
+      //     errorReporter, _usedImportedElementsList);
     }
 
     // Unused local elements.
@@ -338,13 +328,10 @@ class LibraryAnalyzer {
   void _computeLints(FileState file, LinterContextUnit currentUnit,
       List<LinterContextUnit> allUnits) {
     var unit = currentUnit.unit;
-    if (file.source == null) {
-      return;
-    }
+    var errorReporter = _getErrorReporter(file);
 
-    ErrorReporter errorReporter = _getErrorReporter(file);
-
-    var nodeRegistry = NodeLintRegistry(_analysisOptions.enableTiming);
+    var enableTiming = _analysisOptions.enableTiming;
+    var nodeRegistry = NodeLintRegistry(enableTiming);
     var visitors = <AstVisitor>[];
 
     var context = LinterContextImpl(
@@ -357,9 +344,12 @@ class LibraryAnalyzer {
       _analysisOptions,
       file.workspacePackage,
     );
-    for (Linter linter in _analysisOptions.lintRules) {
+    for (var linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
+      var timer = enableTiming ? lintRegistry.getTimer(linter) : null;
+      timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
+      timer?.stop();
     }
 
     // Run lints that handle specific node types.
@@ -375,10 +365,6 @@ class LibraryAnalyzer {
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
-    if (file.source == null) {
-      return;
-    }
-
     RecordingErrorListener errorListener = _getErrorListener(file);
 
     CodeChecker checker = CodeChecker(
@@ -428,17 +414,22 @@ class LibraryAnalyzer {
       return errors;
     }
 
-    IgnoreInfo ignoreInfo = _fileToIgnoreInfo[file];
+    IgnoreInfo ignoreInfo = _fileToIgnoreInfo[file]!;
     if (!ignoreInfo.hasIgnores) {
       return errors;
     }
 
-    LineInfo lineInfo = _fileToLineInfo[file];
+    LineInfo lineInfo = _fileToLineInfo[file]!;
+
+    var unignorableCodes = _analysisOptions.unignorableNames;
 
     bool isIgnored(AnalysisError error) {
       var code = error.errorCode;
-      // Don't allow error severity issues to be ignored.
-      if (!IgnoreValidator.isIgnorable(file.path, code)) {
+      // Don't allow un-ignorable codes to be ignored.
+      if (unignorableCodes.contains(code.name) ||
+          unignorableCodes.contains(code.uniqueName) ||
+          // Lint rules have lower case names.
+          unignorableCodes.contains(code.name.toUpperCase())) {
         return false;
       }
 
@@ -486,18 +477,18 @@ class LibraryAnalyzer {
 
   /// Return the name of the library that the given part is declared to be a
   /// part of, or `null` if the part does not contain a part-of directive.
-  _NameOrSource _getPartLibraryNameOrUri(Source partSource,
+  _NameOrSource? _getPartLibraryNameOrUri(Source partSource,
       CompilationUnit partUnit, List<Directive> directivesToResolve) {
     for (Directive directive in partUnit.directives) {
       if (directive is PartOfDirective) {
         directivesToResolve.add(directive);
-        LibraryIdentifier libraryName = directive.libraryName;
+        LibraryIdentifier? libraryName = directive.libraryName;
         if (libraryName != null) {
           return _NameOrSource(libraryName.name, null);
         }
-        String uri = directive.uri?.stringValue;
+        String? uri = directive.uri?.stringValue;
         if (uri != null) {
-          Source librarySource = _sourceFactory.resolveUri(partSource, uri);
+          Source? librarySource = _sourceFactory.resolveUri(partSource, uri);
           if (librarySource != null) {
             return _NameOrSource(null, librarySource);
           }
@@ -508,6 +499,9 @@ class LibraryAnalyzer {
   }
 
   bool _isExistingSource(Source source) {
+    if (source is InSummarySource) {
+      return true;
+    }
     for (var file in _library.directReferencedFiles) {
       if (file.uri == source.uri) {
         return file.exists;
@@ -517,26 +511,21 @@ class LibraryAnalyzer {
     return source == _library.source;
   }
 
-  /// Return `true` if the given [source] is a library.
-  bool _isLibrarySource(Source source) {
-    return _isLibraryUri(source.uri);
-  }
-
   /// Return a new parsed unresolved [CompilationUnit].
-  CompilationUnit _parse(FileState file) {
+  CompilationUnitImpl _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     String content = file.content;
-    CompilationUnit unit = file.parse(errorListener);
+    var unit = file.parse(errorListener);
 
-    LineInfo lineInfo = unit.lineInfo;
+    LineInfo lineInfo = unit.lineInfo!;
     _fileToLineInfo[file] = lineInfo;
     _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 
     return unit;
   }
 
-  void _resolveDirectives(Map<FileState, CompilationUnit> units) {
-    CompilationUnit definingCompilationUnit = units[_library];
+  void _resolveDirectives(Map<FileState, CompilationUnitImpl> units) {
+    var definingCompilationUnit = units[_library]!;
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
@@ -545,52 +534,60 @@ class LibraryAnalyzer {
 
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
 
-    LibraryIdentifier libraryNameNode;
+    LibraryIdentifier? libraryNameNode;
     var seenPartSources = <Source>{};
-    var directivesToResolve = <Directive>[];
-    int partIndex = 0;
+    var directivesToResolve = <DirectiveImpl>[];
+    int partDirectiveIndex = 0;
+    int partElementIndex = 0;
     for (Directive directive in definingCompilationUnit.directives) {
-      if (directive is LibraryDirective) {
+      if (directive is LibraryDirectiveImpl) {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
-      } else if (directive is ImportDirective) {
+      } else if (directive is ImportDirectiveImpl) {
         for (ImportElement importElement in _libraryElement.imports) {
           if (matchNodeElement(directive, importElement)) {
             directive.element = importElement;
             directive.prefix?.staticElement = importElement.prefix;
-            Source source = importElement.importedLibrary?.source;
-            if (source != null && !_isLibrarySource(source)) {
-              libraryErrorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-                  directive.uri,
-                  [directive.uri]);
+            var importedLibrary = importElement.importedLibrary;
+            if (importedLibrary is LibraryElementImpl) {
+              if (importedLibrary.hasPartOfDirective) {
+                libraryErrorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                    directive.uri,
+                    [directive.uri]);
+              }
             }
           }
         }
-      } else if (directive is ExportDirective) {
+      } else if (directive is ExportDirectiveImpl) {
         for (ExportElement exportElement in _libraryElement.exports) {
           if (matchNodeElement(directive, exportElement)) {
             directive.element = exportElement;
-            Source source = exportElement.exportedLibrary?.source;
-            if (source != null && !_isLibrarySource(source)) {
-              libraryErrorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-                  directive.uri,
-                  [directive.uri]);
+            var exportedLibrary = exportElement.exportedLibrary;
+            if (exportedLibrary is LibraryElementImpl) {
+              if (exportedLibrary.hasPartOfDirective) {
+                libraryErrorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                    directive.uri,
+                    [directive.uri]);
+              }
             }
           }
         }
-      } else if (directive is PartDirective) {
+      } else if (directive is PartDirectiveImpl) {
         StringLiteral partUri = directive.uri;
 
-        FileState partFile = _library.partedFiles[partIndex];
-        CompilationUnit partUnit = units[partFile];
-        CompilationUnitElement partElement = _libraryElement.parts[partIndex];
+        var partFile = _library.partedFiles[partDirectiveIndex++];
+        if (partFile == null) {
+          continue;
+        }
+
+        var partUnit = units[partFile]!;
+        var partElement = _libraryElement.parts[partElementIndex++];
         partUnit.element = partElement;
         directive.element = partElement;
-        partIndex++;
 
-        Source partSource = directive.uriSource;
+        Source? partSource = directive.uriSource;
         if (partSource == null) {
           continue;
         }
@@ -608,7 +605,7 @@ class LibraryAnalyzer {
         // name or uri as the library.
         //
         if (_isExistingSource(partSource)) {
-          _NameOrSource nameOrSource = _getPartLibraryNameOrUri(
+          _NameOrSource? nameOrSource = _getPartLibraryNameOrUri(
               partSource, partUnit, directivesToResolve);
           if (nameOrSource == null) {
             libraryErrorReporter.reportErrorForNode(
@@ -616,7 +613,7 @@ class LibraryAnalyzer {
                 partUri,
                 [partUri.toSource()]);
           } else {
-            String name = nameOrSource.name;
+            String? name = nameOrSource.name;
             if (name != null) {
               if (libraryNameNode == null) {
                 libraryErrorReporter.reportErrorForNode(
@@ -630,7 +627,7 @@ class LibraryAnalyzer {
                     [libraryNameNode.name, name]);
               }
             } else {
-              Source source = nameOrSource.source;
+              Source source = nameOrSource.source!;
               if (source != _library.source) {
                 libraryErrorReporter.reportErrorForNode(
                     CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
@@ -649,7 +646,7 @@ class LibraryAnalyzer {
     //
     // Resolve the relevant directives to the library element.
     //
-    for (Directive directive in directivesToResolve) {
+    for (var directive in directivesToResolve) {
       directive.element = _libraryElement;
     }
 
@@ -657,14 +654,10 @@ class LibraryAnalyzer {
   }
 
   void _resolveFile(FileState file, CompilationUnit unit) {
-    Source source = file.source;
-    if (source == null) {
-      return;
-    }
-
+    var source = file.source;
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    CompilationUnitElementImpl unitElement = unit.declaredElement;
+    var unitElement = unit.declaredElement as CompilationUnitElementImpl;
 
     // TODO(scheglov) Hack: set types for top-level variables
     // Otherwise TypeResolverVisitor will set declared types, and because we
@@ -683,7 +676,11 @@ class LibraryAnalyzer {
         errorListener: errorListener,
         featureSet: unit.featureSet,
         nameScope: _libraryElement.scope,
-        elementWalker: ElementWalker.forCompilationUnit(unitElement),
+        elementWalker: ElementWalker.forCompilationUnit(
+          unitElement,
+          libraryFilePath: _library.path,
+          unitFilePath: file.path,
+        ),
       ),
     );
 
@@ -695,13 +692,10 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper flowAnalysisHelper;
-    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
-      flowAnalysisHelper =
-          FlowAnalysisHelper(_typeSystem, _testingData != null);
-      _testingData?.recordFlowAnalysisDataForTesting(
-          file.uri, flowAnalysisHelper.dataForTesting);
-    }
+    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(_typeSystem,
+        _testingData != null, unit.featureSet.isEnabled(Feature.non_nullable));
+    _testingData?.recordFlowAnalysisDataForTesting(
+        file.uri, flowAnalysisHelper.dataForTesting!);
 
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
@@ -710,13 +704,13 @@ class LibraryAnalyzer {
 
   /// Return the result of resolve the given [uriContent], reporting errors
   /// against the [uriLiteral].
-  Source _resolveUri(FileState file, bool isImport, StringLiteral uriLiteral,
-      String uriContent) {
-    UriValidationCode code =
+  Source? _resolveUri(FileState file, bool isImport, StringLiteral uriLiteral,
+      String? uriContent) {
+    UriValidationCode? code =
         UriBasedDirectiveImpl.validateUri(isImport, uriLiteral, uriContent);
     if (code == null) {
       try {
-        Uri.parse(uriContent);
+        Uri.parse(uriContent!);
       } on FormatException {
         return null;
       }
@@ -736,12 +730,12 @@ class LibraryAnalyzer {
   }
 
   void _resolveUriBasedDirectives(FileState file, CompilationUnit unit) {
-    for (Directive directive in unit.directives) {
-      if (directive is UriBasedDirective) {
+    for (var directive in unit.directives) {
+      if (directive is UriBasedDirectiveImpl) {
         StringLiteral uriLiteral = directive.uri;
-        String uriContent = uriLiteral.stringValue?.trim();
+        String? uriContent = uriLiteral.stringValue?.trim();
         directive.uriContent = uriContent;
-        Source defaultSource = _resolveUri(
+        Source? defaultSource = _resolveUri(
             file, directive is ImportDirective, uriLiteral, uriContent);
         directive.uriSource = defaultSource;
       }
@@ -753,9 +747,10 @@ class LibraryAnalyzer {
           relativeUri,
         );
         for (var configuration in directive.configurations) {
+          configuration as ConfigurationImpl;
           var uriLiteral = configuration.uri;
-          String uriContent = uriLiteral.stringValue?.trim();
-          Source defaultSource = _resolveUri(
+          String? uriContent = uriLiteral.stringValue?.trim();
+          Source? defaultSource = _resolveUri(
               file, directive is ImportDirective, uriLiteral, uriContent);
           configuration.uriSource = defaultSource;
         }
@@ -771,7 +766,7 @@ class LibraryAnalyzer {
         return configuration.uri.stringValue ?? '';
       }
     }
-    return directive.uri?.stringValue ?? '';
+    return directive.uri.stringValue ?? '';
   }
 
   /// Validate that the feature set associated with the compilation [unit] is
@@ -787,8 +782,8 @@ class LibraryAnalyzer {
   /// report an error if it does not.
   void _validateUriBasedDirective(
       FileState file, UriBasedDirectiveImpl directive) {
-    String uriContent;
-    Source source;
+    String? uriContent;
+    Source? source;
     if (directive is NamespaceDirectiveImpl) {
       uriContent = directive.selectedUriContent;
       source = directive.selectedSource;
@@ -820,7 +815,7 @@ class LibraryAnalyzer {
   /// exists and report an error if it does not.
   void _validateUriBasedDirectives(FileState file, CompilationUnit unit) {
     for (Directive directive in unit.directives) {
-      if (directive is UriBasedDirective) {
+      if (directive is UriBasedDirectiveImpl) {
         _validateUriBasedDirective(file, directive);
       }
     }
@@ -838,8 +833,8 @@ class UnitAnalysisResult {
 
 /// Either the name or the source associated with a part-of directive.
 class _NameOrSource {
-  final String name;
-  final Source source;
+  final String? name;
+  final Source? source;
 
   _NameOrSource(this.name, this.source);
 }

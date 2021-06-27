@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /// The name and location of a diagnostic name in an ignore comment.
 class DiagnosticName {
@@ -37,7 +36,7 @@ class IgnoreInfo {
   ///     * ['//ignore: error_code', 'error_code']
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
-  static final RegExp _IGNORE_MATCHER =
+  static final RegExp IGNORE_MATCHER =
       RegExp(r'//+[ ]*ignore:(.*)$', multiLine: true);
 
   /// A regular expression for matching 'ignore_for_file' comments.  Produces
@@ -46,7 +45,7 @@ class IgnoreInfo {
   ///     * ['//ignore_for_file: error_code', 'error_code']
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
-  static final RegExp _IGNORE_FOR_FILE_MATCHER =
+  static final RegExp IGNORE_FOR_FILE_MATCHER =
       RegExp(r'//[ ]*ignore_for_file:(.*)$', multiLine: true);
 
   /// A table mapping line numbers to the diagnostics that are ignored on that
@@ -63,7 +62,7 @@ class IgnoreInfo {
   /// Initialize a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
   IgnoreInfo.forDart(CompilationUnit unit, String content) {
-    var lineInfo = unit.lineInfo;
+    var lineInfo = unit.lineInfo!;
     for (var comment in unit.ignoreComments) {
       var lexeme = comment.lexeme;
       if (lexeme.contains('ignore:')) {
@@ -136,8 +135,8 @@ class IgnoreInfo {
   /// Calculate ignores for the given [content] with line [info].
   @Deprecated('Use the constructor IgnoreInfo.forDart')
   static IgnoreInfo calculateIgnores(String content, LineInfo info) {
-    Iterable<Match> matches = _IGNORE_MATCHER.allMatches(content);
-    Iterable<Match> fileMatches = _IGNORE_FOR_FILE_MATCHER.allMatches(content);
+    Iterable<Match> matches = IGNORE_MATCHER.allMatches(content);
+    Iterable<Match> fileMatches = IGNORE_FOR_FILE_MATCHER.allMatches(content);
     if (matches.isEmpty && fileMatches.isEmpty) {
       return _EMPTY_INFO;
     }
@@ -149,10 +148,10 @@ class IgnoreInfo {
       // affect older clients of this class because none of the previous APIs
       // depended on having offsets.
       Iterable<DiagnosticName> codes = match
-          .group(1)
+          .group(1)!
           .split(',')
           .map((String code) => DiagnosticName(code.trim().toLowerCase(), -1));
-      CharacterLocation location = info.getLocation(match.start);
+      var location = info.getLocation(match.start);
       int lineNumber = location.lineNumber;
       String beforeMatch = content.substring(
           info.getOffsetOfLine(lineNumber - 1),
@@ -171,7 +170,7 @@ class IgnoreInfo {
     // having offsets.
     for (Match match in fileMatches) {
       Iterable<DiagnosticName> codes = match
-          .group(1)
+          .group(1)!
           .split(',')
           .map((String code) => DiagnosticName(code.trim().toLowerCase(), -1));
       ignoreInfo._addAllForFile(codes);
@@ -187,38 +186,46 @@ extension on CompilationUnit {
       var comment = currentToken.precedingComments;
       while (comment != null) {
         var lexeme = comment.lexeme;
-        var match = IgnoreInfo._IGNORE_MATCHER.matchAsPrefix(lexeme);
+        var match = IgnoreInfo.IGNORE_MATCHER.matchAsPrefix(lexeme);
         if (match != null) {
           yield comment;
         } else {
-          match = IgnoreInfo._IGNORE_FOR_FILE_MATCHER.matchAsPrefix(lexeme);
+          match = IgnoreInfo.IGNORE_FOR_FILE_MATCHER.matchAsPrefix(lexeme);
           if (match != null) {
             yield comment;
           }
         }
-        comment = comment.next;
+        comment = comment.next as CommentToken?;
       }
     }
 
     var currentToken = beginToken;
     while (currentToken != currentToken.next) {
       yield* processPrecedingComments(currentToken);
-      currentToken = currentToken.next;
+      currentToken = currentToken.next!;
     }
     yield* processPrecedingComments(currentToken);
   }
 }
 
 extension on CommentToken {
+  /// The error codes currently do not contain dollar signs, so we can be a bit
+  /// more restrictive in this test.
+  static final _errorCodeNameRegExp = RegExp(r'^[a-zA-Z][_a-z0-9A-Z]*$');
+
   /// Return the diagnostic names contained in this comment, assuming that it is
   /// a correctly formatted ignore comment.
   Iterable<DiagnosticName> get diagnosticNames sync* {
+    bool isValidErrorCodeName(String text) {
+      return text.contains(_errorCodeNameRegExp);
+    }
+
     int offset = lexeme.indexOf(':') + 1;
     var names = lexeme.substring(offset).split(',');
     offset += this.offset;
     for (var name in names) {
       var trimmedName = name.trim();
-      if (trimmedName.isNotEmpty) {
+      if (trimmedName.isNotEmpty && isValidErrorCodeName(trimmedName)) {
         var innerOffset = name.indexOf(trimmedName);
         yield DiagnosticName(trimmedName.toLowerCase(), offset + innerOffset);
       }

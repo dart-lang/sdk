@@ -8,11 +8,8 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// given source and location.
 ///
 /// This string is useful for displaying to users in a diagnostic context.
-String computeCompletionSnippet(String contents, int offset) {
-  if (contents == null ||
-      offset == null ||
-      offset < 0 ||
-      contents.length < offset) {
+String _computeCompletionSnippet(String contents, int offset) {
+  if (offset < 0 || contents.length < offset) {
     return '???';
   }
   var start = offset;
@@ -38,13 +35,17 @@ String computeCompletionSnippet(String contents, int offset) {
 
 /// Overall performance of a code completion operation.
 class CompletionPerformance {
-  String path;
+  String? path;
   String snippet = '';
   int suggestionCount = -1;
-  OperationPerformanceImpl _operation;
+  OperationPerformance? _operation;
 
   int get elapsedInMilliseconds {
-    return _operation.elapsed.inMilliseconds;
+    var operation = _operation;
+    if (operation == null) {
+      throw StateError('Access of elapsed time before the operation is run');
+    }
+    return operation.elapsed.inMilliseconds;
   }
 
   String get suggestionCountStr {
@@ -66,6 +67,6 @@ class CompletionPerformance {
   }
 
   void setContentsAndOffset(String contents, int offset) {
-    snippet = computeCompletionSnippet(contents, offset);
+    snippet = _computeCompletionSnippet(contents, offset);
   }
 }

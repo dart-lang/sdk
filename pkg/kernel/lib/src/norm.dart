@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import '../ast.dart' hide MapEntry;
+import '../ast.dart';
 import '../core_types.dart';
 import '../type_algebra.dart';
 
@@ -10,16 +10,17 @@ import 'replacement_visitor.dart';
 
 /// Returns normalization of [type].
 DartType norm(CoreTypes coreTypes, DartType type) {
-  return type.accept(new _Norm(coreTypes)) ?? type;
+  return type.accept1(new _Norm(coreTypes), Variance.covariant) ?? type;
 }
 
 /// Returns normalization of [supertype].
 Supertype normSupertype(CoreTypes coreTypes, Supertype supertype) {
   if (supertype.typeArguments.isEmpty) return supertype;
   _Norm normVisitor = new _Norm(coreTypes);
-  List<DartType> typeArguments = null;
+  List<DartType>? typeArguments = null;
   for (int i = 0; i < supertype.typeArguments.length; ++i) {
-    DartType typeArgument = supertype.typeArguments[i].accept(normVisitor);
+    DartType? typeArgument =
+        supertype.typeArguments[i].accept1(normVisitor, Variance.covariant);
     if (typeArgument != null) {
       typeArguments ??= supertype.typeArguments.toList();
       typeArguments[i] = typeArgument;
@@ -40,16 +41,16 @@ class _Norm extends ReplacementVisitor {
   _Norm(this.coreTypes);
 
   @override
-  DartType visitInterfaceType(InterfaceType node) {
+  DartType? visitInterfaceType(InterfaceType node, int variance) {
     return super
-        .visitInterfaceType(node)
+        .visitInterfaceType(node, variance)
         ?.withDeclaredNullability(node.nullability);
   }
 
   @override
-  DartType visitFutureOrType(FutureOrType node) {
+  DartType visitFutureOrType(FutureOrType node, int variance) {
     DartType typeArgument = node.typeArgument;
-    typeArgument = typeArgument.accept(this) ?? typeArgument;
+    typeArgument = typeArgument.accept1(this, variance) ?? typeArgument;
     if (coreTypes.isTop(typeArgument)) {
       assert(typeArgument.nullability == Nullability.nullable ||
           typeArgument.nullability == Nullability.legacy);
@@ -84,24 +85,25 @@ class _Norm extends ReplacementVisitor {
     assert(!coreTypes.isObject(typeArgument));
     assert(!coreTypes.isBottom(typeArgument));
     assert(!coreTypes.isNull(typeArgument));
+    // TODO(johnniwinther): We should return `null` if [typeArgument] is
+    // the same as `node.typeArgument`.
     return new FutureOrType(typeArgument, node.nullability);
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node) {
+  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     if (node.promotedBound == null) {
       DartType bound = node.parameter.bound;
       if (normalizesToNever(bound)) {
-        DartType result = new NeverType(Nullability.nonNullable)
-            .withDeclaredNullability(node.nullability);
-        return result.accept(this) ?? result;
+        DartType result = NeverType.fromNullability(node.nullability);
+        return result.accept1(this, variance) ?? result;
       }
       assert(!coreTypes.isBottom(bound));
       // If the bound isn't Never, the type is already normalized.
       return null;
     } else {
-      DartType bound = node.promotedBound;
-      bound = bound.accept(this) ?? bound;
+      DartType bound = node.promotedBound!;
+      bound = bound.accept1(this, variance) ?? bound;
       if (bound is NeverType && bound.nullability == Nullability.nonNullable) {
         return bound;
       } else if (coreTypes.isTop(bound)) {
@@ -131,7 +133,7 @@ class _Norm extends ReplacementVisitor {
   }
 
   @override
-  DartType visitNeverType(NeverType node) {
+  DartType? visitNeverType(NeverType node, int variance) {
     if (node.nullability == Nullability.nullable) return const NullType();
     return null;
   }
@@ -143,7 +145,7 @@ class _Norm extends ReplacementVisitor {
       if (type.promotedBound == null) {
         return normalizesToNever(type.parameter.bound);
       } else {
-        return normalizesToNever(type.promotedBound);
+        return normalizesToNever(type.promotedBound!);
       }
     }
     return false;

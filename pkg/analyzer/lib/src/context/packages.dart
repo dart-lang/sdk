@@ -5,7 +5,6 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/util/uri.dart';
-import 'package:meta/meta.dart';
 import 'package:package_config/src/packages_file.dart'
     as package_config_packages_file;
 import 'package:pub_semver/pub_semver.dart';
@@ -15,27 +14,26 @@ import 'package:pub_semver/pub_semver.dart';
 /// Looks for `.dart_tool/package_config.json` or `.packages` in the given
 /// and parent directories.
 Packages findPackagesFrom(ResourceProvider provider, Resource start) {
-  for (var current = start; current != null; current = current.parent) {
-    if (current is Folder) {
-      try {
-        var jsonFile = current
-            .getChildAssumingFolder('.dart_tool')
-            .getChildAssumingFile('package_config.json');
-        if (jsonFile.exists) {
-          return parsePackageConfigJsonFile(provider, jsonFile);
-        }
-      } catch (e) {
-        return Packages.empty;
+  var startFolder = start is Folder ? start : start.parent2;
+  for (var current in startFolder.withAncestors) {
+    try {
+      var jsonFile = current
+          .getChildAssumingFolder('.dart_tool')
+          .getChildAssumingFile('package_config.json');
+      if (jsonFile.exists) {
+        return parsePackageConfigJsonFile(provider, jsonFile);
       }
+    } catch (e) {
+      return Packages.empty;
+    }
 
-      try {
-        var dotFile = current.getChildAssumingFile('.packages');
-        if (dotFile.exists) {
-          return parseDotPackagesFile(provider, dotFile);
-        }
-      } catch (e) {
-        return Packages.empty;
+    try {
+      var dotFile = current.getChildAssumingFile('.packages');
+      if (dotFile.exists) {
+        return parseDotPackagesFile(provider, dotFile);
       }
+    } catch (e) {
+      return Packages.empty;
     }
   }
   return Packages.empty;
@@ -92,18 +90,14 @@ Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
       jsonPackage.packageUri,
     );
 
-    Version languageVersion;
-    if (jsonPackage.languageVersion != null) {
+    Version? languageVersion;
+    var jsonLanguageVersion = jsonPackage.languageVersion;
+    if (jsonLanguageVersion != null) {
       languageVersion = Version(
-        jsonPackage.languageVersion.major,
-        jsonPackage.languageVersion.minor,
+        jsonLanguageVersion.major,
+        jsonLanguageVersion.minor,
         0,
       );
-      // New features were added in `2.2.2` over `2.2.0`.
-      // But `2.2.2` is not representable, so we special case it.
-      if (languageVersion.major == 2 && languageVersion.minor == 2) {
-        languageVersion = Version(2, 2, 2);
-      }
     }
 
     map[name] = Package(
@@ -128,7 +122,7 @@ Packages parsePackagesFile(ResourceProvider provider, File file) {
     if (isJson) {
       return parsePackageConfigJsonFile(provider, file);
     } else {
-      var relativePackageConfigFile = file.parent
+      var relativePackageConfigFile = file.parent2
           .getChildAssumingFolder('.dart_tool')
           .getChildAssumingFile('package_config.json');
       if (relativePackageConfigFile.exists) {
@@ -147,13 +141,13 @@ class Package {
   final Folder libFolder;
 
   /// The language version for this package, `null` not specified explicitly.
-  final Version languageVersion;
+  final Version? languageVersion;
 
   Package({
-    @required this.name,
-    @required this.rootFolder,
-    @required this.libFolder,
-    @required this.languageVersion,
+    required this.name,
+    required this.rootFolder,
+    required this.libFolder,
+    required this.languageVersion,
   });
 }
 
@@ -167,12 +161,12 @@ class Packages {
   Iterable<Package> get packages => _map.values;
 
   /// Return the [Package] with the given [name], or `null`.
-  Package operator [](String name) => _map[name];
+  Package? operator [](String name) => _map[name];
 
   /// Return the inner-most [Package] that contains  the [path], `null` if none.
-  Package packageForPath(String path) {
-    Package result;
-    int resultPathLength;
+  Package? packageForPath(String path) {
+    Package? result;
+    int resultPathLength = 1 << 20;
     for (var package in packages) {
       if (package.rootFolder.contains(path)) {
         var packagePathLength = package.rootFolder.path.length;

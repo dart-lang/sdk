@@ -7,7 +7,6 @@
 // that the assignment might occur before the read, that there is no
 // compile-time error.
 
-// SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
 
 // First scenario: the variable is written inside the function, and the read

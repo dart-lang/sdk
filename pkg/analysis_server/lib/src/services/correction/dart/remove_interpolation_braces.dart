@@ -11,14 +11,23 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveInterpolationBraces extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_INTERPOLATION_BRACES;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_INTERPOLATION_BRACES_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is InterpolationExpression) {
       var right = node.rightBracket;
-      if (node.expression != null && right != null) {
+      if (right != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(
               range.startStart(node, node.expression), r'$');

@@ -359,11 +359,6 @@ class UnionTypeMask implements TypeMask {
   }
 
   @override
-  bool containsOnlyDouble(JClosedWorld closedWorld) {
-    return disjointMasks.every((mask) => mask.containsOnlyDouble(closedWorld));
-  }
-
-  @override
   bool containsOnlyNum(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) {
       return mask.containsOnlyNum(closedWorld);

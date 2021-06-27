@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, File, exit;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -22,7 +24,7 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 import 'package:kernel/text/ast_to_text.dart'
     show Annotator, NameSystem, Printer;
 
-import 'incremental_load_from_dill_suite.dart' as helper;
+import 'incremental_suite.dart' as helper;
 
 import "package:vm/target/flutter.dart" show FlutterTarget;
 

@@ -390,7 +390,7 @@ class _ServiceTesterRunner {
             if (useDds) {
               dds = await DartDevelopmentService.startDartDevelopmentService(
                   serverAddress);
-              setupAddresses(dds.uri);
+              setupAddresses(dds.uri!);
             } else {
               setupAddresses(serverAddress);
             }

@@ -4,6 +4,8 @@
 // Dart test program to test arithmetic operations.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 // This test crashes if we recompute type of AssertAssignableInstr based on its
 // output types. By doing that we would eliminate not only the unnecessary
 // AssertAssignableInstr but also the trailing class check.

@@ -1,0 +1,117 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out.dart:18:11: Error: Can't create typedef from nullable type.
+// typedef F = void Function()?;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+typedef F = invalid-type;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  late field core::int field;
+  synthetic constructor •() → self::A<self::A::T%>
+    ;
+}
+class B extends self::A<core::String?> {
+  synthetic constructor •() → self::B
+    ;
+}
+static field core::List<core::String?> l;
+static field core::String? s;
+static field core::String t;
+late static field core::int field;
+static method method(() →? void f, {required core::int a}) → void
+  ;
+static method main() → dynamic
+  ;
+static method noErrors() → dynamic
+  ;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:18:25: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
+// class B extends A<String?> {}
+//                         ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:20:28: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
+// typedef F = void Function()?;
+//                            ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:22:12: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
+// List<String?> l = [];
+//            ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:23:7: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
+// String? s = null;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:28:21: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
+// void method(void f()?, {int a}) {}
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:24:10: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
+// var t = s!;
+//          ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+import self as self2;
+import "dart:core" as core;
+
+typedef F = () →? void;
+class A<T extends core::Object* = dynamic> extends core::Object {
+  field core::int* field;
+  synthetic constructor •() → self2::A<self2::A::T*>*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self2::A<core::String*> {
+  synthetic constructor •() → self2::B*
+    ;
+}
+static field core::List<core::String?>* l;
+static field core::String? s;
+static field core::String* t;
+static field core::int* field;
+static method method(() →* void f, {core::int* a}) → void
+  ;
+static method errors() → dynamic
+  ;

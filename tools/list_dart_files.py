@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -9,7 +9,7 @@ current working directory. If the first argument is 'absolute', the script
 produces absolute paths.
 
 Usage:
-  python tools/list_dart_files.py {absolute, relative} <directory> <pattern>
+  python3 tools/list_dart_files.py {absolute, relative} <directory> <pattern>
 """
 
 import os
@@ -48,7 +48,7 @@ def main(argv):
                 else:
                     fullname = os.path.relpath(os.path.join(root, filename))
                 fullname = fullname.replace(os.sep, '/')
-                print (fullname)
+                print(fullname)
 
 
 if __name__ == '__main__':

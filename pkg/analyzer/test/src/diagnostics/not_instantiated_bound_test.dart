@@ -94,13 +94,29 @@ class C<T extends A> {} // points to a cyclical type
     ]);
   }
 
+  test_class_recursion_notInstantiated_genericFunctionType() async {
+    await assertErrorsInCode(r'''
+class A<T extends void Function(A)> {}
+''', [
+      error(CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, 32, 1),
+    ]);
+  }
+
+  test_class_recursion_notInstantiated_genericFunctionType2() async {
+    await assertErrorsInCode(r'''
+class A<T extends void Function<U extends A>()> {}
+''', [
+      error(CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, 42, 1),
+    ]);
+  }
+
   test_class_recursion_typedef_notInstantiated() async {
     await assertErrorsInCode(r'''
 typedef F(C value);
 class C<T extends F> {}
 class D<T extends C> {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 19),
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
       error(CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, 38, 1),
       error(CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, 62, 1),
     ]);

@@ -4,15 +4,10 @@
 
 part of dart.io;
 
-/**
- * [Link] objects are references to filesystem links.
- *
- */
+/// References to filesystem links.
 @pragma("vm:entry-point")
 abstract class Link implements FileSystemEntity {
-  /**
-   * Creates a Link object.
-   */
+  /// Creates a Link object.
   @pragma("vm:entry-point")
   factory Link(String path) {
     final IOOverrides? overrides = IOOverrides.current;
@@ -28,127 +23,119 @@ abstract class Link implements FileSystemEntity {
     return new _Link.fromRawPath(rawPath);
   }
 
-  /**
-   * Creates a [Link] object.
-   *
-   * If [path] is a relative path, it will be interpreted relative to the
-   * current working directory (see [Directory.current]), when used.
-   *
-   * If [path] is an absolute path, it will be immune to changes to the
-   * current working directory.
-   */
+  /// Creates a [Link] object.
+  ///
+  /// If [path] is a relative path, it will be interpreted relative to the
+  /// current working directory (see [Directory.current]), when used.
+  ///
+  /// If [path] is an absolute path, it will be immune to changes to the
+  /// current working directory.
   factory Link.fromUri(Uri uri) => new Link(uri.toFilePath());
 
-  /**
-   * Creates a symbolic link. Returns a [:Future<Link>:] that completes with
-   * the link when it has been created. If the link exists,
-   * the future will complete with an error.
-   *
-   * If [recursive] is false, the default, the link is created
-   * only if all directories in its path exist.
-   * If [recursive] is true, all non-existing path
-   * components are created. The directories in the path of [target] are
-   * not affected, unless they are also in [path].
-   *
-   * On the Windows platform, this call will create a true symbolic link
-   * instead of a Junction. In order to create a symbolic link on Windows, Dart
-   * must be run in Administrator mode or the system must have Developer Mode
-   * enabled, otherwise a [FileSystemException] will be raised with
-   * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
-   *
-   * On other platforms, the posix symlink() call is used to make a symbolic
-   * link containing the string [target].  If [target] is a relative path,
-   * it will be interpreted relative to the directory containing the link.
-   */
-  Future<Link> create(String target, {bool recursive: false});
+  /// Creates a symbolic link in the file system.
+  ///
+  /// Returns a `Future<Link>` that completes with
+  /// the link when it has been created. If the link path already exists,
+  /// the future will complete with an error.
+  ///
+  /// If [recursive] is `false`, the default, the link is created
+  /// only if all directories in its path exist.
+  /// If [recursive] is `true`, all non-existing parent paths
+  /// are created first. The directories in the path of [target] are
+  /// not affected, unless they are also in [path].
+  ///
+  /// On the Windows platform, this call will create a true symbolic link
+  /// instead of a Junction. In order to create a symbolic link on Windows, Dart
+  /// must be run in Administrator mode or the system must have Developer Mode
+  /// enabled, otherwise a [FileSystemException] will be raised with
+  /// `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
+  ///
+  /// On other platforms, the POSIX `symlink()` call is used to make a symbolic
+  /// link containing the string [target]. If [target] is a relative path,
+  /// it will be interpreted relative to the directory containing the link.
+  Future<Link> create(String target, {bool recursive = false});
 
-  /**
-   * Synchronously create the link. Calling [createSync] on an existing link
-   * will throw an exception.
-   *
-   * If [recursive] is false, the default, the link is created only if all
-   * directories in its path exist. If [recursive] is true, all
-   * non-existing path components are created. The directories in
-   * the path of [target] are not affected, unless they are also in [path].
-   *
-   * On the Windows platform, this call will create a true symbolic link
-   * instead of a Junction. In order to create a symbolic link on Windows, Dart
-   * must be run in Administrator mode or the system must have Developer Mode
-   * enabled, otherwise a [FileSystemException] will be raised with
-   * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
-   *
-   * On other platforms, the posix symlink() call is used to make a symbolic
-   * link containing the string [target].  If [target] is a relative path,
-   * it will be interpreted relative to the directory containing the link.
-   */
-  void createSync(String target, {bool recursive: false});
+  /// Synchronously create the link. Calling [createSync] on an existing link
+  /// will throw an exception.
+  ///
+  /// If [recursive] is `false`, the default, the link is created only if all
+  /// directories in its path exist. If [recursive] is `true`, all
+  /// non-existing parent paths are created first. The directories in
+  /// the path of [target] are not affected, unless they are also in [path].
+  ///
+  /// On the Windows platform, this call will create a true symbolic link
+  /// instead of a Junction. In order to create a symbolic link on Windows, Dart
+  /// must be run in Administrator mode or the system must have Developer Mode
+  /// enabled, otherwise a [FileSystemException] will be raised with
+  /// `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
+  ///
+  /// On other platforms, the POSIX `symlink()` call is used to make a symbolic
+  /// link containing the string [target]. If [target] is a relative path,
+  /// it will be interpreted relative to the directory containing the link.
+  void createSync(String target, {bool recursive = false});
 
-  /**
-   * Synchronously updates the link. Calling [updateSync] on a non-existing link
-   * will throw an exception.
-   */
+  /// Synchronously updates the link.
+  ///
+  /// Calling [updateSync] on a non-existing link will throw an exception.
   void updateSync(String target);
 
-  /**
-   * Updates the link. Returns a [:Future<Link>:] that completes with the
-   * link when it has been updated.  Calling [update] on a non-existing link
-   * will complete its returned future with an exception.
-   */
+  /// Updates the link.
+  ///
+  /// Returns a `Future<Link>` that completes with the
+  /// link when it has been updated. Calling [update] on a non-existing link
+  /// will complete its returned future with an exception.
   Future<Link> update(String target);
 
   Future<String> resolveSymbolicLinks();
 
   String resolveSymbolicLinksSync();
 
-  /**
-   * Renames this link. Returns a `Future<Link>` that completes
-   * with a [Link] instance for the renamed link.
-   *
-   * If [newPath] identifies an existing link, that link is
-   * replaced. If [newPath] identifies an existing file or directory,
-   * the operation fails and the future completes with an exception.
-   */
+  /// Renames this link.
+  ///
+  /// Returns a `Future<Link>` that completes with a [Link]
+  /// for the renamed link.
+  ///
+  /// If [newPath] identifies an existing link, that link is
+  /// removed first. If [newPath] identifies an existing file or directory,
+  /// the operation fails and the future completes with an exception.
   Future<Link> rename(String newPath);
 
-  /**
-   * Synchronously renames this link. Returns a [Link]
-   * instance for the renamed link.
-   *
-   * If [newPath] identifies an existing link, that link is
-   * replaced. If [newPath] identifies an existing file or directory
-   * the operation fails and an exception is thrown.
-   */
+  /// Synchronously renames this link.
+  ///
+  /// Returns a [Link] instance for the renamed link.
+  ///
+  /// If [newPath] identifies an existing link, that link is
+  /// removed first. If [newPath] identifies an existing file or directory
+  /// the operation fails and an exception is thrown.
   Link renameSync(String newPath);
 
-  /**
-   * Returns a [Link] instance whose path is the absolute path to [this].
-   *
-   * The absolute path is computed by prefixing
-   * a relative path with the current working directory, and returning
-   * an absolute path unchanged.
-   */
+  /// A [Link] instance whose path is the absolute path to [this].
+  ///
+  /// The absolute path is computed by prefixing
+  /// a relative path with the current working directory, or returning
+  /// an absolute path unchanged.
   Link get absolute;
 
-  /**
-   * Gets the target of the link. Returns a future that completes with
-   * the path to the target.
-   *
-   * If the returned target is a relative path, it is relative to the
-   * directory containing the link.
-   *
-   * If the link does not exist, or is not a link, the future completes with
-   * a FileSystemException.
-   */
+  /// Gets the target of the link.
+  ///
+  /// Returns a future that completes with the path to the target.
+  ///
+  /// If the returned target is a relative path, it is relative to the
+  /// directory containing the link.
+  ///
+  /// If the link does not exist, or is not a link, the future completes with
+  /// a [FileSystemException].
   Future<String> target();
 
-  /**
-   * Synchronously gets the target of the link. Returns the path to the target.
-   *
-   * If the returned target is a relative path, it is relative to the
-   * directory containing the link.
-   *
-   * If the link does not exist, or is not a link, throws a FileSystemException.
-   */
+  /// Synchronously gets the target of the link.
+  ///
+  /// Returns the path to the target.
+  ///
+  /// If the returned target is a relative path, it is relative to the
+  /// directory containing the link.
+  ///
+  /// If the link does not exist, or is not a link,
+  /// throws a [FileSystemException].
   String targetSync();
 }
 
@@ -174,7 +161,7 @@ class _Link extends FileSystemEntity implements Link {
 
   Link get absolute => isAbsolute ? this : _Link(_absolutePath);
 
-  Future<Link> create(String target, {bool recursive: false}) {
+  Future<Link> create(String target, {bool recursive = false}) {
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
@@ -189,7 +176,7 @@ class _Link extends FileSystemEntity implements Link {
     });
   }
 
-  void createSync(String target, {bool recursive: false}) {
+  void createSync(String target, {bool recursive = false}) {
     if (recursive) {
       parent.createSync(recursive: true);
     }
@@ -214,7 +201,7 @@ class _Link extends FileSystemEntity implements Link {
     return delete().then<Link>((_) => create(target));
   }
 
-  Future<Link> _delete({bool recursive: false}) {
+  Future<Link> _delete({bool recursive = false}) {
     if (recursive) {
       return new Directory.fromRawPath(_rawPath)
           .delete(recursive: true)
@@ -229,7 +216,7 @@ class _Link extends FileSystemEntity implements Link {
     });
   }
 
-  void _deleteSync({bool recursive: false}) {
+  void _deleteSync({bool recursive = false}) {
     if (recursive) {
       return new Directory.fromRawPath(_rawPath).deleteSync(recursive: true);
     }

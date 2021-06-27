@@ -15,7 +15,7 @@ abstract class FieldRef extends ObjectRef {
   /// The declared type of this field.
   ///
   /// The value will always be of one of the kinds:
-  /// Type, TypeRef, TypeParameter.
+  /// Type, FunctionType, TypeRef, TypeParameter.
   InstanceRef? get declaredType;
 
   /// Is this field const?

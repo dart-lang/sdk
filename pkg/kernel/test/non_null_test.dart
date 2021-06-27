@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart" show Expect;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/src/non_null.dart';
 import 'package:kernel/testing/type_parser_environment.dart';
 
@@ -27,18 +29,18 @@ const Map<String, String> data = {
   'List<Object*>': 'List<Object*>',
   'List<Object*>?': 'List<Object*>',
   'List<Object*>*': 'List<Object*>',
-  'FutureOr<Null>': 'FutureOr<Never>',
+  'FutureOr<Null>': 'FutureOr<Null>',
   'FutureOr<dynamic>': 'FutureOr<dynamic>',
   'FutureOr<Object>': 'FutureOr<Object>',
   'FutureOr<Object>?': 'FutureOr<Object>',
   'FutureOr<Object>*': 'FutureOr<Object>',
-  'FutureOr<Object?>': 'FutureOr<Object>',
-  'FutureOr<Object?>?': 'FutureOr<Object>',
-  'FutureOr<Object?>*': 'FutureOr<Object>',
-  'FutureOr<Object*>': 'FutureOr<Object>',
-  'FutureOr<Object*>?': 'FutureOr<Object>',
-  'FutureOr<Object*>*': 'FutureOr<Object>',
-  'FutureOr<FutureOr<Object?>>': 'FutureOr<FutureOr<Object>>',
+  'FutureOr<Object?>': 'FutureOr<Object?>',
+  'FutureOr<Object?>?': 'FutureOr<Object?>',
+  'FutureOr<Object?>*': 'FutureOr<Object?>',
+  'FutureOr<Object*>': 'FutureOr<Object*>',
+  'FutureOr<Object*>?': 'FutureOr<Object*>',
+  'FutureOr<Object*>*': 'FutureOr<Object*>',
+  'FutureOr<FutureOr<Object?>>': 'FutureOr<FutureOr<Object?>>',
   '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>':
       '(List<Object>, {required List<Object> a, List<Object> b})'
           ' -> List<Object>',

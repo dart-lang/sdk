@@ -7,8 +7,13 @@
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Smi")
 int _getHash(obj) native "Object_getHash";
+
+/// Set hash code associated with the object if it is not set yet
+/// and return the current hash code. See [Object._objectHashCode]
+/// for why this function needs to check for already set hash code.
 @pragma("vm:recognized", "asm-intrinsic")
-void _setHash(obj, hash) native "Object_setHash";
+@pragma("vm:exact-result-type", "dart:core#_Smi")
+int _setHashIfNotSetYet(obj, int hash) native "Object_setHashIfNotSetYet";
 
 @patch
 @pragma("vm:entry-point")
@@ -29,11 +34,15 @@ class Object {
     var result = _getHash(obj);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.
-      result = _hashCodeRnd.nextInt(0x40000000);
       do {
         result = _hashCodeRnd.nextInt(0x40000000);
       } while (result == 0);
-      _setHash(obj, result);
+
+      // Caveat: we might be interrupted by vm-service which then
+      // can initialize [this] object's hash code, that is why we need to
+      // return the return value of [_setHashIfNotSetYet] rather than
+      // returning [result] itself.
+      return _setHashIfNotSetYet(obj, result);
     }
     return result;
   }
@@ -56,7 +65,7 @@ class Object {
 
   @patch
   @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Type")
+  // Result type is either "dart:core#_Type" or "dart:core#_FunctionType".
   Type get runtimeType native "Object_runtimeType";
 
   @pragma("vm:recognized", "asm-intrinsic")
@@ -78,3 +87,20 @@ class Object {
   @pragma("vm:entry-point", "call")
   bool _simpleInstanceOfFalse(type) => false;
 }
+
+// Used by DartLibraryCalls::Equals.
+@pragma("vm:entry-point", "call")
+bool _objectEquals(Object? o1, Object? o2) => o1 == o2;
+
+// Used by DartLibraryCalls::HashCode.
+@pragma("vm:entry-point", "call")
+int _objectHashCode(Object? obj) => obj.hashCode;
+
+// Used by DartLibraryCalls::ToString.
+@pragma("vm:entry-point", "call")
+String _objectToString(Object? obj) => obj.toString();
+
+// Used by DartEntry::InvokeNoSuchMethod.
+@pragma("vm:entry-point", "call")
+dynamic _objectNoSuchMethod(Object? obj, Invocation invocation) =>
+    obj.noSuchMethod(invocation);

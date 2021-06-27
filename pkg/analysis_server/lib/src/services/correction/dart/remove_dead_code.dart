@@ -16,9 +16,10 @@ class RemoveDeadCode extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var coveringNode = coveredNode;
-    if (coveringNode is Expression) {
-      var parent = coveredNode.parent;
+    final coveredNode = this.coveredNode;
+    var parent = coveredNode?.parent;
+
+    if (coveredNode is Expression) {
       if (parent is BinaryExpression) {
         if (parent.rightOperand == coveredNode) {
           await builder.addDartFileEdit(file, (builder) {
@@ -26,10 +27,13 @@ class RemoveDeadCode extends CorrectionProducer {
           });
         }
       }
-    } else if (coveringNode is Block) {
-      var block = coveringNode;
+    } else if (coveredNode is Block) {
+      var block = coveredNode;
       var statementsToRemove = <Statement>[];
-      var problemMessage = diagnostic.problemMessage;
+      var problemMessage = diagnostic?.problemMessage;
+      if (problemMessage == null) {
+        return;
+      }
       var errorRange =
           SourceRange(problemMessage.offset, problemMessage.length);
       for (var statement in block.statements) {
@@ -43,19 +47,18 @@ class RemoveDeadCode extends CorrectionProducer {
           builder.addDeletion(rangeToRemove);
         });
       }
-    } else if (coveringNode is Statement) {
+    } else if (coveredNode is Statement) {
       var rangeToRemove =
-          utils.getLinesRangeStatements(<Statement>[coveringNode]);
+          utils.getLinesRangeStatements(<Statement>[coveredNode]);
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(rangeToRemove);
       });
-    } else if (coveringNode is CatchClause) {
-      TryStatement tryStatement = coveringNode.parent;
-      var catchClauses = tryStatement.catchClauses;
-      var index = catchClauses.indexOf(coveringNode);
-      var previous = index == 0 ? tryStatement.body : catchClauses[index - 1];
+    } else if (coveredNode is CatchClause && parent is TryStatement) {
+      var catchClauses = parent.catchClauses;
+      var index = catchClauses.indexOf(coveredNode);
+      var previous = index == 0 ? parent.body : catchClauses[index - 1];
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.endEnd(previous, coveringNode));
+        builder.addDeletion(range.endEnd(previous, coveredNode));
       });
     }
   }

@@ -125,6 +125,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
                 _instance.valueAsString!, _instance.valueAsStringIsTruncated!)
         ];
       case M.InstanceKind.type:
+      case M.InstanceKind.functionType:
       case M.InstanceKind.typeRef:
       case M.InstanceKind.typeParameter:
         return [
@@ -161,6 +162,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
             ]
         ];
       case M.InstanceKind.plainInstance:
+      case M.InstanceKind.receivePort:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..classes = ['emphasize']

@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Base extends core::Object {
+  field core::int* hashCode = 42;
+  synthetic constructor •() → self::Base*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Sub extends self::Base {
+  field core::int* _hashCode = null;
+  synthetic constructor •() → self::Sub*
+    : super self::Base::•()
+    ;
+  get hashCode() → core::int*
+    return let final core::int* #t1 = this.{self::Sub::_hashCode}{core::int*} in #t1 == null ?{core::int*} this.{self::Sub::_hashCode} = super.{self::Base::hashCode} : #t1;
+  method foo() → dynamic {
+    this.{self::Sub::_hashCode}{core::int*} == null ?{core::int*} this.{self::Sub::_hashCode} = super.{self::Base::hashCode} : null;
+  }
+}
+static method main() → dynamic {
+  core::print(new self::Sub::•().{self::Sub::hashCode}{core::int*});
+  core::List<Null>* l = core::_GrowableList::_literal1<Null>(null);
+  let final core::List<Null>* #t2 = l in let final core::int* #t3 = 0 in #t2.{core::List::[]}(#t3){(core::int*) →* Null} == null ?{core::String*} #t2.{core::List::[]=}(#t3, "fisk" as{TypeError} Null){(core::int*, Null) →* void} : null;
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///issue_000081.dart:22:5 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///issue_000081.dart:22:5 -> IntConstant(0)
+Extra constant evaluation: evaluated: 33, effectively constant: 2

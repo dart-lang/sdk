@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator_impl;
 
@@ -65,6 +67,7 @@ Future<CompilerResult> generateKernelInternal(
     bool retainDataForTesting: false,
     bool includeHierarchyAndCoreTypes: false}) async {
   ProcessedOptions options = CompilerContext.current.options;
+  options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
   Loader sourceLoader;
@@ -101,13 +104,14 @@ Future<CompilerResult> generateKernelInternal(
     List<int> summary = null;
     if (buildSummary) {
       if (options.verify) {
-        for (LocatedMessage error in verifyComponent(summaryComponent)) {
+        for (LocatedMessage error
+            in verifyComponent(summaryComponent, options.target)) {
           options.report(error, Severity.error);
         }
       }
       if (options.debugDump) {
         printComponentText(summaryComponent,
-            libraryFilter: kernelTarget.isSourceLibrary);
+            libraryFilter: kernelTarget.isSourceLibraryForDebugging);
       }
 
       // Create the requested component ("truncating" or not).
@@ -161,7 +165,7 @@ Future<CompilerResult> generateKernelInternal(
       component = await kernelTarget.buildComponent(verify: options.verify);
       if (options.debugDump) {
         printComponentText(component,
-            libraryFilter: kernelTarget.isSourceLibrary);
+            libraryFilter: kernelTarget.isSourceLibraryForDebugging);
       }
       options.ticker.logMs("Generated component");
     }

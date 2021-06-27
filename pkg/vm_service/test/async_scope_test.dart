@@ -3,13 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
-import 'package:vm_service/vm_service.dart';
+
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
+
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const int LINE_A = 19;
-const int LINE_B = 25;
+const int LINE_A = 20;
+const int LINE_B = 26;
 
 foo() {}
 
@@ -34,20 +36,22 @@ testeeDo() {
 }
 
 Future<void> checkAsyncVarDescriptors(
-    VmService service, IsolateRef isolateRef) async {
-  final stack = await service.getStack(isolateRef.id);
-  expect(stack.frames.length, greaterThanOrEqualTo(1));
-  final frame = stack.frames[0];
-  final vars = frame.vars.map((v) => v.name).join(' ');
+    VmService? service, IsolateRef? isolateRef) async {
+  final isolateId = isolateRef!.id!;
+  final stack = await service!.getStack(isolateId);
+  expect(stack.frames!.length, greaterThanOrEqualTo(1));
+  final frame = stack.frames![0];
+  final vars = frame.vars!.map((v) => v.name).join(' ');
   expect(vars, 'param1 local1'); // no :async_op et al
 }
 
 Future checkAsyncStarVarDescriptors(
-    VmService service, IsolateRef isolateRef) async {
-  final stack = await service.getStack(isolateRef.id);
-  expect(stack.frames.length, greaterThanOrEqualTo(1));
-  final frame = stack.frames[0];
-  final vars = frame.vars.map((v) => v.name).join(' ');
+    VmService? service, IsolateRef? isolateRef) async {
+  final isolateId = isolateRef!.id!;
+  final stack = await service!.getStack(isolateId);
+  expect(stack.frames!.length, greaterThanOrEqualTo(1));
+  final frame = stack.frames![0];
+  final vars = frame.vars!.map((v) => v.name).join(' ');
   expect(vars, 'param2 local2'); // no :async_op et al
 }
 
@@ -68,5 +72,9 @@ var tests = <IsolateTest>[
   resumeIsolate,
 ];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testeeDo);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'async_scope_test.dart',
+      testeeConcurrent: testeeDo,
+    );

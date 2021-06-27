@@ -23,8 +23,8 @@ void main() {
   });
   group('ExecutionDomainHandler', () {
     var provider = MemoryResourceProvider();
-    AnalysisServer server;
-    ExecutionDomainHandler handler;
+    late AnalysisServer server;
+    late ExecutionDomainHandler handler;
 
     setUp(() {
       server = AnalysisServer(
@@ -40,13 +40,13 @@ void main() {
     group('createContext/deleteContext', () {
       test('create/delete multiple contexts', () {
         var request = ExecutionCreateContextParams('/a/b.dart').toRequest('0');
-        var response = handler.handleRequest(request);
+        var response = handler.handleRequest(request)!;
         expect(response, isResponseSuccess('0'));
         var result = ExecutionCreateContextResult.fromResponse(response);
         var id0 = result.id;
 
         request = ExecutionCreateContextParams('/c/d.dart').toRequest('1');
-        response = handler.handleRequest(request);
+        response = handler.handleRequest(request)!;
         expect(response, isResponseSuccess('1'));
         result = ExecutionCreateContextResult.fromResponse(response);
         var id1 = result.id;
@@ -54,11 +54,11 @@ void main() {
         expect(id0 == id1, isFalse);
 
         request = ExecutionDeleteContextParams(id0).toRequest('2');
-        response = handler.handleRequest(request);
+        response = handler.handleRequest(request)!;
         expect(response, isResponseSuccess('2'));
 
         request = ExecutionDeleteContextParams(id1).toRequest('3');
-        response = handler.handleRequest(request);
+        response = handler.handleRequest(request)!;
         expect(response, isResponseSuccess('3'));
       });
 
@@ -159,7 +159,7 @@ void main() {
 
 @reflectiveTest
 class ExecutionDomainTest extends AbstractAnalysisTest {
-  String contextId;
+  late String contextId;
 
   @override
   void setUp() {
@@ -220,9 +220,7 @@ void contextFunction() {
   }
 
   void test_mapUri_file_dartUriKind() {
-    var path = server.findSdk().mapDartUri('dart:async').fullName;
-    // hack - pretend that the SDK file exists in the project FS
-    newFile(path, content: '// hack');
+    var path = _mapUri(uri: 'dart:async').file;
     // map file
     var result = _mapUri(file: path);
     expect(result.file, isNull);
@@ -239,7 +237,7 @@ void contextFunction() {
 
   void _createExecutionContext(String path) {
     var request = ExecutionCreateContextParams(path).toRequest('0');
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request)!;
     expect(response, isResponseSuccess('0'));
     var result = ExecutionCreateContextResult.fromResponse(response);
     contextId = result.id;
@@ -251,10 +249,10 @@ void contextFunction() {
     expect(response, isResponseSuccess('1'));
   }
 
-  ExecutionMapUriResult _mapUri({String file, String uri}) {
+  ExecutionMapUriResult _mapUri({String? file, String? uri}) {
     var request =
         ExecutionMapUriParams(contextId, file: file, uri: uri).toRequest('2');
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request)!;
     expect(response, isResponseSuccess('2'));
     return ExecutionMapUriResult.fromResponse(response);
   }

@@ -20,7 +20,7 @@ DescriptorList::DescriptorList(
     : function_(Function::Handle(
           zone,
           FLAG_check_token_positions && (inline_id_to_function != nullptr)
-              ? inline_id_to_function->At(0)->raw()
+              ? inline_id_to_function->At(0)->ptr()
               : Function::null())),
       script_(Script::Handle(
           zone,
@@ -30,7 +30,7 @@ DescriptorList::DescriptorList(
       prev_deopt_id(0),
       prev_token_pos(0) {}
 
-void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
+void DescriptorList::AddDescriptor(UntaggedPcDescriptors::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
                                    const TokenPosition token_pos,
@@ -39,20 +39,20 @@ void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
   // yield index 0 is reserved for normal entry.
   RELEASE_ASSERT(yield_index != 0);
 
-  ASSERT((kind == PcDescriptorsLayout::kRuntimeCall) ||
-         (kind == PcDescriptorsLayout::kBSSRelocation) ||
-         (kind == PcDescriptorsLayout::kOther) ||
-         (yield_index != PcDescriptorsLayout::kInvalidYieldIndex) ||
+  ASSERT((kind == UntaggedPcDescriptors::kRuntimeCall) ||
+         (kind == UntaggedPcDescriptors::kBSSRelocation) ||
+         (kind == UntaggedPcDescriptors::kOther) ||
+         (yield_index != UntaggedPcDescriptors::kInvalidYieldIndex) ||
          (deopt_id != DeoptId::kNone));
 
   // When precompiling, we only use pc descriptors for exceptions,
   // relocations and yield indices.
   if (!FLAG_precompiled_mode || try_index != -1 ||
-      yield_index != PcDescriptorsLayout::kInvalidYieldIndex ||
-      kind == PcDescriptorsLayout::kBSSRelocation) {
+      yield_index != UntaggedPcDescriptors::kInvalidYieldIndex ||
+      kind == UntaggedPcDescriptors::kBSSRelocation) {
     const int32_t kind_and_metadata =
-        PcDescriptorsLayout::KindAndMetadata::Encode(kind, try_index,
-                                                     yield_index);
+        UntaggedPcDescriptors::KindAndMetadata::Encode(kind, try_index,
+                                                       yield_index);
 
     encoded_data_.WriteSLEB128(kind_and_metadata);
     encoded_data_.WriteSLEB128(pc_offset - prev_pc_offset);
@@ -65,17 +65,18 @@ void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
                                 function_.end_token_pos())) {
           FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
                 " invalid for function %s (%s, %s)",
-                token_pos.ToCString(), PcDescriptorsLayout::KindToCString(kind),
-                pc_offset, function_.ToFullyQualifiedCString(),
+                token_pos.ToCString(),
+                UntaggedPcDescriptors::KindToCString(kind), pc_offset,
+                function_.ToFullyQualifiedCString(),
                 function_.token_pos().ToCString(),
                 function_.end_token_pos().ToCString());
         }
         if (!script_.IsNull() && !script_.IsValidTokenPosition(token_pos)) {
           FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
                 " invalid for script %s of function %s",
-                token_pos.ToCString(), PcDescriptorsLayout::KindToCString(kind),
-                pc_offset, script_.ToCString(),
-                function_.ToFullyQualifiedCString());
+                token_pos.ToCString(),
+                UntaggedPcDescriptors::KindToCString(kind), pc_offset,
+                script_.ToCString(), function_.ToFullyQualifiedCString());
         }
       }
       const int32_t encoded_pos = token_pos.Serialize();
@@ -90,7 +91,7 @@ void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
 
 PcDescriptorsPtr DescriptorList::FinalizePcDescriptors(uword entry_point) {
   if (encoded_data_.bytes_written() == 0) {
-    return Object::empty_descriptors().raw();
+    return Object::empty_descriptors().ptr();
   }
   return PcDescriptors::New(encoded_data_.buffer(),
                             encoded_data_.bytes_written());
@@ -114,7 +115,7 @@ void CompressedStackMapsBuilder::AddEntry(intptr_t pc_offset,
 
 CompressedStackMapsPtr CompressedStackMapsBuilder::Finalize() const {
   if (encoded_bytes_.bytes_written() == 0) {
-    return Object::empty_compressed_stackmaps().raw();
+    return Object::empty_compressed_stackmaps().ptr();
   }
   return CompressedStackMaps::NewInlined(encoded_bytes_.buffer(),
                                          encoded_bytes_.bytes_written());
@@ -124,7 +125,7 @@ ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
     uword entry_point) const {
   intptr_t num_handlers = Length();
   if (num_handlers == 0) {
-    return Object::empty_exception_handlers().raw();
+    return Object::empty_exception_handlers().ptr();
   }
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(ExceptionHandlers::New(num_handlers));
@@ -149,7 +150,7 @@ ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
       handlers.SetHandledTypes(i, *list_[i].handler_types);
     }
   }
-  return handlers.raw();
+  return handlers.ptr();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -233,7 +234,7 @@ TypedDataPtr CatchEntryMovesMapBuilder::FinalizeCatchEntryMovesMap() {
   for (intptr_t i = 0; i < stream_.bytes_written(); i++) {
     dest[i] = src[i];
   }
-  return td.raw();
+  return td.ptr();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -437,12 +438,12 @@ void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
   BufferAdvancePC(pc_offset - buffered_pc_offset_);
 }
 
-void CodeSourceMapBuilder::NoteDescriptor(PcDescriptorsLayout::Kind kind,
+void CodeSourceMapBuilder::NoteDescriptor(UntaggedPcDescriptors::Kind kind,
                                           int32_t pc_offset,
                                           const InstructionSource& source) {
   const uint8_t kCanThrow =
-      PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall |
-      PcDescriptorsLayout::kRuntimeCall | PcDescriptorsLayout::kOther;
+      UntaggedPcDescriptors::kIcCall | UntaggedPcDescriptors::kUnoptStaticCall |
+      UntaggedPcDescriptors::kRuntimeCall | UntaggedPcDescriptors::kOther;
   if ((kind & kCanThrow) != 0) {
     StartInliningInterval(pc_offset, source);
     BufferChangePosition(source.token_pos);
@@ -464,7 +465,7 @@ void CodeSourceMapBuilder::NoteNullCheck(int32_t pc_offset,
 intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
   const Function& function = *inline_id_to_function_[inline_id];
   for (intptr_t i = 0; i < inlined_functions_.Length(); i++) {
-    if (inlined_functions_.At(i) == function.raw()) {
+    if (inlined_functions_.At(i) == function.ptr()) {
       return i;
     }
   }
@@ -486,7 +487,7 @@ TokenPosition CodeSourceMapBuilder::RootPosition(
 
 ArrayPtr CodeSourceMapBuilder::InliningIdToFunction() {
   if (inlined_functions_.Length() == 0) {
-    return Object::empty_array().raw();
+    return Object::empty_array().ptr();
   }
   return Array::MakeFixedLength(inlined_functions_);
 }
@@ -499,7 +500,7 @@ CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
   const auto& map = CodeSourceMap::Handle(zone_, CodeSourceMap::New(length));
   NoSafepointScope no_safepoint;
   memmove(map.Data(), stream_.buffer(), length);
-  return map.raw();
+  return map.ptr();
 }
 
 void CodeSourceMapBuilder::BufferChangePosition(TokenPosition pos) {

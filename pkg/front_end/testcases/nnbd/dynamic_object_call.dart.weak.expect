@@ -28,19 +28,19 @@ class Class extends core::Object {
 static method main() → dynamic {}
 static method test() → dynamic {
   dynamic c = new self::Class::•();
-  core::String v1 = c.{core::Object::toString}();
-  dynamic v2 = c.toString(foo: 42);
-  () → core::String v3 = c.{core::Object::toString};
-  core::int v4 = c.{core::Object::hashCode};
+  core::String v1 = c.{core::Object::toString}(){() → core::String};
+  dynamic v2 = c{dynamic}.toString(foo: 42);
+  () → core::String v3 = c.{core::Object::toString}{() → core::String};
+  core::int v4 = c.{core::Object::hashCode}{core::int};
   dynamic v5 = invalid-expression "pkg/front_end/testcases/nnbd/dynamic_object_call.dart:21:22: Error: 'hashCode' isn't a function or method and can't be invoked.
   var v5 = c.hashCode();
                      ^^^^...";
-  dynamic v6 = c.{core::Object::noSuchMethod}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/dynamic_object_call.dart:23:27: Error: The argument type 'String' can't be assigned to the parameter type 'Invocation'.
+  dynamic v6 = c.{core::Object::noSuchMethod}(let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/dynamic_object_call.dart:23:27: Error: The argument type 'String' can't be assigned to the parameter type 'Invocation'.
  - 'Invocation' is from 'dart:core'.
   var v6 = c.noSuchMethod(\"foo\");
-                          ^" in "foo" as{TypeError,ForNonNullableByDefault} core::Invocation);
-  dynamic v7 = c.noSuchMethod("foo", foo: 42);
-  (core::Invocation) → dynamic v8 = c.{core::Object::noSuchMethod};
+                          ^" in "foo" as{TypeError,ForNonNullableByDefault} core::Invocation){(core::Invocation) → dynamic};
+  dynamic v7 = c{dynamic}.noSuchMethod("foo", foo: 42);
+  (core::Invocation) → dynamic v8 = c.{core::Object::noSuchMethod}{(core::Invocation) → dynamic};
 }
 
 constants  {

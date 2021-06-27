@@ -4,6 +4,8 @@
 //
 // Helpers for tests which trigger GC in delicate places.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import 'dylib_utils.dart';

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -19,7 +21,6 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         onFailure,
         runTestFor;
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:kernel/ast.dart' show Class, Member, TreeNode;
 import 'package:kernel/ast.dart';
 
 main(List<String> args) async {

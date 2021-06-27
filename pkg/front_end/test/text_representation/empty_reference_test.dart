@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart';
 import 'text_representation_test.dart';
@@ -83,7 +85,7 @@ void testTypes() {
 void testMembers() {
   testExpression(new PropertyGet(new IntLiteral(0), new Name('foo')), '''
 0.foo''');
-  testExpression(new StaticGet(null), '''
+  testExpression(new StaticGet.byReference(null), '''
 <missing-member-reference>''');
 
   Reference unlinkedMemberName = new Reference();

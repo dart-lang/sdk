@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that an is check on a function type involving type parameters
 // does not crash dart2js, when the is test is in the initializer list
 // of a constructor.

@@ -8,7 +8,6 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -28,6 +27,66 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   ) {
     return TextDocumentRegistrationOptions.fromJson(
         registrationFor(registrations, method)?.registerOptions);
+  }
+
+  Future<void> test_bazelWorkspace() async {
+    var workspacePath = '/home/user/ws';
+    // Make it a Bazel workspace.
+    newFile(convertPath('$workspacePath/WORKSPACE'));
+
+    var packagePath = '$workspacePath/team/project1';
+
+    // Make it a Blaze project.
+    newFile(convertPath('$packagePath/BUILD'));
+
+    final file1 = convertPath('$packagePath/lib/file1.dart');
+    newFile(file1);
+
+    await initialize(allowEmptyRootUri: true);
+
+    // Expect that context manager includes a whole package.
+    await openFile(Uri.file(file1), '');
+    expect(server.contextManager.includedPaths,
+        equals([convertPath(packagePath)]));
+  }
+
+  Future<void> test_completionRegistrations_triggerCharacters() async {
+    final registrations = <Registration>[];
+    final initResponse = await monitorDynamicRegistrations(
+      registrations,
+      () => initialize(
+        // Support dynamic registration for everything we support.
+        textDocumentCapabilities:
+            withAllSupportedTextDocumentDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
+        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
+            emptyWorkspaceClientCapabilities),
+      ),
+    );
+
+    final initResult = InitializeResult.fromJson(initResponse.result);
+    expect(initResult.capabilities, isNotNull);
+
+    // Check Dart-only registration.
+    final dartRegistration =
+        registrationForDart(registrations, Method.textDocument_completion);
+    final dartOptions = CompletionRegistrationOptions.fromJson(
+        dartRegistration.registerOptions);
+    expect(dartOptions.documentSelector, hasLength(1));
+    expect(dartOptions.documentSelector![0].language, dartLanguageId);
+    expect(dartOptions.triggerCharacters, isNotEmpty);
+
+    // Check non-Dart registration.
+    final nonDartRegistration = registrations.singleWhere((r) =>
+        r.method == Method.textDocument_completion.toJson() &&
+        r != dartRegistration);
+    final nonDartOptions = CompletionRegistrationOptions.fromJson(
+        nonDartRegistration.registerOptions);
+    final otherLanguages = nonDartOptions.documentSelector!
+        .map((selector) => selector.language)
+        .toList();
+    expect(otherLanguages, isNot(contains('dart')));
+    expect(nonDartOptions.triggerCharacters, isNull);
   }
 
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
@@ -51,8 +110,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // static registrations for them.
     // https://github.com/dart-lang/sdk/issues/38490
     final initResult = InitializeResult.fromJson(initResponse.result);
-    expect(initResult.serverInfo.name, 'Dart SDK LSP Analysis Server');
-    expect(initResult.serverInfo.version, isNotNull);
+    expect(initResult.serverInfo!.name, 'Dart SDK LSP Analysis Server');
+    expect(initResult.serverInfo!.version, isNotNull);
     expect(initResult.capabilities, isNotNull);
     expect(initResult.capabilities.textDocumentSync, isNull);
 
@@ -73,16 +132,17 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // The hover capability should only specific Dart.
     expect(hover, isNotNull);
     expect(hover.documentSelector, hasLength(1));
-    expect(hover.documentSelector.single.language, equals('dart'));
+    expect(hover.documentSelector!.single.language, equals('dart'));
 
     // didChange should also include pubspec + analysis_options.
     expect(change, isNotNull);
     expect(change.documentSelector, hasLength(greaterThanOrEqualTo(3)));
-    expect(change.documentSelector.any((ds) => ds.language == 'dart'), isTrue);
-    expect(change.documentSelector.any((ds) => ds.pattern == '**/pubspec.yaml'),
+    expect(change.documentSelector!.any((ds) => ds.language == 'dart'), isTrue);
+    expect(
+        change.documentSelector!.any((ds) => ds.pattern == '**/pubspec.yaml'),
         isTrue);
     expect(
-        change.documentSelector
+        change.documentSelector!
             .any((ds) => ds.pattern == '**/analysis_options.yaml'),
         isTrue);
 
@@ -109,7 +169,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // When dynamic registration is not supported, we will always statically
     // request text document open/close and incremental updates.
     expect(initResult.capabilities.textDocumentSync, isNotNull);
-    initResult.capabilities.textDocumentSync.map(
+    initResult.capabilities.textDocumentSync!.map(
       (options) {
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
@@ -129,10 +189,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.codeActionProvider, isNotNull);
     expect(initResult.capabilities.renameProvider, isNotNull);
     expect(initResult.capabilities.foldingRangeProvider, isNotNull);
-    expect(initResult.capabilities.workspace.fileOperations.willRename,
+    expect(initResult.capabilities.workspace!.fileOperations!.willRename,
         equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
-    expect(initResult.capabilities.semanticTokensProvider,
-        enableSemanticTokens ? isNotNull : isNull);
+    expect(initResult.capabilities.selectionRangeProvider, isNotNull);
+    expect(initResult.capabilities.semanticTokensProvider, isNotNull);
 
     expect(didGetRegisterCapabilityRequest, isFalse);
   }
@@ -187,16 +247,28 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.codeActionProvider, isNull);
     expect(initResult.capabilities.renameProvider, isNull);
     expect(initResult.capabilities.foldingRangeProvider, isNull);
-    expect(initResult.capabilities.workspace.fileOperations, isNull);
+    expect(initResult.capabilities.workspace!.fileOperations, isNull);
+    expect(initResult.capabilities.selectionRangeProvider, isNull);
     expect(initResult.capabilities.semanticTokensProvider, isNull);
 
     // Ensure all expected dynamic registrations.
     for (final expectedRegistration in ClientDynamicRegistrations.supported) {
+      // We have two completion registrations (to handle different trigger
+      // characters), so exclude that here and check it manually below.
+      if (expectedRegistration == Method.textDocument_completion) {
+        continue;
+      }
+
       final registration =
           registrationOptionsFor(registrations, expectedRegistration);
       expect(registration, isNotNull,
           reason: 'Missing dynamic registration for $expectedRegistration');
     }
+
+    // Check the were two completion registrations.
+    final completionRegistrations = registrations
+        .where((reg) => reg.method == Method.textDocument_completion.toJson());
+    expect(completionRegistrations, hasLength(2));
   }
 
   Future<void> test_dynamicRegistration_unregistersOutdatedAfterChange() async {
@@ -298,15 +370,22 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Closing only one of the files should not remove the project folder
     // since there are still open files.
+    resetContextBuildCounter();
     await closeFile(file1Uri);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expectNoContextBuilds();
 
-    // Closing the last file should remove the project folder.
+    // Closing the last file should remove the project folder and remove
+    // the context.
+    resetContextBuildCounter();
     await closeFile(file2Uri);
     expect(server.contextManager.includedPaths, equals([]));
+    expect(server.contextManager.driverMap, hasLength(0));
+    expectContextBuilds();
   }
 
   Future<void> test_emptyAnalysisRoots_projectWithoutPubspec() async {
+    projectFolderPath = convertPath('/home/empty');
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
@@ -316,10 +395,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(allowEmptyRootUri: true);
     expect(server.contextManager.includedPaths, equals([]));
 
-    // Opening the file should trigger the immediate parent folder to be added.
+    // Opening the file will add a root for it.
     await openFile(nestedFileUri, '');
-    expect(server.contextManager.includedPaths,
-        equals([path.dirname(nestedFilePath)]));
+    expect(server.contextManager.includedPaths, equals([nestedFilePath]));
   }
 
   Future<void> test_emptyAnalysisRoots_projectWithPubspec() async {
@@ -409,7 +487,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(result.capabilities, isNotNull);
     // Check some basic capabilities that are unlikely to change.
     expect(result.capabilities.textDocumentSync, isNotNull);
-    result.capabilities.textDocumentSync.map(
+    result.capabilities.textDocumentSync!.map(
       (options) {
         // We'll always request open/closed notifications and incremental updates.
         expect(options.openClose, isTrue);
@@ -423,7 +501,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_initialize_invalidParams() async {
     final params = {'processId': 'invalid'};
     final request = RequestMessage(
-      id: Either2<num, String>.t1(1),
+      id: Either2<int, String>.t1(1),
       method: Method.initialize,
       params: params,
       jsonrpc: jsonRpcVersion,
@@ -431,7 +509,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);
-    expect(response.error.code, equals(ErrorCodes.InvalidParams));
+    expect(response.error!.code, equals(ErrorCodes.InvalidParams));
     expect(response.result, isNull);
   }
 
@@ -441,8 +519,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response, isNotNull);
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(
-        response.error.code, equals(ServerErrorCodes.ServerAlreadyInitialized));
+    expect(response.error!.code,
+        equals(ServerErrorCodes.ServerAlreadyInitialized));
   }
 
   Future<void> test_initialize_rootPath() async {
@@ -458,6 +536,61 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_initialize_workspaceFolders() async {
     await initialize(workspaceFolders: [projectFolderUri]);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  Future<void> test_nonFileScheme_rootUri() async {
+    final rootUri = Uri.parse('vsls://');
+    final fileUri = rootUri.replace(path: '/file1.dart');
+
+    await initialize(rootUri: rootUri);
+    expect(server.contextManager.includedPaths, equals([]));
+
+    // Also open a non-file file to ensure it doesn't cause the root to be added.
+    await openFile(fileUri, '');
+    expect(server.contextManager.includedPaths, equals([]));
+  }
+
+  Future<void> test_nonFileScheme_workspaceFolders() async {
+    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
+    newFile(pubspecPath);
+
+    final rootUri = Uri.parse('vsls://');
+    final fileUri = rootUri.replace(path: '/file1.dart');
+
+    await initialize(workspaceFolders: [
+      rootUri,
+      Uri.file(projectFolderPath),
+    ]);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+
+    // Also open a non-file file to ensure it doesn't cause the root to be added.
+    await openFile(fileUri, '');
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  Future<void> test_nonProjectFiles_basicWorkspace() async {
+    final file1 = convertPath('/home/nonProject/file1.dart');
+    newFile(file1);
+
+    await initialize(allowEmptyRootUri: true);
+
+    // Because the file is not in a project, it should be added itself.
+    await openFile(Uri.file(file1), '');
+    expect(server.contextManager.includedPaths, equals([file1]));
+  }
+
+  Future<void> test_nonProjectFiles_bazelWorkspace() async {
+    final file1 = convertPath('/home/nonProject/file1.dart');
+    newFile(file1);
+
+    // Make /home a bazel workspace.
+    newFile(convertPath('/home/WORKSPACE'));
+
+    await initialize(allowEmptyRootUri: true);
+
+    // Because the file is not in a project, it should be added itself.
+    await openFile(Uri.file(file1), '');
+    expect(server.contextManager.includedPaths, equals([file1]));
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
@@ -479,18 +612,26 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await openFile(file1Uri, '');
     await openFile(file2Uri, '');
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.driverMap, hasLength(1));
 
-    // Closing only one of the files should not remove the project folder
-    // since there are still open files.
+    // Closing only one of the files should not remove the root or rebuild the context.
+    resetContextBuildCounter();
     await closeFile(file1Uri);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.driverMap, hasLength(1));
+    expectNoContextBuilds();
 
-    // Closing the last file should remove the project folder.
+    // Closing the last file should remove the project folder and remove
+    // the context.
+    resetContextBuildCounter();
     await closeFile(file2Uri);
     expect(server.contextManager.includedPaths, equals([]));
+    expect(server.contextManager.driverMap, hasLength(0));
+    expectContextBuilds();
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_withoutPubpsec() async {
+    projectFolderPath = convertPath('/home/empty');
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
@@ -503,10 +644,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     );
     expect(server.contextManager.includedPaths, equals([]));
 
-    // Opening the file should trigger the immediate parent folder to be added.
+    // Opening the file should trigger it to be added.
     await openFile(nestedFileUri, '');
-    expect(server.contextManager.includedPaths,
-        equals([path.dirname(nestedFilePath)]));
+    expect(server.contextManager.includedPaths, equals([nestedFilePath]));
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_withPubpsec() async {
@@ -524,7 +664,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     );
     expect(server.contextManager.includedPaths, equals([]));
 
-    // Opening a file nested within the project should add the project folder.
+    // Opening a file nested within the project should cause the project folder
+    // to be added
     await openFile(nestedFileUri, '');
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
@@ -549,7 +690,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.
     var didTimeout = false;
-    final notificationFromServer = await nextNotification.timeout(
+    final notificationFromServer = await nextNotification
+        .then<NotificationMessage?>((notification) => notification)
+        .timeout(
       const Duration(seconds: 1),
       onTimeout: () {
         didTimeout = true;
@@ -567,6 +710,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(response.error.code, ErrorCodes.ServerNotInitialized);
+    expect(response.error!.code, ErrorCodes.ServerNotInitialized);
   }
 }

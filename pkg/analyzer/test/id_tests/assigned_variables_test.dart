@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -20,14 +19,12 @@ main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/assigned_variables/'
       'data'));
-  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-    return runTests<_Data>(dataDir,
-        args: args,
-        createUriForFileName: createUriForFileName,
-        onFailure: onFailure,
-        runTest: runTestFor(
-            const _AssignedVariablesDataComputer(), [analyzerNnbdConfig]));
-  });
+  return runTests<_Data>(dataDir,
+      args: args,
+      createUriForFileName: createUriForFileName,
+      onFailure: onFailure,
+      runTest: runTestFor(
+          const _AssignedVariablesDataComputer(), [analyzerNnbdConfig]));
 }
 
 class _AssignedVariablesDataComputer extends DataComputer<_Data> {
@@ -40,10 +37,10 @@ class _AssignedVariablesDataComputer extends DataComputer<_Data> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<_Data>> actualMap) {
-    var flowResult =
-        testingData.uriToFlowAnalysisData[unit.declaredElement.source.uri];
+    var unitElement = unit.declaredElement!;
+    var flowResult = testingData.uriToFlowAnalysisData[unitElement.source.uri]!;
     _AssignedVariablesDataExtractor(
-            unit.declaredElement.source.uri, actualMap, flowResult)
+            unitElement.source.uri, actualMap, flowResult)
         .run(unit);
   }
 }
@@ -51,9 +48,9 @@ class _AssignedVariablesDataComputer extends DataComputer<_Data> {
 class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  Declaration _currentDeclaration;
+  Declaration? _currentDeclaration;
 
-  AssignedVariablesForTesting<AstNode, PromotableElement>
+  AssignedVariablesForTesting<AstNode, PromotableElement>?
       _currentAssignedVariables;
 
   _AssignedVariablesDataExtractor(
@@ -61,22 +58,27 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
       : super(uri, actualMap);
 
   @override
-  _Data computeNodeValue(Id id, AstNode node) {
+  _Data? computeNodeValue(Id id, AstNode node) {
     if (node is FunctionDeclarationStatement) {
-      node = (node as FunctionDeclarationStatement).functionDeclaration;
+      node = node.functionDeclaration;
     }
-    if (_currentAssignedVariables == null) return null;
+    var currentAssignedVariables = _currentAssignedVariables;
+    if (currentAssignedVariables == null) return null;
     if (node == _currentDeclaration) {
       return _Data(
-          _convertVars(_currentAssignedVariables.declaredAtTopLevel),
-          _convertVars(_currentAssignedVariables.writtenAnywhere),
-          _convertVars(_currentAssignedVariables.capturedAnywhere));
+          _convertVars(currentAssignedVariables.declaredAtTopLevel),
+          _convertVars(currentAssignedVariables.readAnywhere),
+          _convertVars(currentAssignedVariables.readCapturedAnywhere),
+          _convertVars(currentAssignedVariables.writtenAnywhere),
+          _convertVars(currentAssignedVariables.capturedAnywhere));
     }
-    if (!_currentAssignedVariables.isTracked(node)) return null;
+    if (!currentAssignedVariables.isTracked(node)) return null;
     return _Data(
-        _convertVars(_currentAssignedVariables.declaredInNode(node)),
-        _convertVars(_currentAssignedVariables.writtenInNode(node)),
-        _convertVars(_currentAssignedVariables.capturedInNode(node)));
+        _convertVars(currentAssignedVariables.declaredInNode(node)),
+        _convertVars(currentAssignedVariables.readInNode(node)),
+        _convertVars(currentAssignedVariables.readCapturedInNode(node)),
+        _convertVars(currentAssignedVariables.writtenInNode(node)),
+        _convertVars(currentAssignedVariables.capturedInNode(node)));
   }
 
   @override
@@ -98,12 +100,12 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   }
 
   Set<String> _convertVars(Iterable<PromotableElement> x) =>
-      x.map((e) => e.name).toSet();
+      x.map((e) => e.name!).toSet();
 
   void _handlePossibleTopLevelDeclaration(
       AstNode node, void Function() callback) {
     if (_currentDeclaration == null) {
-      _currentDeclaration = node;
+      _currentDeclaration = node as Declaration;
       _currentAssignedVariables = _flowResult.assignedVariables[node];
       callback();
       _currentDeclaration = null;
@@ -118,10 +120,16 @@ class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
   const _AssignedVariablesDataInterpreter();
 
   @override
-  String getText(_Data actualData, [String indentation]) {
+  String getText(_Data actualData, [String? indentation]) {
     var parts = <String>[];
     if (actualData.declared.isNotEmpty) {
       parts.add('declared=${_setToString(actualData.declared)}');
+    }
+    if (actualData.read.isNotEmpty) {
+      parts.add('read=${_setToString(actualData.read)}');
+    }
+    if (actualData.readCaptured.isNotEmpty) {
+      parts.add('read=${_setToString(actualData.readCaptured)}');
     }
     if (actualData.assigned.isNotEmpty) {
       parts.add('assigned=${_setToString(actualData.assigned)}');
@@ -134,7 +142,7 @@ class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
   }
 
   @override
-  String isAsExpected(_Data actualData, String expectedData) {
+  String? isAsExpected(_Data actualData, String? expectedData) {
     var actualDataText = getText(actualData);
     if (actualDataText == expectedData) {
       return null;
@@ -156,9 +164,14 @@ class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
 class _Data {
   final Set<String> declared;
 
+  final Set<String> read;
+
+  final Set<String> readCaptured;
+
   final Set<String> assigned;
 
   final Set<String> captured;
 
-  _Data(this.declared, this.assigned, this.captured);
+  _Data(this.declared, this.read, this.readCaptured, this.assigned,
+      this.captured);
 }

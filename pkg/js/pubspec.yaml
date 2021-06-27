@@ -1,5 +1,5 @@
 name: js
-version: 0.6.3-nullsafety.3
+version: 0.6.3
 description: Annotations to create static Dart interfaces for JavaScript APIs.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/js
 

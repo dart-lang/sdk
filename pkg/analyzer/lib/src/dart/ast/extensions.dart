@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
-Element _readElement(AstNode node) {
+Element? _readElement(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
@@ -31,7 +31,7 @@ Element _readElement(AstNode node) {
 }
 
 /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
-Element _writeElement(AstNode node) {
+Element? _writeElement(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
@@ -54,7 +54,7 @@ Element _writeElement(AstNode node) {
 }
 
 /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
-DartType _writeType(AstNode node) {
+DartType? _writeType(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
@@ -74,9 +74,28 @@ DartType _writeType(AstNode node) {
     return _writeType(parent);
   }
   return null;
+}
+
+extension ExpressionExtension on Expression {
+  /// Return the static type of this expression.
+  ///
+  /// This accessor should be used on expressions that are expected to
+  /// be already resolved. Every such expression must have the type set,
+  /// at least `dynamic`.
+  DartType get typeOrThrow {
+    var type = staticType;
+    if (type == null) {
+      throw StateError('No type: $this');
+    }
+    return type;
+  }
 }
 
 extension FormalParameterExtension on FormalParameter {
+  bool get isOfLocalFunction {
+    return thisOrAncestorOfType<FunctionBody>() != null;
+  }
+
   FormalParameter get notDefault {
     var self = this;
     if (self is DefaultFormalParameter) {
@@ -88,7 +107,10 @@ extension FormalParameterExtension on FormalParameter {
   AstNode get typeOrSelf {
     var self = this;
     if (self is SimpleFormalParameter) {
-      return self.type;
+      var type = self.type;
+      if (type != null) {
+        return type;
+      }
     }
     return self;
   }
@@ -96,26 +118,26 @@ extension FormalParameterExtension on FormalParameter {
 
 /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
 extension IdentifierExtension on Identifier {
-  Element get writeElement {
+  Element? get writeElement {
     return _writeElement(this);
   }
 
-  Element get readElement {
+  Element? get readElement {
     return _readElement(this);
   }
 
-  Element get writeOrReadElement {
+  Element? get writeOrReadElement {
     return _writeElement(this) ?? staticElement;
   }
 
-  DartType get writeOrReadType {
+  DartType? get writeOrReadType {
     return _writeType(this) ?? staticType;
   }
 }
 
 /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
 extension IndexExpressionExtension on IndexExpression {
-  Element get writeOrReadElement {
+  Element? get writeOrReadElement {
     return _writeElement(this) ?? staticElement;
   }
 }
@@ -123,5 +145,20 @@ extension IndexExpressionExtension on IndexExpression {
 extension ListOfFormalParameterExtension on List<FormalParameter> {
   Iterable<FormalParameterImpl> get asImpl {
     return cast<FormalParameterImpl>();
+  }
+}
+
+extension TypeAnnotationExtension on TypeAnnotation {
+  /// Return the static type of this type annotation.
+  ///
+  /// This accessor should be used on expressions that are expected to
+  /// be already resolved. Every such expression must have the type set,
+  /// at least `dynamic`.
+  DartType get typeOrThrow {
+    final type = this.type;
+    if (type == null) {
+      throw StateError('No type: $this');
+    }
+    return type;
   }
 }

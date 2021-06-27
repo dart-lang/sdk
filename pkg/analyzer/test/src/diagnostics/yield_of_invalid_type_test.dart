@@ -10,12 +10,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(YieldOfInvalidTypeTest);
-    defineReflectiveTests(YieldOfInvalidTypeTest2);
+    defineReflectiveTests(YieldOfInvalidTypeWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest extends PubPackageResolutionTest {
+class YieldOfInvalidTypeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_none_asyncStar_dynamic_to_streamInt() async {
     await assertErrorsInCode(
         '''
@@ -85,12 +86,36 @@ Stream<String> f() async* {
     ]);
   }
 
+  test_none_asyncStar_int_to_streamString_functionExpression() async {
+    await assertErrorsInCode('''
+void f() {
+  // ignore:unused_local_variable
+  Stream<String> Function() v = () async* {
+    yield 1;
+  };
+}
+''', [
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 99, 1),
+    ]);
+  }
+
   test_none_asyncStar_int_to_untyped() async {
     await assertNoErrorsInCode('''
 f() async* {
   yield 0;
 }
 ''');
+  }
+
+  test_none_asyncStar_null_to_streamInt() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 33, 4),
+    ], legacy: []);
+    await assertErrorsInCode('''
+Stream<int> f() async* {
+  yield null;
+}
+''', errors);
   }
 
   test_none_syncStar_dynamic_to_iterableInt() async {
@@ -148,6 +173,19 @@ Iterable<String> f() sync* {
 }
 ''', [
       error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 37, 1),
+    ]);
+  }
+
+  test_none_syncStar_int_to_iterableString_functionExpression() async {
+    await assertErrorsInCode('''
+void f() {
+  // ignore:unused_local_variable
+  Iterable<String> Function() v = () sync* {
+    yield 1;
+  };
+}
+''', [
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 100, 1),
     ]);
   }
 
@@ -410,5 +448,5 @@ Iterable<String> g() => throw 0;
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest2 extends YieldOfInvalidTypeTest
+class YieldOfInvalidTypeWithNullSafetyTest extends YieldOfInvalidTypeTest
     with WithNullSafetyMixin {}

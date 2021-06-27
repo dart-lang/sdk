@@ -36,7 +36,7 @@ type UInt7 extends UInt {
 
 type UInt14 extends UInt {
   Byte byte1(10xxxxxx); // most significant byte, discard the high bit
-  Byte byte2(xxxxxxxx); // least signficant byte
+  Byte byte2(xxxxxxxx); // least significant byte
 }
 
 type UInt30 extends UInt {
@@ -87,7 +87,7 @@ type StringReference {
 }
 
 type ConstantReference {
-  UInt offset; // Byte offset into the Component's constants.
+  UInt index; // Index into [constantsMapping] and [constants].
 }
 
 type SourceInfo {
@@ -147,16 +147,17 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 53;
+  UInt32 formatVersion = 66;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
+  List<Constant> constants;
+  RList<UInt32> constantsMapping; // Byte offset into the Component's constants.
   List<CanonicalName> canonicalNames;
   MetadataPayload[] metadataPayloads;
   RList<MetadataMapping> metadataMappings;
   StringTable strings;
-  List<Constant> constants;
   ComponentIndex componentIndex;
 }
 
@@ -179,11 +180,13 @@ type MetadataMapping {
 type ComponentIndex {
   Byte[] 8bitAlignment; // 0-bytes to make the entire component (!) 8-byte aligned.
   UInt32 binaryOffsetForSourceTable;
+  UInt32 binaryOffsetForConstantTable;
+  UInt32 binaryOffsetForConstantTableIndex;
   UInt32 binaryOffsetForCanonicalNames;
   UInt32 binaryOffsetForMetadataPayloads;
   UInt32 binaryOffsetForMetadataMappings;
   UInt32 binaryOffsetForStringTable;
-  UInt32 binaryOffsetForConstantTable;
+  UInt32 binaryOffsetForStartOfComponentIndex;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
   UInt32 compilationMode; // enum NonNullableByDefaultCompiledMode { Disabled = 0, Weak = 1, Strong = 2, Agnostic = 3 } with a fixed-size integer.
   UInt32[libraryCount + 1] libraryOffsets;
@@ -337,8 +340,10 @@ type Extension extends Node {
   Byte tag = 115;
   CanonicalNameReference canonicalName;
   StringReference name;
+  List<Expression> annotations;
   UriReference fileUri;
   FileOffset fileOffset;
+  Byte flags (isExtensionTypeDeclaration);
   List<TypeParameter> typeParameters;
   DartType onType;
   List<ExtensionMemberDescriptor> members;
@@ -363,8 +368,8 @@ type Field extends Member {
   UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  UInt flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
-                isCovariant, isGenericCovariantImpl, isLate, isExtensionMember,
+  UInt flags (isFinal, isConst, isStatic, isCovariant,
+                isGenericCovariantImpl, isLate, isExtensionMember,
                 isNonNullableByDefault, isInternalImplementation);
   Name name;
   List<Expression> annotations;
@@ -399,12 +404,12 @@ enum ProcedureKind {
 /*
 enum ProcedureStubKind {
   Regular,
-  ForwardingStub,
-  ForwardingSuperStub,
+  AbstractForwardingStub,
+  ConcreteForwardingStub,
   NoSuchMethodForwarder,
   MemberSignature,
-  MixinStub,
-  MixinSuperStub,
+  AbstractMixinStub,
+  ConcreteMixinStub,
 }
 */
 
@@ -424,8 +429,7 @@ type Procedure extends Member {
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
-  // Can only be absent if abstract, but tag is there anyway.
-  Option<FunctionNode> function;
+  FunctionNode function;
 }
 
 type RedirectingFactoryConstructor extends Member {
@@ -510,6 +514,7 @@ type FunctionNode {
   List<VariableDeclarationPlain> positionalParameters;
   List<VariableDeclarationPlain> namedParameters;
   DartType returnType;
+  Option<DartType> futureValueType;
   Option<Statement> body;
 }
 
@@ -695,6 +700,13 @@ type StaticTearOff extends Expression {
   MemberReference target;
 }
 
+type ConstructorTearOff extends Expression {
+  Byte tag = 60;
+  FileOffset fileOffset;
+  ConstructorReference constructor;
+  Option<List<DartType>> typeArguments;
+}
+
 type StaticSet extends Expression {
   Byte tag = 27;
   FileOffset fileOffset;
@@ -740,6 +752,19 @@ type InstanceInvocation extends Expression {
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
+type InstanceGetterInvocation extends Expression {
+  Byte tag = 89;
+  Byte kind; // Index into InstanceAccessKind above.
+  Byte flags (isInvariant, isBoundsSafe);
+  FileOffset fileOffset;
+  Expression receiver;
+  Name name;
+  Arguments arguments;
+  DartType functionType;
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
 type DynamicInvocation extends Expression {
   Byte tag = 124;
   Byte kind; // Index into DynamicAccessKind above.
@@ -771,7 +796,6 @@ type FunctionTearOff extends Expression {
   Byte tag = 126;
   FileOffset fileOffset;
   Expression receiver;
-  DartType functionType;
 }
 
 type LocalFunctionInvocation extends Expression {
@@ -788,7 +812,6 @@ type EqualsNull extends Expression {
   Byte tag = 15;
   FileOffset fileOffset;
   Expression expression;
-  Byte isNot;
 }
 
 type EqualsCall extends Expression {
@@ -796,7 +819,6 @@ type EqualsCall extends Expression {
   FileOffset fileOffset;
   Expression left;
   Expression right;
-  Byte isNot;
   DartType functionType;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin; // May be NullReference.
@@ -1063,6 +1085,7 @@ type FunctionExpression extends Expression {
 
 type Let extends Expression {
   Byte tag = 53;
+  FileOffset fileOffset;
   VariableDeclarationPlain variable;
   Expression body;
 }
@@ -1385,10 +1408,6 @@ enum Variance { unrelated = 0, covariant = 1, contravariant = 2, invariant = 3, 
 
 abstract type DartType extends Node {}
 
-type BottomType extends DartType {
-  Byte tag = 89;
-}
-
 type NeverType extends DartType {
   Byte tag = 98;
   Byte nullability; // Index into the Nullability enum above.
@@ -1487,7 +1506,7 @@ type TypeParameter {
   Byte variance; // Index into the Variance enum above
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
-  Option<DartType> defaultType; // type used when the parameter is not passed
+  DartType defaultType; // type used when the parameter is not passed
 }
 
 ```

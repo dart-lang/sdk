@@ -11,21 +11,37 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveQuestionMark extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_QUESTION_MARK;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_QUESTION_MARK_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! TypeName) {
-      return;
+    AstNode? targetNode = node;
+    if (targetNode is VariableDeclaration) {
+      var parent = targetNode.parent;
+      if (parent is VariableDeclarationList) {
+        targetNode = parent.type;
+      } else {
+        return;
+      }
     }
-    var typeName = node as TypeName;
-    var questionMark = typeName.question;
-    if (questionMark == null) {
-      return;
+    if (targetNode is TypeName) {
+      var questionMark = targetNode.question;
+      if (questionMark == null) {
+        return;
+      }
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.token(questionMark));
+      });
     }
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(range.token(questionMark));
-    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

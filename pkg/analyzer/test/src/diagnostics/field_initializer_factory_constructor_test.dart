@@ -19,25 +19,25 @@ class FieldInitializerFactoryConstructorTest extends PubPackageResolutionTest {
   test_fieldFormalParameter() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int x = 0;
   factory A(this.x) => throw 0;
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 31, 6),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 35, 6),
     ]);
   }
 
   test_functionTypedParameter() async {
     await assertErrorsInCode(r'''
 class A {
-  int Function() x;
+  int Function()? x;
   factory A(int this.x());
 }
 ''', [
       // TODO(srawlins): Only report one error. Theoretically change Fasta to
       // report "Field initiailizer in factory constructor" as a parse error.
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 42, 12),
-      error(ParserErrorCode.MISSING_FUNCTION_BODY, 55, 1),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 43, 12),
+      error(ParserErrorCode.MISSING_FUNCTION_BODY, 56, 1),
     ]);
   }
 }

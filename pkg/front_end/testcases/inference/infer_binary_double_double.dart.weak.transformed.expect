@@ -1,0 +1,46 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::bool* a_equal = 1.0 =={core::num::==}{(core::Object*) →* core::bool*} 2.0;
+static field core::bool* a_notEqual = !(1.0 =={core::num::==}{(core::Object*) →* core::bool*} 2.0);
+static field core::double* a_add = 1.0.{core::double::+}(2.0){(core::num*) →* core::double*};
+static field core::double* a_subtract = 1.0.{core::double::-}(2.0){(core::num*) →* core::double*};
+static field core::double* a_multiply = 1.0.{core::double::*}(2.0){(core::num*) →* core::double*};
+static field core::double* a_divide = 1.0.{core::double::/}(2.0){(core::num*) →* core::double*};
+static field core::int* a_floorDivide = 1.0.{core::double::~/}(2.0){(core::num*) →* core::int*};
+static field core::bool* a_greater = 1.0.{core::num::>}(2.0){(core::num*) →* core::bool*};
+static field core::bool* a_less = 1.0.{core::num::<}(2.0){(core::num*) →* core::bool*};
+static field core::bool* a_greaterEqual = 1.0.{core::num::>=}(2.0){(core::num*) →* core::bool*};
+static field core::bool* a_lessEqual = 1.0.{core::num::<=}(2.0){(core::num*) →* core::bool*};
+static field core::double* a_modulo = 1.0.{core::double::%}(2.0){(core::num*) →* core::double*};
+static method main() → dynamic {
+  self::a_equal;
+  self::a_notEqual;
+  self::a_add;
+  self::a_subtract;
+  self::a_multiply;
+  self::a_divide;
+  self::a_floorDivide;
+  self::a_greater;
+  self::a_less;
+  self::a_greaterEqual;
+  self::a_lessEqual;
+  self::a_modulo;
+}
+
+
+Extra constant evaluation status:
+Evaluated: EqualsCall @ org-dartlang-testcase:///infer_binary_double_double.dart:8:38 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///infer_binary_double_double.dart:9:41 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:10:38 -> DoubleConstant(3.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:11:43 -> DoubleConstant(-1.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:12:43 -> DoubleConstant(2.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:13:42 -> DoubleConstant(0.5)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:14:48 -> IntConstant(0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:15:39 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:16:36 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:17:45 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:18:42 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_double_double.dart:19:41 -> DoubleConstant(1.0)
+Extra constant evaluation: evaluated: 24, effectively constant: 12

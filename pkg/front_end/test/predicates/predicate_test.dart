@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -9,11 +11,17 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
+import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/printer.dart';
 import 'package:kernel/target/targets.dart';
+
+const String isNullMarker = 'is-null';
+const String sentinelMarker = 'sentinel';
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
@@ -22,20 +30,33 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const PredicateDataComputer(), [
-        const TestConfig(cfeMarker, 'cfe',
+        const TestConfig(isNullMarker, 'use is-null',
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
             targetFlags: const TargetFlags(
-                forceLateLoweringsForTesting: LateLowering.all))
+                forceLateLoweringsForTesting: LateLowering.all,
+                forceLateLoweringSentinelForTesting: false),
+            nnbdMode: NnbdMode.Strong),
+        const TestConfig(sentinelMarker, 'use sentinel',
+            explicitExperimentalFlags: const {
+              ExperimentalFlag.nonNullable: true
+            },
+            targetFlags: const TargetFlags(
+                forceLateLoweringsForTesting: LateLowering.all,
+                forceLateLoweringSentinelForTesting: true),
+            nnbdMode: NnbdMode.Strong)
       ]));
 }
 
 class Tags {
   static const String lateField = 'lateField';
+  static const String lateFieldName = 'lateFieldName';
   static const String lateIsSetField = 'lateIsSetField';
   static const String lateFieldGetter = 'lateFieldGetter';
   static const String lateFieldSetter = 'lateFieldSetter';
+  static const String lateFieldTarget = 'lateFieldTarget';
+  static const String lateFieldInitializer = 'lateFieldInitializer';
 
   static const String lateLocal = 'lateLocal';
   static const String lateIsSetLocal = 'lateIsSetLocal';
@@ -95,19 +116,44 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
       Features features = new Features();
       if (isLateLoweredField(node)) {
         features.add(Tags.lateField);
+        features[Tags.lateFieldName] =
+            extractFieldNameFromLateLoweredField(node).text;
       }
       if (isLateLoweredIsSetField(node)) {
         features.add(Tags.lateIsSetField);
+        features[Tags.lateFieldName] =
+            extractFieldNameFromLateLoweredIsSetField(node).text;
+      }
+      Field target = getLateFieldTarget(node);
+      if (target != null) {
+        features[Tags.lateFieldTarget] = getQualifiedMemberName(target);
+      }
+      Expression initializer = getLateFieldInitializer(node);
+      if (initializer != null) {
+        features[Tags.lateFieldInitializer] =
+            initializer.toText(astTextStrategyForTesting);
       }
       return features;
     } else if (node is Procedure) {
       Features features = new Features();
       if (isLateLoweredFieldGetter(node)) {
         features.add(Tags.lateFieldGetter);
+        features[Tags.lateFieldName] =
+            extractFieldNameFromLateLoweredFieldGetter(node).text;
       }
-
       if (isLateLoweredFieldSetter(node)) {
         features.add(Tags.lateFieldSetter);
+        features[Tags.lateFieldName] =
+            extractFieldNameFromLateLoweredFieldSetter(node).text;
+      }
+      Field target = getLateFieldTarget(node);
+      if (target != null) {
+        features[Tags.lateFieldTarget] = getQualifiedMemberName(target);
+      }
+      Expression initializer = getLateFieldInitializer(node);
+      if (initializer != null) {
+        features[Tags.lateFieldInitializer] =
+            initializer.toText(astTextStrategyForTesting);
       }
       return features;
     }

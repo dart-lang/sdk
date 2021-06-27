@@ -21,30 +21,30 @@ class ConvertToOnType extends CorrectionProducer {
     var exceptionParameter = node;
     if (exceptionParameter is SimpleIdentifier) {
       var catchClause = exceptionParameter.parent;
-      if (catchClause is CatchClause &&
-          catchClause.exceptionType == null &&
-          catchClause.exceptionParameter == exceptionParameter) {
-        var exceptionTypeName = exceptionParameter.name;
-        fixArguments.add(exceptionTypeName);
-        await builder.addDartFileEdit(file, (builder) {
-          if (catchClause.stackTraceParameter != null) {
-            builder.addSimpleReplacement(
-              range.startStart(
-                catchClause.catchKeyword,
-                catchClause.stackTraceParameter,
-              ),
-              'on $exceptionTypeName catch (_, ',
-            );
-          } else {
-            builder.addSimpleReplacement(
-              range.startEnd(
-                catchClause.catchKeyword,
-                catchClause.rightParenthesis,
-              ),
-              'on $exceptionTypeName',
-            );
-          }
-        });
+      if (catchClause is CatchClause) {
+        var catchKeyword = catchClause.catchKeyword;
+        var rightParenthesis = catchClause.rightParenthesis;
+        if (catchKeyword != null &&
+            catchClause.exceptionType == null &&
+            catchClause.exceptionParameter == exceptionParameter &&
+            rightParenthesis != null) {
+          var exceptionTypeName = exceptionParameter.name;
+          fixArguments.add(exceptionTypeName);
+          await builder.addDartFileEdit(file, (builder) {
+            var stackTraceParameter = catchClause.stackTraceParameter;
+            if (stackTraceParameter != null) {
+              builder.addSimpleReplacement(
+                range.startStart(catchKeyword, stackTraceParameter),
+                'on $exceptionTypeName catch (_, ',
+              );
+            } else {
+              builder.addSimpleReplacement(
+                range.startEnd(catchKeyword, rightParenthesis),
+                'on $exceptionTypeName',
+              );
+            }
+          });
+        }
       }
     }
   }

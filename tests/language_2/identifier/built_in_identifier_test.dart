@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that we can use pseudo keywords as names in function level code.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class PseudoKWTest {

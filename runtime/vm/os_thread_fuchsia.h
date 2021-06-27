@@ -18,7 +18,7 @@
 namespace dart {
 
 typedef pthread_key_t ThreadLocalKey;
-typedef zx_koid_t ThreadId;
+typedef zx_handle_t ThreadId;
 typedef pthread_t ThreadJoinId;
 
 static const ThreadLocalKey kUnsetThreadLocalKey =

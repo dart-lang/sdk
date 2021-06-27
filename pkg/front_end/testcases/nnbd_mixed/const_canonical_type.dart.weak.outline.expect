@@ -1,0 +1,65 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "const_canonical_type_lib.dart" as con;
+import "dart:core" as core;
+
+import "dart:async";
+import "org-dartlang-testcase:///const_canonical_type_lib.dart" as oo;
+
+typedef F1 = () → con::A<FutureOr<dynamic>>;
+typedef F2 = () → con::A<dynamic>;
+typedef F3 = () → con::A<FutureOr<FutureOr<dynamic>?>>;
+typedef F4 = () → con::A<dynamic>;
+class Check extends core::Object /*hasConstConstructor*/  {
+  final field dynamic _ignored;
+  const constructor •(dynamic x, dynamic y) → self::Check
+    : assert(core::identical(x, y)), self::Check::_ignored = core::identical(x, y) ?{core::int} 42 : 1.{core::num::~/}(0){(core::num) → core::int}, super core::Object::•()
+    ;
+}
+static method expectEqual(dynamic x, dynamic y) → void
+  ;
+static method test1() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as con;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef F1 = () →* con::A<FutureOr<dynamic>*>*;
+typedef F2 = () →* con::A<dynamic>*;
+typedef F3 = () →* con::A<FutureOr<FutureOr<dynamic>*>*>*;
+typedef F4 = () →* con::A<dynamic>*;
+class A<X extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → con::A<con::A::X*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field core::Type* c = con::A<dynamic>*;
+static field core::Type* v;
+static const field con::A<core::List<() →* con::A<FutureOr<dynamic>*>*>*>* a1 = const con::A::•<core::List<() →* con::A<FutureOr<dynamic>*>*>*>();
+static const field con::A<core::List<() →* con::A<dynamic>*>*>* a2 = const con::A::•<core::List<() →* con::A<dynamic>*>*>();
+static const field con::A<core::List<() →* con::A<FutureOr<FutureOr<dynamic>*>*>*>*>* a3 = const con::A::•<core::List<() →* con::A<FutureOr<FutureOr<dynamic>*>*>*>*>();
+static const field con::A<core::List<() →* con::A<dynamic>*>*>* a4 = const con::A::•<core::List<() →* con::A<dynamic>*>*>();
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///const_canonical_type_lib.dart:18:11 -> TypeLiteralConstant(A<dynamic>*)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_canonical_type_lib.dart:21:12 -> InstanceConstant(const A<List<A<dynamic>* Function()*>*>{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_canonical_type_lib.dart:22:12 -> InstanceConstant(const A<List<A<dynamic>* Function()*>*>{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_canonical_type_lib.dart:23:12 -> InstanceConstant(const A<List<A<dynamic>* Function()*>*>{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_canonical_type_lib.dart:24:12 -> InstanceConstant(const A<List<A<dynamic>* Function()*>*>{})
+Extra constant evaluation: evaluated: 13, effectively constant: 5

@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class ConstEvalThrowsExceptionTest extends PubPackageResolutionTest
-    with ConstEvalThrowsExceptionTestCases {
+    with WithoutNullSafetyMixin, ConstEvalThrowsExceptionTestCases {
   test_binaryMinus_null() async {
     await assertErrorsInCode('''
 const dynamic D = null;
@@ -238,7 +238,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 29),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 49, 48),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 15),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 1),
     ]);
   }
 
@@ -250,7 +250,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 15),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 54, 1),
     ]);
   }
 

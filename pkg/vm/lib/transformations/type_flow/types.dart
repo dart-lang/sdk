@@ -82,9 +82,7 @@ abstract class TypesBuilder {
       result = new ConeType(getTFClass(cls));
     } else if (type == const DynamicType() || type == const VoidType()) {
       result = const AnyType();
-    } else if (type == const BottomType() ||
-        type is NeverType ||
-        type is NullType) {
+    } else if (type is NeverType || type is NullType) {
       result = const EmptyType();
     } else if (type is FunctionType) {
       // TODO(alexmarkov): support function types
@@ -129,8 +127,14 @@ abstract class TypeHierarchy extends TypesBuilder
   bool isSubtype(Class sub, Class sup);
 
   /// Return a more specific type for the type cone with [base] root.
-  /// May return EmptyType, AnyType, ConcreteType or a SetType.
-  Type specializeTypeCone(TFClass base);
+  /// May return EmptyType, AnyType, WideConeType, ConcreteType or a SetType.
+  /// WideConeType can be returned only if [allowWideCone].
+  ///
+  /// This method is used when calculating type flow throughout the program.
+  /// It is correct (although less accurate) for [specializeTypeCone] to return
+  /// a larger set. In such case analysis would admit that a larger set of
+  /// values can flow through the program.
+  Type specializeTypeCone(TFClass base, {bool allowWideCone = false});
 
   Type _cachedIntType;
   Type get intType {
@@ -184,9 +188,19 @@ abstract class Type extends TypeExpr {
   Type specialize(TypeHierarchy typeHierarchy) => this;
 
   /// Calculate union of this and [other] types.
+  ///
+  /// This method is used when calculating type flow throughout the program.
+  /// It is correct (although less accurate) for [union] to return
+  /// a larger set. In such case analysis would admit that a larger set of
+  /// values can flow through the program.
   Type union(Type other, TypeHierarchy typeHierarchy);
 
   /// Calculate intersection of this and [other] types.
+  ///
+  /// This method is used when calculating type flow throughout the program.
+  /// It is correct (although less accurate) for [intersection] to return
+  /// a larger set. In such case analysis would admit that a larger set of
+  /// values can flow through the program.
   Type intersection(Type other, TypeHierarchy typeHierarchy);
 }
 
@@ -197,6 +211,7 @@ enum TypeOrder {
   Empty,
   Nullable,
   Any,
+  WideCone,
   Set,
   Cone,
   Concrete,
@@ -502,7 +517,7 @@ class SetType extends Type {
           : new SetType(_unionLists(types, <ConcreteType>[other]));
     } else if (other is ConeType) {
       return typeHierarchy
-          .specializeTypeCone(other.cls)
+          .specializeTypeCone(other.cls, allowWideCone: true)
           .union(this, typeHierarchy);
     } else {
       throw 'Unexpected type $other';
@@ -535,7 +550,7 @@ class SetType extends Type {
       return EmptyType();
     } else if (other is ConeType) {
       return typeHierarchy
-          .specializeTypeCone(other.cls)
+          .specializeTypeCone(other.cls, allowWideCone: true)
           .intersection(this, typeHierarchy);
     } else {
       throw 'Unexpected type $other';
@@ -552,8 +567,9 @@ class ConeType extends Type {
   ConeType(this.cls);
 
   @override
-  Class getConcreteClass(TypeHierarchy typeHierarchy) =>
-      typeHierarchy.specializeTypeCone(cls).getConcreteClass(typeHierarchy);
+  Class getConcreteClass(TypeHierarchy typeHierarchy) => typeHierarchy
+      .specializeTypeCone(cls, allowWideCone: true)
+      .getConcreteClass(typeHierarchy);
 
   @override
   bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
@@ -588,7 +604,7 @@ class ConeType extends Type {
 
   @override
   Type specialize(TypeHierarchy typeHierarchy) =>
-      typeHierarchy.specializeTypeCone(cls);
+      typeHierarchy.specializeTypeCone(cls, allowWideCone: true);
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
@@ -611,7 +627,9 @@ class ConeType extends Type {
         return this;
       }
     }
-    return typeHierarchy.specializeTypeCone(cls).union(other, typeHierarchy);
+    return typeHierarchy
+        .specializeTypeCone(cls, allowWideCone: true)
+        .union(other, typeHierarchy);
   }
 
   @override
@@ -638,8 +656,98 @@ class ConeType extends Type {
       }
     }
     return typeHierarchy
-        .specializeTypeCone(cls)
+        .specializeTypeCone(cls, allowWideCone: true)
         .intersection(other, typeHierarchy);
+  }
+}
+
+/// Type representing a subtype cone which has too many concrete classes.
+/// It contains instances of all Dart types which extend, mix-in or implement
+/// certain class.
+class WideConeType extends ConeType {
+  WideConeType(TFClass cls) : super(cls);
+
+  @override
+  Class getConcreteClass(TypeHierarchy typeHierarchy) => null;
+
+  @override
+  int get hashCode => (cls.id + 41) & kHashMask;
+
+  @override
+  bool operator ==(other) =>
+      identical(this, other) ||
+      (other is WideConeType) && identical(this.cls, other.cls);
+
+  @override
+  int get order => TypeOrder.WideCone.index;
+
+  @override
+  bool get isSpecialized => true;
+
+  @override
+  Type specialize(TypeHierarchy typeHierarchy) => this;
+
+  @override
+  Type union(Type other, TypeHierarchy typeHierarchy) {
+    if (identical(this, other)) return this;
+    if (other.order < this.order) {
+      return other.union(this, typeHierarchy);
+    }
+    if (other is ConeType) {
+      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+        return this;
+      }
+      if (typeHierarchy.isSubtype(this.cls.classNode, other.cls.classNode)) {
+        return other;
+      }
+    } else if (other is ConcreteType) {
+      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+        return this;
+      }
+      if (typeHierarchy.isSubtype(this.cls.classNode, other.cls.classNode)) {
+        return ConeType(other.cls);
+      }
+    } else if (other is SetType) {
+      bool subtypes = true;
+      for (ConcreteType t in other.types) {
+        if (!typeHierarchy.isSubtype(t.cls.classNode, this.cls.classNode)) {
+          subtypes = false;
+          break;
+        }
+      }
+      if (subtypes) {
+        return this;
+      }
+    } else {
+      throw 'Unexpected type $other';
+    }
+    // Wider approximation.
+    return const AnyType();
+  }
+
+  @override
+  Type intersection(Type other, TypeHierarchy typeHierarchy) {
+    if (identical(this, other)) return this;
+    if (other.order < this.order) {
+      return other.intersection(this, typeHierarchy);
+    }
+    if (other is ConeType) {
+      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+        return other;
+      }
+    } else if (other is ConcreteType) {
+      if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
+        return other;
+      } else {
+        return const EmptyType();
+      }
+    } else if (other is SetType) {
+      return other;
+    } else {
+      throw 'Unexpected type $other';
+    }
+    // Wider approximation.
+    return this;
   }
 }
 
@@ -735,8 +843,16 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     if (rhs is FutureOrType) {
       if (typeHierarchy.isSubtype(
           cls.classNode, typeHierarchy.coreTypes.futureClass)) {
+        Type typeArg;
+        if (typeArgs == null) {
+          typeArg = const UnknownType();
+        } else {
+          final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
+              cls.classNode, typeHierarchy.coreTypes.futureClass);
+          typeArg = typeArgs[interfaceOffset];
+        }
         final RuntimeType lhs =
-            typeArgs == null ? RuntimeType(DynamicType(), null) : typeArgs[0];
+            typeArg is RuntimeType ? typeArg : RuntimeType(DynamicType(), null);
         return lhs.isSubtypeOfRuntimeType(
             typeHierarchy, runtimeType.typeArgs[0]);
       } else {
@@ -1039,13 +1155,10 @@ class RuntimeType extends Type {
         rhs.nullability == Nullability.nonNullable) {
       return false;
     }
-    if (rhs is DynamicType ||
-        rhs is VoidType ||
-        _type is BottomType ||
-        _type is NeverType) {
+    if (rhs is DynamicType || rhs is VoidType || _type is NeverType) {
       return true;
     }
-    if (rhs is BottomType || rhs is NeverType) return false;
+    if (rhs is NeverType) return false;
     if (_type is DynamicType || _type is VoidType) {
       return (rhs is InterfaceType &&
           rhs.classNode == typeHierarchy.coreTypes.objectClass);

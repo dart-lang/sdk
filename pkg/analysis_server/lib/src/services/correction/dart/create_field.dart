@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateField extends CorrectionProducer {
   /// The name of the field to be created.
-  String _fieldName;
+  String _fieldName = '';
 
   @override
   List<Object> get fixArguments => [_fieldName];
@@ -36,9 +36,15 @@ class CreateField extends CorrectionProducer {
     if (targetClassNode == null) {
       return;
     }
+
     var nameNode = parameter.identifier;
     _fieldName = nameNode.name;
+
     var targetLocation = utils.prepareNewFieldLocation(targetClassNode);
+    if (targetLocation == null) {
+      return;
+    }
+
     //
     // Add proposal.
     //
@@ -54,13 +60,13 @@ class CreateField extends CorrectionProducer {
   }
 
   Future<void> _proposeFromIdentifier(ChangeBuilder builder) async {
-    if (node is! SimpleIdentifier) {
+    var nameNode = node;
+    if (nameNode is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier nameNode = node;
     _fieldName = nameNode.name;
     // prepare target Expression
-    Expression target;
+    Expression? target;
     {
       var nameParent = nameNode.parent;
       if (nameParent is PrefixedIdentifier) {
@@ -71,7 +77,7 @@ class CreateField extends CorrectionProducer {
     }
     // prepare target ClassElement
     var staticModifier = false;
-    ClassElement targetClassElement;
+    ClassElement? targetClassElement;
     if (target != null) {
       targetClassElement = getTargetClassElement(target);
       // maybe static
@@ -100,13 +106,20 @@ class CreateField extends CorrectionProducer {
     if (targetDeclarationResult == null) {
       return;
     }
-    if (targetDeclarationResult.node is! ClassOrMixinDeclaration) {
+    var targetNode = targetDeclarationResult.node;
+    if (targetNode is! ClassOrMixinDeclaration) {
       return;
     }
-    ClassOrMixinDeclaration targetNode = targetDeclarationResult.node;
     // prepare location
-    var targetLocation = CorrectionUtils(targetDeclarationResult.resolvedUnit)
-        .prepareNewFieldLocation(targetNode);
+    var targetUnit = targetDeclarationResult.resolvedUnit;
+    if (targetUnit == null) {
+      return;
+    }
+    var targetLocation =
+        CorrectionUtils(targetUnit).prepareNewFieldLocation(targetNode);
+    if (targetLocation == null) {
+      return;
+    }
     // build field source
     var targetSource = targetClassElement.source;
     var targetFile = targetSource.fullName;

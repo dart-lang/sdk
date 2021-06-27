@@ -1,0 +1,9 @@
+void main() {}
+void testNonNullableInitializedFinalLocal() {}
+void testNonNullableInitializedNonFinalLocal() {}
+void testNonNullableUninitializedFinalLocal() {}
+void testNonNullableUninitializedNonFinalLocal() {}
+void testNullableInitializedFinalLocal() {}
+void testNullableInitializedNonFinalLocal() {}
+void testNullableUninitializedFinalLocal() {}
+void testNullableUninitializedNonFinalLocal() {}

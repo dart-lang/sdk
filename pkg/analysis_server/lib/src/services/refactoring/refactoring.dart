@@ -46,7 +46,7 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
   /// [element] and all the corresponding hierarchy elements.
   factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
       AnalysisSession session, ExecutableElement element) {
-    return ConvertMethodToGetterRefactoringImpl(searchEngine, element);
+    return ConvertMethodToGetterRefactoringImpl(searchEngine, session, element);
   }
 }
 
@@ -209,7 +209,11 @@ abstract class InlineLocalRefactoring implements Refactoring {
   int get referenceCount;
 
   /// Returns the name of the variable being inlined.
-  String get variableName;
+  String? get variableName;
+
+  /// Return `true` if refactoring is available, possibly without checking all
+  /// initial conditions.
+  bool isAvailable();
 }
 
 /// [Refactoring] to inline an [ExecutableElement].
@@ -222,7 +226,7 @@ abstract class InlineMethodRefactoring implements Refactoring {
 
   /// The name of the class enclosing the method being inlined.
   /// If not a class member is being inlined, then `null`.
-  String get className;
+  String? get className;
 
   /// True if the method being inlined should be removed.
   /// It is an error if this field is `true` and [inlineAll] is `false`.
@@ -237,7 +241,11 @@ abstract class InlineMethodRefactoring implements Refactoring {
   bool get isDeclaration;
 
   /// The name of the method (or function) being inlined.
-  String get methodName;
+  String? get methodName;
+
+  /// Return `true` if refactoring is available, possibly without checking all
+  /// initial conditions.
+  bool isAvailable();
 }
 
 /// [Refactoring] to move/rename a file.
@@ -298,65 +306,26 @@ class RefactoringWorkspace {
 
   /// Whether the [element] is defined in a file that is in a context root.
   bool containsElement(Element element) {
-    return containsFile(element.source.fullName);
+    return containsFile(element.source!.fullName);
   }
 
   /// Whether the file with the given [path] is in a context root.
   bool containsFile(String path) {
     return drivers.any((driver) {
-      return driver.contextRoot.containsFile(path);
+      return driver.analysisContext!.contextRoot.isAnalyzed(path);
     });
   }
 
   /// Returns the drivers that have [path] in a context root.
   Iterable<AnalysisDriver> driversContaining(String path) {
     return drivers.where((driver) {
-      return driver.contextRoot.containsFile(path);
+      return driver.analysisContext!.contextRoot.isAnalyzed(path);
     });
   }
 }
 
 /// Abstract [Refactoring] for renaming some [Element].
 abstract class RenameRefactoring implements Refactoring {
-  /// Returns a new [RenameRefactoring] instance for renaming [element],
-  /// maybe `null` if there is no support for renaming [Element]s of the given
-  /// type.
-  factory RenameRefactoring(RefactoringWorkspace workspace,
-      ResolvedUnitResult resolvedUnit, Element element) {
-    var session = resolvedUnit.session;
-    if (element == null) {
-      return null;
-    }
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
-    if (element.enclosingElement is CompilationUnitElement) {
-      return RenameUnitMemberRefactoringImpl(workspace, resolvedUnit, element);
-    }
-    if (element is ConstructorElement) {
-      return RenameConstructorRefactoringImpl(workspace, session, element);
-    }
-    if (element is ImportElement) {
-      return RenameImportRefactoringImpl(workspace, session, element);
-    }
-    if (element is LabelElement) {
-      return RenameLabelRefactoringImpl(workspace, element);
-    }
-    if (element is LibraryElement) {
-      return RenameLibraryRefactoringImpl(workspace, element);
-    }
-    if (element is LocalElement) {
-      return RenameLocalRefactoringImpl(workspace, element);
-    }
-    if (element.enclosingElement is ClassElement) {
-      return RenameClassMemberRefactoringImpl(workspace, session, element);
-    }
-    if (element.enclosingElement is ExtensionElement) {
-      return RenameExtensionMemberRefactoringImpl(workspace, session, element);
-    }
-    return null;
-  }
-
   /// Returns the human-readable description of the kind of element being
   /// renamed (such as “class” or “function type alias”).
   String get elementKindName;
@@ -376,10 +345,52 @@ abstract class RenameRefactoring implements Refactoring {
   /// this level of checking.
   RefactoringStatus checkNewName();
 
+  /// Returns a new [RenameRefactoring] instance for renaming [element],
+  /// maybe `null` if there is no support for renaming [Element]s of the given
+  /// type.
+  static RenameRefactoring? create(RefactoringWorkspace workspace,
+      ResolvedUnitResult resolvedUnit, Element? element) {
+    var session = resolvedUnit.session;
+    if (element == null) {
+      return null;
+    }
+    if (element is PropertyAccessorElement) {
+      element = element.variable;
+    }
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is CompilationUnitElement) {
+      return RenameUnitMemberRefactoringImpl(workspace, resolvedUnit, element);
+    }
+    if (element is ConstructorElement) {
+      return RenameConstructorRefactoringImpl(workspace, session, element);
+    }
+    if (element is ImportElement) {
+      return RenameImportRefactoringImpl(workspace, session, element);
+    }
+    if (element is LabelElement) {
+      return RenameLabelRefactoringImpl(workspace, element);
+    }
+    if (element is LibraryElement) {
+      return RenameLibraryRefactoringImpl(workspace, element);
+    }
+    if (element is LocalElement) {
+      return RenameLocalRefactoringImpl(workspace, session, element);
+    }
+    if (enclosingElement is ClassElement) {
+      return RenameClassMemberRefactoringImpl(
+          workspace, session, enclosingElement, element);
+    }
+    if (enclosingElement is ExtensionElement) {
+      return RenameExtensionMemberRefactoringImpl(
+          workspace, session, enclosingElement, element);
+    }
+    return null;
+  }
+
   /// Given a node/element, finds the best element to rename (for example
   /// the class when on the `new` keyword).
-  static RenameRefactoringElement getElementToRename(
-      AstNode node, Element element) {
+  static RenameRefactoringElement? getElementToRename(
+      AstNode node, Element? element) {
     var offset = node.offset;
     var length = node.length;
 
@@ -388,14 +399,15 @@ abstract class RenameRefactoring implements Refactoring {
     }
 
     if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+      element = element.field;
     }
 
     // Use the prefix offset/length when renaming an import directive.
     if (node is ImportDirective && element is ImportElement) {
-      if (node.prefix != null) {
-        offset = node.prefix.offset;
-        length = node.prefix.length;
+      var prefix = node.prefix;
+      if (prefix != null) {
+        offset = prefix.offset;
+        length = prefix.length;
       } else {
         // -1 means the name does not exist yet.
         offset = -1;
@@ -410,6 +422,10 @@ abstract class RenameRefactoring implements Refactoring {
       element = typeIdentifier.staticElement;
       offset = typeIdentifier.offset;
       length = typeIdentifier.length;
+    }
+
+    if (element == null) {
+      return null;
     }
 
     return RenameRefactoringElement(element, offset, length);

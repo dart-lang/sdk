@@ -16,16 +16,7 @@ abstract class _F&B&D extends flu::B<self::E> implements flu2::D<self::E> /*isAn
   synthetic constructor •() → self::_F&B&D
     : super flu::B::•()
     ;
-  abstract member-signature operator /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature get /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /*isLegacy, from org-dartlang-testcase:///flutter_issue_63029_lib2.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
 class F extends self::_F&B&D {
   synthetic constructor •() → self::F
@@ -43,7 +34,7 @@ abstract class A extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class B<T extends flu::A = flu::A> extends core::Object {
+abstract class B<T extends flu::A> extends core::Object {
   synthetic constructor •() → flu::B<flu::B::T>
     : super core::Object::•()
     ;
@@ -71,7 +62,7 @@ class C extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-abstract class D<T extends flu::A* = flu::A*> extends flu::B<flu2::D::T*> implements flu2::C /*isMixinDeclaration*/  {
+abstract class D<T extends flu::A*> extends flu::B<flu2::D::T*> implements flu2::C /*isMixinDeclaration*/  {
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

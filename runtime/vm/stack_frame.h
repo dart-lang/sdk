@@ -28,7 +28,7 @@ namespace dart {
 class ObjectPointerVisitor;
 class LocalVariable;
 
-extern FrameLayout runtime_frame_layout;
+extern UntaggedFrame runtime_frame_layout;
 
 // Generic stack frame.
 class StackFrame : public ValueObject {
@@ -143,7 +143,7 @@ class StackFrame : public ValueObject {
         fp() + (kSavedCallerPcSlotFromFp * kWordSize)));
     ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow().EntryPoint());
     if (raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint()) {
-      return isolate_group()->FindPendingDeoptAtSafepoint(GetCallerFp());
+      return thread_->pending_deopts().FindPendingDeopt(GetCallerFp());
     }
     return raw_pc;
   }
@@ -210,7 +210,7 @@ class EntryFrame : public StackFrame {
 // Windows- where it is needed for the profiler. It is the responsibility of
 // users of StackFrameIterator to ensure that the thread given is not running
 // concurrently.
-class StackFrameIterator : public ValueObject {
+class StackFrameIterator {
  public:
   enum CrossThreadPolicy {
     kNoCrossThreadIteration = 0,
@@ -219,9 +219,9 @@ class StackFrameIterator : public ValueObject {
 
   // Iterators for iterating over all frames from the last ExitFrame to the
   // first EntryFrame.
-  explicit StackFrameIterator(ValidationPolicy validation_policy,
-                              Thread* thread,
-                              CrossThreadPolicy cross_thread_policy);
+  StackFrameIterator(ValidationPolicy validation_policy,
+                     Thread* thread,
+                     CrossThreadPolicy cross_thread_policy);
   StackFrameIterator(uword last_fp,
                      ValidationPolicy validation_policy,
                      Thread* thread,
@@ -235,6 +235,8 @@ class StackFrameIterator : public ValueObject {
                      ValidationPolicy validation_policy,
                      Thread* thread,
                      CrossThreadPolicy cross_thread_policy);
+
+  explicit StackFrameIterator(const StackFrameIterator& orig);
 
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
@@ -300,7 +302,6 @@ class StackFrameIterator : public ValueObject {
   Thread* thread_;
 
   friend class ProfilerDartStackWalker;
-  DISALLOW_COPY_AND_ASSIGN(StackFrameIterator);
 };
 
 // Iterator for iterating over all dart frames (skips over exit frames,
@@ -310,7 +311,7 @@ class StackFrameIterator : public ValueObject {
 // it is only allowed on Windows- where it is needed for the profiler.
 // It is the responsibility of users of DartFrameIterator to ensure that the
 // isolate given is not running concurrently on another thread.
-class DartFrameIterator : public ValueObject {
+class DartFrameIterator {
  public:
   explicit DartFrameIterator(
       Thread* thread,
@@ -339,6 +340,9 @@ class DartFrameIterator : public ValueObject {
                 thread,
                 cross_thread_policy) {}
 
+  explicit DartFrameIterator(const DartFrameIterator& orig)
+      : frames_(orig.frames_) {}
+
   // Get next dart frame.
   StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();
@@ -350,8 +354,6 @@ class DartFrameIterator : public ValueObject {
 
  private:
   StackFrameIterator frames_;
-
-  DISALLOW_COPY_AND_ASSIGN(DartFrameIterator);
 };
 
 // Iterator for iterating over all inlined dart functions in an optimized
@@ -365,7 +367,7 @@ class InlinedFunctionsIterator : public ValueObject {
 
   FunctionPtr function() const {
     ASSERT(!Done());
-    return function_.raw();
+    return function_.ptr();
   }
 
   uword pc() const {
@@ -375,7 +377,7 @@ class InlinedFunctionsIterator : public ValueObject {
 
   CodePtr code() const {
     ASSERT(!Done());
-    return code_.raw();
+    return code_.ptr();
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

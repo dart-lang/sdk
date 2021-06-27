@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
-import 'package:meta/meta.dart';
 
 /// The name of the type `dynamic`;
 const DYNAMIC = 'dynamic';
@@ -52,23 +51,22 @@ void addDefaultArgDetails(
     }
     offset = sb.length;
 
-    if (param.type is FunctionType) {
-      FunctionType type = param.type;
-
+    var parameterType = param.type;
+    if (parameterType is FunctionType) {
       var rangeStart = offset;
       int rangeLength;
 
       // todo (pq): consider adding ranges for params
       // pending: https://github.com/dart-lang/sdk/issues/40207
       // (types in closure param completions make this UX awkward)
-      final parametersString = buildClosureParameters(type);
+      final parametersString = buildClosureParameters(parameterType);
       final blockBuffer = StringBuffer(parametersString);
 
       blockBuffer.write(' ');
 
       // todo (pq): consider refactoring to share common logic w/
       //  ArgListContributor.buildClosureSuggestions
-      final returnType = type.returnType;
+      final returnType = parameterType.returnType;
       if (returnType.isVoid) {
         blockBuffer.write('{');
         rangeStart = sb.length + blockBuffer.length;
@@ -116,6 +114,7 @@ String buildClosureParameters(FunctionType type) {
   var hasNamed = false;
   var hasOptionalPositional = false;
   var parameters = type.parameters;
+  var existingNames = parameters.map((p) => p.name).toSet();
   for (var i = 0; i < parameters.length; ++i) {
     var parameter = parameters[i];
     if (i != 0) {
@@ -128,8 +127,16 @@ String buildClosureParameters(FunctionType type) {
       hasOptionalPositional = true;
       buffer.write('[');
     }
-    // todo (pq): consider abbreviating names
-    buffer.write(parameter.name);
+    var name = parameter.name;
+    if (name.isEmpty) {
+      name = 'p$i';
+      var index = 1;
+      while (existingNames.contains(name)) {
+        name = 'p${i}_$index';
+        index++;
+      }
+    }
+    buffer.write(name);
   }
 
   if (hasNamed) {
@@ -145,20 +152,13 @@ String buildClosureParameters(FunctionType type) {
 /// Create a new protocol Element for inclusion in a completion suggestion.
 protocol.Element createLocalElement(
     Source source, protocol.ElementKind kind, SimpleIdentifier id,
-    {String parameters,
-    TypeAnnotation returnType,
+    {String? parameters,
+    TypeAnnotation? returnType,
     bool isAbstract = false,
     bool isDeprecated = false}) {
-  String name;
-  Location location;
-  if (id != null) {
-    name = id.name;
-    // TODO(danrubel) use lineInfo to determine startLine and startColumn
-    location = Location(source.fullName, id.offset, id.length, 0, 0);
-  } else {
-    name = '';
-    location = Location(source.fullName, -1, 0, 1, 0);
-  }
+  var name = id.name;
+  // TODO(danrubel) use lineInfo to determine startLine and startColumn
+  var location = Location(source.fullName, id.offset, id.length, 0, 0, 0, 0);
   var flags = protocol.Element.makeFlags(
       isAbstract: isAbstract,
       isDeprecated: isDeprecated,
@@ -170,34 +170,31 @@ protocol.Element createLocalElement(
 }
 
 /// Return a default argument value for the given [parameter].
-DefaultArgument getDefaultStringParameterValue(ParameterElement parameter,
-    {@required bool withNullability}) {
-  if (parameter != null) {
-    var type = parameter.type;
-    if (type is InterfaceType) {
-      if (type.isDartCoreList) {
-        return DefaultArgument('[]', cursorPosition: 1);
-      } else if (type.isDartCoreMap) {
-        return DefaultArgument('{}', cursorPosition: 1);
-      } else if (type.isDartCoreString) {
-        return DefaultArgument("''", cursorPosition: 1);
-      }
-    } else if (type is FunctionType) {
-      var params = type.parameters
-          .map((p) =>
-              '${getTypeString(p.type, withNullability: withNullability)}${p.name}')
-          .join(', ');
-      // TODO(devoncarew): Support having this method return text with newlines.
-      var text = '($params) {  }';
-      return DefaultArgument(text, cursorPosition: text.length - 2);
+DefaultArgument? getDefaultStringParameterValue(ParameterElement parameter,
+    {required bool withNullability}) {
+  var type = parameter.type;
+  if (type is InterfaceType) {
+    if (type.isDartCoreList) {
+      return DefaultArgument('[]', cursorPosition: 1);
+    } else if (type.isDartCoreMap) {
+      return DefaultArgument('{}', cursorPosition: 1);
+    } else if (type.isDartCoreString) {
+      return DefaultArgument("''", cursorPosition: 1);
     }
+  } else if (type is FunctionType) {
+    var params = type.parameters
+        .map((p) =>
+            '${getTypeString(p.type, withNullability: withNullability)}${p.name}')
+        .join(', ');
+    // TODO(devoncarew): Support having this method return text with newlines.
+    var text = '($params) {  }';
+    return DefaultArgument(text, cursorPosition: text.length - 2);
   }
-
   return null;
 }
 
 String getRequestLineIndent(DartCompletionRequest request) {
-  var content = request.result.content;
+  var content = request.result.content!;
   var lineStartOffset = request.offset;
   var notWhitespaceOffset = request.offset;
   for (; lineStartOffset > 0; lineStartOffset--) {
@@ -212,7 +209,7 @@ String getRequestLineIndent(DartCompletionRequest request) {
   return content.substring(lineStartOffset, notWhitespaceOffset);
 }
 
-String getTypeString(DartType type, {@required bool withNullability}) {
+String getTypeString(DartType type, {required bool withNullability}) {
   if (type.isDynamic) {
     return '';
   } else {
@@ -220,26 +217,9 @@ String getTypeString(DartType type, {@required bool withNullability}) {
   }
 }
 
-/// Return `true` if the @deprecated annotation is present on the given [node].
-bool isDeprecated(AnnotatedNode node) {
-  if (node != null) {
-    var metadata = node.metadata;
-    if (metadata != null) {
-      return metadata.any((Annotation a) {
-        return a.name is SimpleIdentifier && a.name.name == 'deprecated';
-      });
-    }
-  }
-  return false;
-}
-
 /// Return name of the type of the given [identifier], or, if it unresolved, the
 /// name of its declared [declaredType].
-String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
-  if (identifier == null) {
-    return null;
-  }
-
+String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
   // Get the type from the identifier element.
   DartType type;
   var element = identifier.staticElement;
@@ -264,17 +244,10 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
   }
 
   // If the type is unresolved, use the declared type.
-  if (type != null && type.isDynamic) {
+  if (type.isDynamic) {
     if (declaredType is TypeName) {
-      var id = declaredType.name;
-      if (id != null) {
-        return id.name;
-      }
+      return declaredType.name.name;
     }
-    return DYNAMIC;
-  }
-
-  if (type == null) {
     return DYNAMIC;
   }
   return type.getDisplayString(withNullability: false);
@@ -287,7 +260,7 @@ class DefaultArgument {
 
   /// An optional location for the cursor, relative to the text's start. This
   /// field can be null.
-  final int cursorPosition;
+  final int? cursorPosition;
 
   DefaultArgument(this.text, {this.cursorPosition});
 }

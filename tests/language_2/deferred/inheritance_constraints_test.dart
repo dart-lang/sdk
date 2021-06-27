@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "inheritance_constraints_lib.dart" deferred as lib;
 
@@ -11,17 +13,17 @@ class Foo2 extends D {}
 
 class A extends lib.Foo {}
 //              ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.EXTENDS_DEFERRED_CLASS
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DEFERRED_CLASS
 
 class B implements lib.Foo {}
 //                 ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_DEFERRED_CLASS
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DEFERRED_CLASS
 
 class C1 {}
 
 class C = C1 with lib.Foo;
 //                ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_DEFERRED_CLASS
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DEFERRED_CLASS
 
 class D {
   D();

@@ -50,7 +50,6 @@
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
-#include "vm/timeline_analysis.h"
 #include "vm/visitor.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -61,7 +60,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_metrics);
-DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
@@ -106,6 +104,7 @@ DEFINE_FLAG(bool,
 // Quick access to the locally defined thread() and isolate() methods.
 #define T (thread())
 #define I (isolate())
+#define IG (isolate_group())
 
 #if defined(DEBUG)
 // Helper class to ensure that a live origin_id is never reused
@@ -124,8 +123,8 @@ class VerifyOriginId : public IsolateVisitor {
 
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
-  if (ApiObjectConverter::CanConvert(obj.raw())) {
-    return Message::New(dest_port, obj.raw(), Message::kNormalPriority);
+  if (ApiObjectConverter::CanConvert(obj.ptr())) {
+    return Message::New(dest_port, obj.ptr(), Message::kNormalPriority);
   } else {
     MessageWriter writer(false);
     return writer.WriteMessage(obj, dest_port, Message::kNormalPriority);
@@ -190,7 +189,7 @@ void IsolateGroupSource::add_loaded_blob(
     Array& new_array =
         Array::Handle(Array::Grow(loaded_blobs, length + 1, Heap::kOld));
     new_array.SetAt(length, weak_property);
-    loaded_blobs_ = new_array.raw();
+    loaded_blobs_ = new_array.ptr();
   }
   num_blob_loads_++;
 }
@@ -329,27 +328,37 @@ void MutatorThreadPool::NotifyIdle() {
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
-                           ObjectStore* object_store)
-    : embedder_data_(embedder_data),
+                           ObjectStore* object_store,
+                           Dart_IsolateFlags api_flags)
+    : shared_class_table_(new SharedClassTable()),
+      class_table_(new ClassTable(shared_class_table_.get())),
+      cached_class_table_table_(class_table_->table()),
+      object_store_(object_store),
+      embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
       isolates_(),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       is_system_isolate_group_(source->flags.is_system_isolate),
+      random_(),
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
+      reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif
       source_(std::move(source)),
       api_state_(new ApiState()),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
-      shared_class_table_(new SharedClassTable()),
-      object_store_(object_store),
-      class_table_(new ClassTable(shared_class_table_.get())),
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+      reload_handler_(new ReloadHandler()),
+#endif
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
       initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      background_compiler_(new BackgroundCompiler(this)),
+#endif
       symbols_lock_(new SafepointRwLock()),
       type_canonicalization_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
@@ -371,9 +380,17 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
           NOT_IN_PRODUCT("IsolateGroup::kernel_data_class_cache_mutex_")),
       kernel_constants_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::kernel_constants_mutex_")),
+      field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
+      boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
-      max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
+      max_active_mutators_(Scavenger::MaxMutatorThreadCount())
+#if !defined(PRODUCT)
+      ,
+      debugger_(new GroupDebugger(this))
+#endif
+{
+  FlagsCopyFrom(api_flags);
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
   if (!is_vm_isolate) {
     thread_pool_.reset(
@@ -388,8 +405,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
-                           void* embedder_data)
-    : IsolateGroup(source, embedder_data, new ObjectStore()) {
+                           void* embedder_data,
+                           Dart_IsolateFlags api_flags)
+    : IsolateGroup(source, embedder_data, new ObjectStore(), api_flags) {
   if (object_store() != nullptr) {
     object_store()->InitStubs();
   }
@@ -403,22 +421,36 @@ IsolateGroup::~IsolateGroup() {
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
+
+  if (obfuscation_map_ != nullptr) {
+    for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
+      delete[] obfuscation_map_[i];
+    }
+    delete[] obfuscation_map_;
+  }
+
+#if !defined(PRODUCT)
+  delete debugger_;
+  debugger_ = nullptr;
+#endif
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  RegisterIsolateLocked(isolate);
-}
-
-void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
-  ASSERT(isolates_lock_->IsCurrentThreadWriter());
-  isolates_.Append(isolate);
-  isolate_count_++;
+  {
+    SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+    ASSERT(isolates_lock_->IsCurrentThreadWriter());
+    isolates_.Append(isolate);
+    isolate_count_++;
+  }
+  NOT_IN_PRODUCT(NOT_IN_PRECOMPILED(reload_handler()->RegisterIsolate()));
 }
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
   SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  return isolate_count_ == 1;
+  // We do allow 0 here as well, because the background compiler might call
+  // this method while the mutator thread is in shutdown procedure and
+  // unregistered itself already.
+  return isolate_count_ == 0 || isolate_count_ == 1;
 }
 
 void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
@@ -427,8 +459,11 @@ void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
 }
 
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  isolates_.Remove(isolate);
+  NOT_IN_PRODUCT(NOT_IN_PRECOMPILED(reload_handler()->UnregisterIsolate()));
+  {
+    SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+    isolates_.Remove(isolate);
+  }
 }
 
 bool IsolateGroup::UnregisterIsolateDecrementCount(Isolate* isolate) {
@@ -511,7 +546,7 @@ void IsolateGroup::set_heap(std::unique_ptr<Heap> heap) {
 }
 
 void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
-  saved_unlinked_calls_ = saved_unlinked_calls.raw();
+  saved_unlinked_calls_ = saved_unlinked_calls.ptr();
 }
 
 Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
@@ -527,9 +562,9 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
   Thread* thread = nullptr;
   OSThread* os_thread = OSThread::Current();
   if (os_thread != nullptr) {
-    // If a safepoint operation is in progress wait for it
-    // to finish before scheduling this thread in.
-    while (!bypass_safepoint && safepoint_handler()->SafepointInProgress()) {
+    // If a safepoint operation is in progress wait for it to finish before
+    // scheduling this thread.
+    while (!bypass_safepoint && safepoint_handler()->AnySafepointInProgress()) {
       ml->Wait();
     }
 
@@ -616,7 +651,8 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->heap_ = nullptr;
   thread->set_os_thread(nullptr);
   thread->set_execution_state(Thread::kThreadInNative);
-  thread->set_safepoint_state(Thread::SetAtSafepoint(true, 0));
+  thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
+                              Thread::AtDeoptSafepointField::encode(true));
   thread->clear_pending_functions();
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (is_mutator) {
@@ -663,13 +699,14 @@ void IsolateGroup::UnscheduleThread(Thread* thread,
   UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
 }
 
-void IsolateGroup::IncreaseMutatorCount(Isolate* mutator) {
+void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
+                                        bool is_nested_reenter) {
   ASSERT(mutator->group() == this);
 
   // If the mutator was temporarily blocked on a worker thread, we have to
   // unblock the worker thread again.
-  Thread* mutator_thread = mutator->mutator_thread();
-  if (mutator_thread != nullptr && mutator_thread->top_exit_frame_info() != 0) {
+  if (is_nested_reenter) {
+    ASSERT(mutator->mutator_thread() != nullptr);
     thread_pool()->MarkCurrentWorkerAsUnBlocked();
   }
 
@@ -690,15 +727,14 @@ void IsolateGroup::IncreaseMutatorCount(Isolate* mutator) {
   }
 }
 
-void IsolateGroup::DecreaseMutatorCount(Isolate* mutator) {
+void IsolateGroup::DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit) {
   ASSERT(mutator->group() == this);
 
   // If the mutator thread has an active stack and runs on our thread pool we
   // will mark the worker as blocked, thereby possibly spawning a new worker for
   // pending tasks (if there are any).
-  Thread* mutator_thread = mutator->mutator_thread();
-  ASSERT(mutator_thread != nullptr);
-  if (mutator_thread->top_exit_frame_info() != 0) {
+  ASSERT(mutator->mutator_thread() != nullptr);
+  if (is_nested_exit) {
     thread_pool()->MarkCurrentWorkerAsBlocked();
   }
 
@@ -833,30 +869,22 @@ bool IsolateVisitor::IsSystemIsolate(Isolate* isolate) const {
 
 NoOOBMessageScope::NoOOBMessageScope(Thread* thread)
     : ThreadStackResource(thread) {
-  thread->DeferOOBMessageInterrupts();
+  if (thread->isolate() != nullptr) {
+    thread->DeferOOBMessageInterrupts();
+  }
 }
 
 NoOOBMessageScope::~NoOOBMessageScope() {
-  thread()->RestoreOOBMessageInterrupts();
-}
-
-NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
-    : ThreadStackResource(thread), isolate_(isolate) {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(isolate_ != NULL);
-  isolate_->no_reload_scope_depth_.fetch_add(1);
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-}
-
-NoReloadScope::~NoReloadScope() {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  isolate_->no_reload_scope_depth_.fetch_sub(1);
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (thread()->isolate() != nullptr) {
+    thread()->RestoreOOBMessageInterrupts();
+  }
 }
 
 Bequest::~Bequest() {
+  if (handle_ == nullptr) {
+    return;
+  }
+
   IsolateGroup* isolate_group = IsolateGroup::Current();
   CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
@@ -865,10 +893,10 @@ Bequest::~Bequest() {
   state->FreePersistentHandle(handle_);
 }
 
-void Isolate::RegisterClass(const Class& cls) {
+void IsolateGroup::RegisterClass(const Class& cls) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (group()->IsReloading()) {
-    reload_context()->RegisterClass(cls);
+  if (IsReloading()) {
+    program_reload_context()->RegisterClass(cls);
     return;
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -880,30 +908,31 @@ void Isolate::RegisterClass(const Class& cls) {
 }
 
 #if defined(DEBUG)
-void Isolate::ValidateClassTable() {
+void IsolateGroup::ValidateClassTable() {
   class_table()->Validate();
 }
 #endif  // DEBUG
 
 void IsolateGroup::RegisterStaticField(const Field& field,
-                                       const Instance& initial_value) {
+                                       const Object& initial_value) {
   ASSERT(program_lock()->IsCurrentThreadWriter());
 
   ASSERT(field.is_static());
   const bool need_to_grow_backing_store =
       initial_field_table()->Register(field);
   const intptr_t field_id = field.field_id();
-  initial_field_table()->SetAt(field_id, initial_value.raw());
+  initial_field_table()->SetAt(field_id, initial_value.ptr());
 
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
   if (need_to_grow_backing_store) {
     // We have to stop other isolates from accessing their field state, since
     // we'll have to grow the backing store.
-    SafepointOperationScope ops(Thread::Current());
+    GcSafepointOperationScope scope(Thread::Current());
     for (auto isolate : isolates_) {
       auto field_table = isolate->field_table();
       if (field_table->IsReadyToUse()) {
         field_table->Register(field, field_id);
-        field_table->SetAt(field_id, initial_value.raw());
+        field_table->SetAt(field_id, initial_value.ptr());
       }
     }
   } else {
@@ -911,13 +940,32 @@ void IsolateGroup::RegisterStaticField(const Field& field,
       auto field_table = isolate->field_table();
       if (field_table->IsReadyToUse()) {
         field_table->Register(field, field_id);
-        field_table->SetAt(field_id, initial_value.raw());
+        field_table->SetAt(field_id, initial_value.ptr());
       }
     }
   }
 }
 
-void Isolate::RehashConstants() {
+void IsolateGroup::FreeStaticField(const Field& field) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  // This can only be called during hot-reload.
+  ASSERT(program_reload_context() != nullptr);
+#endif
+
+  const intptr_t field_id = field.field_id();
+  initial_field_table()->Free(field_id);
+  ForEachIsolate([&](Isolate* isolate) {
+    auto field_table = isolate->field_table();
+    // The isolate might've just been created and is now participating in
+    // the reload request inside `IsolateGroup::RegisterIsolate()`.
+    // At that point it doesn't have the field table setup yet.
+    if (field_table->IsReadyToUse()) {
+      field_table->Free(field_id);
+    }
+  });
+}
+
+void IsolateGroup::RehashConstants() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
@@ -942,17 +990,20 @@ void Isolate::RehashConstants() {
 }
 
 #if defined(DEBUG)
-void Isolate::ValidateConstants() {
+void IsolateGroup::ValidateConstants() {
   if (FLAG_precompiled_mode) {
     // TODO(27003)
     return;
   }
+  // Issue(https://dartbug.com/44862): Figure out why hot-reload causes
+  // existence of non-canonical constants.
   if (HasAttemptedReload()) {
     return;
   }
+
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
-  BackgroundCompiler::Stop(this);
+  NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
   heap()->CollectAllGarbage();
   Thread* thread = Thread::Current();
   HeapIterationScope iteration(thread);
@@ -977,11 +1028,8 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
       writer.WriteMessage(msg, main_port(), Message::kOOBPriority));
 }
 
-void Isolate::set_object_store(ObjectStore* object_store) {
-  ASSERT(cached_object_store_ == nullptr);
-  object_store_shared_ptr_.reset(object_store);
-  cached_object_store_ = object_store;
-  isolate_object_store_->set_object_store(object_store);
+void IsolateGroup::set_object_store(ObjectStore* object_store) {
+  object_store_.reset(object_store);
 }
 
 class IsolateMessageHandler : public MessageHandler {
@@ -1003,6 +1051,7 @@ class IsolateMessageHandler : public MessageHandler {
 #endif
   bool IsCurrentIsolate() const;
   virtual Isolate* isolate() const { return isolate_; }
+  virtual IsolateGroup* isolate_group() const { return isolate_->group(); }
 
  private:
   // A result of false indicates that the isolate should terminate the
@@ -1103,7 +1152,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
             const UnwindError& error =
                 UnwindError::Handle(UnwindError::New(msg));
             error.set_is_user_initiated(true);
-            return error.raw();
+            return error.ptr();
           } else if (msg_type == Isolate::kInternalKillMsg) {
             const String& msg =
                 String::Handle(String::New("isolate terminated by vm"));
@@ -1144,7 +1193,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
       break;
     }
     case Isolate::kLowMemoryMsg: {
-      I->heap()->NotifyLowMemory();
+      I->group()->heap()->NotifyLowMemory();
       break;
     }
     case Isolate::kDrainServiceExtensionsMsg: {
@@ -1224,6 +1273,15 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
       I->SetErrorsFatal(Bool::Cast(obj).value());
       break;
     }
+    case Isolate::kCheckForReload: {
+      // [ OOB, kCheckForReload, ignored ]
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+      IG->reload_handler()->CheckForReload();
+#else
+      UNREACHABLE();
+#endif
+      break;
+    }
 #if defined(DEBUG)
     // Malformed OOB messages are silently ignored in release builds.
     default:
@@ -1290,12 +1348,20 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   if (message->IsRaw()) {
     msg_obj = message->raw_obj();
     // We should only be sending RawObjects that can be converted to CObjects.
-    ASSERT(ApiObjectConverter::CanConvert(msg_obj.raw()));
-  } else if (message->IsBequest()) {
-    Bequest* bequest = message->bequest();
-    PersistentHandle* handle = bequest->handle();
-    const Object& obj = Object::Handle(zone, handle->raw());
-    msg_obj = obj.raw();
+    ASSERT(ApiObjectConverter::CanConvert(msg_obj.ptr()));
+  } else if (message->IsPersistentHandle()) {
+    // msg_array = [<message>, <object-in-message-to-rehash>]
+    const auto& msg_array = Array::Handle(
+        zone, Array::RawCast(message->persistent_handle()->ptr()));
+    msg_obj = msg_array.At(0);
+    if (msg_array.At(1) != Object::null()) {
+      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
+      const auto& result = Object::Handle(
+          zone, DartLibraryCalls::RehashObjects(thread, objects_to_rehash));
+      if (result.ptr() != Object::null()) {
+        msg_obj = result.ptr();
+      }
+    }
   } else {
     MessageSnapshotReader reader(message.get(), thread);
     msg_obj = reader.ReadObject();
@@ -1313,7 +1379,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     UNREACHABLE();
   }
   Instance& msg = Instance::Handle(zone);
-  msg ^= msg_obj.raw();  // Can't use Instance::Cast because may be null.
+  msg ^= msg_obj.ptr();  // Can't use Instance::Cast because may be null.
 
   MessageStatus status = kOK;
   if (message->IsOOB()) {
@@ -1461,7 +1527,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
         T->isolate()->name(), result.ToErrorCString());
   }
 
-  NoReloadScope no_reload_scope(T->isolate(), T);
+  NoReloadScope no_reload(T);
   // Generate the error and stacktrace strings for the error message.
   const char* exception_cstr = nullptr;
   const char* stacktrace_cstr = nullptr;
@@ -1469,9 +1535,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     Zone* zone = T->zone();
     const UnhandledException& uhe = UnhandledException::Cast(result);
     const Instance& exception = Instance::Handle(zone, uhe.exception());
-    if (exception.raw() == I->object_store()->out_of_memory()) {
+    if (exception.ptr() == IG->object_store()->out_of_memory()) {
       exception_cstr = "Out of Memory";  // Cf. OutOfMemoryError.toString().
-    } else if (exception.raw() == I->object_store()->stack_overflow()) {
+    } else if (exception.ptr() == IG->object_store()->stack_overflow()) {
       exception_cstr = "Stack Overflow";  // Cf. StackOverflowError.toString().
     } else {
       const Object& exception_str =
@@ -1509,8 +1575,8 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
       if (result.IsUnhandledException()) {
         const UnhandledException& error = UnhandledException::Cast(result);
         InstancePtr exception = error.exception();
-        if ((exception == I->object_store()->out_of_memory()) ||
-            (exception == I->object_store()->stack_overflow())) {
+        if ((exception == IG->object_store()->out_of_memory()) ||
+            (exception == IG->object_store()->stack_overflow())) {
           // We didn't notify the debugger when the stack was full. Do it now.
           I->debugger()->PauseException(Instance::Handle(exception));
         }
@@ -1522,28 +1588,72 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
   return kOK;
 }
 
+void IsolateGroup::FlagsInitialize(Dart_IsolateFlags* api_flags) {
+  api_flags->version = DART_FLAGS_CURRENT_VERSION;
+#define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
+  api_flags->isolate_flag = flag;
+  BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FLAG)
+#undef INIT_FROM_FLAG
+  api_flags->copy_parent_code = false;
+}
+
+void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
+  api_flags->version = DART_FLAGS_CURRENT_VERSION;
+#define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
+  api_flags->isolate_flag = name();
+  BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FIELD)
+#undef INIT_FROM_FIELD
+  api_flags->copy_parent_code = false;
+}
+
+void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
+#if defined(DART_PRECOMPILER)
+#define FLAG_FOR_PRECOMPILER(action) action
+#else
+#define FLAG_FOR_PRECOMPILER(action)
+#endif
+
+#if !defined(PRODUCT)
+#define FLAG_FOR_NONPRODUCT(action) action
+#else
+#define FLAG_FOR_NONPRODUCT(action)
+#endif
+
+#define FLAG_FOR_PRODUCT(action) action
+
+#define SET_FROM_FLAG(when, name, bitname, isolate_flag, flag)                 \
+  FLAG_FOR_##when(isolate_group_flags_ = bitname##Bit::update(                 \
+                      api_flags.isolate_flag, isolate_group_flags_));
+
+  BOOL_ISOLATE_GROUP_FLAG_LIST(SET_FROM_FLAG)
+  // Needs to be called manually, otherwise we don't set the null_safety_set
+  // bit.
+  set_null_safety(api_flags.null_safety);
+#undef FLAG_FOR_NONPRODUCT
+#undef FLAG_FOR_PRECOMPILER
+#undef FLAG_FOR_PRODUCT
+#undef SET_FROM_FLAG
+}
+
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
-  const bool false_by_default = false;
-  const bool true_by_default = true;
-  USE(true_by_default);
-  USE(false_by_default);
+  IsolateGroup::FlagsInitialize(api_flags);
 
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
 #define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
   api_flags->isolate_flag = flag;
   BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
-  api_flags->entry_points = NULL;
   api_flags->copy_parent_code = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
+  group()->FlagsCopyTo(api_flags);
+
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
 #define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
   api_flags->isolate_flag = name();
   BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
-  api_flags->entry_points = NULL;
   api_flags->copy_parent_code = false;
 }
 
@@ -1569,34 +1679,10 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 
   BOOL_ISOLATE_FLAG_LIST(SET_FROM_FLAG)
   isolate_flags_ = CopyParentCodeBit::update(copy_parent_code_, isolate_flags_);
-  // Needs to be called manually, otherwise we don't set the null_safety_set
-  // bit.
-  set_null_safety(api_flags.null_safety);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
 #undef SET_FROM_FLAG
-
-  // Copy entry points list.
-  ASSERT(embedder_entry_points_ == NULL);
-  if (api_flags.entry_points != NULL) {
-    intptr_t count = 0;
-    while (api_flags.entry_points[count].function_name != NULL)
-      count++;
-    embedder_entry_points_ = new Dart_QualifiedFunctionName[count + 1];
-    for (intptr_t i = 0; i < count; i++) {
-      embedder_entry_points_[i].library_uri =
-          Utils::StrDup(api_flags.entry_points[i].library_uri);
-      embedder_entry_points_[i].class_name =
-          Utils::StrDup(api_flags.entry_points[i].class_name);
-      embedder_entry_points_[i].function_name =
-          Utils::StrDup(api_flags.entry_points[i].function_name);
-    }
-    memset(&embedder_entry_points_[count], 0,
-           sizeof(Dart_QualifiedFunctionName));
-  }
-
-  // Leave others at defaults.
 }
 
 #if defined(DEBUG)
@@ -1620,6 +1706,24 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 
 #define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(nullptr),
 
+class LibraryPrefixMapTraits {
+ public:
+  static bool ReportStats() { return false; }
+  static const char* Name() { return "LibraryPrefixMapTraits"; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    if (!a.IsLibraryPrefix() || !b.IsLibraryPrefix()) {
+      return false;
+    }
+    return a.ptr() == b.ptr();
+  }
+
+  static uword Hash(const Object& obj) {
+    auto& prefix = LibraryPrefix::Cast(obj);
+    return String::Hash(prefix.name());
+  }
+};
+
 // TODO(srdjan): Some Isolate monitors can be shared. Replace their usage with
 // that shared monitor.
 Isolate::Isolate(IsolateGroup* isolate_group,
@@ -1628,16 +1732,13 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
-      shared_class_table_(isolate_group->shared_class_table()),
       field_table_(new FieldTable(/*isolate=*/this)),
       isolate_group_(isolate_group),
-      isolate_object_store_(
-          new IsolateObjectStore(isolate_group->object_store())),
-      object_store_shared_ptr_(isolate_group->object_store_shared_ptr()),
-      class_table_(isolate_group->class_table_shared_ptr()),
+      isolate_object_store_(new IsolateObjectStore()),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
 #endif
+      isolate_flags_(0),
 #if !defined(PRODUCT)
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       vm_tag_counters_(),
@@ -1647,24 +1748,19 @@ Isolate::Isolate(IsolateGroup* isolate_group,
   metric_##variable##_(),
       ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
 #undef ISOLATE_METRIC_CONSTRUCTORS
-          reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif  // !defined(PRODUCT)
-      start_time_micros_(OS::GetCurrentMonotonicMicros()),
+          start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      message_notify_callback_(nullptr),
       on_shutdown_callback_(Isolate::ShutdownCallback()),
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
-      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       tag_table_(GrowableObjectArray::null()),
-      deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
-      field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
-      boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(),
       handler_info_cache_(),
-      catch_entry_moves_cache_() {
-  cached_object_store_ = object_store_shared_ptr_.get();
-  cached_class_table_table_ = class_table_->table();
+      catch_entry_moves_cache_(),
+      loaded_prefixes_set_storage_(nullptr) {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   // TODO(asiva): A Thread is not available here, need to figure out
@@ -1672,15 +1768,12 @@ Isolate::Isolate(IsolateGroup* isolate_group,
   // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
 
-  if (obfuscate()) {
+  if (group()->obfuscate()) {
     OS::PrintErr(
         "Warning: This VM has been configured to obfuscate symbol information "
         "which violates the Dart standard.\n"
         "         See dartbug.com/30524 for more information.\n");
   }
-
-  NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
-                         new BackgroundCompiler(this, /* optimizing = */ true));
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -1689,11 +1782,8 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 Isolate::~Isolate() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // TODO(32796): Re-enable assertion.
-  // RELEASE_ASSERT(reload_context_ == NULL);
+  // RELEASE_ASSERT(program_reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  delete optimizing_background_compiler_;
-  optimizing_background_compiler_ = nullptr;
 
 #if !defined(PRODUCT)
   delete debugger_;
@@ -1709,8 +1799,6 @@ Isolate::~Isolate() {
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
-  delete pending_deopts_;
-  pending_deopts_ = nullptr;
   delete message_handler_;
   message_handler_ =
       nullptr;  // Fail fast if we send messages to a dead isolate.
@@ -1723,23 +1811,6 @@ Isolate::~Isolate() {
   mutator_thread_->isolate_ = nullptr;
   delete mutator_thread_;
   mutator_thread_ = nullptr;
-
-  if (obfuscation_map_ != nullptr) {
-    for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
-      delete[] obfuscation_map_[i];
-    }
-    delete[] obfuscation_map_;
-  }
-
-  if (embedder_entry_points_ != nullptr) {
-    for (intptr_t i = 0; embedder_entry_points_[i].function_name != nullptr;
-         i++) {
-      free(const_cast<char*>(embedder_entry_points_[i].library_uri));
-      free(const_cast<char*>(embedder_entry_points_[i].class_name));
-      free(const_cast<char*>(embedder_entry_points_[i].function_name));
-    }
-    delete[] embedder_entry_points_;
-  }
 }
 
 void Isolate::InitVM() {
@@ -1767,7 +1838,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
     // Non-vm isolates need to have isolate object store initialized is that
     // exit_listeners have to be null-initialized as they will be used if
     // we fail to create isolate below, have to do low level shutdown.
-    ASSERT(result->object_store() != nullptr);
+    ASSERT(result->group()->object_store() != nullptr);
     result->isolate_object_store()->Init();
   }
 
@@ -1807,6 +1878,10 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   result->set_pause_capability(result->random()->NextUInt64());
   result->set_terminate_capability(result->random()->NextUInt64());
 
+#if !defined(PRODUCT)
+  result->debugger_ = new Debugger(result);
+#endif
+
   // Now we register the isolate in the group. From this point on any GC would
   // traverse the isolate roots (before this point, the roots are only pointing
   // to vm-isolate objects, e.g. null)
@@ -1822,9 +1897,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
-#if !defined(PRODUCT)
-  result->debugger_ = new Debugger(result);
-#endif
   if (FLAG_trace_isolates) {
     if (name_prefix == nullptr || strcmp(name_prefix, "vm-isolate") != 0) {
       OS::PrintErr(
@@ -1849,18 +1921,18 @@ Thread* Isolate::mutator_thread() const {
   return mutator_thread_;
 }
 
-ObjectPtr Isolate::CallTagHandler(Dart_LibraryTag tag,
-                                  const Object& arg1,
-                                  const Object& arg2) {
+ObjectPtr IsolateGroup::CallTagHandler(Dart_LibraryTag tag,
+                                       const Object& arg1,
+                                       const Object& arg2) {
   Thread* thread = Thread::Current();
   Api::Scope api_scope(thread);
-  Dart_Handle api_arg1 = Api::NewHandle(thread, arg1.raw());
-  Dart_Handle api_arg2 = Api::NewHandle(thread, arg2.raw());
+  Dart_Handle api_arg1 = Api::NewHandle(thread, arg1.ptr());
+  Dart_Handle api_arg2 = Api::NewHandle(thread, arg2.ptr());
   Dart_Handle api_result;
   {
     TransitionVMToNative transition(thread);
     ASSERT(HasTagHandler());
-    api_result = group()->library_tag_handler()(tag, api_arg1, api_arg2);
+    api_result = library_tag_handler()(tag, api_arg1, api_arg2);
   }
   return Api::UnwrapHandle(api_result);
 }
@@ -1877,7 +1949,8 @@ ObjectPtr Isolate::CallDeferredLoadHandler(intptr_t id) {
   return Api::UnwrapHandle(api_result);
 }
 
-void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
+void IsolateGroup::SetupImagePage(const uint8_t* image_buffer,
+                                  bool is_executable) {
   Image image(image_buffer);
   heap()->SetupImagePage(image.object_start(), image.object_size(),
                          is_executable);
@@ -1934,7 +2007,7 @@ ErrorPtr Isolate::PausePostRequest() {
   const Error& error = Error::Handle(debugger_->PausePostRequest());
   if (!error.IsNull()) {
     if (Thread::Current()->top_exit_frame_info() == 0) {
-      return error.raw();
+      return error.ptr();
     } else {
       Exceptions::PropagateError(error);
       UNREACHABLE();
@@ -1954,10 +2027,34 @@ void Isolate::BuildName(const char* name_prefix) {
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-bool Isolate::CanReload() const {
-  return !Isolate::IsSystemIsolate(this) && is_runnable() &&
-         !group()->IsReloading() && (no_reload_scope_depth_ == 0) &&
-         IsolateCreationEnabled() &&
+bool IsolateGroup::CanReload() {
+  // We only call this method on the mutator thread. Normally the caller is
+  // inside of the "reloadSources" service OOB message handler. Though
+  // we also use it in the slow path of StackOverflowCheck in the artificial
+  // --hot-reload-test-mode like flags.
+  //
+  // During reload itself we don't process OOB messages and don't execute Dart
+  // code, so the caller should implicitly have a guarantee we're not reloading
+  // already.
+  RELEASE_ASSERT(!IsReloading());
+
+  // We only allow reload to take place from the point on where the first
+  // isolate within an isolate group has setup it's root library. From that
+  // point on it's safe to perform hot-reload.
+  auto thread = Thread::Current();
+  if (object_store()->root_library() == Library::null()) {
+    return false;
+  }
+
+  // We only care about the current thread's [NoReloadScope]. If we're inside
+  // one we cannot reload right now. Though if another isolate's mutator
+  // thread is inside such a scope, the multi-isolate reload will simply wait
+  // until it's out of that scope again.
+  if (thread->no_reload_scope_depth_ != 0) {
+    return false;
+  }
+
+  return !IsolateGroup::IsSystemIsolateGroup(this) &&
          OSThread::Current()->HasStackHeadroom(64 * KB);
 }
 
@@ -1966,29 +2063,25 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
                                  const char* root_script_url,
                                  const char* packages_url,
                                  bool dont_delete_reload_context) {
-  ASSERT(!IsReloading());
+  // Ensure all isolates inside the isolate group are paused at a place where we
+  // can safely do a reload.
+  ReloadOperationScope reload_operation(Thread::Current());
 
-  // TODO(dartbug.com/36097): Support multiple isolates within an isolate group.
-  RELEASE_ASSERT(!FLAG_enable_isolate_groups);
-  RELEASE_ASSERT(isolates_.First() == isolates_.Last());
-  RELEASE_ASSERT(isolates_.First() == Isolate::Current());
+  ASSERT(!IsReloading());
 
   auto shared_class_table = IsolateGroup::Current()->shared_class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
       new IsolateGroupReloadContext(this, shared_class_table, js));
   group_reload_context_ = group_reload_context;
 
-  ForEachIsolate([&](Isolate* isolate) {
-    isolate->SetHasAttemptedReload(true);
-    isolate->reload_context_ =
-        new IsolateReloadContext(group_reload_context_, isolate);
-  });
+  SetHasAttemptedReload(true);
+  program_reload_context_ =
+      new ProgramReloadContext(group_reload_context_, this);
   const bool success =
       group_reload_context_->Reload(force_reload, root_script_url, packages_url,
                                     /*kernel_buffer=*/nullptr,
                                     /*kernel_buffer_size=*/0);
   if (!dont_delete_reload_context) {
-    ForEachIsolate([&](Isolate* isolate) { isolate->DeleteReloadContext(); });
     DeleteReloadContext();
   }
   return success;
@@ -1999,45 +2092,37 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
                                 const uint8_t* kernel_buffer,
                                 intptr_t kernel_buffer_size,
                                 bool dont_delete_reload_context) {
-  ASSERT(!IsReloading());
+  // Ensure all isolates inside the isolate group are paused at a place where we
+  // can safely do a reload.
+  ReloadOperationScope reload_operation(Thread::Current());
 
-  // TODO(dartbug.com/36097): Support multiple isolates within an isolate group.
-  RELEASE_ASSERT(!FLAG_enable_isolate_groups);
-  RELEASE_ASSERT(isolates_.First() == isolates_.Last());
-  RELEASE_ASSERT(isolates_.First() == Isolate::Current());
+  ASSERT(!IsReloading());
 
   auto shared_class_table = IsolateGroup::Current()->shared_class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
       new IsolateGroupReloadContext(this, shared_class_table, js));
   group_reload_context_ = group_reload_context;
 
-  ForEachIsolate([&](Isolate* isolate) {
-    isolate->SetHasAttemptedReload(true);
-    isolate->reload_context_ =
-        new IsolateReloadContext(group_reload_context_, isolate);
-  });
+  SetHasAttemptedReload(true);
+  program_reload_context_ =
+      new ProgramReloadContext(group_reload_context_, this);
   const bool success = group_reload_context_->Reload(
       force_reload,
       /*root_script_url=*/nullptr,
       /*packages_url=*/nullptr, kernel_buffer, kernel_buffer_size);
   if (!dont_delete_reload_context) {
-    ForEachIsolate([&](Isolate* isolate) { isolate->DeleteReloadContext(); });
     DeleteReloadContext();
   }
   return success;
 }
 
 void IsolateGroup::DeleteReloadContext() {
-  SafepointOperationScope safepoint_scope(Thread::Current());
-  group_reload_context_.reset();
-}
-
-void Isolate::DeleteReloadContext() {
   // Another thread may be in the middle of GetClassForHeapWalkAt.
-  SafepointOperationScope safepoint_scope(Thread::Current());
+  GcSafepointOperationScope safepoint_scope(Thread::Current());
+  group_reload_context_.reset();
 
-  delete reload_context_;
-  reload_context_ = nullptr;
+  delete program_reload_context_;
+  program_reload_context_ = nullptr;
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -2047,7 +2132,7 @@ const char* Isolate::MakeRunnable() {
   if (is_runnable() == true) {
     return "Isolate is already runnable";
   }
-  if (object_store()->root_library() == Library::null()) {
+  if (group()->object_store()->root_library() == Library::null()) {
     return "The embedder has to ensure there is a root library (e.g. by "
            "calling Dart_LoadScriptFromKernel ).";
   }
@@ -2058,7 +2143,7 @@ const char* Isolate::MakeRunnable() {
 void Isolate::MakeRunnableLocked() {
   ASSERT(mutex_.IsOwnedByCurrentThread());
   ASSERT(!is_runnable());
-  ASSERT(object_store()->root_library() != Library::null());
+  ASSERT(group()->object_store()->root_library() != Library::null());
 
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
@@ -2313,59 +2398,6 @@ void Isolate::Run() {
                          reinterpret_cast<uword>(this));
 }
 
-void Isolate::AddClosureFunction(const Function& function) const {
-  ASSERT(!Compiler::IsBackgroundCompilation());
-  GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(object_store()->closure_functions());
-  ASSERT(!closures.IsNull());
-  ASSERT(function.IsNonImplicitClosureFunction());
-  closures.Add(function, Heap::kOld);
-}
-
-// If the linear lookup turns out to be too expensive, the list
-// of closures could be maintained in a hash map, with the key
-// being the token position of the closure. There are almost no
-// collisions with this simple hash value. However, iterating over
-// all closure functions becomes more difficult, especially when
-// the list/map changes while iterating over it.
-FunctionPtr Isolate::LookupClosureFunction(const Function& parent,
-                                           TokenPosition token_pos) const {
-  const GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(object_store()->closure_functions());
-  ASSERT(!closures.IsNull());
-  Function& closure = Function::Handle();
-  intptr_t num_closures = closures.Length();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures.At(i);
-    if ((closure.token_pos() == token_pos) &&
-        (closure.parent_function() == parent.raw())) {
-      return closure.raw();
-    }
-  }
-  return Function::null();
-}
-
-intptr_t Isolate::FindClosureIndex(const Function& needle) const {
-  const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(object_store()->closure_functions());
-  intptr_t num_closures = closures_array.Length();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    if (closures_array.At(i) == needle.raw()) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-FunctionPtr Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
-  const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(object_store()->closure_functions());
-  if ((idx < 0) || (idx >= closures_array.Length())) {
-    return Function::null();
-  }
-  return Function::RawCast(closures_array.At(idx));
-}
-
 // static
 void Isolate::NotifyLowMemory() {
   Isolate::KillAllIsolates(Isolate::kLowMemoryMsg);
@@ -2380,7 +2412,7 @@ void Isolate::LowLevelShutdown() {
   NoSafepointScope no_safepoint_scope;
 
   // Notify exit listeners that this isolate is shutting down.
-  if (object_store() != nullptr) {
+  if (group()->object_store() != nullptr) {
     const Error& error = Error::Handle(thread->sticky_error());
     if (error.IsNull() || !error.IsUnwindError() ||
         UnwindError::Cast(error).is_user_initiated()) {
@@ -2394,29 +2426,16 @@ void Isolate::LowLevelShutdown() {
   // Fail fast if anybody tries to post any more messages to this isolate.
   delete message_handler();
   set_message_handler(nullptr);
-#if defined(SUPPORT_TIMELINE)
-  // Before analyzing the isolate's timeline blocks- reclaim all cached
-  // blocks.
-  Timeline::ReclaimCachedBlocksFromThreads();
-#endif
-
-// Dump all timing data for the isolate.
-#if defined(SUPPORT_TIMELINE) && !defined(PRODUCT)
-  if (FLAG_timing) {
-    TimelinePauseTrace tpt;
-    tpt.Print();
-  }
-#endif  // !PRODUCT
 
 #if !defined(PRODUCT)
   if (FLAG_dump_megamorphic_stats) {
     MegamorphicCacheTable::PrintSizes(this);
   }
   if (FLAG_dump_symbol_stats) {
-    Symbols::DumpStats(this);
+    Symbols::DumpStats(group());
   }
   if (FLAG_trace_isolates) {
-    heap()->PrintSizes();
+    group()->heap()->PrintSizes();
     OS::PrintErr(
         "[-] Stopping isolate:\n"
         "\tisolate:    %s\n",
@@ -2439,12 +2458,13 @@ void Isolate::LowLevelShutdown() {
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
+void IsolateGroup::MaybeIncreaseReloadEveryNStackOverflowChecks() {
   if (FLAG_reload_every_back_off) {
     if (reload_every_n_stack_overflow_checks_ < 5000) {
       reload_every_n_stack_overflow_checks_ += 99;
     } else {
-      reload_every_n_stack_overflow_checks_ *= 2;
+      const auto old_value = reload_every_n_stack_overflow_checks_;
+      reload_every_n_stack_overflow_checks_ = old_value * old_value;
     }
     // Cap the value.
     if (reload_every_n_stack_overflow_checks_ > 1000000) {
@@ -2464,12 +2484,8 @@ void Isolate::set_forward_table_old(WeakTable* table) {
 }
 
 void Isolate::Shutdown() {
-  ASSERT(this == Isolate::Current());
-  BackgroundCompiler::Stop(this);
-  delete optimizing_background_compiler_;
-  optimizing_background_compiler_ = nullptr;
-
   Thread* thread = Thread::Current();
+  ASSERT(this == thread->isolate());
 
   // Don't allow anymore dart code to execution on this isolate.
   thread->ClearStackLimit();
@@ -2478,7 +2494,6 @@ void Isolate::Shutdown() {
     StackZone zone(thread);
     HandleScope handle_scope(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
-    KernelIsolate::NotifyAboutIsolateShutdown(this);
 #if !defined(PRODUCT)
     debugger()->Shutdown();
 #endif
@@ -2486,7 +2501,7 @@ void Isolate::Shutdown() {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_check_reloaded && is_runnable() && !Isolate::IsSystemIsolate(this)) {
-    if (!HasAttemptedReload()) {
+    if (!group()->HasAttemptedReload()) {
       FATAL(
           "Isolate did not reload before exiting and "
           "--check-reloaded is enabled.\n");
@@ -2502,8 +2517,10 @@ void Isolate::Shutdown() {
   // This ensures that exit message comes last.
   if (bequest_.get() != nullptr) {
     auto beneficiary = bequest_->beneficiary();
-    PortMap::PostMessage(Message::New(beneficiary, bequest_.release(),
-                                      Message::kNormalPriority));
+    auto handle = bequest_->TakeHandle();
+    PortMap::PostMessage(
+        Message::New(beneficiary, handle, Message::kNormalPriority));
+    bequest_.reset();
   }
 
   LowLevelShutdown();
@@ -2523,7 +2540,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   }
 
   // Cache these two fields, since they are no longer available after the
-  // `delete this` further down.
+  // `delete isolate` further down.
   IsolateGroup* isolate_group = isolate->isolate_group_;
   Dart_IsolateCleanupCallback cleanup = isolate->on_cleanup_callback();
   auto callback_data = isolate->init_callback_data_;
@@ -2550,6 +2567,17 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   const bool shutdown_group =
       isolate_group->UnregisterIsolateDecrementCount(isolate);
   if (shutdown_group) {
+    KernelIsolate::NotifyAboutIsolateGroupShutdown(isolate_group);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (!is_vm_isolate) {
+      Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
+                                        /*bypass_safepoint=*/false);
+      BackgroundCompiler::Stop(isolate_group);
+      Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
     // The "vm-isolate" does not have a thread pool.
     ASSERT(is_vm_isolate == (isolate_group->thread_pool() == nullptr));
     if (is_vm_isolate ||
@@ -2572,7 +2600,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       Dart::thread_pool()->Run<ShutdownGroupTask>(isolate_group);
     }
   } else {
-    if (FLAG_enable_isolate_groups) {
+    if (IsolateGroup::AreIsolateGroupsEnabled()) {
       // TODO(dartbug.com/36097): An isolate just died. A significant amount of
       // memory might have become unreachable. We should evaluate how to best
       // inform the GC about this situation.
@@ -2597,19 +2625,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   ValidationPolicy validate_frames) {
   ASSERT(visitor != nullptr);
 
-  // Visit objects in the object store if there is no isolate group object store
-  if (group()->object_store() == nullptr && object_store() != nullptr) {
-    object_store()->VisitObjectPointers(visitor);
-  }
   // Visit objects in the isolate object store.
   if (isolate_object_store() != nullptr) {
     isolate_object_store()->VisitObjectPointers(visitor);
-  }
-
-  // Visit objects in the class table unless it's shared by the group.
-  // If it is shared, it is visited by IsolateGroup::VisitObjectPointers
-  if (group()->class_table() != class_table()) {
-    class_table()->VisitObjectPointers(visitor);
   }
 
   // Visit objects in the field table.
@@ -2623,7 +2641,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   if (isolate_group_ != nullptr) {
     if (isolate_group_->source()->loaded_blobs_ != nullptr) {
@@ -2637,31 +2654,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&registered_service_extension_handlers_));
 #endif  // !defined(PRODUCT)
-  // Visit the boxed_field_list_.
-  // 'boxed_field_list_' access via mutator and background compilation threads
-  // is guarded with a monitor. This means that we can visit it only
-  // when at safepoint or the field_list_mutex_ lock has been taken.
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
-
-  if (background_compiler() != nullptr) {
-    background_compiler()->VisitPointers(visitor);
-  }
-  if (optimizing_background_compiler() != nullptr) {
-    optimizing_background_compiler()->VisitPointers(visitor);
-  }
 
 #if !defined(PRODUCT)
   // Visit objects in the debugger.
   if (debugger() != nullptr) {
     debugger()->VisitObjectPointers(visitor);
   }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Visit objects that are being used for isolate reload.
-  if (reload_context() != nullptr) {
-    reload_context()->VisitObjectPointers(visitor);
-    reload_context()->group_reload_context()->VisitObjectPointers(visitor);
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (ServiceIsolate::IsServiceIsolate(this)) {
     ServiceIsolate::VisitObjectPointers(visitor);
   }
@@ -2673,6 +2671,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  visitor->VisitPointer(
+      reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));
 }
 
 void IsolateGroup::ReleaseStoreBuffers() {
@@ -2689,6 +2690,27 @@ void Isolate::DeferredMarkLiveTemporaries() {
   if (mutator_thread_ != nullptr) {
     mutator_thread_->DeferredMarkLiveTemporaries();
   }
+}
+
+void Isolate::init_loaded_prefixes_set_storage() {
+  ASSERT(loaded_prefixes_set_storage_ == nullptr);
+  loaded_prefixes_set_storage_ =
+      HashTables::New<UnorderedHashSet<LibraryPrefixMapTraits> >(4);
+}
+
+bool Isolate::IsPrefixLoaded(const LibraryPrefix& prefix) const {
+  UnorderedHashSet<LibraryPrefixMapTraits> loaded_prefixes_set(
+      loaded_prefixes_set_storage_);
+  bool result = loaded_prefixes_set.GetOrNull(prefix) != Object::null();
+  loaded_prefixes_set.Release();
+  return result;
+}
+
+void Isolate::SetPrefixIsLoaded(const LibraryPrefix& prefix) {
+  UnorderedHashSet<LibraryPrefixMapTraits> loaded_prefixes_set(
+      loaded_prefixes_set_storage_);
+  loaded_prefixes_set.InsertOrGet(prefix);
+  loaded_prefixes_set_storage_ = loaded_prefixes_set.Release().ptr();
 }
 
 void IsolateGroup::EnableIncrementalBarrier(
@@ -2711,25 +2733,32 @@ void IsolateGroup::DisableIncrementalBarrier() {
 void IsolateGroup::ForEachIsolate(
     std::function<void(Isolate* isolate)> function,
     bool at_safepoint) {
+  auto thread = Thread::Current();
   if (at_safepoint) {
-    ASSERT(Thread::Current()->IsAtSafepoint() ||
-           (Thread::Current()->task_kind() == Thread::kMutatorTask) ||
-           (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
-           (Thread::Current()->task_kind() == Thread::kCompactorTask) ||
-           (Thread::Current()->task_kind() == Thread::kScavengerTask));
+    ASSERT(thread->IsAtSafepoint() ||
+           (thread->task_kind() == Thread::kMutatorTask) ||
+           (thread->task_kind() == Thread::kMarkerTask) ||
+           (thread->task_kind() == Thread::kCompactorTask) ||
+           (thread->task_kind() == Thread::kScavengerTask));
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }
-  } else {
-    SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
+    return;
+  }
+  if (thread != nullptr && thread->IsAtSafepoint()) {
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }
+    return;
+  }
+  SafepointReadRwLocker ml(thread, isolates_lock_.get());
+  for (Isolate* isolate : isolates_) {
+    function(isolate);
   }
 }
 
 Isolate* IsolateGroup::FirstIsolate() const {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
   return FirstIsolateLocked();
 }
 
@@ -2742,8 +2771,9 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
     Callable* otherwise,
     bool use_force_growth_in_otherwise) {
   auto thread = Thread::Current();
+  StoppedMutatorsScope stopped_mutators_scope(thread);
 
-  if (thread->IsMutatorThread() && !FLAG_enable_isolate_groups) {
+  if (thread->IsMutatorThread() && !IsolateGroup::AreIsolateGroupsEnabled()) {
     single_current_mutator->Call();
     return;
   }
@@ -2756,8 +2786,7 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
 
   {
     SafepointReadRwLocker ml(thread, isolates_lock_.get());
-    const bool only_one_isolate = isolates_.First() == isolates_.Last();
-    if (thread->IsMutatorThread() && only_one_isolate) {
+    if (thread->IsMutatorThread() && ContainsOnlyOneIsolate()) {
       single_current_mutator->Call();
       return;
     }
@@ -2767,10 +2796,11 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
   // all other threads, including auxiliary threads are at a safepoint), even
   // though we only need to ensure that the mutator threads are stopped.
   if (use_force_growth_in_otherwise) {
-    ForceGrowthSafepointOperationScope safepoint_scope(thread);
+    ForceGrowthSafepointOperationScope safepoint_scope(
+        thread, SafepointLevel::kGCAndDeopt);
     otherwise->Call();
   } else {
-    SafepointOperationScope safepoint_scope(thread);
+    DeoptSafepointOperationScope safepoint_scope(thread);
     otherwise->Call();
   }
 }
@@ -2793,6 +2823,29 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
   VisitStackPointers(visitor, validate_frames);
+
+  // Visit the boxed_field_list_.
+  // 'boxed_field_list_' access via mutator and background compilation threads
+  // is guarded with a monitor. This means that we can visit it only
+  // when at safepoint or the field_list_mutex_ lock has been taken.
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
+
+  NOT_IN_PRECOMPILED(background_compiler()->VisitPointers(visitor));
+
+#if !defined(PRODUCT)
+  if (debugger() != nullptr) {
+    debugger()->VisitObjectPointers(visitor);
+  }
+#endif
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  // Visit objects that are being used for isolate reload.
+  if (program_reload_context() != nullptr) {
+    program_reload_context()->VisitObjectPointers(visitor);
+    program_reload_context()->group_reload_context()->VisitObjectPointers(
+        visitor);
+  }
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
@@ -2829,18 +2882,6 @@ void IsolateGroup::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   api_state()->VisitWeakHandlesUnlocked(visitor);
 }
 
-uword IsolateGroup::FindPendingDeoptAtSafepoint(uword fp) {
-  for (Isolate* isolate : isolates_) {
-    for (intptr_t i = 0; i < isolate->pending_deopts_->length(); i++) {
-      if ((*isolate->pending_deopts_)[i].fp() == fp) {
-        return (*isolate->pending_deopts_)[i].pc();
-      }
-    }
-  }
-  FATAL("Missing pending deopt entry");
-  return 0;
-}
-
 void IsolateGroup::DeferredMarkLiveTemporaries() {
   ForEachIsolate(
       [&](Isolate* isolate) { isolate->DeferredMarkLiveTemporaries(); },
@@ -2852,11 +2893,11 @@ void IsolateGroup::RememberLiveTemporaries() {
                  /*at_safepoint=*/true);
 }
 
-ClassPtr Isolate::GetClassForHeapWalkAt(intptr_t cid) {
+ClassPtr IsolateGroup::GetClassForHeapWalkAt(intptr_t cid) {
   ClassPtr raw_class = nullptr;
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (group()->IsReloading()) {
-    raw_class = reload_context()->GetClassForHeapWalkAt(cid);
+  if (IsReloading()) {
+    raw_class = program_reload_context()->GetClassForHeapWalkAt(cid);
   } else {
     raw_class = class_table()->At(cid);
   }
@@ -2864,7 +2905,7 @@ ClassPtr Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   raw_class = class_table()->At(cid);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(raw_class != nullptr);
-  ASSERT(remapping_cids() || raw_class->ptr()->id_ == cid);
+  ASSERT(remapping_cids() || raw_class->untag()->id_ == cid);
   return raw_class;
 }
 
@@ -2888,42 +2929,6 @@ ObjectIdRing* Isolate::EnsureObjectIdRing() {
   return object_id_ring_;
 }
 #endif  // !defined(PRODUCT)
-
-void Isolate::AddPendingDeopt(uword fp, uword pc) {
-  // GrowableArray::Add is not atomic and may be interrupt by a profiler
-  // stack walk.
-  MallocGrowableArray<PendingLazyDeopt>* old_pending_deopts = pending_deopts_;
-  MallocGrowableArray<PendingLazyDeopt>* new_pending_deopts =
-      new MallocGrowableArray<PendingLazyDeopt>(old_pending_deopts->length() +
-                                                1);
-  for (intptr_t i = 0; i < old_pending_deopts->length(); i++) {
-    ASSERT((*old_pending_deopts)[i].fp() != fp);
-    new_pending_deopts->Add((*old_pending_deopts)[i]);
-  }
-  PendingLazyDeopt deopt(fp, pc);
-  new_pending_deopts->Add(deopt);
-
-  pending_deopts_ = new_pending_deopts;
-  delete old_pending_deopts;
-}
-
-uword Isolate::FindPendingDeopt(uword fp) const {
-  for (intptr_t i = 0; i < pending_deopts_->length(); i++) {
-    if ((*pending_deopts_)[i].fp() == fp) {
-      return (*pending_deopts_)[i].pc();
-    }
-  }
-  FATAL("Missing pending deopt entry");
-  return 0;
-}
-
-void Isolate::ClearPendingDeoptsAtOrBelow(uword fp) const {
-  for (intptr_t i = pending_deopts_->length() - 1; i >= 0; i--) {
-    if ((*pending_deopts_)[i].fp() <= fp) {
-      pending_deopts_->RemoveAt(i);
-    }
-  }
-}
 
 #ifndef PRODUCT
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
@@ -2959,8 +2964,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddPropertyTimeMillis("startTime", start_time);
   {
     JSONObject jsheap(&jsobj, "_heaps");
-    heap()->PrintToJSONObject(Heap::kNew, &jsheap);
-    heap()->PrintToJSONObject(Heap::kOld, &jsheap);
+    group()->heap()->PrintToJSONObject(Heap::kNew, &jsheap);
+    group()->heap()->PrintToJSONObject(Heap::kOld, &jsheap);
   }
 
   {
@@ -3031,7 +3036,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("pauseEvent", &pause_event);
   }
 
-  const Library& lib = Library::Handle(object_store()->root_library());
+  const Library& lib = Library::Handle(group()->object_store()->root_library());
   if (!lib.IsNull()) {
     jsobj.AddProperty("rootLib", lib);
   }
@@ -3052,7 +3057,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
   {
     const GrowableObjectArray& libs =
-        GrowableObjectArray::Handle(object_store()->libraries());
+        GrowableObjectArray::Handle(group()->object_store()->libraries());
     intptr_t num_libs = libs.Length();
     Library& lib = Library::Handle();
 
@@ -3102,46 +3107,28 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 }
 
 void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
-  heap()->PrintMemoryUsageJSON(stream);
+  group()->heap()->PrintMemoryUsageJSON(stream);
 }
 
 #endif
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
-  tag_table_ = value.raw();
+  tag_table_ = value.ptr();
 }
 
 void Isolate::set_current_tag(const UserTag& tag) {
   uword user_tag = tag.tag();
   ASSERT(user_tag < kUwordMax);
   set_user_tag(user_tag);
-  current_tag_ = tag.raw();
+  current_tag_ = tag.ptr();
 }
 
 void Isolate::set_default_tag(const UserTag& tag) {
-  default_tag_ = tag.raw();
+  default_tag_ = tag.ptr();
 }
 
 void Isolate::set_ic_miss_code(const Code& code) {
-  ic_miss_code_ = code.raw();
-}
-
-void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  deoptimized_code_array_ = value.raw();
-}
-
-void Isolate::TrackDeoptimizedCode(const Code& code) {
-  ASSERT(!code.IsNull());
-  const GrowableObjectArray& deoptimized_code =
-      GrowableObjectArray::Handle(deoptimized_code_array());
-  if (deoptimized_code.IsNull()) {
-    // Not tracking deoptimized code.
-    return;
-  }
-  // TODO(johnmccutchan): Scan this array and the isolate's profile before
-  // old space GC and remove the keep_code flag.
-  deoptimized_code.Add(code);
+  ic_miss_code_ = code.ptr();
 }
 
 ErrorPtr Isolate::StealStickyError() {
@@ -3154,42 +3141,14 @@ ErrorPtr Isolate::StealStickyError() {
 #if !defined(PRODUCT)
 void Isolate::set_pending_service_extension_calls(
     const GrowableObjectArray& value) {
-  pending_service_extension_calls_ = value.raw();
+  pending_service_extension_calls_ = value.ptr();
 }
 
 void Isolate::set_registered_service_extension_handlers(
     const GrowableObjectArray& value) {
-  registered_service_extension_handlers_ = value.raw();
+  registered_service_extension_handlers_ = value.ptr();
 }
 #endif  // !defined(PRODUCT)
-
-void Isolate::AddDeoptimizingBoxedField(const Field& field) {
-  ASSERT(Compiler::IsBackgroundCompilation());
-  ASSERT(!field.IsOriginal());
-  // The enclosed code allocates objects and can potentially trigger a GC,
-  // ensure that we account for safepoints when grabbing the lock.
-  SafepointMutexLocker ml(&field_list_mutex_);
-  if (boxed_field_list_ == GrowableObjectArray::null()) {
-    boxed_field_list_ = GrowableObjectArray::New(Heap::kOld);
-  }
-  const GrowableObjectArray& array =
-      GrowableObjectArray::Handle(boxed_field_list_);
-  array.Add(Field::Handle(field.Original()), Heap::kOld);
-}
-
-FieldPtr Isolate::GetDeoptimizingBoxedField() {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  SafepointMutexLocker ml(&field_list_mutex_);
-  if (boxed_field_list_ == GrowableObjectArray::null()) {
-    return Field::null();
-  }
-  const GrowableObjectArray& array =
-      GrowableObjectArray::Handle(boxed_field_list_);
-  if (array.Length() == 0) {
-    return Field::null();
-  }
-  return Field::RawCast(array.RemoveLast());
-}
 
 #ifndef PRODUCT
 ErrorPtr Isolate::InvokePendingServiceExtensionCalls() {
@@ -3252,14 +3211,14 @@ ErrorPtr Isolate::InvokePendingServiceExtensionCalls() {
         Service::PostError(method_name, parameter_keys, parameter_values,
                            reply_port, id, Error::Cast(result));
       }
-      return Error::Cast(result).raw();
+      return Error::Cast(result).ptr();
     }
     // Drain the microtask queue.
     result = DartLibraryCalls::DrainMicrotaskQueue();
     // Propagate the error.
     if (result.IsError()) {
       // Remaining service extension calls are dropped.
-      return Error::Cast(result).raw();
+      return Error::Cast(result).ptr();
     }
   }
   return Error::null();
@@ -3399,11 +3358,14 @@ void Isolate::PauseEventHandler() {
   set_message_notify_callback(Isolate::WakePauseEventHandler);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  const bool had_isolate_reload_context = reload_context() != nullptr;
-  const int64_t start_time_micros =
-      !had_isolate_reload_context
-          ? 0
-          : reload_context()->group_reload_context()->start_time_micros();
+  const bool had_program_reload_context =
+      group()->program_reload_context() != nullptr;
+  const int64_t start_time_micros = !had_program_reload_context
+                                        ? 0
+                                        : group()
+                                              ->program_reload_context()
+                                              ->group_reload_context()
+                                              ->start_time_micros();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   bool resume = false;
   bool handle_non_service_messages = false;
@@ -3422,7 +3384,8 @@ void Isolate::PauseEventHandler() {
     }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    if (had_isolate_reload_context && (reload_context() == nullptr)) {
+    if (had_program_reload_context &&
+        (group()->program_reload_context() == nullptr)) {
       if (FLAG_trace_reload) {
         const int64_t reload_time_micros =
             OS::GetCurrentMonotonicMicros() - start_time_micros;
@@ -3635,9 +3598,11 @@ Monitor* IsolateGroup::threads_lock() const {
   return thread_registry_->threads_lock();
 }
 
-Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
+Thread* Isolate::ScheduleThread(bool is_mutator,
+                                bool is_nested_reenter,
+                                bool bypass_safepoint) {
   if (is_mutator) {
-    group()->IncreaseMutatorCount(this);
+    group()->IncreaseMutatorCount(this, is_nested_reenter);
   }
 
   // We are about to associate the thread with an isolate group and it would
@@ -3683,6 +3648,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
 
 void Isolate::UnscheduleThread(Thread* thread,
                                bool is_mutator,
+                               bool is_nested_exit,
                                bool bypass_safepoint) {
   {
     // Disassociate the 'Thread' structure and unschedule the thread
@@ -3712,7 +3678,7 @@ void Isolate::UnscheduleThread(Thread* thread,
     group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
   }
   if (is_mutator) {
-    group()->DecreaseMutatorCount(this);
+    group()->DecreaseMutatorCount(this, is_nested_exit);
   }
 }
 

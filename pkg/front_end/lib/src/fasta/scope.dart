@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.scope;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'builder/builder.dart';
@@ -15,6 +17,7 @@ import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/class_hierarchy_builder.dart' show ClassMember;
+import 'util/helpers.dart' show DelayedActionPerformer;
 
 import 'fasta_codes.dart'
     show
@@ -340,7 +343,9 @@ class Scope extends MutableScope {
   void recordUse(String name, int charOffset, Uri fileUri) {
     if (isModifiable) {
       usedNames ??= <String, int>{};
-      usedNames.putIfAbsent(name, () => charOffset);
+      // Don't use putIfAbsent to avoid the context allocation needed
+      // for the closure.
+      usedNames[name] ??= charOffset;
     }
   }
 
@@ -352,6 +357,9 @@ class Scope extends MutableScope {
       return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
           builder, charOffset, fileUri);
     } else if (!isInstanceScope && builder.isDeclarationInstanceMember) {
+      return null;
+    } else if (builder is MemberBuilder && builder.isConflictingSetter) {
+      // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
       return null;
     } else {
       return builder;
@@ -777,6 +785,9 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   bool get isAbstract => false;
 
   @override
+  bool get isConflictingSetter => false;
+
+  @override
   void set parent(Builder value) {
     throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
   }
@@ -791,7 +802,8 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   ProcedureKind get kind => null;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }

@@ -217,7 +217,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   }
 
   Iterable<E> take(int n) {
-    return SubListIterable<E>(this, 0, n);
+    return new SubListIterable<E>(this, 0, checkNotNullable(n, "count"));
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
@@ -598,7 +598,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   }
 
   Type get runtimeType =>
-      dart.wrapType(JS('', '#(#)', dart.getGenericClass(List), E));
+      dart.wrapType(JS('', '#(#)', dart.getGenericClassStatic<List>(), E));
 
   Iterable<E> followedBy(Iterable<E> other) =>
       FollowedByIterable<E>.firstEfficient(this, other);

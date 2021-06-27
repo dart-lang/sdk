@@ -15,7 +15,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart' show SourceKind;
+import 'package:collection/collection.dart';
 
 class EditDartFix
     with FixCodeProcessor, FixErrorProcessor, FixLintProcessor
@@ -29,9 +29,7 @@ class EditDartFix
 
   DartFixListener listener;
 
-  EditDartFix(this.server, this.request) {
-    listener = DartFixListener(server);
-  }
+  EditDartFix(this.server, this.request) : listener = DartFixListener(server);
 
   Future<Response> compute() async {
     final params = EditDartfixParams.fromRequest(request);
@@ -44,9 +42,10 @@ class EditDartFix
         }
       }
     }
-    if (params.includedFixes != null) {
-      for (var key in params.includedFixes) {
-        var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
+    var includedFixes = params.includedFixes;
+    if (includedFixes != null) {
+      for (var key in includedFixes) {
+        var info = allFixes.firstWhereOrNull((i) => i.key == key);
         if (info != null) {
           fixInfo.add(info);
         } else {
@@ -55,9 +54,10 @@ class EditDartFix
         }
       }
     }
-    if (params.excludedFixes != null) {
-      for (var key in params.excludedFixes) {
-        var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
+    var excludedFixes = params.excludedFixes;
+    if (excludedFixes != null) {
+      for (var key in excludedFixes) {
+        var info = allFixes.firstWhereOrNull((i) => i.key == key);
         if (info != null) {
           fixInfo.remove(info);
         } else {
@@ -78,16 +78,20 @@ class EditDartFix
     // used to generate errors that can then be fixed.
     // TODO(danrubel): Rework to use a different approach if this command
     // will be used from within the IDE.
-    contextManager.refresh(null);
+    contextManager.refresh();
 
     for (var filePath in params.included) {
       if (!server.isValidFilePath(filePath)) {
         return Response.invalidFilePathFormat(request, filePath);
       }
+
+      var analysisContext = contextManager.getContextFor(filePath);
+      if (analysisContext == null) {
+        return Response.fileNotAnalyzed(request, filePath);
+      }
+
       var res = resourceProvider.getResource(filePath);
-      if (!res.exists ||
-          !(contextManager.includedPaths.contains(filePath) ||
-              contextManager.isInAnalysisRoot(filePath))) {
+      if (!res.exists) {
         return Response.fileNotAnalyzed(request, filePath);
       }
 
@@ -95,28 +99,28 @@ class EditDartFix
       // within an IDE, then this will cause the lint results to change.
       // TODO(danrubel): Rework to use a different approach if this command
       // will be used from within the IDE.
-      var driver = contextManager.getDriverFor(filePath);
+      var driver = analysisContext.driver;
       var analysisOptions = driver.analysisOptions as AnalysisOptionsImpl;
       analysisOptions.lint = true;
       analysisOptions.lintRules = linters;
 
-      var contextFolder = contextManager.getContextFolderFor(filePath);
-      var pkgFolder = findPkgFolder(contextFolder);
-      if (pkgFolder != null && !pkgFolders.contains(pkgFolder)) {
+      var pkgFolder = analysisContext.contextRoot.root;
+      if (!pkgFolders.contains(pkgFolder)) {
         pkgFolders.add(pkgFolder);
       }
+
       if (res is Folder) {
         fixFolders.add(res);
       } else {
-        fixFiles.add(res);
+        fixFiles.add(res as File);
       }
     }
 
-    String changedPath;
+    String? changedPath;
     contextManager.driverMap.values.forEach((driver) {
       // Setup a listener to remember the resource that changed during analysis
       // so it can be reported if there is an InconsistentAnalysisException.
-      driver.onCurrentSessionAboutToBeDiscarded = (String path) {
+      driver.onCurrentSessionAboutToBeDiscarded = (String? path) {
         changedPath = path;
       };
     });
@@ -147,13 +151,12 @@ class EditDartFix
     ).toResponse(request.id);
   }
 
-  Folder findPkgFolder(Folder folder) {
-    while (folder != null) {
+  Folder? findPkgFolder(Folder start) {
+    for (var folder in start.withAncestors) {
       if (folder.getChild('analysis_options.yaml').exists ||
           folder.getChild('pubspec.yaml').exists) {
         return folder;
       }
-      folder = folder.parent;
     }
     return null;
   }
@@ -172,8 +175,7 @@ class EditDartFix
       if (res is Folder) {
         for (var child in res.getChildren()) {
           if (!child.shortName.startsWith('.') &&
-              contextManager.isInAnalysisRoot(child.path) &&
-              !contextManager.isIgnored(child.path)) {
+              server.isAnalyzed(child.path)) {
             resources.add(child);
           }
         }
@@ -190,16 +192,14 @@ class EditDartFix
   /// Return `true` if the path in within the set of `included` files
   /// or is within an `included` directory.
   bool isIncluded(String filePath) {
-    if (filePath != null) {
-      for (var file in fixFiles) {
-        if (file.path == filePath) {
-          return true;
-        }
+    for (var file in fixFiles) {
+      if (file.path == filePath) {
+        return true;
       }
-      for (var folder in fixFolders) {
-        if (folder.contains(filePath)) {
-          return true;
-        }
+    }
+    for (var folder in fixFolders) {
+      if (folder.contains(filePath)) {
+        return true;
       }
     }
     return false;
@@ -213,26 +213,18 @@ class EditDartFix
     for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
       var driver = server.getAnalysisDriver(path);
-      switch (await driver.getSourceKind(path)) {
-        case SourceKind.PART:
-          // Parts will either be found in a library, below, or if the library
-          // isn't [isIncluded], will be picked up in the final loop.
-          continue;
-          break;
-        case SourceKind.LIBRARY:
-          var result = await driver.getResolvedLibrary(path);
-          if (result != null) {
-            for (var unit in result.units) {
-              if (pathsToProcess.contains(unit.path) &&
-                  !pathsProcessed.contains(unit.path)) {
-                await process(unit);
-                pathsProcessed.add(unit.path);
-              }
+      if (driver != null) {
+        var result = await driver.getResolvedLibrary2(path);
+        if (result is ResolvedLibraryResult) {
+          for (var unit in result.units!) {
+            if (pathsToProcess.contains(unit.path) &&
+                !pathsProcessed.contains(unit.path)) {
+              await process(unit);
+              pathsProcessed.add(unit.path!);
             }
           }
           break;
-        default:
-          break;
+        }
       }
     }
 

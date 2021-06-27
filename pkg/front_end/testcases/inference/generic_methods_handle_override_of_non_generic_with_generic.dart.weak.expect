@@ -1,0 +1,69 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:14:5: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
+//   T m<T>(T x) => x;
+//     ^
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:9:3: Context: This is the overridden method ('m').
+//   m(x) => x;
+//   ^
+//
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:14:12: Error: The parameter 'x' of the method 'D.m' has type 'T', which does not match the corresponding type, 'dynamic', in the overridden method, 'C.m'.
+// Change to a supertype of 'dynamic', or, for a covariant parameter, a subtype.
+//   T m<T>(T x) => x;
+//            ^
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:9:3: Context: This is the overridden method ('m').
+//   m(x) => x;
+//   ^
+//
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:15:5: Error: Declared type variables of 'D.g' doesn't match those on overridden method 'C.g'.
+//   T g<T>(T x) => x;
+//     ^
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:10:11: Context: This is the overridden method ('g').
+//   dynamic g(int x) => x;
+//           ^
+//
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:15:12: Error: The parameter 'x' of the method 'D.g' has type 'T', which does not match the corresponding type, 'int', in the overridden method, 'C.g'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   T g<T>(T x) => x;
+//            ^
+// pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:10:11: Context: This is the overridden method ('g').
+//   dynamic g(int x) => x;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  method m(dynamic x) → dynamic
+    return x;
+  method g(core::int* x) → dynamic
+    return x;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends self::C {
+  synthetic constructor •() → self::D*
+    : super self::C::•()
+    ;
+  method m<T extends core::Object* = dynamic>(self::D::m::T* x) → self::D::m::T*
+    return x;
+  method g<T extends core::Object* = dynamic>(self::D::g::T* x) → self::D::g::T*
+    return x;
+}
+static method main() → dynamic {
+  core::int* y = (new self::D::•() as self::C*).{self::C::m}(42){(dynamic) →* dynamic} as{TypeError,ForDynamic} core::int*;
+  core::print(y);
+}

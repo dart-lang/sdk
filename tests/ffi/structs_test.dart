@@ -11,26 +11,33 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-import 'ffi_test_helpers.dart';
-import 'coordinate_bare.dart' as bare;
 import 'coordinate.dart';
 
 void main() {
   for (int i = 0; i < 100; i++) {
     testStructAllocate();
     testStructFromAddress();
+    testStructIndexedAccess();
     testStructWithNulls();
-    testBareStruct();
     testTypeTest();
     testUtf8();
+    testDotDotRef();
   }
 }
 
-/// allocates each coordinate separately in c memory
+/// Allocates each coordinate separately in c memory.
 void testStructAllocate() {
-  Pointer<Coordinate> c1 = Coordinate.allocate(10.0, 10.0, nullptr).addressOf;
-  Pointer<Coordinate> c2 = Coordinate.allocate(20.0, 20.0, c1).addressOf;
-  Pointer<Coordinate> c3 = Coordinate.allocate(30.0, 30.0, c2).addressOf;
+  final c1 = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 10.0;
+  final c2 = calloc<Coordinate>()
+    ..ref.x = 20.0
+    ..ref.y = 20.0
+    ..ref.next = c1;
+  final c3 = calloc<Coordinate>()
+    ..ref.x = 30.0
+    ..ref.y = 30.0
+    ..ref.next = c2;
   c1.ref.next = c3;
 
   Coordinate currentCoordinate = c1.ref;
@@ -42,14 +49,14 @@ void testStructAllocate() {
   currentCoordinate = currentCoordinate.next.ref;
   Expect.equals(10.0, currentCoordinate.x);
 
-  free(c1);
-  free(c2);
-  free(c3);
+  calloc.free(c1);
+  calloc.free(c2);
+  calloc.free(c3);
 }
 
-/// allocates coordinates consecutively in c memory
+/// Allocates coordinates consecutively in c memory.
 void testStructFromAddress() {
-  Pointer<Coordinate> c1 = allocate(count: 3);
+  Pointer<Coordinate> c1 = calloc(3);
   Pointer<Coordinate> c2 = c1.elementAt(1);
   Pointer<Coordinate> c3 = c1.elementAt(2);
   c1.ref
@@ -74,39 +81,26 @@ void testStructFromAddress() {
   currentCoordinate = currentCoordinate.next.ref;
   Expect.equals(10.0, currentCoordinate.x);
 
-  free(c1);
+  calloc.free(c1);
 }
 
-void testStructWithNulls() {
-  Pointer<Coordinate> coordinate =
-      Coordinate.allocate(10.0, 10.0, nullptr).addressOf;
-  Expect.equals(coordinate.ref.next, nullptr);
-  coordinate.ref.next = coordinate;
-  Expect.notEquals(coordinate.ref.next, nullptr);
-  coordinate.ref.next = nullptr;
-  Expect.equals(coordinate.ref.next, nullptr);
-  free(coordinate);
-}
+/// Allocates coordinates consecutively in c memory.
+void testStructIndexedAccess() {
+  Pointer<Coordinate> cs = calloc(3);
+  cs[0]
+    ..x = 10.0
+    ..y = 10.0
+    ..next = cs.elementAt(2);
+  cs[1]
+    ..x = 20.0
+    ..y = 20.0
+    ..next = cs;
+  cs[2]
+    ..x = 30.0
+    ..y = 30.0
+    ..next = cs.elementAt(1);
 
-void testBareStruct() {
-  int structSize = sizeOf<Double>() * 2 + sizeOf<IntPtr>();
-  bare.Coordinate c1 =
-      allocate<Uint8>(count: structSize * 3).cast<bare.Coordinate>().ref;
-  bare.Coordinate c2 =
-      c1.addressOf.offsetBy(structSize).cast<bare.Coordinate>().ref;
-  bare.Coordinate c3 =
-      c1.addressOf.offsetBy(structSize * 2).cast<bare.Coordinate>().ref;
-  c1.x = 10.0;
-  c1.y = 10.0;
-  c1.next = c3.addressOf;
-  c2.x = 20.0;
-  c2.y = 20.0;
-  c2.next = c1.addressOf;
-  c3.x = 30.0;
-  c3.y = 30.0;
-  c3.next = c2.addressOf;
-
-  bare.Coordinate currentCoordinate = c1;
+  Coordinate currentCoordinate = cs.ref;
   Expect.equals(10.0, currentCoordinate.x);
   currentCoordinate = currentCoordinate.next.ref;
   Expect.equals(30.0, currentCoordinate.x);
@@ -115,19 +109,38 @@ void testBareStruct() {
   currentCoordinate = currentCoordinate.next.ref;
   Expect.equals(10.0, currentCoordinate.x);
 
-  free(c1.addressOf);
+  calloc.free(cs);
+}
+
+void testStructWithNulls() {
+  final coordinate = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 10.0;
+  Expect.equals(coordinate.ref.next, nullptr);
+  coordinate.ref.next = coordinate;
+  Expect.notEquals(coordinate.ref.next, nullptr);
+  coordinate.ref.next = nullptr;
+  Expect.equals(coordinate.ref.next, nullptr);
+  calloc.free(coordinate);
 }
 
 void testTypeTest() {
-  Coordinate c = Coordinate.allocate(10, 10, nullptr);
+  final pointer = calloc<Coordinate>();
+  Coordinate c = pointer.ref;
   Expect.isTrue(c is Struct);
-  Expect.isTrue(c.addressOf is Pointer<Coordinate>);
-  free(c.addressOf);
+  calloc.free(pointer);
 }
 
 void testUtf8() {
   final String test = 'Hasta Mañana';
-  final Pointer<Utf8> medium = Utf8.toUtf8(test);
-  Expect.equals(test, Utf8.fromUtf8(medium));
-  free(medium);
+  final Pointer<Utf8> medium = test.toNativeUtf8();
+  Expect.equals(test, medium.toDartString());
+  calloc.free(medium);
+}
+
+void testDotDotRef() {
+  final pointer = calloc<Coordinate>()
+    ..ref.x = 1
+    ..ref.y = 1;
+  calloc.free(pointer);
 }

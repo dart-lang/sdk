@@ -21,11 +21,6 @@ class RenameLibraryTest extends RenameRefactoringTest {
 library my.app;
 ''');
     _createRenameRefactoring();
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Library name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(

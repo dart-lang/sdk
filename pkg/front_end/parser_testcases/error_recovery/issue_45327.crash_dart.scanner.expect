@@ -1,0 +1,9 @@
+main() {
+if (n is int or
+)}
+
+
+[UnmatchedToken]main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]n[StringToken] is[KeywordToken] int[StringToken] or[StringToken]
+)[SyntheticToken]}[SimpleToken]
+[SimpleToken]

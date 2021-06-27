@@ -1,3 +1,4 @@
+// @dart = 2.9
 class B {
   A bar() => null;
   foo(A a) => null;

@@ -9,8 +9,9 @@
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';
+import 'package:ffi/ffi.dart';
 
-import 'pool.dart';
+import 'utf8_helpers.dart';
 import '../dylib_utils.dart';
 
 main() {
@@ -23,16 +24,16 @@ main() {
 
   // To ensure resources are freed, call free manually.
   //
-  // For automatic management use a Pool.
-  final p = unmanaged.allocate<Int64>(count: 2);
+  // For automatic management use a Arena.
+  final p = calloc<Int64>(2);
   p[0] = 24;
   MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());
   print(p[1]);
   Expect.equals(24, p[1]);
-  unmanaged.free(p);
+  calloc.free(p);
 
   // Using Strings.
-  final p2 = "Hello world!".toUtf8(unmanaged);
+  final p2 = "Hello world!".toUtf8(calloc);
   print(p2.contents());
-  unmanaged.free(p2);
+  calloc.free(p2);
 }

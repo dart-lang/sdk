@@ -19,7 +19,23 @@ main() {
 /// errors generated, but we want to make sure that there is at least one,
 /// and analysis finishes without exceptions.
 @reflectiveTest
-class InvalidCodeTest extends PubPackageResolutionTest {
+class InvalidCodeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
+  test_const_AwaitExpression() async {
+    await _assertCanBeAnalyzed(r'''
+const a = await b();
+''');
+  }
+
+  test_const_ForPartsWithExpression() async {
+    await _assertCanBeAnalyzed(r'''
+@A([for (;;) 0])
+void f() {}
+''');
+  }
+
   /// This code results in a method with the empty name, and the default
   /// constructor, which also has the empty name. The `Map` in `f` initializer
   /// references the empty name.
@@ -387,8 +403,7 @@ class B {
 }
 
 @reflectiveTest
-class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest {
   test_functionExpression_emptyBody() async {
     await _assertCanBeAnalyzed(r'''
 var v = <T>();
@@ -430,6 +445,20 @@ class A {
 
 @A(() => 0)
 class B {}
+''');
+  }
+
+  test_methodInvocation_ofGenericClass_generic_static_fromLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  static void foo<T2>() {}
+}
+''');
+    await _assertCanBeAnalyzed('''
+// @dart = 2.9
+import 'a.dart';
+
+const bar = A.foo();
 ''');
   }
 

@@ -4,9 +4,54 @@
 
 #include "platform/utils.h"
 #include "platform/assert.h"
+#include "platform/globals.h"
 #include "vm/unit_test.h"
 
 namespace dart {
+
+VM_UNIT_TEST_CASE(StringHash) {
+  auto hash_created_string = [](intptr_t length,
+                                intptr_t misalignment) -> uint32_t {
+    const intptr_t capacity = length + misalignment + kInt32Size;
+    char* str = new char[capacity];
+    const intptr_t alloc_misalignment =
+        reinterpret_cast<intptr_t>(str) % kInt32Size;
+    const intptr_t first_aligned_position =
+        alloc_misalignment > 0 ? kInt32Size - alloc_misalignment : 0;
+    const intptr_t start = first_aligned_position + misalignment;
+    for (intptr_t n = 0; n < start; n++) {
+      str[n] = 0xFF;
+    }
+    for (intptr_t n = 0; n < length; n++) {
+      // Fill the important string positions with uppercase letters.
+      str[start + n] = 0x40 + (n % 26);
+    }
+    for (intptr_t n = start + length; n < capacity; n++) {
+      str[n] = 0xFF;
+    }
+    const uint32_t hash = Utils::StringHash(str + start, length);
+    delete[] str;
+    return hash;
+  };
+
+  const intptr_t kMaxLength = 100;
+  ASSERT(kMaxLength >= kInt64Size);
+  uint32_t last_hash = hash_created_string(0, 0);
+  bool identical_hashes = true;
+  // Check the same string at different (mis)alignments has the same hash.
+  for (intptr_t len = 0; len < kMaxLength; len++) {
+    const uint32_t hash = hash_created_string(len, 0);
+    for (intptr_t misalignment = 1; misalignment < kInt64Size; misalignment++) {
+      EXPECT_EQ(hash, hash_created_string(len, misalignment));
+    }
+    if (hash != last_hash) {
+      identical_hashes = false;
+    }
+    last_hash = hash;
+  }
+  // Make sure at least some of the hashes were different from each other.
+  EXPECT(!identical_hashes);
+}
 
 VM_UNIT_TEST_CASE(Minimum) {
   EXPECT_EQ(0, Utils::Minimum(0, 1));

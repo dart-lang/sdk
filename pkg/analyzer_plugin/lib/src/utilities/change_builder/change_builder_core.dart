@@ -17,24 +17,23 @@ import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// A builder used to build a [SourceChange].
 class ChangeBuilderImpl implements ChangeBuilder {
-  /// The workspace in which the change builder should operate, or `null` if no
-  /// Dart files will be changed.
+  /// The workspace in which the change builder should operate.
   final ChangeWorkspace workspace;
 
   /// The end-of-line marker used in the file being edited, or `null` if the
   /// default marker should be used.
-  final String eol;
+  final String? eol;
 
   /// A table mapping group ids to the associated linked edit groups.
   final Map<String, LinkedEditGroup> _linkedEditGroups =
       <String, LinkedEditGroup>{};
 
   /// The source change selection or `null` if none.
-  Position _selection;
+  Position? _selection;
 
   /// The range of the selection for the change being built, or `null` if there
   /// is no selection.
-  SourceRange _selectionRange;
+  SourceRange? _selectionRange;
 
   /// The set of [Position]s that belong to the current [EditBuilderImpl] and
   /// should not be updated in result of inserting this builder.
@@ -50,12 +49,12 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// create changes for Dart files, then either a [session] or a [workspace]
   /// must be provided (but not both).
   ChangeBuilderImpl(
-      {AnalysisSession session, ChangeWorkspace workspace, this.eol})
+      {AnalysisSession? session, ChangeWorkspace? workspace, this.eol})
       : assert(session == null || workspace == null),
-        workspace = workspace ?? _SingleSessionWorkspace(session);
+        workspace = workspace ?? _SingleSessionWorkspace(session!);
 
   @override
-  SourceRange get selectionRange => _selectionRange;
+  SourceRange? get selectionRange => _selectionRange;
 
   @override
   SourceChange get sourceChange {
@@ -75,8 +74,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
     _linkedEditGroups.forEach((String name, LinkedEditGroup group) {
       change.addLinkedEditGroup(group);
     });
-    if (_selection != null) {
-      change.selection = _selection;
+    var selection = _selection;
+    if (selection != null) {
+      change.selection = selection;
     }
     return change;
   }
@@ -84,14 +84,14 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   Future<void> addDartFileEdit(
       String path, void Function(DartFileEditBuilder builder) buildFileEdit,
-      {ImportPrefixGenerator importPrefixGenerator}) async {
+      {ImportPrefixGenerator? importPrefixGenerator}) async {
     if (_genericFileEditBuilders.containsKey(path)) {
       throw StateError("Can't create both a generic file edit and a dart file "
           'edit for the same file');
     }
     var builder = _dartFileEditBuilders[path];
     if (builder == null) {
-      builder = await createDartFileEditBuilder(path);
+      builder = await _createDartFileEditBuilder(path);
       if (builder != null) {
         _dartFileEditBuilders[path] = builder;
       }
@@ -100,13 +100,6 @@ class ChangeBuilderImpl implements ChangeBuilder {
       builder.importPrefixGenerator = importPrefixGenerator;
       buildFileEdit(builder);
     }
-  }
-
-  @Deprecated('Use either addDartFileEdit or addGenericFileEdit')
-  @override
-  Future<void> addFileEdit(
-      String path, void Function(FileEditBuilder builder) buildFileEdit) async {
-    return addGenericFileEdit(path, buildFileEdit);
   }
 
   @override
@@ -118,14 +111,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     var builder = _genericFileEditBuilders[path];
     if (builder == null) {
-      builder = await createGenericFileEditBuilder(path);
-      if (builder != null) {
-        _genericFileEditBuilders[path] = builder;
-      }
+      builder = FileEditBuilderImpl(this, path, 0);
+      _genericFileEditBuilders[path] = builder;
     }
-    if (builder != null) {
-      buildFileEdit(builder);
-    }
+    buildFileEdit(builder);
   }
 
   @override
@@ -134,7 +123,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     for (var entry in _linkedEditGroups.entries) {
       copy._linkedEditGroups[entry.key] = _copyLinkedEditGroup(entry.value);
     }
-    copy._selection = _copyPosition(_selection);
+    var selection = _selection;
+    if (selection != null) {
+      copy._selection = _copyPosition(selection);
+    }
     copy._selectionRange = _selectionRange;
     copy._lockedPositions.addAll(_lockedPositions);
     for (var entry in _genericFileEditBuilders.entries) {
@@ -165,50 +157,6 @@ class ChangeBuilderImpl implements ChangeBuilder {
     return copy;
   }
 
-  /// Create and return a [DartFileEditBuilder] that can be used to build edits
-  /// to the Dart file with the given [path].
-  Future<DartFileEditBuilderImpl> createDartFileEditBuilder(String path) async {
-    // TODO(brianwilkerson) Make this method private when
-    //  `DartChangeBuilderImpl` is removed.
-    if (workspace == null) {
-      throw StateError("Can't create a DartFileEditBuilder without providing "
-          'either a session or a workspace');
-    }
-    if (!workspace.containsFile(path)) {
-      return null;
-    }
-
-    var session = workspace.getSession(path);
-    var result = await session.getResolvedUnit(path);
-    var state = result?.state ?? ResultState.INVALID_FILE_TYPE;
-    if (state == ResultState.INVALID_FILE_TYPE) {
-      throw AnalysisException('Cannot analyze "$path"');
-    }
-    var timeStamp = state == ResultState.VALID ? 0 : -1;
-
-    var declaredUnit = result.unit.declaredElement;
-    var libraryUnit = declaredUnit.library.definingCompilationUnit;
-
-    DartFileEditBuilderImpl libraryEditBuilder;
-    if (libraryUnit != declaredUnit) {
-      // If the receiver is a part file builder, then proactively cache the
-      // library file builder so that imports can be finalized synchronously.
-      await addDartFileEdit(libraryUnit.source.fullName, (builder) {
-        libraryEditBuilder = builder as DartFileEditBuilderImpl;
-      });
-    }
-
-    return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder);
-  }
-
-  /// Create and return a [FileEditBuilder] that can be used to build edits to
-  /// the file with the given [path].
-  Future<FileEditBuilderImpl> createGenericFileEditBuilder(String path) async {
-    // TODO(brianwilkerson) Make this method private when
-    //  `DartChangeBuilderImpl` is removed.
-    return FileEditBuilderImpl(this, path, 0);
-  }
-
   /// Return the linked edit group with the given [groupName], creating it if it
   /// did not already exist.
   LinkedEditGroup getLinkedEditGroup(String groupName) {
@@ -233,7 +181,37 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   /// Return a copy of the [position].
   Position _copyPosition(Position position) {
-    return position == null ? null : Position(position.file, position.offset);
+    return Position(position.file, position.offset);
+  }
+
+  /// Create and return a [DartFileEditBuilder] that can be used to build edits
+  /// to the Dart file with the given [path].
+  Future<DartFileEditBuilderImpl?> _createDartFileEditBuilder(
+      String? path) async {
+    if (path == null || !(workspace.containsFile(path) ?? false)) {
+      return null;
+    }
+
+    var session = workspace.getSession(path);
+    var result = await session?.getResolvedUnit2(path);
+    if (result is! ResolvedUnitResult) {
+      throw AnalysisException('Cannot analyze "$path"');
+    }
+    var timeStamp = result.exists ? 0 : -1;
+
+    var declaredUnit = result.unit?.declaredElement;
+    var libraryUnit = declaredUnit?.library.definingCompilationUnit;
+
+    DartFileEditBuilderImpl? libraryEditBuilder;
+    if (libraryUnit != null && libraryUnit != declaredUnit) {
+      // If the receiver is a part file builder, then proactively cache the
+      // library file builder so that imports can be finalized synchronously.
+      await addDartFileEdit(libraryUnit.source.fullName, (builder) {
+        libraryEditBuilder = builder as DartFileEditBuilderImpl;
+      });
+    }
+
+    return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder);
   }
 
   void _setSelectionRange(SourceRange range) {
@@ -255,8 +233,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
         _updatePosition(position);
       }
     }
-    if (_selection != null) {
-      _updatePosition(_selection);
+    var selection = _selection;
+    if (selection != null) {
+      _updatePosition(selection);
     }
   }
 }
@@ -275,11 +254,11 @@ class EditBuilderImpl implements EditBuilder {
 
   /// The range of the selection for the change being built, or `null` if the
   /// selection is not inside the change being built.
-  SourceRange _selectionRange;
+  SourceRange? _selectionRange;
 
   /// The end-of-line marker used in the file being edited, or `null` if the
   /// default marker should be used.
-  String _eol;
+  String? _eol;
 
   /// The buffer in which the content of the edit is being composed.
   final StringBuffer _buffer = StringBuffer();
@@ -317,7 +296,7 @@ class EditBuilderImpl implements EditBuilder {
 
   @override
   void addSimpleLinkedEdit(String groupName, String text,
-      {LinkedEditSuggestionKind kind, List<String> suggestions}) {
+      {LinkedEditSuggestionKind? kind, List<String>? suggestions}) {
     addLinkedEdit(groupName, (LinkedEditBuilder builder) {
       builder.write(text);
       if (kind != null && suggestions != null) {
@@ -354,7 +333,7 @@ class EditBuilderImpl implements EditBuilder {
   }
 
   @override
-  void writeln([String string]) {
+  void writeln([String? string]) {
     if (string != null) {
       _buffer.write(string);
     }
@@ -561,7 +540,7 @@ class LinkedEditBuilderImpl implements LinkedEditBuilder {
   }
 
   @override
-  void writeln([String string]) {
+  void writeln([String? string]) {
     editBuilder.writeln(string);
   }
 }
@@ -573,14 +552,14 @@ class _SingleSessionWorkspace extends ChangeWorkspace {
   _SingleSessionWorkspace(this.session);
 
   @override
-  bool containsFile(String path) {
+  bool? containsFile(String path) {
     var analysisContext = session.analysisContext;
     return analysisContext.contextRoot.isAnalyzed(path);
   }
 
   @override
-  AnalysisSession getSession(String path) {
-    if (containsFile(path)) {
+  AnalysisSession? getSession(String path) {
+    if (containsFile(path) ?? false) {
       return session;
     }
     throw StateError('Not in a context root: $path');

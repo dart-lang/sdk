@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regresion test for bug discovered in frog handling super calls: the test case
 // mixes generics, super calls, and purposely doesn't allocate the base type.
 //

@@ -19,13 +19,11 @@ class CodeTemplate {
 
   /// The expression used to determine whether the template is required to be
   /// used, or `null` if the template is not required to be used.
-  final data_driven.Expression requiredIfCondition;
+  final data_driven.Expression? requiredIfCondition;
 
   /// Initialize a newly generated code template with the given [kind] and
   /// [components].
-  CodeTemplate(this.kind, this.components, this.requiredIfCondition)
-      : assert(kind != null),
-        assert(components != null);
+  CodeTemplate(this.kind, this.components, this.requiredIfCondition);
 
   /// Use the [context] to validate that this template will be able to generate
   /// a value.
@@ -67,7 +65,7 @@ abstract class TemplateComponent {
 /// The context in which a template is being evaluated.
 class TemplateContext {
   /// The node in the AST that is being transformed.
-  final AstNode node;
+  final AstNode? node;
 
   /// The utilities used to help extract the code associated with various nodes.
   final CorrectionUtils utils;
@@ -83,9 +81,11 @@ class TemplateContext {
   /// Return the invocation containing the given [node]. The invocation will be
   /// either an instance creation expression, function invocation, method
   /// invocation, or an extension override.
-  static AstNode _getInvocation(AstNode node) {
+  static AstNode? _getInvocation(AstNode node) {
     if (node is ArgumentList) {
       return node.parent;
+    } else if (node.parent is ArgumentList) {
+      return node.parent?.parent;
     } else if (node is InstanceCreationExpression ||
         node is InvocationExpression) {
       return node;
@@ -97,9 +97,13 @@ class TemplateContext {
           return grandparent;
         }
       } else if (parent is Label && parent.parent is NamedExpression) {
-        return parent.parent.parent.parent;
+        return parent.parent?.parent?.parent;
       } else if (parent is MethodInvocation && parent.methodName == node) {
         return parent;
+      } else if (parent is TypeName &&
+          parent.parent is ConstructorName &&
+          parent.parent?.parent is InstanceCreationExpression) {
+        return parent.parent?.parent;
       }
     } else if (node is TypeArgumentList) {
       var parent = node.parent;

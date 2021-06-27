@@ -8,16 +8,15 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 
 /// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
@@ -25,7 +24,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   final driver.AnalysisDriver _driver;
 
   /// The URI converter used to convert between URI's and file paths.
-  UriConverter _uriConverter;
+  UriConverter? _uriConverter;
 
   /// The cache of libraries for URIs.
   final Map<String, LibraryElement> _uriToLibraryCache = {};
@@ -37,7 +36,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   AnalysisSessionImpl(this._driver);
 
   @override
-  AnalysisContext get analysisContext => _driver?.analysisContext;
+  AnalysisContext get analysisContext => _driver.analysisContext!;
 
   @override
   DeclaredVariables get declaredVariables => _driver.declaredVariables;
@@ -59,6 +58,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @deprecated
   driver.AnalysisDriver getDriver() => _driver;
 
+  @Deprecated('Use getErrors2() instead')
   @override
   Future<ErrorsResult> getErrors(String path) {
     _checkConsistency();
@@ -66,11 +66,25 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  Future<SomeErrorsResult> getErrors2(String path) {
+    _checkConsistency();
+    return _driver.getErrors2(path);
+  }
+
+  @Deprecated('Use getFile2() instead')
+  @override
   FileResult getFile(String path) {
     _checkConsistency();
     return _driver.getFileSync(path);
   }
 
+  @override
+  SomeFileResult getFile2(String path) {
+    _checkConsistency();
+    return _driver.getFileSync2(path);
+  }
+
+  @Deprecated('Use getLibraryByUri2() instead')
   @override
   Future<LibraryElement> getLibraryByUri(String uri) async {
     _checkConsistency();
@@ -83,11 +97,25 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) {
+    _checkConsistency();
+    return _driver.getLibraryByUri2(uri);
+  }
+
+  @Deprecated('Use getParsedLibrary2() instead')
+  @override
   ParsedLibraryResult getParsedLibrary(String path) {
     _checkConsistency();
     return _driver.getParsedLibrary(path);
   }
 
+  @override
+  SomeParsedLibraryResult getParsedLibrary2(String path) {
+    _checkConsistency();
+    return _driver.getParsedLibrary2(path);
+  }
+
+  @Deprecated('Use getParsedLibraryByElement2() instead')
   @override
   ParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
     _checkConsistency();
@@ -96,17 +124,43 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
+    _checkConsistency();
+
+    if (element.session != this) {
+      return NotElementOfThisSessionResult();
+    }
+
+    return _driver.getParsedLibraryByUri2(element.source.uri);
+  }
+
+  @Deprecated('Use getParsedUnit2() instead')
+  @override
   ParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
     return _driver.parseFileSync(path);
   }
 
   @override
+  SomeParsedUnitResult getParsedUnit2(String path) {
+    _checkConsistency();
+    return _driver.parseFileSync2(path);
+  }
+
+  @Deprecated('Use getResolvedLibrary2() instead')
+  @override
   Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
     _checkConsistency();
     return _driver.getResolvedLibrary(path);
   }
 
+  @override
+  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) {
+    _checkConsistency();
+    return _driver.getResolvedLibrary2(path);
+  }
+
+  @Deprecated('Use getResolvedLibraryByElement2() instead')
   @override
   Future<ResolvedLibraryResult> getResolvedLibraryByElement(
       LibraryElement element) {
@@ -116,23 +170,54 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+    LibraryElement element,
+  ) {
+    _checkConsistency();
+
+    if (element.session != this) {
+      return Future.value(
+        NotElementOfThisSessionResult(),
+      );
+    }
+
+    return _driver.getResolvedLibraryByUri2(element.source.uri);
+  }
+
+  @Deprecated('Use getResolvedUnit2() instead')
+  @override
   Future<ResolvedUnitResult> getResolvedUnit(String path) {
     _checkConsistency();
     return _driver.getResult(path);
   }
 
   @override
-  Future<SourceKind> getSourceKind(String path) {
+  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) {
+    _checkConsistency();
+    return _driver.getResult2(path);
+  }
+
+  @Deprecated('Use getFile2() instead')
+  @override
+  Future<SourceKind?> getSourceKind(String path) {
     _checkConsistency();
     return _driver.getSourceKind(path);
   }
 
+  @Deprecated('Use getUnitElement2() instead')
   @override
   Future<UnitElementResult> getUnitElement(String path) {
     _checkConsistency();
     return _driver.getUnitElement(path);
   }
 
+  @override
+  Future<SomeUnitElementResult> getUnitElement2(String path) {
+    _checkConsistency();
+    return _driver.getUnitElement2(path);
+  }
+
+  @Deprecated('This method is not used and will be removed')
   @override
   Future<String> getUnitElementSignature(String path) {
     _checkConsistency();
@@ -164,11 +249,11 @@ class SynchronousSession {
 
   final DeclaredVariables declaredVariables;
 
-  TypeProvider _typeProviderLegacy;
-  TypeProvider _typeProviderNonNullableByDefault;
+  TypeProviderImpl? _typeProviderLegacy;
+  TypeProviderImpl? _typeProviderNonNullableByDefault;
 
-  TypeSystemImpl _typeSystemLegacy;
-  TypeSystemImpl _typeSystemNonNullableByDefault;
+  TypeSystemImpl? _typeSystemLegacy;
+  TypeSystemImpl? _typeSystemNonNullableByDefault;
 
   SynchronousSession(this._analysisOptions, this.declaredVariables);
 
@@ -188,20 +273,22 @@ class SynchronousSession {
     );
   }
 
-  TypeProvider get typeProviderLegacy {
-    return _typeProviderLegacy;
+  bool get hasTypeProvider => _typeProviderNonNullableByDefault != null;
+
+  TypeProviderImpl get typeProviderLegacy {
+    return _typeProviderLegacy!;
   }
 
-  TypeProvider get typeProviderNonNullableByDefault {
-    return _typeProviderNonNullableByDefault;
+  TypeProviderImpl get typeProviderNonNullableByDefault {
+    return _typeProviderNonNullableByDefault!;
   }
 
   TypeSystemImpl get typeSystemLegacy {
-    return _typeSystemLegacy;
+    return _typeSystemLegacy!;
   }
 
   TypeSystemImpl get typeSystemNonNullableByDefault {
-    return _typeSystemNonNullableByDefault;
+    return _typeSystemNonNullableByDefault!;
   }
 
   void clearTypeProvider() {
@@ -213,29 +300,29 @@ class SynchronousSession {
   }
 
   void setTypeProviders({
-    @required TypeProvider legacy,
-    @required TypeProvider nonNullableByDefault,
+    required TypeProviderImpl legacy,
+    required TypeProviderImpl nonNullableByDefault,
   }) {
     if (_typeProviderLegacy != null ||
         _typeProviderNonNullableByDefault != null) {
       throw StateError('TypeProvider(s) can be set only once.');
     }
 
-    _typeProviderLegacy = legacy;
-    _typeProviderNonNullableByDefault = nonNullableByDefault;
-
     _typeSystemLegacy = TypeSystemImpl(
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
       strictInference: _analysisOptions.strictInference,
-      typeProvider: _typeProviderLegacy,
+      typeProvider: legacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
       strictInference: _analysisOptions.strictInference,
-      typeProvider: _typeProviderNonNullableByDefault,
+      typeProvider: nonNullableByDefault,
     );
+
+    _typeProviderLegacy = legacy;
+    _typeProviderNonNullableByDefault = nonNullableByDefault;
   }
 }

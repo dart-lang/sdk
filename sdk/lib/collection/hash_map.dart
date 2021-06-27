@@ -24,8 +24,6 @@ typedef _Hasher<K> = int Function(K object);
 /// symmetric, transitive, and consistent over time), and that `hashCode`
 /// must be the same for objects that are considered equal by `==`.
 ///
-/// The map allows `null` as a key.
-///
 /// Iterating the map's keys, values or entries (through [forEach])
 /// may happen in any order.
 /// The iteration order only changes when the map is modified.
@@ -56,10 +54,10 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// [K] instance.
   ///
   /// Example:
-  ///
-  ///     new HashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
-  ///                          hashCode: (int e) => e % 5)
-  ///
+  /// ```dart
+  /// HashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
+  ///                  hashCode: (int e) => e % 5)
+  /// ```
   /// This example map does not need an `isValidKey` function to be passed.
   /// The default function accepts only `int` values, which can safely be
   /// passed to both the `equals` and `hashCode` functions.
@@ -90,9 +88,10 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// Creates an unordered identity-based map.
   ///
   /// Effectively a shorthand for:
-  ///
-  ///     new HashMap<K, V>(equals: identical,
-  ///                       hashCode: identityHashCode)
+  /// ```dart
+  /// HashMap<K, V>(equals: identical,
+  ///               hashCode: identityHashCode)
+  /// ```
   external factory HashMap.identity();
 
   /// Creates a [HashMap] that contains all key/value pairs of [other].

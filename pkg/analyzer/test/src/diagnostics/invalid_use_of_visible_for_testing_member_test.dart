@@ -25,18 +25,40 @@ class InvalidUseOfVisibleForTestingMemberTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
-  test_export() async {
-    newFile('$testPackageRootPath/lib1.dart', content: r'''
+  test_export_hide() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'package:meta/meta.dart';
+
 @visibleForTesting
-int fn0() => 1;
-''');
-    newFile('$testPackageRootPath/lib2.dart', content: r'''
-export 'lib1.dart' show fn0;
+class A {}
+
+class B {}
 ''');
 
-    await _resolveFile('$testPackageRootPath/lib1.dart');
-    await _resolveFile('$testPackageRootPath/lib2.dart');
+    newFile('$testPackageLibPath/b.dart', content: r'''
+export 'a.dart' hide A;
+''');
+
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/b.dart');
+  }
+
+  test_export_show() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+class A {}
+
+class B {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+export 'a.dart' show A;
+''');
+
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/b.dart');
   }
 
   test_fromIntegrationTestDirectory() async {
@@ -173,6 +195,49 @@ void main() {
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 44, 1),
+    ]);
+  }
+
+  test_import_hide() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+class A {}
+
+class B {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+import 'a.dart' hide A;
+
+void f(B _) {}
+''');
+
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/b.dart');
+  }
+
+  test_import_show() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+class A {}
+
+class B {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+import 'a.dart' show A;
+
+void f(A _) {}
+''');
+
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/b.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 21, 1),
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 32, 1),
     ]);
   }
 

@@ -165,15 +165,15 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(myClass.kind, equals(SymbolKind.Class));
     expect(myClass.children, hasLength(3));
 
-    final field = myClass.children[0];
+    final field = myClass.children![0];
     expect(field.name, equals('myField'));
     expect(field.kind, equals(SymbolKind.Field));
 
-    final constructor = myClass.children[1];
+    final constructor = myClass.children![1];
     expect(constructor.name, equals('MyClass'));
     expect(constructor.kind, equals(SymbolKind.Constructor));
 
-    final method = myClass.children[2];
+    final method = myClass.children![2];
     expect(method.name, equals('myMethod'));
     expect(method.kind, equals(SymbolKind.Method));
   }

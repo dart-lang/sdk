@@ -16,7 +16,7 @@ class RemoveUnusedLabel extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node is Label) {
-      var nextToken = node.endToken.next;
+      var nextToken = node.endToken.next!;
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(node, nextToken));
       });

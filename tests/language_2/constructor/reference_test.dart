@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class Foo<X> {
   const Foo();
   const Foo.bar();
@@ -92,12 +94,11 @@ main() {
   Foo<int>();
   Foo<int>.bar();
   Foo<int>.bar.baz();
-  //       ^^^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected '(' after this.
-  //           ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'baz' isn't defined for the class 'Foo<int>'.
+  // ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the 'constructor-tearoffs' language feature to be enabled.
+  //       ^
+  // [cfe] Getter not found: 'bar'.
   Foo.bar<int>();
   //  ^
   // [cfe] A constructor invocation can't have type arguments on the constructor name.

@@ -4,8 +4,6 @@
 //
 // Dart test program for testing native extensions.
 
-// @dart = 2.9
-
 // OtherResources=../sample_synchronous_extension.dart
 // OtherResources=../sample_asynchronous_extension.dart
 // OtherResources=../test_sample_synchronous_extension.dart

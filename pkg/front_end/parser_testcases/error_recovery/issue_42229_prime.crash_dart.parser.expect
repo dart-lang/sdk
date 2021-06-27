@@ -1,5 +1,5 @@
 NOTICE: Stream was rewritten by parser!
 
-Stream<List<> >(){}
+Stream<List<> >;
 
-Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken][SyntheticStringToken]>[SimpleToken] >[SimpleToken]([SyntheticBeginToken])[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken][SimpleToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken][SyntheticStringToken]>[SimpleToken] >[SimpleToken][SyntheticStringToken];[SyntheticToken][SimpleToken]

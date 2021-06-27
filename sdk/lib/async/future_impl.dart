@@ -4,11 +4,13 @@
 
 part of dart.async;
 
-/** The onValue and onError handlers return either a value or a future */
+/// The onValue and onError handlers return either a value or a future
 typedef FutureOr<T> _FutureOnValue<S, T>(S value);
-/** Test used by [Future.catchError] to handle skip some errors. */
+
+/// Test used by [Future.catchError] to handle skip some errors.
 typedef bool _FutureErrorTest(Object error);
-/** Used by [WhenFuture]. */
+
+/// Used by [WhenFuture].
 typedef dynamic _FutureAction();
 
 abstract class _Completer<T> implements Completer<T> {
@@ -61,18 +63,24 @@ class _SyncCompleter<T> extends _Completer<T> {
 }
 
 class _FutureListener<S, T> {
+  // Keep in sync with sdk/runtime/vm/stack_trace.cc.
   static const int maskValue = 1;
   static const int maskError = 2;
   static const int maskTestError = 4;
-  static const int maskWhencomplete = 8;
+  static const int maskWhenComplete = 8;
   static const int stateChain = 0;
+  // Handles values, passes errors on.
   static const int stateThen = maskValue;
+  // Handles values and errors.
   static const int stateThenOnerror = maskValue | maskError;
-  static const int stateCatcherror = maskError;
-  static const int stateCatcherrorTest = maskError | maskTestError;
-  static const int stateWhencomplete = maskWhencomplete;
+  // Handles errors, has errorCallback.
+  static const int stateCatchError = maskError;
+  // Ignores both values and errors. Has no callback or errorCallback.
+  // The [result] future is ignored, its always the same as the source.
+  static const int stateCatchErrorTest = maskError | maskTestError;
+  static const int stateWhenComplete = maskWhenComplete;
   static const int maskType =
-      maskValue | maskError | maskTestError | maskWhencomplete;
+      maskValue | maskError | maskTestError | maskWhenComplete;
   static const int stateIsAwait = 16;
 
   // Listeners on the same future are linked through this link.
@@ -107,18 +115,18 @@ class _FutureListener<S, T> {
             stateIsAwait;
 
   _FutureListener.catchError(this.result, this.errorCallback, this.callback)
-      : state = (callback == null) ? stateCatcherror : stateCatcherrorTest;
+      : state = (callback == null) ? stateCatchError : stateCatchErrorTest;
 
   _FutureListener.whenComplete(this.result, this.callback)
       : errorCallback = null,
-        state = stateWhencomplete;
+        state = stateWhenComplete;
 
   _Zone get _zone => result._zone;
 
   bool get handlesValue => (state & maskValue != 0);
   bool get handlesError => (state & maskError != 0);
-  bool get hasErrorTest => (state & maskType == stateCatcherrorTest);
-  bool get handlesComplete => (state & maskType == stateWhencomplete);
+  bool get hasErrorTest => (state & maskType == stateCatchErrorTest);
+  bool get handlesComplete => (state & maskType == stateWhenComplete);
   bool get isAwait => (state & stateIsAwait != 0);
 
   FutureOr<T> Function(S) get _onValue {
@@ -146,6 +154,8 @@ class _FutureListener<S, T> {
     return _onError != null;
   }
 
+  @pragma("vm:recognized", "other")
+  @pragma("vm:never-inline")
   FutureOr<T> handleValue(S sourceResult) {
     return _zone.runUnary<FutureOr<T>, S>(_onValue, sourceResult);
   }
@@ -160,12 +170,31 @@ class _FutureListener<S, T> {
     var errorCallback = this.errorCallback; // To enable promotion.
     // If the errorCallback returns something which is not a FutureOr<T>,
     // this return statement throws, and the caller handles the error.
+    dynamic result;
     if (errorCallback is dynamic Function(Object, StackTrace)) {
-      return _zone.runBinary<dynamic, Object, StackTrace>(
+      result = _zone.runBinary<dynamic, Object, StackTrace>(
           errorCallback, asyncError.error, asyncError.stackTrace);
     } else {
-      return _zone.runUnary<dynamic, Object>(
+      result = _zone.runUnary<dynamic, Object>(
           errorCallback as dynamic, asyncError.error);
+    }
+    // Give better error messages if the result is not a valid
+    // FutureOr<T>.
+    try {
+      return result;
+    } on TypeError {
+      if (handlesValue) {
+        // This is a `.then` callback with an `onError`.
+        throw ArgumentError(
+            "The error handler of Future.then"
+                " must return a value of the returned future's type",
+            "onError");
+      }
+      // This is a `catchError` callback.
+      throw ArgumentError(
+          "The error handler of "
+              "Future.catchError must return a value of the future's type",
+          "onError");
     }
   }
 
@@ -182,53 +211,68 @@ class _FutureListener<S, T> {
 
 class _Future<T> implements Future<T> {
   /// Initial state, waiting for a result. In this state, the
-  /// [resultOrListeners] field holds a single-linked list of
+  /// [_resultOrListeners] field holds a single-linked list of
   /// [_FutureListener] listeners.
   static const int _stateIncomplete = 0;
 
+  /// Flag set when an error need not be handled.
+  ///
+  /// Set by the [FutureExtensions.ignore] method to avoid
+  /// having to introduce an unnecessary listener.
+  /// Only relevant until the future is completed.
+  static const int _stateIgnoreError = 1;
+
   /// Pending completion. Set when completed using [_asyncComplete] or
   /// [_asyncCompleteError]. It is an error to try to complete it again.
-  /// [resultOrListeners] holds listeners.
-  static const int _statePendingComplete = 1;
+  /// [_resultOrListeners] holds listeners.
+  static const int _statePendingComplete = 2;
 
-  /// The future has been chained to another future. The result of that
-  /// other future becomes the result of this future as well.
-  /// [resultOrListeners] contains the source future.
-  static const int _stateChained = 2;
+  /// The future has been chained to another "source" [_Future].
+  ///
+  /// The result of that other future becomes the result of this future
+  /// as well, when the other future completes.
+  /// This future cannot be completed again.
+  /// [_resultOrListeners] contains the source future.
+  /// Listeners have been moved to the chained future.
+  static const int _stateChained = 4;
 
   /// The future has been completed with a value result.
-  static const int _stateValue = 4;
+  ///
+  /// [_resultOrListeners] contains the value.
+  static const int _stateValue = 8;
 
   /// The future has been completed with an error result.
-  static const int _stateError = 8;
+  ///
+  /// [_resultOrListeners] contains an [AsyncEror]
+  /// holding the error and stack trace.
+  static const int _stateError = 16;
 
-  /** Whether the future is complete, and as what. */
+  /// Mask for the states above except [_stateIgnoreError].
+  static const int _completionStateMask = 30;
+
+  /// Whether the future is complete, and as what.
   int _state = _stateIncomplete;
 
-  /**
-   * Zone that the future was completed from.
-   * This is the zone that an error result belongs to.
-   *
-   * Until the future is completed, the field may hold the zone that
-   * listener callbacks used to create this future should be run in.
-   */
+  /// Zone that the future was completed from.
+  /// This is the zone that an error result belongs to.
+  ///
+  /// Until the future is completed, the field may hold the zone that
+  /// listener callbacks used to create this future should be run in.
   final _Zone _zone;
 
-  /**
-   * Either the result, a list of listeners or another future.
-   *
-   * The result of the future is either a value or an error.
-   * A result is only stored when the future has completed.
-   *
-   * The listeners is an internally linked list of [_FutureListener]s.
-   * Listeners are only remembered while the future is not yet complete,
-   * and it is not chained to another future.
-   *
-   * The future is another future that his future is chained to. This future
-   * is waiting for the other future to complete, and when it does, this future
-   * will complete with the same result.
-   * All listeners are forwarded to the other future.
-   */
+  /// Either the result, a list of listeners or another future.
+  ///
+  /// The result of the future is either a value or an error.
+  /// A result is only stored when the future has completed.
+  ///
+  /// The listeners is an internally linked list of [_FutureListener]s.
+  /// Listeners are only remembered while the future is not yet complete,
+  /// and it is not chained to another future.
+  ///
+  /// The future is another future that this future is chained to. This future
+  /// is waiting for the other future to complete, and when it does,
+  /// this future will complete with the same result.
+  /// All listeners are forwarded to the other future.
   @pragma("vm:entry-point")
   var _resultOrListeners;
 
@@ -239,7 +283,7 @@ class _Future<T> implements Future<T> {
     _asyncComplete(result);
   }
 
-  /** Creates a future with the value and the specified zone. */
+  /// Creates a future with the value and the specified zone.
   _Future.zoneValue(T value, this._zone) {
     _setValue(value);
   }
@@ -249,15 +293,17 @@ class _Future<T> implements Future<T> {
     _asyncCompleteError(error, stackTrace);
   }
 
-  /** Creates a future that is already completed with the value. */
+  /// Creates a future that is already completed with the value.
   _Future.value(T value) : this.zoneValue(value, Zone._current);
 
-  bool get _mayComplete => _state == _stateIncomplete;
-  bool get _isPendingComplete => _state == _statePendingComplete;
-  bool get _mayAddListener => _state <= _statePendingComplete;
-  bool get _isChained => _state == _stateChained;
-  bool get _isComplete => _state >= _stateValue;
-  bool get _hasError => _state == _stateError;
+  bool get _mayComplete => (_state & _completionStateMask) == _stateIncomplete;
+  bool get _isPendingComplete => (_state & _statePendingComplete) != 0;
+  bool get _mayAddListener =>
+      _state <= (_statePendingComplete | _stateIgnoreError);
+  bool get _isChained => (_state & _stateChained) != 0;
+  bool get _isComplete => (_state & (_stateValue | _stateError)) != 0;
+  bool get _hasError => (_state & _stateError) != 0;
+  bool get _ignoreError => (_state & _stateIgnoreError) != 0;
 
   static List<Function>? _continuationFunctions(_Future<Object> future) {
     List<Function>? result = null;
@@ -282,16 +328,26 @@ class _Future<T> implements Future<T> {
 
   void _setChained(_Future source) {
     assert(_mayAddListener);
-    _state = _stateChained;
+    _state = _stateChained | (_state & _stateIgnoreError);
     _resultOrListeners = source;
   }
 
   Future<R> then<R>(FutureOr<R> f(T value), {Function? onError}) {
     Zone currentZone = Zone.current;
-    if (!identical(currentZone, _rootZone)) {
+    if (identical(currentZone, _rootZone)) {
+      if (onError != null &&
+          onError is! Function(Object, StackTrace) &&
+          onError is! Function(Object)) {
+        throw ArgumentError.value(
+            onError,
+            "onError",
+            "Error handler must accept one Object or one Object and a StackTrace"
+                " as arguments, and return a value of the returned future's type");
+      }
+    } else {
       f = currentZone.registerUnaryCallback<FutureOr<R>, T>(f);
       if (onError != null) {
-        // In checked mode, this checks that onError is assignable to one of:
+        // This call also checks that onError is assignable to one of:
         //   dynamic Function(Object)
         //   dynamic Function(Object, StackTrace)
         onError = _registerErrorHandler(onError, currentZone);
@@ -305,13 +361,17 @@ class _Future<T> implements Future<T> {
   /// Registers a system created result and error continuation.
   ///
   /// Used by the implementation of `await` to listen to a future.
-  /// The system created liseners are not registered in the zone,
+  /// The system created listeners are not registered in the zone,
   /// and the listener is marked as being from an `await`.
   /// This marker is used in [_continuationFunctions].
   Future<E> _thenAwait<E>(FutureOr<E> f(T value), Function onError) {
     _Future<E> result = new _Future<E>();
     _addListener(new _FutureListener<T, E>.thenAwait(result, f, onError));
     return result;
+  }
+
+  void _ignore() {
+    _state |= _stateIgnoreError;
   }
 
   Future<T> catchError(Function onError, {bool test(Object error)?}) {
@@ -336,13 +396,13 @@ class _Future<T> implements Future<T> {
   Stream<T> asStream() => new Stream<T>.fromFuture(this);
 
   void _setPendingComplete() {
-    assert(_mayComplete);
-    _state = _statePendingComplete;
+    assert(_mayComplete); // Aka _statIncomplete
+    _state ^= _stateIncomplete ^ _statePendingComplete;
   }
 
   void _clearPendingComplete() {
     assert(_isPendingComplete);
-    _state = _stateIncomplete;
+    _state ^= _statePendingComplete ^ _stateIncomplete;
   }
 
   AsyncError get _error {
@@ -364,7 +424,7 @@ class _Future<T> implements Future<T> {
 
   void _setErrorObject(AsyncError error) {
     assert(!_isComplete); // But may have a completion pending.
-    _state = _stateError;
+    _state = _stateError | (_state & _stateIgnoreError);
     _resultOrListeners = error;
   }
 
@@ -378,7 +438,8 @@ class _Future<T> implements Future<T> {
   void _cloneResult(_Future source) {
     assert(!_isComplete);
     assert(source._isComplete);
-    _state = source._state;
+    _state =
+        (source._state & _completionStateMask) | (_state & _stateIgnoreError);
     _resultOrListeners = source._resultOrListeners;
   }
 
@@ -526,8 +587,8 @@ class _Future<T> implements Future<T> {
       _FutureListener? listeners = _removeListeners();
       // TODO(40014): Remove cast when type promotion works.
       // This would normally be `as T` but we use `as dynamic` to make the
-      // unneeded check be implict to match dart2js unsound optimizations in the
-      // user code.
+      // unneeded check be implicit to match dart2js unsound optimizations in
+      // the user code.
       _setValue(value as dynamic); // Value promoted to T.
       _propagateToListeners(this, listeners);
     }
@@ -568,7 +629,7 @@ class _Future<T> implements Future<T> {
     }
     // TODO(40014): Remove cast when type promotion works.
     // This would normally be `as T` but we use `as dynamic` to make the
-    // unneeded check be implict to match dart2js unsound optimizations in the
+    // unneeded check be implicit to match dart2js unsound optimizations in the
     // user code.
     _asyncCompleteWithValue(value as dynamic); // Value promoted to T.
   }
@@ -606,17 +667,15 @@ class _Future<T> implements Future<T> {
     });
   }
 
-  /**
-   * Propagates the value/error of [source] to its [listeners], executing the
-   * listeners' callbacks.
-   */
+  /// Propagates the value/error of [source] to its [listeners], executing the
+  /// listeners' callbacks.
   static void _propagateToListeners(
       _Future source, _FutureListener? listeners) {
     while (true) {
       assert(source._isComplete);
       bool hasError = source._hasError;
       if (listeners == null) {
-        if (hasError) {
+        if (hasError && !source._ignoreError) {
           AsyncError asyncError = source._error;
           source._zone
               .handleUncaughtError(asyncError.error, asyncError.stackTrace);
@@ -768,6 +827,7 @@ class _Future<T> implements Future<T> {
           return;
         }
       }
+
       _Future result = listener.result;
       listeners = result._removeListeners();
       if (!listenerHasError) {
@@ -842,9 +902,9 @@ Function _registerErrorHandler(Function errorHandler, Zone zone) {
   if (errorHandler is dynamic Function(Object)) {
     return zone.registerUnaryCallback<dynamic, Object>(errorHandler);
   }
-  throw new ArgumentError.value(
+  throw ArgumentError.value(
       errorHandler,
       "onError",
       "Error handler must accept one Object or one Object and a StackTrace"
-          " as arguments, and return a valid result");
+          " as arguments, and return a value of the returned future's type");
 }

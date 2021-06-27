@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+abstract class B<invariant X extends core::Object? = dynamic, Y extends core::Object? = dynamic, contravariant Z extends core::Object? = dynamic> extends self::A /*isMixinDeclaration*/  {
+}
+static method main() → dynamic
+  ;

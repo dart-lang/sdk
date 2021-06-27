@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class AwaitExpressionResolutionTest extends PubPackageResolutionTest {
+class AwaitExpressionResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_future() async {
     await assertNoErrorsInCode(r'''
 f(Future<int> a) async {
@@ -40,7 +41,7 @@ f(FutureOr<int> a) async {
 
 @reflectiveTest
 class AwaitExpressionResolutionWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_futureOrQ() async {
     await assertNoErrorsInCode(r'''
 import 'dart:async';

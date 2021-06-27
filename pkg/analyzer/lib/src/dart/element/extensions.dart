@@ -32,13 +32,20 @@ extension ElementExtension on Element {
     if (hasDoNotStore) {
       return true;
     }
+
     var ancestor = enclosingElement;
-    if (ancestor is ClassElement || ancestor is ExtensionElement) {
+    if (ancestor is ClassElement) {
+      if (ancestor.hasDoNotStore) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement;
+    } else if (ancestor is ExtensionElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
       ancestor = ancestor.enclosingElement;
     }
+
     return ancestor is CompilationUnitElement &&
         ancestor.enclosingElement.hasDoNotStore;
   }
@@ -46,7 +53,7 @@ extension ElementExtension on Element {
 
 extension ParameterElementExtensions on ParameterElement {
   /// Return [ParameterElement] with the specified properties replaced.
-  ParameterElement copyWith({DartType type, ParameterKind kind}) {
+  ParameterElement copyWith({DartType? type, ParameterKind? kind}) {
     return ParameterElementImpl.synthetic(
       name,
       type ?? this.type,

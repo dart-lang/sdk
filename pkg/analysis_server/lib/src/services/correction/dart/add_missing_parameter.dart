@@ -12,10 +12,18 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class AddMissingParameter extends MultiCorrectionProducer {
   @override
   Iterable<CorrectionProducer> get producers sync* {
-    if (node is! ArgumentList) {
+    // node is the unmatched argument.
+    var argumentList = node.parent;
+    if (argumentList is! ArgumentList) {
       return;
     }
-    var context = ExecutableParameters(sessionHelper, node.parent);
+
+    var invocation = argumentList.parent;
+    if (invocation == null) {
+      return;
+    }
+
+    var context = ExecutableParameters.forInvocation(sessionHelper, invocation);
     if (context == null) {
       return;
     }
@@ -50,7 +58,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
       await _addParameter(builder, prevNode?.end, prefix, ']');
     } else {
       var parameterList = await context.getParameterList();
-      var offset = parameterList?.leftParenthesis?.end;
+      var offset = parameterList?.leftParenthesis.end;
       await _addParameter(builder, offset, prefix, ']');
     }
   }
@@ -64,8 +72,12 @@ abstract class _AddMissingParameter extends CorrectionProducer {
   _AddMissingParameter(this.context);
 
   Future<void> _addParameter(
-      ChangeBuilder builder, int offset, String prefix, String suffix) async {
-    ArgumentList argumentList = node;
+      ChangeBuilder builder, int? offset, String prefix, String suffix) async {
+    // node is the unmatched argument.
+    var argumentList = node.parent;
+    if (argumentList is! ArgumentList) {
+      return;
+    }
     List<Expression> arguments = argumentList.arguments;
     var numRequired = context.required.length;
     if (numRequired >= arguments.length) {
@@ -101,7 +113,7 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
       await _addParameter(builder, prevNode?.end, ', ', '');
     } else {
       var parameterList = await context.getParameterList();
-      var offset = parameterList?.leftParenthesis?.end;
+      var offset = parameterList?.leftParenthesis.end;
       var suffix = context.executable.parameters.isNotEmpty ? ', ' : '';
       await _addParameter(builder, offset, '', suffix);
     }

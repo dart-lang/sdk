@@ -1,3 +1,4 @@
+// @dart = 2.9
 C c;
 
 class C<X extends num, Y extends void Function(X)> {}

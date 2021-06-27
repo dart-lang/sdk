@@ -13,13 +13,16 @@ class _TestClass {
   var y;
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class _TestConst {
   const _TestConst();
 }
 
 _TopLevelClosure() {}
 
+@pragma("vm:entry-point") // Prevent obfuscation
 var x;
+@pragma("vm:entry-point") // Prevent obfuscation
 var fn;
 
 void warmup() {
@@ -27,10 +30,10 @@ void warmup() {
   fn = _TopLevelClosure;
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 getX() => x;
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 getFn() => fn;
 
 invoke(Isolate isolate, String selector) async {

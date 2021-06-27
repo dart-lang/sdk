@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -70,7 +71,9 @@ class A {
       "offset": 6,
       "length": 0,
       "startLine": 1,
-      "startColumn": 7
+      "startColumn": 7,
+      "endLine": 1,
+      "endColumn": 7
     },
     "flags": 0
   },
@@ -93,7 +96,9 @@ class A {
       "offset": 14,
       "length": 0,
       "startLine": 2,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 2,
+      "endColumn": 5
     },
     "flags": 0,
     "parameters": "()",
@@ -107,6 +112,150 @@ class A {
     "a"
   ],
   "requiredParameterCount": 0
+}
+''');
+  }
+
+  Future<void> test_suggestion_class_abstract() async {
+    var path = convertPath('/home/test/lib/a.dart');
+    var uriStr = 'package:test/a.dart';
+
+    newFile(path, content: r'''
+abstract class A {
+  A.a();
+  factory A.b() => _B();
+}
+class _B extends A {
+  _B() : super.a();
+}
+''');
+
+    var set = await waitForSetWithUri(uriStr);
+    assertNoSuggestion(set, 'A.a');
+    assertNoSuggestion(set, '_B');
+    assertJsonText(_getSuggestion(set, 'A'), '''
+{
+  "label": "A",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "CLASS",
+    "name": "A",
+    "location": {
+      "file": ${jsonOfPath(path)},
+      "offset": 15,
+      "length": 0,
+      "startLine": 1,
+      "startColumn": 16,
+      "endLine": 1,
+      "endColumn": 16
+    },
+    "flags": 1
+  },
+  "relevanceTags": [
+    "ElementKind.CLASS",
+    "package:test/a.dart::A",
+    "A"
+  ]
+}
+''');
+    assertJsonText(_getSuggestion(set, 'A.b'), '''
+{
+  "label": "A.b",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "CONSTRUCTOR",
+    "name": "b",
+    "location": {
+      "file": ${jsonOfPath(path)},
+      "offset": 40,
+      "length": 0,
+      "startLine": 3,
+      "startColumn": 13,
+      "endLine": 3,
+      "endColumn": 13
+    },
+    "flags": 0,
+    "parameters": "()",
+    "returnType": "A"
+  },
+  "parameterNames": [],
+  "parameterTypes": [],
+  "relevanceTags": [
+    "ElementKind.CONSTRUCTOR",
+    "package:test/a.dart::A",
+    "b"
+  ],
+  "requiredParameterCount": 0
+}
+''');
+  }
+
+  Future<void> test_suggestion_class_part() async {
+    var a_path = convertPath('/home/test/lib/a.dart');
+    var b_path = convertPath('/home/test/lib/b.dart');
+    var a_uriStr = 'package:test/a.dart';
+
+    newFile(a_path, content: r'''
+part 'b.dart';
+class A {}
+''');
+
+    newFile(b_path, content: r'''
+part of 'a.dart';
+class B {}
+''');
+
+    var set = await waitForSetWithUri(a_uriStr);
+    assertJsonText(_getSuggestion(set, 'A', kind: ElementKind.CLASS), '''
+{
+  "label": "A",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "CLASS",
+    "name": "A",
+    "location": {
+      "file": ${jsonOfPath(a_path)},
+      "offset": 21,
+      "length": 0,
+      "startLine": 2,
+      "startColumn": 7,
+      "endLine": 2,
+      "endColumn": 7
+    },
+    "flags": 0
+  },
+  "relevanceTags": [
+    "ElementKind.CLASS",
+    "package:test/a.dart::A",
+    "A"
+  ]
+}
+''');
+
+    // We should not get duplicate relevance tags.
+    assertJsonText(_getSuggestion(set, 'B', kind: ElementKind.CLASS), '''
+{
+  "label": "B",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "CLASS",
+    "name": "B",
+    "location": {
+      "file": ${jsonOfPath(b_path)},
+      "offset": 24,
+      "length": 0,
+      "startLine": 2,
+      "startColumn": 7,
+      "endLine": 2,
+      "endColumn": 7
+    },
+    "flags": 0
+  },
+  "relevanceTags": [
+    "ElementKind.CLASS",
+    "package:test/a.dart::B",
+    "B"
+  ]
 }
 ''');
   }
@@ -135,7 +284,9 @@ enum MyEnum {
       "offset": 5,
       "length": 0,
       "startLine": 1,
-      "startColumn": 6
+      "startColumn": 6,
+      "endLine": 1,
+      "endColumn": 6
     },
     "flags": 0
   },
@@ -158,7 +309,9 @@ enum MyEnum {
       "offset": 16,
       "length": 0,
       "startLine": 2,
-      "startColumn": 3
+      "startColumn": 3,
+      "endLine": 2,
+      "endColumn": 3
     },
     "flags": 0
   },
@@ -182,7 +335,9 @@ enum MyEnum {
       "offset": 23,
       "length": 0,
       "startLine": 3,
-      "startColumn": 3
+      "startColumn": 3,
+      "endLine": 3,
+      "endColumn": 3
     },
     "flags": 0
   },
@@ -220,7 +375,9 @@ var stringV = 'hi';
       "offset": 4,
       "length": 0,
       "startLine": 1,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 1,
+      "endColumn": 5
     },
     "flags": 0,
     "returnType": ""
@@ -244,7 +401,9 @@ var stringV = 'hi';
       "offset": 23,
       "length": 0,
       "startLine": 2,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 2,
+      "endColumn": 5
     },
     "flags": 0,
     "returnType": ""
@@ -268,7 +427,9 @@ var stringV = 'hi';
       "offset": 37,
       "length": 0,
       "startLine": 3,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 3,
+      "endColumn": 5
     },
     "flags": 0,
     "returnType": ""
@@ -292,7 +453,9 @@ var stringV = 'hi';
       "offset": 56,
       "length": 0,
       "startLine": 4,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 4,
+      "endColumn": 5
     },
     "flags": 0,
     "returnType": ""
@@ -306,8 +469,17 @@ var stringV = 'hi';
 ''');
   }
 
+  static void assertNoSuggestion(AvailableSuggestionSet set, String label,
+      {ElementKind? kind}) {
+    var suggestion = set.items.singleWhereOrNull(
+        (s) => s.label == label && (kind == null || s.element.kind == kind));
+    expect(suggestion, null);
+  }
+
   static AvailableSuggestion _getSuggestion(
-      AvailableSuggestionSet set, String label) {
-    return set.items.singleWhere((s) => s.label == label);
+      AvailableSuggestionSet set, String label,
+      {ElementKind? kind}) {
+    return set.items.singleWhere(
+        (s) => s.label == label && (kind == null || s.element.kind == kind));
   }
 }

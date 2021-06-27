@@ -155,6 +155,8 @@ static intptr_t GetTypeIndex(ObjectStore* object_store,
                              const ObjectPtr raw_type) {
   if (raw_type == object_store->legacy_object_type()) {
     return kLegacyObjectType;
+  } else if (raw_type == object_store->nullable_object_type()) {
+    return kNullableObjectType;
   } else if (raw_type == object_store->null_type()) {
     return kNullType;
   } else if (raw_type == object_store->never_type()) {
@@ -279,8 +281,8 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       kind_(kind),
       thread_(thread),
       zone_(thread->zone()),
-      heap_(isolate()->heap()),
-      old_space_(thread_->isolate()->heap()->old_space()),
+      heap_(isolate_group()->heap()),
+      old_space_(isolate_group()->heap()->old_space()),
       cls_(Class::Handle(zone_)),
       code_(Code::Handle(zone_)),
       instance_(Instance::Handle(zone_)),
@@ -299,10 +301,11 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       typed_data_(TypedData::Handle(zone_)),
       typed_data_view_(TypedDataView::Handle(zone_)),
       function_(Function::Handle(zone_)),
+      smi_(Smi::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
       set_class_(Class::ZoneHandle(
           zone_,
-          thread_->isolate()->object_store()->linked_hash_set_class())),
+          thread_->isolate_group()->object_store()->linked_hash_set_class())),
       max_vm_isolate_object_id_(
           (Snapshot::IsFull(kind))
               ? Object::vm_isolate_snapshot_object_table().Length()
@@ -325,17 +328,17 @@ ObjectPtr SnapshotReader::ReadObject() {
     }
     Object& result = Object::Handle(zone_);
     if (backward_references_->length() > 0) {
-      result = (*backward_references_)[0].reference()->raw();
+      result = (*backward_references_)[0].reference()->ptr();
     } else {
-      result = obj.raw();
+      result = obj.ptr();
     }
     RunDelayedTypePostprocessing();
     const Object& ok = Object::Handle(zone_, RunDelayedRehashingOfMaps());
     objects_to_rehash_ = GrowableObjectArray::null();
     if (!ok.IsNull()) {
-      return ok.raw();
+      return ok.ptr();
     }
-    return result.raw();
+    return result.ptr();
   } else {
     // An error occurred while reading, return the error object.
     return Thread::Current()->StealStickyError();
@@ -372,17 +375,7 @@ void SnapshotReader::EnqueueRehashingOfMap(const LinkedHashMap& map) {
 
 ObjectPtr SnapshotReader::RunDelayedRehashingOfMaps() {
   if (!objects_to_rehash_.IsNull()) {
-    const Library& collections_lib =
-        Library::Handle(zone_, Library::CollectionLibrary());
-    const Function& rehashing_function = Function::Handle(
-        zone_,
-        collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
-    ASSERT(!rehashing_function.IsNull());
-
-    const Array& arguments = Array::Handle(zone_, Array::New(1));
-    arguments.SetAt(0, objects_to_rehash_);
-
-    return DartEntry::InvokeFunction(rehashing_function, arguments);
+    return DartLibraryCalls::RehashObjects(thread(), objects_to_rehash_);
   }
   return Object::null();
 }
@@ -406,7 +399,7 @@ ClassPtr SnapshotReader::ReadClassId(intptr_t object_id) {
         "Invalid object found in message: library is not found or loaded.");
   }
   str_ ^= ReadObjectImpl(kAsInlinedObject);
-  if (str_.raw() == Symbols::TopLevel().raw()) {
+  if (str_.ptr() == Symbols::TopLevel().ptr()) {
     cls = library_.toplevel_class();
   } else {
     str_ = String::New(String::ScrubName(str_));
@@ -416,7 +409,7 @@ ClassPtr SnapshotReader::ReadClassId(intptr_t object_id) {
     SetReadException("Invalid object found in message: class not found");
   }
   cls.EnsureIsFinalized(thread());
-  return cls.raw();
+  return cls.ptr();
 }
 
 ObjectPtr SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
@@ -479,7 +472,7 @@ ObjectPtr SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   } else {
     obj = func.ImplicitStaticClosure();
   }
-  return obj.raw();
+  return obj.ptr();
 }
 
 intptr_t SnapshotReader::NextAvailableObjectId() const {
@@ -506,7 +499,7 @@ ObjectPtr SnapshotReader::VmIsolateSnapshotObject(intptr_t index) const {
 }
 
 bool SnapshotReader::is_vm_isolate() const {
-  return isolate() == Dart::vm_isolate();
+  return isolate_group() == Dart::vm_isolate_group();
 }
 
 ObjectPtr SnapshotReader::ReadObjectImpl(bool as_reference) {
@@ -535,7 +528,7 @@ ObjectPtr SnapshotReader::ReadObjectImpl(intptr_t header_value,
   // Read the class header information.
   intptr_t class_header = Read<int32_t>();
   intptr_t tags = ReadTags();
-  bool read_as_reference = as_reference && !ObjectLayout::IsCanonical(tags);
+  bool read_as_reference = as_reference && !UntaggedObject::IsCanonical(tags);
   intptr_t header_id = SerializedHeaderData::decode(class_header);
   if (header_id == kInstanceObjectId) {
     return ReadInstance(object_id, tags, read_as_reference);
@@ -559,7 +552,7 @@ ObjectPtr SnapshotReader::ReadObjectImpl(intptr_t header_value,
 #define SNAPSHOT_READ(clazz) case kTypedData##clazz##Cid:
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
-      tags = ObjectLayout::ClassIdTag::update(class_id, tags);
+      tags = UntaggedObject::ClassIdTag::update(class_id, tags);
       pobj_ =
           TypedData::ReadFrom(this, object_id, tags, kind_, read_as_reference);
       break;
@@ -568,7 +561,7 @@ ObjectPtr SnapshotReader::ReadObjectImpl(intptr_t header_value,
 #define SNAPSHOT_READ(clazz) case kExternalTypedData##clazz##Cid:
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
-      tags = ObjectLayout::ClassIdTag::update(class_id, tags);
+      tags = UntaggedObject::ClassIdTag::update(class_id, tags);
       pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_, true);
       break;
     }
@@ -577,7 +570,7 @@ ObjectPtr SnapshotReader::ReadObjectImpl(intptr_t header_value,
 
     case kByteDataViewCid:
       CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
-        tags = ObjectLayout::ClassIdTag::update(class_id, tags);
+        tags = UntaggedObject::ClassIdTag::update(class_id, tags);
         pobj_ = TypedDataView::ReadFrom(this, object_id, tags, kind_, true);
         break;
       }
@@ -590,7 +583,7 @@ ObjectPtr SnapshotReader::ReadObjectImpl(intptr_t header_value,
       UNREACHABLE();
       break;
   }
-  return pobj_.raw();
+  return pobj_.ptr();
 }
 
 void SnapshotReader::EnqueueRehashingOfSet(const Object& set) {
@@ -623,7 +616,8 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
     instance_size = cls_.host_instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
+    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew,
+                                /*compressed*/ false);
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
@@ -641,16 +635,16 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
     ASSERT(next_field_offset > 0);
     // Instance::NextFieldOffset() returns the offset of the first field in
     // a Dart object.
-    bool read_as_reference = ObjectLayout::IsCanonical(tags) ? false : true;
+    bool read_as_reference = UntaggedObject::IsCanonical(tags) ? false : true;
     intptr_t offset = Instance::NextFieldOffset();
     intptr_t result_cid = result->GetClassId();
 
     const auto unboxed_fields =
-        isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
+        isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
             result_cid);
 
     while (offset < next_field_offset) {
-      if (unboxed_fields.Get(offset / kWordSize)) {
+      if (unboxed_fields.Get(offset / kCompressedWordSize)) {
         uword* p = reinterpret_cast<uword*>(result->raw_value() -
                                             kHeapObjectTag + offset);
         // Reads 32 bits of the unboxed value at a time
@@ -659,30 +653,31 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
         pobj_ = ReadObjectImpl(read_as_reference);
         result->SetFieldAtOffset(offset, pobj_);
         if ((offset != type_argument_field_offset) &&
-            (kind_ == Snapshot::kMessage) && isolate()->use_field_guards() &&
-            (pobj_.raw() != Object::sentinel().raw())) {
+            (kind_ == Snapshot::kMessage) &&
+            isolate_group()->use_field_guards() &&
+            (pobj_.ptr() != Object::sentinel().ptr())) {
           // TODO(fschneider): Consider hoisting these lookups out of the loop.
           // This would involve creating a handle, since cls_ can't be reused
           // across the call to ReadObjectImpl.
-          cls_ = isolate()->class_table()->At(result_cid);
+          cls_ = isolate_group()->class_table()->At(result_cid);
           array_ = cls_.OffsetToFieldMap();
-          field_ ^= array_.At(offset >> kWordSizeLog2);
+          field_ ^= array_.At(offset >> kCompressedWordSizeLog2);
           ASSERT(!field_.IsNull());
           ASSERT(field_.HostOffset() == offset);
-          obj_ = pobj_.raw();
+          obj_ = pobj_.ptr();
           field_.RecordStore(obj_);
         }
         // TODO(fschneider): Verify the guarded cid and length for other kinds
         // of snapshot (kFull, kScript) with asserts.
       }
-      offset += kWordSize;
+      offset += kCompressedWordSize;
     }
-    if (ObjectLayout::IsCanonical(tags)) {
+    if (UntaggedObject::IsCanonical(tags)) {
       *result = result->Canonicalize(thread());
       ASSERT(!result->IsNull());
     }
   }
-  return result->raw();
+  return result->ptr();
 }
 
 void SnapshotReader::AddBackRef(intptr_t id,
@@ -707,7 +702,8 @@ Object* SnapshotReader::GetBackRef(intptr_t id) {
   return NULL;
 }
 
-ApiErrorPtr SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
+ApiErrorPtr SnapshotReader::VerifyVersionAndFeatures(
+    IsolateGroup* isolate_group) {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
@@ -744,7 +740,8 @@ ApiErrorPtr SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(isolate, false, kind_);
+  const char* expected_features =
+      Dart::FeaturesString(isolate_group, false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
@@ -806,29 +803,29 @@ ObjectPtr SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
 
   // First check if it is one of the singleton objects.
   READ_VM_SINGLETON_OBJ(kNullObject, Object::null());
-  READ_VM_SINGLETON_OBJ(kSentinelObject, Object::sentinel().raw());
+  READ_VM_SINGLETON_OBJ(kSentinelObject, Object::sentinel().ptr());
   READ_VM_SINGLETON_OBJ(kTransitionSentinelObject,
-                        Object::transition_sentinel().raw());
-  READ_VM_SINGLETON_OBJ(kEmptyArrayObject, Object::empty_array().raw());
-  READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().raw());
-  READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type().raw());
-  READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type().raw());
+                        Object::transition_sentinel().ptr());
+  READ_VM_SINGLETON_OBJ(kEmptyArrayObject, Object::empty_array().ptr());
+  READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().ptr());
+  READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type().ptr());
+  READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type().ptr());
   READ_VM_SINGLETON_OBJ(kEmptyTypeArguments,
-                        Object::empty_type_arguments().raw());
-  READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().raw());
-  READ_VM_SINGLETON_OBJ(kFalseValue, Bool::False().raw());
+                        Object::empty_type_arguments().ptr());
+  READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().ptr());
+  READ_VM_SINGLETON_OBJ(kFalseValue, Bool::False().ptr());
   READ_VM_SINGLETON_OBJ(kExtractorParameterTypes,
-                        Object::extractor_parameter_types().raw());
+                        Object::extractor_parameter_types().ptr());
   READ_VM_SINGLETON_OBJ(kExtractorParameterNames,
-                        Object::extractor_parameter_names().raw());
+                        Object::extractor_parameter_names().ptr());
   READ_VM_SINGLETON_OBJ(kEmptyContextScopeObject,
-                        Object::empty_context_scope().raw());
-  READ_VM_SINGLETON_OBJ(kEmptyObjectPool, Object::empty_object_pool().raw());
-  READ_VM_SINGLETON_OBJ(kEmptyDescriptors, Object::empty_descriptors().raw());
+                        Object::empty_context_scope().ptr());
+  READ_VM_SINGLETON_OBJ(kEmptyObjectPool, Object::empty_object_pool().ptr());
+  READ_VM_SINGLETON_OBJ(kEmptyDescriptors, Object::empty_descriptors().ptr());
   READ_VM_SINGLETON_OBJ(kEmptyVarDescriptors,
-                        Object::empty_var_descriptors().raw());
+                        Object::empty_var_descriptors().ptr());
   READ_VM_SINGLETON_OBJ(kEmptyExceptionHandlers,
-                        Object::empty_exception_handlers().raw());
+                        Object::empty_exception_handlers().ptr());
 
   // Check if it is a double.
   if (object_id == kDoubleObject) {
@@ -839,7 +836,8 @@ ObjectPtr SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   // Check it is a singleton class object.
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsSingletonClassId(class_id)) {
-    return isolate()->class_table()->At(class_id);  // get singleton class.
+    return isolate_group()->class_table()->At(
+        class_id);  // get singleton class.
   }
 
   // Check if it is a singleton Argument descriptor object.
@@ -863,7 +861,8 @@ ObjectPtr SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
 ObjectPtr SnapshotReader::ReadIndexedObject(intptr_t object_id) {
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsBootstrapedClassId(class_id)) {
-    return isolate()->class_table()->At(class_id);  // get singleton class.
+    return isolate_group()->class_table()->At(
+        class_id);  // get singleton class.
   }
   if (IsObjectStoreTypeId(object_id)) {
     return GetType(object_store(), object_id);  // return type obj.
@@ -873,7 +872,7 @@ ObjectPtr SnapshotReader::ReadIndexedObject(intptr_t object_id) {
   if (index < max_vm_isolate_object_id_) {
     return VmIsolateSnapshotObject(index);
   }
-  return GetBackRef(object_id)->raw();
+  return GetBackRef(object_id)->ptr();
 }
 
 void SnapshotReader::ArrayReadFrom(intptr_t object_id,
@@ -884,7 +883,7 @@ void SnapshotReader::ArrayReadFrom(intptr_t object_id,
   *TypeArgumentsHandle() ^= ReadObjectImpl(kAsInlinedObject);
   result.SetTypeArguments(*TypeArgumentsHandle());
 
-  bool as_reference = ObjectLayout::IsCanonical(tags) ? false : true;
+  bool as_reference = UntaggedObject::IsCanonical(tags) ? false : true;
   for (intptr_t i = 0; i < len; i++) {
     *PassiveObjectHandle() = ReadObjectImpl(as_reference);
     result.SetAt(i, *PassiveObjectHandle());
@@ -911,8 +910,8 @@ SnapshotWriter::SnapshotWriter(Thread* thread,
     : BaseWriter(initial_size),
       thread_(thread),
       kind_(kind),
-      object_store_(isolate()->object_store()),
-      class_table_(isolate()->class_table()),
+      object_store_(isolate_group()->object_store()),
+      class_table_(isolate_group()->class_table()),
       forward_list_(forward_list),
       exception_type_(Exceptions::kNone),
       exception_msg_(NULL),
@@ -926,25 +925,25 @@ void SnapshotWriter::WriteObject(ObjectPtr rawobj) {
 }
 
 uint32_t SnapshotWriter::GetObjectTags(ObjectPtr raw) {
-  uword tags = raw->ptr()->tags_;
+  uword tags = raw->untag()->tags_;
 #if defined(HASH_IN_OBJECT_HEADER)
   // Clear hash to make the narrowing cast safe / appease UBSAN.
-  tags = ObjectLayout::HashTag::update(0, tags);
+  tags = UntaggedObject::HashTag::update(0, tags);
 #endif
   return tags;
 }
 
-uint32_t SnapshotWriter::GetObjectTags(ObjectLayout* raw) {
+uint32_t SnapshotWriter::GetObjectTags(UntaggedObject* raw) {
   uword tags = raw->tags_;
 #if defined(HASH_IN_OBJECT_HEADER)
   // Clear hash to make the narrowing cast safe / appease UBSAN.
-  tags = ObjectLayout::HashTag::update(0, tags);
+  tags = UntaggedObject::HashTag::update(0, tags);
 #endif
   return tags;
 }
 
 uword SnapshotWriter::GetObjectTagsAndHash(ObjectPtr raw) {
-  return raw->ptr()->tags_;
+  return raw->untag()->tags_;
 }
 
 #define VM_OBJECT_CLASS_LIST(V)                                                \
@@ -958,7 +957,7 @@ uword SnapshotWriter::GetObjectTagsAndHash(ObjectPtr raw) {
   case clazz::kClassId: {                                                      \
     object_id = forward_list_->AddObject(zone(), rawobj, kIsSerialized);       \
     clazz##Ptr raw_obj = static_cast<clazz##Ptr>(rawobj);                      \
-    raw_obj->ptr()->WriteTo(this, object_id, kind(), false);                   \
+    raw_obj->untag()->WriteTo(this, object_id, kind(), false);                 \
     return true;                                                               \
   }
 
@@ -971,28 +970,28 @@ uword SnapshotWriter::GetObjectTagsAndHash(ObjectPtr raw) {
 bool SnapshotWriter::HandleVMIsolateObject(ObjectPtr rawobj) {
   // Check if it is one of the singleton VM objects.
   WRITE_VM_SINGLETON_OBJ(Object::null(), kNullObject);
-  WRITE_VM_SINGLETON_OBJ(Object::sentinel().raw(), kSentinelObject);
-  WRITE_VM_SINGLETON_OBJ(Object::transition_sentinel().raw(),
+  WRITE_VM_SINGLETON_OBJ(Object::sentinel().ptr(), kSentinelObject);
+  WRITE_VM_SINGLETON_OBJ(Object::transition_sentinel().ptr(),
                          kTransitionSentinelObject);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_array().raw(), kEmptyArrayObject);
-  WRITE_VM_SINGLETON_OBJ(Object::zero_array().raw(), kZeroArrayObject);
-  WRITE_VM_SINGLETON_OBJ(Object::dynamic_type().raw(), kDynamicType);
-  WRITE_VM_SINGLETON_OBJ(Object::void_type().raw(), kVoidType);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_type_arguments().raw(),
+  WRITE_VM_SINGLETON_OBJ(Object::empty_array().ptr(), kEmptyArrayObject);
+  WRITE_VM_SINGLETON_OBJ(Object::zero_array().ptr(), kZeroArrayObject);
+  WRITE_VM_SINGLETON_OBJ(Object::dynamic_type().ptr(), kDynamicType);
+  WRITE_VM_SINGLETON_OBJ(Object::void_type().ptr(), kVoidType);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_type_arguments().ptr(),
                          kEmptyTypeArguments);
-  WRITE_VM_SINGLETON_OBJ(Bool::True().raw(), kTrueValue);
-  WRITE_VM_SINGLETON_OBJ(Bool::False().raw(), kFalseValue);
-  WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_types().raw(),
+  WRITE_VM_SINGLETON_OBJ(Bool::True().ptr(), kTrueValue);
+  WRITE_VM_SINGLETON_OBJ(Bool::False().ptr(), kFalseValue);
+  WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_types().ptr(),
                          kExtractorParameterTypes);
-  WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_names().raw(),
+  WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_names().ptr(),
                          kExtractorParameterNames);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_context_scope().raw(),
+  WRITE_VM_SINGLETON_OBJ(Object::empty_context_scope().ptr(),
                          kEmptyContextScopeObject);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_object_pool().raw(), kEmptyObjectPool);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_descriptors().raw(), kEmptyDescriptors);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_var_descriptors().raw(),
+  WRITE_VM_SINGLETON_OBJ(Object::empty_object_pool().ptr(), kEmptyObjectPool);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_descriptors().ptr(), kEmptyDescriptors);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_var_descriptors().ptr(),
                          kEmptyVarDescriptors);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_exception_handlers().raw(),
+  WRITE_VM_SINGLETON_OBJ(Object::empty_exception_handlers().ptr(),
                          kEmptyExceptionHandlers);
 
   // Check if it is a singleton class object which is shared by
@@ -1000,7 +999,7 @@ bool SnapshotWriter::HandleVMIsolateObject(ObjectPtr rawobj) {
   intptr_t id = rawobj->GetClassId();
   if (id == kClassCid) {
     ClassPtr raw_class = static_cast<ClassPtr>(rawobj);
-    intptr_t class_id = raw_class->ptr()->id_;
+    intptr_t class_id = raw_class->untag()->id_;
     if (IsSingletonClassId(class_id)) {
       intptr_t object_id = ObjectIdFromClassId(class_id);
       WriteVMIsolateObject(object_id);
@@ -1033,7 +1032,7 @@ bool SnapshotWriter::HandleVMIsolateObject(ObjectPtr rawobj) {
     return true;
   } else {
     // We do this check down here, because it's quite expensive.
-    if (!rawobj->ptr()->InVMIsolateHeap()) {
+    if (!rawobj->untag()->InVMIsolateHeap()) {
       return false;
     }
 
@@ -1042,7 +1041,7 @@ bool SnapshotWriter::HandleVMIsolateObject(ObjectPtr rawobj) {
       case kTypedDataUint32ArrayCid: {
         object_id = forward_list_->AddObject(zone(), rawobj, kIsSerialized);
         TypedDataPtr raw_obj = static_cast<TypedDataPtr>(rawobj);
-        raw_obj->ptr()->WriteTo(this, object_id, kind(), false);
+        raw_obj->untag()->WriteTo(this, object_id, kind(), false);
         return true;
       }
       default:
@@ -1091,7 +1090,7 @@ intptr_t ForwardList::AddObject(Zone* zone,
 intptr_t ForwardList::FindObject(ObjectPtr raw) {
   NoSafepointScope no_safepoint;
   intptr_t id = GetObjectId(raw);
-  ASSERT(id == 0 || NodeForObjectId(id)->obj()->raw() == raw);
+  ASSERT(id == 0 || NodeForObjectId(id)->obj()->ptr() == raw);
   return (id == 0) ? static_cast<intptr_t>(kInvalidIndex) : id;
 }
 
@@ -1121,7 +1120,14 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(ObjectPtr rawobj) {
 
   // First check if it is a Smi (i.e not a heap object).
   if (!rawobj->IsHeapObject()) {
+#if !defined(DART_COMPRESSED_POINTERS)
     Write<int64_t>(static_cast<intptr_t>(rawobj));
+#else
+    // One might expect this to be unnecessary because the reader will just
+    // ignore the upper bits, but the upper bits affect the variable-length
+    // encoding and can change lower bits in the variable-length reader.
+    Write<int64_t>(static_cast<intptr_t>(rawobj) << 32 >> 32);
+#endif
     return true;
   }
 
@@ -1130,7 +1136,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(ObjectPtr rawobj) {
   if ((kind_ == Snapshot::kMessage) && (cid == kDoubleCid)) {
     WriteVMIsolateObject(kDoubleObject);
     DoublePtr rd = static_cast<DoublePtr>(rawobj);
-    WriteDouble(rd->ptr()->value_);
+    WriteDouble(rd->untag()->value_);
     return true;
   }
 
@@ -1160,7 +1166,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(ObjectPtr rawobj) {
   // Check if it is an internal VM class which is in the object store.
   if (cid == kClassCid) {
     ClassPtr raw_class = static_cast<ClassPtr>(rawobj);
-    intptr_t class_id = raw_class->ptr()->id_;
+    intptr_t class_id = raw_class->untag()->id_;
     if (IsBootstrapedClassId(class_id)) {
       intptr_t object_id = ObjectIdFromClassId(class_id);
       WriteIndexedObject(object_id);
@@ -1186,7 +1192,7 @@ void SnapshotWriter::WriteObjectImpl(ObjectPtr raw, bool as_reference) {
 
   // When we know that we are dealing with leaf or shallow objects we write
   // these objects inline even when 'as_reference' is true.
-  const bool write_as_reference = as_reference && !raw->ptr()->IsCanonical();
+  const bool write_as_reference = as_reference && !raw->untag()->IsCanonical();
   uintptr_t tags = GetObjectTagsAndHash(raw);
 
   // Add object to the forward ref list and mark it so that future references
@@ -1211,9 +1217,9 @@ void SnapshotWriter::WriteMarkedObjectImpl(ObjectPtr raw,
                                            intptr_t object_id,
                                            bool as_reference) {
   NoSafepointScope no_safepoint;
-  ClassPtr cls = class_table_->At(ObjectLayout::ClassIdTag::decode(tags));
-  intptr_t class_id = cls->ptr()->id_;
-  ASSERT(class_id == ObjectLayout::ClassIdTag::decode(tags));
+  ClassPtr cls = class_table_->At(UntaggedObject::ClassIdTag::decode(tags));
+  intptr_t class_id = cls->untag()->id_;
+  ASSERT(class_id == UntaggedObject::ClassIdTag::decode(tags));
   if (class_id >= kNumPredefinedCids || IsImplicitFieldClassId(class_id)) {
     WriteInstance(raw, cls, tags, object_id, as_reference);
     return;
@@ -1222,7 +1228,7 @@ void SnapshotWriter::WriteMarkedObjectImpl(ObjectPtr raw,
 #define SNAPSHOT_WRITE(clazz)                                                  \
   case clazz::kClassId: {                                                      \
     clazz##Ptr raw_obj = static_cast<clazz##Ptr>(raw);                         \
-    raw_obj->ptr()->WriteTo(this, object_id, kind_, as_reference);             \
+    raw_obj->untag()->WriteTo(this, object_id, kind_, as_reference);           \
     return;                                                                    \
   }
 
@@ -1232,7 +1238,7 @@ void SnapshotWriter::WriteMarkedObjectImpl(ObjectPtr raw,
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
       TypedDataPtr raw_obj = static_cast<TypedDataPtr>(raw);
-      raw_obj->ptr()->WriteTo(this, object_id, kind_, as_reference);
+      raw_obj->untag()->WriteTo(this, object_id, kind_, as_reference);
       return;
     }
 #undef SNAPSHOT_WRITE
@@ -1240,7 +1246,7 @@ void SnapshotWriter::WriteMarkedObjectImpl(ObjectPtr raw,
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
       ExternalTypedDataPtr raw_obj = static_cast<ExternalTypedDataPtr>(raw);
-      raw_obj->ptr()->WriteTo(this, object_id, kind_, as_reference);
+      raw_obj->untag()->WriteTo(this, object_id, kind_, as_reference);
       return;
     }
 #undef SNAPSHOT_WRITE
@@ -1249,7 +1255,7 @@ void SnapshotWriter::WriteMarkedObjectImpl(ObjectPtr raw,
     case kByteDataViewCid:
       CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
         auto raw_obj = static_cast<TypedDataViewPtr>(raw);
-        raw_obj->ptr()->WriteTo(this, object_id, kind_, as_reference);
+        raw_obj->untag()->WriteTo(this, object_id, kind_, as_reference);
         return;
       }
 #undef SNAPSHOT_WRITE
@@ -1307,7 +1313,7 @@ void ForwardList::SerializeAll(ObjectVisitor* writer) {
        ++id) {
     if (!NodeForObjectId(id)->is_serialized()) {
       // Write the object out in the stream.
-      ObjectPtr raw = NodeForObjectId(id)->obj()->raw();
+      ObjectPtr raw = NodeForObjectId(id)->obj()->ptr();
       writer->VisitObject(raw);
 
       // Mark object as serialized.
@@ -1317,7 +1323,7 @@ void ForwardList::SerializeAll(ObjectVisitor* writer) {
   first_unprocessed_object_id_ = next_object_id();
 }
 
-void SnapshotWriter::WriteClassId(ClassLayout* cls) {
+void SnapshotWriter::WriteClassId(UntaggedClass* cls) {
   ASSERT(!Snapshot::IsFull(kind_));
   int class_id = cls->id_;
   ASSERT(!IsSingletonClassId(class_id) && !IsBootstrapedClassId(class_id));
@@ -1325,7 +1331,7 @@ void SnapshotWriter::WriteClassId(ClassLayout* cls) {
   // Write out the library url and class name.
   LibraryPtr library = cls->library();
   ASSERT(library != Library::null());
-  WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
+  WriteObjectImpl(library->untag()->url(), kAsInlinedObject);
   WriteObjectImpl(cls->name(), kAsInlinedObject);
 }
 
@@ -1346,11 +1352,11 @@ void SnapshotWriter::WriteStaticImplicitClosure(
   // Write out the library url, class name and signature function name.
   ClassPtr cls = GetFunctionOwner(func);
   ASSERT(cls != Class::null());
-  LibraryPtr library = cls->ptr()->library();
+  LibraryPtr library = cls->untag()->library();
   ASSERT(library != Library::null());
-  WriteObjectImpl(library->ptr()->url(), kAsInlinedObject);
-  WriteObjectImpl(cls->ptr()->name(), kAsInlinedObject);
-  WriteObjectImpl(func->ptr()->name(), kAsInlinedObject);
+  WriteObjectImpl(library->untag()->url(), kAsInlinedObject);
+  WriteObjectImpl(cls->untag()->name(), kAsInlinedObject);
+  WriteObjectImpl(func->untag()->name(), kAsInlinedObject);
   WriteObjectImpl(delayed_type_arguments, kAsInlinedObject);
 }
 
@@ -1359,7 +1365,7 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
                                   intptr_t tags,
                                   SmiPtr length,
                                   TypeArgumentsPtr type_arguments,
-                                  ObjectPtr data[],
+                                  CompressedObjectPtr data[],
                                   bool as_reference) {
   if (as_reference) {
     // Write out the serialization header value for this object.
@@ -1388,9 +1394,10 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
     WriteObjectImpl(type_arguments, kAsInlinedObject);
 
     // Write out the individual object ids.
-    bool write_as_reference = ObjectLayout::IsCanonical(tags) ? false : true;
+    bool write_as_reference = UntaggedObject::IsCanonical(tags) ? false : true;
+    uword heap_base = type_arguments.heap_base();
     for (intptr_t i = 0; i < len; i++) {
-      WriteObjectImpl(data[i], write_as_reference);
+      WriteObjectImpl(data[i].Decompress(heap_base), write_as_reference);
     }
   }
 }
@@ -1398,7 +1405,7 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 FunctionPtr SnapshotWriter::IsSerializableClosure(ClosurePtr closure) {
   // Extract the function object to check if this closure
   // can be sent in an isolate message.
-  FunctionPtr func = closure->ptr()->function();
+  FunctionPtr func = closure->untag()->function();
   // We only allow closure of top level methods or static functions in a
   // class to be sent in isolate messages.
   if (can_send_any_object() &&
@@ -1422,18 +1429,18 @@ FunctionPtr SnapshotWriter::IsSerializableClosure(ClosurePtr closure) {
 }
 
 ClassPtr SnapshotWriter::GetFunctionOwner(FunctionPtr func) {
-  ObjectPtr owner = func->ptr()->owner();
+  ObjectPtr owner = func->untag()->owner();
   uword tags = GetObjectTags(owner);
-  intptr_t class_id = ObjectLayout::ClassIdTag::decode(tags);
+  intptr_t class_id = UntaggedObject::ClassIdTag::decode(tags);
   if (class_id == kClassCid) {
     return static_cast<ClassPtr>(owner);
   }
   ASSERT(class_id == kPatchClassCid);
-  return static_cast<PatchClassPtr>(owner)->ptr()->patched_class_;
+  return static_cast<PatchClassPtr>(owner)->untag()->patched_class();
 }
 
 void SnapshotWriter::CheckForNativeFields(ClassPtr cls) {
-  if (cls->ptr()->num_native_fields_ != 0) {
+  if (cls->untag()->num_native_fields_ != 0) {
     // We do not allow objects with native fields in an isolate message.
     HANDLESCOPE(thread());
     const Class& clazz = Class::Handle(zone(), cls);
@@ -1458,7 +1465,7 @@ void SnapshotWriter::WriteInstance(ObjectPtr raw,
                                    intptr_t tags,
                                    intptr_t object_id,
                                    bool as_reference) {
-  // Closure instances are handled by ClosureLayout::WriteTo().
+  // Closure instances are handled by UntaggedClosure::WriteTo().
   ASSERT(!Class::IsClosureClass(cls));
 
   // Check if the instance has native fields and throw an exception if it does.
@@ -1477,7 +1484,7 @@ void SnapshotWriter::WriteInstance(ObjectPtr raw,
     WriteObjectImpl(cls, kAsInlinedObject);
   } else {
     intptr_t next_field_offset = Class::host_next_field_offset_in_words(cls)
-                                 << kWordSizeLog2;
+                                 << kCompressedWordSizeLog2;
     ASSERT(next_field_offset > 0);
 
     // Write out the serialization header value for this object.
@@ -1493,27 +1500,29 @@ void SnapshotWriter::WriteInstance(ObjectPtr raw,
     WriteObjectImpl(cls, kAsInlinedObject);
 
     const auto unboxed_fields =
-        isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            cls->ptr()->id_);
+        isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
+            cls->untag()->id_);
 
     // Write out all the fields for the object.
     // Instance::NextFieldOffset() returns the offset of the first field in
     // a Dart object.
-    bool write_as_reference = ObjectLayout::IsCanonical(tags) ? false : true;
+    bool write_as_reference = UntaggedObject::IsCanonical(tags) ? false : true;
 
     intptr_t offset = Instance::NextFieldOffset();
+    uword heap_base = raw->heap_base();
     while (offset < next_field_offset) {
-      if (unboxed_fields.Get(offset / kWordSize)) {
+      if (unboxed_fields.Get(offset / kCompressedWordSize)) {
         // Writes 32 bits of the unboxed value at a time
-        const uword value = *reinterpret_cast<uword*>(
-            reinterpret_cast<uword>(raw->ptr()) + offset);
+        const uword value = *reinterpret_cast<compressed_uword*>(
+            reinterpret_cast<uword>(raw->untag()) + offset);
         WriteWordWith32BitWrites(value);
       } else {
-        ObjectPtr raw_obj = *reinterpret_cast<ObjectPtr*>(
-            reinterpret_cast<uword>(raw->ptr()) + offset);
+        ObjectPtr raw_obj = reinterpret_cast<CompressedObjectPtr*>(
+                                reinterpret_cast<uword>(raw->untag()) + offset)
+                                ->Decompress(heap_base);
         WriteObjectImpl(raw_obj, write_as_reference);
       }
-      offset += kWordSize;
+      offset += kCompressedWordSize;
     }
   }
   return;
@@ -1540,7 +1549,7 @@ void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
   {
     NoSafepointScope no_safepoint;
     ErrorPtr error = thread()->StealStickyError();
-    ASSERT(error == Object::snapshot_writer_error().raw());
+    ASSERT(error == Object::snapshot_writer_error().ptr());
   }
 
   if (msg != NULL) {
@@ -1561,7 +1570,7 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   const char* expected_features =
-      Dart::FeaturesString(Isolate::Current(), false, kind_);
+      Dart::FeaturesString(IsolateGroup::Current(), false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
@@ -1574,6 +1583,17 @@ void SnapshotWriterVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
   ASSERT(Utils::IsAligned(last, sizeof(*last)));
   for (ObjectPtr* current = first; current <= last; current++) {
     ObjectPtr raw_obj = *current;
+    writer_->WriteObjectImpl(raw_obj, as_references_);
+  }
+}
+
+void SnapshotWriterVisitor::VisitCompressedPointers(uword heap_base,
+                                                    CompressedObjectPtr* first,
+                                                    CompressedObjectPtr* last) {
+  ASSERT(Utils::IsAligned(first, sizeof(*first)));
+  ASSERT(Utils::IsAligned(last, sizeof(*last)));
+  for (CompressedObjectPtr* current = first; current <= last; current++) {
+    ObjectPtr raw_obj = current->Decompress(heap_base);
     writer_->WriteObjectImpl(raw_obj, as_references_);
   }
 }
@@ -1605,7 +1625,7 @@ std::unique_ptr<Message> MessageWriter::WriteMessage(
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
       NoSafepointScope no_safepoint;
-      WriteObject(obj.raw());
+      WriteObject(obj.ptr());
     } else {
       FreeBuffer();
       has_exception = true;

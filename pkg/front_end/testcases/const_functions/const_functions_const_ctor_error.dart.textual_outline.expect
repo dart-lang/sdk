@@ -1,0 +1,24 @@
+import "package:expect/expect.dart";
+const printString = "print";
+const var1 = Simple(printString);
+class Simple {
+  final String name;
+  const Simple(this.name) {}
+}
+const var2 = Simple2(printString);
+class Simple2 {
+  final String name;
+  const Simple2(this.name) {}
+}
+const var3 = B();
+class A {
+  const A() {}
+}
+class B extends A {
+  const B() : super();
+}
+const var4 = C();
+class C {
+  int? x;
+}
+void main() {}

@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static const field core::int* staticConstField = 123;
+  field core::int* instanceFieldWithInitializer;
+  static field core::int* staticFieldWithoutInitializer;
+  static field core::int* staticFieldWithInitializer1;
+  static field core::int* staticFieldWithInitializer2;
+  static final field core::int* staticFinalFieldWithInitializer1;
+  static field core::int* staticFinalFieldWithInitializer2Init;
+  static final field core::int* staticFinalFieldWithInitializer2;
+  synthetic constructor •() → self::Class*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field dynamic lastInit;
+static const field core::int* constTopLevelField = 324;
+static field core::int* topLevelFieldWithoutInitializer;
+static field core::int* topLevelFieldWithInitializer1;
+static field core::int* topLevelFieldWithInitializer2;
+static final field core::int* finalTopLevelFieldWithInitializer1;
+static field core::int* finalTopLevelFieldWithInitializer2Init;
+static final field core::int* finalTopLevelFieldWithInitializer2;
+static method init<T extends core::Object* = dynamic>(self::init::T* value) → self::init::T*
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() →* dynamic f, core::String* message) → dynamic
+  ;

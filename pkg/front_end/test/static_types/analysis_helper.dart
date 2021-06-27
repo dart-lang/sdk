@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert' as json;
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/terminal_color_support.dart';
-import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
@@ -40,7 +41,7 @@ run(Uri entryPoint, String allowedListPath,
       .run(verbose: verbose, generate: generate);
 }
 
-class StaticTypeVisitorBase extends RecursiveVisitor<void> {
+class StaticTypeVisitorBase extends RecursiveVisitor {
   final TypeEnvironment typeEnvironment;
 
   StaticTypeContext staticTypeContext;

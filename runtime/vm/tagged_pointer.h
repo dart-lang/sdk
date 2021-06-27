@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_TAGGED_POINTER_H_
 #define RUNTIME_VM_TAGGED_POINTER_H_
 
+#include <type_traits>
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/class_id.h"
@@ -13,61 +14,73 @@
 namespace dart {
 
 class IsolateGroup;
-class ObjectLayout;
+class UntaggedObject;
+
+#define OBJECT_POINTER_CORE_FUNCTIONS(type, ptr)                               \
+  type* operator->() { return this; }                                          \
+  const type* operator->() const { return this; }                              \
+  bool IsWellFormed() const {                                                  \
+    const uword value = ptr;                                                   \
+    return (value & kSmiTagMask) == 0 ||                                       \
+           Utils::IsAligned(value - kHeapObjectTag, kWordSize);                \
+  }                                                                            \
+  bool IsHeapObject() const {                                                  \
+    ASSERT(IsWellFormed());                                                    \
+    const uword value = ptr;                                                   \
+    return (value & kSmiTagMask) == kHeapObjectTag;                            \
+  }                                                                            \
+  /* Assumes this is a heap object. */                                         \
+  bool IsNewObject() const {                                                   \
+    ASSERT(IsHeapObject());                                                    \
+    const uword addr = ptr;                                                    \
+    return (addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset;    \
+  }                                                                            \
+  bool IsNewObjectMayBeSmi() const {                                           \
+    static const uword kNewObjectBits =                                        \
+        (kNewObjectAlignmentOffset | kHeapObjectTag);                          \
+    const uword addr = ptr;                                                    \
+    return (addr & kObjectAlignmentMask) == kNewObjectBits;                    \
+  }                                                                            \
+  /* Assumes this is a heap object. */                                         \
+  bool IsOldObject() const {                                                   \
+    ASSERT(IsHeapObject());                                                    \
+    const uword addr = ptr;                                                    \
+    return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;    \
+  }                                                                            \
+                                                                               \
+  /* Like !IsHeapObject() || IsOldObject() but compiles to a single branch. */ \
+  bool IsSmiOrOldObject() const {                                              \
+    ASSERT(IsWellFormed());                                                    \
+    static const uword kNewObjectBits =                                        \
+        (kNewObjectAlignmentOffset | kHeapObjectTag);                          \
+    const uword addr = ptr;                                                    \
+    return (addr & kObjectAlignmentMask) != kNewObjectBits;                    \
+  }                                                                            \
+                                                                               \
+  /* Like !IsHeapObject() || IsNewObject() but compiles to a single branch. */ \
+  bool IsSmiOrNewObject() const {                                              \
+    ASSERT(IsWellFormed());                                                    \
+    static const uword kOldObjectBits =                                        \
+        (kOldObjectAlignmentOffset | kHeapObjectTag);                          \
+    const uword addr = ptr;                                                    \
+    return (addr & kObjectAlignmentMask) != kOldObjectBits;                    \
+  }                                                                            \
+                                                                               \
+  bool operator==(const type& other) { return ptr == other.ptr; }              \
+  bool operator!=(const type& other) { return ptr != other.ptr; }              \
+  constexpr bool operator==(const type& other) const {                         \
+    return ptr == other.ptr;                                                   \
+  }                                                                            \
+  constexpr bool operator!=(const type& other) const {                         \
+    return ptr != other.ptr;                                                   \
+  }
 
 class ObjectPtr {
  public:
-  ObjectPtr* operator->() { return this; }
-  const ObjectPtr* operator->() const { return this; }
-  ObjectLayout* ptr() const {
-    return reinterpret_cast<ObjectLayout*>(UntaggedPointer());
-  }
+  OBJECT_POINTER_CORE_FUNCTIONS(ObjectPtr, tagged_pointer_)
 
-  bool IsWellFormed() const {
-    uword value = tagged_pointer_;
-    return (value & kSmiTagMask) == 0 ||
-           Utils::IsAligned(value - kHeapObjectTag, kWordSize);
-  }
-  bool IsHeapObject() const {
-    ASSERT(IsWellFormed());
-    uword value = tagged_pointer_;
-    return (value & kSmiTagMask) == kHeapObjectTag;
-  }
-  // Assumes this is a heap object.
-  bool IsNewObject() const {
-    ASSERT(IsHeapObject());
-    uword addr = tagged_pointer_;
-    return (addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset;
-  }
-  bool IsNewObjectMayBeSmi() const {
-    static const uword kNewObjectBits =
-        (kNewObjectAlignmentOffset | kHeapObjectTag);
-    const uword addr = tagged_pointer_;
-    return (addr & kObjectAlignmentMask) == kNewObjectBits;
-  }
-  // Assumes this is a heap object.
-  bool IsOldObject() const {
-    ASSERT(IsHeapObject());
-    uword addr = tagged_pointer_;
-    return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  }
-
-  // Like !IsHeapObject() || IsOldObject(), but compiles to a single branch.
-  bool IsSmiOrOldObject() const {
-    ASSERT(IsWellFormed());
-    static const uword kNewObjectBits =
-        (kNewObjectAlignmentOffset | kHeapObjectTag);
-    const uword addr = tagged_pointer_;
-    return (addr & kObjectAlignmentMask) != kNewObjectBits;
-  }
-
-  // Like !IsHeapObject() || IsNewObject(), but compiles to a single branch.
-  bool IsSmiOrNewObject() const {
-    ASSERT(IsWellFormed());
-    static const uword kOldObjectBits =
-        (kOldObjectAlignmentOffset | kHeapObjectTag);
-    const uword addr = tagged_pointer_;
-    return (addr & kObjectAlignmentMask) != kOldObjectBits;
+  UntaggedObject* untag() const {
+    return reinterpret_cast<UntaggedObject*>(untagged_pointer());
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -115,18 +128,6 @@ class ObjectPtr {
 
   void Validate(IsolateGroup* isolate_group) const;
 
-  bool operator==(const ObjectPtr& other) {
-    return tagged_pointer_ == other.tagged_pointer_;
-  }
-  bool operator!=(const ObjectPtr& other) {
-    return tagged_pointer_ != other.tagged_pointer_;
-  }
-  constexpr bool operator==(const ObjectPtr& other) const {
-    return tagged_pointer_ == other.tagged_pointer_;
-  }
-  constexpr bool operator!=(const ObjectPtr& other) const {
-    return tagged_pointer_ != other.tagged_pointer_;
-  }
   bool operator==(const std::nullptr_t& other) { return tagged_pointer_ == 0; }
   bool operator!=(const std::nullptr_t& other) { return tagged_pointer_ != 0; }
   constexpr bool operator==(const std::nullptr_t& other) const {
@@ -184,12 +185,25 @@ class ObjectPtr {
   explicit constexpr ObjectPtr(uword tagged) : tagged_pointer_(tagged) {}
   explicit constexpr ObjectPtr(intptr_t tagged) : tagged_pointer_(tagged) {}
   constexpr ObjectPtr(std::nullptr_t) : tagged_pointer_(0) {}  // NOLINT
-  explicit ObjectPtr(ObjectLayout* heap_object)
+  explicit ObjectPtr(UntaggedObject* heap_object)
       : tagged_pointer_(reinterpret_cast<uword>(heap_object) + kHeapObjectTag) {
   }
 
+  ObjectPtr Decompress(uword heap_base) const { return *this; }
+  ObjectPtr DecompressSmi() const { return *this; }
+  uword heap_base() const {
+    // TODO(rmacnak): Why does Windows have trouble linking GetClassId used
+    // here?
+#if !defined(HOST_OS_WINDOWS)
+    ASSERT(IsHeapObject());
+    ASSERT(!IsInstructions());
+    ASSERT(!IsInstructionsSection());
+#endif
+    return tagged_pointer_ & kHeapBaseMask;
+  }
+
  protected:
-  uword UntaggedPointer() const {
+  uword untagged_pointer() const {
     ASSERT(IsHeapObject());
     return tagged_pointer_ - kHeapObjectTag;
   }
@@ -205,18 +219,101 @@ inline std::ostream& operator<<(std::ostream& os, const ObjectPtr& obj) {
 }
 #endif
 
+template <typename T, typename Enable = void>
+struct is_uncompressed_ptr : std::false_type {};
+template <typename T>
+struct is_uncompressed_ptr<
+    T,
+    typename std::enable_if<std::is_base_of<ObjectPtr, T>::value, void>::type>
+    : std::true_type {};
+template <typename T, typename Enable = void>
+struct is_compressed_ptr : std::false_type {};
+
+template <typename T, typename Enable = void>
+struct base_ptr_type {
+  using type =
+      typename std::enable_if<is_uncompressed_ptr<T>::value, ObjectPtr>::type;
+};
+
+#if !defined(DART_COMPRESSED_POINTERS)
+typedef ObjectPtr CompressedObjectPtr;
+#define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
+  typedef klass##Ptr Compressed##klass##Ptr;
+#else
+class CompressedObjectPtr {
+ public:
+  OBJECT_POINTER_CORE_FUNCTIONS(CompressedObjectPtr, compressed_pointer_)
+
+  explicit CompressedObjectPtr(ObjectPtr uncompressed)
+      : compressed_pointer_(
+            static_cast<uint32_t>(static_cast<uword>(uncompressed))) {}
+  explicit constexpr CompressedObjectPtr(uword tagged)
+      : compressed_pointer_(static_cast<uint32_t>(tagged)) {}
+
+  ObjectPtr Decompress(uword heap_base) const {
+    if ((compressed_pointer_ & kSmiTagMask) != kHeapObjectTag) {
+      // TODO(liama): Make all native code robust to junk in the upper 32-bits
+      // of SMIs, then remove this special casing.
+      return DecompressSmi();
+    }
+    return static_cast<ObjectPtr>(static_cast<uword>(compressed_pointer_) +
+                                  heap_base);
+  }
+
+  ObjectPtr DecompressSmi() const {
+    ASSERT((compressed_pointer_ & kSmiTagMask) != kHeapObjectTag);
+    return static_cast<ObjectPtr>(static_cast<uword>(compressed_pointer_));
+  }
+
+  const ObjectPtr& operator=(const ObjectPtr& other) {
+    compressed_pointer_ = static_cast<uint32_t>(static_cast<uword>(other));
+    return other;
+  }
+
+ protected:
+  uint32_t compressed_pointer_;
+};
+
+template <typename T>
+struct is_compressed_ptr<
+    T,
+    typename std::enable_if<std::is_base_of<CompressedObjectPtr, T>::value,
+                            void>::type> : std::true_type {};
+template <typename T>
+struct base_ptr_type<
+    T,
+    typename std::enable_if<std::is_base_of<CompressedObjectPtr, T>::value,
+                            void>::type> {
+  using type = CompressedObjectPtr;
+};
+
+#define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
+  class Compressed##klass##Ptr : public Compressed##base##Ptr {                \
+   public:                                                                     \
+    explicit Compressed##klass##Ptr(klass##Ptr uncompressed)                   \
+        : Compressed##base##Ptr(uncompressed) {}                               \
+    const klass##Ptr& operator=(const klass##Ptr& other) {                     \
+      compressed_pointer_ = static_cast<uint32_t>(static_cast<uword>(other));  \
+      return other;                                                            \
+    }                                                                          \
+    klass##Ptr Decompress(uword heap_base) const {                             \
+      return klass##Ptr(CompressedObjectPtr::Decompress(heap_base));           \
+    }                                                                          \
+  };
+#endif
+
 #define DEFINE_TAGGED_POINTER(klass, base)                                     \
-  class klass##Layout;                                                         \
+  class Untagged##klass;                                                       \
   class klass##Ptr : public base##Ptr {                                        \
    public:                                                                     \
     klass##Ptr* operator->() { return this; }                                  \
     const klass##Ptr* operator->() const { return this; }                      \
-    klass##Layout* ptr() {                                                     \
-      return reinterpret_cast<klass##Layout*>(UntaggedPointer());              \
+    Untagged##klass* untag() {                                                 \
+      return reinterpret_cast<Untagged##klass*>(untagged_pointer());           \
     }                                                                          \
     /* TODO: Return const pointer */                                           \
-    klass##Layout* ptr() const {                                               \
-      return reinterpret_cast<klass##Layout*>(UntaggedPointer());              \
+    Untagged##klass* untag() const {                                           \
+      return reinterpret_cast<Untagged##klass*>(untagged_pointer());           \
     }                                                                          \
     klass##Ptr& operator=(const klass##Ptr& other) = default;                  \
     constexpr klass##Ptr(const klass##Ptr& other) = default;                   \
@@ -224,16 +321,18 @@ inline std::ostream& operator<<(std::ostream& os, const ObjectPtr& obj) {
         : base##Ptr(other) {}                                                  \
     klass##Ptr() : base##Ptr() {}                                              \
     explicit constexpr klass##Ptr(uword tagged) : base##Ptr(tagged) {}         \
+    explicit constexpr klass##Ptr(intptr_t tagged) : base##Ptr(tagged) {}      \
     constexpr klass##Ptr(std::nullptr_t) : base##Ptr(nullptr) {} /* NOLINT */  \
-    explicit klass##Ptr(const ObjectLayout* untagged)                          \
+    explicit klass##Ptr(const UntaggedObject* untagged)                        \
         : base##Ptr(reinterpret_cast<uword>(untagged) + kHeapObjectTag) {}     \
-  };
+    klass##Ptr Decompress(uword heap_base) const { return *this; }             \
+  };                                                                           \
+  DEFINE_COMPRESSED_POINTER(klass, base)
 
 DEFINE_TAGGED_POINTER(Class, Object)
 DEFINE_TAGGED_POINTER(PatchClass, Object)
 DEFINE_TAGGED_POINTER(Function, Object)
 DEFINE_TAGGED_POINTER(ClosureData, Object)
-DEFINE_TAGGED_POINTER(SignatureData, Object)
 DEFINE_TAGGED_POINTER(FfiTrampolineData, Object)
 DEFINE_TAGGED_POINTER(Field, Object)
 DEFINE_TAGGED_POINTER(Script, Object)
@@ -245,6 +344,7 @@ DEFINE_TAGGED_POINTER(Code, Object)
 DEFINE_TAGGED_POINTER(ObjectPool, Object)
 DEFINE_TAGGED_POINTER(Instructions, Object)
 DEFINE_TAGGED_POINTER(InstructionsSection, Object)
+DEFINE_TAGGED_POINTER(InstructionsTable, Object)
 DEFINE_TAGGED_POINTER(PcDescriptors, Object)
 DEFINE_TAGGED_POINTER(CodeSourceMap, Object)
 DEFINE_TAGGED_POINTER(CompressedStackMaps, Object)
@@ -252,6 +352,7 @@ DEFINE_TAGGED_POINTER(LocalVarDescriptors, Object)
 DEFINE_TAGGED_POINTER(ExceptionHandlers, Object)
 DEFINE_TAGGED_POINTER(Context, Object)
 DEFINE_TAGGED_POINTER(ContextScope, Object)
+DEFINE_TAGGED_POINTER(Sentinel, Object)
 DEFINE_TAGGED_POINTER(SingleTargetCache, Object)
 DEFINE_TAGGED_POINTER(UnlinkedCall, Object)
 DEFINE_TAGGED_POINTER(MonomorphicSmiableCall, Object)
@@ -268,8 +369,10 @@ DEFINE_TAGGED_POINTER(UnwindError, Error)
 DEFINE_TAGGED_POINTER(Instance, Object)
 DEFINE_TAGGED_POINTER(LibraryPrefix, Instance)
 DEFINE_TAGGED_POINTER(TypeArguments, Instance)
+DEFINE_TAGGED_POINTER(TypeParameters, Object)
 DEFINE_TAGGED_POINTER(AbstractType, Instance)
 DEFINE_TAGGED_POINTER(Type, AbstractType)
+DEFINE_TAGGED_POINTER(FunctionType, AbstractType)
 DEFINE_TAGGED_POINTER(TypeRef, AbstractType)
 DEFINE_TAGGED_POINTER(TypeParameter, AbstractType)
 DEFINE_TAGGED_POINTER(Closure, Instance)
@@ -311,7 +414,12 @@ DEFINE_TAGGED_POINTER(FutureOr, Instance)
 #undef DEFINE_TAGGED_POINTER
 
 inline intptr_t RawSmiValue(const SmiPtr raw_value) {
+#if !defined(DART_COMPRESSED_POINTERS)
   const intptr_t value = static_cast<intptr_t>(raw_value);
+#else
+  const intptr_t value = static_cast<intptr_t>(static_cast<int32_t>(
+      static_cast<uint32_t>(static_cast<uintptr_t>(raw_value))));
+#endif
   ASSERT((value & kSmiTagMask) == kSmiTag);
   return (value >> kSmiTagShift);
 }

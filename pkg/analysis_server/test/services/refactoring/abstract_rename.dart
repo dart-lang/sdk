@@ -17,7 +17,7 @@ export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 /// The base class for all [RenameRefactoring] tests.
 class RenameRefactoringTest extends RefactoringTest {
   @override
-  RenameRefactoring refactoring;
+  late RenameRefactoring refactoring;
 
   /// Asserts that [refactoring] has potential edits in [testFile] at offset
   /// of the given [searches].
@@ -40,7 +40,7 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
   /// the [SimpleIdentifier] at the given [search] pattern.
   void createRenameRefactoringAtString(String search) {
-    var identifier = findIdentifier(search);
+    var identifier = findNode.simple(search);
     var element = identifier.writeOrReadElement;
     if (element is PrefixElement) {
       element = getImportElement(identifier);
@@ -50,13 +50,17 @@ class RenameRefactoringTest extends RefactoringTest {
 
   /// Creates a new [RenameRefactoring] in [refactoring] for [element].
   /// Fails if no [RenameRefactoring] can be created.
-  void createRenameRefactoringForElement(Element element) {
+  void createRenameRefactoringForElement(Element? element) {
     var workspace = RefactoringWorkspace(
       [driverFor(testFile)],
       searchEngine,
     );
-    refactoring = RenameRefactoring(workspace, testAnalysisResult, element);
-    expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
+    var refactoring =
+        RenameRefactoring.create(workspace, testAnalysisResult, element);
+    if (refactoring == null) {
+      fail("No refactoring for '$element'.");
+    }
+    this.refactoring = refactoring;
   }
 
   /// Returns the [Edit] with the given [id], maybe `null`.
@@ -68,6 +72,6 @@ class RenameRefactoringTest extends RefactoringTest {
         }
       }
     }
-    return null;
+    fail('No edit with id: $id');
   }
 }

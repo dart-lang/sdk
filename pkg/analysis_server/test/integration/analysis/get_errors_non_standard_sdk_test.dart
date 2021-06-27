@@ -38,6 +38,7 @@ class double {}
 class int {}
 class num {}
 class Object {}
+class Enum {}
 class Iterable<E> {}
 class Map<K, V> {}
 class Null {}
@@ -52,17 +53,18 @@ class Future<T> {}
 ''');
 
     File(path.join(sdkPath, 'lib', 'fake', 'fake.dart')).writeAsStringSync(r'''
-class Fake {} 
+class Fake {}
 ''');
 
-    var libsDir = path.join(
-      sdkPath,
-      'lib',
-      '_internal',
-      'sdk_library_metadata',
-      'lib',
-    );
+    var libsInternalDir = path.join(sdkPath, 'lib', '_internal');
+    Directory(libsInternalDir).createSync(recursive: true);
+
+    File(path.join(sdkPath, 'lib', '_internal', 'allowed_experiments.json'))
+        .writeAsStringSync('{}');
+
+    var libsDir = path.join(libsInternalDir, 'sdk_library_metadata', 'lib');
     Directory(libsDir).createSync(recursive: true);
+
     File(path.join(libsDir, 'libraries.dart')).writeAsStringSync(r'''
 final LIBRARIES = const <String, LibraryInfo> {
   "core":  const LibraryInfo("core/core.dart"),
@@ -75,7 +77,7 @@ final LIBRARIES = const <String, LibraryInfo> {
   }
 
   @override
-  Future startServer({int diagnosticPort, int servicesPort}) {
+  Future startServer({int? diagnosticPort, int? servicesPort}) {
     var sdkPath = createNonStandardSdk();
     return server.start(
         diagnosticPort: diagnosticPort,
@@ -92,7 +94,7 @@ import 'dart:fake';
     writeFile(pathname, text);
     standardAnalysisSetup();
     await analysisFinished;
-    var errors = currentAnalysisErrors[pathname];
+    var errors = existingErrorsForFile(pathname);
     expect(errors, hasLength(1));
     expect(errors[0].code, 'unused_import');
   }

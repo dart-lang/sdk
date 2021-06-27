@@ -76,13 +76,13 @@ main() {
 
   // The static type of e1?.v = e2 is the static type of e2.
   {
-    var d = new D(new E()) as D?;
+    D? d = new D(new E()) as dynamic;
     G g = new G();
     F? f = (d?.v = g);
     Expect.identical(f, g);
   }
   {
-    var d = new D(new E()) as D?;
+    D? d = new D(new E()) as dynamic;
     E e = new G();
     F? f = (d?.v = e);
     //      ^^^^^^^^
@@ -201,17 +201,16 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'bad' isn't defined for the class 'C'.
   {
-    B b = new C(1);
-    b?.v += 2;
+    B bname = new C(1);
+    bname?.v += 2;
 //  ^
 // [cfe] Operand of null-aware operation '?.' has type 'B' which excludes null.
-//   ^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // ^
+    //   ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    //     ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'v' isn't defined for the class 'B'.
-    // ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+    // [cfe] The getter 'v' isn't defined for the class 'B'.
     // [cfe] The setter 'v' isn't defined for the class 'B'.
   }
   {
@@ -231,7 +230,6 @@ main() {
     //      ^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'G?' can't be assigned to a variable of type 'H?'.
-    //      ^
     // [cfe] Operand of null-aware operation '?.' has type 'D' which excludes null.
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR

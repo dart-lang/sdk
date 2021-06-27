@@ -24,14 +24,14 @@ main() {
 
 @reflectiveTest
 class EditPlanTest extends AbstractSingleUnitTest {
-  String code;
+  String? code;
 
-  EditPlanner _planner;
+  EditPlanner? _planner;
 
   @override
   bool get analyzeWithNnbd => true;
 
-  EditPlanner get planner {
+  EditPlanner? get planner {
     if (_planner == null) createPlanner();
     return _planner;
   }
@@ -41,54 +41,54 @@ class EditPlanTest extends AbstractSingleUnitTest {
     await resolveTestUnit(code);
   }
 
-  Map<int, List<AtomicEdit>> checkPlan(EditPlan plan, String expected,
-      {String expectedIncludingInformative}) {
+  Map<int?, List<AtomicEdit>> checkPlan(EditPlan plan, String expected,
+      {String? expectedIncludingInformative}) {
     expectedIncludingInformative ??= expected;
-    var changes = planner.finalize(plan);
-    expect(changes.applyTo(code), expected);
-    expect(changes.applyTo(code, includeInformative: true),
+    var changes = planner!.finalize(plan)!;
+    expect(changes.applyTo(code!), expected);
+    expect(changes.applyTo(code!, includeInformative: true),
         expectedIncludingInformative);
     return changes;
   }
 
   void createPlanner({bool removeViaComments = false}) {
-    _planner = EditPlanner(testUnit.lineInfo, code,
+    _planner = EditPlanner(testUnit!.lineInfo, code,
         removeViaComments: removeViaComments);
   }
 
-  NodeProducingEditPlan extract(AstNode inner, AstNode outer) =>
-      planner.extract(outer, planner.passThrough(inner));
+  NodeProducingEditPlan extract(AstNode inner, AstNode? outer) =>
+      planner!.extract(outer, planner!.passThrough(inner));
 
   Future<void> test_acceptLateHint() async {
     var code = '/* late */ int x = 0;';
     await analyze(code);
-    var hint = getPrefixHint(findNode.simple('int').token);
+    var hint = getPrefixHint(findNode.simple('int').token)!;
     var changes = checkPlan(
-        planner.acceptLateHint(
-            planner.passThrough(findNode.simple('int')), hint),
+        planner!.acceptPrefixHint(
+            planner!.passThrough(findNode.simple('int')), hint),
         'late int x = 0;');
     expect(changes.keys, unorderedEquals([0, 7]));
     expect(changes[7], hasLength(1));
-    expect(changes[7][0].length, 3);
+    expect(changes[7]![0].length, 3);
   }
 
   Future<void> test_acceptLateHint_space_needed_after() async {
     var code = '/* late */int x = 0;';
     await analyze(code);
-    var hint = getPrefixHint(findNode.simple('int').token);
+    var hint = getPrefixHint(findNode.simple('int').token)!;
     checkPlan(
-        planner.acceptLateHint(
-            planner.passThrough(findNode.simple('int')), hint),
+        planner!.acceptPrefixHint(
+            planner!.passThrough(findNode.simple('int')), hint),
         'late int x = 0;');
   }
 
   Future<void> test_acceptLateHint_space_needed_before() async {
     var code = '@deprecated/* late */ int x = 0;';
     await analyze(code);
-    var hint = getPrefixHint(findNode.simple('int').token);
+    var hint = getPrefixHint(findNode.simple('int').token)!;
     checkPlan(
-        planner.acceptLateHint(
-            planner.passThrough(findNode.simple('int')), hint),
+        planner!.acceptPrefixHint(
+            planner!.passThrough(findNode.simple('int')), hint),
         '@deprecated late int x = 0;');
   }
 
@@ -101,10 +101,10 @@ class C {
 }
 ''');
     var parameter = findNode.fieldFormalParameter('void this.f(int i)');
-    var typeName = planner.passThrough(parameter);
+    var typeName = planner!.passThrough(parameter);
     checkPlan(
-        planner.acceptNullabilityOrNullCheckHint(
-            typeName, getPostfixHint(parameter.parameters.rightParenthesis)),
+        planner!.acceptSuffixHint(
+            typeName, getPostfixHint(parameter.parameters!.rightParenthesis)!),
         '''
 class C {
   void Function(int) f;
@@ -116,10 +116,10 @@ class C {
   Future<void> test_acceptNullabilityHint_function_typed_parameter() async {
     await analyze('f(void g(int i) /*?*/) {}');
     var parameter = findNode.functionTypedFormalParameter('void g(int i)');
-    var typeName = planner.passThrough(parameter);
+    var typeName = planner!.passThrough(parameter);
     checkPlan(
-        planner.acceptNullabilityOrNullCheckHint(
-            typeName, getPostfixHint(parameter.parameters.rightParenthesis)),
+        planner!.acceptSuffixHint(
+            typeName, getPostfixHint(parameter.parameters.rightParenthesis)!),
         'f(void g(int i)?) {}');
   }
 
@@ -127,10 +127,9 @@ class C {
     var code = 'int /*?*/ x = 0;';
     await analyze(code);
     var intRef = findNode.simple('int');
-    var typeName = planner.passThrough(intRef);
+    var typeName = planner!.passThrough(intRef);
     checkPlan(
-        planner.acceptNullabilityOrNullCheckHint(
-            typeName, getPostfixHint(intRef.token)),
+        planner!.acceptSuffixHint(typeName, getPostfixHint(intRef.token)!),
         'int? x = 0;');
   }
 
@@ -139,10 +138,10 @@ class C {
     await analyze(code);
     var xRef = findNode.simple('x /*');
     checkPlan(
-        planner.extract(
-            xRef.parent.parent,
-            planner.acceptNullabilityOrNullCheckHint(
-                planner.passThrough(xRef), getPostfixHint(xRef.token))),
+        planner!.extract(
+            xRef.parent!.parent,
+            planner!.acceptSuffixHint(
+                planner!.passThrough(xRef), getPostfixHint(xRef.token)!)),
         'f(x) => x!;');
   }
 
@@ -153,8 +152,8 @@ class C {
     // *doesn't* produce `a = b = c`, which would be grammatical but which would
     // break apart the subexpression `a = b`.
     checkPlan(
-        planner.addBinaryPostfix(
-            planner.passThrough(findNode.assignment('a = b')),
+        planner!.addBinaryPostfix(
+            planner!.passThrough(findNode.assignment('a = b')),
             TokenType.EQ,
             'c'),
         '_f(a, b, c) => (a = b) = c;');
@@ -163,16 +162,16 @@ class C {
   Future<void> test_addBinaryPostfix_associative() async {
     await analyze('var x = 1 - 2;');
     checkPlan(
-        planner.addBinaryPostfix(
-            planner.passThrough(findNode.binary('-')), TokenType.MINUS, '3'),
+        planner!.addBinaryPostfix(
+            planner!.passThrough(findNode.binary('-')), TokenType.MINUS, '3'),
         'var x = 1 - 2 - 3;');
   }
 
   Future<void> test_addBinaryPostfix_endsInCascade() async {
     await analyze('f(x) => x..y = 1;');
     checkPlan(
-        planner.addBinaryPostfix(
-            planner.passThrough(findNode.integerLiteral('1')),
+        planner!.addBinaryPostfix(
+            planner!.passThrough(findNode.integerLiteral('1')),
             TokenType.PLUS,
             '2'),
         'f(x) => x..y = 1 + 2;');
@@ -181,34 +180,34 @@ class C {
   Future<void> test_addBinaryPostfix_equality_non_associative() async {
     await analyze('var x = 1 == 2;');
     checkPlan(
-        planner.addBinaryPostfix(
-            planner.passThrough(findNode.binary('==')), TokenType.EQ_EQ, '3'),
+        planner!.addBinaryPostfix(
+            planner!.passThrough(findNode.binary('==')), TokenType.EQ_EQ, '3'),
         'var x = (1 == 2) == 3;');
   }
 
   Future<void> test_addBinaryPostfix_inner_precedence() async {
     await analyze('var x = 1 < 2;');
     checkPlan(
-        planner.addBinaryPostfix(
-            planner.passThrough(findNode.binary('<')), TokenType.EQ_EQ, 'true'),
+        planner!.addBinaryPostfix(planner!.passThrough(findNode.binary('<')),
+            TokenType.EQ_EQ, 'true'),
         'var x = 1 < 2 == true;');
     checkPlan(
-        planner.addBinaryPostfix(
-            planner.passThrough(findNode.binary('<')), TokenType.AS, 'bool'),
+        planner!.addBinaryPostfix(
+            planner!.passThrough(findNode.binary('<')), TokenType.AS, 'bool'),
         'var x = (1 < 2) as bool;');
   }
 
   Future<void> test_addBinaryPostfix_outer_precedence() async {
     await analyze('var x = 1 == true;');
     checkPlan(
-        planner.addBinaryPostfix(
-            planner.passThrough(findNode.integerLiteral('1')),
+        planner!.addBinaryPostfix(
+            planner!.passThrough(findNode.integerLiteral('1')),
             TokenType.LT,
             '2'),
         'var x = 1 < 2 == true;');
     checkPlan(
-        planner.addBinaryPostfix(
-            planner.passThrough(findNode.integerLiteral('1')),
+        planner!.addBinaryPostfix(
+            planner!.passThrough(findNode.integerLiteral('1')),
             TokenType.EQ_EQ,
             '2'),
         'var x = (1 == 2) == true;');
@@ -217,8 +216,8 @@ class C {
   Future<void> test_addBinaryPostfix_to_expression_function() async {
     await analyze('var x = () => null;');
     checkPlan(
-        planner.addBinaryPostfix(
-            planner.passThrough(findNode.functionExpression('()')),
+        planner!.addBinaryPostfix(
+            planner!.passThrough(findNode.functionExpression('()')),
             TokenType.AS,
             'Object'),
         'var x = (() => null) as Object;');
@@ -227,12 +226,12 @@ class C {
   Future<void> test_addBinaryPrefix_allowCascade() async {
     await analyze('f(x) => 1..isEven;');
     checkPlan(
-        planner.addBinaryPrefix(
-            'x..y', TokenType.EQ, planner.passThrough(findNode.cascade('..'))),
+        planner!.addBinaryPrefix(
+            'x..y', TokenType.EQ, planner!.passThrough(findNode.cascade('..'))),
         'f(x) => x..y = (1..isEven);');
     checkPlan(
-        planner.addBinaryPrefix(
-            'x', TokenType.EQ, planner.passThrough(findNode.cascade('..')),
+        planner!.addBinaryPrefix(
+            'x', TokenType.EQ, planner!.passThrough(findNode.cascade('..')),
             allowCascade: true),
         'f(x) => x = 1..isEven;');
   }
@@ -240,101 +239,126 @@ class C {
   Future<void> test_addBinaryPrefix_assignment_right_associative() async {
     await analyze('_f(a, b, c) => b = c;');
     checkPlan(
-        planner.addBinaryPrefix('a', TokenType.EQ,
-            planner.passThrough(findNode.assignment('b = c'))),
+        planner!.addBinaryPrefix('a', TokenType.EQ,
+            planner!.passThrough(findNode.assignment('b = c'))),
         '_f(a, b, c) => a = b = c;');
   }
 
   Future<void> test_addBinaryPrefix_associative() async {
     await analyze('var x = 1 - 2;');
     checkPlan(
-        planner.addBinaryPrefix(
-            '0', TokenType.MINUS, planner.passThrough(findNode.binary('-'))),
+        planner!.addBinaryPrefix(
+            '0', TokenType.MINUS, planner!.passThrough(findNode.binary('-'))),
         'var x = 0 - (1 - 2);');
   }
 
   Future<void> test_addBinaryPrefix_outer_precedence() async {
     await analyze('var x = 2 == true;');
     checkPlan(
-        planner.addBinaryPrefix('1', TokenType.LT,
-            planner.passThrough(findNode.integerLiteral('2'))),
+        planner!.addBinaryPrefix('1', TokenType.LT,
+            planner!.passThrough(findNode.integerLiteral('2'))),
         'var x = 1 < 2 == true;');
     checkPlan(
-        planner.addBinaryPrefix('1', TokenType.EQ_EQ,
-            planner.passThrough(findNode.integerLiteral('2'))),
+        planner!.addBinaryPrefix('1', TokenType.EQ_EQ,
+            planner!.passThrough(findNode.integerLiteral('2'))),
         'var x = (1 == 2) == true;');
   }
 
   Future<void> test_addBinaryPrefix_to_expression_function() async {
     await analyze('f(x) => () => null;');
     checkPlan(
-        planner.addBinaryPrefix('x', TokenType.EQ,
-            planner.passThrough(findNode.functionExpression('()'))),
+        planner!.addBinaryPrefix('x', TokenType.EQ,
+            planner!.passThrough(findNode.functionExpression('()'))),
         'f(x) => x = () => null;');
   }
 
   Future<void> test_addCommentPostfix_before_closer() async {
     await analyze('f(g) => g(0);');
     checkPlan(
-        planner.addCommentPostfix(
-            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        planner!.addCommentPostfix(
+            planner!.passThrough(findNode.integerLiteral('0')), '/* zero */'),
         'f(g) => g(0 /* zero */);');
   }
 
   Future<void> test_addCommentPostfix_before_other() async {
     await analyze('f() => 0.isEven;');
     checkPlan(
-        planner.addCommentPostfix(
-            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        planner!.addCommentPostfix(
+            planner!.passThrough(findNode.integerLiteral('0')), '/* zero */'),
         'f() => 0 /* zero */ .isEven;');
   }
 
   Future<void> test_addCommentPostfix_before_semicolon() async {
     await analyze('f() => 0;');
     checkPlan(
-        planner.addCommentPostfix(
-            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        planner!.addCommentPostfix(
+            planner!.passThrough(findNode.integerLiteral('0')), '/* zero */'),
         'f() => 0 /* zero */;');
   }
 
   Future<void> test_addCommentPostfix_before_space() async {
     await analyze('f() => 0 + 1;');
     checkPlan(
-        planner.addCommentPostfix(
-            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        planner!.addCommentPostfix(
+            planner!.passThrough(findNode.integerLiteral('0')), '/* zero */'),
         'f() => 0 /* zero */ + 1;');
   }
 
   Future<void> test_addCommentPostfix_informative() async {
     await analyze('f() => 0.isEven;');
     checkPlan(
-        planner.addCommentPostfix(
-            planner.passThrough(findNode.integerLiteral('0')), '/* zero */',
+        planner!.addCommentPostfix(
+            planner!.passThrough(findNode.integerLiteral('0')), '/* zero */',
             isInformative: true),
         'f() => 0.isEven;',
         expectedIncludingInformative: 'f() => 0 /* zero */ .isEven;');
   }
 
+  Future<void> test_addPostfix_inner_precedence_add_parens() async {
+    await analyze('f(x) => -x;');
+    checkPlan(
+        planner!
+            .addPostfix(planner!.passThrough(findNode.prefix('-x')), '.abs()'),
+        'f(x) => (-x).abs();');
+  }
+
+  Future<void> test_addPostfix_inner_precedence_no_parens() async {
+    await analyze('f(x) => x++;');
+    checkPlan(
+        planner!.addPostfix(
+            planner!.passThrough(findNode.postfix('x++')), '.abs()'),
+        'f(x) => x++.abs();');
+  }
+
+  Future<void> test_addPostfix_outer_precedence() async {
+    await analyze('f(x) => x/*!*/;');
+    checkPlan(
+        planner!.addPostfix(
+            planner!.passThrough(findNode.simple('x/*!*/')), '.abs()'),
+        'f(x) => x.abs()/*!*/;');
+  }
+
   Future<void> test_addUnaryPostfix_inner_precedence_add_parens() async {
     await analyze('f(x) => -x;');
     checkPlan(
-        planner.addUnaryPostfix(
-            planner.passThrough(findNode.prefix('-x')), TokenType.BANG),
+        planner!.addUnaryPostfix(
+            planner!.passThrough(findNode.prefix('-x')), TokenType.BANG),
         'f(x) => (-x)!;');
   }
 
   Future<void> test_addUnaryPostfix_inner_precedence_no_parens() async {
     await analyze('f(x) => x++;');
     checkPlan(
-        planner.addUnaryPostfix(
-            planner.passThrough(findNode.postfix('x++')), TokenType.BANG),
+        planner!.addUnaryPostfix(
+            planner!.passThrough(findNode.postfix('x++')), TokenType.BANG),
         'f(x) => x++!;');
   }
 
   Future<void> test_addUnaryPostfix_outer_precedence() async {
     await analyze('f(x) => x/*!*/;');
     checkPlan(
-        planner.addUnaryPostfix(planner.passThrough(findNode.simple('x/*!*/')),
+        planner!.addUnaryPostfix(
+            planner!.passThrough(findNode.simple('x/*!*/')),
             TokenType.PLUS_PLUS),
         'f(x) => x++/*!*/;');
   }
@@ -342,8 +366,8 @@ class C {
   Future<void> test_addUnaryPrefix_inner_precedence_add_parens() async {
     await analyze('f(x, y) => x * y;');
     checkPlan(
-        planner.addUnaryPrefix(
-            TokenType.MINUS, planner.passThrough(findNode.binary('*'))),
+        planner!.addUnaryPrefix(
+            TokenType.MINUS, planner!.passThrough(findNode.binary('*'))),
         'f(x, y) => -(x * y);');
   }
 
@@ -353,16 +377,16 @@ class C {
     // scan as a single `--` token, so we would need parens.  Add support for
     // this corner case.
     checkPlan(
-        planner.addUnaryPrefix(
-            TokenType.TILDE, planner.passThrough(findNode.prefix('-x'))),
+        planner!.addUnaryPrefix(
+            TokenType.TILDE, planner!.passThrough(findNode.prefix('-x'))),
         'f(x) => ~-x;');
   }
 
   Future<void> test_addUnaryPrefix_outer_precedence_add_parens() async {
     await analyze('f(x) => x!;');
     checkPlan(
-        planner.addUnaryPrefix(
-            TokenType.MINUS, planner.passThrough(findNode.simple('x!'))),
+        planner!.addUnaryPrefix(
+            TokenType.MINUS, planner!.passThrough(findNode.simple('x!'))),
         'f(x) => (-x)!;');
   }
 
@@ -372,8 +396,8 @@ class C {
     // scan as a single `--` token, so we would need parens.  Add support for
     // this corner case.
     checkPlan(
-        planner.addUnaryPrefix(
-            TokenType.TILDE, planner.passThrough(findNode.simple('x;'))),
+        planner!.addUnaryPrefix(
+            TokenType.TILDE, planner!.passThrough(findNode.simple('x;'))),
         'f(x) => -~x;');
   }
 
@@ -391,26 +415,26 @@ class C {
     assert(identical(innerAssignment, one.parent));
     // The tests below will be based on an inner plan that adds `..isEven` after
     // the `1`.
-    EditPlan makeInnerPlan() => planner.surround(planner.passThrough(one),
+    EditPlan makeInnerPlan() => planner!.surround(planner!.passThrough(one),
         suffix: [AtomicEdit.insert('..isEven')], endsInCascade: true);
     {
       // If we make a plan that passes through `c = 1`, containing a plan that
       // adds `..isEven` to `1`, then we don't necessarily want to add parens yet,
       // because we might not keep the cascade section above it.
       var plan =
-          planner.passThrough(innerAssignment, innerPlans: [makeInnerPlan()]);
+          planner!.passThrough(innerAssignment, innerPlans: [makeInnerPlan()]);
       // `endsInCascade` returns true because we haven't committed to adding
       // parens, so we need to remember that the presence of `..isEven` may
       // require parens later.
       expect(plan.endsInCascade, true);
-      checkPlan(planner.extract(cascade, plan), 'f(a, c) => c = 1..isEven;');
+      checkPlan(planner!.extract(cascade, plan), 'f(a, c) => c = 1..isEven;');
     }
     {
       // If we make a plan that passes through `..b = c = 1`, containing a plan
       // that adds `..isEven` to `1`, then we do necessarily want to add parens,
       // because we're committed to keeping the cascade section.
       var plan =
-          planner.passThrough(outerAssignment, innerPlans: [makeInnerPlan()]);
+          planner!.passThrough(outerAssignment, innerPlans: [makeInnerPlan()]);
       // We can tell that the parens have been finalized because `endsInCascade`
       // returns false now.
       expect(plan.endsInCascade, false);
@@ -422,9 +446,9 @@ class C {
     var code = 'int /*!*/ x = 0;';
     await analyze(code);
     var intRef = findNode.simple('int');
-    var typeName = planner.passThrough(intRef);
+    var typeName = planner!.passThrough(intRef);
     checkPlan(
-        planner.dropNullabilityHint(typeName, getPostfixHint(intRef.token)),
+        planner!.dropNullabilityHint(typeName, getPostfixHint(intRef.token)!),
         'int x = 0;');
   }
 
@@ -432,9 +456,9 @@ class C {
     var code = 'int /*!*/x = 0;';
     await analyze(code);
     var intRef = findNode.simple('int');
-    var typeName = planner.passThrough(intRef);
+    var typeName = planner!.passThrough(intRef);
     var changes = checkPlan(
-        planner.dropNullabilityHint(typeName, getPostfixHint(intRef.token)),
+        planner!.dropNullabilityHint(typeName, getPostfixHint(intRef.token)!),
         'int x = 0;');
     expect(changes.keys, unorderedEquals([code.indexOf('/*')]));
   }
@@ -443,9 +467,9 @@ class C {
     var code = 'int/*!*/x = 0;';
     await analyze(code);
     var intRef = findNode.simple('int');
-    var typeName = planner.passThrough(intRef);
+    var typeName = planner!.passThrough(intRef);
     checkPlan(
-        planner.dropNullabilityHint(typeName, getPostfixHint(intRef.token)),
+        planner!.dropNullabilityHint(typeName, getPostfixHint(intRef.token)!),
         'int x = 0;');
   }
 
@@ -455,18 +479,18 @@ class C {
     var code = 'void Function()/*!*/x = () {};';
     await analyze(code);
     var functionType = findNode.genericFunctionType('Function');
-    var typeName = planner.passThrough(functionType);
+    var typeName = planner!.passThrough(functionType);
     checkPlan(
-        planner.dropNullabilityHint(
-            typeName, getPostfixHint(functionType.endToken)),
+        planner!.dropNullabilityHint(
+            typeName, getPostfixHint(functionType.endToken)!),
         'void Function()x = () {};');
   }
 
   Future<void> test_explainNonNullable() async {
     await analyze('int x = 0;');
     checkPlan(
-        planner.explainNonNullable(
-            planner.passThrough(findNode.typeAnnotation('int'))),
+        planner!.explainNonNullable(
+            planner!.passThrough(findNode.typeAnnotation('int'))),
         'int x = 0;',
         expectedIncludingInformative: 'int  x = 0;');
   }
@@ -561,7 +585,7 @@ class C {
     // compilation unit is an AstNode with no parent).
     await analyze('var x = 0;');
     checkPlan(
-        planner.surround(planner.passThrough(testUnit),
+        planner!.surround(planner!.passThrough(testUnit),
             suffix: [AtomicEdit.insert(' var y = 0;')]),
         'var x = 0; var y = 0;');
   }
@@ -571,25 +595,25 @@ class C {
     var sum = findNode.binary('+');
     var info = _MockInfo();
     var changes = checkPlan(
-        planner.passThrough(sum, innerPlans: [
-          planner.informativeMessageForToken(sum, sum.operator, info: info)
+        planner!.passThrough(sum, innerPlans: [
+          planner!.informativeMessageForToken(sum, sum.operator, info: info)
         ]),
         'f(x) => x + 1;',
         expectedIncludingInformative: 'f(x) => x  1;');
     var expectedOffset = sum.operator.offset;
     expect(changes.keys, unorderedEquals([expectedOffset]));
     expect(changes[expectedOffset], hasLength(1));
-    expect(changes[expectedOffset][0].length, '+'.length);
-    expect(changes[expectedOffset][0].replacement, '');
-    expect(changes[expectedOffset][0].isInformative, isTrue);
-    expect(changes[expectedOffset][0].info, same(info));
+    expect(changes[expectedOffset]![0].length, '+'.length);
+    expect(changes[expectedOffset]![0].replacement, '');
+    expect(changes[expectedOffset]![0].isInformative, isTrue);
+    expect(changes[expectedOffset]![0].info, same(info));
   }
 
   Future<void> test_insertText() async {
     await analyze('final x = 1;');
     var variableDeclarationList = findNode.variableDeclarationList('final');
     checkPlan(
-        planner.insertText(
+        planner!.insertText(
             variableDeclarationList,
             variableDeclarationList.variables.first.offset,
             [AtomicEdit.insert('int ')]),
@@ -599,8 +623,8 @@ class C {
   Future<void> test_makeNullable() async {
     await analyze('int x = 0;');
     checkPlan(
-        planner
-            .makeNullable(planner.passThrough(findNode.typeAnnotation('int'))),
+        planner!
+            .makeNullable(planner!.passThrough(findNode.typeAnnotation('int'))),
         'int? x = 0;');
   }
 
@@ -614,8 +638,8 @@ void f() {
   };
 }
 ''');
-    var innerPlan = planner.removeNode(findNode.statement('2'));
-    var outerPlan = planner.passThrough(findNode.variableDeclaration('x'),
+    var innerPlan = planner!.removeNode(findNode.statement('2'));
+    var outerPlan = planner!.passThrough(findNode.variableDeclaration('x'),
         innerPlans: [innerPlan]);
     checkPlan(outerPlan, '''
 void f() {
@@ -632,15 +656,16 @@ void f() {
     var i1 = findNode.integerLiteral('1');
     var i2 = findNode.integerLiteral('2');
     checkPlan(
-        planner.passThrough(i1.parent,
-            innerPlans: [planner.removeNode(i1), planner.removeNode(i2)]),
+        planner!.passThrough(i1.parent,
+            innerPlans: [planner!.removeNode(i1), planner!.removeNode(i2)]),
         'var x = [];');
   }
 
   Future<void> test_remove_argument() async {
     await analyze('f(dynamic d) => d(1, 2, 3);');
     var i2 = findNode.integerLiteral('2');
-    var changes = checkPlan(planner.removeNode(i2), 'f(dynamic d) => d(1, 3);');
+    var changes =
+        checkPlan(planner!.removeNode(i2), 'f(dynamic d) => d(1, 3);');
     expect(changes.keys, [i2.offset]);
   }
 
@@ -653,7 +678,7 @@ class C {
 }
 ''');
     var declaration = findNode.fieldDeclaration('y');
-    var changes = checkPlan(planner.removeNode(declaration), '''
+    var changes = checkPlan(planner!.removeNode(declaration), '''
 class C {
   int? x;
   int? z;
@@ -668,8 +693,8 @@ class C {
     var i2 = findNode.integerLiteral('2');
     var i3 = findNode.integerLiteral('3');
     checkPlan(
-        planner.passThrough(testUnit,
-            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        planner!.passThrough(testUnit,
+            innerPlans: [planner!.removeNode(i2), planner!.removeNode(i3)]),
         'var x = [[1], 4];');
   }
 
@@ -679,8 +704,8 @@ class C {
     var i2 = findNode.integerLiteral('2');
     var i3 = findNode.integerLiteral('3');
     checkPlan(
-        planner.passThrough(i2.parent.parent,
-            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        planner!.passThrough(i2.parent!.parent,
+            innerPlans: [planner!.removeNode(i2), planner!.removeNode(i3)]),
         'var x = [[1], [4]];');
   }
 
@@ -689,8 +714,8 @@ class C {
     var i2 = findNode.integerLiteral('2');
     var i3 = findNode.integerLiteral('3');
     checkPlan(
-        planner.passThrough(testUnit,
-            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        planner!.passThrough(testUnit,
+            innerPlans: [planner!.removeNode(i2), planner!.removeNode(i3)]),
         'var x = [[1], [4]];');
   }
 
@@ -702,8 +727,8 @@ enum E {
   C
 }
 ''');
-    var enumConstant = findNode.simple('B').parent;
-    var changes = checkPlan(planner.removeNode(enumConstant), '''
+    var enumConstant = findNode.simple('B').parent!;
+    var changes = checkPlan(planner!.removeNode(enumConstant), '''
 enum E {
   A,
   C
@@ -718,8 +743,8 @@ class C {
   int? x, y, z;
 }
 ''');
-    var declaration = findNode.simple('y').parent;
-    var changes = checkPlan(planner.removeNode(declaration), '''
+    var declaration = findNode.simple('y').parent!;
+    var changes = checkPlan(planner!.removeNode(declaration), '''
 class C {
   int? x, z;
 }
@@ -730,7 +755,7 @@ class C {
   Future<void> test_remove_list_element() async {
     await analyze('var x = [1, 2, 3];');
     var i2 = findNode.integerLiteral('2');
-    var changes = checkPlan(planner.removeNode(i2), 'var x = [1, 3];');
+    var changes = checkPlan(planner!.removeNode(i2), 'var x = [1, 3];');
     expect(changes.keys, [i2.offset]);
   }
 
@@ -738,20 +763,20 @@ class C {
     await analyze('var x = [1, 2, 3];');
     var i2 = findNode.integerLiteral('2');
     var i3 = findNode.integerLiteral('3');
-    var changes = checkPlan(planner.removeNode(i3), 'var x = [1, 2];');
+    var changes = checkPlan(planner!.removeNode(i3), 'var x = [1, 2];');
     expect(changes.keys, [i2.end]);
   }
 
   Future<void> test_remove_list_element_singleton() async {
     await analyze('var x = [1];');
     var i1 = findNode.integerLiteral('1');
-    checkPlan(planner.removeNode(i1), 'var x = [];');
+    checkPlan(planner!.removeNode(i1), 'var x = [];');
   }
 
   Future<void> test_remove_list_element_with_trailing_separator() async {
     await analyze('var x = [1, 2, 3, ];');
     var i3 = findNode.integerLiteral('3');
-    checkPlan(planner.removeNode(i3), 'var x = [1, 2, ];');
+    checkPlan(planner!.removeNode(i3), 'var x = [1, 2, ];');
   }
 
   Future<void> test_remove_list_elements() async {
@@ -759,8 +784,8 @@ class C {
     var i2 = findNode.integerLiteral('2');
     var i4 = findNode.integerLiteral('4');
     var changes = checkPlan(
-        planner.passThrough(i2.parent,
-            innerPlans: [planner.removeNode(i2), planner.removeNode(i4)]),
+        planner!.passThrough(i2.parent,
+            innerPlans: [planner!.removeNode(i2), planner!.removeNode(i4)]),
         'var x = [1, 3, 5];');
     expect(changes.keys, unorderedEquals([i2.offset, i4.offset]));
   }
@@ -770,8 +795,8 @@ class C {
     var i1 = findNode.integerLiteral('1');
     var i2 = findNode.integerLiteral('2');
     checkPlan(
-        planner.passThrough(i1.parent,
-            innerPlans: [planner.removeNode(i1), planner.removeNode(i2)]),
+        planner!.passThrough(i1.parent,
+            innerPlans: [planner!.removeNode(i1), planner!.removeNode(i2)]),
         'var x = [];');
   }
 
@@ -779,7 +804,7 @@ class C {
     await analyze('var x = [1, 2];');
     var i1 = findNode.integerLiteral('1');
     var i2 = findNode.integerLiteral('2');
-    checkPlan(planner.removeNodes(i1, i2), 'var x = [];');
+    checkPlan(planner!.removeNodes(i1, i2), 'var x = [];');
   }
 
   Future<void> test_remove_list_elements_all_passThrough_unit() async {
@@ -787,8 +812,8 @@ class C {
     var i1 = findNode.integerLiteral('1');
     var i2 = findNode.integerLiteral('2');
     checkPlan(
-        planner.passThrough(testUnit,
-            innerPlans: [planner.removeNode(i1), planner.removeNode(i2)]),
+        planner!.passThrough(testUnit,
+            innerPlans: [planner!.removeNode(i1), planner!.removeNode(i2)]),
         'var x = [];');
   }
 
@@ -798,8 +823,8 @@ class C {
     var i2 = findNode.integerLiteral('2');
     var i3 = findNode.integerLiteral('3');
     var changes = checkPlan(
-        planner.passThrough(i2.parent,
-            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        planner!.passThrough(i2.parent,
+            innerPlans: [planner!.removeNode(i2), planner!.removeNode(i3)]),
         'var x = [1];');
     expect(changes.keys, unorderedEquals([i1.end, i2.end]));
   }
@@ -809,7 +834,7 @@ class C {
     var i1 = findNode.integerLiteral('1');
     var i2 = findNode.integerLiteral('2');
     var i3 = findNode.integerLiteral('3');
-    var changes = checkPlan(planner.removeNodes(i2, i3), 'var x = [1];');
+    var changes = checkPlan(planner!.removeNodes(i2, i3), 'var x = [1];');
     expect(changes.keys, [i1.end]);
   }
 
@@ -817,7 +842,7 @@ class C {
     await analyze('var x = [1, 2, 3, 4];');
     var i2 = findNode.integerLiteral('2');
     var i3 = findNode.integerLiteral('3');
-    var changes = checkPlan(planner.removeNodes(i2, i3), 'var x = [1, 4];');
+    var changes = checkPlan(planner!.removeNodes(i2, i3), 'var x = [1, 4];');
     expect(changes.keys, [i2.offset]);
   }
 
@@ -828,8 +853,8 @@ class C {
     var i3 = findNode.integerLiteral('3');
     createPlanner(removeViaComments: true);
     checkPlan(
-        planner.passThrough(i2.parent,
-            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        planner!.passThrough(i2.parent,
+            innerPlans: [planner!.removeNode(i2), planner!.removeNode(i3)]),
         'var x = [1/* , 2 *//* , 3 */];');
   }
 
@@ -839,8 +864,8 @@ class C {
     var i3 = findNode.integerLiteral('3');
     createPlanner(removeViaComments: true);
     checkPlan(
-        planner.passThrough(i2.parent,
-            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        planner!.passThrough(i2.parent,
+            innerPlans: [planner!.removeNode(i2), planner!.removeNode(i3)]),
         'var x = [1, /* 2, */ /* 3, */ 4];');
   }
 
@@ -850,30 +875,31 @@ class C {
     var i4 = findNode.integerLiteral('4');
     createPlanner(removeViaComments: true);
     checkPlan(
-        planner.passThrough(i2.parent,
-            innerPlans: [planner.removeNode(i2), planner.removeNode(i4)]),
+        planner!.passThrough(i2.parent,
+            innerPlans: [planner!.removeNode(i2), planner!.removeNode(i4)]),
         'var x = [1, /* 2, */ 3, /* 4, */ 5];');
   }
 
   Future<void> test_remove_map_element() async {
     await analyze('var x = {1: 2, 3: 4, 5: 6};');
-    var entry = findNode.integerLiteral('3').parent;
-    var changes = checkPlan(planner.removeNode(entry), 'var x = {1: 2, 5: 6};');
+    var entry = findNode.integerLiteral('3').parent!;
+    var changes =
+        checkPlan(planner!.removeNode(entry), 'var x = {1: 2, 5: 6};');
     expect(changes.keys, [entry.offset]);
   }
 
   Future<void> test_remove_parameter() async {
     await analyze('f(int x, int y, int z) => null;');
-    var parameter = findNode.simple('y').parent;
+    var parameter = findNode.simple('y').parent!;
     var changes =
-        checkPlan(planner.removeNode(parameter), 'f(int x, int z) => null;');
+        checkPlan(planner!.removeNode(parameter), 'f(int x, int z) => null;');
     expect(changes.keys, [parameter.offset]);
   }
 
   Future<void> test_remove_set_element() async {
     await analyze('var x = {1, 2, 3};');
     var i2 = findNode.integerLiteral('2');
-    var changes = checkPlan(planner.removeNode(i2), 'var x = {1, 3};');
+    var changes = checkPlan(planner!.removeNode(i2), 'var x = {1, 3};');
     expect(changes.keys, [i2.offset]);
   }
 
@@ -885,7 +911,7 @@ void f() {
   3;
 }
 ''');
-    checkPlan(planner.removeNode(findNode.statement('2')), '''
+    checkPlan(planner!.removeNode(findNode.statement('2')), '''
 void f() {
   1;
   3;
@@ -901,7 +927,7 @@ void f() {
   4;
 }
 ''');
-    checkPlan(planner.removeNode(findNode.statement('2')), '''
+    checkPlan(planner!.removeNode(findNode.statement('2')), '''
 void f() {
   1;
   3;
@@ -918,7 +944,7 @@ void f() {
   4;
 }
 ''');
-    checkPlan(planner.removeNode(findNode.statement('3')), '''
+    checkPlan(planner!.removeNode(findNode.statement('3')), '''
 void f() {
   1;
   2;
@@ -935,7 +961,7 @@ void f() {
   5;
 }
 ''');
-    checkPlan(planner.removeNode(findNode.statement('3')), '''
+    checkPlan(planner!.removeNode(findNode.statement('3')), '''
 void f() {
   1;
   2; 4;
@@ -953,7 +979,7 @@ void f() {
 }
 ''');
     createPlanner(removeViaComments: true);
-    checkPlan(planner.removeNode(findNode.statement('2')), '''
+    checkPlan(planner!.removeNode(findNode.statement('2')), '''
 void f() {
   1;
   /* 2; */
@@ -974,7 +1000,7 @@ void f() {
 ''');
     var s2 = findNode.statement('2');
     var s3 = findNode.statement('3');
-    var changes = checkPlan(planner.removeNodes(s2, s3), '''
+    var changes = checkPlan(planner!.removeNodes(s2, s3), '''
 void f() {
   1;
   4;
@@ -999,10 +1025,10 @@ void f() {
     var s3 = findNode.statement('3');
     var s4 = findNode.statement('4');
     var changes = checkPlan(
-        planner.passThrough(s2.parent, innerPlans: [
-          planner.removeNode(s2),
-          planner.removeNode(s3),
-          planner.removeNode(s4)
+        planner!.passThrough(s2.parent, innerPlans: [
+          planner!.removeNode(s2),
+          planner!.removeNode(s3),
+          planner!.removeNode(s4)
         ]),
         '''
 void f() {
@@ -1027,8 +1053,8 @@ void f() {
     var s2 = findNode.statement('2');
     var s3 = findNode.statement('3');
     var changes = checkPlan(
-        planner.passThrough(s2.parent,
-            innerPlans: [planner.removeNode(s2), planner.removeNode(s3)]),
+        planner!.passThrough(s2.parent,
+            innerPlans: [planner!.removeNode(s2), planner!.removeNode(s3)]),
         '''
 void f() {
   1;
@@ -1051,8 +1077,8 @@ void f() {
     var s2 = findNode.statement('2');
     var s4 = findNode.statement('4');
     var changes = checkPlan(
-        planner.passThrough(s2.parent,
-            innerPlans: [planner.removeNode(s2), planner.removeNode(s4)]),
+        planner!.passThrough(s2.parent,
+            innerPlans: [planner!.removeNode(s2), planner!.removeNode(s4)]),
         '''
 void f() {
   1;
@@ -1069,7 +1095,7 @@ void f() {
   1;
 }
 ''');
-    checkPlan(planner.removeNode(findNode.statement('1')), '''
+    checkPlan(planner!.removeNode(findNode.statement('1')), '''
 void f() {}
 ''');
   }
@@ -1081,7 +1107,7 @@ void f() {
   // Foo
 }
 ''');
-    checkPlan(planner.removeNode(findNode.statement('1')), '''
+    checkPlan(planner!.removeNode(findNode.statement('1')), '''
 void f() {
   // Foo
 }
@@ -1095,7 +1121,7 @@ void f() {
   1;
 }
 ''');
-    checkPlan(planner.removeNode(findNode.statement('1')), '''
+    checkPlan(planner!.removeNode(findNode.statement('1')), '''
 void f() {
   // Foo
 }
@@ -1115,8 +1141,8 @@ void f() {
     var s2 = findNode.statement('2');
     var s3 = findNode.statement('3');
     checkPlan(
-        planner.passThrough(s2.parent,
-            innerPlans: [planner.removeNode(s2), planner.removeNode(s3)]),
+        planner!.passThrough(s2.parent,
+            innerPlans: [planner!.removeNode(s2), planner!.removeNode(s3)]),
         '''
 void f() {
   1;
@@ -1134,7 +1160,7 @@ class D {}
 class E {}
 ''');
     var declaration = findNode.classDeclaration('D');
-    var changes = checkPlan(planner.removeNode(declaration), '''
+    var changes = checkPlan(planner!.removeNode(declaration), '''
 class C {}
 class E {}
 ''');
@@ -1148,7 +1174,7 @@ import 'dart:async';
 import 'dart:math';
 ''');
     var directive = findNode.import('async');
-    var changes = checkPlan(planner.removeNode(directive), '''
+    var changes = checkPlan(planner!.removeNode(directive), '''
 import 'dart:io';
 import 'dart:math';
 ''');
@@ -1160,8 +1186,8 @@ import 'dart:math';
 class C<T, U, V> {}
 C<int, double, String>? c;
 ''');
-    var typeArgument = findNode.simple('double').parent;
-    var changes = checkPlan(planner.removeNode(typeArgument), '''
+    var typeArgument = findNode.simple('double').parent!;
+    var changes = checkPlan(planner!.removeNode(typeArgument), '''
 class C<T, U, V> {}
 C<int, String>? c;
 ''');
@@ -1170,15 +1196,15 @@ C<int, String>? c;
 
   Future<void> test_remove_type_parameter() async {
     await analyze('class C<T, U, V> {}');
-    var parameter = findNode.simple('U').parent;
-    var changes = checkPlan(planner.removeNode(parameter), 'class C<T, V> {}');
+    var parameter = findNode.simple('U').parent!;
+    var changes = checkPlan(planner!.removeNode(parameter), 'class C<T, V> {}');
     expect(changes.keys, [parameter.offset]);
   }
 
   Future<void> test_remove_variable_declaration() async {
     await analyze('int? x, y, z;');
-    var declaration = findNode.simple('y').parent;
-    var changes = checkPlan(planner.removeNode(declaration), 'int? x, z;');
+    var declaration = findNode.simple('y').parent!;
+    var changes = checkPlan(planner!.removeNode(declaration), 'int? x, z;');
     expect(changes.keys, [declaration.offset]);
   }
 
@@ -1187,10 +1213,10 @@ C<int, String>? c;
     await analyze('f(x) => x?.m(0);');
     var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.passThrough(methodInvocation, innerPlans: [
-          planner.removeNullAwareness(methodInvocation),
-          planner.passThrough(methodInvocation.argumentList, innerPlans: [
-            planner
+        planner!.passThrough(methodInvocation, innerPlans: [
+          planner!.removeNullAwareness(methodInvocation),
+          planner!.passThrough(methodInvocation.argumentList, innerPlans: [
+            planner!
                 .replace(findNode.integerLiteral('0'), [AtomicEdit.insert('1')])
           ])
         ]),
@@ -1202,9 +1228,9 @@ C<int, String>? c;
     await analyze('f(x) => x?.m();');
     var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.passThrough(methodInvocation, innerPlans: [
-          planner.removeNullAwareness(methodInvocation),
-          planner.replace(findNode.simple('m'), [AtomicEdit.insert('n')])
+        planner!.passThrough(methodInvocation, innerPlans: [
+          planner!.removeNullAwareness(methodInvocation),
+          planner!.replace(findNode.simple('m'), [AtomicEdit.insert('n')])
         ]),
         'f(x) => x.n();');
   }
@@ -1214,9 +1240,9 @@ C<int, String>? c;
     await analyze('f(x) => x?.m();');
     var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.passThrough(methodInvocation, innerPlans: [
-          planner.replace(findNode.simple('x?.'), [AtomicEdit.insert('y')]),
-          planner.removeNullAwareness(methodInvocation)
+        planner!.passThrough(methodInvocation, innerPlans: [
+          planner!.replace(findNode.simple('x?.'), [AtomicEdit.insert('y')]),
+          planner!.removeNullAwareness(methodInvocation)
         ]),
         'f(x) => y.m();');
   }
@@ -1226,10 +1252,10 @@ C<int, String>? c;
     await analyze('f(x) => x?.m<int>();');
     var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.passThrough(methodInvocation, innerPlans: [
-          planner.removeNullAwareness(methodInvocation),
-          planner.passThrough(methodInvocation.typeArguments, innerPlans: [
-            planner.replace(findNode.simple('int'), [AtomicEdit.insert('num')])
+        planner!.passThrough(methodInvocation, innerPlans: [
+          planner!.removeNullAwareness(methodInvocation),
+          planner!.passThrough(methodInvocation.typeArguments, innerPlans: [
+            planner!.replace(findNode.simple('int'), [AtomicEdit.insert('num')])
           ])
         ]),
         'f(x) => x.m<num>();');
@@ -1239,8 +1265,8 @@ C<int, String>? c;
     await analyze('f(x) => x?.m();');
     var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.passThrough(methodInvocation,
-            innerPlans: [planner.removeNullAwareness(methodInvocation)]),
+        planner!.passThrough(methodInvocation,
+            innerPlans: [planner!.removeNullAwareness(methodInvocation)]),
         'f(x) => x.m();');
   }
 
@@ -1248,10 +1274,10 @@ C<int, String>? c;
     await analyze('f(x) => x?.y;');
     var propertyAccess = findNode.propertyAccess('?.');
     checkPlan(
-        planner.passThrough(propertyAccess, innerPlans: [
-          (planner.replace(findNode.simple('x?.'), [AtomicEdit.insert('z')])),
-          planner.removeNullAwareness(propertyAccess),
-          planner.replace(findNode.simple('y'), [AtomicEdit.insert('w')])
+        planner!.passThrough(propertyAccess, innerPlans: [
+          (planner!.replace(findNode.simple('x?.'), [AtomicEdit.insert('z')])),
+          planner!.removeNullAwareness(propertyAccess),
+          planner!.replace(findNode.simple('y'), [AtomicEdit.insert('w')])
         ]),
         'f(x) => z.w;');
   }
@@ -1261,9 +1287,9 @@ C<int, String>? c;
     await analyze('f(x) => x?.y;');
     var propertyAccess = findNode.propertyAccess('?.');
     checkPlan(
-        planner.passThrough(propertyAccess, innerPlans: [
-          planner.removeNullAwareness(propertyAccess),
-          planner.replace(findNode.simple('y'), [AtomicEdit.insert('w')])
+        planner!.passThrough(propertyAccess, innerPlans: [
+          planner!.removeNullAwareness(propertyAccess),
+          planner!.replace(findNode.simple('y'), [AtomicEdit.insert('w')])
         ]),
         'f(x) => x.w;');
   }
@@ -1273,9 +1299,9 @@ C<int, String>? c;
     await analyze('f(x) => x?.y;');
     var propertyAccess = findNode.propertyAccess('?.');
     checkPlan(
-        planner.passThrough(propertyAccess, innerPlans: [
-          planner.replace(findNode.simple('x?.'), [AtomicEdit.insert('z')]),
-          planner.removeNullAwareness(propertyAccess)
+        planner!.passThrough(propertyAccess, innerPlans: [
+          planner!.replace(findNode.simple('x?.'), [AtomicEdit.insert('z')]),
+          planner!.removeNullAwareness(propertyAccess)
         ]),
         'f(x) => z.y;');
   }
@@ -1284,21 +1310,21 @@ C<int, String>? c;
     await analyze('f(x) => x?.y;');
     var propertyAccess = findNode.propertyAccess('?.');
     checkPlan(
-        planner.passThrough(propertyAccess,
-            innerPlans: [planner.removeNullAwareness(propertyAccess)]),
+        planner!.passThrough(propertyAccess,
+            innerPlans: [planner!.removeNullAwareness(propertyAccess)]),
         'f(x) => x.y;');
   }
 
   Future<void> test_replace_expression() async {
     await analyze('var x = 1 + 2 * 3;');
-    checkPlan(planner.replace(findNode.binary('*'), [AtomicEdit.insert('6')]),
+    checkPlan(planner!.replace(findNode.binary('*'), [AtomicEdit.insert('6')]),
         'var x = 1 + 6;');
   }
 
   Future<void> test_replace_expression_add_parens_due_to_cascade() async {
     await analyze('var x = 1 + 2 * 3;');
     checkPlan(
-        planner.replace(findNode.binary('*'), [AtomicEdit.insert('4..isEven')],
+        planner!.replace(findNode.binary('*'), [AtomicEdit.insert('4..isEven')],
             endsInCascade: true),
         'var x = 1 + (4..isEven);');
   }
@@ -1306,7 +1332,7 @@ C<int, String>? c;
   Future<void> test_replace_expression_add_parens_due_to_precedence() async {
     await analyze('var x = 1 + 2 * 3;');
     checkPlan(
-        planner.replace(findNode.binary('*'), [AtomicEdit.insert('y = z')],
+        planner!.replace(findNode.binary('*'), [AtomicEdit.insert('y = z')],
             precedence: Precedence.assignment),
         'var x = 1 + (y = z);');
   }
@@ -1315,19 +1341,19 @@ C<int, String>? c;
     await analyze('var x = 1;');
     var variableDeclarationList = findNode.variableDeclarationList('var x');
     checkPlan(
-        planner.replaceToken(
-            variableDeclarationList, variableDeclarationList.keyword, 'int'),
+        planner!.replaceToken(
+            variableDeclarationList, variableDeclarationList.keyword!, 'int'),
         'int x = 1;');
   }
 
   Future<void> test_surround_allowCascade() async {
     await analyze('f(x) => 1..isEven;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.cascade('..')),
+        planner!.surround(planner!.passThrough(findNode.cascade('..')),
             prefix: [AtomicEdit.insert('x..y = ')]),
         'f(x) => x..y = (1..isEven);');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.cascade('..')),
+        planner!.surround(planner!.passThrough(findNode.cascade('..')),
             prefix: [AtomicEdit.insert('x = ')], allowCascade: true),
         'f(x) => x = 1..isEven;');
   }
@@ -1335,13 +1361,13 @@ C<int, String>? c;
   Future<void> test_surround_associative() async {
     await analyze('var x = 1 - 2;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.binary('-')),
+        planner!.surround(planner!.passThrough(findNode.binary('-')),
             suffix: [AtomicEdit.insert(' - 3')],
             innerPrecedence: Precedence.additive,
             associative: true),
         'var x = 1 - 2 - 3;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.binary('-')),
+        planner!.surround(planner!.passThrough(findNode.binary('-')),
             prefix: [AtomicEdit.insert('0 - ')],
             innerPrecedence: Precedence.additive),
         'var x = 0 - (1 - 2);');
@@ -1350,11 +1376,11 @@ C<int, String>? c;
   Future<void> test_surround_endsInCascade() async {
     await analyze('f(x) => x..y = 1;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+        planner!.surround(planner!.passThrough(findNode.integerLiteral('1')),
             suffix: [AtomicEdit.insert(' + 2')]),
         'f(x) => x..y = 1 + 2;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+        planner!.surround(planner!.passThrough(findNode.integerLiteral('1')),
             suffix: [AtomicEdit.insert('..isEven')], endsInCascade: true),
         'f(x) => x..y = (1..isEven);');
   }
@@ -1363,16 +1389,16 @@ C<int, String>? c;
       test_surround_endsInCascade_does_not_propagate_through_added_parens() async {
     await analyze('f(a) => a..b = 0;');
     checkPlan(
-        planner.surround(
-            planner.surround(planner.passThrough(findNode.cascade('..')),
+        planner!.surround(
+            planner!.surround(planner!.passThrough(findNode.cascade('..')),
                 prefix: [AtomicEdit.insert('1 + ')],
                 innerPrecedence: Precedence.additive),
             prefix: [AtomicEdit.insert('true ? ')],
             suffix: [AtomicEdit.insert(' : 2')]),
         'f(a) => true ? 1 + (a..b = 0) : 2;');
     checkPlan(
-        planner.surround(
-            planner.surround(planner.passThrough(findNode.cascade('..')),
+        planner!.surround(
+            planner!.surround(planner!.passThrough(findNode.cascade('..')),
                 prefix: [AtomicEdit.insert('throw ')], allowCascade: true),
             prefix: [AtomicEdit.insert('true ? ')],
             suffix: [AtomicEdit.insert(' : 2')]),
@@ -1382,7 +1408,7 @@ C<int, String>? c;
   Future<void> test_surround_endsInCascade_internal_throw() async {
     await analyze('f(x, g) => g(0, throw x, 1);');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.simple('x, 1')),
+        planner!.surround(planner!.passThrough(findNode.simple('x, 1')),
             suffix: [AtomicEdit.insert('..y')], endsInCascade: true),
         'f(x, g) => g(0, throw x..y, 1);');
   }
@@ -1390,16 +1416,18 @@ C<int, String>? c;
   Future<void> test_surround_endsInCascade_propagates() async {
     await analyze('f(a) => a..b = 0;');
     checkPlan(
-        planner.surround(
-            planner.surround(planner.passThrough(findNode.cascade('..')),
+        planner!.surround(
+            planner!.surround(planner!.passThrough(findNode.cascade('..')),
                 prefix: [AtomicEdit.insert('throw ')], allowCascade: true),
             prefix: [AtomicEdit.insert('true ? ')],
             suffix: [AtomicEdit.insert(' : 2')]),
         'f(a) => true ? (throw a..b = 0) : 2;');
     checkPlan(
-        planner.surround(
-            planner.surround(planner.passThrough(findNode.integerLiteral('0')),
-                prefix: [AtomicEdit.insert('throw ')], allowCascade: true),
+        planner!.surround(
+            planner!.surround(
+                planner!.passThrough(findNode.integerLiteral('0')),
+                prefix: [AtomicEdit.insert('throw ')],
+                allowCascade: true),
             prefix: [AtomicEdit.insert('true ? ')],
             suffix: [AtomicEdit.insert(' : 2')]),
         'f(a) => a..b = true ? throw 0 : 2;');
@@ -1408,12 +1436,12 @@ C<int, String>? c;
   Future<void> test_surround_precedence() async {
     await analyze('var x = 1 == true;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+        planner!.surround(planner!.passThrough(findNode.integerLiteral('1')),
             suffix: [AtomicEdit.insert(' < 2')],
             outerPrecedence: Precedence.relational),
         'var x = 1 < 2 == true;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+        planner!.surround(planner!.passThrough(findNode.integerLiteral('1')),
             suffix: [AtomicEdit.insert(' == 2')],
             outerPrecedence: Precedence.equality),
         'var x = (1 == 2) == true;');
@@ -1422,7 +1450,7 @@ C<int, String>? c;
   Future<void> test_surround_prefix() async {
     await analyze('var x = 1;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+        planner!.surround(planner!.passThrough(findNode.integerLiteral('1')),
             prefix: [AtomicEdit.insert('throw ')]),
         'var x = throw 1;');
   }
@@ -1430,7 +1458,7 @@ C<int, String>? c;
   Future<void> test_surround_suffix() async {
     await analyze('var x = 1;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+        planner!.surround(planner!.passThrough(findNode.integerLiteral('1')),
             suffix: [AtomicEdit.insert('..isEven')]),
         'var x = 1..isEven;');
   }
@@ -1438,7 +1466,7 @@ C<int, String>? c;
   Future<void> test_surround_suffix_parenthesized() async {
     await analyze('var x = (1);');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+        planner!.surround(planner!.passThrough(findNode.integerLiteral('1')),
             suffix: [AtomicEdit.insert('..isEven')]),
         'var x = 1..isEven;');
   }
@@ -1446,8 +1474,8 @@ C<int, String>? c;
   Future<void> test_surround_suffix_parenthesized_passThrough_unit() async {
     await analyze('var x = (1);');
     checkPlan(
-        planner.passThrough(testUnit, innerPlans: [
-          planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+        planner!.passThrough(testUnit, innerPlans: [
+          planner!.surround(planner!.passThrough(findNode.integerLiteral('1')),
               suffix: [AtomicEdit.insert('..isEven')])
         ]),
         'var x = 1..isEven;');
@@ -1456,12 +1484,12 @@ C<int, String>? c;
   Future<void> test_surround_threshold() async {
     await analyze('var x = 1 < 2;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.binary('<')),
+        planner!.surround(planner!.passThrough(findNode.binary('<')),
             suffix: [AtomicEdit.insert(' == true')],
             innerPrecedence: Precedence.equality),
         'var x = 1 < 2 == true;');
     checkPlan(
-        planner.surround(planner.passThrough(findNode.binary('<')),
+        planner!.surround(planner!.passThrough(findNode.binary('<')),
             suffix: [AtomicEdit.insert(' as bool')],
             innerPrecedence: Precedence.relational),
         'var x = (1 < 2) as bool;');
@@ -1503,7 +1531,7 @@ class EndsInCascadeTest extends AbstractSingleUnitTest {
 class PrecedenceTest extends AbstractSingleUnitTest {
   Future<void> checkPrecedence(String content) async {
     await resolveTestUnit(content);
-    testUnit.accept(_PrecedenceChecker(testUnit.lineInfo, testCode));
+    testUnit!.accept(_PrecedenceChecker(testUnit!.lineInfo, testCode));
   }
 
   Future<void> test_precedence_as() async {
@@ -1626,7 +1654,8 @@ g(a, c) => a..b = throw (c..d);
   Future<void> test_precedenceChecker_detects_unnecessary_paren() async {
     await resolveTestUnit('var x = (1);');
     expect(
-        () => testUnit.accept(_PrecedenceChecker(testUnit.lineInfo, testCode)),
+        () =>
+            testUnit!.accept(_PrecedenceChecker(testUnit!.lineInfo, testCode)),
         throwsA(TypeMatcher<TestFailure>()));
   }
 }
@@ -1638,7 +1667,7 @@ class _MockInfo implements AtomicEditInfo {
 class _PrecedenceChecker extends UnifyingAstVisitor<void> {
   final EditPlanner planner;
 
-  _PrecedenceChecker(LineInfo lineInfo, String sourceText)
+  _PrecedenceChecker(LineInfo? lineInfo, String? sourceText)
       : planner = EditPlanner(lineInfo, sourceText);
 
   @override

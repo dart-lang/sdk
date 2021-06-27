@@ -4,11 +4,9 @@
 
 part of dart.io;
 
-/**
- * Exposes ZLib options for input parameters.
- *
- * See http://www.zlib.net/manual.html for more documentation.
- */
+/// Exposes ZLib options for input parameters.
+///
+/// See http://www.zlib.net/manual.html for more documentation.
 abstract class ZLibOption {
   /// Minimal value for [ZLibCodec.windowBits], [ZLibEncoder.windowBits]
   /// and [ZLibDecoder.windowBits].
@@ -85,84 +83,67 @@ abstract class ZLibOption {
   static const int STRATEGY_DEFAULT = 0;
 }
 
-/**
- * An instance of the default implementation of the [ZLibCodec].
- */
+/// An instance of the default implementation of the [ZLibCodec].
 const ZLibCodec zlib = const ZLibCodec._default();
 @Deprecated("Use zlib instead")
 const ZLibCodec ZLIB = zlib;
 
-/**
- * The [ZLibCodec] encodes raw bytes to ZLib compressed bytes and decodes ZLib
- * compressed bytes to raw bytes.
- */
+/// The [ZLibCodec] encodes raw bytes to ZLib compressed bytes and decodes ZLib
+/// compressed bytes to raw bytes.
 class ZLibCodec extends Codec<List<int>, List<int>> {
-  /**
-   * When true, `GZip` frames will be added to the compressed data.
-   */
+  /// When true, `GZip` frames will be added to the compressed data.
   final bool gzip;
 
-  /**
-   * The compression-[level] can be set in the range of `-1..9`, with `6` being
-   * the default compression level. Levels above `6` will have higher
-   * compression rates at the cost of more CPU and memory usage. Levels below
-   * `6` will use less CPU and memory at the cost of lower compression rates.
-   */
+  /// The compression-[level] can be set in the range of `-1..9`, with `6` being
+  /// the default compression level. Levels above `6` will have higher
+  /// compression rates at the cost of more CPU and memory usage. Levels below
+  /// `6` will use less CPU and memory at the cost of lower compression rates.
   final int level;
 
-  /**
-   * Specifies how much memory should be allocated for the internal compression
-   * state. `1` uses minimum memory but is slow and reduces compression ratio;
-   * `9` uses maximum memory for optimal speed. The default value is `8`.
-   *
-   * The memory requirements for deflate are (in bytes):
-   *
-   *     (1 << (windowBits + 2)) +  (1 << (memLevel + 9))
-   * that is: 128K for windowBits = 15 + 128K for memLevel = 8 (default values)
-   */
+  /// Specifies how much memory should be allocated for the internal compression
+  /// state. `1` uses minimum memory but is slow and reduces compression ratio;
+  /// `9` uses maximum memory for optimal speed. The default value is `8`.
+  ///
+  /// The memory requirements for deflate are (in bytes):
+  /// ```dart
+  /// (1 << (windowBits + 2)) +  (1 << (memLevel + 9))
+  /// ```
+  /// that is: 128K for windowBits = 15 + 128K for memLevel = 8 (default values)
   final int memLevel;
 
-  /**
-   * Tunes the compression algorithm. Use the value strategyDefault for normal
-   * data, strategyFiltered for data produced by a filter (or predictor),
-   * strategyHuffmanOnly to force Huffman encoding only (no string match), or
-   * strategyRle to limit match distances to one (run-length encoding).
-   */
+  /// Tunes the compression algorithm. Use the value strategyDefault for normal
+  /// data, strategyFiltered for data produced by a filter (or predictor),
+  /// strategyHuffmanOnly to force Huffman encoding only (no string match), or
+  /// strategyRle to limit match distances to one (run-length encoding).
   final int strategy;
 
-  /**
-   * Base two logarithm of the window size (the size of the history buffer). It
-   * should be in the range 8..15. Larger values result in better compression at
-   * the expense of memory usage. The default value is 15
-   */
+  /// Base two logarithm of the window size (the size of the history buffer). It
+  /// should be in the range 8..15. Larger values result in better compression at
+  /// the expense of memory usage. The default value is 15
   final int windowBits;
 
-  /**
-   * When true, deflate generates raw data with no zlib header or trailer, and
-   * will not compute an adler32 check value
-   */
+  /// When true, deflate generates raw data with no zlib header or trailer, and
+  /// will not compute an adler32 check value
   final bool raw;
 
-  /**
-   * Initial compression dictionary.
-   *
-   * It should consist of strings (byte sequences) that are likely to be
-   * encountered later in the data to be compressed, with the most commonly used
-   * strings preferably put towards the end of the dictionary. Using a
-   * dictionary is most useful when the data to be compressed is short and can
-   * be predicted with good accuracy; the data can then be compressed better
-   * than with the default empty dictionary.
-   */
+  /// Initial compression dictionary.
+  ///
+  /// It should consist of strings (byte sequences) that are likely to be
+  /// encountered later in the data to be compressed, with the most commonly used
+  /// strings preferably put towards the end of the dictionary. Using a
+  /// dictionary is most useful when the data to be compressed is short and can
+  /// be predicted with good accuracy; the data can then be compressed better
+  /// than with the default empty dictionary.
   final List<int>? dictionary;
 
   ZLibCodec(
-      {this.level: ZLibOption.defaultLevel,
-      this.windowBits: ZLibOption.defaultWindowBits,
-      this.memLevel: ZLibOption.defaultMemLevel,
-      this.strategy: ZLibOption.strategyDefault,
+      {this.level = ZLibOption.defaultLevel,
+      this.windowBits = ZLibOption.defaultWindowBits,
+      this.memLevel = ZLibOption.defaultMemLevel,
+      this.strategy = ZLibOption.strategyDefault,
       this.dictionary,
-      this.raw: false,
-      this.gzip: false}) {
+      this.raw = false,
+      this.gzip = false}) {
     _validateZLibeLevel(level);
     _validateZLibMemLevel(memLevel);
     _validateZLibStrategy(strategy);
@@ -178,9 +159,7 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
         gzip = false,
         dictionary = null;
 
-  /**
-   * Get a [ZLibEncoder] for encoding to `ZLib` compressed data.
-   */
+  /// Get a [ZLibEncoder] for encoding to `ZLib` compressed data.
   ZLibEncoder get encoder => new ZLibEncoder(
       gzip: false,
       level: level,
@@ -190,96 +169,77 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
       dictionary: dictionary,
       raw: raw);
 
-  /**
-   * Get a [ZLibDecoder] for decoding `ZLib` compressed data.
-   */
+  /// Get a [ZLibDecoder] for decoding `ZLib` compressed data.
   ZLibDecoder get decoder =>
       new ZLibDecoder(windowBits: windowBits, dictionary: dictionary, raw: raw);
 }
 
-/**
- * An instance of the default implementation of the [GZipCodec].
- */
+/// An instance of the default implementation of the [GZipCodec].
 const GZipCodec gzip = const GZipCodec._default();
 @Deprecated("Use gzip instead")
 const GZipCodec GZIP = gzip;
 
-/**
- * The [GZipCodec] encodes raw bytes to GZip compressed bytes and decodes GZip
- * compressed bytes to raw bytes.
- *
- * The difference between [ZLibCodec] and [GZipCodec] is that the [GZipCodec]
- * wraps the `ZLib` compressed bytes in `GZip` frames.
- */
+/// The [GZipCodec] encodes raw bytes to GZip compressed bytes and decodes GZip
+/// compressed bytes to raw bytes.
+///
+/// The difference between [ZLibCodec] and [GZipCodec] is that the [GZipCodec]
+/// wraps the `ZLib` compressed bytes in `GZip` frames.
 class GZipCodec extends Codec<List<int>, List<int>> {
-  /**
-   * When true, `GZip` frames will be added to the compressed data.
-   */
+  /// When true, `GZip` frames will be added to the compressed data.
   final bool gzip;
 
-  /**
-   * The compression-[level] can be set in the range of `-1..9`, with `6` being
-   * the default compression level. Levels above `6` will have higher
-   * compression rates at the cost of more CPU and memory usage. Levels below
-   * `6` will use less CPU and memory at the cost of lower compression rates.
-   */
+  /// The compression-[level] can be set in the range of `-1..9`, with `6` being
+  /// the default compression level. Levels above `6` will have higher
+  /// compression rates at the cost of more CPU and memory usage. Levels below
+  /// `6` will use less CPU and memory at the cost of lower compression rates.
   final int level;
 
-  /**
-   * Specifies how much memory should be allocated for the internal compression
-   * state. `1` uses minimum memory but is slow and reduces compression ratio;
-   * `9` uses maximum memory for optimal speed. The default value is `8`.
-   *
-   * The memory requirements for deflate are (in bytes):
-   *
-   *     (1 << (windowBits + 2)) +  (1 << (memLevel + 9))
-   * that is: 128K for windowBits = 15 + 128K for memLevel = 8 (default values)
-   */
+  /// Specifies how much memory should be allocated for the internal compression
+  /// state. `1` uses minimum memory but is slow and reduces compression ratio;
+  /// `9` uses maximum memory for optimal speed. The default value is `8`.
+  ///
+  /// The memory requirements for deflate are (in bytes):
+  /// ```dart
+  /// (1 << (windowBits + 2)) +  (1 << (memLevel + 9))
+  /// ```
+  /// that is: 128K for windowBits = 15 + 128K for memLevel = 8 (default values)
   final int memLevel;
 
-  /**
-   * Tunes the compression algorithm. Use the value
-   * [ZLibOption.strategyDefault] for normal data,
-   * [ZLibOption.strategyFiltered] for data produced by a filter
-   * (or predictor), [ZLibOption.strategyHuffmanOnly] to force Huffman
-   * encoding only (no string match), or [ZLibOption.strategyRle] to limit
-   * match distances to one (run-length encoding).
-   */
+  /// Tunes the compression algorithm. Use the value
+  /// [ZLibOption.strategyDefault] for normal data,
+  /// [ZLibOption.strategyFiltered] for data produced by a filter
+  /// (or predictor), [ZLibOption.strategyHuffmanOnly] to force Huffman
+  /// encoding only (no string match), or [ZLibOption.strategyRle] to limit
+  /// match distances to one (run-length encoding).
   final int strategy;
 
-  /**
-   * Base two logarithm of the window size (the size of the history buffer). It
-   * should be in the range `8..15`. Larger values result in better compression
-   * at the expense of memory usage. The default value is `15`
-   */
+  /// Base two logarithm of the window size (the size of the history buffer). It
+  /// should be in the range `8..15`. Larger values result in better compression
+  /// at the expense of memory usage. The default value is `15`
   final int windowBits;
 
-  /**
-   * Initial compression dictionary.
-   *
-   * It should consist of strings (byte sequences) that are likely to be
-   * encountered later in the data to be compressed, with the most commonly used
-   * strings preferably put towards the end of the dictionary. Using a
-   * dictionary is most useful when the data to be compressed is short and can
-   * be predicted with good accuracy; the data can then be compressed better
-   * than with the default empty dictionary.
-   */
+  /// Initial compression dictionary.
+  ///
+  /// It should consist of strings (byte sequences) that are likely to be
+  /// encountered later in the data to be compressed, with the most commonly used
+  /// strings preferably put towards the end of the dictionary. Using a
+  /// dictionary is most useful when the data to be compressed is short and can
+  /// be predicted with good accuracy; the data can then be compressed better
+  /// than with the default empty dictionary.
   final List<int>? dictionary;
 
-  /**
-   * When true, deflate generates raw data with no zlib header or trailer, and
-   * will not compute an adler32 check value
-   */
+  /// When true, deflate generates raw data with no zlib header or trailer, and
+  /// will not compute an adler32 check value
   final bool raw;
 
   GZipCodec(
-      {this.level: ZLibOption.defaultLevel,
-      this.windowBits: ZLibOption.defaultWindowBits,
-      this.memLevel: ZLibOption.defaultMemLevel,
-      this.strategy: ZLibOption.strategyDefault,
+      {this.level = ZLibOption.defaultLevel,
+      this.windowBits = ZLibOption.defaultWindowBits,
+      this.memLevel = ZLibOption.defaultMemLevel,
+      this.strategy = ZLibOption.strategyDefault,
       this.dictionary,
-      this.raw: false,
-      this.gzip: true}) {
+      this.raw = false,
+      this.gzip = true}) {
     _validateZLibeLevel(level);
     _validateZLibMemLevel(memLevel);
     _validateZLibStrategy(strategy);
@@ -295,9 +255,7 @@ class GZipCodec extends Codec<List<int>, List<int>> {
         gzip = true,
         dictionary = null;
 
-  /**
-   * Get a [ZLibEncoder] for encoding to `GZip` compressed data.
-   */
+  /// Get a [ZLibEncoder] for encoding to `GZip` compressed data.
   ZLibEncoder get encoder => new ZLibEncoder(
       gzip: true,
       level: level,
@@ -307,96 +265,77 @@ class GZipCodec extends Codec<List<int>, List<int>> {
       dictionary: dictionary,
       raw: raw);
 
-  /**
-   * Get a [ZLibDecoder] for decoding `GZip` compressed data.
-   */
+  /// Get a [ZLibDecoder] for decoding `GZip` compressed data.
   ZLibDecoder get decoder =>
       new ZLibDecoder(windowBits: windowBits, dictionary: dictionary, raw: raw);
 }
 
-/**
- * The [ZLibEncoder] encoder is used by [ZLibCodec] and [GZipCodec] to compress
- * data.
- */
+/// The [ZLibEncoder] encoder is used by [ZLibCodec] and [GZipCodec] to compress
+/// data.
 class ZLibEncoder extends Converter<List<int>, List<int>> {
-  /**
-   * When true, `GZip` frames will be added to the compressed data.
-   */
+  /// When true, `GZip` frames will be added to the compressed data.
   final bool gzip;
 
-  /**
-   * The compression-[level] can be set in the range of `-1..9`, with `6` being
-   * the default compression level. Levels above `6` will have higher
-   * compression rates at the cost of more CPU and memory usage. Levels below
-   * `6` will use less CPU and memory at the cost of lower compression rates.
-   */
+  /// The compression-[level] can be set in the range of `-1..9`, with `6` being
+  /// the default compression level. Levels above `6` will have higher
+  /// compression rates at the cost of more CPU and memory usage. Levels below
+  /// `6` will use less CPU and memory at the cost of lower compression rates.
   final int level;
 
-  /**
-   * Specifies how much memory should be allocated for the internal compression
-   * state. `1` uses minimum memory but is slow and reduces compression ratio;
-   * `9` uses maximum memory for optimal speed. The default value is `8`.
-   *
-   * The memory requirements for deflate are (in bytes):
-   *
-   *     (1 << (windowBits + 2)) +  (1 << (memLevel + 9))
-   * that is: 128K for windowBits = 15 + 128K for memLevel = 8 (default values)
-   */
+  /// Specifies how much memory should be allocated for the internal compression
+  /// state. `1` uses minimum memory but is slow and reduces compression ratio;
+  /// `9` uses maximum memory for optimal speed. The default value is `8`.
+  ///
+  /// The memory requirements for deflate are (in bytes):
+  /// ```dart
+  /// (1 << (windowBits + 2)) +  (1 << (memLevel + 9))
+  /// ```
+  /// that is: 128K for windowBits = 15 + 128K for memLevel = 8 (default values)
   final int memLevel;
 
-  /**
-   * Tunes the compression algorithm. Use the value
-   * [ZLibOption.strategyDefault] for normal data,
-   * [ZLibOption.strategyFiltered] for data produced by a filter
-   * (or predictor), [ZLibOption.strategyHuffmanOnly] to force Huffman
-   * encoding only (no string match), or [ZLibOption.strategyRle] to limit
-   * match distances to one (run-length encoding).
-   */
+  /// Tunes the compression algorithm. Use the value
+  /// [ZLibOption.strategyDefault] for normal data,
+  /// [ZLibOption.strategyFiltered] for data produced by a filter
+  /// (or predictor), [ZLibOption.strategyHuffmanOnly] to force Huffman
+  /// encoding only (no string match), or [ZLibOption.strategyRle] to limit
+  /// match distances to one (run-length encoding).
   final int strategy;
 
-  /**
-   * Base two logarithm of the window size (the size of the history buffer). It
-   * should be in the range `8..15`. Larger values result in better compression
-   * at the expense of memory usage. The default value is `15`
-   */
+  /// Base two logarithm of the window size (the size of the history buffer). It
+  /// should be in the range `8..15`. Larger values result in better compression
+  /// at the expense of memory usage. The default value is `15`
   final int windowBits;
 
-  /**
-   * Initial compression dictionary.
-   *
-   * It should consist of strings (byte sequences) that are likely to be
-   * encountered later in the data to be compressed, with the most commonly used
-   * strings preferably put towards the end of the dictionary. Using a
-   * dictionary is most useful when the data to be compressed is short and can
-   * be predicted with good accuracy; the data can then be compressed better
-   * than with the default empty dictionary.
-   */
+  /// Initial compression dictionary.
+  ///
+  /// It should consist of strings (byte sequences) that are likely to be
+  /// encountered later in the data to be compressed, with the most commonly used
+  /// strings preferably put towards the end of the dictionary. Using a
+  /// dictionary is most useful when the data to be compressed is short and can
+  /// be predicted with good accuracy; the data can then be compressed better
+  /// than with the default empty dictionary.
   final List<int>? dictionary;
 
-  /**
-   * When true, deflate generates raw data with no zlib header or trailer, and
-   * will not compute an adler32 check value
-   */
+  /// When true, deflate generates raw data with no zlib header or trailer, and
+  /// will not compute an adler32 check value
   final bool raw;
 
   ZLibEncoder(
-      {this.gzip: false,
-      this.level: ZLibOption.defaultLevel,
-      this.windowBits: ZLibOption.defaultWindowBits,
-      this.memLevel: ZLibOption.defaultMemLevel,
-      this.strategy: ZLibOption.strategyDefault,
+      {this.gzip = false,
+      this.level = ZLibOption.defaultLevel,
+      this.windowBits = ZLibOption.defaultWindowBits,
+      this.memLevel = ZLibOption.defaultMemLevel,
+      this.strategy = ZLibOption.strategyDefault,
       this.dictionary,
-      this.raw: false}) {
+      this.raw = false}) {
     _validateZLibeLevel(level);
     _validateZLibMemLevel(memLevel);
     _validateZLibStrategy(strategy);
     _validateZLibWindowBits(windowBits);
   }
 
-  /**
-   * Convert a list of bytes using the options given to the ZLibEncoder
-   * constructor.
-   */
+  /// Convert a list of bytes using the options given to the ZLibEncoder
+  /// constructor.
   List<int> convert(List<int> bytes) {
     _BufferSink sink = new _BufferSink();
     startChunkedConversion(sink)
@@ -405,11 +344,12 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
     return sink.builder.takeBytes();
   }
 
-  /**
-   * Start a chunked conversion using the options given to the [ZLibEncoder]
-   * constructor. While it accepts any [Sink] taking [List<int>]'s,
-   * the optimal sink to be passed as [sink] is a [ByteConversionSink].
-   */
+  /// Start a chunked conversion using the options given to the [ZLibEncoder]
+  /// constructor.
+  ///
+  /// Accepts any `Sink<List<int>>`, but prefers a [ByteConversionSink],
+  /// and converts any other sink to a [ByteConversionSink] before
+  /// using it.
   ByteConversionSink startChunkedConversion(Sink<List<int>> sink) {
     if (sink is! ByteConversionSink) {
       sink = new ByteConversionSink.from(sink);
@@ -419,46 +359,36 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
   }
 }
 
-/**
- * The [ZLibDecoder] is used by [ZLibCodec] and [GZipCodec] to decompress data.
- */
+/// The [ZLibDecoder] is used by [ZLibCodec] and [GZipCodec] to decompress data.
 class ZLibDecoder extends Converter<List<int>, List<int>> {
-  /**
-   * Base two logarithm of the window size (the size of the history buffer). It
-   * should be in the range `8..15`. Larger values result in better compression
-   * at the expense of memory usage. The default value is `15`.
-   */
+  /// Base two logarithm of the window size (the size of the history buffer). It
+  /// should be in the range `8..15`. Larger values result in better compression
+  /// at the expense of memory usage. The default value is `15`.
   final int windowBits;
 
-  /**
-   * Initial compression dictionary.
-   *
-   * It should consist of strings (byte sequences) that are likely to be
-   * encountered later in the data to be compressed, with the most commonly used
-   * strings preferably put towards the end of the dictionary. Using a
-   * dictionary is most useful when the data to be compressed is short and can
-   * be predicted with good accuracy; the data can then be compressed better
-   * than with the default empty dictionary.
-   */
+  /// Initial compression dictionary.
+  ///
+  /// It should consist of strings (byte sequences) that are likely to be
+  /// encountered later in the data to be compressed, with the most commonly used
+  /// strings preferably put towards the end of the dictionary. Using a
+  /// dictionary is most useful when the data to be compressed is short and can
+  /// be predicted with good accuracy; the data can then be compressed better
+  /// than with the default empty dictionary.
   final List<int>? dictionary;
 
-  /**
-   * When true, deflate generates raw data with no zlib header or trailer, and
-   * will not compute an adler32 check value
-   */
+  /// When true, deflate generates raw data with no zlib header or trailer, and
+  /// will not compute an adler32 check value
   final bool raw;
 
   ZLibDecoder(
-      {this.windowBits: ZLibOption.defaultWindowBits,
+      {this.windowBits = ZLibOption.defaultWindowBits,
       this.dictionary,
-      this.raw: false}) {
+      this.raw = false}) {
     _validateZLibWindowBits(windowBits);
   }
 
-  /**
-   * Convert a list of bytes using the options given to the [ZLibDecoder]
-   * constructor.
-   */
+  /// Convert a list of bytes using the options given to the [ZLibDecoder]
+  /// constructor.
   List<int> convert(List<int> bytes) {
     _BufferSink sink = new _BufferSink();
     startChunkedConversion(sink)
@@ -467,11 +397,11 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
     return sink.builder.takeBytes();
   }
 
-  /**
-   * Start a chunked conversion. While it accepts any [Sink]
-   * taking [List<int>]'s, the optimal sink to be passed as [sink] is a
-   * [ByteConversionSink].
-   */
+  /// Start a chunked conversion.
+  ///
+  /// Accepts any `Sink<List<int>>`, but prefers a [ByteConversionSink],
+  /// and converts any other sink to a [ByteConversionSink] before
+  /// using it.
   ByteConversionSink startChunkedConversion(Sink<List<int>> sink) {
     if (sink is! ByteConversionSink) {
       sink = new ByteConversionSink.from(sink);
@@ -480,54 +410,48 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
   }
 }
 
-/**
- * The [RawZLibFilter] class provides a low-level interface to zlib.
- */
+/// The [RawZLibFilter] class provides a low-level interface to zlib.
 abstract class RawZLibFilter {
-  /**
-   * Returns a a [RawZLibFilter] whose [process] and [processed] methods
-   * compress data.
-   */
+  /// Returns a a [RawZLibFilter] whose [process] and [processed] methods
+  /// compress data.
   factory RawZLibFilter.deflateFilter({
-    bool gzip: false,
-    int level: ZLibOption.defaultLevel,
-    int windowBits: ZLibOption.defaultWindowBits,
-    int memLevel: ZLibOption.defaultMemLevel,
-    int strategy: ZLibOption.strategyDefault,
+    bool gzip = false,
+    int level = ZLibOption.defaultLevel,
+    int windowBits = ZLibOption.defaultWindowBits,
+    int memLevel = ZLibOption.defaultMemLevel,
+    int strategy = ZLibOption.strategyDefault,
     List<int>? dictionary,
-    bool raw: false,
+    bool raw = false,
   }) {
     return _makeZLibDeflateFilter(
         gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   }
 
-  /**
-   * Returns a a [RawZLibFilter] whose [process] and [processed] methods
-   * decompress data.
-   */
+  /// Returns a a [RawZLibFilter] whose [process] and [processed] methods
+  /// decompress data.
   factory RawZLibFilter.inflateFilter({
-    int windowBits: ZLibOption.defaultWindowBits,
+    int windowBits = ZLibOption.defaultWindowBits,
     List<int>? dictionary,
-    bool raw: false,
+    bool raw = false,
   }) {
     return _makeZLibInflateFilter(windowBits, dictionary, raw);
   }
 
-  /**
-   * Call to process a chunk of data. A call to [process] should only be made
-   * when [processed] returns [:null:].
-   */
+  /// Process a chunk of data.
+  ///
+  /// This method must only be called when [processed] returns `null`.
   void process(List<int> data, int start, int end);
 
-  /**
-   * Get a chunk of processed data. When there are no more data available,
-   * [processed] will return [:null:]. Set [flush] to [:false:] for non-final
-   * calls to improve performance of some filters.
-   *
-   * The last call to [processed] should have [end] set to [:true:]. This will
-   * make sure an 'end' packet is written on the stream.
-   */
-  List<int>? processed({bool flush: true, bool end: false});
+  /// Get a chunk of processed data.
+  ///
+  /// When there are no more data available, [processed] will return `null`.
+  /// Set [flush] to `false` for non-final calls
+  /// to improve performance of some filters.
+  ///
+  /// The last call to [processed] should have [end] set to `true`. This will
+  /// make sure an 'end' packet is written on the stream.
+  // TODO: Which stream?
+  List<int>? processed({bool flush = true, bool end = false});
 
   external static RawZLibFilter _makeZLibDeflateFilter(
       bool gzip,

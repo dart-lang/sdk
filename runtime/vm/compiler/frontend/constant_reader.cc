@@ -10,6 +10,10 @@ namespace kernel {
 #define Z (zone_)
 #define H (translation_helper_)
 
+// Note: If changing how the constants are saved in the binary (and thus how
+// they are read here) be aware that there's also some reading going on in
+// KernelLoader::ReadVMAnnotations which then also has to be updated!
+
 ConstantReader::ConstantReader(KernelReaderHelper* helper,
                                ActiveClass* active_class)
     : helper_(helper),
@@ -17,7 +21,7 @@ ConstantReader::ConstantReader(KernelReaderHelper* helper,
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
       script_(helper->script()),
-      result_(Instance::Handle(zone_)) {}
+      result_(Object::Handle(zone_)) {}
 
 InstancePtr ConstantReader::ReadConstantInitializer() {
   Tag tag = helper_->ReadTag();  // read tag.
@@ -29,7 +33,7 @@ InstancePtr ConstantReader::ReadConstantInitializer() {
                     "Not a constant expression: unexpected kernel tag %s (%d)",
                     Reader::TagName(tag), tag);
   }
-  return result_.raw();
+  return Instance::RawCast(result_.ptr());
 }
 
 InstancePtr ConstantReader::ReadConstantExpression() {
@@ -54,7 +58,7 @@ InstancePtr ConstantReader::ReadConstantExpression() {
                     "Not a constant expression: unexpected kernel tag %s (%d)",
                     Reader::TagName(tag), tag);
   }
-  return result_.raw();
+  return Instance::RawCast(result_.ptr());
 }
 
 ObjectPtr ConstantReader::ReadAnnotations() {
@@ -70,7 +74,7 @@ ObjectPtr ConstantReader::ReadAnnotations() {
   return H.Canonicalize(metadata_values);
 }
 
-InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
+InstancePtr ConstantReader::ReadConstant(intptr_t constant_index) {
   ASSERT(!H.constants().IsNull());
   ASSERT(!H.constants_table().IsNull());  // raw bytes
 
@@ -83,45 +87,74 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   {
     SafepointMutexLocker ml(
         H.thread()->isolate_group()->kernel_constants_mutex());
-    KernelConstantsMap constant_map(H.info().constants());
-    result_ ^= constant_map.GetOrNull(constant_offset);
-    ASSERT(constant_map.Release().raw() == H.info().constants());
+    const auto& constants_array = Array::Handle(Z, H.info().constants());
+    ASSERT(constant_index < constants_array.Length());
+    result_ = constants_array.At(constant_index);
   }
 
   // On miss, evaluate, and insert value.
-  if (result_.IsNull()) {
+  if (result_.ptr() == Object::sentinel().ptr()) {
     LeaveCompilerScope cs(H.thread());
-    result_ = ReadConstantInternal(constant_offset);
+    result_ = ReadConstantInternal(constant_index);
     SafepointMutexLocker ml(
         H.thread()->isolate_group()->kernel_constants_mutex());
-    KernelConstantsMap constant_map(H.info().constants());
-    auto insert = constant_map.InsertNewOrGetValue(constant_offset, result_);
-    ASSERT(insert == result_.raw());
-    H.info().set_constants(constant_map.Release());  // update!
+    const auto& constants_array = Array::Handle(Z, H.info().constants());
+    ASSERT(constant_index < constants_array.Length());
+    constants_array.SetAt(constant_index, result_);
   }
-  return result_.raw();
+  return Instance::RawCast(result_.ptr());
 }
 
-bool ConstantReader::IsInstanceConstant(intptr_t constant_offset,
+bool ConstantReader::IsInstanceConstant(intptr_t constant_index,
                                         const Class& clazz) {
-  // Get reader directly into raw bytes of constant table.
+  // Get reader directly into raw bytes of constant table/constant mapping.
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
-  reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
-  reader.SetOffset(reader.ReaderOffset() + constant_offset);
+  NavigateToIndex(&reader, constant_index);
+
   // Peek for an instance of the given clazz.
   if (reader.ReadByte() == kInstanceConstant) {
     const NameIndex index = reader.ReadCanonicalNameReference();
-    return H.LookupClassByKernelClass(index) == clazz.raw();
+    return H.LookupClassByKernelClass(index) == clazz.ptr();
   }
   return false;
 }
 
-InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
-  // Get reader directly into raw bytes of constant table.
-  bool null_safety = H.thread()->isolate()->null_safety();
+intptr_t ConstantReader::NumConstants() {
+  ASSERT(!H.constants_table().IsNull());
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
-  reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
-  reader.SetOffset(reader.ReaderOffset() + constant_offset);
+  return NumConstants(&reader);
+}
+
+intptr_t ConstantReader::NumConstants(KernelReaderHelper* reader) {
+  // Get reader directly into raw bytes of constant table/constant mapping.
+  // Get the length of the constants (at the end of the mapping).
+  reader->SetOffset(reader->ReaderSize() - 4);
+  return reader->ReadUInt32();
+}
+
+intptr_t ConstantReader::NavigateToIndex(KernelReaderHelper* reader,
+                                         intptr_t constant_index) {
+  const intptr_t num_constants = NumConstants(reader);
+
+  // Get the binary offset of the constant at the wanted index.
+  reader->SetOffset(reader->ReaderSize() - 4 - (num_constants * 4) +
+                    (constant_index * 4));
+  const intptr_t constant_offset = reader->ReadUInt32();
+
+  reader->SetOffset(constant_offset);
+
+  return constant_offset;
+}
+
+InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
+  // Get reader directly into raw bytes of constant table/constant mapping.
+  bool null_safety = H.thread()->isolate_group()->null_safety();
+  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  const intptr_t constant_offset = NavigateToIndex(&reader, constant_index);
+
+  // No function types returned as part of any types built should reference
+  // free parent type args, ensured by clearing the enclosing function type.
+  ActiveEnclosingFunctionScope scope(active_class_, nullptr);
   // Construct constant from raw bytes.
   Instance& instance = Instance::Handle(Z);
   const intptr_t constant_tag = reader.ReadByte();
@@ -130,8 +163,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       instance = Instance::null();
       break;
     case kBoolConstant:
-      instance = reader.ReadByte() == 1 ? Object::bool_true().raw()
-                                        : Object::bool_false().raw();
+      instance = reader.ReadByte() == 1 ? Object::bool_true().ptr()
+                                        : Object::bool_false().ptr();
       break;
     case kIntConstant: {
       uint8_t payload = 0;
@@ -170,7 +203,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       instance = Double::New(reader.ReadDouble(), Heap::kOld);
       break;
     case kStringConstant:
-      instance = H.DartSymbolPlain(reader.ReadStringReference()).raw();
+      instance = H.DartSymbolPlain(reader.ReadStringReference()).ptr();
       break;
     case kSymbolConstant: {
       Library& library = Library::Handle(Z);
@@ -198,15 +231,16 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
           Class::Handle(Z, corelib.LookupClassAllowPrivate(Symbols::_List()));
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
-          &reader, this, active_class_, true,
-          active_class_->RequireLegacyErasure(null_safety));
+          &reader, this, active_class_, /* finalize = */ true,
+          active_class_->RequireConstCanonicalTypeErasure(null_safety),
+          /* in_constant_context = */ true);
       auto& type_arguments =
           TypeArguments::Handle(Z, TypeArguments::New(1, Heap::kOld));
       AbstractType& type = type_translator.BuildType();
       type_arguments.SetTypeAt(0, type);
       // Instantiate class.
-      type = Type::New(list_class, type_arguments, TokenPosition::kNoSource);
-      type = ClassFinalizer::FinalizeType(type);
+      type = Type::New(list_class, type_arguments);
+      type = ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
       type_arguments = type.arguments();
       // Fill array with constant elements.
       const intptr_t length = reader.ReadUInt();
@@ -217,12 +251,12 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       for (intptr_t j = 0; j < length; ++j) {
         // Recurse into lazily evaluating all "sub" constants
         // needed to evaluate the current constant.
-        const intptr_t entry_offset = reader.ReadUInt();
-        ASSERT(entry_offset < constant_offset);  // DAG!
-        constant = ReadConstant(entry_offset);
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        constant = ReadConstant(entry_index);
         array.SetAt(j, constant);
       }
-      instance = array.raw();
+      instance = array.ptr();
       break;
     }
     case kInstanceConstant: {
@@ -241,8 +275,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       instance = Instance::New(klass, Heap::kOld);
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
-          &reader, this, active_class_, true,
-          active_class_->RequireLegacyErasure(null_safety));
+          &reader, this, active_class_, /* finalize = */ true,
+          active_class_->RequireConstCanonicalTypeErasure(null_safety),
+          /* in_constant_context = */ true);
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       if (klass.NumTypeArguments() > 0) {
         auto& type_arguments = TypeArguments::Handle(
@@ -251,9 +286,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
           type_arguments.SetTypeAt(j, type_translator.BuildType());
         }
         // Instantiate class.
-        auto& type = AbstractType::Handle(
-            Z, Type::New(klass, type_arguments, TokenPosition::kNoSource));
-        type = ClassFinalizer::FinalizeType(type);
+        auto& type = AbstractType::Handle(Z, Type::New(klass, type_arguments));
+        type =
+            ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
         type_arguments = type.arguments();
         instance.SetTypeArguments(type_arguments);
       } else {
@@ -264,12 +299,13 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       Field& field = Field::Handle(Z);
       Instance& constant = Instance::Handle(Z);
       for (intptr_t j = 0; j < number_of_fields; ++j) {
-        field = H.LookupFieldByKernelField(reader.ReadCanonicalNameReference());
+        field = H.LookupFieldByKernelGetterOrSetter(
+            reader.ReadCanonicalNameReference());
         // Recurse into lazily evaluating all "sub" constants
         // needed to evaluate the current constant.
-        const intptr_t entry_offset = reader.ReadUInt();
-        ASSERT(entry_offset < constant_offset);  // DAG!
-        constant = ReadConstant(entry_offset);
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        constant = ReadConstant(entry_index);
         instance.SetField(field, constant);
       }
       break;
@@ -277,15 +313,16 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
     case kPartialInstantiationConstant: {
       // Recurse into lazily evaluating the "sub" constant
       // needed to evaluate the current constant.
-      const intptr_t entry_offset = reader.ReadUInt();
-      ASSERT(entry_offset < constant_offset);  // DAG!
-      const auto& constant = Instance::Handle(Z, ReadConstant(entry_offset));
+      const intptr_t entry_index = reader.ReadUInt();
+      ASSERT(entry_index < constant_offset);  // DAG!
+      const auto& constant = Instance::Handle(Z, ReadConstant(entry_index));
       ASSERT(!constant.IsNull());
 
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
-          &reader, this, active_class_, true,
-          active_class_->RequireLegacyErasure(null_safety));
+          &reader, this, active_class_, /* finalize = */ true,
+          active_class_->RequireConstCanonicalTypeErasure(null_safety),
+          /* in_constant_context = */ true);
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       ASSERT(number_of_type_arguments > 0);
       auto& type_arguments = TypeArguments::Handle(
@@ -295,7 +332,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       }
       type_arguments = type_arguments.Canonicalize(Thread::Current(), nullptr);
       // Make a copy of the old closure, and set delayed type arguments.
-      Closure& closure = Closure::Handle(Z, Closure::RawCast(constant.raw()));
+      Closure& closure = Closure::Handle(Z, Closure::RawCast(constant.ptr()));
       Function& function = Function::Handle(Z, closure.function());
       const auto& type_arguments2 =
           TypeArguments::Handle(Z, closure.instantiator_type_arguments());
@@ -318,9 +355,16 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
     }
     case kTypeLiteralConstant: {
       // Build type from the raw bytes (needs temporary translator).
-      // Legacy erasure is not applied to type literals. See issue #42262.
-      TypeTranslator type_translator(&reader, this, active_class_, true);
-      instance = type_translator.BuildType().raw();
+      // Const canonical type erasure is not applied to constant type literals.
+      // However, CFE must ensure that constant type literals can be
+      // canonicalized to an identical representant independently of the null
+      // safety mode currently in use (sound or unsound) or migration state of
+      // the declaring library (legacy or opted-in).
+      TypeTranslator type_translator(&reader, this, active_class_,
+                                     /* finalize = */ true,
+                                     /* apply_canonical_type_erasure = */ false,
+                                     /* in_constant_context = */ true);
+      instance = type_translator.BuildType().ptr();
       break;
     }
     default:

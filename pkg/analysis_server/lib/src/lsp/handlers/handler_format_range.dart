@@ -12,7 +12,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
 class FormatRangeHandler
-    extends MessageHandler<DocumentRangeFormattingParams, List<TextEdit>> {
+    extends MessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
   FormatRangeHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_rangeFormatting;
@@ -21,15 +21,15 @@ class FormatRangeHandler
   LspJsonHandler<DocumentRangeFormattingParams> get jsonHandler =>
       DocumentRangeFormattingParams.jsonHandler;
 
-  ErrorOr<List<TextEdit>> formatRange(String path, Range range) {
+  ErrorOr<List<TextEdit>?> formatRange(String path, Range range) {
     final file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
 
     final result = server.getParsedUnit(path);
-    if (result.state != ResultState.VALID || result.errors.isNotEmpty) {
-      return success();
+    if (result?.state != ResultState.VALID || result!.errors.isNotEmpty) {
+      return success(null);
     }
 
     return generateEditsForFormatting(
@@ -38,7 +38,7 @@ class FormatRangeHandler
   }
 
   @override
-  Future<ErrorOr<List<TextEdit>>> handle(
+  Future<ErrorOr<List<TextEdit>?>> handle(
       DocumentRangeFormattingParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);

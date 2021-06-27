@@ -48,10 +48,10 @@ class A {
   Future<void> test_field_noInitializer() async {
     await resolveTestCode('''
 class A {
-  int v;
+  int? v;
 }
 ''');
-    await assertNoAssistAt('v;');
+    await assertNoAssistAt('v');
   }
 
   Future<void> test_instanceCreation_freeStanding() async {

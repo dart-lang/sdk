@@ -1,7 +1,7 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+// @dart=2.9
 /*@testedFeatures=inference*/
 library test;
 
@@ -9,14 +9,14 @@ class Foo {
   const Foo(List<String> l);
 }
 
-class C<@Foo(const []) T> {}
+class C<@Foo(/*@typeArgs=String**/ const []) T> {}
 
-typedef void F<@Foo(const []) T>();
+typedef void F<@Foo(/*@typeArgs=String**/ const []) T>();
 
-void f<@Foo(const []) T>() {}
+void f<@Foo(/*@typeArgs=String**/ const []) T>() {}
 
 class D {
-  void m<@Foo(const []) T>() {}
+  void m<@Foo(/*@typeArgs=String**/ const []) T>() {}
 }
 
 main() {}

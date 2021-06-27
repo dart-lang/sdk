@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.procedure_builder;
+// @dart = 2.9
 
-import 'dart:core' hide MapEntry;
+library fasta.procedure_builder;
 
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';
@@ -37,8 +37,11 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 
+import '../util/helpers.dart' show DelayedActionPerformer;
+
 import 'builder.dart';
 import 'class_builder.dart';
+import 'declaration_builder.dart';
 import 'extension_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
@@ -290,9 +293,6 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   @override
   final String nativeMethodName;
 
-  @override
-  FunctionNode function;
-
   Statement bodyInternal;
 
   @override
@@ -305,18 +305,16 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
 //      }
 //    }
     bodyInternal = newBody;
-    if (function != null) {
-      // A forwarding semi-stub is a method that is abstract in the source code,
-      // but which needs to have a forwarding stub body in order to ensure that
-      // covariance checks occur.  We don't want to replace the forwarding stub
-      // body with null.
-      TreeNode parent = function.parent;
-      if (!(newBody == null &&
-          parent is Procedure &&
-          parent.isForwardingSemiStub)) {
-        function.body = newBody;
-        newBody?.parent = function;
-      }
+    // A forwarding semi-stub is a method that is abstract in the source code,
+    // but which needs to have a forwarding stub body in order to ensure that
+    // covariance checks occur.  We don't want to replace the forwarding stub
+    // body with null.
+    TreeNode parent = function.parent;
+    if (!(newBody == null &&
+        parent is Procedure &&
+        parent.isForwardingSemiStub)) {
+      function.body = newBody;
+      newBody?.parent = function;
     }
   }
 
@@ -339,9 +337,10 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   @override
   bool get isNative => nativeMethodName != null;
 
-  FunctionNode buildFunction(SourceLibraryBuilder library) {
-    assert(function == null);
-    FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
+  void buildFunction(SourceLibraryBuilder library) {
+    function.asyncMarker = asyncModifier;
+    function.body = body;
+    body?.parent = function;
     IncludesTypeParametersNonCovariantly needsCheckVisitor;
     if (!isConstructor && !isFactory && parent is ClassBuilder) {
       ClassBuilder enclosingClassBuilder = parent;
@@ -357,14 +356,14 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     if (typeVariables != null) {
       for (TypeVariableBuilder t in typeVariables) {
         TypeParameter parameter = t.parameter;
-        result.typeParameters.add(parameter);
+        function.typeParameters.add(parameter);
         if (needsCheckVisitor != null) {
           if (parameter.bound.accept(needsCheckVisitor)) {
             parameter.isGenericCovariantImpl = true;
           }
         }
       }
-      setParents(result.typeParameters, result);
+      setParents(function.typeParameters, function);
     }
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
@@ -376,13 +375,13 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
           }
         }
         if (formal.isNamed) {
-          result.namedParameters.add(parameter);
+          function.namedParameters.add(parameter);
         } else {
-          result.positionalParameters.add(parameter);
+          function.positionalParameters.add(parameter);
         }
-        parameter.parent = result;
+        parameter.parent = function;
         if (formal.isRequired) {
-          result.requiredParameterCount++;
+          function.requiredParameterCount++;
         }
 
         if (library.isNonNullableByDefault) {
@@ -406,14 +405,14 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       // assumes that parameters are built, even if illegal in number.
       VariableDeclaration parameter =
           new VariableDeclarationImpl("#synthetic", 0);
-      result.positionalParameters.clear();
-      result.positionalParameters.add(parameter);
-      parameter.parent = result;
-      result.namedParameters.clear();
-      result.requiredParameterCount = 1;
+      function.positionalParameters.clear();
+      function.positionalParameters.add(parameter);
+      parameter.parent = function;
+      function.namedParameters.clear();
+      function.requiredParameterCount = 1;
     }
     if (returnType != null) {
-      result.returnType = returnType.build(
+      function.returnType = returnType.build(
           library, null, !isConstructor && !isDeclarationInstanceMember);
     }
     if (!isConstructor && !isDeclarationInstanceMember) {
@@ -441,33 +440,32 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
         }
 
         Set<TypeParameter> set = typeParameters.toSet();
-        for (VariableDeclaration parameter in result.positionalParameters) {
+        for (VariableDeclaration parameter in function.positionalParameters) {
           if (containsTypeVariable(parameter.type, set)) {
             parameter.type = removeTypeVariables(parameter.type);
           }
         }
-        for (VariableDeclaration parameter in result.namedParameters) {
+        for (VariableDeclaration parameter in function.namedParameters) {
           if (containsTypeVariable(parameter.type, set)) {
             parameter.type = removeTypeVariables(parameter.type);
           }
         }
-        if (containsTypeVariable(result.returnType, set)) {
-          result.returnType = removeTypeVariables(result.returnType);
+        if (containsTypeVariable(function.returnType, set)) {
+          function.returnType = removeTypeVariables(function.returnType);
         }
       }
     }
     if (isExtensionInstanceMember) {
       ExtensionBuilder extensionBuilder = parent;
-      _extensionThis = result.positionalParameters.first;
+      _extensionThis = function.positionalParameters.first;
       if (extensionBuilder.typeParameters != null) {
         int count = extensionBuilder.typeParameters.length;
         _extensionTypeParameters = new List<TypeParameter>.filled(count, null);
         for (int index = 0; index < count; index++) {
-          _extensionTypeParameters[index] = result.typeParameters[index];
+          _extensionTypeParameters[index] = function.typeParameters[index];
         }
       }
     }
-    return function = result;
   }
 
   @override
@@ -501,10 +499,23 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   bool _hasBuiltOutlineExpressions = false;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     if (!_hasBuiltOutlineExpressions) {
+      DeclarationBuilder classOrExtensionBuilder =
+          isClassMember || isExtensionMember ? parent : null;
       MetadataBuilder.buildAnnotations(
-          member, metadata, library, isClassMember ? parent : null, this);
+          member, metadata, library, classOrExtensionBuilder, this, fileUri);
+      if (typeVariables != null) {
+        for (int i = 0; i < typeVariables.length; i++) {
+          typeVariables[i].buildOutlineExpressions(
+              library,
+              classOrExtensionBuilder,
+              this,
+              coreTypes,
+              delayedActionPerformers);
+        }
+      }
 
       if (formals != null) {
         // For const constructors we need to include default parameter values
@@ -512,7 +523,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
         for (FormalParameterBuilder formal in formals) {
-          formal.buildOutlineExpressions(library);
+          formal.buildOutlineExpressions(library, delayedActionPerformers);
         }
       }
       _hasBuiltOutlineExpressions = true;

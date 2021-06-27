@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -270,7 +269,7 @@ class NonNullableSubtypingCompoundTest extends _SubtypingCompoundTestBase {
 class SubtypeTest extends _SubtypingTestBase {
   final Map<String, DartType> _types = {};
 
-  void assertExpectedString(TypeImpl type, String expectedString) {
+  void assertExpectedString(DartType type, String? expectedString) {
     if (expectedString != null) {
       var typeStr = _typeStr(type);
 
@@ -283,12 +282,12 @@ class SubtypeTest extends _SubtypingTestBase {
   void isNotSubtype(
     DartType T0,
     DartType T1, {
-    String strT0,
-    String strT1,
+    required String strT0,
+    required String strT1,
   }) {
     assertExpectedString(T0, strT0);
     assertExpectedString(T1, strT1);
-    expect(typeSystem.isSubtypeOf2(T0, T1), isFalse);
+    expect(typeSystem.isSubtypeOf(T0, T1), isFalse);
   }
 
   void isNotSubtype2(
@@ -297,12 +296,12 @@ class SubtypeTest extends _SubtypingTestBase {
   ) {
     var T0 = _getTypeByStr(strT0);
     var T1 = _getTypeByStr(strT1);
-    expect(typeSystem.isSubtypeOf2(T0, T1), isFalse);
+    expect(typeSystem.isSubtypeOf(T0, T1), isFalse);
   }
 
   void isNotSubtype3({
-    String strT0,
-    String strT1,
+    required String strT0,
+    required String strT1,
   }) {
     isNotSubtype2(strT0, strT1);
   }
@@ -310,12 +309,12 @@ class SubtypeTest extends _SubtypingTestBase {
   void isSubtype(
     DartType T0,
     DartType T1, {
-    String strT0,
-    String strT1,
+    String? strT0,
+    String? strT1,
   }) {
     assertExpectedString(T0, strT0);
     assertExpectedString(T1, strT1);
-    expect(typeSystem.isSubtypeOf2(T0, T1), isTrue);
+    expect(typeSystem.isSubtypeOf(T0, T1), isTrue);
   }
 
   void isSubtype2(
@@ -324,7 +323,7 @@ class SubtypeTest extends _SubtypingTestBase {
   ) {
     var T0 = _getTypeByStr(strT0);
     var T1 = _getTypeByStr(strT1);
-    expect(typeSystem.isSubtypeOf2(T0, T1), isTrue);
+    expect(typeSystem.isSubtypeOf(T0, T1), isTrue);
   }
 
   @override
@@ -5410,12 +5409,28 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/language/issues/433')
+  test_typeParameter_44() {
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+    var FutureOr_T_none = futureOrNone(T_none);
+    T.bound = FutureOr_T_none;
+
+    isSubtype(
+      T_none,
+      FutureOr_T_none,
+      strT0: 'T, T extends FutureOr<T>',
+      strT1: 'FutureOr<T>, T extends FutureOr<T>',
+    );
+  }
+
   void _defineType(String str, DartType type) {
-    for (var key in _types.keys) {
+    for (var entry in _types.entries) {
+      var key = entry.key;
       if (key == 'Never' || _typeStr(type) == 'Never') {
         // We have aliases for Never.
       } else {
-        var value = _types[key];
+        var value = entry.value;
         if (key == str) {
           fail('Duplicate type: $str;  existing: $value;  new: $type');
         }
@@ -5784,11 +5799,13 @@ class SubtypeTest extends _SubtypingTestBase {
 
   DartType _getTypeByStr(String str) {
     var type = _types[str];
-    expect(type, isNotNull, reason: 'No DartType for: $str');
+    if (type == null) {
+      fail('No DartType for: $str');
+    }
     return type;
   }
 
-  String _typeParametersStr(TypeImpl type) {
+  String _typeParametersStr(DartType type) {
     var typeStr = '';
 
     var typeParameterCollector = _TypeParameterCollector();
@@ -5918,10 +5935,10 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   }
 
   void _checkGroups(DartType t1,
-      {List<DartType> equivalents,
-      List<DartType> unrelated,
-      List<DartType> subtypes,
-      List<DartType> supertypes}) {
+      {List<DartType>? equivalents,
+      List<DartType>? unrelated,
+      List<DartType>? subtypes,
+      List<DartType>? supertypes}) {
     if (equivalents != null) {
       for (DartType t2 in equivalents) {
         _checkEquivalent(t1, t2);
@@ -5947,7 +5964,7 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   void _checkIsNotSubtypeOf(DartType type1, DartType type2) {
     var strType1 = _typeStr(type1);
     var strType2 = _typeStr(type2);
-    expect(typeSystem.isSubtypeOf2(type1, type2), false,
+    expect(typeSystem.isSubtypeOf(type1, type2), false,
         reason: '$strType1 was not supposed to be a subtype of $strType2');
   }
 
@@ -5959,7 +5976,7 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   void _checkIsSubtypeOf(DartType type1, DartType type2) {
     var strType1 = _typeStr(type1);
     var strType2 = _typeStr(type2);
-    expect(typeSystem.isSubtypeOf2(type1, type2), true,
+    expect(typeSystem.isSubtypeOf(type1, type2), true,
         reason: '$strType1 is not a subtype of $strType2');
   }
 
@@ -6022,10 +6039,8 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
       var str = '';
 
-      if (bound != null) {
-        var boundStr = bound.getDisplayString(withNullability: true);
-        str += '${type.element.name} extends ' + boundStr;
-      }
+      var boundStr = bound.getDisplayString(withNullability: true);
+      str += '${type.element.name} extends ' + boundStr;
 
       typeParameters.add(str);
     }

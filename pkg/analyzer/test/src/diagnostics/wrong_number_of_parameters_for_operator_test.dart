@@ -30,6 +30,7 @@ class WrongNumberOfParametersForOperatorTest extends PubPackageResolutionTest {
     await _checkTooFewAndTooMany('&');
     await _checkTooFewAndTooMany('<<');
     await _checkTooFewAndTooMany('>>');
+    await _checkTooFewAndTooMany('>>>');
     await _checkTooFewAndTooMany('[]');
   }
 
@@ -48,6 +49,7 @@ class WrongNumberOfParametersForOperatorTest extends PubPackageResolutionTest {
     await _checkCorrectSingle("&");
     await _checkCorrectSingle("<<");
     await _checkCorrectSingle(">>");
+    await _checkCorrectSingle(">>>");
     await _checkCorrectSingle("[]");
   }
 
@@ -78,6 +80,8 @@ class A {
   test_unaryTilde() async {
     await _check('~', 'a');
     await _check('~', 'a, b');
+    await _check('~', 'a, [b]');
+    await _check('~', 'a, {b}');
   }
 
   Future<void> _check(String name, String parameters) async {
@@ -106,5 +110,7 @@ class A {
   Future<void> _checkTooFewAndTooMany(String name) async {
     await _check(name, '');
     await _check(name, 'a, b');
+    await _check(name, 'a, [b]');
+    await _check(name, 'a, {b}');
   }
 }

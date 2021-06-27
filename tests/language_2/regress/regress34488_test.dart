@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 abstract class Base {
   void f(int i);
   void g([int i]);
@@ -32,9 +34,8 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   d.h(i: 'bad');
-  //  ^^^^^^^^
+  //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  //     ^
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   Object x = d.f(1);
   //           ^

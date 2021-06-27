@@ -9,10 +9,8 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -24,25 +22,23 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 class BaseAnalysisDriverTest with ResourceProviderMixin {
-  DartSdk sdk;
+  late final DartSdk sdk;
   final ByteStore byteStore = MemoryByteStore();
-  final FileContentOverlay contentOverlay = FileContentOverlay();
 
   final StringBuffer logBuffer = StringBuffer();
-  PerformanceLog logger;
+  late final PerformanceLog logger;
 
   final _GeneratedUriResolverMock generatedUriResolver =
       _GeneratedUriResolverMock();
-  AnalysisDriverScheduler scheduler;
-  AnalysisDriver driver;
+  late final AnalysisDriverScheduler scheduler;
+  late final AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
   final List<ResolvedUnitResult> allResults = <ResolvedUnitResult>[];
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
-  String testProject;
-  String testProject2;
-  String testFile;
-  String testCode;
+  late final String testProject;
+  late final String testFile;
+  late final String testCode;
 
   List<String> enabledExperiments = [];
 
@@ -56,49 +52,48 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   }
 
   AnalysisDriver createAnalysisDriver(
-      {Map<String, List<Folder>> packageMap,
-      SummaryDataStore externalSummaries}) {
+      {Map<String, List<Folder>>? packageMap,
+      SummaryDataStore? externalSummaries}) {
     packageMap ??= <String, List<Folder>>{
       'test': [getFolder('$testProject/lib')],
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],
     };
-    return AnalysisDriver(
-        scheduler,
-        logger,
-        resourceProvider,
-        byteStore,
-        contentOverlay,
-        null,
-        SourceFactory([
-          DartUriResolver(sdk),
-          generatedUriResolver,
-          PackageMapUriResolver(resourceProvider, packageMap),
-          ResourceUriResolver(resourceProvider)
-        ]),
-        createAnalysisOptions(),
-        packages: Packages({
-          'test': Package(
-            name: 'test',
-            rootFolder: getFolder(testProject),
-            libFolder: getFolder('$testProject/lib'),
-            languageVersion: Version.parse('2.9.0'),
-          ),
-          'aaa': Package(
-            name: 'aaa',
-            rootFolder: getFolder('/aaa'),
-            libFolder: getFolder('/aaa/lib'),
-            languageVersion: Version.parse('2.9.0'),
-          ),
-          'bbb': Package(
-            name: 'bbb',
-            rootFolder: getFolder('/bbb'),
-            libFolder: getFolder('/bbb/lib'),
-            languageVersion: Version.parse('2.9.0'),
-          ),
-        }),
-        enableIndex: true,
-        externalSummaries: externalSummaries);
+    return AnalysisDriver.tmp1(
+      scheduler: scheduler,
+      logger: logger,
+      resourceProvider: resourceProvider,
+      byteStore: byteStore,
+      sourceFactory: SourceFactory([
+        DartUriResolver(sdk),
+        generatedUriResolver,
+        PackageMapUriResolver(resourceProvider, packageMap),
+        ResourceUriResolver(resourceProvider)
+      ]),
+      analysisOptions: createAnalysisOptions(),
+      packages: Packages({
+        'test': Package(
+          name: 'test',
+          rootFolder: getFolder(testProject),
+          libFolder: getFolder('$testProject/lib'),
+          languageVersion: Version.parse('2.9.0'),
+        ),
+        'aaa': Package(
+          name: 'aaa',
+          rootFolder: getFolder('/aaa'),
+          libFolder: getFolder('/aaa/lib'),
+          languageVersion: Version.parse('2.9.0'),
+        ),
+        'bbb': Package(
+          name: 'bbb',
+          rootFolder: getFolder('/bbb'),
+          libFolder: getFolder('/bbb/lib'),
+          languageVersion: Version.parse('2.9.0'),
+        ),
+      }),
+      enableIndex: true,
+      externalSummaries: externalSummaries,
+    );
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
@@ -140,7 +135,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   void setUp() {
     sdk = MockSdk(resourceProvider: resourceProvider);
     testProject = convertPath('/test');
-    testProject2 = convertPath('/test/lib');
     testFile = convertPath('/test/lib/test.dart');
     logger = PerformanceLog(logBuffer);
     scheduler = AnalysisDriverScheduler(logger);
@@ -155,9 +149,9 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 }
 
 class _GeneratedUriResolverMock implements UriResolver {
-  Source Function(Uri, Uri) resolveAbsoluteFunction;
+  Source? Function(Uri)? resolveAbsoluteFunction;
 
-  Uri Function(Source) restoreAbsoluteFunction;
+  Uri? Function(Source)? restoreAbsoluteFunction;
 
   @override
   void clearCache() {}
@@ -168,17 +162,17 @@ class _GeneratedUriResolverMock implements UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (resolveAbsoluteFunction != null) {
-      return resolveAbsoluteFunction(uri, actualUri);
+      return resolveAbsoluteFunction!(uri);
     }
     return null;
   }
 
   @override
-  Uri restoreAbsolute(Source source) {
+  Uri? restoreAbsolute(Source source) {
     if (restoreAbsoluteFunction != null) {
-      return restoreAbsoluteFunction(source);
+      return restoreAbsoluteFunction!(source);
     }
     return null;
   }

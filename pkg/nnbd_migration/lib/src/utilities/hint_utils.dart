@@ -8,8 +8,8 @@ import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// Determines if the given [token] is followed by a nullability hint, and if
 /// so, returns information about it.  Otherwise returns `null`.
-HintComment getPostfixHint(Token token) {
-  var commentToken = token.next.precedingComments;
+HintComment? getPostfixHint(Token token) {
+  var commentToken = token.next!.precedingComments;
   if (commentToken != null) {
     HintCommentKind kind;
     if (commentToken.lexeme == '/*!*/') {
@@ -33,11 +33,11 @@ HintComment getPostfixHint(Token token) {
 
 /// Determines if the given [token] is preceded by a hint, and if so, returns
 /// information about it.  Otherwise returns `null`.
-HintComment getPrefixHint(Token token) {
-  Token commentToken = token.precedingComments;
+HintComment? getPrefixHint(Token token) {
+  Token? commentToken = token.precedingComments;
   if (commentToken != null) {
     while (true) {
-      var nextComment = commentToken.next;
+      var nextComment = commentToken!.next;
       if (nextComment == null) break;
       commentToken = nextComment;
     }
@@ -124,14 +124,14 @@ class HintComment {
 
   /// Creates the changes necessary to accept the given hint (replace it with
   /// its contents and fix up whitespace).
-  Map<int, List<AtomicEdit>> changesToAccept(String sourceText,
-      {AtomicEditInfo info}) {
+  Map<int?, List<AtomicEdit>> changesToAccept(String? sourceText,
+      {AtomicEditInfo? info}) {
     bool prependSpace = false;
     bool appendSpace = false;
     var removeOffset = _removeOffset;
     var removeEnd = _removeEnd;
     if (_isIdentifierCharBeforeOffset(sourceText, removeOffset) &&
-        _isIdentifierCharAtOffset(sourceText, _keepOffset)) {
+        _isIdentifierCharAtOffset(sourceText!, _keepOffset)) {
       if (sourceText[removeOffset] == ' ') {
         // We can just keep this space.
         removeOffset++;
@@ -140,7 +140,7 @@ class HintComment {
       }
     }
     if (_isIdentifierCharBeforeOffset(sourceText, _keepEnd) &&
-        _isIdentifierCharAtOffset(sourceText, removeEnd)) {
+        _isIdentifierCharAtOffset(sourceText!, removeEnd)) {
       if (sourceText[removeEnd - 1] == ' ') {
         // We can just keep this space.
         removeEnd--;
@@ -161,12 +161,12 @@ class HintComment {
 
   /// Creates the changes necessary to remove the given hint (and fix up
   /// whitespace).
-  Map<int, List<AtomicEdit>> changesToRemove(String sourceText,
-      {AtomicEditInfo info}) {
+  Map<int?, List<AtomicEdit>> changesToRemove(String? sourceText,
+      {AtomicEditInfo? info}) {
     bool appendSpace = false;
     var removeOffset = _removeOffset;
     if (_isIdentifierCharBeforeOffset(sourceText, removeOffset) &&
-        _isIdentifierCharAtOffset(sourceText, _removeEnd)) {
+        _isIdentifierCharAtOffset(sourceText!, _removeEnd)) {
       if (sourceText[removeOffset] == ' ') {
         // We can just keep this space.
         removeOffset++;
@@ -184,9 +184,9 @@ class HintComment {
 
   /// Creates the changes necessary to replace the given hint with a different
   /// hint.
-  Map<int, List<AtomicEdit>> changesToReplace(
-      String sourceText, String replacement,
-      {AtomicEditInfo info}) {
+  Map<int?, List<AtomicEdit>> changesToReplace(
+      String? sourceText, String replacement,
+      {AtomicEditInfo? info}) {
     return {
       _commentOffset: [
         AtomicEdit.replace(_commentEnd - _commentOffset, replacement,
@@ -200,8 +200,9 @@ class HintComment {
         _identifierCharRegexp.hasMatch(sourceText[offset]);
   }
 
-  static bool _isIdentifierCharBeforeOffset(String sourceText, int offset) {
-    return offset > 0 && _identifierCharRegexp.hasMatch(sourceText[offset - 1]);
+  static bool _isIdentifierCharBeforeOffset(String? sourceText, int offset) {
+    return offset > 0 &&
+        _identifierCharRegexp.hasMatch(sourceText![offset - 1]);
   }
 }
 
@@ -230,7 +231,7 @@ enum HintCommentKind {
 
 extension FormalParameterExtensions on FormalParameter {
   // TODO(srawlins): Add this to FormalParameter interface.
-  Token get firstTokenAfterCommentAndMetadata {
+  Token? get firstTokenAfterCommentAndMetadata {
     var parameter = this is DefaultFormalParameter
         ? (this as DefaultFormalParameter).parameter
         : this as NormalFormalParameter;
@@ -238,7 +239,7 @@ extension FormalParameterExtensions on FormalParameter {
       if (parameter.keyword != null) {
         return parameter.keyword;
       } else if (parameter.type != null) {
-        return parameter.type.beginToken;
+        return parameter.type!.beginToken;
       } else {
         return parameter.thisKeyword;
       }
@@ -246,7 +247,7 @@ extension FormalParameterExtensions on FormalParameter {
       if (parameter.covariantKeyword != null) {
         return parameter.covariantKeyword;
       } else if (parameter.returnType != null) {
-        return parameter.returnType.beginToken;
+        return parameter.returnType!.beginToken;
       } else {
         return parameter.identifier.token;
       }
@@ -256,9 +257,9 @@ extension FormalParameterExtensions on FormalParameter {
       } else if (parameter.keyword != null) {
         return parameter.keyword;
       } else if (parameter.type != null) {
-        return parameter.type.beginToken;
+        return parameter.type!.beginToken;
       } else {
-        return parameter.identifier.token;
+        return parameter.identifier!.token;
       }
     }
     return null;

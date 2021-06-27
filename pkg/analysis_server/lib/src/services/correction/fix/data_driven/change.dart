@@ -14,5 +14,5 @@ abstract class Change<D> {
 
   /// Validate that this change can be applied. Return the data to be passed to
   /// [apply] if the change can be applied, or `null` if it can't be applied.
-  D validate(DataDrivenFix fix);
+  D? validate(DataDrivenFix fix);
 }

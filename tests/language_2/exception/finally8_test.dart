@@ -4,6 +4,8 @@
 // This test ensures that the finally block executes correctly when
 // there are throw, break and return statements in the finally block.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Hello {

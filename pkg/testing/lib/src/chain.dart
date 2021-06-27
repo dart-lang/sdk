@@ -322,11 +322,28 @@ abstract class Step<I, O, C extends ChainContext> {
 
   String get name;
 
+  /// Sets this (*and effectively subsequent*) test step(s) as async.
+  ///
+  /// TL;DR: Either set to false, or only set to true when this and all
+  /// subsequent steps can run intertwined with another test.
+  ///
+  /// Details:
+  ///
+  /// A single test (TestDescription) can have several steps (Step).
+  /// When running a test the first step is executed, and when that step is done
+  /// the next step is executed by the now-ending step.
+  ///
+  /// When isAsync is false each step returns a future which is awaited,
+  /// effectivly meaning that only a single test is run at a time.
+  ///
+  /// When isAsync is true that step doesn't return a future (but adds it's
+  /// future to a list which is awaited before sending an 'entire suite done'
+  /// message), meaning that the next test can start before the step is
+  /// finished. As the next step in the test only starts after the current
+  /// step finishes, that also means that the next test can start - and run
+  /// intertwined with - a subsequent step even if such a subsequent step has
+  /// isAsync set to false.
   bool get isAsync => false;
-
-  bool get isCompiler => false;
-
-  bool get isRuntime => false;
 
   Future<Result<O>> run(I input, C context);
 
@@ -358,8 +375,16 @@ class Result<O> {
   /// update the test to match new expectations.
   final String autoFixCommand;
 
+  /// If set, the test can be fixed by running
+  ///
+  ///     dart pkg/front_end/tool/update_expectations.dart
+  ///
+  final bool canBeFixWithUpdateExpectations;
+
   Result(this.output, this.outcome, this.error,
-      {this.trace, this.autoFixCommand});
+      {this.trace,
+      this.autoFixCommand,
+      this.canBeFixWithUpdateExpectations: false});
 
   Result.pass(O output) : this(output, Expectation.Pass, null);
 
@@ -384,7 +409,9 @@ class Result<O> {
 
   Result<O2> copyWithOutput<O2>(O2 output) {
     return new Result<O2>(output, outcome, error,
-        trace: trace, autoFixCommand: autoFixCommand)
+        trace: trace,
+        autoFixCommand: autoFixCommand,
+        canBeFixWithUpdateExpectations: canBeFixWithUpdateExpectations)
       ..logs.addAll(logs);
   }
 }

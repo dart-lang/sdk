@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.function_type_alias_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DynamicType,
-        InvalidType,
-        Nullability,
-        TypeParameter,
-        Typedef;
+import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import 'package:kernel/type_algebra.dart' show substitute, uniteNullabilities;
 import 'package:kernel/src/legacy_erasure.dart';
@@ -25,6 +21,8 @@ import '../fasta_codes.dart'
         messageTypedefTypeVariableNotConstructorCause;
 
 import '../problems.dart' show unhandled;
+import '../source/source_library_builder.dart';
+import '../util/helpers.dart';
 
 import 'class_builder.dart';
 import 'library_builder.dart';
@@ -77,14 +75,14 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// based on the given [typeArguments]. It expands type aliases repeatedly
   /// until it encounters a builder which is not a [TypeAliasBuilder].
   ///
-  /// If [isInvocation] is false: In this case it is required that
+  /// If [isUsedAsClass] is false: In this case it is required that
   /// `typeArguments.length == typeVariables.length`. The [typeArguments] are
   /// threaded through the expansion if needed, and the resulting declaration
   /// is returned.
   ///
-  /// If [isInvocation] is true: In this case [typeArguments] are ignored, but
-  /// [invocationCharOffset] and [invocationFileUri] must be non-null. If `this`
-  /// type alias expands in one or more steps to a builder which is not a
+  /// If [isUsedAsClass] is true: In this case [typeArguments] are ignored, but
+  /// [usedAsClassCharOffset] and [usedAsClassFileUri] must be non-null. If
+  /// `this` type alias expands in one or more steps to a builder which is not a
   /// [TypeAliasBuilder] nor a [TypeVariableBuilder] then that builder is
   /// returned. If this type alias is cyclic or expands to an invalid type or
   /// a type that does not have a declaration (say, a function type) then `this`
@@ -93,9 +91,9 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// [TypeVariableBuilder] then the type alias cannot be used in a constructor
   /// invocation. Then an error is emitted and `this` is returned.
   TypeDeclarationBuilder unaliasDeclaration(List<TypeBuilder> typeArguments,
-      {bool isInvocation = false,
-      int invocationCharOffset,
-      Uri invocationFileUri});
+      {bool isUsedAsClass = false,
+      int usedAsClassCharOffset,
+      Uri usedAsClassFileUri});
 
   /// Compute type arguments passed to [ClassBuilder] from unaliasDeclaration.
   /// This method does not check for cycles and may only be called if an
@@ -112,6 +110,9 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// arguments for passing to the [ClassBuilder] which is the end of the
   /// unaliasing chain.
   List<TypeBuilder> unaliasTypeArguments(List<TypeBuilder> typeArguments);
+
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers);
 }
 
 abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
@@ -138,6 +139,17 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < typedef.typeParameters.length; i++) {
       substitution[typedef.typeParameters[i]] = arguments[i];
+    }
+    // The following adds the built type to the list of unchecked typedef types
+    // of the client library. It is needed because the type is built unaliased,
+    // and at the time of the check it wouldn't be possible to see if the type
+    // arguments to the generic typedef conform to the bounds without preserving
+    // the TypedefType for the delayed check.
+    if (library is SourceLibraryBuilder &&
+        arguments.isNotEmpty &&
+        thisType is! FunctionType) {
+      library.uncheckedTypedefTypes.add(new UncheckedTypedefType(
+          new TypedefType(typedef, nullability, arguments)));
     }
     return substitute(result, substitution);
   }
@@ -184,25 +196,32 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// based on the given [typeArguments]. It expands type aliases repeatedly
   /// until it encounters a builder which is not a [TypeAliasBuilder].
   ///
-  /// If [isInvocation] is false: In this case it is required that
+  /// The parameter [isUsedAsClass] indicates whether the type alias is being
+  /// used as a class, e.g., as the class in an instance creation, as a
+  /// superinterface, in a redirecting factory constructor, or to invoke a
+  /// static member.
+  ///
+  /// If [isUsedAsClass] is false: In this case it is required that
   /// `typeArguments.length == typeVariables.length`. The [typeArguments] are
   /// threaded through the expansion if needed, and the resulting declaration
   /// is returned.
   ///
-  /// If [isInvocation] is true: In this case [typeArguments] are ignored, but
-  /// [invocationCharOffset] and [invocationFileUri] must be non-null. If `this`
+  /// If [isUsedAsClass] is true: In this case [typeArguments] can be null, but
+  /// [usedAsClassCharOffset] and [usedAsClassFileUri] must be non-null. When
+  /// [typeArguments] is null, the returned [TypeDeclarationBuilder] indicates
+  /// which class the type alias denotes, without type arguments. If `this`
   /// type alias expands in one or more steps to a builder which is not a
   /// [TypeAliasBuilder] nor a [TypeVariableBuilder] then that builder is
   /// returned. If this type alias is cyclic or expands to an invalid type or
   /// a type that does not have a declaration (say, a function type) then `this`
   /// is returned (when the type was invalid: with `thisType` set to
   /// `const InvalidType()`). If `this` type alias expands to a
-  /// [TypeVariableBuilder] then the type alias cannot be used in a constructor
-  /// invocation. Then an error is emitted and `this` is returned.
+  /// [TypeVariableBuilder] then the type alias cannot be used as a class, in
+  /// which case an error is emitted and `this` is returned.
   TypeDeclarationBuilder unaliasDeclaration(List<TypeBuilder> typeArguments,
-      {bool isInvocation = false,
-      int invocationCharOffset,
-      Uri invocationFileUri}) {
+      {bool isUsedAsClass = false,
+      int usedAsClassCharOffset,
+      Uri usedAsClassFileUri}) {
     if (_cachedUnaliasedDeclaration != null) return _cachedUnaliasedDeclaration;
     Set<TypeDeclarationBuilder> builders = {this};
     TypeDeclarationBuilder current = this;
@@ -234,15 +253,39 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // `_cachedUnaliasedDeclaration` because it changes from call to call
         // with type aliases of this kind. Note that every `aliasBuilder.type`
         // up to this point is a [NamedTypeBuilder], because only they can have
-        // a non-null `type`. However, a constructor invocation is not admitted.
-        if (isInvocation) {
-          library.addProblem(messageTypedefTypeVariableNotConstructor,
-              invocationCharOffset, noLength, invocationFileUri,
-              context: [
-                messageTypedefTypeVariableNotConstructorCause.withLocation(
-                    current.fileUri, current.charOffset, noLength),
-              ]);
-          return this;
+        // a non-null `type`. However, this type alias can not be used as a
+        // class.
+        if (isUsedAsClass) {
+          List<TypeBuilder> freshTypeArguments = [
+            if (typeVariables != null)
+              for (TypeVariableBuilder typeVariable in typeVariables)
+                new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                  typeVariable,
+                  library.nonNullableBuilder,
+                  const [],
+                  fileUri,
+                  charOffset,
+                ),
+          ];
+          TypeDeclarationBuilder typeDeclarationBuilder =
+              _unaliasDeclaration(freshTypeArguments);
+          bool found = false;
+          for (TypeBuilder typeBuilder in freshTypeArguments) {
+            if (typeBuilder.declaration == typeDeclarationBuilder) {
+              found = true;
+              break;
+            }
+          }
+          if (found) {
+            library.addProblem(messageTypedefTypeVariableNotConstructor,
+                usedAsClassCharOffset, noLength, usedAsClassFileUri,
+                context: [
+                  messageTypedefTypeVariableNotConstructorCause.withLocation(
+                      current.fileUri, current.charOffset, noLength),
+                ]);
+            return this;
+          }
+          if (typeArguments == null) return typeDeclarationBuilder;
         }
         return _unaliasDeclaration(typeArguments);
       }
@@ -424,4 +467,18 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   }
 }
 
+/// Used to detect cycles in the declaration of a typedef
+///
+/// When a typedef is built, [pendingTypeAliasMarker] is used as a placeholder
+/// value to indicated that the process has started.  If somewhere in the
+/// process of building the typedef this value is encountered, it's replaced
+/// with [cyclicTypeAliasMarker] as the result of the build process.
+final InvalidType pendingTypeAliasMarker = new InvalidType();
+
+/// Used to detect cycles in the declaration of a typedef
+///
+/// When a typedef is built, [pendingTypeAliasMarker] is used as a placeholder
+/// value to indicated that the process has started.  If somewhere in the
+/// process of building the typedef this value is encountered, it's replaced
+/// with [cyclicTypeAliasMarker] as the result of the build process.
 final InvalidType cyclicTypeAliasMarker = new InvalidType();

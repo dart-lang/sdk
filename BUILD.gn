@@ -14,9 +14,6 @@ group("default") {
     testonly = true
   }
   deps = [ ":runtime" ]
-  if (defined(checkout_llvm) && checkout_llvm) {
-    deps += [ ":llvm_codegen" ]
-  }
 }
 
 group("most") {
@@ -26,6 +23,7 @@ group("most") {
     testonly = true
   }
   deps = [
+    ":analysis_server",
     ":create_sdk",
     ":dart2js",
     ":dartanalyzer",
@@ -33,9 +31,6 @@ group("most") {
     ":runtime",
     ":samples",
   ]
-  if (dart_target_arch != "arm") {
-    deps += [ ":analysis_server" ]
-  }
 }
 
 group("runtime") {
@@ -66,6 +61,10 @@ group("runtime") {
       "utils/dds:dds",
     ]
   }
+
+  if (is_linux || is_android) {
+    deps += [ "runtime/bin:abstract_socket_test" ]
+  }
 }
 
 # A separate target and not included in group("runtime"). This way the target\
@@ -87,6 +86,9 @@ group("runtime_precompiled") {
     "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:process_test",
   ]
+  if (is_linux || is_android) {
+    deps += [ "runtime/bin:abstract_socket_test" ]
+  }
 }
 
 group("create_sdk") {
@@ -115,21 +117,6 @@ group("dartfmt") {
 
 group("analysis_server") {
   deps = [ "utils/analysis_server" ]
-}
-
-group("check_llvm") {
-  if (defined(checkout_llvm) && checkout_llvm) {
-    deps = [ "runtime/llvm_codegen/test" ]
-  }
-}
-
-group("llvm_codegen") {
-  if (defined(checkout_llvm) && checkout_llvm) {
-    deps = [
-      "runtime/llvm_codegen/bit",
-      "runtime/llvm_codegen/codegen",
-    ]
-  }
 }
 
 # This is the target that is built on the dart2js build bots.

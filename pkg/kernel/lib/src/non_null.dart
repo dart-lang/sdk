@@ -4,7 +4,7 @@
 
 import '../ast.dart';
 
-/// Returns the type defines as `NonNull(type)` in the nnbd specification.
+/// Returns the type defined as `NonNull(type)` in the nnbd specification.
 DartType computeNonNull(DartType type) {
   return type.accept(const _NonNullVisitor()) ?? type;
 }
@@ -13,23 +13,28 @@ DartType computeNonNull(DartType type) {
 /// specification.
 ///
 /// The visitor returns `null` if `NonNull(T) = T`.
-class _NonNullVisitor implements DartTypeVisitor<DartType> {
+class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   const _NonNullVisitor();
 
   @override
-  DartType defaultDartType(DartType node) {
+  DartType? defaultDartType(DartType node) {
     throw new UnsupportedError(
         "Unexpected DartType ${node} (${node.runtimeType})");
   }
 
   @override
-  DartType visitBottomType(BottomType node) => null;
+  DartType? visitDynamicType(DynamicType node) {
+    // NonNull(dynamic) = dynamic
+    return null;
+  }
 
   @override
-  DartType visitDynamicType(DynamicType node) => null;
-
-  @override
-  DartType visitFunctionType(FunctionType node) {
+  DartType? visitFunctionType(FunctionType node) {
+    // NonNull(T0 Function(...)) = T0 Function(...)
+    //
+    // NonNull(T?) = NonNull(T)
+    //
+    // NonNull(T*) = NonNull(T)
     if (node.declaredNullability == Nullability.nonNullable) {
       return null;
     }
@@ -37,18 +42,52 @@ class _NonNullVisitor implements DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitFutureOrType(FutureOrType node) {
-    DartType typeArgument = node.typeArgument.accept(this);
-    if (node.declaredNullability == Nullability.nonNullable &&
-        typeArgument == null) {
+  DartType? visitFutureOrType(FutureOrType node) {
+    // NonNull(FutureOr<T>) = FutureOr<T>
+    //
+    // NonNull(T?) = NonNull(T)
+    //
+    // NonNull(T*) = NonNull(T)
+
+    // Note that we should _not_ compute NonNull of the type argument. Consider
+    //
+    //     NonNull(FutureOr<int?>?)
+    //
+    // We have that
+    //
+    //     FutureOr<int?>? = Future<int?>? | int?
+    //
+    // and therefore that
+    //
+    //     NonNull(FutureOr<int?>?) = NonNull(FutureOr<int?>?) | NonNull(int?)
+    //                              = FutureOr<int?> | int
+    //
+    // but that means that while `null` is not a possible value from `int` it
+    // is still a possible value from awaiting the future. Taking NonNull on
+    // the type argument as well as on the `FutureOr`:
+    //
+    //     NonNull(FutureOr<int?>?) = NonNull(FutureOr<NonNull(int?)>?)
+    //                              = FutureOr<int>
+    //
+    // would be wrong since it would compute that the awaited result could not
+    // be `null`.
+
+    if (node.declaredNullability == Nullability.nonNullable) {
       return null;
     }
-    return new FutureOrType(
-        typeArgument ?? node.typeArgument, Nullability.nonNullable);
+    return new FutureOrType(node.typeArgument, Nullability.nonNullable);
   }
 
   @override
-  DartType visitInterfaceType(InterfaceType node) {
+  DartType? visitInterfaceType(InterfaceType node) {
+    // NonNull(C<T1, ... , Tn>) = C<T1, ... , Tn> for class C other
+    // than Null (including Object).
+    //
+    // NonNull(Function) = Function
+    //
+    // NonNull(T?) = NonNull(T)
+    //
+    // NonNull(T*) = NonNull(T)
     if (node.declaredNullability == Nullability.nonNullable) {
       return null;
     }
@@ -56,33 +95,62 @@ class _NonNullVisitor implements DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitInvalidType(InvalidType node) => null;
-
-  @override
-  DartType visitNeverType(NeverType node) {
+  DartType? visitExtensionType(ExtensionType node) {
+    // NonNull(C<T1, ... , Tn>) = C<T1, ... , Tn> for class C other
+    // than Null (including Object).
+    //
+    // NonNull(T?) = NonNull(T)
+    //
+    // NonNull(T*) = NonNull(T)
     if (node.declaredNullability == Nullability.nonNullable) {
       return null;
     }
-    return const NeverType(Nullability.nonNullable);
+    return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitNullType(NullType node) {
-    return const NeverType(Nullability.nonNullable);
+  DartType? visitInvalidType(InvalidType node) => null;
+
+  @override
+  DartType? visitNeverType(NeverType node) {
+    // NonNull(Never) = Never
+    //
+    // NonNull(T?) = NonNull(T)
+    //
+    // NonNull(T*) = NonNull(T)
+    if (node.declaredNullability == Nullability.nonNullable) {
+      return null;
+    }
+    return const NeverType.nonNullable();
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node) {
+  DartType? visitNullType(NullType node) {
+    // NonNull(Null) = Never
+    return const NeverType.nonNullable();
+  }
+
+  @override
+  DartType? visitTypeParameterType(TypeParameterType node) {
+    // NonNull(X) = X & NonNull(B), where B is the bound of X.
+    //
+    // NonNull(X & T) = X & NonNull(T)
+    //
+    // NonNull(T?) = NonNull(T)
+    //
+    // NonNull(T*) = NonNull(T)
     if (node.nullability == Nullability.nonNullable) {
       return null;
     }
     if (node.promotedBound != null) {
-      if (node.promotedBound.nullability == Nullability.nonNullable) {
+      // NonNull(X & T) = X & NonNull(T)
+
+      if (node.promotedBound!.nullability == Nullability.nonNullable) {
         // The promoted bound is already non-nullable so we set the declared
         // nullability to non-nullable.
         return node.withDeclaredNullability(Nullability.nonNullable);
       }
-      DartType promotedBound = node.promotedBound.accept(this);
+      DartType? promotedBound = node.promotedBound!.accept(this);
       if (promotedBound == null) {
         // The promoted bound could not be made non-nullable so we set the
         // declared nullability to undetermined.
@@ -90,7 +158,7 @@ class _NonNullVisitor implements DartTypeVisitor<DartType> {
           return null;
         }
         return new TypeParameterType.intersection(
-            node.parameter, Nullability.undetermined, node.promotedBound);
+            node.parameter, Nullability.undetermined, node.promotedBound!);
       } else if (promotedBound.nullability == Nullability.nonNullable) {
         // The bound could be made non-nullable so we use it as the promoted
         // bound.
@@ -103,12 +171,13 @@ class _NonNullVisitor implements DartTypeVisitor<DartType> {
             node.parameter, Nullability.undetermined, promotedBound);
       }
     } else {
+      // NonNull(X) = X & NonNull(B), where B is the bound of X.
       if (node.bound.nullability == Nullability.nonNullable) {
         // The bound is already non-nullable so we set the declared nullability
         // to non-nullable.
         return node.withDeclaredNullability(Nullability.nonNullable);
       }
-      DartType bound = node.bound.accept(this);
+      DartType? bound = node.bound.accept(this);
       if (bound == null) {
         // The bound could not be made non-nullable so we set the declared
         // nullability to undetermined.
@@ -128,7 +197,13 @@ class _NonNullVisitor implements DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitTypedefType(TypedefType node) {
+  DartType? visitTypedefType(TypedefType node) {
+    // NonNull(C<T1, ... , Tn>) = C<T1, ... , Tn> for class C other
+    // than Null (including Object).
+    //
+    // NonNull(T?) = NonNull(T)
+    //
+    // NonNull(T*) = NonNull(T)
     if (node.declaredNullability == Nullability.nonNullable) {
       return null;
     }
@@ -136,5 +211,8 @@ class _NonNullVisitor implements DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitVoidType(VoidType node) => null;
+  DartType? visitVoidType(VoidType node) {
+    // NonNull(void) = void
+    return null;
+  }
 }

@@ -109,6 +109,13 @@ DART_EXPORT void Regress37069(uint64_t a,
   Dart_ExecuteInternalCommand("gc-now", nullptr);
 }
 
+DART_EXPORT uint8_t IsThreadInGenerated() {
+  return Dart_ExecuteInternalCommand("is-thread-in-generated", nullptr) !=
+                 nullptr
+             ? 1
+             : 0;
+}
+
 #if !defined(HOST_OS_WINDOWS)
 DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
                                            std::condition_variable* var,
@@ -276,7 +283,45 @@ DART_EXPORT intptr_t TestCallbackWrongIsolate(void (*fn)()) {
   return ExpectAbort(fn);
 }
 
+DART_EXPORT intptr_t TestCallbackLeaf(void (*fn)()) {
+#if defined(DEBUG)
+  // Calling a callback from a leaf call will crash on T->IsAtSafepoint().
+  return ExpectAbort(fn);
+#else
+  // The above will only crash in debug as ASSERTS are disabled in all other
+  // build modes.
+  return 0;
+#endif
+}
+
+void CallDebugName() {
+  Dart_DebugName();
+}
+
+DART_EXPORT intptr_t TestLeafCallApi(void (*fn)()) {
+  // This should be fine since it's a simple function that returns a const
+  // string. Though any API call should be considered unsafe from leaf calls.
+  Dart_VersionString();
+#if defined(DEBUG)
+  // This will fail because it requires running in DARTSCOPE.
+  return ExpectAbort(&CallDebugName);
+#else
+  // The above will only crash in debug as ASSERTS are disabled in all other
+  // build modes.
+  return 0;
+#endif
+}
+
 #endif  // defined(TARGET_OS_LINUX)
+
+// Restore default SIGPIPE handler, which is only needed on mac
+// since that is the only platform we explicitly ignore it.
+// See Platform::Initialize() in platform_macos.cc.
+DART_EXPORT void RestoreSIGPIPEHandler() {
+#if defined(HOST_OS_MACOS)
+  signal(SIGPIPE, SIG_DFL);
+#endif
+}
 
 DART_EXPORT void IGH_MsanUnpoison(void* start, intptr_t length) {
   MSAN_UNPOISON(start, length);
@@ -382,7 +427,7 @@ void Fatal(char const* file, int line, char const* error) {
 
 #define FATAL(error) Fatal(__FILE__, __LINE__, error)
 
-void SleepOnAnyOS(intptr_t seconds) {
+DART_EXPORT void SleepOnAnyOS(intptr_t seconds) {
 #if defined(HOST_OS_WINDOWS)
   Sleep(1000 * seconds);
 #else

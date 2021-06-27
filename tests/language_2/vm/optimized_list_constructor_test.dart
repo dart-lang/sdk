@@ -4,6 +4,8 @@
 // Test various optimizations and deoptimizations of optimizing compiler..
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Test correct throwing of ArgumentError in optimized code.

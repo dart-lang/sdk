@@ -46,7 +46,7 @@ class ArgumentsDescriptor : public ValueObject {
   bool MatchesNameAt(intptr_t i, const String& other) const;
   // Returns array of argument names in the arguments order.
   ArrayPtr GetArgumentNames() const;
-  void PrintTo(BaseTextBuffer* buffer) const;
+  void PrintTo(BaseTextBuffer* buffer, bool show_named_positions = false) const;
   const char* ToCString() const;
 
   // Generated code support.
@@ -66,9 +66,13 @@ class ArgumentsDescriptor : public ValueObject {
     return Array::element_offset(kFirstNamedEntryIndex);
   }
 
-  static intptr_t name_offset() { return kNameOffset * kWordSize; }
-  static intptr_t position_offset() { return kPositionOffset * kWordSize; }
-  static intptr_t named_entry_size() { return kNamedEntrySize * kWordSize; }
+  static intptr_t name_offset() { return kNameOffset * kCompressedWordSize; }
+  static intptr_t position_offset() {
+    return kPositionOffset * kCompressedWordSize;
+  }
+  static intptr_t named_entry_size() {
+    return kNamedEntrySize * kCompressedWordSize;
+  }
 
   // Constructs an argument descriptor where all arguments are boxed and
   // therefore number of parameters equals parameter size.
@@ -121,6 +125,12 @@ class ArgumentsDescriptor : public ValueObject {
   static void Cleanup();
 
   enum { kCachedDescriptorCount = 32 };
+
+  // For creating ArgumentDescriptor Slots.
+  static constexpr bool ContainsCompressedPointers() {
+    // Use the same state as the backing store.
+    return Array::ContainsCompressedPointers();
+  }
 
  private:
   // Absolute indices into the array.
@@ -185,21 +195,22 @@ class DartEntry : public AllStatic {
  public:
   // Invokes the specified instance function or static function.
   // The first argument of an instance function is the receiver.
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   // This is used when there is no type argument vector and
   // no named arguments in the call.
   static ObjectPtr InvokeFunction(const Function& function,
                                   const Array& arguments);
 
   // Invokes the specified code as if it was a Dart function.
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   static ObjectPtr InvokeCode(const Code& code,
+                              uword entry_point,
                               const Array& arguments_descriptor,
                               const Array& arguments,
                               Thread* thread);
 
   // Invokes the specified instance, static, or closure function.
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   static ObjectPtr InvokeFunction(
       const Function& function,
       const Array& arguments,
@@ -210,7 +221,7 @@ class DartEntry : public AllStatic {
   // object, performing any needed dynamic checks if the callable cannot receive
   // dynamic invocation.
   //
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   //
   // Used when an ArgumentsDescriptor is not required, that is, when there
   // are no type arguments or named arguments.
@@ -220,13 +231,13 @@ class DartEntry : public AllStatic {
   // object, performing any needed dynamic checks if the callable cannot receive
   // dynamic invocation.
   //
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   static ObjectPtr InvokeClosure(Thread* thread,
                                  const Array& arguments,
                                  const Array& arguments_descriptor);
 
   // Invokes the noSuchMethod instance function on the receiver.
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   static ObjectPtr InvokeNoSuchMethod(Thread* thread,
                                       const Instance& receiver,
                                       const String& target_name,
@@ -241,7 +252,7 @@ class DartEntry : public AllStatic {
   // callable or, if Function::null() is returned, an appropriate target for
   // invoking noSuchMethod.
   //
-  // On success, returns a RawFunction. On failure, a RawError.
+  // On success, returns a FunctionPtr. On failure, an ErrorPtr.
   static ObjectPtr ResolveCallable(Thread* thread,
                                    const Array& arguments,
                                    const Array& arguments_descriptor);
@@ -250,7 +261,7 @@ class DartEntry : public AllStatic {
   // checks needed if the function cannot receive dynamic invocation. Helper
   // method used within InvokeClosure.
   //
-  // On success, returns a RawInstance. On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr InvokeCallable(Thread* thread,
                                   const Function& callable_function,
                                   const Array& arguments,
@@ -261,22 +272,22 @@ class DartEntry : public AllStatic {
 // Each may return an exception object.
 class DartLibraryCalls : public AllStatic {
  public:
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr InstanceCreate(const Library& library,
                                   const String& exception_name,
                                   const String& constructor_name,
                                   const Array& arguments);
 
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr ToString(const Instance& receiver);
 
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr HashCode(const Instance& receiver);
 
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr Equals(const Instance& left, const Instance& right);
 
-  // On success, returns a RawInstance.  On failure, a RawError.
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr IdentityHashCode(const Instance& object);
 
   // Returns the handler if one has been registered for this port id.
@@ -285,24 +296,21 @@ class DartLibraryCalls : public AllStatic {
   // Returns a list of open ReceivePorts.
   static ObjectPtr LookupOpenPorts();
 
-  // Returns null on success, a RawError on failure.
+  // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr HandleMessage(const Object& handler,
                                  const Instance& dart_message);
 
-  // Returns null on success, a RawError on failure.
+  // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr DrainMicrotaskQueue();
 
   // Ensures that the isolate's _pendingImmediateCallback is set to
   // _startMicrotaskLoop from dart:async.
-  // Returns null on success, a RawError on failure.
+  // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr EnsureScheduleImmediate();
 
-  // map[key] = value;
-  //
-  // Returns null on success, a RawError on failure.
-  static ObjectPtr MapSetAt(const Instance& map,
-                            const Instance& key,
-                            const Instance& value);
+  // Runs the `_rehashObjects()` function.
+  static ObjectPtr RehashObjects(Thread* thread,
+                                 const Object& array_or_growable_array);
 };
 
 }  // namespace dart

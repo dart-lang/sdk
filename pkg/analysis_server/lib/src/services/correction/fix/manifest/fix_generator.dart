@@ -7,15 +7,12 @@ import 'dart:math' as math;
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:html/dom.dart';
-import 'package:meta/meta.dart';
 
 /// An object used to locate the HTML [Node] associated with a source range.
 /// More specifically, it will return the deepest HTML [Node] which completely
@@ -32,7 +29,7 @@ class HtmlNodeLocator {
   ///
   /// If the [end] offset is not provided, then it is considered the same as the
   /// [start] offset.
-  HtmlNodeLocator({@required int start, int end})
+  HtmlNodeLocator({required int start, int? end})
       : _startOffset = start,
         _endOffset = end ?? start;
 
@@ -48,8 +45,10 @@ class HtmlNodeLocator {
 
   void _searchWithin(List<Node> path, Node node) {
     var span = node.sourceSpan;
-    if (span.start.offset > _endOffset || span.end.offset < _startOffset) {
-      return;
+    if (span != null) {
+      if (span.start.offset > _endOffset || span.end.offset < _startOffset) {
+        return;
+      }
     }
     for (var element in node.children) {
       _searchWithin(path, element);
@@ -78,7 +77,7 @@ class ManifestFixGenerator {
 
   final List<Fix> fixes = <Fix>[];
 
-  List<Node> coveringNodePath;
+  // List<Node> coveringNodePath;
 
   ManifestFixGenerator(this.error, this.content, this.document)
       : errorOffset = error.offset,
@@ -91,12 +90,12 @@ class ManifestFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    var locator =
-        HtmlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
-    coveringNodePath = locator.searchWithin(document);
-    if (coveringNodePath.isEmpty) {
-      return fixes;
-    }
+    // var locator =
+    //     HtmlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
+    // coveringNodePath = locator.searchWithin(document);
+    // if (coveringNodePath.isEmpty) {
+    //   return fixes;
+    // }
 
     var errorCode = error.errorCode;
     if (errorCode == ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE) {
@@ -111,7 +110,7 @@ class ManifestFixGenerator {
   /// [kind]. If [args] are provided, they will be used to fill in the message
   /// for the fix.
   // ignore: unused_element
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List args}) {
+  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List? args}) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
@@ -130,9 +129,9 @@ class ManifestFixGenerator {
 
   // ignore: unused_element
   SourceRange _lines(int start, int end) {
-    CharacterLocation startLocation = lineInfo.getLocation(start);
+    var startLocation = lineInfo.getLocation(start);
     var startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
-    CharacterLocation endLocation = lineInfo.getLocation(end);
+    var endLocation = lineInfo.getLocation(end);
     var endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
     return SourceRange(startOffset, endOffset - startOffset);

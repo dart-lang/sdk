@@ -43,11 +43,11 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     await sendShutdown();
     sendExit();
 
-    await client.channel.closed.timeout(const Duration(seconds: 10),
+    await channel.closed.timeout(const Duration(seconds: 10),
         onTimeout: () =>
             fail('Server channel did not close within 10 seconds'));
 
-    final exitCode = await client.exitCode.timeout(const Duration(seconds: 10),
+    final exitCode = await client!.exitCode.timeout(const Duration(seconds: 10),
         onTimeout: () => fail('Server process did not exit within 10 seconds'));
 
     expect(exitCode, equals(0));
@@ -60,11 +60,11 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     await initialize();
     sendExit();
 
-    await client.channel.closed.timeout(const Duration(seconds: 10),
+    await channel.closed.timeout(const Duration(seconds: 10),
         onTimeout: () =>
             fail('Server channel did not close within 10 seconds'));
 
-    final exitCode = await client.exitCode.timeout(const Duration(seconds: 10),
+    final exitCode = await client!.exitCode.timeout(const Duration(seconds: 10),
         onTimeout: () => fail('Server process did not exit within 10 seconds'));
 
     expect(exitCode, equals(1));
@@ -74,11 +74,11 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     await sendShutdown();
     sendExit();
 
-    await client.channel.closed.timeout(const Duration(seconds: 10),
+    await channel.closed.timeout(const Duration(seconds: 10),
         onTimeout: () =>
             fail('Server channel did not close within 10 seconds'));
 
-    final exitCode = await client.exitCode.timeout(const Duration(seconds: 10),
+    final exitCode = await client!.exitCode.timeout(const Duration(seconds: 10),
         onTimeout: () => fail('Server process did not exit within 10 seconds'));
 
     expect(exitCode, equals(0));
@@ -91,8 +91,8 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
 
     sendExit();
 
-    await client.channel.closed;
-    final exitCode = await client.exitCode;
+    await channel.closed;
+    final exitCode = await client!.exitCode;
 
     expect(exitCode, equals(1));
   }

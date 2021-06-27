@@ -15,8 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class MissingDefaultValueForParameterTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class MissingDefaultValueForParameterTest extends PubPackageResolutionTest {
   test_constructor_externalFactory_nonNullable_named_optional_noDefault() async {
     await assertNoErrorsInCode('''
 class C {

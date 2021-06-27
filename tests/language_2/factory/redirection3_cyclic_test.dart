@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that a cycle in redirecting factories leads to a compile-time error.
 
 class A {
@@ -17,10 +19,10 @@ class B implements A {
 class C implements B {
   factory C.bar() = C.foo;
   //                ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_FACTORY_REDIRECT
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
   factory C.foo() = C.bar();
   //                ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_FACTORY_REDIRECT
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
   //                  ^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected ';' after this.

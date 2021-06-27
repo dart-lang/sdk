@@ -2,80 +2,57 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code for converting HTML into text, for use during code generation of
- * analyzer and analysis server.
- */
-
+/// Code for converting HTML into text, for use during code generation of
+/// analyzer and analysis server.
 import 'package:analyzer_utilities/tools.dart';
 import 'package:html/dom.dart' as dom;
 
-final RegExp whitespace = new RegExp(r'\s');
+final RegExp whitespace = RegExp(r'\s');
 
-/**
- * Convert the HTML in [desc] into text, word wrapping at width [width].
- *
- * If [javadocStyle] is true, then the output is compatible with Javadoc,
- * which understands certain HTML constructs.
- */
+/// Convert the HTML in [desc] into text, word wrapping at width [width].
+///
+/// If [javadocStyle] is true, then the output is compatible with Javadoc,
+/// which understands certain HTML constructs.
 String nodesToText(List<dom.Node> desc, int width, bool javadocStyle,
-    {bool removeTrailingNewLine: false}) {
-  _TextFormatter formatter = new _TextFormatter(width, javadocStyle);
+    {bool removeTrailingNewLine = false}) {
+  var formatter = _TextFormatter(width, javadocStyle);
   return formatter.collectCode(() {
     formatter.addAll(desc);
     formatter.lineBreak(false);
   }, removeTrailingNewLine: removeTrailingNewLine);
 }
 
-/**
- * Engine that transforms HTML to text.  The input HTML is processed one
- * character at a time, gathering characters into words and words into lines.
- */
+/// Engine that transforms HTML to text.  The input HTML is processed one
+/// character at a time, gathering characters into words and words into lines.
 class _TextFormatter extends CodeGenerator {
-  /**
-   * Word-wrapping width.
-   */
+  /// Word-wrapping width.
   final int width;
 
-  /**
-   * The word currently being gathered.
-   */
+  /// The word currently being gathered.
   String word = '';
 
-  /**
-   * The line currently being gathered.
-   */
+  /// The line currently being gathered.
   String line = '';
 
-  /**
-   * True if a blank line should be inserted before the next word.
-   */
+  /// True if a blank line should be inserted before the next word.
   bool verticalSpaceNeeded = false;
 
-  /**
-   * True if no text has been output yet.  This suppresses blank lines.
-   */
+  /// True if no text has been output yet.  This suppresses blank lines.
   bool atStart = true;
 
-  /**
-   * True if we are processing a <pre> element, thus whitespace should be
-   * preserved.
-   */
+  /// True if we are processing a <pre> element, thus whitespace should be
+  /// preserved.
   bool preserveSpaces = false;
 
-  /**
-   * True if the output should be Javadoc compatible.
-   */
+  /// True if the output should be Javadoc compatible.
   final bool javadocStyle;
 
   _TextFormatter(this.width, this.javadocStyle);
 
-  /**
-   * Process an HTML node.
-   */
+  /// Process an HTML node.
   void add(dom.Node node) {
     if (node is dom.Text) {
-      for (String char in node.text.split('')) {
+      for (var char in node.text.split('')) {
         if (preserveSpaces) {
           wordBreak();
           write(escape(char));
@@ -141,7 +118,7 @@ class _TextFormatter extends CodeGenerator {
           if (javadocStyle) {
             writeln('<pre>');
           }
-          bool oldPreserveSpaces = preserveSpaces;
+          var oldPreserveSpaces = preserveSpaces;
           try {
             preserveSpaces = true;
             addAll(node.nodes);
@@ -166,25 +143,21 @@ class _TextFormatter extends CodeGenerator {
         case 'head':
           break;
         default:
-          throw new Exception('Unexpected HTML element: ${node.localName}');
+          throw Exception('Unexpected HTML element: ${node.localName}');
       }
     } else {
-      throw new Exception('Unexpected HTML: $node');
+      throw Exception('Unexpected HTML: $node');
     }
   }
 
-  /**
-   * Process a list of HTML nodes.
-   */
+  /// Process a list of HTML nodes.
   void addAll(List<dom.Node> nodes) {
-    for (dom.Node node in nodes) {
+    for (var node in nodes) {
       add(node);
     }
   }
 
-  /**
-   * Escape the given character for HTML.
-   */
+  /// Escape the given character for HTML.
   String escape(String char) {
     if (javadocStyle) {
       switch (char) {
@@ -199,9 +172,7 @@ class _TextFormatter extends CodeGenerator {
     return char;
   }
 
-  /**
-   * Terminate the current word and/or line, if either is in progress.
-   */
+  /// Terminate the current word and/or line, if either is in progress.
   void lineBreak(bool gap) {
     wordBreak();
     if (line.isNotEmpty) {
@@ -213,9 +184,7 @@ class _TextFormatter extends CodeGenerator {
     }
   }
 
-  /**
-   * Insert vertical space if necessary.
-   */
+  /// Insert vertical space if necessary.
   void resolveVerticalSpace() {
     if (verticalSpaceNeeded) {
       writeln();
@@ -223,9 +192,7 @@ class _TextFormatter extends CodeGenerator {
     }
   }
 
-  /**
-   * Terminate the current word, if a word is in progress.
-   */
+  /// Terminate the current word, if a word is in progress.
   void wordBreak() {
     if (word.isNotEmpty) {
       atStart = false;

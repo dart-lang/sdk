@@ -387,6 +387,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
   Future<Process> _start() {
     var completer = new Completer<Process>();
+    var stackTrace = StackTrace.current;
     if (_modeIsAttached(_mode)) {
       _exitCode = new Completer<int>();
     }
@@ -407,8 +408,10 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
           _modeIsAttached(_mode) ? _exitHandler._nativeSocket : null,
           status);
       if (!success) {
-        completer.completeError(new ProcessException(
-            _path, _arguments, status._errorMessage!, status._errorCode!));
+        completer.completeError(
+            new ProcessException(
+                _path, _arguments, status._errorMessage!, status._errorCode!),
+            stackTrace);
         return;
       }
 

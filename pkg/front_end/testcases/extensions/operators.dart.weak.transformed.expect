@@ -1,0 +1,147 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/operators.dart:125:3: Error: Explicit extension application cannot be used as an expression.
+//   Operators(c) == c;
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/operators.dart:126:3: Error: Explicit extension application cannot be used as an expression.
+//   Operators(c) != c;
+//   ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Complex extends core::Object /*hasConstConstructor*/  {
+  final field core::double* real;
+  final field core::double* imaginary;
+  const constructor •(core::double* real, core::double* imaginary) → self::Complex*
+    : self::Complex::real = real, self::Complex::imaginary = imaginary, super core::Object::•()
+    ;
+  method add(self::Complex* other) → self::Complex* {
+    return new self::Complex::•(this.{self::Complex::real}{core::double*}.{core::double::+}(other.{self::Complex::real}{core::double*}){(core::num*) →* core::double*}, this.{self::Complex::imaginary}{core::double*}.{core::double::+}(other.{self::Complex::imaginary}{core::double*}){(core::num*) →* core::double*});
+  }
+  method sub(self::Complex* other) → self::Complex* {
+    return new self::Complex::•(this.{self::Complex::real}{core::double*}.{core::double::-}(other.{self::Complex::real}{core::double*}){(core::num*) →* core::double*}, this.{self::Complex::imaginary}{core::double*}.{core::double::-}(other.{self::Complex::imaginary}{core::double*}){(core::num*) →* core::double*});
+  }
+  method negate() → self::Complex* {
+    return new self::Complex::•(this.{self::Complex::real}{core::double*}.{core::double::unary-}(){() →* core::double*}, this.{self::Complex::imaginary}{core::double*}.{core::double::unary-}(){() →* core::double*});
+  }
+  get hashCode() → core::int*
+    return this.{self::Complex::real}{core::double*}.{core::num::hashCode}{core::int*}.{core::num::*}(13){(core::num*) →* core::int*}.{core::num::+}(this.{self::Complex::imaginary}{core::double*}.{core::num::hashCode}{core::int*}.{core::num::*}(19){(core::num*) →* core::int*}){(core::num*) →* core::int*};
+  operator ==(core::Object* other) → core::bool* {
+    if(core::identical(this, other))
+      return true;
+    return other is self::Complex* && this.{self::Complex::real}{core::double*} =={core::num::==}{(core::Object*) →* core::bool*} other{self::Complex*}.{self::Complex::real}{core::double*} && this.{self::Complex::imaginary}{core::double*} =={core::num::==}{(core::Object*) →* core::bool*} other{self::Complex*}.{self::Complex::imaginary}{core::double*};
+  }
+  method toString() → core::String*
+    return "Complex(${this.{self::Complex::real}{core::double*}},${this.{self::Complex::imaginary}{core::double*}})";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Operators on self::Complex* {
+  operator + = self::Operators|+;
+  operator - = self::Operators|-;
+  operator unary- = self::Operators|unary-;
+}
+static method Operators|+(lowered final self::Complex* #this, self::Complex* other) → self::Complex*
+  return #this.{self::Complex::add}(other){(self::Complex*) →* self::Complex*};
+static method Operators|-(lowered final self::Complex* #this, self::Complex* other) → self::Complex*
+  return #this.{self::Complex::sub}(other){(self::Complex*) →* self::Complex*};
+static method Operators|unary-(lowered final self::Complex* #this) → self::Complex*
+  return #this.{self::Complex::negate}(){() →* self::Complex*};
+static method main() → dynamic {
+  self::implicit();
+  self::explicit();
+}
+static method implicit() → dynamic {
+  self::Complex* c_m2 = new self::Complex::•(-2.0, 2.0);
+  self::Complex* c_m1 = new self::Complex::•(-1.0, 1.0);
+  self::Complex* c0 = new self::Complex::•(0.0, 0.0);
+  self::Complex* c1 = new self::Complex::•(1.0, -1.0);
+  self::Complex* c2 = new self::Complex::•(2.0, -2.0);
+  self::expect(c_m2, self::Operators|+(c0, c_m2));
+  self::expect(c_m2, self::Operators|+(c_m2, c0));
+  self::expect(c_m2, self::Operators|+(c_m1, c_m1));
+  self::expect(c_m1, self::Operators|+(c0, c_m1));
+  self::expect(c_m1, self::Operators|+(c_m1, c0));
+  self::expect(c0, self::Operators|+(c_m2, c2));
+  self::expect(c0, self::Operators|+(c2, c_m2));
+  self::expect(c0, self::Operators|+(c_m1, c1));
+  self::expect(c0, self::Operators|+(c1, c_m1));
+  self::expect(c0, self::Operators|+(c0, c0));
+  self::expect(c1, self::Operators|+(c0, c1));
+  self::expect(c1, self::Operators|+(c1, c0));
+  self::expect(c2, self::Operators|+(c0, c2));
+  self::expect(c2, self::Operators|+(c2, c0));
+  self::expect(c2, self::Operators|+(c1, c1));
+  self::expect(c_m2, self::Operators|-(c0, c2));
+  self::expect(c2, self::Operators|-(c2, c0));
+  self::expect(c_m2, self::Operators|unary-(c2));
+  self::expect(c_m1, self::Operators|-(c1, c2));
+  self::expect(c1, self::Operators|-(c2, c1));
+  self::expect(c_m1, self::Operators|-(c0, c1));
+  self::expect(c1, self::Operators|-(c1, c0));
+  self::expect(c_m1, self::Operators|unary-(c1));
+  self::expect(c0, self::Operators|-(c2, c2));
+  self::expect(c0, self::Operators|-(c1, c1));
+  self::expect(c0, self::Operators|-(c0, c0));
+  self::expect(c0, self::Operators|-(c_m1, c_m1));
+  self::expect(c0, self::Operators|-(c_m2, c_m2));
+  self::expect(c0, self::Operators|unary-(c0));
+}
+static method explicit() → dynamic {
+  self::Complex* c_m2 = new self::Complex::•(-2.0, 2.0);
+  self::Complex* c_m1 = new self::Complex::•(-1.0, 1.0);
+  self::Complex* c0 = new self::Complex::•(0.0, 0.0);
+  self::Complex* c1 = new self::Complex::•(1.0, -1.0);
+  self::Complex* c2 = new self::Complex::•(2.0, -2.0);
+  self::expect(c_m2, self::Operators|+(c0, c_m2));
+  self::expect(c_m2, self::Operators|+(c_m2, c0));
+  self::expect(c_m2, self::Operators|+(c_m1, c_m1));
+  self::expect(c_m1, self::Operators|+(c0, c_m1));
+  self::expect(c_m1, self::Operators|+(c_m1, c0));
+  self::expect(c0, self::Operators|+(c_m2, c2));
+  self::expect(c0, self::Operators|+(c2, c_m2));
+  self::expect(c0, self::Operators|+(c_m1, c1));
+  self::expect(c0, self::Operators|+(c1, c_m1));
+  self::expect(c0, self::Operators|+(c0, c0));
+  self::expect(c1, self::Operators|+(c0, c1));
+  self::expect(c1, self::Operators|+(c1, c0));
+  self::expect(c2, self::Operators|+(c0, c2));
+  self::expect(c2, self::Operators|+(c2, c0));
+  self::expect(c2, self::Operators|+(c1, c1));
+  self::expect(c_m2, self::Operators|-(c0, c2));
+  self::expect(c2, self::Operators|-(c2, c0));
+  self::expect(c_m2, self::Operators|unary-(c2));
+  self::expect(c_m1, self::Operators|-(c1, c2));
+  self::expect(c1, self::Operators|-(c2, c1));
+  self::expect(c_m1, self::Operators|-(c0, c1));
+  self::expect(c1, self::Operators|-(c1, c0));
+  self::expect(c_m1, self::Operators|unary-(c1));
+  self::expect(c0, self::Operators|-(c2, c2));
+  self::expect(c0, self::Operators|-(c1, c1));
+  self::expect(c0, self::Operators|-(c0, c0));
+  self::expect(c0, self::Operators|-(c_m1, c_m1));
+  self::expect(c0, self::Operators|-(c_m2, c_m2));
+  self::expect(c0, self::Operators|unary-(c0));
+}
+static method errors(self::Complex* c) → void {
+  invalid-expression "pkg/front_end/testcases/extensions/operators.dart:125:3: Error: Explicit extension application cannot be used as an expression.
+  Operators(c) == c;
+  ^^^^^^^^^" =={core::Object::==}{(core::Object*) →* core::bool*} c;
+  !(invalid-expression "pkg/front_end/testcases/extensions/operators.dart:126:3: Error: Explicit extension application cannot be used as an expression.
+  Operators(c) != c;
+  ^^^^^^^^^" =={core::Object::==}{(core::Object*) →* core::bool*} c);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

@@ -1,10 +1,16 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
+// @dart = 2.9
+
 import 'dart:io' show File, Platform, stdin, exitCode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import 'incremental_load_from_dill_suite.dart' as helper;
+import 'incremental_suite.dart' as helper;
 
 main(List<String> args) async {
   exitCode = 1;

@@ -28,6 +28,8 @@
 //
 // ES6 extends the \uxxxx escape and also allows \u{xxxxx}.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 import 'v8_regexp_utils.dart';

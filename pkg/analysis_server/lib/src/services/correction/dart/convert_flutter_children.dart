@@ -15,26 +15,26 @@ class ConvertFlutterChildren extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is SimpleIdentifier &&
-        node.name == 'children' &&
-        node.parent?.parent is NamedExpression) {
-      NamedExpression named = node.parent?.parent;
-      var expression = named.expression;
-      if (expression is ListLiteral && expression.elements.length == 1) {
-        var widget = expression.elements[0];
-        if (flutter.isWidgetExpression(widget)) {
-          var widgetText = utils.getNodeText(widget);
-          var indentOld = utils.getLinePrefix(widget.offset);
-          var indentNew = utils.getLinePrefix(named.offset);
-          widgetText = _replaceSourceIndent(widgetText, indentOld, indentNew);
+    var identifier = node;
+    if (identifier is SimpleIdentifier && identifier.name == 'children') {
+      var namedExpression = identifier.parent?.parent;
+      if (namedExpression is NamedExpression) {
+        var expression = namedExpression.expression;
+        if (expression is ListLiteral && expression.elements.length == 1) {
+          var widget = expression.elements[0];
+          if (flutter.isWidgetExpression(widget)) {
+            var widgetText = utils.getNodeText(widget);
+            var indentOld = utils.getLinePrefix(widget.offset);
+            var indentNew = utils.getLinePrefix(namedExpression.offset);
+            widgetText = _replaceSourceIndent(widgetText, indentOld, indentNew);
 
-          await builder.addDartFileEdit(file, (builder) {
-            builder.addReplacement(range.node(named), (builder) {
-              builder.write('child: ');
-              builder.write(widgetText);
+            await builder.addDartFileEdit(file, (builder) {
+              builder.addReplacement(range.node(namedExpression), (builder) {
+                builder.write('child: ');
+                builder.write(widgetText);
+              });
             });
-          });
+          }
         }
       }
     }

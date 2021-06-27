@@ -12,22 +12,77 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropAnonymousFactoryPositionalParameters,
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
+        messageJsInteropExternalMemberNotJSAnnotated,
         messageJsInteropIndexNotSupported,
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
         templateJsInteropDartClassExtendsJSClass,
-        templateJsInteropJSClassExtendsDartClass;
+        templateJsInteropJSClassExtendsDartClass,
+        templateJsInteropNativeClassInAnnotation;
 
 import 'src/js_interop.dart';
 
-class JsInteropChecks extends RecursiveVisitor<void> {
+class JsInteropChecks extends RecursiveVisitor {
   final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
+  final Map<String, Class> _nativeClasses;
   bool _classHasJSAnnotation = false;
+  bool _classHasAnonymousAnnotation = false;
   bool _libraryHasJSAnnotation = false;
 
-  JsInteropChecks(this._coreTypes, this._diagnosticsReporter);
+  /// Libraries that use `external` to exclude from checks on external.
+  static final Iterable<String> _pathsWithAllowedDartExternalUsage = <String>[
+    '_foreign_helper', // for foreign helpers
+    '_interceptors', // for ddc JS string
+    '_native_typed_data',
+    '_runtime', // for ddc types at runtime
+    'async',
+    'core', // for environment constructors
+    'html',
+    'html_common',
+    'indexed_db',
+    'js',
+    'js_util',
+    'svg',
+    'web_audio',
+    'web_gl',
+    'web_sql'
+  ];
+
+  /// Native tests to exclude from checks on external.
+  // TODO(rileyporter): Use ExternalName from CFE to exclude native tests.
+  List<Pattern> _allowedNativeTestPatterns = [
+    RegExp(r'(?<!generated_)tests/web/native'),
+    RegExp(r'(?<!generated_)tests/web/internal'),
+    'generated_tests/web/native/native_test',
+    RegExp(r'(?<!generated_)tests/web_2/native'),
+    RegExp(r'(?<!generated_)tests/web_2/internal'),
+    'generated_tests/web_2/native/native_test',
+  ];
+
+  bool _libraryIsGlobalNamespace = false;
+
+  JsInteropChecks(
+      this._coreTypes, this._diagnosticsReporter, this._nativeClasses);
+
+  /// Extract all native class names from the [component].
+  ///
+  /// Returns a map from the name to the underlying Class node. This is a
+  /// static method so that the result can be cached in the corresponding
+  /// compiler target.
+  static Map<String, Class> getNativeClasses(Component component) {
+    Map<String, Class> nativeClasses = {};
+    for (var library in component.libraries) {
+      for (var cls in library.classes) {
+        var nativeNames = getNativeNames(cls);
+        for (var nativeName in nativeNames) {
+          nativeClasses[nativeName] = cls;
+        }
+      }
+    }
+    return nativeClasses;
+  }
 
   @override
   void defaultMember(Member member) {
@@ -40,6 +95,7 @@ class JsInteropChecks extends RecursiveVisitor<void> {
   @override
   void visitClass(Class cls) {
     _classHasJSAnnotation = hasJSInteropAnnotation(cls);
+    _classHasAnonymousAnnotation = hasAnonymousAnnotation(cls);
     var superclass = cls.superclass;
     if (superclass != null && superclass != _coreTypes.objectClass) {
       var superHasJSAnnotation = hasJSInteropAnnotation(superclass);
@@ -59,14 +115,55 @@ class JsInteropChecks extends RecursiveVisitor<void> {
             cls.location.file);
       }
     }
+    // Since this is a breaking check, it is language-versioned.
+    if (cls.enclosingLibrary.languageVersion >= Version(2, 13) &&
+        _classHasJSAnnotation &&
+        !_classHasAnonymousAnnotation &&
+        _libraryIsGlobalNamespace) {
+      var jsClass = getJSName(cls);
+      if (jsClass.isEmpty) {
+        // No rename, take the name of the class directly.
+        jsClass = cls.name;
+      } else {
+        // Remove any global prefixes. Regex here is greedy and will only return
+        // a value for `className` that doesn't start with 'self.' or 'window.'.
+        var classRegexp = new RegExp(r'^((self|window)\.)*(?<className>.*)$');
+        var matches = classRegexp.allMatches(jsClass);
+        jsClass = matches.first.namedGroup('className');
+      }
+      if (_nativeClasses.containsKey(jsClass)) {
+        var nativeClass = _nativeClasses[jsClass];
+        _diagnosticsReporter.report(
+            templateJsInteropNativeClassInAnnotation.withArguments(
+                cls.name,
+                nativeClass.name,
+                nativeClass.enclosingLibrary.importUri.toString()),
+            cls.fileOffset,
+            cls.name.length,
+            cls.location.file);
+      }
+    }
     super.visitClass(cls);
+    _classHasAnonymousAnnotation = false;
     _classHasJSAnnotation = false;
   }
 
   @override
   void visitLibrary(Library lib) {
     _libraryHasJSAnnotation = hasJSInteropAnnotation(lib);
+    _libraryIsGlobalNamespace = false;
+    if (_libraryHasJSAnnotation) {
+      var libraryAnnotation = getJSName(lib);
+      var globalRegexp = new RegExp(r'^(self|window)(\.(self|window))*$');
+      if (libraryAnnotation.isEmpty ||
+          globalRegexp.hasMatch(libraryAnnotation)) {
+        _libraryIsGlobalNamespace = true;
+      }
+    } else {
+      _libraryIsGlobalNamespace = true;
+    }
     super.visitLibrary(lib);
+    _libraryIsGlobalNamespace = false;
     _libraryHasJSAnnotation = false;
   }
 
@@ -98,7 +195,7 @@ class JsInteropChecks extends RecursiveVisitor<void> {
     }
 
     var isAnonymousFactory =
-        isAnonymousClassMember(procedure) && procedure.isFactory;
+        _classHasAnonymousAnnotation && procedure.isFactory;
 
     if (isAnonymousFactory) {
       if (procedure.function != null &&
@@ -166,6 +263,30 @@ class JsInteropChecks extends RecursiveVisitor<void> {
                 enclosingClass.name.length)
           ]);
     }
+
+    // Check for correct `external` usage.
+    if (member.isExternal &&
+        !_isAllowedExternalUsage(member) &&
+        !hasJSInteropAnnotation(member)) {
+      if (member.enclosingClass != null && !_classHasJSAnnotation ||
+          member.enclosingClass == null && !_libraryHasJSAnnotation) {
+        _diagnosticsReporter.report(
+            messageJsInteropExternalMemberNotJSAnnotated,
+            member.fileOffset,
+            member.name.text.length,
+            member.location.file);
+      }
+    }
+  }
+
+  /// Verifies given member is one of the allowed usages of external:
+  /// a dart low level library, a foreign helper, a native test,
+  /// or a from environment constructor.
+  bool _isAllowedExternalUsage(Member member) {
+    Uri uri = member.enclosingLibrary.importUri;
+    return uri.scheme == 'dart' &&
+            _pathsWithAllowedDartExternalUsage.contains(uri.path) ||
+        _allowedNativeTestPatterns.any((pattern) => uri.path.contains(pattern));
   }
 
   /// Returns whether [member] is considered to be a JS interop member.

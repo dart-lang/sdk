@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing named parameters.
 
+// @dart = 2.9
+
 class TypeTester<T> {}
 
 // Expect compile-time error as no default values are allowed
@@ -37,8 +39,9 @@ class NamedParametersAggregatedTests {
 main() {
   // Expect compile-time error due to missing comma in function definition.
   NamedParametersAggregatedTests.f_missing_comma(10, 25);
-  //                                            ^^^^^^^^
+  //                                                 ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //                                            ^^^^^^^^
   // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 
   // Expect compile-time error due to duplicate named argument.

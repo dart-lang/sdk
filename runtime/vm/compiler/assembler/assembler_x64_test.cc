@@ -4935,7 +4935,7 @@ ASSEMBLER_TEST_RUN(DoubleToInt32Conversion, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
   const Object& obj = Object::ZoneHandle(object_store->smi_class());
   Label fail;
   EnterTestFrame(assembler);
@@ -4971,6 +4971,7 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
 ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
   bool res = test->InvokeWithCodeAndThread<bool>();
   EXPECT_EQ(true, res);
+#if !defined(DART_COMPRESSED_POINTERS)
   EXPECT_DISASSEMBLY_NOT_WINDOWS(
       "push rbp\n"
       "movq rbp,rsp\n"
@@ -5014,6 +5015,51 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
       "movq rsp,rbp\n"
       "pop rbp\n"
       "ret\n");
+#else
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "push rbp\n"
+      "movq rbp,rsp\n"
+      "push r12\n"
+      "push pp\n"
+      "push thr\n"
+      "movq r12,[rdi+0x8]\n"
+      "movq thr,rsi\n"
+      "movq pp,[r12+0x27]\n"
+      "movq rax,[pp+0xf]\n"
+      "cmpl rax,[pp+0xf]\n"
+      "jnz 0x................\n"
+      "movq rcx,[pp+0xf]\n"
+      "cmpl rcx,[pp+0xf]\n"
+      "jnz 0x................\n"
+      "movl rcx,0x1e\n"
+      "cmpl rcx,0x1e\n"
+      "jnz 0x................\n"
+      "push rax\n"
+      "movq r11,[pp+0xf]\n"
+      "movq [rsp],r11\n"
+      "pop rcx\n"
+      "cmpl rcx,[pp+0xf]\n"
+      "jnz 0x................\n"
+      "push rax\n"
+      "movq [rsp],0x1e\n"
+      "pop rcx\n"
+      "cmpl rcx,0x1e\n"
+      "jnz 0x................\n"
+      "movl rax,1\n"
+      "pop thr\n"
+      "pop pp\n"
+      "pop r12\n"
+      "movq rsp,rbp\n"
+      "pop rbp\n"
+      "ret\n"
+      "movl rax,0\n"
+      "pop thr\n"
+      "pop pp\n"
+      "pop r12\n"
+      "movq rsp,rbp\n"
+      "pop rbp\n"
+      "ret\n");
+#endif
 }
 
 ASSEMBLER_TEST_GENERATE(TestNop, assembler) {

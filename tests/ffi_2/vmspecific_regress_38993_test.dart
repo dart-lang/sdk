@@ -4,10 +4,14 @@
 //
 // Tests a compile time error that should not crash the analyzer or CFE.
 
+// @dart = 2.9
+
 import "dart:ffi";
 
 class C extends Struct {
   dynamic x; //# 1: compile-time error
+
+  Pointer notEmpty;
 }
 
 main() {}

@@ -139,7 +139,7 @@ class RuntimeTypeEqualityVisitor
   /// Determines if the two lists of type parameters are equal.  If they are,
   /// returns a [_TypeParametersResult] indicating the substitutions necessary
   /// to demonstrate their equality.  If they aren't, returns `null`.
-  _TypeParametersResult _typeParameters(
+  _TypeParametersResult? _typeParameters(
     List<TypeParameterElement> T1_parameters,
     List<TypeParameterElement> T2_parameters,
   ) {

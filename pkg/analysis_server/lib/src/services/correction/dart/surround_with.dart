@@ -247,7 +247,8 @@ class _SurroundWithSetState extends _SurroundWith {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var classDeclaration = node.parent.thisOrAncestorOfType<ClassDeclaration>();
+    var classDeclaration =
+        node.parent?.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration != null &&
         flutter.isState(classDeclaration.declaredElement)) {
       await builder.addDartFileEdit(file, (builder) {

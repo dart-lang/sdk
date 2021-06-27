@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--no_show_internal_names
 // Dart test program testing type casts.
+
+// @dart = 2.9
 import "package:expect/expect.dart";
 
 checkSecondFunction(String expected, StackTrace stacktrace) {

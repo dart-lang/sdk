@@ -7,9 +7,9 @@ library vm_snapshot_analysis.treemap;
 
 import 'dart:math';
 
-import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
+import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 
@@ -82,10 +82,11 @@ Map<String, dynamic> treemapFromJson(Object inputJson,
   final root = {'n': '', 'children': {}, 'k': kindPath, 'maxDepth': 0};
 
   if (v8_profile.Snapshot.isV8HeapSnapshot(inputJson)) {
-    _treemapFromSnapshot(root, v8_profile.Snapshot.fromJson(inputJson),
+    _treemapFromSnapshot(
+        root, v8_profile.Snapshot.fromJson(inputJson as Map<String, dynamic>),
         format: format);
   } else {
-    final symbols = instruction_sizes.fromJson(inputJson);
+    final symbols = instruction_sizes.fromJson(inputJson as List<dynamic>);
     for (var symbol in symbols) {
       _addSymbol(root, _treePath(symbol), symbol.name.scrubbed, symbol.size);
     }
@@ -163,20 +164,22 @@ void _treemapFromSnapshot(Map<String, dynamic> root, v8_profile.Snapshot snap,
     return;
   }
 
+  final snapshotInfo = info.snapshotInfo!;
+
   final ownerPathCache =
-      List<String>.filled(info.snapshotInfo.infoNodes.length, null);
+      List<String?>.filled(snapshotInfo.infoNodes.length, null);
   ownerPathCache[info.root.id] = info.root.name;
 
   String ownerPath(ProgramInfoNode n) {
-    return ownerPathCache[n.id] ??=
-        ((n.parent != info.root) ? '${ownerPath(n.parent)}/${n.name}' : n.name);
+    return ownerPathCache[n.id] ??= ((n.parent != info.root)
+        ? '${ownerPath(n.parent!)}/${n.name}'
+        : n.name);
   }
 
-  final nameFormatter = _nameFormatters[format];
-
+  final nameFormatter = _nameFormatters[format]!;
   for (var node in snap.nodes) {
     if (node.selfSize > 0) {
-      final owner = info.snapshotInfo.ownerOf(node);
+      final owner = snapshotInfo.ownerOf(node);
 
       final name = nameFormatter(node);
       final path = ownerPath(owner);
@@ -227,7 +230,7 @@ Map<String, dynamic> _addChild(
 }
 
 /// Add the given symbol to the tree.
-void _addSymbol(Map<String, dynamic> root, String path, String name, int size,
+void _addSymbol(Map<String, dynamic> root, String path, String name, int? size,
     {String symbolType = symbolTypeGlobalText}) {
   if (size == null || size == 0) {
     return;

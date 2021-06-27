@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ImplicitThisReferenceInInitializerTest extends PubPackageResolutionTest {
+class ImplicitThisReferenceInInitializerTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_class_field_commentReference_prefixedIdentifier() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -92,7 +93,6 @@ class A {
   final y = x;
 }
 ''', [
-      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 37, 1),
       error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 37, 1),
     ]);
   }

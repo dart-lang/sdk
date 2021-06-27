@@ -17,8 +17,10 @@ import 'perf/flutter_analyze_benchmark.dart';
 
 Future main(List<String> args) async {
   var benchmarks = <Benchmark>[
-    ColdAnalysisBenchmark(),
-    AnalysisBenchmark(),
+    ColdAnalysisBenchmark(ServerBenchmark.das),
+    ColdAnalysisBenchmark(ServerBenchmark.lsp),
+    AnalysisBenchmark(ServerBenchmark.das),
+    AnalysisBenchmark(ServerBenchmark.lsp),
     FlutterAnalyzeBenchmark(),
   ];
 
@@ -40,7 +42,7 @@ void deleteServerCache() {
   ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
   var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
   try {
-    if (stateLocation.exists) {
+    if (stateLocation != null && stateLocation.exists) {
       stateLocation.delete();
     }
   } catch (e) {
@@ -118,8 +120,8 @@ class CompoundBenchMarkResult extends BenchMarkResult {
 
   @override
   BenchMarkResult combine(BenchMarkResult other) {
-    BenchMarkResult _combine(BenchMarkResult a, BenchMarkResult b) {
-      if (a == null) return b;
+    BenchMarkResult _combine(BenchMarkResult? a, BenchMarkResult? b) {
+      if (a == null) return b!;
       if (b == null) return a;
       return a.combine(b);
     }
@@ -140,8 +142,8 @@ class CompoundBenchMarkResult extends BenchMarkResult {
   @override
   Map toJson() {
     var m = <String, dynamic>{};
-    for (var key in results.keys) {
-      m['$name-$key'] = results[key].toJson();
+    for (var entry in results.entries) {
+      m['$name-${entry.key}'] = entry.value.toJson();
     }
     return m;
   }
@@ -162,14 +164,14 @@ class ListCommand extends Command {
   String get description => 'List available benchmarks.';
 
   @override
-  String get invocation => '${runner.executableName} $name';
+  String get invocation => '${runner!.executableName} $name';
 
   @override
   String get name => 'list';
 
   @override
   void run() {
-    if (argResults['machine'] as bool) {
+    if (argResults!['machine'] as bool) {
       var map = <String, dynamic>{
         'benchmarks': benchmarks.map((b) => b.toJson()).toList()
       };
@@ -202,22 +204,22 @@ class RunCommand extends Command {
   String get description => 'Run a given benchmark.';
 
   @override
-  String get invocation => '${runner.executableName} $name <benchmark-id>';
+  String get invocation => '${runner!.executableName} $name <benchmark-id>';
 
   @override
   String get name => 'run';
 
   @override
   Future run() async {
-    if (argResults.rest.isEmpty) {
+    if (argResults!.rest.isEmpty) {
       printUsage();
       exit(1);
     }
 
-    var benchmarkId = argResults.rest.first;
-    var repeatCount = int.parse(argResults['repeat'] as String);
-    var quick = argResults['quick'];
-    var verbose = argResults['verbose'];
+    var benchmarkId = argResults!.rest.first;
+    var repeatCount = int.parse(argResults!['repeat'] as String);
+    var quick = argResults!['quick'];
+    var verbose = argResults!['verbose'];
 
     var benchmark =
         benchmarks.firstWhere((b) => b.id == benchmarkId, orElse: () {
@@ -236,7 +238,7 @@ class RunCommand extends Command {
     }
 
     try {
-      BenchMarkResult result;
+      BenchMarkResult? result;
       var time = Stopwatch()..start();
       print('Running $benchmarkId $actualIterations times...');
 
@@ -253,7 +255,7 @@ class RunCommand extends Command {
       print('Finished in ${time.elapsed.inSeconds} seconds.\n');
       var m = <String, dynamic>{
         'benchmark': benchmarkId,
-        'result': result.toJson()
+        'result': result!.toJson()
       };
       print(json.encode(m));
 

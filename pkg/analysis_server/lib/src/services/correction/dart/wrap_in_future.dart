@@ -18,21 +18,26 @@ class WrapInFuture extends CorrectionProducer {
     //
     // Extract the information needed to build the edit.
     //
-    Expression expression;
+    Expression? expression;
+    final node = this.node;
     if (node is ReturnStatement) {
-      expression = (node as ReturnStatement).expression;
+      expression = node.expression;
     } else if (node is Expression) {
       expression = node;
-    } else {
+    }
+    if (expression == null) {
       return;
     }
     var value = utils.getNodeText(expression);
     //
     // Build the edit.
     //
+    var final_expression = expression;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          range.node(expression), 'Future.value($value)');
+        range.node(final_expression),
+        'Future.value($value)',
+      );
     });
   }
 

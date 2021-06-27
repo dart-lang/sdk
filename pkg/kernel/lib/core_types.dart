@@ -1,12 +1,12 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library kernel.core_types;
 
-import 'package:kernel/type_algebra.dart';
+library kernel.core_types;
 
 import 'ast.dart';
 import 'library_index.dart';
+import 'type_algebra.dart';
 
 /// Provides access to the classes and libraries in the core libraries.
 class CoreTypes {
@@ -42,135 +42,67 @@ class CoreTypes {
 
   final LibraryIndex index;
 
-  Library _coreLibrary;
-  Class _objectClass;
-  Class _deprecatedNullClass;
-  Class _boolClass;
-  Class _intClass;
-  Class _numClass;
-  Class _doubleClass;
-  Class _stringClass;
-  Class _listClass;
-  Class _setClass;
-  Class _mapClass;
-  Class _iterableClass;
-  Class _iteratorClass;
-  Class _symbolClass;
-  Class _typeClass;
-  Class _functionClass;
-  Class _invocationClass;
-  Class _invocationMirrorClass;
-  Constructor _invocationMirrorWithTypeConstructor;
-  Constructor _noSuchMethodErrorDefaultConstructor;
-  Procedure _listDefaultConstructor;
-  Procedure _listFromConstructor;
-  Procedure _listUnmodifiableConstructor;
-  Procedure _identicalProcedure;
-  Constructor _fallThroughErrorUrlAndLineConstructor;
-  Procedure _objectEquals;
-  Procedure _mapUnmodifiable;
-  Procedure _iterableGetIterator;
-  Procedure _iteratorMoveNext;
-  Procedure _iteratorGetCurrent;
-  Procedure _isSentinelMethod;
-  Procedure _createSentinelMethod;
-
-  Class _internalSymbolClass;
-
-  Library _asyncLibrary;
-  Class _futureClass;
-  Class _deprecatedFutureOrClass;
-  Class _stackTraceClass;
-  Class _streamClass;
-  Class _futureImplClass;
-  Constructor _futureImplConstructor;
-  Procedure _completeOnAsyncErrorProcedure;
-  Procedure _completeOnAsyncReturnProcedure;
-  Constructor _syncIterableDefaultConstructor;
-  Constructor _streamIteratorDefaultConstructor;
-  Constructor _asyncStarStreamControllerDefaultConstructor;
-  Procedure _asyncStarMoveNextHelperProcedure;
-  Procedure _asyncThenWrapperHelperProcedure;
-  Procedure _asyncErrorWrapperHelperProcedure;
-  Procedure _awaitHelperProcedure;
-  Procedure _boolFromEnvironment;
-  Constructor _lateInitializationFieldAssignedDuringInitializationConstructor;
-  Constructor _lateInitializationLocalAssignedDuringInitializationConstructor;
-  Constructor _lateInitializationFieldNotInitializedConstructor;
-  Constructor _lateInitializationLocalNotInitializedConstructor;
-  Constructor _lateInitializationFieldAlreadyInitializedConstructor;
-  Constructor _lateInitializationLocalAlreadyInitializedConstructor;
-  Constructor _reachabilityErrorConstructor;
-
-  /// The `dart:mirrors` library, or `null` if the component does not use it.
-  Library _mirrorsLibrary;
-
-  Class _pragmaClass;
-  Field _pragmaName;
-  Field _pragmaOptions;
-  Constructor _pragmaConstructor;
-
-  InterfaceType _objectLegacyRawType;
-  InterfaceType _objectNullableRawType;
-  InterfaceType _objectNonNullableRawType;
-  InterfaceType _deprecatedNullType;
-  InterfaceType _boolLegacyRawType;
-  InterfaceType _boolNullableRawType;
-  InterfaceType _boolNonNullableRawType;
-  InterfaceType _intLegacyRawType;
-  InterfaceType _intNullableRawType;
-  InterfaceType _intNonNullableRawType;
-  InterfaceType _numLegacyRawType;
-  InterfaceType _numNullableRawType;
-  InterfaceType _numNonNullableRawType;
-  InterfaceType _doubleLegacyRawType;
-  InterfaceType _doubleNullableRawType;
-  InterfaceType _doubleNonNullableRawType;
-  InterfaceType _stringLegacyRawType;
-  InterfaceType _stringNullableRawType;
-  InterfaceType _stringNonNullableRawType;
-  InterfaceType _listLegacyRawType;
-  InterfaceType _listNullableRawType;
-  InterfaceType _listNonNullableRawType;
-  InterfaceType _setLegacyRawType;
-  InterfaceType _setNullableRawType;
-  InterfaceType _setNonNullableRawType;
-  InterfaceType _mapLegacyRawType;
-  InterfaceType _mapNullableRawType;
-  InterfaceType _mapNonNullableRawType;
-  InterfaceType _iterableLegacyRawType;
-  InterfaceType _iterableNullableRawType;
-  InterfaceType _iterableNonNullableRawType;
-  InterfaceType _iteratorLegacyRawType;
-  InterfaceType _iteratorNullableRawType;
-  InterfaceType _iteratorNonNullableRawType;
-  InterfaceType _symbolLegacyRawType;
-  InterfaceType _symbolNullableRawType;
-  InterfaceType _symbolNonNullableRawType;
-  InterfaceType _typeLegacyRawType;
-  InterfaceType _typeNullableRawType;
-  InterfaceType _typeNonNullableRawType;
-  InterfaceType _functionLegacyRawType;
-  InterfaceType _functionNullableRawType;
-  InterfaceType _functionNonNullableRawType;
-  InterfaceType _invocationLegacyRawType;
-  InterfaceType _invocationNullableRawType;
-  InterfaceType _invocationNonNullableRawType;
-  InterfaceType _invocationMirrorLegacyRawType;
-  InterfaceType _invocationMirrorNullableRawType;
-  InterfaceType _invocationMirrorNonNullableRawType;
-  InterfaceType _futureLegacyRawType;
-  InterfaceType _futureNullableRawType;
-  InterfaceType _futureNonNullableRawType;
-  InterfaceType _stackTraceLegacyRawType;
-  InterfaceType _stackTraceNullableRawType;
-  InterfaceType _stackTraceNonNullableRawType;
-  InterfaceType _streamLegacyRawType;
-  InterfaceType _streamNullableRawType;
-  InterfaceType _streamNonNullableRawType;
-  InterfaceType _pragmaLegacyRawType;
-  InterfaceType _pragmaNullableRawType;
-  InterfaceType _pragmaNonNullableRawType;
+  InterfaceType? _objectLegacyRawType;
+  InterfaceType? _objectNullableRawType;
+  InterfaceType? _objectNonNullableRawType;
+  InterfaceType? _deprecatedNullType;
+  InterfaceType? _boolLegacyRawType;
+  InterfaceType? _boolNullableRawType;
+  InterfaceType? _boolNonNullableRawType;
+  InterfaceType? _intLegacyRawType;
+  InterfaceType? _intNullableRawType;
+  InterfaceType? _intNonNullableRawType;
+  InterfaceType? _numLegacyRawType;
+  InterfaceType? _numNullableRawType;
+  InterfaceType? _numNonNullableRawType;
+  InterfaceType? _doubleLegacyRawType;
+  InterfaceType? _doubleNullableRawType;
+  InterfaceType? _doubleNonNullableRawType;
+  InterfaceType? _stringLegacyRawType;
+  InterfaceType? _stringNullableRawType;
+  InterfaceType? _stringNonNullableRawType;
+  InterfaceType? _listLegacyRawType;
+  InterfaceType? _listNullableRawType;
+  InterfaceType? _listNonNullableRawType;
+  InterfaceType? _setLegacyRawType;
+  InterfaceType? _setNullableRawType;
+  InterfaceType? _setNonNullableRawType;
+  InterfaceType? _mapLegacyRawType;
+  InterfaceType? _mapNullableRawType;
+  InterfaceType? _mapNonNullableRawType;
+  InterfaceType? _iterableLegacyRawType;
+  InterfaceType? _iterableNullableRawType;
+  InterfaceType? _iterableNonNullableRawType;
+  InterfaceType? _iteratorLegacyRawType;
+  InterfaceType? _iteratorNullableRawType;
+  InterfaceType? _iteratorNonNullableRawType;
+  InterfaceType? _symbolLegacyRawType;
+  InterfaceType? _symbolNullableRawType;
+  InterfaceType? _symbolNonNullableRawType;
+  InterfaceType? _typeLegacyRawType;
+  InterfaceType? _typeNullableRawType;
+  InterfaceType? _typeNonNullableRawType;
+  InterfaceType? _functionLegacyRawType;
+  InterfaceType? _functionNullableRawType;
+  InterfaceType? _functionNonNullableRawType;
+  InterfaceType? _invocationLegacyRawType;
+  InterfaceType? _invocationNullableRawType;
+  InterfaceType? _invocationNonNullableRawType;
+  InterfaceType? _invocationMirrorLegacyRawType;
+  InterfaceType? _invocationMirrorNullableRawType;
+  InterfaceType? _invocationMirrorNonNullableRawType;
+  InterfaceType? _futureLegacyRawType;
+  InterfaceType? _futureNullableRawType;
+  InterfaceType? _futureNonNullableRawType;
+  InterfaceType? _stackTraceLegacyRawType;
+  InterfaceType? _stackTraceNullableRawType;
+  InterfaceType? _stackTraceNonNullableRawType;
+  InterfaceType? _streamLegacyRawType;
+  InterfaceType? _streamNullableRawType;
+  InterfaceType? _streamNonNullableRawType;
+  InterfaceType? _pragmaLegacyRawType;
+  InterfaceType? _pragmaNullableRawType;
+  InterfaceType? _pragmaNonNullableRawType;
   final Map<Class, InterfaceType> _legacyRawTypes =
       new Map<Class, InterfaceType>.identity();
   final Map<Class, InterfaceType> _nullableRawTypes =
@@ -187,311 +119,266 @@ class CoreTypes {
   CoreTypes(Component component)
       : index = new LibraryIndex.coreLibraries(component);
 
-  Procedure get asyncErrorWrapperHelperProcedure {
-    return _asyncErrorWrapperHelperProcedure ??=
-        index.getTopLevelMember('dart:async', '_asyncErrorWrapperHelper');
-  }
+  late final Procedure asyncErrorWrapperHelperProcedure =
+      index.getTopLevelProcedure('dart:async', '_asyncErrorWrapperHelper');
 
-  Library get asyncLibrary {
-    return _asyncLibrary ??= index.getLibrary('dart:async');
-  }
+  late final Library asyncLibrary = index.getLibrary('dart:async');
 
-  Member get asyncStarStreamControllerAdd {
-    return index.getMember('dart:async', '_AsyncStarStreamController', 'add');
-  }
+  late final Procedure asyncStarStreamControllerAdd =
+      index.getProcedure('dart:async', '_AsyncStarStreamController', 'add');
 
-  Member get asyncStarStreamControllerAddError {
-    return index.getMember(
-        'dart:async', '_AsyncStarStreamController', 'addError');
-  }
+  late final Procedure asyncStarStreamControllerAddError = index.getProcedure(
+      'dart:async', '_AsyncStarStreamController', 'addError');
 
-  Member get asyncStarStreamControllerAddStream {
-    return index.getMember(
-        'dart:async', '_AsyncStarStreamController', 'addStream');
-  }
+  late final Procedure asyncStarStreamControllerAddStream = index.getProcedure(
+      'dart:async', '_AsyncStarStreamController', 'addStream');
 
-  Class get asyncStarStreamControllerClass {
-    return index.getClass('dart:async', '_AsyncStarStreamController');
-  }
+  late final Class asyncStarStreamControllerClass =
+      index.getClass('dart:async', '_AsyncStarStreamController');
 
-  Member get asyncStarStreamControllerClose {
-    return index.getMember('dart:async', '_AsyncStarStreamController', 'close');
-  }
+  late final Procedure asyncStarStreamControllerClose =
+      index.getProcedure('dart:async', '_AsyncStarStreamController', 'close');
 
-  Constructor get asyncStarStreamControllerDefaultConstructor {
-    return _asyncStarStreamControllerDefaultConstructor ??=
-        index.getMember('dart:async', '_AsyncStarStreamController', '');
-  }
+  late final Constructor asyncStarStreamControllerDefaultConstructor =
+      index.getConstructor('dart:async', '_AsyncStarStreamController', '');
 
-  Member get asyncStarStreamControllerStream {
-    return index.getMember(
-        'dart:async', '_AsyncStarStreamController', 'get:stream');
-  }
+  late final Member asyncStarStreamControllerStream =
+      index.getMember('dart:async', '_AsyncStarStreamController', 'get:stream');
 
-  Procedure get asyncStarMoveNextHelper {
-    return _asyncStarMoveNextHelperProcedure ??=
-        index.getTopLevelMember('dart:async', '_asyncStarMoveNextHelper');
-  }
+  late final Procedure asyncStarMoveNextHelper =
+      index.getTopLevelProcedure('dart:async', '_asyncStarMoveNextHelper');
 
-  Procedure get asyncThenWrapperHelperProcedure {
-    return _asyncThenWrapperHelperProcedure ??=
-        index.getTopLevelMember('dart:async', '_asyncThenWrapperHelper');
-  }
+  late final Procedure asyncThenWrapperHelperProcedure =
+      index.getTopLevelProcedure('dart:async', '_asyncThenWrapperHelper');
 
-  Procedure get awaitHelperProcedure {
-    return _awaitHelperProcedure ??=
-        index.getTopLevelMember('dart:async', '_awaitHelper');
-  }
+  late final Procedure awaitHelperProcedure =
+      index.getTopLevelProcedure('dart:async', '_awaitHelper');
 
-  Class get boolClass {
-    return _boolClass ??= index.getClass('dart:core', 'bool');
-  }
+  late final Class boolClass = index.getClass('dart:core', 'bool');
 
-  Class get futureImplClass {
-    return _futureImplClass ??= index.getClass('dart:async', '_Future');
-  }
+  late final Class futureImplClass = index.getClass('dart:async', '_Future');
 
-  Constructor get futureImplConstructor {
-    return _futureImplConstructor ??=
-        index.getMember('dart:async', '_Future', '');
-  }
+  late final Constructor futureImplConstructor =
+      index.getConstructor('dart:async', '_Future', '');
 
-  Member get completeOnAsyncReturn {
-    return _completeOnAsyncReturnProcedure ??=
-        index.getTopLevelMember('dart:async', '_completeOnAsyncReturn');
-  }
+  late final Procedure completeOnAsyncReturn =
+      index.getTopLevelProcedure('dart:async', '_completeOnAsyncReturn');
 
-  Member get completeOnAsyncError {
-    return _completeOnAsyncErrorProcedure ??=
-        index.getTopLevelMember('dart:async', '_completeOnAsyncError');
-  }
+  late final Procedure completeOnAsyncError =
+      index.getTopLevelProcedure('dart:async', '_completeOnAsyncError');
 
-  Library get coreLibrary {
-    return _coreLibrary ??= index.getLibrary('dart:core');
-  }
+  late final Library coreLibrary = index.getLibrary('dart:core');
 
-  Class get doubleClass {
-    return _doubleClass ??= index.getClass('dart:core', 'double');
-  }
+  late final Class doubleClass = index.getClass('dart:core', 'double');
 
-  Class get functionClass {
-    return _functionClass ??= index.getClass('dart:core', 'Function');
-  }
+  late final Class functionClass = index.getClass('dart:core', 'Function');
 
-  Class get futureClass {
-    return _futureClass ??= index.getClass('dart:core', 'Future');
-  }
+  late final Class futureClass = index.getClass('dart:core', 'Future');
 
   // TODO(dmitryas): Remove it when FutureOrType is fully supported.
-  Class get deprecatedFutureOrClass {
-    return _deprecatedFutureOrClass ??=
-        index.getClass('dart:async', 'FutureOr');
-  }
+  late final Class deprecatedFutureOrClass =
+      index.getClass('dart:async', 'FutureOr');
 
-  Procedure get identicalProcedure {
-    return _identicalProcedure ??=
-        index.getTopLevelMember('dart:core', 'identical');
-  }
+  late final Procedure identicalProcedure =
+      index.getTopLevelProcedure('dart:core', 'identical');
 
-  Class get intClass {
-    return _intClass ??= index.getClass('dart:core', 'int');
-  }
+  late final Class intClass = index.getClass('dart:core', 'int');
 
-  Class get internalSymbolClass {
-    return _internalSymbolClass ??= index.getClass('dart:_internal', 'Symbol');
-  }
+  late final Class internalSymbolClass =
+      index.getClass('dart:_internal', 'Symbol');
 
-  Class get invocationClass {
-    return _invocationClass ??= index.getClass('dart:core', 'Invocation');
-  }
+  late final Class invocationClass = index.getClass('dart:core', 'Invocation');
 
-  Class get invocationMirrorClass {
-    return _invocationMirrorClass ??=
-        index.getClass('dart:core', '_InvocationMirror');
-  }
+  late final Class invocationMirrorClass =
+      index.getClass('dart:core', '_InvocationMirror');
 
-  Constructor get invocationMirrorWithTypeConstructor {
-    return _invocationMirrorWithTypeConstructor ??=
-        index.getMember('dart:core', '_InvocationMirror', '_withType');
-  }
+  late final Constructor invocationMirrorWithTypeConstructor =
+      index.getConstructor('dart:core', '_InvocationMirror', '_withType');
 
-  Class get iterableClass {
-    return _iterableClass ??= index.getClass('dart:core', 'Iterable');
-  }
+  late final Class iterableClass = index.getClass('dart:core', 'Iterable');
 
-  Procedure get iterableGetIterator {
-    return _iterableGetIterator ??=
-        index.getMember('dart:core', 'Iterable', 'get:iterator');
-  }
+  late final Procedure iterableGetIterator =
+      index.getProcedure('dart:core', 'Iterable', 'get:iterator');
 
-  Class get iteratorClass {
-    return _iteratorClass ??= index.getClass('dart:core', 'Iterator');
-  }
+  late final Class iteratorClass = index.getClass('dart:core', 'Iterator');
 
-  Procedure get iteratorMoveNext {
-    return _iteratorMoveNext ??=
-        index.getMember('dart:core', 'Iterator', 'moveNext');
-  }
+  late final Procedure iteratorMoveNext =
+      index.getProcedure('dart:core', 'Iterator', 'moveNext');
 
-  Procedure get iteratorGetCurrent {
-    return _iteratorGetCurrent ??=
-        index.getMember('dart:core', 'Iterator', 'get:current');
-  }
+  late final Procedure iteratorGetCurrent =
+      index.getProcedure('dart:core', 'Iterator', 'get:current');
 
-  Class get listClass {
-    return _listClass ??= index.getClass('dart:core', 'List');
-  }
+  late final Class listClass = index.getClass('dart:core', 'List');
 
-  Procedure get listDefaultConstructor {
-    return _listDefaultConstructor ??= index.getMember('dart:core', 'List', '');
-  }
+  late final Procedure listDefaultConstructor =
+      index.getProcedure('dart:core', 'List', '');
 
-  Procedure get listFromConstructor {
-    return _listFromConstructor ??=
-        index.getMember('dart:core', 'List', 'from');
-  }
+  late final Procedure listFromConstructor =
+      index.getProcedure('dart:core', 'List', 'from');
 
-  Procedure get listUnmodifiableConstructor {
-    return _listUnmodifiableConstructor ??=
-        index.getMember('dart:core', 'List', 'unmodifiable');
-  }
+  late final Procedure listUnmodifiableConstructor =
+      index.getProcedure('dart:core', 'List', 'unmodifiable');
 
-  Class get setClass {
-    return _setClass ??= index.getClass('dart:core', 'Set');
-  }
+  late final Class setClass = index.getClass('dart:core', 'Set');
 
-  Class get mapClass {
-    return _mapClass ??= index.getClass('dart:core', 'Map');
-  }
+  late final Class mapClass = index.getClass('dart:core', 'Map');
 
-  Procedure get mapUnmodifiable {
-    return _mapUnmodifiable ??=
-        index.getMember('dart:core', 'Map', 'unmodifiable');
-  }
+  late final Procedure mapUnmodifiable =
+      index.getProcedure('dart:core', 'Map', 'unmodifiable');
 
-  Library get mirrorsLibrary {
-    return _mirrorsLibrary ??= index.tryGetLibrary('dart:mirrors');
-  }
+  /// The `dart:mirrors` library, or `null` if the component does not use it.
+  late final Library? mirrorsLibrary = index.tryGetLibrary('dart:mirrors');
 
-  Constructor get noSuchMethodErrorDefaultConstructor {
-    return _noSuchMethodErrorDefaultConstructor ??=
-        // TODO(regis): Replace 'withInvocation' with '' after dart2js is fixed.
-        index.getMember('dart:core', 'NoSuchMethodError', 'withInvocation');
-  }
+  late final Constructor noSuchMethodErrorDefaultConstructor =
+      // TODO(regis): Replace 'withInvocation' with '' after dart2js is fixed.
+      index.getConstructor('dart:core', 'NoSuchMethodError', 'withInvocation');
 
-  Class get deprecatedNullClass {
-    return _deprecatedNullClass ??= index.getClass('dart:core', 'Null');
-  }
+  late final Class deprecatedNullClass = index.getClass('dart:core', 'Null');
 
-  Class get numClass {
-    return _numClass ??= index.getClass('dart:core', 'num');
-  }
+  late final Class numClass = index.getClass('dart:core', 'num');
 
-  Class get objectClass {
-    return _objectClass ??= index.getClass('dart:core', 'Object');
-  }
+  late final Class objectClass = index.getClass('dart:core', 'Object');
 
-  Procedure get objectEquals {
-    return _objectEquals ??= index.getMember('dart:core', 'Object', '==');
-  }
+  late final Procedure objectEquals =
+      index.getProcedure('dart:core', 'Object', '==');
 
-  Class get pragmaClass {
-    return _pragmaClass ??= index.getClass('dart:core', 'pragma');
-  }
+  late final Class pragmaClass = index.getClass('dart:core', 'pragma');
 
-  Field get pragmaName {
-    return _pragmaName ??= index.getMember('dart:core', 'pragma', 'name');
-  }
+  late final Field pragmaName = index.getField('dart:core', 'pragma', 'name');
 
-  Field get pragmaOptions {
-    return _pragmaOptions ??= index.getMember('dart:core', 'pragma', 'options');
-  }
+  late final Field pragmaOptions =
+      index.getField('dart:core', 'pragma', 'options');
 
-  Constructor get pragmaConstructor {
-    return _pragmaConstructor ??= index.getMember('dart:core', 'pragma', '_');
-  }
+  late final Constructor pragmaConstructor =
+      index.getConstructor('dart:core', 'pragma', '_');
 
-  Class get stackTraceClass {
-    return _stackTraceClass ??= index.getClass('dart:core', 'StackTrace');
-  }
+  late final Class stackTraceClass = index.getClass('dart:core', 'StackTrace');
 
-  Class get streamClass {
-    return _streamClass ??= index.getClass('dart:core', 'Stream');
-  }
+  late final Class streamClass = index.getClass('dart:core', 'Stream');
 
-  Member get streamIteratorSubscription {
-    return index.getMember('dart:async', '_StreamIterator', '_subscription');
-  }
+  late final Member streamIteratorSubscription =
+      index.getMember('dart:async', '_StreamIterator', '_subscription');
 
-  Member get streamIteratorCancel {
-    return index.getMember('dart:async', '_StreamIterator', 'cancel');
-  }
+  late final Procedure streamIteratorCancel =
+      index.getProcedure('dart:async', '_StreamIterator', 'cancel');
 
-  Class get streamIteratorClass {
-    return index.getClass('dart:async', '_StreamIterator');
-  }
+  late final Class streamIteratorClass =
+      index.getClass('dart:async', '_StreamIterator');
 
-  Constructor get streamIteratorDefaultConstructor {
-    return _streamIteratorDefaultConstructor ??=
-        index.getMember('dart:async', '_StreamIterator', '');
-  }
+  late final Constructor streamIteratorDefaultConstructor =
+      index.getConstructor('dart:async', '_StreamIterator', '');
 
-  Member get streamIteratorMoveNext {
-    return index.getMember('dart:async', '_StreamIterator', 'moveNext');
-  }
+  late final Procedure streamIteratorMoveNext =
+      index.getProcedure('dart:async', '_StreamIterator', 'moveNext');
 
-  Member get streamIteratorCurrent {
-    return index.getMember('dart:async', '_StreamIterator', 'get:current');
-  }
+  late final Member streamIteratorCurrent =
+      index.getMember('dart:async', '_StreamIterator', 'get:current');
 
-  Class get stringClass {
-    return _stringClass ??= index.getClass('dart:core', 'String');
-  }
+  late final Class stringClass = index.getClass('dart:core', 'String');
 
-  Class get symbolClass {
-    return _symbolClass ??= index.getClass('dart:core', 'Symbol');
-  }
+  late final Class symbolClass = index.getClass('dart:core', 'Symbol');
 
-  Constructor get syncIterableDefaultConstructor {
-    return _syncIterableDefaultConstructor ??=
-        index.getMember('dart:core', '_SyncIterable', '');
-  }
+  late final Constructor syncIterableDefaultConstructor =
+      index.getConstructor('dart:core', '_SyncIterable', '');
 
-  Class get syncIteratorClass {
-    return index.getClass('dart:core', '_SyncIterator');
-  }
+  late final Class syncIteratorClass =
+      index.getClass('dart:core', '_SyncIterator');
 
-  Member get syncIteratorCurrent {
-    return index.getMember('dart:core', '_SyncIterator', '_current');
-  }
+  late final Member syncIteratorCurrent =
+      index.getMember('dart:core', '_SyncIterator', '_current');
 
-  Member get syncIteratorYieldEachIterable {
-    return index.getMember('dart:core', '_SyncIterator', '_yieldEachIterable');
-  }
+  late final Member syncIteratorYieldEachIterable =
+      index.getMember('dart:core', '_SyncIterator', '_yieldEachIterable');
 
-  Class get typeClass {
-    return _typeClass ??= index.getClass('dart:core', 'Type');
-  }
+  late final Class typeClass = index.getClass('dart:core', 'Type');
 
-  Constructor get fallThroughErrorUrlAndLineConstructor {
-    return _fallThroughErrorUrlAndLineConstructor ??=
-        index.getMember('dart:core', 'FallThroughError', '_create');
-  }
+  late final Constructor fallThroughErrorUrlAndLineConstructor =
+      index.getConstructor('dart:core', 'FallThroughError', '_create');
 
-  Procedure get boolFromEnvironment {
-    return _boolFromEnvironment ??=
-        index.getMember('dart:core', 'bool', 'fromEnvironment');
-  }
+  late final Procedure boolFromEnvironment =
+      index.getProcedure('dart:core', 'bool', 'fromEnvironment');
 
-  Procedure get createSentinelMethod {
-    return _createSentinelMethod ??=
-        index.getTopLevelMember('dart:_internal', 'createSentinel');
-  }
+  late final Procedure createSentinelMethod =
+      index.getTopLevelProcedure('dart:_internal', 'createSentinel');
 
-  Procedure get isSentinelMethod {
-    return _isSentinelMethod ??=
-        index.getTopLevelMember('dart:_internal', 'isSentinel');
-  }
+  late final Procedure isSentinelMethod =
+      index.getTopLevelProcedure('dart:_internal', 'isSentinel');
+
+  late final Constructor
+      lateInitializationFieldAssignedDuringInitializationConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'fieldADI');
+
+  late final Constructor
+      lateInitializationLocalAssignedDuringInitializationConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'localADI');
+
+  late final Constructor lateInitializationFieldNotInitializedConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'fieldNI');
+
+  late final Constructor lateInitializationLocalNotInitializedConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'localNI');
+
+  late final Constructor lateInitializationFieldAlreadyInitializedConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'fieldAI');
+
+  late final Constructor lateInitializationLocalAlreadyInitializedConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'localAI');
+
+  late final Constructor reachabilityErrorConstructor =
+      index.getConstructor('dart:_internal', 'ReachabilityError', '');
+
+  late final Class cellClass = index.getClass('dart:_late_helper', '_Cell');
+
+  late final Constructor cellConstructor =
+      index.getMember('dart:_late_helper', '_Cell', '') as Constructor;
+
+  late final Constructor cellNamedConstructor =
+      index.getMember('dart:_late_helper', '_Cell', 'named') as Constructor;
+
+  late final Class initializedCellClass =
+      index.getClass('dart:_late_helper', '_InitializedCell');
+
+  late final Constructor initializedCellConstructor = index.getMember(
+      'dart:_late_helper', '_InitializedCell', '') as Constructor;
+
+  late final Constructor initializedCellNamedConstructor = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'named') as Constructor;
+
+  late final Procedure cellReadLocal =
+      index.getMember('dart:_late_helper', '_Cell', 'readLocal') as Procedure;
+
+  late final Procedure cellReadField =
+      index.getMember('dart:_late_helper', '_Cell', 'readField') as Procedure;
+
+  late final Procedure initializedCellRead = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'read') as Procedure;
+
+  late final Procedure initializedCellReadFinal = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'readFinal') as Procedure;
+
+  late final Procedure cellValueSetter =
+      index.getMember('dart:_late_helper', '_Cell', 'set:value') as Procedure;
+
+  late final Procedure cellFinalLocalValueSetter = index.getMember(
+      'dart:_late_helper', '_Cell', 'set:finalLocalValue') as Procedure;
+
+  late final Procedure cellFinalFieldValueSetter = index.getMember(
+      'dart:_late_helper', '_Cell', 'set:finalFieldValue') as Procedure;
+
+  late final Procedure initializedCellValueSetter = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'set:value') as Procedure;
+
+  late final Procedure initializedCellFinalValueSetter = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'set:finalValue') as Procedure;
+
+  late final Procedure lateReadCheck =
+      index.getTopLevelProcedure('dart:_late_helper', '_lateReadCheck');
+
+  late final Procedure lateWriteOnceCheck =
+      index.getTopLevelProcedure('dart:_late_helper', '_lateWriteOnceCheck');
+
+  late final Procedure lateInitializeOnceCheck = index.getTopLevelProcedure(
+      'dart:_late_helper', '_lateInitializeOnceCheck');
 
   InterfaceType get objectLegacyRawType {
     return _objectLegacyRawType ??= _legacyRawTypes[objectClass] ??=
@@ -1190,7 +1077,7 @@ class CoreTypes {
   }
 
   InterfaceType thisInterfaceType(Class klass, Nullability nullability) {
-    InterfaceType result = _thisInterfaceTypes[klass];
+    InterfaceType? result = _thisInterfaceTypes[klass];
     if (result == null) {
       return _thisInterfaceTypes[klass] = new InterfaceType(klass, nullability,
           getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary));
@@ -1203,7 +1090,7 @@ class CoreTypes {
   }
 
   TypedefType thisTypedefType(Typedef typedef, Nullability nullability) {
-    TypedefType result = _thisTypedefTypes[typedef];
+    TypedefType? result = _thisTypedefTypes[typedef];
     if (result == null) {
       return _thisTypedefTypes[typedef] = new TypedefType(typedef, nullability,
           getAsTypeArguments(typedef.typeParameters, typedef.enclosingLibrary));
@@ -1215,51 +1102,14 @@ class CoreTypes {
     return result;
   }
 
-  Constructor
-      get lateInitializationFieldAssignedDuringInitializationConstructor {
-    return _lateInitializationFieldAssignedDuringInitializationConstructor ??=
-        index.getMember('dart:_internal', 'LateError', 'fieldADI');
-  }
-
-  Constructor
-      get lateInitializationLocalAssignedDuringInitializationConstructor {
-    return _lateInitializationLocalAssignedDuringInitializationConstructor ??=
-        index.getMember('dart:_internal', 'LateError', 'localADI');
-  }
-
-  Constructor get lateInitializationFieldNotInitializedConstructor {
-    return _lateInitializationFieldNotInitializedConstructor ??=
-        index.getMember('dart:_internal', 'LateError', 'fieldNI');
-  }
-
-  Constructor get lateInitializationLocalNotInitializedConstructor {
-    return _lateInitializationLocalNotInitializedConstructor ??=
-        index.getMember('dart:_internal', 'LateError', 'localNI');
-  }
-
-  Constructor get lateInitializationFieldAlreadyInitializedConstructor {
-    return _lateInitializationFieldAlreadyInitializedConstructor ??=
-        index.getMember('dart:_internal', 'LateError', 'fieldAI');
-  }
-
-  Constructor get lateInitializationLocalAlreadyInitializedConstructor {
-    return _lateInitializationLocalAlreadyInitializedConstructor ??=
-        index.getMember('dart:_internal', 'LateError', 'localAI');
-  }
-
-  Constructor get reachabilityErrorConstructor {
-    return _reachabilityErrorConstructor ??=
-        index.getMember('dart:_internal', 'ReachabilityError', '');
-  }
-
   InterfaceType bottomInterfaceType(Class klass, Nullability nullability) {
-    InterfaceType result = _bottomInterfaceTypes[klass];
+    InterfaceType? result = _bottomInterfaceTypes[klass];
     if (result == null) {
       return _bottomInterfaceTypes[klass] = new InterfaceType(
           klass,
           nullability,
           new List<DartType>.filled(
-              klass.typeParameters.length, const BottomType()));
+              klass.typeParameters.length, const NeverType.nonNullable()));
     }
     if (result.nullability != nullability) {
       return _bottomInterfaceTypes[klass] =
@@ -1337,7 +1187,7 @@ class CoreTypes {
     if (type is TypeParameterType &&
         type.promotedBound != null &&
         type.isPotentiallyNonNullable) {
-      return isBottom(type.promotedBound);
+      return isBottom(type.promotedBound!);
     }
 
     // BOTTOM(X extends T) is true iff BOTTOM(T).
@@ -1345,8 +1195,6 @@ class CoreTypes {
       assert(type.promotedBound == null);
       return isBottom(type.parameter.bound);
     }
-
-    if (type is BottomType) return true;
 
     return false;
   }

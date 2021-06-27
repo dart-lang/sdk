@@ -49,9 +49,8 @@
  * ## Status: Unstable
  *
  * The dart:mirrors library is unstable and its API might change slightly as a
- * result of user feedback. This library is platform dependent and therefore it
- * has implementations for both dart2js and the Dart VM. Both are under
- * development and may not support all operations yet.
+ * result of user feedback. This library is only supported by the Dart VM and
+ * only available on some platforms.
  *
  * {@category VM}
  */

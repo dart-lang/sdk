@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// A contributor that produces suggestions for field formal parameters that are
 /// based on the fields declared directly by the enclosing class that are not
@@ -33,13 +34,13 @@ class FieldFormalContributor extends DartCompletionContributor {
     var referencedFields = <String>[];
     for (var param in constructor.parameters.parameters) {
       if (param is DefaultFormalParameter) {
-        param = (param as DefaultFormalParameter).parameter;
+        param = param.parameter;
       }
       if (param is FieldFormalParameter) {
         var fieldId = param.identifier;
-        if (fieldId != null && fieldId != request.target.entity) {
+        if (fieldId != request.target.entity) {
           var fieldName = fieldId.name;
-          if (fieldName != null && fieldName.isNotEmpty) {
+          if (fieldName.isNotEmpty) {
             referencedFields.add(fieldName);
           }
         }
@@ -56,9 +57,9 @@ class FieldFormalContributor extends DartCompletionContributor {
       if (member is FieldDeclaration && !member.isStatic) {
         for (var variable in member.fields.variables) {
           var field = variable.name.staticElement;
-          if (field != null) {
+          if (field is FieldElement) {
             var fieldName = field.name;
-            if (fieldName != null && fieldName.isNotEmpty) {
+            if (fieldName.isNotEmpty) {
               if (!referencedFields.contains(fieldName)) {
                 builder.suggestFieldFormalParameter(field);
               }

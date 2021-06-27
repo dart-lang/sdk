@@ -66,6 +66,7 @@ abstract class HVisitor<R> {
   R visitInvokeSuper(HInvokeSuper node);
   R visitInvokeConstructorBody(HInvokeConstructorBody node);
   R visitInvokeGeneratorBody(HInvokeGeneratorBody node);
+  R visitIsLateSentinel(HIsLateSentinel node);
   R visitLateValue(HLateValue node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
@@ -339,6 +340,11 @@ class HGraph {
     return addConstant(UnreachableConstantValue(), closedWorld);
   }
 
+  HConstant addConstantLateSentinel(JClosedWorld closedWorld,
+          {SourceInformation sourceInformation}) =>
+      addConstant(LateSentinelConstantValue(), closedWorld,
+          sourceInformation: sourceInformation);
+
   void finalize(AbstractValueDomain domain) {
     addBlock(exit);
     exit.open();
@@ -576,6 +582,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   @override
   visitTry(HTry node) => visitControlFlow(node);
+  @override
+  visitIsLateSentinel(HIsLateSentinel node) => visitInstruction(node);
   @override
   visitLateValue(HLateValue node) => visitInstruction(node);
   @override
@@ -1093,6 +1101,8 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_EVAL_TYPECODE = 56;
   static const int TYPE_BIND_TYPECODE = 57;
 
+  static const int IS_LATE_SENTINEL_TYPECODE = 58;
+
   HInstruction(this.inputs, this.instructionType) {
     assert(inputs.every((e) => e != null), "inputs: $inputs");
   }
@@ -1196,12 +1206,6 @@ abstract class HInstruction implements Spannable {
 
   AbstractBool isNumberOrNull(AbstractValueDomain domain) =>
       domain.isNumberOrNull(instructionType);
-
-  AbstractBool isDouble(AbstractValueDomain domain) =>
-      domain.isDouble(instructionType);
-
-  AbstractBool isDoubleOrNull(AbstractValueDomain domain) =>
-      domain.isDoubleOrNull(instructionType);
 
   AbstractBool isBoolean(AbstractValueDomain domain) =>
       domain.isBoolean(instructionType);
@@ -3321,20 +3325,19 @@ class HInterceptor extends HInstruction {
   }
 }
 
-/// A "one-shot" interceptor is a call to a synthetized method that
-/// will fetch the interceptor of its first parameter, and make a call
-/// on a given selector with the remaining parameters.
+/// A "one-shot" interceptor is a call to a synthetized method that will fetch
+/// the interceptor of its first parameter, and make a call on a given selector
+/// with the remaining parameters.
 ///
-/// In order to share the same optimizations with regular interceptor
-/// calls, this class extends [HInvokeDynamic] and also has the null
-/// constant as the first input.
+/// In order to share the same optimizations with regular interceptor calls,
+/// this class extends [HInvokeDynamic] and also has the null constant as the
+/// first input.
 class HOneShotInterceptor extends HInvokeDynamic {
   @override
   List<DartType> typeArguments;
   Set<ClassEntity> interceptedClasses;
 
   HOneShotInterceptor(
-      AbstractValueDomain domain,
       Selector selector,
       AbstractValue receiverType,
       List<HInstruction> inputs,
@@ -3342,8 +3345,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
       this.typeArguments,
       this.interceptedClasses)
       : super(selector, receiverType, null, inputs, true, resultType) {
-    assert(inputs[0] is HConstant);
-    assert(inputs[0].instructionType == domain.nullType);
+    assert(inputs[0].isConstantNull());
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
   @override
@@ -4213,19 +4215,6 @@ AbstractBool _typeTest(
       return AbstractBool.False;
     }
 
-    if (expression.isDouble(abstractValueDomain).isDefinitelyTrue) {
-      if (dartTypes.isSubtype(commonElements.doubleType, interface)) {
-        return AbstractBool.True;
-      }
-      if (interface == commonElements.intType) {
-        // We let the JS semantics decide for that check. Currently the code we
-        // emit will return true for a double that can be represented as a 31-bit
-        // integer and for -0.0.
-        return AbstractBool.Maybe;
-      }
-      return AbstractBool.False;
-    }
-
     if (expression.isNumber(abstractValueDomain).isDefinitelyTrue) {
       if (dartTypes.isSubtype(commonElements.numType, interface)) {
         return AbstractBool.True;
@@ -4512,4 +4501,26 @@ class HTypeBind extends HRtiInstruction {
 
   @override
   String toString() => 'HTypeBind()';
+}
+
+class HIsLateSentinel extends HInstruction {
+  HIsLateSentinel(HInstruction value, AbstractValue type)
+      : super([value], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitIsLateSentinel(this);
+
+  @override
+  int typeCode() => HInstruction.IS_LATE_SENTINEL_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HIsLateSentinel;
+
+  @override
+  bool dataEquals(HIsLateSentinel other) => true;
+
+  @override
+  String toString() => 'HIsLateSentinel()';
 }

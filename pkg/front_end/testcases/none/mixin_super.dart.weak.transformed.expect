@@ -1,0 +1,65 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Diagnosticable extends core::Object /*isMixinDeclaration*/  {
+  method debugFillProperties(self::DiagnosticPropertiesBuilder properties) → void {}
+}
+class DiagnosticPropertiesBuilder extends core::Object {
+  synthetic constructor •() → self::DiagnosticPropertiesBuilder
+    : super core::Object::•()
+    ;
+}
+abstract class _PointerEvent&Object&Diagnosticable = core::Object with self::Diagnosticable /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_PointerEvent&Object&Diagnosticable
+    : super core::Object::•()
+    ;
+  mixin-super-stub method debugFillProperties(self::DiagnosticPropertiesBuilder properties) → void
+    return super.{self::Diagnosticable::debugFillProperties}(properties);
+}
+abstract class PointerEvent extends self::_PointerEvent&Object&Diagnosticable {
+  synthetic constructor •() → self::PointerEvent
+    : super self::_PointerEvent&Object&Diagnosticable::•()
+    ;
+}
+abstract class PointerSignalEvent extends self::PointerEvent {
+  synthetic constructor •() → self::PointerSignalEvent
+    : super self::PointerEvent::•()
+    ;
+}
+abstract class _PointerEventDescription extends self::PointerEvent /*isMixinDeclaration*/  {
+  @#C1
+  method debugFillProperties(self::DiagnosticPropertiesBuilder properties) → void {
+    super.{self::_PointerEvent&Object&Diagnosticable::debugFillProperties}(properties);
+  }
+}
+abstract class _CopyPointerScrollEvent extends self::PointerEvent /*isMixinDeclaration*/  {
+}
+abstract class _PointerScrollEvent&PointerSignalEvent&_PointerEventDescription = self::PointerSignalEvent with self::_PointerEventDescription /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_PointerScrollEvent&PointerSignalEvent&_PointerEventDescription
+    : super self::PointerSignalEvent::•()
+    ;
+  mixin-super-stub method debugFillProperties(self::DiagnosticPropertiesBuilder properties) → void
+    return super.{self::_PointerEventDescription::debugFillProperties}(properties);
+}
+abstract class _PointerScrollEvent&PointerSignalEvent&_PointerEventDescription&_CopyPointerScrollEvent = self::_PointerScrollEvent&PointerSignalEvent&_PointerEventDescription with self::_CopyPointerScrollEvent /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_PointerScrollEvent&PointerSignalEvent&_PointerEventDescription&_CopyPointerScrollEvent
+    : super self::_PointerScrollEvent&PointerSignalEvent&_PointerEventDescription::•()
+    ;
+}
+class PointerScrollEvent extends self::_PointerScrollEvent&PointerSignalEvent&_PointerEventDescription&_CopyPointerScrollEvent {
+  synthetic constructor •() → self::PointerScrollEvent
+    : super self::_PointerScrollEvent&PointerSignalEvent&_PointerEventDescription&_CopyPointerScrollEvent::•()
+    ;
+  @#C1
+  method debugFillProperties(self::DiagnosticPropertiesBuilder properties) → void {
+    super.{self::_PointerScrollEvent&PointerSignalEvent&_PointerEventDescription::debugFillProperties}(properties);
+  }
+}
+static method main() → dynamic {
+  new self::PointerScrollEvent::•().{self::PointerScrollEvent::debugFillProperties}(new self::DiagnosticPropertiesBuilder::•()){(self::DiagnosticPropertiesBuilder) → void};
+}
+
+constants  {
+  #C1 = core::_Override {}
+}

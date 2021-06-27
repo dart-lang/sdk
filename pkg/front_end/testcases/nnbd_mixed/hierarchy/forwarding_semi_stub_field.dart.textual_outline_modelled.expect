@@ -1,0 +1,24 @@
+class Class extends Super implements Interface {
+  abstract String field2;
+  abstract int field1;
+  abstract int field3;
+  abstract int field4;
+  abstract num field5;
+}
+
+class Interface {
+  covariant int field1 = 0;
+  covariant int field2 = 0;
+  int field4 = 0;
+  int field5 = 0;
+}
+
+class Super {
+  covariant int field5 = 0;
+  covariant num field4 = 0;
+  num field1 = 0;
+  num field2 = 0;
+  num field3 = 0;
+}
+
+main() {}

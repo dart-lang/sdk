@@ -29,6 +29,11 @@ bool IsSmi(int64_t v) {
   return Utils::IsInt(kSmiBits + 1, v);
 }
 
+bool WillAllocateNewOrRememberedObject(intptr_t instance_size) {
+  ASSERT(Utils::IsAligned(instance_size, ObjectAlignment::kObjectAlignment));
+  return dart::Heap::IsAllocatableInNewSpace(instance_size);
+}
+
 bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables) {
   if (!dart::Context::IsValidLength(num_context_variables)) return false;
   return dart::Heap::IsAllocatableInNewSpace(
@@ -55,7 +60,7 @@ bool IsSameObject(const Object& a, const Object& b) {
   } else if (a.IsDouble() && b.IsDouble()) {
     return Double::Cast(a).value() == Double::Cast(b).value();
   }
-  return a.raw() == b.raw();
+  return a.ptr() == b.ptr();
 }
 
 bool IsEqualType(const AbstractType& a, const AbstractType& b) {
@@ -70,8 +75,9 @@ bool IsBoolType(const AbstractType& type) {
   return type.IsBoolType();
 }
 
-bool IsIntType(const AbstractType& type) {
-  return type.IsIntType();
+bool IsSubtypeOfInt(const AbstractType& type) {
+  return type.IsIntType() || type.IsIntegerImplementationType() ||
+         type.IsSmiType() || type.IsMintType();
 }
 
 bool IsSmiType(const AbstractType& type) {
@@ -121,7 +127,7 @@ Object& NewZoneHandle(Zone* zone) {
 }
 
 Object& NewZoneHandle(Zone* zone, const Object& obj) {
-  return Object::ZoneHandle(zone, obj.raw());
+  return Object::ZoneHandle(zone, obj.ptr());
 }
 
 const Object& NullObject() {
@@ -161,18 +167,38 @@ const Type& IntType() {
 }
 
 const Class& GrowableObjectArrayClass() {
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
   return Class::Handle(object_store->growable_object_array_class());
 }
 
 const Class& MintClass() {
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
   return Class::Handle(object_store->mint_class());
 }
 
 const Class& DoubleClass() {
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
   return Class::Handle(object_store->double_class());
+}
+
+const Class& Float32x4Class() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->float32x4_class());
+}
+
+const Class& Float64x2Class() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->float64x2_class());
+}
+
+const Class& Int32x4Class() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->int32x4_class());
+}
+
+const Class& ClosureClass() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->closure_class());
 }
 
 const Array& OneArgArgumentsDescriptor() {
@@ -202,7 +228,7 @@ bool HasIntegerValue(const dart::Object& object, int64_t* value) {
 }
 
 int32_t CreateJitCookie() {
-  return static_cast<int32_t>(Isolate::Current()->random()->NextUInt32());
+  return static_cast<int32_t>(IsolateGroup::Current()->random()->NextUInt32());
 }
 
 word TypedDataElementSizeInBytes(classid_t cid) {
@@ -210,7 +236,7 @@ word TypedDataElementSizeInBytes(classid_t cid) {
 }
 
 word TypedDataMaxNewSpaceElements(classid_t cid) {
-  return (dart::Heap::kNewAllocatableSize - target::TypedData::InstanceSize()) /
+  return (dart::Heap::kNewAllocatableSize - target::TypedData::HeaderSize()) /
          TypedDataElementSizeInBytes(cid);
 }
 
@@ -294,54 +320,56 @@ static word TranslateOffsetInWordsToHost(word offset) {
 }
 
 bool SizeFitsInSizeTag(uword instance_size) {
-  return dart::ObjectLayout::SizeTag::SizeFits(
+  return dart::UntaggedObject::SizeTag::SizeFits(
       TranslateOffsetInWordsToHost(instance_size));
 }
 
 uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
-  return dart::ObjectLayout::SizeTag::encode(
+  return dart::UntaggedObject::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
-         dart::ObjectLayout::ClassIdTag::encode(cid) |
-         dart::ObjectLayout::NewBit::encode(true);
+         dart::UntaggedObject::ClassIdTag::encode(cid) |
+         dart::UntaggedObject::NewBit::encode(true);
 }
 
 word Object::tags_offset() {
   return 0;
 }
 
-const word ObjectLayout::kCardRememberedBit =
-    dart::ObjectLayout::kCardRememberedBit;
+const word UntaggedObject::kCardRememberedBit =
+    dart::UntaggedObject::kCardRememberedBit;
 
-const word ObjectLayout::kOldAndNotRememberedBit =
-    dart::ObjectLayout::kOldAndNotRememberedBit;
+const word UntaggedObject::kOldAndNotRememberedBit =
+    dart::UntaggedObject::kOldAndNotRememberedBit;
 
-const word ObjectLayout::kOldAndNotMarkedBit =
-    dart::ObjectLayout::kOldAndNotMarkedBit;
+const word UntaggedObject::kOldAndNotMarkedBit =
+    dart::UntaggedObject::kOldAndNotMarkedBit;
 
-const word ObjectLayout::kSizeTagPos = dart::ObjectLayout::kSizeTagPos;
+const word UntaggedObject::kSizeTagPos = dart::UntaggedObject::kSizeTagPos;
 
-const word ObjectLayout::kSizeTagSize = dart::ObjectLayout::kSizeTagSize;
+const word UntaggedObject::kSizeTagSize = dart::UntaggedObject::kSizeTagSize;
 
-const word ObjectLayout::kClassIdTagPos = dart::ObjectLayout::kClassIdTagPos;
+const word UntaggedObject::kClassIdTagPos =
+    dart::UntaggedObject::kClassIdTagPos;
 
-const word ObjectLayout::kClassIdTagSize = dart::ObjectLayout::kClassIdTagSize;
+const word UntaggedObject::kClassIdTagSize =
+    dart::UntaggedObject::kClassIdTagSize;
 
-const word ObjectLayout::kHashTagPos = dart::ObjectLayout::kHashTagPos;
+const word UntaggedObject::kHashTagPos = dart::UntaggedObject::kHashTagPos;
 
-const word ObjectLayout::kHashTagSize = dart::ObjectLayout::kHashTagSize;
+const word UntaggedObject::kHashTagSize = dart::UntaggedObject::kHashTagSize;
 
-const word ObjectLayout::kSizeTagMaxSizeTag =
-    dart::ObjectLayout::SizeTag::kMaxSizeTagInUnitsOfAlignment *
+const word UntaggedObject::kSizeTagMaxSizeTag =
+    dart::UntaggedObject::SizeTag::kMaxSizeTagInUnitsOfAlignment *
     ObjectAlignment::kObjectAlignment;
 
-const word ObjectLayout::kTagBitsSizeTagPos =
-    dart::ObjectLayout::TagBits::kSizeTagPos;
+const word UntaggedObject::kTagBitsSizeTagPos =
+    dart::UntaggedObject::TagBits::kSizeTagPos;
 
-const word AbstractTypeLayout::kTypeStateFinalizedInstantiated =
-    dart::AbstractTypeLayout::kFinalizedInstantiated;
+const word UntaggedAbstractType::kTypeStateFinalizedInstantiated =
+    dart::UntaggedAbstractType::kFinalizedInstantiated;
 
-const word ObjectLayout::kBarrierOverlapShift =
-    dart::ObjectLayout::kBarrierOverlapShift;
+const word UntaggedObject::kBarrierOverlapShift =
+    dart::UntaggedObject::kBarrierOverlapShift;
 
 bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);
@@ -416,6 +444,16 @@ uword Class::GetInstanceSize(const dart::Class& handle) {
                         ObjectAlignment::kObjectAlignment);
 }
 
+// Currently, we only have compressed pointers on the target if we also have
+// compressed pointers on the host, since only 64-bit architectures can have
+// compressed pointers and there is no 32-bit host/64-bit target combination.
+// Thus, we cheat a little here and use the host information about compressed
+// pointers for the target, instead of storing this information in the extracted
+// offsets information.
+bool Class::HasCompressedPointers(const dart::Class& handle) {
+  return handle.HasCompressedPointers();
+}
+
 intptr_t Class::NumTypeArguments(const dart::Class& klass) {
   return klass.NumTypeArguments();
 }
@@ -430,7 +468,7 @@ intptr_t Class::TypeArgumentsFieldOffset(const dart::Class& klass) {
 }
 
 bool Class::TraceAllocation(const dart::Class& klass) {
-  return klass.TraceAllocation(dart::Isolate::Current());
+  return klass.TraceAllocation(dart::IsolateGroup::Current());
 }
 
 word Instance::first_field_offset() {
@@ -470,8 +508,9 @@ word Instance::ElementSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+      return kCompressedWordSize;
     case kTypeArgumentsCid:
-      return kWordSize;
+      return kCompressedWordSize;
     case kOneByteStringCid:
       return dart::OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
@@ -513,14 +552,6 @@ word ICData::EntryPointIndexFor(word num_args) {
 const word MegamorphicCache::kSpreadFactor =
     dart::MegamorphicCache::kSpreadFactor;
 
-word Context::InstanceSize(word n) {
-  return TranslateOffsetInWords(dart::Context::InstanceSize(n));
-}
-
-word Context::variable_offset(word n) {
-  return TranslateOffsetInWords(dart::Context::variable_offset(n));
-}
-
 // Currently we have two different axes for offset generation:
 //
 //  * Target architecture
@@ -529,6 +560,12 @@ word Context::variable_offset(word n) {
 // TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
 
 #define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
+
+#define DEFINE_ARRAY_SIZEOF(clazz, name, ElementOffset)                        \
+  word clazz::name() { return 0; }                                             \
+  word clazz::name(intptr_t length) {                                          \
+    return RoundedAllocationSize(clazz::ElementOffset(length));                \
+  }
 
 #define DEFINE_PAYLOAD_SIZEOF(clazz, name, header)                             \
   word clazz::name() { return 0; }                                             \
@@ -558,6 +595,7 @@ word Context::variable_offset(word n) {
 JIT_OFFSETS_LIST(DEFINE_FIELD,
                  DEFINE_ARRAY,
                  DEFINE_SIZEOF,
+                 DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_RANGE,
                  DEFINE_CONSTANT)
@@ -565,6 +603,7 @@ JIT_OFFSETS_LIST(DEFINE_FIELD,
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
@@ -574,7 +613,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #define DEFINE_JIT_FIELD(clazz, name)                                          \
   word clazz::name() {                                                         \
     if (FLAG_precompiled_mode) {                                               \
-      FATAL1("Use JIT-only field %s in precompiled mode", #clazz "::" #name);  \
+      FATAL("Use of JIT-only field %s in precompiled mode",                    \
+            #clazz "::" #name);                                                \
     }                                                                          \
     return clazz##_##name;                                                     \
   }
@@ -582,8 +622,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #define DEFINE_JIT_ARRAY(clazz, name)                                          \
   word clazz::name(intptr_t index) {                                           \
     if (FLAG_precompiled_mode) {                                               \
-      FATAL1("Use of JIT-only array %s in precompiled mode",                   \
-             #clazz "::" #name);                                               \
+      FATAL("Use of JIT-only array %s in precompiled mode",                    \
+            #clazz "::" #name);                                                \
     }                                                                          \
     return clazz##_elements_start_offset + index * clazz##_element_size;       \
   }
@@ -591,8 +631,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #define DEFINE_JIT_SIZEOF(clazz, name, what)                                   \
   word clazz::name() {                                                         \
     if (FLAG_precompiled_mode) {                                               \
-      FATAL1("Use of JIT-only sizeof %s in precompiled mode",                  \
-             #clazz "::" #name);                                               \
+      FATAL("Use of JIT-only sizeof %s in precompiled mode",                   \
+            #clazz "::" #name);                                                \
     }                                                                          \
     return clazz##_##name;                                                     \
   }
@@ -600,8 +640,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #define DEFINE_JIT_RANGE(Class, Getter, Type, First, Last, Filter)             \
   word Class::Getter(Type index) {                                             \
     if (FLAG_precompiled_mode) {                                               \
-      FATAL1("Use of JIT-only range %s in precompiled mode",                   \
-             #Class "::" #Getter);                                             \
+      FATAL("Use of JIT-only range %s in precompiled mode",                    \
+            #Class "::" #Getter);                                              \
     }                                                                          \
     return Class##_##Getter[static_cast<intptr_t>(index) -                     \
                             static_cast<intptr_t>(First)];                     \
@@ -610,6 +650,7 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
                  DEFINE_JIT_ARRAY,
                  DEFINE_JIT_SIZEOF,
+                 DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_JIT_RANGE,
                  DEFINE_CONSTANT)
@@ -618,6 +659,68 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
 #undef DEFINE_JIT_ARRAY
 #undef DEFINE_JIT_SIZEOF
 #undef DEFINE_JIT_RANGE
+
+#if defined(DART_PRECOMPILER)
+// The following could check FLAG_precompiled_mode for more safety, but that
+// causes problems for defining things like native Slots, where the definition
+// cannot be based on a runtime flag. Instead, we limit the visibility of these
+// definitions using DART_PRECOMPILER.
+
+#define DEFINE_AOT_FIELD(clazz, name)                                          \
+  word clazz::name() { return AOT_##clazz##_##name; }
+
+#define DEFINE_AOT_ARRAY(clazz, name)                                          \
+  word clazz::name(intptr_t index) {                                           \
+    return AOT_##clazz##_elements_start_offset +                               \
+           index * AOT_##clazz##_element_size;                                 \
+  }
+
+#define DEFINE_AOT_SIZEOF(clazz, name, what)                                   \
+  word clazz::name() { return AOT_##clazz##_##name; }
+
+#define DEFINE_AOT_RANGE(Class, Getter, Type, First, Last, Filter)             \
+  word Class::Getter(Type index) {                                             \
+    return AOT_##Class##_##Getter[static_cast<intptr_t>(index) -               \
+                                  static_cast<intptr_t>(First)];               \
+  }
+#else
+#define DEFINE_AOT_FIELD(clazz, name)                                          \
+  word clazz::name() {                                                         \
+    FATAL("Use of AOT-only field %s outside of the precompiler",               \
+          #clazz "::" #name);                                                  \
+  }
+
+#define DEFINE_AOT_ARRAY(clazz, name)                                          \
+  word clazz::name(intptr_t index) {                                           \
+    FATAL("Use of AOT-only array %s outside of the precompiler",               \
+          #clazz "::" #name);                                                  \
+  }
+
+#define DEFINE_AOT_SIZEOF(clazz, name, what)                                   \
+  word clazz::name() {                                                         \
+    FATAL("Use of AOT-only sizeof %s outside of the precompiler",              \
+          #clazz "::" #name);                                                  \
+  }
+
+#define DEFINE_AOT_RANGE(Class, Getter, Type, First, Last, Filter)             \
+  word Class::Getter(Type index) {                                             \
+    FATAL("Use of AOT-only range %s outside of the precompiler",               \
+          #Class "::" #Getter);                                                \
+  }
+#endif  // defined(DART_PRECOMPILER)
+
+AOT_OFFSETS_LIST(DEFINE_AOT_FIELD,
+                 DEFINE_AOT_ARRAY,
+                 DEFINE_AOT_SIZEOF,
+                 DEFINE_ARRAY_SIZEOF,
+                 DEFINE_PAYLOAD_SIZEOF,
+                 DEFINE_AOT_RANGE,
+                 DEFINE_CONSTANT)
+
+#undef DEFINE_AOT_FIELD
+#undef DEFINE_AOT_ARRAY
+#undef DEFINE_AOT_SIZEOF
+#undef DEFINE_AOT_RANGE
 
 #define DEFINE_FIELD(clazz, name)                                              \
   word clazz::name() {                                                         \
@@ -653,6 +756,7 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
@@ -708,17 +812,12 @@ word Thread::stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
                   : stack_overflow_shared_without_fpu_regs_entry_point_offset();
 }
 
-uword Thread::safepoint_state_unacquired() {
-  return dart::Thread::safepoint_state_unacquired();
+uword Thread::full_safepoint_state_unacquired() {
+  return dart::Thread::full_safepoint_state_unacquired();
 }
 
-uword Thread::safepoint_state_acquired() {
-  return dart::Thread::safepoint_state_acquired();
-}
-
-intptr_t Thread::safepoint_state_inside_bit() {
-  COMPILE_ASSERT(dart::Thread::AtSafepointField::bitsize() == 1);
-  return dart::Thread::AtSafepointField::shift();
+uword Thread::full_safepoint_state_acquired() {
+  return dart::Thread::full_safepoint_state_acquired();
 }
 
 uword Thread::generated_execution_state() {
@@ -780,7 +879,7 @@ bool IsSmi(const dart::Object& a) {
 
 word ToRawSmi(const dart::Object& a) {
   RELEASE_ASSERT(IsSmi(a));
-  return static_cast<word>(static_cast<intptr_t>(a.raw()));
+  return static_cast<word>(static_cast<intptr_t>(a.ptr()));
 }
 
 word ToRawSmi(intptr_t value) {
@@ -808,12 +907,18 @@ word ToRawPointer(const dart::Object& a) {
   static_assert(kHostWordSize == kWordSize,
                 "Can't embed raw pointers to runtime objects when host and "
                 "target word sizes are different");
-  return static_cast<word>(a.raw());
+  return static_cast<word>(a.ptr());
 }
 #endif  // defined(TARGET_ARCH_IA32)
 
 word RegExp::function_offset(classid_t cid, bool sticky) {
+#if !defined(DART_COMPRESSED_POINTERS)
   return TranslateOffsetInWords(dart::RegExp::function_offset(cid, sticky));
+#else
+  // TODO(rmacnak): TranslateOffsetInWords doesn't account for, say, header
+  // being 1 word and slots being half words.
+  return dart::RegExp::function_offset(cid, sticky);
+#endif
 }
 
 const word Symbols::kNumberOfOneCharCodeSymbols =
@@ -823,12 +928,12 @@ const word Symbols::kNullCharCodeSymbolOffset =
 
 const word String::kHashBits = dart::String::kHashBits;
 
-const int8_t Nullability::kNullable =
-    static_cast<int8_t>(dart::Nullability::kNullable);
-const int8_t Nullability::kNonNullable =
-    static_cast<int8_t>(dart::Nullability::kNonNullable);
-const int8_t Nullability::kLegacy =
-    static_cast<int8_t>(dart::Nullability::kLegacy);
+const uint8_t Nullability::kNullable =
+    static_cast<uint8_t>(dart::Nullability::kNullable);
+const uint8_t Nullability::kNonNullable =
+    static_cast<uint8_t>(dart::Nullability::kNonNullable);
+const uint8_t Nullability::kLegacy =
+    static_cast<uint8_t>(dart::Nullability::kLegacy);
 
 bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
   return dart::Heap::IsAllocatableInNewSpace(instance_size);
@@ -920,7 +1025,15 @@ word LinkedHashMap::NextFieldOffset() {
   return -kWordSize;
 }
 
+word AbstractType::NextFieldOffset() {
+  return -kWordSize;
+}
+
 word Type::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word FunctionType::NextFieldOffset() {
   return -kWordSize;
 }
 
@@ -980,10 +1093,6 @@ word PatchClass::NextFieldOffset() {
   return -kWordSize;
 }
 
-word SignatureData::NextFieldOffset() {
-  return -kWordSize;
-}
-
 word FfiTrampolineData::NextFieldOffset() {
   return -kWordSize;
 }
@@ -1016,6 +1125,10 @@ word CompressedStackMaps::NextFieldOffset() {
   return -kWordSize;
 }
 
+word LocalVarDescriptors::InstanceSize() {
+  return 0;
+}
+
 word LocalVarDescriptors::NextFieldOffset() {
   return -kWordSize;
 }
@@ -1025,6 +1138,10 @@ word ExceptionHandlers::NextFieldOffset() {
 }
 
 word ContextScope::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Sentinel::NextFieldOffset() {
   return -kWordSize;
 }
 
@@ -1081,7 +1198,11 @@ word StackTrace::NextFieldOffset() {
 }
 
 word Integer::NextFieldOffset() {
-  return -kWordSize;
+  return TranslateOffsetInWords(dart::Integer::NextFieldOffset());
+}
+
+word Smi::InstanceSize() {
+  return 0;
 }
 
 word Smi::NextFieldOffset() {
@@ -1097,7 +1218,7 @@ word MirrorReference::NextFieldOffset() {
 }
 
 word Number::NextFieldOffset() {
-  return -kWordSize;
+  return TranslateOffsetInWords(dart::Number::NextFieldOffset());
 }
 
 word MonomorphicSmiableCall::NextFieldOffset() {
@@ -1105,6 +1226,10 @@ word MonomorphicSmiableCall::NextFieldOffset() {
 }
 
 word InstructionsSection::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word InstructionsTable::NextFieldOffset() {
   return -kWordSize;
 }
 
@@ -1149,6 +1274,10 @@ word FutureOr::NextFieldOffset() {
 }
 
 word Field::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word TypeParameters::NextFieldOffset() {
   return -kWordSize;
 }
 

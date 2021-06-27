@@ -43,14 +43,26 @@ mixin ServerListener {
 
   /// Called when the [Server] receives an unexpected message
   /// which is not a notification or response.
-  void unexpectedMessage(Map<String, dynamic> message) {
+  void unexpectedMessage(Map<String, Object?> message) {
     log('Unexpected message from server:', '$message');
+  }
+
+  /// Called when the [Server] received a response, which is not an error,
+  /// but the result is not an JSON object.
+  void unexpectedNotificationFormat(Map<String, Object?> message) {
+    log('Unexpected notification format from server', '$message');
   }
 
   /// Called when the [Server] recieved an unexpected response
   /// where the [id] does not match the [id] of an outstanding request.
-  void unexpectedResponse(Map<String, dynamic> message, id) {
+  void unexpectedResponse(Map<String, Object?> message, Object id) {
     log('Unexpected response from server', 'id=$id');
+  }
+
+  /// Called when the [Server] received a response, which is not an error,
+  /// but the result is not an JSON object.
+  void unexpectedResponseFormat(Map<String, Object?> message) {
+    log('Unexpected response format from server', '$message');
   }
 
   /// Called when the server process unexpectedly exits

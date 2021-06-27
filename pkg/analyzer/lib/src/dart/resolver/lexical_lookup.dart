@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 class LexicalLookup {
   final ResolverVisitor _resolver;
@@ -14,8 +13,8 @@ class LexicalLookup {
   LexicalLookup(this._resolver);
 
   LexicalLookupResult perform({
-    @required SimpleIdentifier node,
-    @required bool setter,
+    required SimpleIdentifier node,
+    required bool setter,
   }) {
     var id = node.name;
     var scopeResult = _resolver.nameScope.lookup(id);
@@ -31,7 +30,7 @@ class LexicalLookup {
             requested: _resolver.toLegacyElement(scopeSetter),
           );
         }
-        if (!scopeGetter.isInstanceMember) {
+        if (scopeGetter != null && !scopeGetter.isInstanceMember) {
           return LexicalLookupResult(
             recovery: _resolver.toLegacyElement(scopeGetter),
           );
@@ -40,6 +39,11 @@ class LexicalLookup {
         if (scopeGetter != null) {
           return LexicalLookupResult(
             requested: _resolver.toLegacyElement(scopeGetter),
+          );
+        }
+        if (scopeSetter != null && !scopeSetter.isInstanceMember) {
+          return LexicalLookupResult(
+            recovery: _resolver.toLegacyElement(scopeSetter),
           );
         }
       }
@@ -57,7 +61,7 @@ class LexicalLookup {
       receiver: null,
       receiverType: thisType,
       name: id,
-      receiverErrorNode: node,
+      propertyErrorEntity: node,
       nameErrorEntity: node,
     );
 
@@ -90,8 +94,8 @@ class LexicalLookup {
 }
 
 class LexicalLookupResult {
-  final Element requested;
-  final Element recovery;
+  final Element? requested;
+  final Element? recovery;
 
   LexicalLookupResult({this.requested, this.recovery});
 }

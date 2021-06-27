@@ -4,7 +4,6 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -19,17 +18,25 @@ abstract class FileSystemTestSupport {
   String get defaultFileContent;
 
   /// A path to a file within the [defaultFolderPath] that can be used by tests.
-  String /*!*/ get defaultFilePath;
+  String get defaultFilePath;
 
   /// A path to a folder within the [tempPath] that can be used by tests.
-  String /*!*/ get defaultFolderPath;
+  String get defaultFolderPath;
+
+  /// Return `true` if the file system has support for symbolic links.
+  /// Windows until recently (Windows 10, 2016) did not have it.
+  bool get hasSymbolicLinkSupport;
 
   /// Return the resource provider to be used by the tests.
   ResourceProvider get provider;
 
   /// The absolute path to the temporary directory in which all of the tests are
   /// to work.
-  String /*!*/ get tempPath;
+  String get tempPath;
+
+  /// Create a link from [path] to [target].
+  /// The [target] does not have to exist, can be create later, or not at all.
+  void createLink({required String path, required String target});
 
   /// Return a file accessed through the resource provider. If [exists] is
   /// `true` then the returned file will exist, otherwise it won't. If [content]
@@ -37,22 +44,22 @@ abstract class FileSystemTestSupport {
   /// have the [defaultFileContent]. If the file does not exist then the content
   /// is ignored. If a [filePath] is provided, then the file will be located at
   /// that path; otherwise the file will have the [defaultFilePath].
-  File getFile({@required bool exists, String content, String filePath});
+  File getFile({required bool exists, String? content, String? filePath});
 
   /// Return a folder accessed through the resource provider. If [exists] is
   /// `true` then the returned folder will exist, otherwise it won't. If a
   /// [folderPath] is provided, then the folder will be located at that path;
   /// otherwise the folder will have the [defaultFolderPath].
-  Folder getFolder({@required bool exists, String folderPath});
+  Folder getFolder({required bool exists, String? folderPath});
 
   /// Return a file path composed of the provided parts as defined by the
   /// current path context.
   String join(String part1,
-          [String part2,
-          String part3,
-          String part4,
-          String part5,
-          String part6]) =>
+          [String? part2,
+          String? part3,
+          String? part4,
+          String? part5,
+          String? part6]) =>
       provider.pathContext.join(part1, part2, part3, part4, part5, part6);
 }
 
@@ -73,7 +80,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
     Folder destination = provider.getFolder(join(tempPath, 'destination'));
 
     File copy = file.copyTo(destination);
-    expect(copy.parent, destination);
+    expect(copy.parent2, destination);
     expect(copy.shortName, file.shortName);
     expect(copy.exists, isTrue);
     expect(copy.readAsStringSync(), 'contents');
@@ -135,6 +142,37 @@ mixin FileTestMixin implements FileSystemTestSupport {
     expect(file.exists, isTrue);
   }
 
+  test_exists_links_existing() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var a_path = join(tempPath, 'a.dart');
+    var b_path = join(tempPath, 'b.dart');
+
+    createLink(path: b_path, target: a_path);
+    getFile(exists: true, filePath: a_path);
+
+    var a = provider.getFile(a_path);
+    var b = provider.getFile(b_path);
+
+    expect(a.exists, isTrue);
+    expect(b.exists, isTrue);
+  }
+
+  test_exists_links_notExisting() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var a_path = join(tempPath, 'a.dart');
+    var b_path = join(tempPath, 'b.dart');
+
+    createLink(path: b_path, target: a_path);
+
+    var a = provider.getFile(a_path);
+    var b = provider.getFile(b_path);
+
+    expect(a.exists, isFalse);
+    expect(b.exists, isFalse);
+  }
+
   test_exists_notExisting() {
     File file = getFile(exists: false);
 
@@ -186,11 +224,19 @@ mixin FileTestMixin implements FileSystemTestSupport {
     expect(() => file.modificationStamp, throwsA(isFileSystemException));
   }
 
+  @deprecated
   test_parent() {
     File file = getFile(exists: true);
 
-    Folder parent = file.parent;
-    expect(parent, isNotNull);
+    var parent = file.parent!;
+    expect(parent.exists, isTrue);
+    expect(parent.path, defaultFolderPath);
+  }
+
+  test_parent2() {
+    File file = getFile(exists: true);
+
+    var parent = file.parent2;
     expect(parent.exists, isTrue);
     expect(parent.path, defaultFolderPath);
   }
@@ -267,9 +313,46 @@ mixin FileTestMixin implements FileSystemTestSupport {
 
   test_renameSync_notExisting();
 
-  test_resolveSymbolicLinksSync_links_existing();
+  test_resolveSymbolicLinksSync_links_existing() {
+    if (!hasSymbolicLinkSupport) return;
 
-  test_resolveSymbolicLinksSync_links_notExisting();
+    var a_path = join(tempPath, 'aaa', 'a.dart');
+    var b_path = join(tempPath, 'bbb', 'b.dart');
+
+    getFile(exists: true, filePath: a_path);
+    createLink(path: b_path, target: a_path);
+
+    var resolved = provider.getFile(b_path).resolveSymbolicLinksSync();
+    expect(resolved.path, a_path);
+  }
+
+  test_resolveSymbolicLinksSync_links_existing2() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var a = join(tempPath, 'aaa', 'a.dart');
+    var b = join(tempPath, 'bbb', 'b.dart');
+    var c = join(tempPath, 'ccc', 'c.dart');
+
+    getFile(exists: true, filePath: a);
+    createLink(path: b, target: a);
+    createLink(path: c, target: b);
+
+    var resolved = provider.getFile(c).resolveSymbolicLinksSync();
+    expect(resolved.path, a);
+  }
+
+  test_resolveSymbolicLinksSync_links_notExisting() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var a = join(tempPath, 'a.dart');
+    var b = join(tempPath, 'b.dart');
+
+    createLink(path: b, target: a);
+
+    expect(() {
+      provider.getFile(b).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
 
   test_resolveSymbolicLinksSync_noLinks_existing() {
     File file = getFile(exists: true);
@@ -277,7 +360,13 @@ mixin FileTestMixin implements FileSystemTestSupport {
     expect(file.resolveSymbolicLinksSync(), file);
   }
 
-  test_resolveSymbolicLinksSync_noLinks_notExisting();
+  test_resolveSymbolicLinksSync_noLinks_notExisting() {
+    var path = join(tempPath, 'a.dart');
+
+    expect(() {
+      provider.getFile(path).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
 
   test_shortName() {
     File file = getFile(exists: false);
@@ -411,7 +500,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
         getFolder(exists: true, folderPath: join(tempPath, 'destination'));
 
     Folder copy = source.copyTo(destination);
-    expect(copy.parent, destination);
+    expect(copy.parent2, destination);
     _verifyStructure(copy, source);
   }
 
@@ -426,7 +515,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   test_delete() {
     File file =
         getFile(exists: true, filePath: join(defaultFolderPath, 'myFile'));
-    Folder folder = file.parent;
+    var folder = file.parent2;
     expect(folder.exists, isTrue);
     expect(file.exists, isTrue);
 
@@ -449,6 +538,37 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     Folder folder2 = getFolder(exists: false);
 
     expect(folder1 == folder2, isTrue);
+  }
+
+  test_exists_links_existing() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var foo_path = join(tempPath, 'foo');
+    var bar_path = join(tempPath, 'bar');
+
+    createLink(path: bar_path, target: foo_path);
+    getFolder(exists: true, folderPath: foo_path);
+
+    var foo = provider.getFolder(foo_path);
+    var bar = provider.getFolder(bar_path);
+
+    expect(foo.exists, isTrue);
+    expect(bar.exists, isTrue);
+  }
+
+  test_exists_links_notExisting() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var foo_path = join(tempPath, 'foo');
+    var bar_path = join(tempPath, 'bar');
+
+    createLink(path: bar_path, target: foo_path);
+
+    var foo = provider.getFolder(foo_path);
+    var bar = provider.getFolder(bar_path);
+
+    expect(foo.exists, isFalse);
+    expect(bar.exists, isFalse);
   }
 
   test_getChild_doesNotExist() {
@@ -561,6 +681,74 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     expect(children[2], isFile);
   }
 
+  test_getChildren_hasLink_file() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var a_path = join(tempPath, 'a.dart');
+    var b_path = join(tempPath, 'b.dart');
+
+    createLink(path: b_path, target: a_path);
+    var a = getFile(exists: true, filePath: a_path);
+
+    var children = provider.getFolder(tempPath).getChildren();
+    expect(children, hasLength(2));
+    expect(
+      children.map((e) => e.path),
+      unorderedEquals([a_path, b_path]),
+    );
+
+    var b = children.singleWhere((e) => e.path == b_path) as File;
+    expect(b.resolveSymbolicLinksSync(), a);
+  }
+
+  test_getChildren_hasLink_folder() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var foo_path = join(tempPath, 'foo');
+    var bar_path = join(tempPath, 'bar');
+
+    var foo = getFolder(exists: true, folderPath: foo_path);
+    createLink(path: bar_path, target: foo_path);
+
+    var children = provider.getFolder(tempPath).getChildren();
+    expect(children, hasLength(2));
+    expect(
+      children.map((e) => e.path),
+      unorderedEquals([foo_path, bar_path]),
+    );
+
+    var b = children.singleWhere((e) => e.path == bar_path) as Folder;
+    expect(b.resolveSymbolicLinksSync(), foo);
+  }
+
+  test_getChildren_isLink() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var foo_path = join(tempPath, 'foo');
+    var bar_path = join(tempPath, 'bar');
+    var foo_a_path = join(foo_path, 'a.dart');
+    var bar_a_path = join(bar_path, 'a.dart');
+    var foo_b_path = join(foo_path, 'b');
+    var bar_b_path = join(bar_path, 'b');
+
+    var foo_a = getFile(exists: true, filePath: foo_a_path);
+    var foo_b = getFolder(exists: true, folderPath: foo_b_path);
+    createLink(path: bar_path, target: foo_path);
+
+    var children = provider.getFolder(bar_path).getChildren();
+    expect(children, hasLength(2));
+    expect(
+      children.map((e) => e.path),
+      unorderedEquals([bar_a_path, bar_b_path]),
+    );
+
+    var bar_a = children.singleWhere((e) => e.path == bar_a_path) as File;
+    expect(bar_a.resolveSymbolicLinksSync(), foo_a);
+
+    var bar_b = children.singleWhere((e) => e.path == bar_b_path) as Folder;
+    expect(bar_b.resolveSymbolicLinksSync(), foo_b);
+  }
+
   test_hashCode() {
     Folder folder1 = getFolder(exists: false);
     Folder folder2 = getFolder(exists: false);
@@ -596,7 +784,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   test_parent() {
     Folder folder = getFolder(exists: true);
 
-    Folder parent = folder.parent;
+    var parent = folder.parent2;
     expect(parent.path, equals(tempPath));
     //
     // Since the OS is in control of where tempPath is, we don't know how far it
@@ -604,13 +792,47 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     // in a folder with a shorter path, and that we reach the root eventually.
     //
     while (true) {
-      Folder grandParent = parent.parent;
-      if (grandParent == null) {
+      var grandParent = parent.parent2;
+      if (grandParent.isRoot) {
         break;
       }
       expect(grandParent.path.length, lessThan(parent.path.length));
       parent = grandParent;
     }
+  }
+
+  test_resolveSymbolicLinksSync_links_existing() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var foo = join(tempPath, 'foo');
+    var bar = join(tempPath, 'bar');
+
+    getFolder(exists: true, folderPath: foo);
+    createLink(path: bar, target: foo);
+
+    var resolved = provider.getFolder(bar).resolveSymbolicLinksSync();
+    expect(resolved.path, foo);
+  }
+
+  test_resolveSymbolicLinksSync_links_notExisting() {
+    if (!hasSymbolicLinkSupport) return;
+
+    var foo = join(tempPath, 'foo');
+    var bar = join(tempPath, 'bar');
+
+    createLink(path: bar, target: foo);
+
+    expect(() {
+      provider.getFolder(bar).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
+
+  test_resolveSymbolicLinksSync_noLinks_notExisting() {
+    var path = join(tempPath, 'foo');
+
+    expect(() {
+      provider.getFolder(path).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
   }
 
   test_toUri() {
@@ -645,8 +867,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
       }
     }
     for (String fileName in sourceFiles.keys) {
-      File sourceChild = sourceFiles[fileName];
-      File copiedChild = copyFiles[fileName];
+      var sourceChild = sourceFiles[fileName]!;
+      var copiedChild = copyFiles[fileName];
       if (copiedChild == null) {
         fail('Failed to copy file ${sourceChild.path}');
       }
@@ -654,8 +876,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
           reason: 'Incorrectly copied file ${sourceChild.path}');
     }
     for (String fileName in sourceFolders.keys) {
-      Folder sourceChild = sourceFolders[fileName];
-      Folder copiedChild = copyFolders[fileName];
+      var sourceChild = sourceFolders[fileName]!;
+      var copiedChild = copyFolders[fileName];
       if (copiedChild == null) {
         fail('Failed to copy folder ${sourceChild.path}');
       }
@@ -700,14 +922,14 @@ mixin ResourceProviderTestMixin implements FileSystemTestSupport {
   test_getModificationTimes_existing() async {
     Source source = getFile(exists: true).createSource();
 
-    List<int> times = await provider.getModificationTimes([source]);
+    var times = await provider.getModificationTimes([source]);
     expect(times, [source.modificationStamp]);
   }
 
   test_getModificationTimes_notExisting() async {
     Source source = getFile(exists: false).createSource();
 
-    List<int> times = await provider.getModificationTimes([source]);
+    var times = await provider.getModificationTimes([source]);
     expect(times, [-1]);
   }
 
@@ -733,10 +955,10 @@ mixin ResourceProviderTestMixin implements FileSystemTestSupport {
   }
 
   test_getStateLocation_uniqueness() {
-    Folder folderOne = provider.getStateLocation('one');
+    var folderOne = provider.getStateLocation('one')!;
     expect(folderOne, isNotNull);
 
-    Folder folderTwo = provider.getStateLocation('two');
+    var folderTwo = provider.getStateLocation('two')!;
     expect(folderTwo, isNotNull);
     expect(folderTwo, isNot(equals(folderOne)));
 

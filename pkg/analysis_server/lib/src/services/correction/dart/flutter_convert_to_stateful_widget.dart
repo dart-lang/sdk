@@ -35,14 +35,14 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
     }
 
     // Find the build() method.
-    MethodDeclaration buildMethod;
+    MethodDeclaration? buildMethod;
     for (var member in widgetClass.members) {
-      if (member is MethodDeclaration &&
-          member.name.name == 'build' &&
-          member.parameters != null &&
-          member.parameters.parameters.length == 1) {
-        buildMethod = member;
-        break;
+      if (member is MethodDeclaration && member.name.name == 'build') {
+        var parameters = member.parameters;
+        if (parameters != null && parameters.parameters.length == 1) {
+          buildMethod = member;
+          break;
+        }
       }
     }
     if (buildMethod == null) {
@@ -50,13 +50,16 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
     }
 
     // Must be a StatelessWidget subclasses.
-    var widgetClassElement = widgetClass.declaredElement;
-    if (!flutter.isExactlyStatelessWidgetType(widgetClassElement.supertype)) {
+    var widgetClassElement = widgetClass.declaredElement!;
+    var superType = widgetClassElement.supertype;
+    if (superType == null || !flutter.isExactlyStatelessWidgetType(superType)) {
       return;
     }
 
     var widgetName = widgetClassElement.displayName;
-    var stateName = '_${widgetName}State';
+    var stateName = widgetClassElement.isPrivate
+        ? '${widgetName}State'
+        : '_${widgetName}State';
 
     // Find fields assigned in constructors.
     var visitor = _FieldFinder();
@@ -73,20 +76,26 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (var fieldNode in member.fields.variables) {
-          FieldElement fieldElement = fieldNode.declaredElement;
+          var fieldElement = fieldNode.declaredElement as FieldElement;
           if (!fieldsAssignedInConstructors.contains(fieldElement)) {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
-            elementsToMove.add(fieldElement.getter);
-            if (fieldElement.setter != null) {
-              elementsToMove.add(fieldElement.setter);
+
+            var getter = fieldElement.getter;
+            if (getter != null) {
+              elementsToMove.add(getter);
+            }
+
+            var setter = fieldElement.setter;
+            if (setter != null) {
+              elementsToMove.add(setter);
             }
           }
         }
       }
       if (member is MethodDeclaration && !member.isStatic) {
         nodesToMove.add(member);
-        elementsToMove.add(member.declaredElement);
+        elementsToMove.add(member.declaredElement!);
       }
     }
 
@@ -126,8 +135,9 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
       var hasBuildMethod = false;
 
       var typeParams = '';
-      if (widgetClass.typeParameters != null) {
-        typeParams = utils.getNodeText(widgetClass.typeParameters);
+      var typeParameters = widgetClass.typeParameters;
+      if (typeParameters != null) {
+        typeParams = utils.getNodeText(typeParameters);
       }
 
       /// Replace code between [replaceOffset] and [replaceEnd] with
@@ -145,8 +155,10 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
                 builder.writeln();
               }
               builder.writeln('  @override');
-              builder.writeln(
-                  '  $stateName$typeParams createState() => $stateName$typeParams();');
+              builder.write('  ');
+              builder.writeReference(stateClass);
+              builder.write('<${widgetClass.name}$typeParams>');
+              builder.writeln(' createState() => $stateName$typeParams();');
               if (hasEmptyLineAfterCreateState) {
                 builder.writeln();
               }
@@ -204,10 +216,10 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
 
         // Write just param names (and not bounds, metadata and docs).
         builder.write('<${widgetClass.name}');
-        if (widgetClass.typeParameters != null) {
+        if (typeParameters != null) {
           builder.write('<');
           var first = true;
-          for (var param in widgetClass.typeParameters.typeParameters) {
+          for (var param in typeParameters.typeParameters) {
             if (!first) {
               builder.write(', ');
               first = false;
@@ -248,7 +260,10 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
     if (node.parent is FieldFormalParameter) {
       var element = node.staticElement;
       if (element is FieldFormalParameterElement) {
-        fieldsAssignedInConstructors.add(element.field);
+        var field = element.field;
+        if (field != null) {
+          fieldsAssignedInConstructors.add(field);
+        }
       }
     }
     if (node.parent is ConstructorFieldInitializer) {
@@ -288,7 +303,7 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
     }
     var element = node.staticElement;
     if (element is ExecutableElement &&
-        element?.enclosingElement == widgetClassElement &&
+        element.enclosingElement == widgetClassElement &&
         !elementsToMove.contains(element)) {
       var offset = node.offset - linesRange.offset;
       var qualifier =

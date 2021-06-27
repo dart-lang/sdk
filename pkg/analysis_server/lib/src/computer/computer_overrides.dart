@@ -4,12 +4,13 @@
 
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 /// Return the elements that the given [element] overrides.
 OverriddenElements findOverriddenElements(Element element) {
-  if (element?.enclosingElement is ClassElement) {
+  if (element.enclosingElement is ClassElement) {
     return _OverriddenElementsFinder(element).find();
   }
   return OverriddenElements(element, <Element>[], <Element>[]);
@@ -51,19 +52,25 @@ class DartUnitOverridesComputer {
   /// Add a new [Override] for the declaration with the given name [node].
   void _addOverride(SimpleIdentifier node) {
     var element = node.staticElement;
-    var overridesResult = _OverriddenElementsFinder(element).find();
-    var superElements = overridesResult.superElements;
-    var interfaceElements = overridesResult.interfaceElements;
-    if (superElements.isNotEmpty || interfaceElements.isNotEmpty) {
-      var superMember = superElements.isNotEmpty
-          ? proto.newOverriddenMember_fromEngine(superElements.first)
-          : null;
-      var interfaceMembers = interfaceElements
-          .map((member) => proto.newOverriddenMember_fromEngine(member))
-          .toList();
-      _overrides.add(proto.Override(node.offset, node.length,
-          superclassMember: superMember,
-          interfaceMembers: nullIfEmpty(interfaceMembers)));
+    if (element != null) {
+      var overridesResult = _OverriddenElementsFinder(element).find();
+      var superElements = overridesResult.superElements;
+      var interfaceElements = overridesResult.interfaceElements;
+      if (superElements.isNotEmpty || interfaceElements.isNotEmpty) {
+        var superMember = superElements.isNotEmpty
+            ? proto.newOverriddenMember_fromEngine(
+                superElements.first.nonSynthetic,
+                withNullability: _unit.isNonNullableByDefault)
+            : null;
+        var interfaceMembers = interfaceElements
+            .map((member) => proto.newOverriddenMember_fromEngine(
+                member.nonSynthetic,
+                withNullability: _unit.isNonNullableByDefault))
+            .toList();
+        _overrides.add(proto.Override(node.offset, node.length,
+            superclassMember: superMember,
+            interfaceMembers: nullIfEmpty(interfaceMembers)));
+      }
     }
   }
 }
@@ -115,19 +122,23 @@ class _OverriddenElementsFinder {
   final List<Element> _interfaceElements = <Element>[];
   final Set<ClassElement> _visited = <ClassElement>{};
 
-  _OverriddenElementsFinder(Element seed) {
-    _seed = seed;
-    _class = seed.enclosingElement;
-    _library = _class.library;
-    _name = seed.displayName;
+  factory _OverriddenElementsFinder(Element seed) {
+    var class_ = seed.enclosingElement as ClassElement;
+    var library = class_.library;
+    var name = seed.displayName;
+    List<ElementKind> kinds;
     if (seed is MethodElement) {
-      _kinds = METHOD_KINDS;
+      kinds = METHOD_KINDS;
     } else if (seed is PropertyAccessorElement) {
-      _kinds = seed.isGetter ? GETTER_KINDS : SETTER_KINDS;
+      kinds = seed.isGetter ? GETTER_KINDS : SETTER_KINDS;
     } else {
-      _kinds = FIELD_KINDS;
+      kinds = FIELD_KINDS;
     }
+    return _OverriddenElementsFinder._(seed, library, class_, name, kinds);
   }
+
+  _OverriddenElementsFinder._(
+      this._seed, this._library, this._class, this._name, this._kinds);
 
   /// Add the [OverriddenElements] for this element.
   OverriddenElements find() {
@@ -139,7 +150,7 @@ class _OverriddenElementsFinder {
     return OverriddenElements(_seed, _superElements, _interfaceElements);
   }
 
-  void _addInterfaceOverrides(ClassElement class_, bool checkType) {
+  void _addInterfaceOverrides(ClassElement? class_, bool checkType) {
     if (class_ == null) {
       return;
     }
@@ -161,7 +172,7 @@ class _OverriddenElementsFinder {
     _addInterfaceOverrides(class_.supertype?.element, checkType);
   }
 
-  void _addSuperOverrides(ClassElement class_, {bool withThisType = true}) {
+  void _addSuperOverrides(ClassElement? class_, {bool withThisType = true}) {
     if (class_ == null) {
       return;
     }
@@ -185,11 +196,8 @@ class _OverriddenElementsFinder {
     }
   }
 
-  Element _lookupMember(ClassElement classElement) {
-    if (classElement == null) {
-      return null;
-    }
-    Element member;
+  Element? _lookupMember(ClassElement classElement) {
+    Element? member;
     // method
     if (_kinds.contains(ElementKind.METHOD)) {
       member = classElement.lookUpMethod(_name, _library);

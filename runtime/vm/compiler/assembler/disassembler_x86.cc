@@ -209,7 +209,7 @@ void InstructionTable::AddJumpConditionalShort() {
 
 static InstructionTable instruction_table;
 
-static InstructionDesc cmov_instructions[16] = {
+static const InstructionDesc cmov_instructions[16] = {
     {"cmovo", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
     {"cmovno", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
     {"cmovc", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
@@ -641,8 +641,8 @@ int DisassemblerX64::F6F7Instruction(uint8_t* data) {
   uint8_t modrm = *(data + 1);
   int mod, regop, rm;
   get_modrm(modrm, &mod, &regop, &rm);
-  static const char* mnemonics[] = {"test", NULL,   "not", "neg",
-                                    "mul",  "imul", "div", "idiv"};
+  static const char* const mnemonics[] = {"test", NULL,   "not", "neg",
+                                          "mul",  "imul", "div", "idiv"};
   const char* mnem = mnemonics[regop];
   if (mod == 3 && regop != 0) {
     if (regop > 3) {
@@ -1529,8 +1529,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     current += PrintOperands(idesc.mnem, idesc.op_order_, current);
   } else if (0x10 <= opcode && opcode <= 0x16) {
     // ...ps xmm, xmm/m128
-    static const char* mnemonics[] = {"movups",   NULL,       "movhlps", NULL,
-                                      "unpcklps", "unpckhps", "movlhps"};
+    static const char* const mnemonics[] = {
+        "movups", NULL, "movhlps", NULL, "unpcklps", "unpckhps", "movlhps"};
     const char* mnemonic = mnemonics[opcode - 0x10];
     if (mnemonic == NULL) {
       UnimplementedInstruction();
@@ -1613,7 +1613,7 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
     return xmm_instructions[opcode & 0xF].ps_name;
   }
   if (0xA2 <= opcode && opcode <= 0xBF) {
-    static const char* mnemonics[] = {
+    static const char* const mnemonics[] = {
         "cpuid", "bt",   "shld",    "shld",    NULL,     NULL,
         NULL,    NULL,   NULL,      "bts",     "shrd",   "shrd",
         NULL,    "imul", "cmpxchg", "cmpxchg", NULL,     NULL,

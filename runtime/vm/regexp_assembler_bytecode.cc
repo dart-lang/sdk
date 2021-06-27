@@ -401,7 +401,7 @@ TypedDataPtr BytecodeRegExpMacroAssembler::GetBytecode() {
   NoSafepointScope no_safepoint;
   memmove(bytecode.DataAddr(0), buffer_->data(), len);
 
-  return bytecode.raw();
+  return bytecode.ptr();
 }
 
 intptr_t BytecodeRegExpMacroAssembler::length() {
@@ -465,7 +465,7 @@ static intptr_t Prepare(const RegExp& regexp,
   ASSERT(regexp.num_registers(is_one_byte) != -1);
 
   return regexp.num_registers(is_one_byte) +
-         (Smi::Value(regexp.num_bracket_expressions()) + 1) * 2;
+         (regexp.num_bracket_expressions() + 1) * 2;
 }
 
 static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
@@ -478,12 +478,9 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   bool is_one_byte =
       subject.IsOneByteString() || subject.IsExternalOneByteString();
 
-  ASSERT(regexp.num_bracket_expressions() != Smi::null());
-
   // We must have done EnsureCompiledIrregexp, so we can get the number of
   // registers.
-  int number_of_capture_registers =
-      (Smi::Value(regexp.num_bracket_expressions()) + 1) * 2;
+  int number_of_capture_registers = (regexp.num_bracket_expressions() + 1) * 2;
   int32_t* raw_output = &output[number_of_capture_registers];
 
   // We do not touch the actual capture result registers until we know there
@@ -505,9 +502,9 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   }
   if (result == IrregexpInterpreter::RE_EXCEPTION) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
+    auto isolate_group = thread->isolate_group();
     const Instance& exception =
-        Instance::Handle(isolate->object_store()->stack_overflow());
+        Instance::Handle(isolate_group->object_store()->stack_overflow());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
@@ -533,7 +530,7 @@ InstancePtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
               required_registers, zone);
 
   if (result == IrregexpInterpreter::RE_SUCCESS) {
-    intptr_t capture_count = Smi::Value(regexp.num_bracket_expressions());
+    intptr_t capture_count = regexp.num_bracket_expressions();
     intptr_t capture_register_count = (capture_count + 1) * 2;
     ASSERT(required_registers >= capture_register_count);
 
@@ -554,7 +551,7 @@ InstancePtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
               capture_register_count * sizeof(int32_t));
     }
 
-    return result.raw();
+    return result.ptr();
   }
   if (result == IrregexpInterpreter::RE_EXCEPTION) {
     UNREACHABLE();

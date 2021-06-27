@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as ad;
@@ -18,9 +16,9 @@ class Declaration {
   final int column;
   final int codeOffset;
   final int codeLength;
-  final String className;
-  final String mixinName;
-  final String parameters;
+  final String? className;
+  final String? mixinName;
+  final String? parameters;
 
   Declaration(
     this.fileIndex,
@@ -44,6 +42,7 @@ enum DeclarationKind {
   CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
+  EXTENSION,
   FIELD,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
@@ -60,8 +59,8 @@ class WorkspaceSymbols {
   WorkspaceSymbols(this.tracker);
 
   List<Declaration> declarations(
-      RegExp regExp, int maxResults, LinkedHashSet<String> files,
-      {String onlyForFile}) {
+      RegExp? regExp, int? maxResults, Set<String> files,
+      {String? onlyForFile}) {
     _doTrackerWork();
 
     var declarations = <Declaration>[];
@@ -105,14 +104,21 @@ class WorkspaceSymbols {
         return;
       }
 
-      String className;
-      if (declaration.parent?.kind == ad.DeclarationKind.CLASS) {
-        className = declaration.parent.name;
+      var parent = declaration.parent;
+
+      String? className;
+      if (parent != null && parent.kind == ad.DeclarationKind.CLASS) {
+        className = parent.name;
       }
 
-      String mixinName;
-      if (declaration.parent?.kind == ad.DeclarationKind.MIXIN) {
-        mixinName = declaration.parent.name;
+      String? mixinName;
+      if (parent != null && parent.kind == ad.DeclarationKind.MIXIN) {
+        mixinName = parent.name;
+      }
+
+      var topKind = _getTopKind(declaration.kind);
+      if (topKind == null) {
+        return;
       }
 
       declarations.add(
@@ -120,7 +126,7 @@ class WorkspaceSymbols {
           getPathIndex(path),
           declaration.lineInfo,
           name,
-          _getTopKind(declaration.kind),
+          topKind,
           declaration.locationOffset,
           declaration.locationStartLine,
           declaration.locationStartColumn,
@@ -152,7 +158,7 @@ class WorkspaceSymbols {
     }
   }
 
-  static DeclarationKind _getTopKind(ad.DeclarationKind kind) {
+  static DeclarationKind? _getTopKind(ad.DeclarationKind kind) {
     switch (kind) {
       case ad.DeclarationKind.CLASS:
         return DeclarationKind.CLASS;
@@ -164,6 +170,8 @@ class WorkspaceSymbols {
         return DeclarationKind.ENUM;
       case ad.DeclarationKind.ENUM_CONSTANT:
         return DeclarationKind.ENUM_CONSTANT;
+      case ad.DeclarationKind.EXTENSION:
+        return DeclarationKind.EXTENSION;
       case ad.DeclarationKind.FIELD:
         return DeclarationKind.FIELD;
       case ad.DeclarationKind.FUNCTION_TYPE_ALIAS:

@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateMissingOverrides extends CorrectionProducer {
-  int _numElements;
+  int _numElements = 0;
 
   @override
   List<Object> get fixArguments => [_numElements];
@@ -46,6 +46,9 @@ class CreateMissingOverrides extends CorrectionProducer {
 
     var location =
         utils.prepareNewClassMemberLocation(targetClass, (_) => true);
+    if (location == null) {
+      return;
+    }
 
     var prefix = utils.getIndent(1);
     await builder.addDartFileEdit(file, (builder) {

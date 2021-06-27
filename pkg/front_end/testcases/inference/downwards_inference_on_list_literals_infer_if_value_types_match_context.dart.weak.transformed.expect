@@ -1,0 +1,91 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef Asserter<contravariant T extends core::Object* = dynamic> = (T*) →* void;
+typedef AsserterBuilder<contravariant S extends core::Object* = dynamic, contravariant T extends core::Object* = dynamic> = (S*) →* (T*) →* void;
+class DartType extends core::Object {
+  synthetic constructor •() → self::DartType*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class C extends core::Object {
+  static field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertBOf = null;
+  field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertAOf = null;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  static get assertCOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void
+    return null;
+  abstract get assertDOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void;
+  method method((core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertEOf) → dynamic {
+    let final core::List<(self::DartType*) →* void>* #t1 = core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString) in this.{self::C::assertAOf}{(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void}(#t1){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+    self::C::assertBOf(core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString)){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+    self::C::assertCOf(core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString)){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+    let final core::List<(self::DartType*) →* void>* #t2 = core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString) in this.{self::C::assertDOf}{(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void}(#t2){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+    assertEOf(core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString)){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class G<T extends core::Object* = dynamic> extends core::Object {
+  field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertAOf = null;
+  synthetic constructor •() → self::G<self::G::T*>*
+    : super core::Object::•()
+    ;
+  abstract get assertDOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void;
+  method method((core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertEOf) → dynamic {
+    let final core::List<(self::DartType*) →* void>* #t3 = core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString) in this.{self::G::assertAOf}{(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void}(#t3){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+    let final core::List<(self::DartType*) →* void>* #t4 = core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString) in this.{self::G::assertAOf}{(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void}(#t4){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+    let final core::List<(self::DartType*) →* void>* #t5 = core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString) in this.{self::G::assertDOf}{(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void}(#t5){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+    assertEOf(core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString)){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field (self::DartType*) →* void _isInt;
+static field (self::DartType*) →* void _isString;
+static field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertBOf;
+static get assertCOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void
+  return null;
+static method test() → dynamic {
+  (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertAOf;
+  assertAOf(core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString)){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  self::assertBOf(core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString)){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  self::assertCOf(core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString)){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  self::C::assertBOf(core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString)){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  self::C::assertCOf(core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString)){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  self::C* c;
+  let final self::C* #t6 = c in let final core::List<(self::DartType*) →* void>* #t7 = core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString) in #t6.{self::C::assertAOf}{(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void}(#t7){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  let final self::C* #t8 = c in let final core::List<(self::DartType*) →* void>* #t9 = core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString) in #t8.{self::C::assertDOf}{(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void}(#t9){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  self::G<core::int*>* g;
+  let final self::G<core::int*>* #t10 = g in let final core::List<(self::DartType*) →* void>* #t11 = core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString) in #t10.{self::G::assertAOf}{(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void}(#t11){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+  let final self::G<core::int*>* #t12 = g in let final core::List<(self::DartType*) →* void>* #t13 = core::_GrowableList::_literal2<(self::DartType*) →* void>(self::_isInt, self::_isString) in #t12.{self::G::assertDOf}{(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void}(#t13){(core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void};
+}
+static method main() → dynamic {}

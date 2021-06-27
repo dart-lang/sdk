@@ -8,8 +8,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 DefinedNames computeDefinedNames(CompilationUnit unit) {
   DefinedNames names = DefinedNames();
 
-  void appendName(Set<String> names, SimpleIdentifier node) {
-    String name = node?.name;
+  void appendName(Set<String> names, SimpleIdentifier? node) {
+    var name = node?.name;
     if (name != null && name.isNotEmpty) {
       names.add(name);
     }

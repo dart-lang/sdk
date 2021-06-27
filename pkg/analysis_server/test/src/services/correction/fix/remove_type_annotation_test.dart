@@ -98,7 +98,7 @@ class AvoidTypesOnClosureParametersTest extends RemoveTypeAnnotationTest {
 
   Future<void> test_namedParameter() async {
     await resolveTestCode('''
-var x = ({Future<int> defaultValue}) => null;
+var x = ({Future<int>? defaultValue}) => null;
 ''');
     await assertHasFix('''
 var x = ({defaultValue}) => null;
@@ -116,7 +116,7 @@ var x = (defaultValue) => null;
 
   Future<void> test_optionalParameter() async {
     await resolveTestCode('''
-var x = ([Future<int> defaultValue]) => null;
+var x = ([Future<int>? defaultValue]) => null;
 ''');
     await assertHasFix('''
 var x = ([defaultValue]) => null;

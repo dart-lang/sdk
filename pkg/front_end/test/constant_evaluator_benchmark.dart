@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
@@ -30,18 +32,16 @@ import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 
 import 'package:kernel/target/targets.dart'
     show ConstantsBackend, DiagnosticReporter, Target, TargetFlags;
-import 'package:kernel/type_environment.dart';
 
 import "package:vm/target/flutter.dart" show FlutterTarget;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
-import 'incremental_load_from_dill_suite.dart' show getOptions;
+import 'incremental_suite.dart' show getOptions;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
@@ -101,6 +101,10 @@ void benchmark(Component component, List<Library> libraries) {
             evaluateAnnotations: true,
             enableTripleShift: target
                 .isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+            enableConstFunctions: target
+                .isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
+            enableConstructorTearOff: target.isExperimentEnabledGlobally(
+                ExperimentalFlag.constructorTearoffs),
             errorOnUnevaluatedConstant:
                 incrementalCompiler.context.options.errorOnUnevaluatedConstant);
         print("Transformed constants with $environmentDefinesDescription"

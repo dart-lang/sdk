@@ -23,7 +23,7 @@ abstract class AssistCollector {
 abstract class AssistContributor {
   /// Contribute assists for the location in the file specified by the given
   /// [request] into the given [collector].
-  void computeAssists(
+  Future<void> computeAssists(
       covariant AssistRequest request, AssistCollector collector);
 }
 
@@ -41,13 +41,13 @@ class AssistGenerator {
   /// Create an 'edit.getAssists' response for the location in the file specified
   /// by the given [request]. If any of the contributors throws an exception,
   /// also create a non-fatal 'plugin.error' notification.
-  GeneratorResult<EditGetAssistsResult> generateAssistsResponse(
-      AssistRequest request) {
+  Future<GeneratorResult<EditGetAssistsResult>> generateAssistsResponse(
+      AssistRequest request) async {
     var notifications = <Notification>[];
     var collector = AssistCollectorImpl();
     for (var contributor in contributors) {
       try {
-        contributor.computeAssists(request, collector);
+        await contributor.computeAssists(request, collector);
       } catch (exception, stackTrace) {
         notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
@@ -78,14 +78,9 @@ class AssistKind {
   /// message `"Create a component named '{0}' in '{1}'"` contains two parameters.
   final String message;
 
-  /// A list of any associated error codes. Assists with associated error codes
-  /// can be presented as "fixes" for the associated errors by clients.
-  final List<String> associatedErrorCodes;
-
   /// Initialize a newly created kind of assist to have the given [id],
-  /// [priority], [message] and optionally any [associatedErrorCodes].
-  const AssistKind(this.id, this.priority, this.message,
-      {this.associatedErrorCodes});
+  /// [priority] and [message].
+  const AssistKind(this.id, this.priority, this.message);
 
   @override
   String toString() => id;

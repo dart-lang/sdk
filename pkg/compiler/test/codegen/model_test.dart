@@ -14,11 +14,9 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js/js.dart' as js;
-import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
-import 'package:js_ast/js_ast.dart' as js;
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -99,12 +97,11 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         String name;
         if (selector is js.Name) {
           name = selector.key;
-          fixedNameCall = selector is StringBackedName;
         } else if (selector is js.LiteralString) {
           /// Call to fixed backend name, so we include the argument
           /// values to test encoding of optional parameters in native
           /// methods.
-          name = selector.value.substring(1, selector.value.length - 1);
+          name = selector.value;
           fixedNameCall = true;
         }
         if (name != null) {
@@ -149,7 +146,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         /// Call to fixed backend name, so we include the argument
         /// values to test encoding of optional parameters in native
         /// methods.
-        name = selector.value.substring(1, selector.value.length - 1);
+        name = selector.value;
       }
 
       if (receiverName != null && name != null) {
@@ -239,7 +236,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
             if (selector is js.Name) {
               name = selector.key;
             } else if (selector is js.LiteralString) {
-              name = selector.value.substring(1, selector.value.length - 1);
+              name = selector.value;
             }
             if (name != null) {
               features.addElement(Tags.assignment, '${name}');

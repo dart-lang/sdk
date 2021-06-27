@@ -20,7 +20,7 @@ class CodeFragment extends ValueGenerator {
 
   @override
   String evaluateIn(TemplateContext context) {
-    Object target = context.node;
+    Object? target = context.node;
     for (var i = 0; i < accessors.length; i++) {
       var result = accessors[i].getValue(target);
       if (!result.isValid) {
@@ -40,8 +40,11 @@ class CodeFragment extends ValueGenerator {
   }
 
   @override
+  String toString() => accessors.join('.');
+
+  @override
   bool validate(TemplateContext context) {
-    Object target = context.node;
+    Object? target = context.node;
     for (var accessor in accessors) {
       var result = accessor.getValue(target);
       if (!result.isValid) {
@@ -54,7 +57,7 @@ class CodeFragment extends ValueGenerator {
 
   @override
   void writeOn(DartEditBuilder builder, TemplateContext context) {
-    Object target = context.node;
+    Object? target = context.node;
     for (var accessor in accessors) {
       target = accessor.getValue(target).result;
     }

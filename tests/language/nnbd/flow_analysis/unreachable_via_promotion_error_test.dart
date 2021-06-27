@@ -6,7 +6,6 @@
 // resulting code block is considered reachable by flow analysis.  This is in
 // contrast to promotion to `Never`, which is considered unreachable.
 
-// SharedOptions=--enable-experiment=non-nullable
 void promoteViaIsCheck(Object x, Object? y) {
   if (x is! int) {
     if (y is Never?) {

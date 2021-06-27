@@ -4,6 +4,8 @@
 //
 // Tests optimizing (a << b) & c if c is a Smi constant.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

@@ -12,6 +12,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/ffi/native_type.h"
+#include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/log.h"
@@ -29,45 +30,6 @@
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
-
-// The following functions are runtime checks on type arguments.
-// Some checks are also performed in kernel transformation, these are asserts.
-// Some checks are only performed at runtime to allow for generic code, these
-// throw ArgumentExceptions.
-
-static void CheckSized(const AbstractType& type_arg) {
-  const classid_t type_cid = type_arg.type_class_id();
-  if (IsFfiNativeTypeTypeClassId(type_cid) || IsFfiTypeVoidClassId(type_cid) ||
-      IsFfiTypeNativeFunctionClassId(type_cid)) {
-    const String& error = String::Handle(String::NewFormatted(
-        "%s does not have a predefined size (@unsized). "
-        "Unsized NativeTypes do not support [sizeOf] because their size "
-        "is unknown. "
-        "Consequently, [allocate], [Pointer.load], [Pointer.store], and "
-        "[Pointer.elementAt] are not available.",
-        String::Handle(type_arg.UserVisibleName()).ToCString()));
-    Exceptions::ThrowArgumentError(error);
-  }
-}
-
-// Calculate the size of a native type.
-//
-// You must check [IsConcreteNativeType] and [CheckSized] first to verify that
-// this type has a defined size.
-static size_t SizeOf(Zone* zone, const AbstractType& type) {
-  if (IsFfiTypeClassId(type.type_class_id())) {
-    return compiler::ffi::NativeType::FromAbstractType(zone, type)
-        .SizeInBytes();
-  } else {
-    Class& struct_class = Class::Handle(type.type_class());
-    Object& result = Object::Handle(
-        struct_class.InvokeGetter(Symbols::SizeOfStructField(),
-                                  /*throw_nsm_if_absent=*/false,
-                                  /*respect_reflectable=*/false));
-    ASSERT(!result.IsNull() && result.IsInteger());
-    return Integer::Cast(result).AsInt64Value();
-  }
-}
 
 // The remainder of this file implements the dart:ffi native methods.
 
@@ -88,45 +50,8 @@ DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
   UNREACHABLE();
 }
 
-static ObjectPtr LoadValueStruct(Zone* zone,
-                                 const Pointer& target,
-                                 const AbstractType& instance_type_arg) {
-  // Result is a struct class -- find <class name>.#fromTypedDataBase
-  // constructor and call it.
-  const Class& cls = Class::Handle(zone, instance_type_arg.type_class());
-  const Function& constructor =
-      Function::Handle(cls.LookupFunctionAllowPrivate(String::Handle(
-          String::Concat(String::Handle(String::Concat(
-                             String::Handle(cls.Name()), Symbols::Dot())),
-                         Symbols::StructFromTypedDataBase()))));
-  ASSERT(!constructor.IsNull());
-  ASSERT(constructor.IsGenerativeConstructor());
-  ASSERT(!Object::Handle(constructor.VerifyCallEntryPoint()).IsError());
-  const Instance& new_object = Instance::Handle(Instance::New(cls));
-  ASSERT(cls.is_allocated() || Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
-  const Array& args = Array::Handle(zone, Array::New(2));
-  args.SetAt(0, new_object);
-  args.SetAt(1, target);
-  const Object& constructorResult =
-      Object::Handle(DartEntry::InvokeFunction(constructor, args));
-  ASSERT(!constructorResult.IsError());
-  return new_object.raw();
-}
-
 DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  const AbstractType& pointer_type_arg =
-      AbstractType::Handle(pointer.type_argument());
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
-
-  // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
-  const size_t address =
-      pointer.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
-                                    SizeOf(zone, pointer_type_arg);
-  const Pointer& pointer_offset =
-      Pointer::Handle(zone, Pointer::New(pointer_type_arg, address));
-
-  return LoadValueStruct(zone, pointer_offset, pointer_type_arg);
+  UNREACHABLE();
 }
 
 #define DEFINE_NATIVE_ENTRY_STORE(type)                                        \
@@ -138,15 +63,8 @@ DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
   UNREACHABLE();
 }
 
-DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  CheckSized(type_arg);
-
-  return Integer::New(SizeOf(zone, type_arg));
-}
-
 // Static invocations to this method are translated directly in streaming FGB.
-DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 1) {
+DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
   UNREACHABLE();
 }
 
@@ -222,7 +140,7 @@ DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
   }
 
   const auto& typed_data_class =
-      Class::Handle(zone, isolate->class_table()->At(cid));
+      Class::Handle(zone, isolate->group()->class_table()->At(cid));
   const auto& error =
       Error::Handle(zone, typed_data_class.EnsureIsAllocateFinalized(thread));
   if (!error.IsNull()) {
@@ -248,8 +166,7 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
                                arguments->NativeArgAt(1));
 
   ASSERT(type_arg.IsInstantiated() && type_arg.IsFunctionType());
-  const Function& native_signature =
-      Function::Handle(zone, Type::Cast(type_arg).signature());
+  const FunctionType& native_signature = FunctionType::Cast(type_arg);
   Function& func = Function::Handle(zone, closure.function());
 
   // The FE verifies that the target of a 'fromFunction' is a static method, so
@@ -270,7 +187,7 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
                                  native_signature, func, exceptional_return)));
 
   // Because we have already set the return value.
-  return Object::sentinel().raw();
+  return Object::sentinel().ptr();
 #endif
 }
 
@@ -293,7 +210,7 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
     Exceptions::PropagateError(Error::Cast(result));
   }
   ASSERT(result.IsCode());
-  code ^= result.raw();
+  code ^= result.ptr();
 #endif
 
   ASSERT(!code.IsNull());
@@ -356,6 +273,43 @@ static const DartApi dart_api_data = {
 
 DEFINE_NATIVE_ENTRY(DartApiDLInitializeData, 0, 0) {
   return Integer::New(reinterpret_cast<intptr_t>(&dart_api_data));
+}
+
+// FFI native C function pointer resolver.
+static intptr_t FfiResolve(Dart_Handle lib_url, Dart_Handle name) {
+  DARTSCOPE(Thread::Current());
+
+  const String& lib_url_str = Api::UnwrapStringHandle(T->zone(), lib_url);
+  const String& function_name = Api::UnwrapStringHandle(T->zone(), name);
+
+  // Find the corresponding library's native function resolver (if set).
+  const Library& lib = Library::Handle(Library::LookupLibrary(T, lib_url_str));
+  if (lib.IsNull()) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Unknown library: '%s'.", lib_url_str.ToCString()));
+    Exceptions::ThrowArgumentError(error);
+  }
+  auto resolver = lib.ffi_native_resolver();
+  if (resolver == nullptr) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Library has no handler: '%s'.", lib_url_str.ToCString()));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  auto* f = resolver(function_name.ToCString());
+  if (f == nullptr) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Couldn't resolve function: '%s'.", function_name.ToCString()));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  return reinterpret_cast<intptr_t>(f);
+}
+
+// Bootstrap to get the FFI Native resolver through a `native` call.
+DEFINE_NATIVE_ENTRY(Ffi_GetFfiNativeResolver, 1, 0) {
+  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
+  return Pointer::New(type_arg, reinterpret_cast<intptr_t>(FfiResolve));
 }
 
 }  // namespace dart

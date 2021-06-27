@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -24,24 +25,29 @@ class ChangeTypeAnnotation extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var declaration = coveredNode?.parent;
-    if (declaration is VariableDeclaration &&
-        declaration.initializer == coveredNode) {
-      var variableList = declaration.parent;
-      if (variableList is VariableDeclarationList &&
-          variableList.variables.length == 1) {
-        var typeNode = variableList.type;
-        if (typeNode != null) {
-          Expression initializer = coveredNode;
-          var newType = initializer.staticType;
-          if (newType is InterfaceType || newType is FunctionType) {
-            _oldAnnotation = displayStringForType(typeNode.type);
-            _newAnnotation = displayStringForType(newType);
-            await builder.addDartFileEdit(file, (builder) {
-              builder.addReplacement(range.node(typeNode), (builder) {
-                builder.writeType(newType);
-              });
+    if (declaration is! VariableDeclaration) {
+      return;
+    }
+
+    var initializer = declaration.initializer;
+    if (initializer == null || initializer != coveredNode) {
+      return;
+    }
+
+    var variableList = declaration.parent;
+    if (variableList is VariableDeclarationList &&
+        variableList.variables.length == 1) {
+      var typeNode = variableList.type;
+      if (typeNode != null) {
+        var newType = initializer.typeOrThrow;
+        if (newType is InterfaceType || newType is FunctionType) {
+          _oldAnnotation = displayStringForType(typeNode.typeOrThrow);
+          _newAnnotation = displayStringForType(newType);
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addReplacement(range.node(typeNode), (builder) {
+              builder.writeType(newType);
             });
-          }
+          });
         }
       }
     }

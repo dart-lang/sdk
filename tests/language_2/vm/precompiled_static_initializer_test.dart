@@ -4,6 +4,8 @@
 // Test optimizations with static fields with precompilation.
 // VMOptions=--inlining-hotness=0
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 init() => 123;

@@ -6,29 +6,34 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
-extensions/call_methods: TypeCheckError
+constructor_tearoffs/redirecting_constructors: RuntimeError
+extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
+extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
-extensions/issue40713: TypeCheckError
 extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError
-general/async_method_with_invalid_type: Crash
 general/await_in_non_async: RuntimeError
-general/bug21938: TypeCheckError
+general/bounded_implicit_instantiation: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError
 general/call: TypeCheckError
-general/callable_type_variable: TypeCheckError
 general/candidate_found: TypeCheckError
 general/cascade: RuntimeError
-general/constants/with_unevaluated_agnostic/const_asserts: TextSerializationFailure
-general/constants/with_unevaluated_agnostic/various: TextSerializationFailure
 general/constructor_initializer_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
+general/crashes/crash_02/main: Crash
+general/crashes/crash_04/main: Crash
+general/crashes/crash_06/main: Crash
 general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError
@@ -53,6 +58,7 @@ general/error_recovery/issue_39024.crash: RuntimeError
 general/error_recovery/issue_39026.crash: RuntimeError
 general/error_recovery/issue_39026_prime.crash: RuntimeError
 general/error_recovery/issue_39033.crash: RuntimeError
+general/error_recovery/issue_39033b.crash: RuntimeError
 general/error_recovery/issue_39058.crash: RuntimeError
 general/error_recovery/issue_39058_prime.crash: RuntimeError
 general/error_recovery/issue_39202.crash: RuntimeError
@@ -75,11 +81,13 @@ general/issue38938: RuntimeError
 general/issue38944: RuntimeError
 general/issue38961: RuntimeError
 general/issue41210a: TypeCheckError
+general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
+general/issue45204: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError
-general/mixin_covariant2: TypeCheckError
+general/mixin_covariant2: RuntimeError
 general/operator_method_not_found: RuntimeError
 general/optional: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
@@ -95,53 +103,6 @@ general/type_variable_as_super: RuntimeError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general/with_dependencies/issue_43084/issue_43084: RuntimeError
-general_nnbd_opt_out/abstract_members: TypeCheckError
-general_nnbd_opt_out/accessors: RuntimeError
-general_nnbd_opt_out/ambiguous_exports: RuntimeError
-general_nnbd_opt_out/await_in_non_async: RuntimeError
-general_nnbd_opt_out/bug21938: TypeCheckError
-general_nnbd_opt_out/bug30695: TypeCheckError
-general_nnbd_opt_out/bug31124: RuntimeError
-general_nnbd_opt_out/call: TypeCheckError
-general_nnbd_opt_out/candidate_found: TypeCheckError
-general_nnbd_opt_out/cascade: RuntimeError
-general_nnbd_opt_out/constructor_initializer_invalid: RuntimeError
-general_nnbd_opt_out/covariant_generic: RuntimeError
-general_nnbd_opt_out/duplicated_declarations: TypeCheckError
-general_nnbd_opt_out/duplicated_field_initializer: RuntimeError
-general_nnbd_opt_out/error_locations/error_location_01: RuntimeError
-general_nnbd_opt_out/error_locations/error_location_02: RuntimeError
-general_nnbd_opt_out/error_locations/error_location_03: RuntimeError
-general_nnbd_opt_out/error_locations/error_location_05: RuntimeError
-general_nnbd_opt_out/error_locations/error_location_06: RuntimeError
-general_nnbd_opt_out/expressions: RuntimeError
-general_nnbd_opt_out/external_import: RuntimeError
-general_nnbd_opt_out/incomplete_field_formal_parameter: RuntimeError
-general_nnbd_opt_out/invocations: RuntimeError
-general_nnbd_opt_out/issue37776: RuntimeError
-general_nnbd_opt_out/issue38938: RuntimeError
-general_nnbd_opt_out/issue38944: RuntimeError
-general_nnbd_opt_out/issue38961: RuntimeError
-general_nnbd_opt_out/micro: RuntimeError
-general_nnbd_opt_out/mixin_application_override: TypeCheckError
-general_nnbd_opt_out/mixin_constructors_with_default_values: RuntimeError
-general_nnbd_opt_out/operator_method_not_found: RuntimeError
-general_nnbd_opt_out/optional: TypeCheckError
-general_nnbd_opt_out/override_check_accessor_after_inference: TypeCheckError # Issue #31620
-general_nnbd_opt_out/override_check_accessor_basic: TypeCheckError # Issue #31620
-general_nnbd_opt_out/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
-general_nnbd_opt_out/override_check_after_inference: TypeCheckError # Issue #31620
-general_nnbd_opt_out/override_check_basic: TypeCheckError # Issue #31620
-general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
-general_nnbd_opt_out/override_setter_with_field: TypeCheckError
-general_nnbd_opt_out/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
-general_nnbd_opt_out/statements: Crash
-general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError
-general_nnbd_opt_out/type_variable_as_super: RuntimeError
-general_nnbd_opt_out/unsound_promotion: TypeCheckError
-general_nnbd_opt_out/void_methods: RuntimeError
-implicit_getter_calls/getter_call: TextSerializationFailure
-implicit_getter_calls/this_field_call: TextSerializationFailure
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_for_each: RuntimeError
@@ -155,7 +116,6 @@ inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
 inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
-inference/instantiate_tearoff_of_call: TypeCheckError # Issue #31746
 inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
@@ -170,20 +130,34 @@ inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
-nnbd/issue41180: RuntimeError
 nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
+nnbd_mixed/bad_mixins: TypeCheckError
+nnbd_mixed/covariant_from_opt_in: TypeCheckError
+nnbd_mixed/hierarchy/conflict: TypeCheckError
+nnbd_mixed/hierarchy/duplicates: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_field: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_method: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_setter: TypeCheckError
+nnbd_mixed/hierarchy/getter_setter: TypeCheckError
+nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: TypeCheckError
+nnbd_mixed/hierarchy/in_out_dill_in/in_out_in: TypeCheckError
+nnbd_mixed/hierarchy/in_out_in: TypeCheckError
+nnbd_mixed/hierarchy/mix_in_override: TypeCheckError
+nnbd_mixed/hierarchy/override: TypeCheckError
+nnbd_mixed/inheritance_from_opt_in: TypeCheckError
+nnbd_mixed/issue41567: TypeCheckError
+nnbd_mixed/messages_with_types_opt_in: TypeCheckError
+nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 none/equals: TypeCheckError
 none/method_invocation: TypeCheckError
-none/mixin_covariant: TypeCheckError
 none/operator: TypeCheckError
 none/property_get: TypeCheckError
 none/property_set: TypeCheckError
-none/tearoff_opt_out: TextSerializationFailure
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -232,6 +206,7 @@ rasta/unresolved_recovery: TypeCheckError
 regress/issue_29976: RuntimeError
 regress/issue_29982: RuntimeError
 regress/issue_30836: RuntimeError
+regress/issue_31180: TypeCheckError
 regress/issue_31299: TypeCheckError
 regress/issue_32972: TypeCheckError
 regress/issue_33452: RuntimeError
@@ -252,10 +227,8 @@ regress/issue_39091_1: RuntimeError
 regress/issue_39091_2: RuntimeError
 regress/utf_16_le_content.crash: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
-runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
-runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
+value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected
 value_class/value_implements_non_value: RuntimeError # Expected
-value_class/copy_with_call_sites: RuntimeError # Expected

@@ -126,7 +126,7 @@ main() {
     var request = _createGetErrorsRequest(file);
     var response = await serverChannel.sendRequest(request);
     expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
+    expect(response.error!.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
   }
 
   Request _createGetErrorsRequest(String file) {

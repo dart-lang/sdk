@@ -37,7 +37,7 @@ class ImportAddShow extends CorrectionProducer {
     var namespace = getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
     var visitor = _ReferenceFinder(namespace);
-    resolvedResult.unit.accept(visitor);
+    unit.accept(visitor);
     var referencedNames = visitor.referencedNames;
     // ignore if unused
     if (referencedNames.isEmpty) {

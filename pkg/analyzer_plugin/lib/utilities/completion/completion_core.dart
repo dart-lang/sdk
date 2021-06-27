@@ -70,10 +70,8 @@ class CompletionGenerator {
   /// Create a 'completion.getSuggestions' response for the file with the given
   /// [path]. If any of the contributors throws an exception, also create a
   /// non-fatal 'plugin.error' notification.
-  Future<GeneratorResult<CompletionGetSuggestionsResult>>
+  Future<GeneratorResult<CompletionGetSuggestionsResult?>>
       generateCompletionResponse(CompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var notifications = <Notification>[];
     var collector = CompletionCollectorImpl();
     try {
@@ -94,7 +92,7 @@ class CompletionGenerator {
     collector.length ??= 0;
 
     var result = CompletionGetSuggestionsResult(
-        collector.offset, collector.length, collector.suggestions);
+        collector.offset!, collector.length!, collector.suggestions);
     return GeneratorResult(result, notifications);
   }
 }

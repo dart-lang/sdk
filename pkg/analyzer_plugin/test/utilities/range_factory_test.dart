@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:test/test.dart';
@@ -32,7 +30,7 @@ class RangeFactoryTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_argumentRange_all_mixed_noTrailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1, c: 2);
 }
@@ -42,7 +40,7 @@ void g(int a, int b, {int c}) {}
   }
 
   Future<void> test_argumentRange_all_mixed_trailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1, c: 2, );
 }
@@ -52,7 +50,7 @@ void g(int a, int b, {int c}) {}
   }
 
   Future<void> test_argumentRange_all_named_noTrailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(a: 0, b: 1, c: 2);
 }
@@ -62,7 +60,7 @@ void g({int a, int b, int c}) {}
   }
 
   Future<void> test_argumentRange_all_named_trailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(a: 0, b: 1, c: 2, );
 }
@@ -72,7 +70,7 @@ void g({int a, int b, int c}) {}
   }
 
   Future<void> test_argumentRange_all_positional_noTrailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1, 2);
 }
@@ -82,7 +80,7 @@ void g(int a, int b, int c) {}
   }
 
   Future<void> test_argumentRange_all_positional_trailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1, 2, );
 }
@@ -92,7 +90,7 @@ void g(int a, int b, int c) {}
   }
 
   Future<void> test_argumentRange_first_noTrailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1);
 }
@@ -102,7 +100,7 @@ void g(int a, int b) {}
   }
 
   Future<void> test_argumentRange_first_trailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1, );
 }
@@ -112,7 +110,7 @@ void g(int a, int b) {}
   }
 
   Future<void> test_argumentRange_last_noTrailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1);
 }
@@ -122,7 +120,7 @@ void g(int a, int b) {}
   }
 
   Future<void> test_argumentRange_last_trailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1, );
 }
@@ -132,7 +130,7 @@ void g(int a, int b) {}
   }
 
   Future<void> test_argumentRange_middle_noTrailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1, 2, 3);
 }
@@ -142,7 +140,7 @@ void g(int a, int b, int c, int d) {}
   }
 
   Future<void> test_argumentRange_middle_trailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1, 2, 3, );
 }
@@ -152,7 +150,7 @@ void g(int a, int b, int c, int d) {}
   }
 
   Future<void> test_argumentRange_only_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(a: 0);
 }
@@ -162,7 +160,7 @@ void g({int a}) {}
   }
 
   Future<void> test_argumentRange_only_positional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0);
 }
@@ -172,13 +170,13 @@ void g(int a) {}
   }
 
   Future<void> test_elementName() async {
-    await resolveTestUnit('class ABC {}');
-    var element = findElement('ABC');
+    await resolveTestCode('class ABC {}');
+    var element = findElement.class_('ABC');
     expect(range.elementName(element), SourceRange(6, 3));
   }
 
   Future<void> test_endEnd() async {
-    await resolveTestUnit('main() {}');
+    await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     var mainBody = mainFunction.functionExpression.body;
@@ -186,34 +184,39 @@ void g(int a) {}
   }
 
   Future<void> test_endLength() async {
-    await resolveTestUnit('main() {}');
+    await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     expect(range.endLength(mainName, 3), SourceRange(4, 3));
   }
 
   Future<void> test_endStart() async {
-    await resolveTestUnit('main() {}');
+    await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     var mainBody = mainFunction.functionExpression.body;
     expect(range.endStart(mainName, mainBody), SourceRange(4, 3));
   }
 
-  void test_error() {
-    var error = AnalysisError(null, 10, 5, ParserErrorCode.CONST_CLASS, []);
-    expect(range.error(error), SourceRange(10, 5));
+  Future<void> test_error() async {
+    addTestSource('''
+class A {}
+const class B {}
+''');
+    var result = await resolveFile(testFile);
+    var error = result.errors.single;
+    expect(range.error(error), SourceRange(11, 5));
   }
 
   Future<void> test_node() async {
-    await resolveTestUnit('main() {}');
+    await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     expect(range.node(mainName), SourceRange(0, 4));
   }
 
   Future<void> test_nodeInList_argumentList_first_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(a: 1, b: 2);
 }
@@ -224,7 +227,7 @@ void g({int a, int b}) {}
   }
 
   Future<void> test_nodeInList_argumentList_first_positional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(1, 2);
 }
@@ -235,7 +238,7 @@ void g(int a, int b) {}
   }
 
   Future<void> test_nodeInList_argumentList_last_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(a: 1, b: 2);
 }
@@ -246,7 +249,7 @@ void g({int a, int b}) {}
   }
 
   Future<void> test_nodeInList_argumentList_last_positional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(1, 2);
 }
@@ -257,7 +260,7 @@ void g(int a, int b) {}
   }
 
   Future<void> test_nodeInList_argumentList_middle_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(a: 1, b: 2, c: 3);
 }
@@ -268,7 +271,7 @@ void g({int a, int b, int c}) {}
   }
 
   Future<void> test_nodeInList_argumentList_middle_positional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(1, 2, 3);
 }
@@ -279,7 +282,7 @@ void g(int a, int b, int c) {}
   }
 
   Future<void> test_nodeInList_argumentList_only_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(a: 1);
 }
@@ -290,7 +293,7 @@ void g({int a}) {}
   }
 
   Future<void> test_nodeInList_argumentList_only_named_trailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(a: 1,);
 }
@@ -301,7 +304,7 @@ void g({int a}) {}
   }
 
   Future<void> test_nodeInList_argumentList_only_positional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(1);
 }
@@ -313,7 +316,7 @@ void g(int a) {}
 
   Future<void>
       test_nodeInList_argumentList_only_positional_trailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(1,);
 }
@@ -324,7 +327,7 @@ void g(int a) {}
   }
 
   Future<void> test_nodes() async {
-    await resolveTestUnit(' main() {}');
+    await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     var mainBody = mainFunction.functionExpression.body;
@@ -332,7 +335,7 @@ void g(int a) {}
   }
 
   Future<void> test_nodes_empty() async {
-    await resolveTestUnit('main() {}');
+    await resolveTestCode('main() {}');
     expect(range.nodes([]), SourceRange(0, 0));
   }
 
@@ -341,7 +344,7 @@ void g(int a) {}
   }
 
   Future<void> test_startEnd_nodeNode() async {
-    await resolveTestUnit(' main() {}');
+    await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     var mainBody = mainFunction.functionExpression.body;
@@ -349,7 +352,7 @@ void g(int a) {}
   }
 
   Future<void> test_startLength_node() async {
-    await resolveTestUnit(' main() {}');
+    await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     expect(range.startLength(mainName, 10), SourceRange(1, 10));
@@ -360,7 +363,7 @@ void g(int a) {}
   }
 
   Future<void> test_startStart_nodeNode() async {
-    await resolveTestUnit('main() {}');
+    await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     var mainBody = mainFunction.functionExpression.body;
@@ -368,7 +371,7 @@ void g(int a) {}
   }
 
   Future<void> test_token() async {
-    await resolveTestUnit(' main() {}');
+    await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     expect(range.token(mainName.beginToken), SourceRange(1, 4));

@@ -12,6 +12,8 @@
 // OtherResources=certificates/untrusted_server_chain.pem
 // OtherResources=certificates/untrusted_server_key.pem
 
+// @dart = 2.9
+
 import "dart:async";
 import "dart:io";
 

@@ -25,6 +25,8 @@ import 'package:analyzer/src/summary/idl.dart' as idl;
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -34,10 +36,10 @@ class Declaration {
   final List<Declaration> children;
   final int codeLength;
   final int codeOffset;
-  final String defaultArgumentListString;
-  final List<int> defaultArgumentListTextRanges;
-  final String docComplete;
-  final String docSummary;
+  final String? defaultArgumentListString;
+  final List<int>? defaultArgumentListTextRanges;
+  final String? docComplete;
+  final String? docSummary;
   final bool isAbstract;
   final bool isConst;
   final bool isDeprecated;
@@ -50,50 +52,54 @@ class Declaration {
   final int locationStartColumn;
   final int locationStartLine;
   final String name;
-  final String parameters;
-  final List<String> parameterNames;
-  final List<String> parameterTypes;
-  final Declaration parent;
-  final int requiredParameterCount;
-  final String returnType;
-  final String typeParameters;
+  final String? parameters;
+  final List<String>? parameterNames;
+  final List<String>? parameterTypes;
+  final Declaration? parent;
+  final int? requiredParameterCount;
+  final String? returnType;
+  final String? typeParameters;
 
-  List<String> _relevanceTags;
-  Uri _locationLibraryUri;
+  final List<String> _relevanceTagsInFile;
+  List<String> _relevanceTagsInLibrary = const [];
+  Uri? _locationLibraryUri;
 
   Declaration({
-    @required this.children,
-    @required this.codeLength,
-    @required this.codeOffset,
-    @required this.defaultArgumentListString,
-    @required this.defaultArgumentListTextRanges,
-    @required this.docComplete,
-    @required this.docSummary,
-    @required this.isAbstract,
-    @required this.isConst,
-    @required this.isDeprecated,
-    @required this.isFinal,
-    @required this.isStatic,
-    @required this.kind,
-    @required this.lineInfo,
-    @required this.locationOffset,
-    @required this.locationPath,
-    @required this.locationStartColumn,
-    @required this.locationStartLine,
-    @required this.name,
-    @required this.parameters,
-    @required this.parameterNames,
-    @required this.parameterTypes,
-    @required this.parent,
-    @required List<String> relevanceTags,
-    @required this.requiredParameterCount,
-    @required this.returnType,
-    @required this.typeParameters,
-  }) : _relevanceTags = relevanceTags;
+    required this.children,
+    required this.codeLength,
+    required this.codeOffset,
+    required this.defaultArgumentListString,
+    required this.defaultArgumentListTextRanges,
+    required this.docComplete,
+    required this.docSummary,
+    required this.isAbstract,
+    required this.isConst,
+    required this.isDeprecated,
+    required this.isFinal,
+    required this.isStatic,
+    required this.kind,
+    required this.lineInfo,
+    required this.locationOffset,
+    required this.locationPath,
+    required this.locationStartColumn,
+    required this.locationStartLine,
+    required this.name,
+    required this.parameters,
+    required this.parameterNames,
+    required this.parameterTypes,
+    required this.parent,
+    required List<String> relevanceTagsInFile,
+    required this.requiredParameterCount,
+    required this.returnType,
+    required this.typeParameters,
+  }) : _relevanceTagsInFile = relevanceTagsInFile;
 
-  Uri get locationLibraryUri => _locationLibraryUri;
+  Uri? get locationLibraryUri => _locationLibraryUri;
 
-  List<String> get relevanceTags => _relevanceTags;
+  List<String> get relevanceTags => [
+        ..._relevanceTagsInFile,
+        ..._relevanceTagsInLibrary,
+      ];
 
   @override
   String toString() {
@@ -191,9 +197,10 @@ class DeclarationsContext {
     _addLibrariesWithPaths(sdkLibraries, _sdkLibraryPathList);
 
     var dependencyLibraries = <Library>[];
-    for (var pathPrefix in _pathPrefixToDependencyPathList.keys) {
+    for (var entry in _pathPrefixToDependencyPathList.entries) {
+      var pathPrefix = entry.key;
       if (path.startsWith(pathPrefix)) {
-        var pathList = _pathPrefixToDependencyPathList[pathPrefix];
+        var pathList = entry.value;
         _addLibrariesWithPaths(dependencyLibraries, pathList);
         break;
       }
@@ -204,8 +211,8 @@ class DeclarationsContext {
     }
 
     var contextPathList = <String>[];
-    if (!_analysisContext.workspace.isBazel) {
-      _Package package;
+    if (!_analysisContext.contextRoot.workspace.isBazel) {
+      _Package? package;
       for (var candidatePackage in _packages) {
         if (candidatePackage.contains(path)) {
           package = candidatePackage;
@@ -275,7 +282,7 @@ class DeclarationsContext {
     for (var pathPrefix in sortedPrefixes) {
       var pathList = pathPrefixToPathList[pathPrefix];
       var files = <String>[];
-      for (var path in pathList) {
+      for (var path in pathList!) {
         var resource = _tracker._resourceProvider.getResource(path);
         _scheduleDependencyResource(files, resource);
       }
@@ -310,7 +317,7 @@ class DeclarationsContext {
   }
 
   void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList,
-      {String excludingLibraryOfPath}) {
+      {String? excludingLibraryOfPath}) {
     var excludedFile = _tracker._pathToFile[excludingLibraryOfPath];
     var excludedLibraryPath = (excludedFile?.library ?? excludedFile)?.path;
 
@@ -333,17 +340,19 @@ class DeclarationsContext {
     var pathContext = _tracker._resourceProvider.pathContext;
     var pubPathPrefixToPathList = <String, List<String>>{};
 
-    void visitFolder(Folder folder) {
-      var buildFile = folder.getChildAssumingFile('BUILD');
-      var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
-      if (buildFile.exists) {
-        _packages.add(_Package(folder));
-      } else if (pubspecFile.exists) {
-        var dependencies = _parsePubspecDependencies(pubspecFile);
+    for (var path in _analysisContext.contextRoot.analyzedFiles()) {
+      if (file_paths.isBazelBuild(pathContext, path)) {
+        var file = _tracker._resourceProvider.getFile(path);
+        var packageFolder = file.parent2;
+        _packages.add(_Package(packageFolder));
+      } else if (file_paths.isPubspecYaml(pathContext, path)) {
+        var file = _tracker._resourceProvider.getFile(path);
+        var dependencies = _parsePubspecDependencies(file);
         var libPaths = _resolvePackageNamesToLibPaths(dependencies.lib);
         var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
 
-        var packagePath = folder.path;
+        var packageFolder = file.parent2;
+        var packagePath = packageFolder.path;
         pubPathPrefixToPathList[packagePath] = [
           ...libPaths,
           ...devPaths,
@@ -352,21 +361,10 @@ class DeclarationsContext {
         var libPath = pathContext.join(packagePath, 'lib');
         pubPathPrefixToPathList[libPath] = libPaths;
 
-        _packages.add(_Package(folder));
-      }
-
-      try {
-        for (var resource in folder.getChildren()) {
-          if (resource is Folder) {
-            visitFolder(resource);
-          }
-        }
-      } on FileSystemException {
-        // ignored
+        _packages.add(_Package(packageFolder));
       }
     }
 
-    visitFolder(_analysisContext.contextRoot.root);
     setDependencies(pubPathPrefixToPathList);
 
     _packages.sort((a, b) {
@@ -387,11 +385,11 @@ class DeclarationsContext {
   List<String> _resolvePackageNamesToLibPaths(List<String> packageNames) {
     return packageNames
         .map(_resolvePackageNameToLibPath)
-        .where((path) => path != null)
+        .whereNotNull()
         .toList();
   }
 
-  String _resolvePackageNameToLibPath(String packageName) {
+  String? _resolvePackageNameToLibPath(String packageName) {
     try {
       var uri = Uri.parse('package:$packageName/ref.dart');
 
@@ -404,12 +402,12 @@ class DeclarationsContext {
     }
   }
 
-  String _resolveUri(Uri uri) {
+  String? _resolveUri(Uri uri) {
     var uriConverter = _analysisContext.currentSession.uriConverter;
     return uriConverter.uriToPath(uri);
   }
 
-  Uri _restoreUri(String path) {
+  Uri? _restoreUri(String path) {
     var uriConverter = _analysisContext.currentSession.uriConverter;
     return uriConverter.pathToUri(path);
   }
@@ -452,7 +450,7 @@ class DeclarationsContext {
   }
 
   void _scheduleSdkLibraries() {
-    var sdk = _analysisDriver.sourceFactory.dartSdk;
+    var sdk = _analysisDriver.sourceFactory.dartSdk!;
     for (var uriStr in sdk.uris) {
       if (!uriStr.startsWith('dart:_')) {
         var uri = Uri.parse(uriStr);
@@ -598,7 +596,7 @@ class DeclarationsTracker {
 
     if (_scheduledFiles.isNotEmpty) {
       var scheduledFile = _scheduledFiles.removeLast();
-      var file = _getFileByPath(scheduledFile.context, scheduledFile.path);
+      var file = _getFileByPath(scheduledFile.context, [], scheduledFile.path)!;
 
       if (!file.isLibrary) return;
 
@@ -629,12 +627,12 @@ class DeclarationsTracker {
 
   /// Return the context associated with the given [analysisContext], or `null`
   /// if there is none.
-  DeclarationsContext getContext(AnalysisContext analysisContext) {
+  DeclarationsContext? getContext(AnalysisContext analysisContext) {
     return _contexts[analysisContext];
   }
 
   /// Return the library with the given [id], or `null` if there is none.
-  Library getLibrary(int id) {
+  Library? getLibrary(int id) {
     return _idToLibrary[id];
   }
 
@@ -655,6 +653,16 @@ class DeclarationsTracker {
     }
   }
 
+  /// TODO(scheglov) Remove after fixing
+  /// https://github.com/dart-lang/sdk/issues/45233
+  void _addPathOrUri(List<String> pathOrUriList, String path, Uri uri) {
+    pathOrUriList.add('(uri: $uri, path: $path)');
+
+    if (pathOrUriList.length > 200) {
+      throw StateError('Suspected cycle. $pathOrUriList');
+    }
+  }
+
   /// Compute exported declarations for the given [libraries].
   void _computeExportedDeclarations(Set<_File> libraries) {
     var walker = _LibraryWalker();
@@ -666,7 +674,7 @@ class DeclarationsTracker {
     }
   }
 
-  DeclarationsContext _findContextOfPath(String path) {
+  DeclarationsContext? _findContextOfPath(String path) {
     // Prefer the context in which the path is analyzed.
     for (var context in _contexts.values) {
       if (context._analysisContext.contextRoot.isAnalyzed(path)) {
@@ -688,7 +696,8 @@ class DeclarationsTracker {
     return null;
   }
 
-  _File _getFileByPath(DeclarationsContext context, String path) {
+  _File? _getFileByPath(
+      DeclarationsContext context, List<String> partOrUriList, String path) {
     var file = _pathToFile[path];
     if (file == null) {
       var uri = context._restoreUri(path);
@@ -696,13 +705,16 @@ class DeclarationsTracker {
         file = _File(this, path, uri);
         _pathToFile[path] = file;
         _uriToFile[uri] = file;
-        file.refresh(context);
+        _addPathOrUri(partOrUriList, path, uri);
+        file.refresh(context, partOrUriList);
+        partOrUriList.removeLast();
       }
     }
     return file;
   }
 
-  _File _getFileByUri(DeclarationsContext context, Uri uri) {
+  _File? _getFileByUri(
+      DeclarationsContext context, List<String> partOrUriList, Uri uri) {
     var file = _uriToFile[uri];
     if (file != null) {
       return file;
@@ -724,11 +736,13 @@ class DeclarationsTracker {
       return file;
     }
 
-    file = _File(this, path, uri);
+    file = _File(this, path!, uri);
     _pathToFile[path] = file;
     _uriToFile[uri] = file;
 
-    file.refresh(context);
+    _addPathOrUri(partOrUriList, path, uri);
+    file.refresh(context, partOrUriList);
+    partOrUriList.removeLast();
     return file;
   }
 
@@ -747,13 +761,13 @@ class DeclarationsTracker {
     var containingContext = _findContextOfPath(path);
     if (containingContext == null) return;
 
-    var file = _getFileByPath(containingContext, path);
+    var file = _getFileByPath(containingContext, [], path);
     if (file == null) return;
 
     var wasLibrary = file.isLibrary;
     var oldLibrary = wasLibrary ? file : file.library;
 
-    file.refresh(containingContext);
+    file.refresh(containingContext, []);
     var isLibrary = file.isLibrary;
     var newLibrary = isLibrary ? file : file.library;
 
@@ -765,17 +779,17 @@ class DeclarationsTracker {
       } else {
         notLibraries.add(file);
         if (newLibrary != null) {
-          newLibrary.refresh(containingContext);
+          newLibrary.refresh(containingContext, []);
           _invalidateExportedDeclarations(invalidatedLibraries, newLibrary);
         }
       }
     } else {
       if (oldLibrary != null) {
-        oldLibrary.refresh(containingContext);
+        oldLibrary.refresh(containingContext, []);
         _invalidateExportedDeclarations(invalidatedLibraries, oldLibrary);
       }
       if (newLibrary != null && newLibrary != oldLibrary) {
-        newLibrary.refresh(containingContext);
+        newLibrary.refresh(containingContext, []);
         _invalidateExportedDeclarations(invalidatedLibraries, newLibrary);
       }
     }
@@ -811,7 +825,7 @@ class DeclarationsTracker {
   /// Return the [path] with resolved file system links.
   String _resolveLinks(String path) {
     var resource = _resourceProvider.getFile(path);
-    resource = resource.resolveSymbolicLinksSync();
+    resource = resource.resolveSymbolicLinksSync() as File;
     return resource.path;
   }
 }
@@ -867,7 +881,7 @@ class LibraryChange {
 }
 
 class RelevanceTags {
-  static List<String> _forDeclaration(String uriStr, Declaration declaration) {
+  static List<String>? _forDeclaration(String uriStr, Declaration declaration) {
     switch (declaration.kind) {
       case DeclarationKind.CLASS:
       case DeclarationKind.CLASS_TYPE_ALIAS:
@@ -877,17 +891,17 @@ class RelevanceTags {
         var name = declaration.name;
         return <String>['$uriStr::$name'];
       case DeclarationKind.CONSTRUCTOR:
-        var className = declaration.parent.name;
+        var className = declaration.parent!.name;
         return <String>['$uriStr::$className'];
       case DeclarationKind.ENUM_CONSTANT:
-        var enumName = declaration.parent.name;
+        var enumName = declaration.parent!.name;
         return <String>['$uriStr::$enumName'];
       default:
         return null;
     }
   }
 
-  static List<String> _forExpression(Expression expression) {
+  static List<String>? _forExpression(Expression? expression) {
     if (expression is BooleanLiteral) {
       return const ['dart:core::bool'];
     } else if (expression is DoubleLiteral) {
@@ -916,8 +930,8 @@ class _DeclarationStorage {
   static const fieldReturnTypeMask = 1 << 2;
   static const fieldTypeParametersMask = 1 << 3;
 
-  static Declaration fromIdl(String path, LineInfo lineInfo, Declaration parent,
-      idl.AvailableDeclaration d) {
+  static Declaration fromIdl(String path, LineInfo lineInfo,
+      Declaration? parent, idl.AvailableDeclaration d) {
     var fieldMask = d.fieldMask;
     var hasDoc = fieldMask & fieldDocMask != 0;
     var hasParameters = fieldMask & fieldParametersMask != 0;
@@ -927,9 +941,6 @@ class _DeclarationStorage {
     var kind = kindFromIdl(d.kind);
 
     var relevanceTags = d.relevanceTags.toList();
-    if (relevanceTags.isEmpty) {
-      relevanceTags = null;
-    }
 
     var children = <Declaration>[];
     var declaration = Declaration(
@@ -960,7 +971,7 @@ class _DeclarationStorage {
       parameterNames: hasParameters ? d.parameterNames.toList() : null,
       parameterTypes: hasParameters ? d.parameterTypes.toList() : null,
       parent: parent,
-      relevanceTags: relevanceTags,
+      relevanceTagsInFile: relevanceTags,
       requiredParameterCount: hasParameters ? d.requiredParameterCount : null,
       returnType: hasReturnType ? d.returnType : null,
       typeParameters: hasTypeParameters ? d.typeParameters : null,
@@ -1082,7 +1093,7 @@ class _DeclarationStorage {
       parameters: d.parameters,
       parameterNames: d.parameterNames,
       parameterTypes: d.parameterTypes,
-      relevanceTags: d.relevanceTags,
+      relevanceTags: d._relevanceTagsInFile,
       requiredParameterCount: d.requiredParameterCount,
       returnType: d.returnType,
       typeParameters: d.typeParameters,
@@ -1101,7 +1112,7 @@ class _Export {
   final Uri uri;
   final List<_ExportCombinator> combinators;
 
-  _File file;
+  _File? file;
 
   _Export(this.uri, this.combinators);
 
@@ -1130,7 +1141,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 15;
+  static const int DATA_VERSION = 16;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1142,22 +1153,22 @@ class _File {
   final Uri uri;
 
   bool exists = false;
-  List<int> lineStarts;
-  LineInfo lineInfo;
+  late List<int> lineStarts;
+  late LineInfo lineInfo;
   bool isLibrary = false;
   bool isLibraryDeprecated = false;
   List<_Export> exports = [];
   List<_Part> parts = [];
 
   /// If this file is a part, the containing library.
-  _File library;
+  _File? library;
 
   /// If this file is a library, libraries that export it.
   List<_File> directExporters = [];
 
   List<Declaration> fileDeclarations = [];
-  List<Declaration> libraryDeclarations = [];
-  List<Declaration> exportedDeclarations;
+  List<Declaration>? libraryDeclarations = [];
+  List<Declaration>? exportedDeclarations;
 
   List<String> templateNames = [];
   List<String> templateValues = [];
@@ -1169,7 +1180,7 @@ class _File {
 
   String get uriStr => uri.toString();
 
-  void refresh(DeclarationsContext context) {
+  void refresh(DeclarationsContext context, List<String> partOrUriList) {
     var resource = tracker._resourceProvider.getFile(path);
 
     int modificationStamp;
@@ -1194,8 +1205,8 @@ class _File {
     // With Bazel multiple workspaces might be copies of the same workspace,
     // and have files with the same content, but with different paths.
     // So, we use the content hash to reuse their declarations without parsing.
-    String content;
-    String contentKey;
+    String? content;
+    String? contentKey;
     {
       var contentHashBytes = tracker._byteStore.get(pathKey);
       if (contentHashBytes == null) {
@@ -1230,40 +1241,49 @@ class _File {
 
     // Resolve exports and parts.
     for (var export in exports) {
-      export.file = _fileForRelativeUri(context, export.uri);
+      export.file = _fileForRelativeUri(context, partOrUriList, export.uri);
     }
     for (var part in parts) {
-      part.file = _fileForRelativeUri(context, part.uri);
+      part.file = _fileForRelativeUri(context, partOrUriList, part.uri);
     }
     exports.removeWhere((e) => e.file == null);
     parts.removeWhere((e) => e.file == null);
 
     // Set back pointers.
     for (var export in exports) {
-      var directExporters = export.file.directExporters;
-      if (!directExporters.contains(this)) {
-        directExporters.add(this);
+      var file = export.file;
+      if (file != null) {
+        var directExporters = file.directExporters;
+        if (!directExporters.contains(this)) {
+          directExporters.add(this);
+        }
       }
     }
     for (var part in parts) {
-      part.file.library = this;
-      part.file.isLibrary = false;
+      var file = part.file;
+      if (file != null) {
+        file.library = this;
+        file.isLibrary = false;
+      }
     }
 
     // Compute library declarations.
     if (isLibrary) {
       libraryDeclarations = <Declaration>[];
-      libraryDeclarations.addAll(fileDeclarations);
+      libraryDeclarations!.addAll(fileDeclarations);
       for (var part in parts) {
-        libraryDeclarations.addAll(part.file.fileDeclarations);
+        var file = part.file;
+        if (file != null) {
+          libraryDeclarations!.addAll(file.fileDeclarations);
+        }
       }
-      _computeRelevanceTags(libraryDeclarations);
+      _computeRelevanceTags(libraryDeclarations!);
       _setLocationLibraryUri();
     }
   }
 
   void _buildFileDeclarations(CompilationUnit unit) {
-    lineInfo = unit.lineInfo;
+    lineInfo = unit.lineInfo!;
     lineStarts = lineInfo.lineStarts;
 
     isLibrary = true;
@@ -1314,7 +1334,7 @@ class _File {
       if (node is VariableDeclaration) {
         var variables = node.parent as VariableDeclarationList;
         var i = variables.variables.indexOf(node);
-        codeOffset = (i == 0 ? variables.parent : node).offset;
+        codeOffset = (i == 0 ? variables.parent! : node).offset;
         codeLength = node.end - codeOffset;
       } else {
         codeOffset = node.offset;
@@ -1322,12 +1342,13 @@ class _File {
       }
     }
 
-    String docComplete;
-    String docSummary;
+    String? docComplete;
+    String? docSummary;
 
     void setDartDoc(AnnotatedNode node) {
-      if (node.documentationComment != null) {
-        var rawText = getCommentNodeRawText(node.documentationComment);
+      var docComment = node.documentationComment;
+      if (docComment != null) {
+        var rawText = getCommentNodeRawText(docComment);
         docComplete = getDartDocPlainText(rawText);
         docSummary = getDartDocSummary(docComplete);
       } else {
@@ -1336,24 +1357,24 @@ class _File {
       }
     }
 
-    Declaration addDeclaration({
-      String defaultArgumentListString,
-      List<int> defaultArgumentListTextRanges,
+    Declaration? addDeclaration({
+      String? defaultArgumentListString,
+      List<int>? defaultArgumentListTextRanges,
       bool isAbstract = false,
       bool isConst = false,
       bool isDeprecated = false,
       bool isFinal = false,
       bool isStatic = false,
-      @required DeclarationKind kind,
-      @required Identifier name,
-      String parameters,
-      List<String> parameterNames,
-      List<String> parameterTypes,
-      Declaration parent,
-      @required List<String> relevanceTags,
-      int requiredParameterCount,
-      String returnType,
-      String typeParameters,
+      required DeclarationKind kind,
+      required Identifier name,
+      String? parameters,
+      List<String>? parameterNames,
+      List<String>? parameterTypes,
+      Declaration? parent,
+      required List<String> relevanceTags,
+      int? requiredParameterCount,
+      String? returnType,
+      String? typeParameters,
     }) {
       if (Identifier.isPrivateName(name.name)) {
         return null;
@@ -1385,7 +1406,7 @@ class _File {
         parameterNames: parameterNames,
         parameterTypes: parameterTypes,
         parent: parent,
-        relevanceTags: relevanceTags,
+        relevanceTagsInFile: relevanceTags,
         requiredParameterCount: requiredParameterCount,
         returnType: returnType,
         typeParameters: typeParameters,
@@ -1405,13 +1426,15 @@ class _File {
       var isDeprecated = _hasDeprecatedAnnotation(node);
 
       var hasConstructor = false;
-      void addClassMembers(Declaration parent, List<ClassMember> members) {
+      void addClassMembers(Declaration parent, bool parentIsAbstract,
+          List<ClassMember> members) {
         for (var classMember in members) {
           setCodeRange(classMember);
           setDartDoc(classMember);
           isDeprecated = _hasDeprecatedAnnotation(classMember);
 
-          if (classMember is ConstructorDeclaration) {
+          if (classMember is ConstructorDeclaration &&
+              (!parentIsAbstract || classMember.factoryKeyword != null)) {
             var parameters = classMember.parameters;
             var defaultArguments = _computeDefaultArguments(parameters);
             var isConst = classMember.constKeyword != null;
@@ -1482,7 +1505,7 @@ class _File {
                 relevanceTags: ['ElementKind.FIELD'],
                 returnType: _getTypeAnnotationString(classMember.returnType),
               );
-            } else if (classMember.isSetter) {
+            } else if (classMember.isSetter && parameters != null) {
               addDeclaration(
                 isDeprecated: isDeprecated,
                 isStatic: isStatic,
@@ -1496,7 +1519,7 @@ class _File {
                 requiredParameterCount:
                     _getFormalParameterRequiredCount(parameters),
               );
-            } else {
+            } else if (parameters != null) {
               var defaultArguments = _computeDefaultArguments(parameters);
               addDeclaration(
                 defaultArgumentListString: defaultArguments?.text,
@@ -1530,7 +1553,8 @@ class _File {
         );
         if (classDeclaration == null) continue;
 
-        addClassMembers(classDeclaration, node.members);
+        addClassMembers(
+            classDeclaration, classDeclaration.isAbstract, node.members);
 
         if (!hasConstructor) {
           classDeclaration.children.add(Declaration(
@@ -1557,7 +1581,7 @@ class _File {
             parameterNames: [],
             parameterTypes: [],
             parent: classDeclaration,
-            relevanceTags: ['ElementKind.CONSTRUCTOR'],
+            relevanceTagsInFile: ['ElementKind.CONSTRUCTOR'],
             requiredParameterCount: 0,
             returnType: node.name.name,
             typeParameters: null,
@@ -1594,11 +1618,12 @@ class _File {
           );
         }
       } else if (node is ExtensionDeclaration) {
-        if (node.name != null) {
+        var name = node.name;
+        if (name != null) {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.EXTENSION,
-            name: node.name,
+            name: name,
             relevanceTags: ['ElementKind.EXTENSION'],
           );
         }
@@ -1615,7 +1640,7 @@ class _File {
             relevanceTags: ['ElementKind.FUNCTION'],
             returnType: _getTypeAnnotationString(node.returnType),
           );
-        } else if (node.isSetter) {
+        } else if (node.isSetter && parameters != null) {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.SETTER,
@@ -1627,7 +1652,7 @@ class _File {
             requiredParameterCount:
                 _getFormalParameterRequiredCount(parameters),
           );
-        } else {
+        } else if (parameters != null) {
           var defaultArguments = _computeDefaultArguments(parameters);
           addDeclaration(
             defaultArgumentListString: defaultArguments?.text,
@@ -1684,7 +1709,7 @@ class _File {
           relevanceTags: ['ElementKind.MIXIN'],
         );
         if (mixinDeclaration == null) continue;
-        addClassMembers(mixinDeclaration, node.members);
+        addClassMembers(mixinDeclaration, false, node.members);
       } else if (node is TopLevelVariableDeclaration) {
         var isConst = node.variables.isConst;
         var isFinal = node.variables.isFinal;
@@ -1711,10 +1736,7 @@ class _File {
   void _computeRelevanceTags(List<Declaration> declarations) {
     for (var declaration in declarations) {
       var tags = RelevanceTags._forDeclaration(uriStr, declaration);
-      if (tags != null) {
-        declaration._relevanceTags ??= [];
-        declaration._relevanceTags.addAll(tags);
-      }
+      declaration._relevanceTagsInLibrary = tags ?? const [];
       _computeRelevanceTags(declaration.children);
     }
   }
@@ -1722,43 +1744,39 @@ class _File {
   void _extractDartdocInfoFromUnit(CompilationUnit unit) {
     DartdocDirectiveInfo info = DartdocDirectiveInfo();
     for (Directive directive in unit.directives) {
-      Comment comment = directive.documentationComment;
-      if (comment != null) {
-        info.extractTemplate(getCommentNodeRawText(comment));
-      }
+      var comment = directive.documentationComment;
+      info.extractTemplate(getCommentNodeRawText(comment));
     }
     for (CompilationUnitMember declaration in unit.declarations) {
-      Comment comment = declaration.documentationComment;
-      if (comment != null) {
-        info.extractTemplate(getCommentNodeRawText(comment));
-      }
+      var comment = declaration.documentationComment;
+      info.extractTemplate(getCommentNodeRawText(comment));
       if (declaration is ClassOrMixinDeclaration) {
         for (ClassMember member in declaration.members) {
-          Comment comment = member.documentationComment;
-          if (comment != null) {
-            info.extractTemplate(getCommentNodeRawText(comment));
-          }
+          var comment = member.documentationComment;
+          info.extractTemplate(getCommentNodeRawText(comment));
         }
       } else if (declaration is EnumDeclaration) {
         for (EnumConstantDeclaration constant in declaration.constants) {
-          Comment comment = constant.documentationComment;
-          if (comment != null) {
-            info.extractTemplate(getCommentNodeRawText(comment));
-          }
+          var comment = constant.documentationComment;
+          info.extractTemplate(getCommentNodeRawText(comment));
         }
       }
     }
     Map<String, String> templateMap = info.templateMap;
-    for (String name in templateMap.keys) {
-      templateNames.add(name);
-      templateValues.add(templateMap[name]);
+    for (var entry in templateMap.entries) {
+      templateNames.add(entry.key);
+      templateValues.add(entry.value);
     }
   }
 
   /// Return the [_File] for the given [relative] URI, maybe `null`.
-  _File _fileForRelativeUri(DeclarationsContext context, Uri relative) {
+  _File? _fileForRelativeUri(
+    DeclarationsContext context,
+    List<String> partOrUriList,
+    Uri relative,
+  ) {
     var absoluteUri = resolveRelativeUri(uri, relative);
-    return tracker._getFileByUri(context, absoluteUri);
+    return tracker._getFileByUri(context, partOrUriList, absoluteUri);
   }
 
   void _putFileDeclarationsToByteStore(String contentKey) {
@@ -1813,17 +1831,17 @@ class _File {
       return _DeclarationStorage.fromIdl(path, lineInfo, null, e);
     }).toList();
 
-    templateNames = idlFile.directiveInfo.templateNames.toList();
-    templateValues = idlFile.directiveInfo.templateValues.toList();
+    templateNames = idlFile.directiveInfo!.templateNames.toList();
+    templateValues = idlFile.directiveInfo!.templateValues.toList();
   }
 
   void _setLocationLibraryUri() {
-    for (var declaration in libraryDeclarations) {
+    for (var declaration in libraryDeclarations!) {
       declaration._locationLibraryUri = uri;
     }
   }
 
-  static _DefaultArguments _computeDefaultArguments(
+  static _DefaultArguments? _computeDefaultArguments(
       FormalParameterList parameters) {
     var buffer = StringBuffer();
     var ranges = <int>[];
@@ -1835,12 +1853,12 @@ class _File {
         }
 
         if (parameter.isNamed) {
-          buffer.write(parameter.identifier.name);
+          buffer.write(parameter.identifier!.name);
           buffer.write(': ');
         }
 
         var valueOffset = buffer.length;
-        buffer.write(parameter.identifier.name);
+        buffer.write(parameter.identifier!.name);
         var valueLength = buffer.length - valueOffset;
         ranges.add(valueOffset);
         ranges.add(valueLength);
@@ -1850,7 +1868,8 @@ class _File {
     return _DefaultArguments(buffer.toString(), ranges);
   }
 
-  static List<String> _getFormalParameterNames(FormalParameterList parameters) {
+  static List<String> _getFormalParameterNames(
+      FormalParameterList? parameters) {
     if (parameters == null) return const <String>[];
 
     var names = <String>[];
@@ -1861,7 +1880,8 @@ class _File {
     return names;
   }
 
-  static int _getFormalParameterRequiredCount(FormalParameterList parameters) {
+  static int? _getFormalParameterRequiredCount(
+      FormalParameterList? parameters) {
     if (parameters == null) return null;
 
     return parameters.parameters
@@ -1880,7 +1900,8 @@ class _File {
     return '';
   }
 
-  static List<String> _getFormalParameterTypes(FormalParameterList parameters) {
+  static List<String>? _getFormalParameterTypes(
+      FormalParameterList? parameters) {
     if (parameters == null) return null;
 
     var types = <String>[];
@@ -1891,7 +1912,7 @@ class _File {
     return types;
   }
 
-  static String _getTypeAnnotationString(TypeAnnotation typeAnnotation) {
+  static String _getTypeAnnotationString(TypeAnnotation? typeAnnotation) {
     return typeAnnotation?.toSource() ?? '';
   }
 
@@ -1922,11 +1943,19 @@ class _File {
   }
 
   static CompilationUnit _parse(FeatureSet featureSet, String content) {
-    return parseString(
-      content: content,
-      featureSet: featureSet,
-      throwIfDiagnostics: false,
-    ).unit;
+    try {
+      return parseString(
+        content: content,
+        featureSet: featureSet,
+        throwIfDiagnostics: false,
+      ).unit;
+    } catch (e) {
+      return parseString(
+        content: '',
+        featureSet: featureSet,
+        throwIfDiagnostics: false,
+      ).unit;
+    }
   }
 
   static String _readContent(File resource) {
@@ -1937,7 +1966,7 @@ class _File {
     }
   }
 
-  static Uri _uriFromAst(StringLiteral astUri) {
+  static Uri? _uriFromAst(StringLiteral astUri) {
     if (astUri is SimpleStringLiteral) {
       var uriStr = astUri.value.trim();
       if (uriStr.isEmpty) return null;
@@ -1962,6 +1991,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
   List<_LibraryNode> computeDependencies() {
     return file.exports
         .map((export) => export.file)
+        .whereNotNull()
         .where((file) => file.isLibrary)
         .map(walker.getNode)
         .toList();
@@ -1975,12 +2005,12 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   void evaluate(_LibraryNode node) {
     var file = node.file;
     var resultSet = _newDeclarationSet();
-    resultSet.addAll(file.libraryDeclarations);
+    resultSet.addAll(file.libraryDeclarations!);
 
     for (var export in file.exports) {
       var file = export.file;
-      if (file.isLibrary) {
-        var exportedDeclarations = file.exportedDeclarations;
+      if (file != null && file.isLibrary) {
+        var exportedDeclarations = file.exportedDeclarations!;
         resultSet.addAll(export.filter(exportedDeclarations));
       }
     }
@@ -1995,7 +2025,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
       List<Declaration> computeExported(_File file) {
         if (file.exportedDeclarations != null) {
-          return file.exportedDeclarations;
+          return file.exportedDeclarations!;
         }
 
         if (!visitedFiles.add(file)) {
@@ -2003,11 +2033,14 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
         }
 
         var resultSet = _newDeclarationSet();
-        resultSet.addAll(file.libraryDeclarations);
+        resultSet.addAll(file.libraryDeclarations!);
 
         for (var export in file.exports) {
-          var exportedDeclarations = computeExported(export.file);
-          resultSet.addAll(export.filter(exportedDeclarations));
+          var file = export.file;
+          if (file != null) {
+            var exportedDeclarations = computeExported(file);
+            resultSet.addAll(export.filter(exportedDeclarations));
+          }
         }
 
         return resultSet.toList();
@@ -2058,7 +2091,7 @@ class _Package {
   /// Return the direct child folder of the root, that contains the [path].
   ///
   /// So, we can know if the [path] is in `lib/`, or `test/`, or `bin/`.
-  Folder folderInRootContaining(String path) {
+  Folder? folderInRootContaining(String path) {
     try {
       var children = root.getChildren();
       for (var folder in children) {
@@ -2076,7 +2109,7 @@ class _Package {
 class _Part {
   final Uri uri;
 
-  _File file;
+  _File? file;
 
   _Part(this.uri);
 }
@@ -2099,7 +2132,7 @@ class _ScheduledFile {
 /// Wrapper for a [StreamController] and its unique [Stream] instance.
 class _StreamController<T> {
   final StreamController<T> controller = StreamController<T>();
-  Stream<T> stream;
+  late final Stream<T> stream;
 
   _StreamController() {
     stream = controller.stream;

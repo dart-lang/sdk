@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import '../ast.dart' hide MapEntry;
-
+import '../ast.dart';
 import 'replacement_visitor.dart';
 
 /// Returns legacy erasure of [type], that is, the type in which all nnbd
@@ -18,8 +17,8 @@ DartType legacyErasure(DartType type) {
 /// named parameters are not required.
 ///
 /// Returns `null` if the type wasn't changed.
-DartType rawLegacyErasure(DartType type) {
-  return type.accept(const _LegacyErasure());
+DartType? rawLegacyErasure(DartType type) {
+  return type.accept1(const _LegacyErasure(), Variance.covariant);
 }
 
 /// Returns legacy erasure of [supertype], that is, the type in which all nnbd
@@ -29,10 +28,11 @@ Supertype legacyErasureSupertype(Supertype supertype) {
   if (supertype.typeArguments.isEmpty) {
     return supertype;
   }
-  List<DartType> newTypeArguments;
+  List<DartType>? newTypeArguments;
   for (int i = 0; i < supertype.typeArguments.length; i++) {
     DartType typeArgument = supertype.typeArguments[i];
-    DartType newTypeArgument = typeArgument.accept(const _LegacyErasure());
+    DartType? newTypeArgument =
+        typeArgument.accept1(const _LegacyErasure(), Variance.covariant);
     if (newTypeArgument != null) {
       newTypeArguments ??= supertype.typeArguments.toList(growable: false);
       newTypeArguments[i] = newTypeArgument;
@@ -51,7 +51,7 @@ Supertype legacyErasureSupertype(Supertype supertype) {
 class _LegacyErasure extends ReplacementVisitor {
   const _LegacyErasure();
 
-  Nullability visitNullability(DartType node) {
+  Nullability? visitNullability(DartType node) {
     if (node.declaredNullability != Nullability.legacy) {
       return Nullability.legacy;
     }
@@ -59,7 +59,7 @@ class _LegacyErasure extends ReplacementVisitor {
   }
 
   @override
-  NamedType createNamedType(NamedType node, DartType newType) {
+  NamedType? createNamedType(NamedType node, DartType? newType) {
     if (node.isRequired || newType != null) {
       return new NamedType(node.name, newType ?? node.type, isRequired: false);
     }
@@ -67,5 +67,49 @@ class _LegacyErasure extends ReplacementVisitor {
   }
 
   @override
-  DartType visitNeverType(NeverType node) => const NullType();
+  DartType visitNeverType(NeverType node, int variance) => const NullType();
+}
+
+/// Returns `true` if a member declared in [declaringClass] inherited or
+/// mixed into [enclosingClass] needs legacy erasure to compute its inherited
+/// type.
+///
+/// For instance:
+///
+///    // Opt in:
+///    class Super {
+///      int extendedMethod(int i, {required int j}) => i;
+///    }
+///    class Mixin {
+///      int mixedInMethod(int i, {required int j}) => i;
+///    }
+///    // Opt out:
+///    class Legacy extends Super with Mixin {}
+///    // Opt in:
+///    class Class extends Legacy {
+///      test() {
+///        // Ok to call `Legacy.extendedMethod` since its type is
+///        // `int* Function(int*, {int* j})`.
+///        super.extendedMethod(null);
+///        // Ok to call `Legacy.mixedInMethod` since its type is
+///        // `int* Function(int*, {int* j})`.
+///        super.mixedInMethod(null);
+///      }
+///    }
+///
+bool needsLegacyErasure(Class enclosingClass, Class declaringClass) {
+  Class? cls = enclosingClass;
+  while (cls != null) {
+    if (!cls.enclosingLibrary.isNonNullableByDefault) {
+      return true;
+    }
+    if (cls == declaringClass) {
+      return false;
+    }
+    if (cls.mixedInClass == declaringClass) {
+      return false;
+    }
+    cls = cls.superclass;
+  }
+  return false;
 }

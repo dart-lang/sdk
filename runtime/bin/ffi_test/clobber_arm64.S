@@ -1,7 +1,13 @@
 .text
 
-.global ClobberAndCall
+#if defined(__linux__) || defined(__FreeBSD__) /* HOST_OS_LINUX */
+.globl ClobberAndCall
+.type ClobberAndCall, @function
 ClobberAndCall:
+#else /* HOST_OS_MACOS */
+.globl _ClobberAndCall
+_ClobberAndCall:
+#endif
 
 /* Save link register register and thread register. Keep stack aligned to 16 bytes. */
 stp lr, x26, [sp, #-16]!

@@ -22,8 +22,7 @@ class LabelContributorTest extends DartCompletionContributorTest {
       {CompletionSuggestionKind kind = CompletionSuggestionKind.IDENTIFIER}) {
     var cs = assertSuggest(name, csKind: kind);
     expect(cs.returnType, isNull);
-    var element = cs.element;
-    expect(element, isNotNull);
+    var element = cs.element!;
     expect(element.flags, 0);
     expect(element.kind, equals(ElementKind.LABEL));
     expect(element.name, equals(name));

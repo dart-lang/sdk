@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
 
+// @dart = 2.9
+
 // There is no interface conflict here, but there is a loop in the class
 // hierarchy leading to a finite set of implemented types; this loop
 // shouldn't cause non-termination.

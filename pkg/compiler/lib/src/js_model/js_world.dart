@@ -10,7 +10,6 @@ import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../deferred_load.dart';
-import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
@@ -90,8 +89,6 @@ class JsClosedWorld implements JClosedWorld {
   @override
   final AnnotationsData annotationsData;
   @override
-  final GlobalLocalsMap globalLocalsMap;
-  @override
   final ClosureData closureDataLookup;
   @override
   final OutputUnitData outputUnitData;
@@ -118,7 +115,6 @@ class JsClosedWorld implements JClosedWorld {
       this.classHierarchy,
       AbstractValueStrategy abstractValueStrategy,
       this.annotationsData,
-      this.globalLocalsMap,
       this.closureDataLookup,
       this.outputUnitData,
       this.memberAccess) {
@@ -138,9 +134,6 @@ class JsClosedWorld implements JClosedWorld {
     JsKernelToElementMap elementMap =
         new JsKernelToElementMap.readFromDataSource(
             options, reporter, environment, component, source);
-    GlobalLocalsMap globalLocalsMap =
-        new GlobalLocalsMap.readFromDataSource(source);
-    source.registerLocalLookup(new LocalLookupImpl(globalLocalsMap));
     ClassHierarchy classHierarchy = new ClassHierarchy.readFromDataSource(
         source, elementMap.commonElements);
     NativeData nativeData = new NativeData.readFromDataSource(
@@ -203,7 +196,6 @@ class JsClosedWorld implements JClosedWorld {
         classHierarchy,
         abstractValueStrategy,
         annotationsData,
-        globalLocalsMap,
         closureData,
         outputUnitData,
         memberAccess);
@@ -213,8 +205,6 @@ class JsClosedWorld implements JClosedWorld {
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     elementMap.writeToDataSink(sink);
-    globalLocalsMap.writeToDataSink(sink);
-
     classHierarchy.writeToDataSink(sink);
     nativeData.writeToDataSink(sink);
     interceptorData.writeToDataSink(sink);

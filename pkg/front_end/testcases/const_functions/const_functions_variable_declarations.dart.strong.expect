@@ -1,0 +1,81 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = #C1;
+static const field core::int var1_1 = #C2;
+static const field core::String var2 = #C3;
+static const field core::int var3 = #C4;
+static const field core::int var4 = #C5;
+static const field core::int var5 = #C6;
+static const field core::int var6 = #C5;
+static const field core::int var7 = #C5;
+static const field core::int var8 = #C5;
+static const field core::int? var9 = #C7;
+static method function1(core::int a, core::int b) → core::int {
+  core::int x = 1.{core::num::+}(a){(core::num) → core::int}.{core::num::+}(b){(core::num) → core::int};
+  return x;
+}
+static method function2() → core::String {
+  dynamic x = "string";
+  return x as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+}
+static method function3() → core::int {
+  core::int first = 2;
+  core::int second = 2.{core::num::+}(first){(core::num) → core::int};
+  return 2.{core::num::+}(second){(core::num) → core::int};
+}
+static method function4() → core::int {
+  core::int first = 2;
+  core::int second = 0;
+  return first.{core::num::+}(second){(core::num) → core::int};
+}
+static method function5() → core::int {
+  return #C6;
+}
+static method function6() → core::int {
+  dynamic a;
+  a = 2;
+  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method function7() → core::int {
+  dynamic a;
+  dynamic b;
+  a = 2;
+  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method function8() → core::int {
+  dynamic a;
+  core::int? b;
+  a = 2;
+  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method function9() → core::int? {
+  core::int? x;
+  return x;
+}
+static method main() → void {
+  exp::Expect::equals(#C1, 4);
+  exp::Expect::equals(#C2, 5);
+  exp::Expect::equals(#C3, "string");
+  exp::Expect::equals(#C4, 6);
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C6, 2.{core::int::unary-}(){() → core::int});
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C7, null);
+}
+
+constants  {
+  #C1 = 4
+  #C2 = 5
+  #C3 = "string"
+  #C4 = 6
+  #C5 = 2
+  #C6 = -2
+  #C7 = null
+}

@@ -6,7 +6,9 @@
 
 import 'package:expect/expect.dart';
 
-/*class: global#JsLinkedHashMap:checks=[],instance*/
+/*spec.class: global#JsLinkedHashMap:checkedInstance,checks=[],instance*/
+
+/*prod.class: global#JsLinkedHashMap:checks=[],instance*/
 
 @pragma('dart2js:noInline')
 method<T>() {

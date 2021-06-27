@@ -15,8 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidUseOfNeverTest extends PubPackageResolutionTest {
   test_binaryExpression_never_eqEq() async {
     await assertErrorsInCode(r'''
 void f(Never x) {
@@ -77,7 +76,10 @@ void f(Never? x) {
   x + (1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(
+          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          23,
+          1),
     ]);
 
     assertBinaryExpression(
@@ -112,6 +114,7 @@ void f(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 21, 3),
     ]);
   }
 
@@ -121,7 +124,7 @@ void f(Never? x) {
   x();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 21, 1),
     ]);
   }
 
@@ -201,7 +204,8 @@ void f(Never? x) {
   x[0];
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          22, 1),
     ]);
 
     assertIndexExpression(
@@ -218,7 +222,8 @@ void f(Never? x) {
   x[0] += 1 + 2;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          22, 1),
     ]);
 
     assertAssignment(
@@ -249,7 +254,8 @@ void f(Never? x) {
   x[0] = 1 + 2;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          22, 1),
     ]);
 
     assertIndexExpression(
@@ -318,7 +324,7 @@ void f(Never? x) {
   x.toString(1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 31, 7),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 32, 5),
     ]);
 
     assertMethodInvocation(
@@ -358,7 +364,8 @@ void f(Never? x) {
   x++;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          22, 2),
     ]);
 
     assertPostfixExpression(
@@ -399,7 +406,8 @@ void f(Never? x) {
   ++x;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21, 2),
     ]);
 
     assertPrefixExpression(
@@ -509,7 +517,8 @@ void f(Never? x) {
   x.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          23, 3),
     ]);
 
     assertSimpleIdentifier(
@@ -549,7 +558,8 @@ void f(Never? x) {
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest {
+class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_binaryExpression_eqEq() async {
     await assertNoErrorsInCode(r'''
 void f() {

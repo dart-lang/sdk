@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithExtensionName extends CorrectionProducer {
-  String _extensionName;
+  String _extensionName = '';
 
   @override
   List<Object> get fixArguments => [_extensionName];
@@ -33,7 +33,7 @@ class ReplaceWithExtensionName extends CorrectionProducer {
     }
   }
 
-  AstNode _getTarget(AstNode invocation) {
+  AstNode? _getTarget(AstNode? invocation) {
     if (invocation is MethodInvocation && node == invocation.methodName) {
       return invocation.target;
     } else if (invocation is PropertyAccess &&

@@ -52,7 +52,9 @@ class TypeMaskDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
-    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
+    GlobalTypeInferenceResults results =
+        compiler.globalInference.resultsForTesting;
+    GlobalLocalsMap localsMap = results.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new TypeMaskIrComputer(
             compiler.reporter,
@@ -60,7 +62,7 @@ class TypeMaskDataComputer extends DataComputer<String> {
             elementMap,
             member,
             localsMap.getLocalsMap(member),
-            compiler.globalInference.resultsForTesting,
+            results,
             closedWorld.closureDataLookup)
         .run(definition.node);
   }
@@ -144,11 +146,23 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
         node is ir.FunctionDeclaration) {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
       return getMemberValue(info.callMethod);
-    } else if (node is ir.MethodInvocation) {
+    } else if (node is ir.MethodInvocation ||
+        node is ir.InstanceInvocation ||
+        node is ir.InstanceGetterInvocation ||
+        node is ir.DynamicInvocation ||
+        node is ir.FunctionInvocation ||
+        node is ir.EqualsNull ||
+        node is ir.EqualsCall) {
       return getTypeMaskValue(result.typeOfReceiver(node));
-    } else if (node is ir.PropertyGet) {
+    } else if (node is ir.PropertyGet ||
+        node is ir.InstanceGet ||
+        node is ir.DynamicGet ||
+        node is ir.InstanceTearOff ||
+        node is ir.FunctionTearOff) {
       return getTypeMaskValue(result.typeOfReceiver(node));
-    } else if (node is ir.PropertySet) {
+    } else if (node is ir.PropertySet ||
+        node is ir.InstanceSet ||
+        node is ir.DynamicSet) {
       return getTypeMaskValue(result.typeOfReceiver(node));
     } else if (node is ir.ForInStatement) {
       if (id.kind == IdKind.iterator) {

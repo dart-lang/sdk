@@ -15,8 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ForElementWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ForElementWithNullSafetyTest extends PubPackageResolutionTest {
   test_list_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -193,8 +192,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class IfElementWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class IfElementWithNullSafetyTest extends PubPackageResolutionTest {
   test_list_downward() async {
     await resolveTestCode('''
 void f() {
@@ -230,8 +228,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class SpreadElementWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class SpreadElementWithNullSafetyTest extends PubPackageResolutionTest {
   test_list_downward() async {
     await resolveTestCode('''
 void f() {

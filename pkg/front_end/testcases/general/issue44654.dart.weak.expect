@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test2() → void {
+  core::String* string = null;
+  if(let final core::String* #t1 = string in #t1 == null ?{core::bool*} null : #t1.{core::String::isNotEmpty}{core::bool*})
+    ;
+}
+static method main() → void {
+  try {
+    self::test2();
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace* s) {
+    self::checkFirstLineHasPosition(s);
+  }
+}
+static method checkFirstLineHasPosition(core::StackTrace* stackTrace) → void {
+  core::String* firstLine = "${stackTrace}".{core::String::split}("
+"){(core::Pattern*) →* core::List<core::String*>*}.{core::Iterable::firstWhere}((core::String* line) → core::bool* => line.{core::String::startsWith}("#0"){(core::Pattern*, [core::int*]) →* core::bool*}){((core::String*) →* core::bool*, {orElse: () →* core::String*}) →* core::String*};
+  core::int* lastParen = firstLine.{core::String::lastIndexOf}(")"){(core::Pattern*, [core::int*]) →* core::int*};
+  if(!(lastParen =={core::num::==}{(core::Object*) →* core::bool*} 1.{core::int::unary-}(){() →* core::int*})) {
+    core::int* secondColon = firstLine.{core::String::lastIndexOf}(":", lastParen.{core::num::-}(1){(core::num*) →* core::int*}){(core::Pattern*, [core::int*]) →* core::int*};
+    if(!(secondColon =={core::num::==}{(core::Object*) →* core::bool*} 1.{core::int::unary-}(){() →* core::int*})) {
+      core::int* firstColon = firstLine.{core::String::lastIndexOf}(":", secondColon.{core::num::-}(1){(core::num*) →* core::int*}){(core::Pattern*, [core::int*]) →* core::int*};
+      core::String* lineText = firstLine.{core::String::substring}(firstColon.{core::num::+}(1){(core::num*) →* core::int*}, secondColon){(core::int*, [core::int*]) →* core::String*};
+      core::String* posText = firstLine.{core::String::substring}(secondColon.{core::num::+}(1){(core::num*) →* core::int*}, lastParen){(core::int*, [core::int*]) →* core::String*};
+      core::int* line = core::int::tryParse(lineText);
+      core::int* pos = core::int::tryParse(posText);
+      if(!(line == null) && !(pos == null)) {
+        core::print("Found position ${line}:${pos}");
+        return;
+      }
+    }
+  }
+  throw "No position found in \"${firstLine}\"";
+}

@@ -5,22 +5,34 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:meta/meta.dart';
-
 /// Helper for reading primitive types from bytes.
 class SummaryDataReader {
   final Uint8List bytes;
   int offset = 0;
 
-  _StringTable _stringTable;
+  late final _StringTable _stringTable;
 
   final Float64List _doubleBuffer = Float64List(1);
-  Uint8List _doubleBufferUint8;
+  Uint8List? _doubleBufferUint8;
 
   SummaryDataReader(this.bytes);
 
   void createStringTable(int offset) {
     _stringTable = _StringTable(bytes: bytes, startOffset: offset);
+  }
+
+  /// Create a new instance with the given [offset].
+  /// It shares the same bytes and string reader.
+  SummaryDataReader fork(int offset) {
+    var result = SummaryDataReader(bytes);
+    result.offset = offset;
+    result._stringTable = _stringTable;
+    return result;
+  }
+
+  @pragma("vm:prefer-inline")
+  bool readBool() {
+    return readByte() != 0;
   }
 
   @pragma("vm:prefer-inline")
@@ -29,25 +41,49 @@ class SummaryDataReader {
   }
 
   double readDouble() {
-    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
-    _doubleBufferUint8[0] = readByte();
-    _doubleBufferUint8[1] = readByte();
-    _doubleBufferUint8[2] = readByte();
-    _doubleBufferUint8[3] = readByte();
-    _doubleBufferUint8[4] = readByte();
-    _doubleBufferUint8[5] = readByte();
-    _doubleBufferUint8[6] = readByte();
-    _doubleBufferUint8[7] = readByte();
+    var doubleBufferUint8 =
+        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
+    doubleBufferUint8[0] = readByte();
+    doubleBufferUint8[1] = readByte();
+    doubleBufferUint8[2] = readByte();
+    doubleBufferUint8[3] = readByte();
+    doubleBufferUint8[4] = readByte();
+    doubleBufferUint8[5] = readByte();
+    doubleBufferUint8[6] = readByte();
+    doubleBufferUint8[7] = readByte();
     return _doubleBuffer[0];
+  }
+
+  String? readOptionalStringReference() {
+    if (readBool()) {
+      return readStringReference();
+    }
+  }
+
+  int? readOptionalUInt30() {
+    if (readBool()) {
+      return readUInt30();
+    }
   }
 
   String readStringReference() {
     return _stringTable[readUInt30()];
   }
 
+  List<String> readStringReferenceList() {
+    return readTypedList(readStringReference);
+  }
+
   String readStringUtf8() {
     var bytes = readUint8List();
     return utf8.decode(bytes);
+  }
+
+  List<T> readTypedList<T>(T Function() read) {
+    var length = readUInt30();
+    return List<T>.generate(length, (_) {
+      return read();
+    });
   }
 
   int readUInt30() {
@@ -67,7 +103,7 @@ class SummaryDataReader {
     }
   }
 
-  Uint32List readUint30List() {
+  Uint32List readUInt30List() {
     var length = readUInt30();
     var result = Uint32List(length);
     for (var i = 0; i < length; ++i) {
@@ -76,18 +112,18 @@ class SummaryDataReader {
     return result;
   }
 
-  int readUint32() {
+  int readUInt32() {
     return (readByte() << 24) |
         (readByte() << 16) |
         (readByte() << 8) |
         readByte();
   }
 
-  Uint32List readUint32List() {
-    var length = readUint32();
+  Uint32List readUInt32List() {
+    var length = readUInt32();
     var result = Uint32List(length);
     for (var i = 0; i < length; ++i) {
-      result[i] = readUint32();
+      result[i] = readUInt32();
     }
     return result;
   }
@@ -108,9 +144,9 @@ class _StringTable {
   final Uint8List _bytes;
   int _byteOffset;
 
-  Uint32List _offsets;
-  Uint32List _lengths;
-  List<String> _strings;
+  late final Uint32List _offsets;
+  late final Uint32List _lengths;
+  late final List<String?> _strings;
 
   /// The structure of the table:
   ///   <bytes with encoded strings>
@@ -118,18 +154,17 @@ class _StringTable {
   ///   <the number strings>
   ///   <the array of lengths of individual strings>
   _StringTable({
-    @required Uint8List bytes,
-    @required int startOffset,
-  }) : _bytes = bytes {
-    _byteOffset = startOffset;
-
-    var offset = startOffset - _readUInt();
-    var length = _readUInt();
+    required Uint8List bytes,
+    required int startOffset,
+  })  : _bytes = bytes,
+        _byteOffset = startOffset {
+    var offset = startOffset - _readUInt30();
+    var length = _readUInt30();
 
     _offsets = Uint32List(length);
     _lengths = Uint32List(length);
     for (var i = 0; i < length; i++) {
-      var stringLength = _readUInt();
+      var stringLength = _readUInt30();
       _offsets[i] = offset;
       _lengths[i] = stringLength;
       offset += stringLength;
@@ -163,7 +198,7 @@ class _StringTable {
     return String.fromCharCodes(_bytes, start, end);
   }
 
-  int _readUInt() {
+  int _readUInt30() {
     var byte = _readByte();
     if (byte & 0x80 == 0) {
       // 0xxxxxxx

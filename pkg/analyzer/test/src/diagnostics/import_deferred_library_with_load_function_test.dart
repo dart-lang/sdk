@@ -5,7 +5,6 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -18,59 +17,90 @@ main() {
 class ImportDeferredLibraryWithLoadFunctionTest
     extends PubPackageResolutionTest {
   test_deferredImport_withLoadLibraryFunction() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
-library lib1;
-loadLibrary() {}
-f() {}''');
+    newFile('$testPackageLibPath/a.dart', content: r'''
+void loadLibrary() {}
+void f() {}
+''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
-library root;
-import 'lib1.dart' deferred as lib1;
-main() { lib1.f(); }''');
-
-    await _resolveFile('$testPackageLibPath/lib1.dart');
-    await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 14, 36),
+    await assertErrorsInCode(r'''
+import 'a.dart' deferred as p;
+void main() {
+  p.f();
+}
+''', [
+      error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 0, 30),
     ]);
   }
 
+  test_deferredImport_withLoadLibraryFunction_hide() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+void loadLibrary() {}
+void f() {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' deferred as p hide loadLibrary;
+void main() {
+  p.f();
+}
+''');
+  }
+
+  test_deferredImport_withLoadLibraryFunction_hide2() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+void loadLibrary() {}
+void f() {}
+void f2() {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart' deferred as p hide f2;
+void main() {
+  p.f();
+}
+''', [
+      error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 0, 38),
+    ]);
+  }
+
+  test_deferredImport_withLoadLibraryFunction_show() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+void loadLibrary() {}
+void f() {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' deferred as p show f;
+void main() {
+  p.f();
+}
+''');
+  }
+
   test_deferredImport_withoutLoadLibraryFunction() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
-library lib1;
-f() {}''');
+    newFile('$testPackageLibPath/a.dart', content: r'''
+void f() {}
+''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
-library root;
-import 'lib1.dart' deferred as lib1;
-main() { lib1.f(); }''');
-
-    await _resolveFile('$testPackageLibPath/lib1.dart');
-    await _resolveFile('$testPackageLibPath/lib2.dart');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' deferred as p;
+void main() {
+  p.f();
+}
+''');
   }
 
   test_nonDeferredImport_withLoadLibraryFunction() async {
-    newFile('$testPackageLibPath/lib1.dart', content: r'''
-library lib1;
-loadLibrary() {}
-f() {}''');
+    newFile('$testPackageLibPath/a.dart', content: r'''
+void loadLibrary() {}
+void f() {}
+''');
 
-    newFile('$testPackageLibPath/lib2.dart', content: r'''
-library root;
-import 'lib1.dart' as lib1;
-main() { lib1.f(); }''');
-
-    await _resolveFile('$testPackageLibPath/lib1.dart');
-    await _resolveFile('$testPackageLibPath/lib2.dart');
-  }
-
-  /// Resolve the file with the given [path].
-  ///
-  /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
-  Future<void> _resolveFile(
-    String path, [
-    List<ExpectedError> expectedErrors = const [],
-  ]) async {
-    result = await resolveFile(convertPath(path));
-    assertErrorsInResolvedUnit(result, expectedErrors);
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as p;
+void main() {
+  p.f();
+}
+''');
   }
 }

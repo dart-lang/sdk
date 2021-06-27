@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // OtherResources=signal_test_script.dart
 // OtherResources=signals_test_script.dart
 
@@ -20,6 +22,7 @@ void testSignals(int usr1Expect, int usr2Expect,
           Platform.executable,
           []
             ..addAll(Platform.executableArguments)
+            ..add('--verbosity=warning')
             ..addAll([
               Platform.script.resolve('signals_test_script.dart').toFilePath(),
               usr1Expect.toString(),
@@ -54,6 +57,7 @@ void testSignal(ProcessSignal signal) {
           Platform.executable,
           []
             ..addAll(Platform.executableArguments)
+            ..add('--verbosity=warning')
             ..addAll([
               Platform.script.resolve('signal_test_script.dart').toFilePath(),
               signal.toString()
@@ -85,6 +89,7 @@ void testMultipleSignals(List<ProcessSignal> signals) {
             Platform.executable,
             []
               ..addAll(Platform.executableArguments)
+              ..add('--verbosity=warning')
               ..add(Platform.script
                   .resolve('signal_test_script.dart')
                   .toFilePath())

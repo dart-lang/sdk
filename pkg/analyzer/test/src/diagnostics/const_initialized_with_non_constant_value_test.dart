@@ -10,9 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstInitializedWithNonConstantValueTest);
-    defineReflectiveTests(
-      ConstInitializedWithNonConstantValueWithNonFunctionTypeAliasesTest,
-    );
   });
 }
 
@@ -40,6 +37,15 @@ class Foo {
 }
 ''', [
       error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 46, 5),
+    ]);
+  }
+
+  test_functionExpression() async {
+    await assertErrorsInCode('''
+const a = () {};
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
+          5),
     ]);
   }
 
@@ -82,12 +88,12 @@ const x = const A();
     await assertErrorsInCode('''
 class C<T> {
   const C();
-  T get t => null;
+  T? get t => null;
 }
 
 const x = const C().t;
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 59,
           11),
     ]);
   }
@@ -105,11 +111,7 @@ const c = a.m;
           1),
     ]);
   }
-}
 
-@reflectiveTest
-class ConstInitializedWithNonConstantValueWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
   test_typeLiteral_interfaceType() async {
     await assertNoErrorsInCode(r'''
 const a = int;

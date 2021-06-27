@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29937.dart:6:4: Error: A function expression can't have a name.
+//   [f() {}];
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::_GrowableList::_literal1<() →* Null>(let final () →* Null f = () → Null {} in f);
+}

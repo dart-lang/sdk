@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -43,11 +44,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   final SuggestionBuilder builder;
 
-  final Object entity;
+  final SyntacticEntity? entity;
 
   _KeywordVisitor(this.request, this.builder) : entity = request.target.entity;
 
-  Token get droppedToken => request.target.droppedToken;
+  Token? get droppedToken => request.target.droppedToken;
 
   @override
   void visitArgumentList(ArgumentList node) {
@@ -56,6 +57,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         return;
       }
     }
+    final entity = this.entity;
     if (entity == node.rightParenthesis) {
       _addExpressionKeywords(node);
       var previous = node.findPrevious(entity as Token);
@@ -73,10 +75,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       var index = node.arguments.indexOf(entity);
       if (index > 0) {
         var previousArgument = node.arguments[index - 1];
-        var endToken = previousArgument?.endToken;
-        if (endToken?.lexeme == ')' &&
-            endToken.next?.lexeme == ',' &&
-            endToken.next.isSynthetic) {
+        var endToken = previousArgument.endToken;
+        var tokenAfterEnd = endToken.next!;
+        if (endToken.lexeme == ')' &&
+            tokenAfterEnd.lexeme == ',' &&
+            tokenAfterEnd.isSynthetic) {
           _addSuggestion(Keyword.ASYNC);
           _addSuggestion2(ASYNC_STAR);
           _addSuggestion2(SYNC_STAR);
@@ -92,6 +95,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addSuggestion(Keyword.ASYNC);
       _addSuggestion2(ASYNC_STAR);
       _addSuggestion2(SYNC_STAR);
+    } else if (identical(entity, node.type)) {
+      _addSuggestion(Keyword.DYNAMIC);
     }
   }
 
@@ -119,9 +124,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         if (previous != null && previous.isSynthetic) {
           previous = node.findPrevious(previous);
         }
-        var next = token.next;
+        var next = token.next!;
         if (next.isSynthetic) {
-          next = next.next;
+          next = next.next!;
         }
         if (previous != null &&
             previous.type == TokenType.CLOSE_PAREN &&
@@ -140,6 +145,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    final entity = this.entity;
     // Don't suggest class name
     if (entity == node.name) {
       return;
@@ -162,7 +168,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    SyntacticEntity previousMember;
+    SyntacticEntity? previousMember;
     for (var member in node.childEntities) {
       if (entity == member) {
         break;
@@ -170,8 +176,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       previousMember = member;
     }
     if (previousMember is ClassDeclaration) {
-      if (previousMember.leftBracket == null ||
-          previousMember.leftBracket.isSynthetic) {
+      if (previousMember.leftBracket.isSynthetic) {
         // If the prior member is an unfinished class declaration
         // then the user is probably finishing that.
         _addClassDeclarationKeywords(previousMember);
@@ -179,8 +184,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     if (previousMember is ExtensionDeclaration) {
-      if (previousMember.leftBracket == null ||
-          previousMember.leftBracket.isSynthetic) {
+      if (previousMember.leftBracket.isSynthetic) {
         // If the prior member is an unfinished extension declaration then the
         // user is probably finishing that.
         _addExtensionDeclarationKeywords(previousMember);
@@ -188,8 +192,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     if (previousMember is MixinDeclaration) {
-      if (previousMember.leftBracket == null ||
-          previousMember.leftBracket.isSynthetic) {
+      if (previousMember.leftBracket.isSynthetic) {
         // If the prior member is an unfinished mixin declaration
         // then the user is probably finishing that.
         _addMixinDeclarationKeywords(previousMember);
@@ -197,8 +200,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     if (previousMember is ImportDirective) {
-      if (previousMember.semicolon == null ||
-          previousMember.semicolon.isSynthetic) {
+      if (previousMember.semicolon.isSynthetic) {
         // If the prior member is an unfinished import directive
         // then the user is probably finishing that
         _addImportDirectiveKeywords(previousMember);
@@ -216,7 +218,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
-          previousMember.functionExpression is FunctionExpression &&
           previousMember.functionExpression.body.isEmpty) {
         _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
@@ -244,7 +245,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       var separator = node.separator;
       if (separator != null) {
         var offset = request.offset;
-        if (separator.end <= offset && offset <= separator.next.offset) {
+        if (separator.end <= offset && offset <= separator.next!.offset) {
           _addSuggestion(Keyword.ASSERT);
           _addSuggestion(Keyword.SUPER);
           _addSuggestion(Keyword.THIS);
@@ -351,27 +352,73 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (constructorDeclaration != null) {
       _addSuggestion(Keyword.THIS);
     }
-    if (entity is Token && (entity as Token).type == TokenType.CLOSE_PAREN) {
-      _addSuggestion(Keyword.COVARIANT);
-      _addSuggestion(Keyword.DYNAMIC);
-      _addSuggestion(Keyword.VOID);
-      if (request.featureSet.isEnabled(Feature.non_nullable)) {
-        _addSuggestion(Keyword.REQUIRED);
+    final entity = this.entity;
+    if (entity is Token) {
+      FormalParameter? lastParameter() {
+        var parameters = node.parameters;
+        if (parameters.isNotEmpty) {
+          return parameters.last.notDefault;
+        }
+        return null;
+      }
+
+      bool hasCovariant() {
+        var last = lastParameter();
+        return last != null &&
+            (last.covariantKeyword != null ||
+                last.identifier?.name == 'covariant');
+      }
+
+      bool hasRequired() {
+        var last = lastParameter();
+        return last != null &&
+            (last.requiredKeyword != null ||
+                last.identifier?.name == 'required');
+      }
+
+      var tokenType = entity.type;
+      if (tokenType == TokenType.CLOSE_PAREN) {
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+        if (!hasCovariant()) {
+          _addSuggestion(Keyword.COVARIANT);
+        }
+      } else if (tokenType == TokenType.CLOSE_CURLY_BRACKET) {
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+        if (!hasCovariant()) {
+          _addSuggestion(Keyword.COVARIANT);
+          if (request.featureSet.isEnabled(Feature.non_nullable) &&
+              !hasRequired()) {
+            _addSuggestion(Keyword.REQUIRED);
+          }
+        }
+      } else if (tokenType == TokenType.CLOSE_SQUARE_BRACKET) {
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+        if (!hasCovariant()) {
+          _addSuggestion(Keyword.COVARIANT);
+        }
       }
     } else if (entity is FormalParameter) {
-      var beginToken = (entity as FormalParameter).beginToken;
-      if (beginToken != null && request.target.offset == beginToken.end) {
+      var beginToken = entity.beginToken;
+      var offset = request.target.offset;
+      if (offset <= beginToken.end) {
         _addSuggestion(Keyword.COVARIANT);
         _addSuggestion(Keyword.DYNAMIC);
         _addSuggestion(Keyword.VOID);
-        if (request.featureSet.isEnabled(Feature.non_nullable)) {
+        if (entity.isNamed &&
+            !entity.isRequired &&
+            request.featureSet.isEnabled(Feature.non_nullable)) {
           _addSuggestion(Keyword.REQUIRED);
         }
       } else if (entity is FunctionTypedFormalParameter) {
         _addSuggestion(Keyword.COVARIANT);
         _addSuggestion(Keyword.DYNAMIC);
         _addSuggestion(Keyword.VOID);
-        if (request.featureSet.isEnabled(Feature.non_nullable)) {
+        if (entity.isNamed &&
+            !entity.isRequired &&
+            request.featureSet.isEnabled(Feature.non_nullable)) {
           _addSuggestion(Keyword.REQUIRED);
         }
       }
@@ -385,8 +432,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Handle the degenerate case while typing - for (int x i^)
     if (node.condition == entity &&
         entity is SimpleIdentifier &&
-        node is ForPartsWithDeclarations &&
-        node.variables != null) {
+        node is ForPartsWithDeclarations) {
       if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
         _addSuggestion(Keyword.IN);
       }
@@ -423,11 +469,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
           _addSuggestion2(SYNC_STAR);
         }
       }
+      var grandParent = node.parent;
       if (body is EmptyFunctionBody &&
-          node.parent is FunctionDeclaration &&
-          node.parent.parent is CompilationUnit) {
+          grandParent is FunctionDeclaration &&
+          grandParent.parent is CompilationUnit) {
         _addCompilationUnitKeywords();
       }
+    }
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    if (entity == node.type) {
+      _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.VOID);
     }
   }
 
@@ -469,9 +524,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     // Handle degenerate case where import statement does not have a semicolon
     // and the cursor is in the uri string
-    if ((entity == node.semicolon &&
-            node.uri != null &&
-            node.uri.offset + 1 != request.offset) ||
+    if ((entity == node.semicolon && node.uri.offset + 1 != request.offset) ||
         node.combinators.contains(entity)) {
       _addImportDirectiveKeywords(node);
     }
@@ -547,6 +600,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    final entity = this.entity;
     // Don't suggest mixin name
     if (entity == node.name) {
       return;
@@ -625,6 +679,22 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    var entity = this.entity;
+    if (node.type == entity && entity is GenericFunctionType) {
+      var offset = request.offset;
+      var returnType = entity.returnType;
+      if ((returnType == null && offset < entity.offset) ||
+          (returnType != null &&
+              offset >= returnType.offset &&
+              offset < returnType.end)) {
+        _addSuggestion(Keyword.DYNAMIC);
+        _addSuggestion(Keyword.VOID);
+      }
+    }
+  }
+
+  @override
   void visitSpreadElement(SpreadElement node) {
     _addExpressionKeywords(node);
     return super.visitSpreadElement(node);
@@ -697,7 +767,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         (obj is KeywordToken && obj.value() == Keyword.FINALLY)) {
       _addSuggestion(Keyword.ON);
       _addSuggestion(Keyword.CATCH);
-      return null;
+      return;
     }
     return visitStatement(node);
   }
@@ -712,6 +782,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     if (entity == node.initializer) {
       _addExpressionKeywords(node);
+    }
+  }
+
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    var variables = node.variables;
+    if (variables.isNotEmpty && entity == variables[0] && node.type == null) {
+      _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.VOID);
     }
   }
 
@@ -811,7 +890,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addExtensionDeclarationKeywords(ExtensionDeclaration node) {
-    if (node.onKeyword == null || node.onKeyword.isSynthetic) {
+    if (node.onKeyword.isSynthetic) {
       _addSuggestion(Keyword.ON);
     }
   }
@@ -893,7 +972,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     _addSuggestion2(keyword.lexeme);
   }
 
-  void _addSuggestion2(String keyword, {int offset}) {
+  void _addSuggestion2(String keyword, {int? offset}) {
     builder.suggestKeyword(keyword, offset: offset);
   }
 
@@ -904,11 +983,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   bool _isEntityAfterIfWithoutElse(AstNode node) {
-    var block = node?.thisOrAncestorOfType<Block>();
+    var block = node.thisOrAncestorOfType<Block>();
     if (block == null) {
       return false;
     }
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is Statement) {
       var entityIndex = block.statements.indexOf(entity);
       if (entityIndex > 0) {
@@ -927,7 +1006,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     return false;
   }
 
-  static bool _isPreviousTokenSynthetic(Object entity, TokenType type) {
+  static bool _isPreviousTokenSynthetic(Object? entity, TokenType type) {
     if (entity is AstNode) {
       var token = entity.beginToken;
       var previousToken = entity.findPrevious(token);

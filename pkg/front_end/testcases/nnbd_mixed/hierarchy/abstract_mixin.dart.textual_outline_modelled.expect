@@ -1,0 +1,25 @@
+class Class = Super with Mixin implements Interface;
+
+class Interface {
+  void extendedConcreteMixedInAbstractImplementedMethod(covariant num i) {}
+  void extendedConcreteMixedInConcreteImplementedMethod(covariant num i) {}
+}
+
+class Sub extends Class {
+  void test() {}
+}
+
+class Super {
+  void extendedConcreteMixedInAbstractImplementedMethod(int i) {}
+  void extendedConcreteMixedInAbstractMethod() {}
+  void extendedConcreteMixedInConcreteImplementedMethod(int i) {}
+  void extendedConcreteMixedInConcreteMethod() {}
+}
+
+main() {}
+mixin Mixin {
+  void extendedConcreteMixedInAbstractImplementedMethod(int i);
+  void extendedConcreteMixedInAbstractMethod();
+  void extendedConcreteMixedInConcreteImplementedMethod(int i) {}
+  void extendedConcreteMixedInConcreteMethod() {}
+}

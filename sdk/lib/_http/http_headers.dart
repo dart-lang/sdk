@@ -503,8 +503,19 @@ class _HttpHeaders implements HttpHeaders {
     _mutable = false;
   }
 
-  void _build(BytesBuilder builder) {
+  void _build(BytesBuilder builder, {bool skipZeroContentLength = false}) {
+    // per https://tools.ietf.org/html/rfc7230#section-3.3.2
+    // A user agent SHOULD NOT send a
+    // Content-Length header field when the request message does not
+    // contain a payload body and the method semantics do not anticipate
+    // such a body.
+    String? ignoreHeader = _contentLength == 0 && skipZeroContentLength
+        ? HttpHeaders.contentLengthHeader
+        : null;
     _headers.forEach((String name, List<String> values) {
+      if (ignoreHeader == name) {
+        return;
+      }
       String originalName = _originalHeaderName(name);
       bool fold = _foldHeader(name);
       var nameData = originalName.codeUnits;

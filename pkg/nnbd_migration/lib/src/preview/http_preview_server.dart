@@ -27,10 +27,10 @@ class HttpPreviewServer {
   final MigrationState migrationState;
 
   /// The [PreviewSite] that can handle GET and POST requests.
-  PreviewSite previewSite;
+  PreviewSite? _previewSite;
 
   /// Future that is completed with the HTTP server once it is running.
-  Future<HttpServer> _serverFuture;
+  Future<HttpServer>? _serverFuture;
 
   // A function which allows the migration to be rerun, taking changed paths.
   final Future<MigrationState> Function() rerunFunction;
@@ -42,11 +42,11 @@ class HttpPreviewServer {
   /// The internet address the server should bind to.  Should be suitable for
   /// passing to HttpServer.bind, i.e. either a [String] or an
   /// [InternetAddress].
-  final Object bindAddress;
+  final Object? bindAddress;
 
   /// Integer for a port to run the preview server on.  If null or zero, allow
   /// [HttpServer.bind] to pick one.
-  final int preferredPort;
+  final int? preferredPort;
 
   final Logger _logger;
 
@@ -57,20 +57,21 @@ class HttpPreviewServer {
 
   Future<String> get authToken async {
     await _serverFuture;
-    previewSite ??=
-        PreviewSite(migrationState, rerunFunction, applyHook, _logger);
     return previewSite.serviceAuthToken;
   }
 
   /// Return the port this server is bound to.
-  Future<String> get boundHostname async {
-    return (await _serverFuture)?.address?.host;
+  Future<String?> get boundHostname async {
+    return (await _serverFuture)?.address.host;
   }
 
   /// Return the port this server is bound to.
-  Future<int> get boundPort async {
+  Future<int?> get boundPort async {
     return (await _serverFuture)?.port;
   }
+
+  PreviewSite get previewSite => _previewSite ??=
+      PreviewSite(migrationState, rerunFunction, applyHook, _logger);
 
   void close() {
     _serverFuture?.then((HttpServer server) {
@@ -79,14 +80,14 @@ class HttpPreviewServer {
   }
 
   /// Begin serving HTTP requests over the given port.
-  Future<int> serveHttp() async {
+  Future<int?> serveHttp() async {
     if (_serverFuture != null) {
       return boundPort;
     }
 
     try {
       _serverFuture = HttpServer.bind(bindAddress, preferredPort ?? 0);
-      var server = await _serverFuture;
+      var server = await _serverFuture!;
       _handleServer(server);
       return server.port;
     } catch (ignore) {
@@ -100,15 +101,11 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    previewSite ??=
-        PreviewSite(migrationState, rerunFunction, applyHook, _logger);
     await previewSite.handleGetRequest(request);
   }
 
   /// Handle a POST request received by the HTTP server.
   Future<void> _handlePostRequest(HttpRequest request) async {
-    previewSite ??=
-        PreviewSite(migrationState, rerunFunction, applyHook, _logger);
     await previewSite.handlePostRequest(request);
   }
 

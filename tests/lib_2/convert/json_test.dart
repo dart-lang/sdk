@@ -4,6 +4,8 @@
 // Disable background compilation so that the Issue 24908 can be reproduced.
 // VMOptions=--no-background-compilation
 
+// @dart = 2.9
+
 library json_test;
 
 import "package:expect/expect.dart";

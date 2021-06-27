@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -21,10 +22,11 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   final AnalysisSessionHelper sessionHelper;
   final ExecutableElement element;
 
-  SourceChange change;
+  late SourceChange change;
 
-  ConvertMethodToGetterRefactoringImpl(this.searchEngine, this.element)
-      : sessionHelper = AnalysisSessionHelper(element.session);
+  ConvertMethodToGetterRefactoringImpl(
+      this.searchEngine, AnalysisSession session, this.element)
+      : sessionHelper = AnalysisSessionHelper(session);
 
   @override
   String get refactoringName => 'Convert Method To Getter';
@@ -48,7 +50,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
           'Only class methods or top-level functions can be converted to getters.');
     }
     // returns a value
-    if (element.returnType != null && element.returnType.isVoid) {
+    if (element.returnType.isVoid) {
       return RefactoringStatus.fatal(
           'Cannot convert ${element.kind.displayName} returning void.');
     }
@@ -65,14 +67,14 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     change = SourceChange(refactoringName);
     // FunctionElement
+    final element = this.element;
     if (element is FunctionElement) {
       await _updateElementDeclaration(element);
       await _updateElementReferences(element);
     }
     // MethodElement
     if (element is MethodElement) {
-      MethodElement method = element;
-      var elements = await getHierarchyMembers(searchEngine, method);
+      var elements = await getHierarchyMembers(searchEngine, element);
       await Future.forEach(elements, (Element element) async {
         await _updateElementDeclaration(element);
         return _updateElementReferences(element);
@@ -84,10 +86,10 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
 
   Future<void> _updateElementDeclaration(Element element) async {
     // prepare parameters
-    FormalParameterList parameters;
+    FormalParameterList? parameters;
     {
       var result = await sessionHelper.getElementDeclaration(element);
-      var declaration = result.node;
+      var declaration = result?.node;
       if (declaration is MethodDeclaration) {
         parameters = declaration.parameters;
       } else if (declaration is FunctionDeclaration) {
@@ -95,6 +97,9 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       } else {
         return;
       }
+    }
+    if (parameters == null) {
+      return;
     }
     // insert "get "
     {
@@ -115,13 +120,13 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       var refElement = reference.element;
       var refRange = reference.range;
       // prepare invocation
-      MethodInvocation invocation;
+      MethodInvocation? invocation;
       {
         var resolvedUnit =
             await sessionHelper.getResolvedUnitByElement(refElement);
-        var refUnit = resolvedUnit.unit;
+        var refUnit = resolvedUnit?.unit;
         var refNode = NodeLocator(refRange.offset).searchWithin(refUnit);
-        invocation = refNode.thisOrAncestorOfType<MethodInvocation>();
+        invocation = refNode?.thisOrAncestorOfType<MethodInvocation>();
       }
       // we need invocation
       if (invocation != null) {

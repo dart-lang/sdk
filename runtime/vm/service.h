@@ -15,7 +15,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 3
-#define SERVICE_PROTOCOL_MINOR_VERSION 42
+#define SERVICE_PROTOCOL_MINOR_VERSION 48
 
 class Array;
 class EmbedderServiceHandler;
@@ -171,6 +171,7 @@ class Service : public AllStatic {
   static StreamInfo logging_stream;
   static StreamInfo extension_stream;
   static StreamInfo timeline_stream;
+  static StreamInfo profiler_stream;
 
   static bool ListenStream(const char* stream_id);
   static void CancelStream(const char* stream_id);

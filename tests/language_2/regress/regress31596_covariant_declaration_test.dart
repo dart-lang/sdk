@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class I0 {}
 
 class A {}
@@ -18,7 +20,7 @@ abstract class I {
 
 class D extends C implements I {}
 //    ^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [analyzer] COMPILE_TIME_ERROR.INVALID_IMPLEMENTATION_OVERRIDE
 // [cfe] unspecified
 
 main() {}

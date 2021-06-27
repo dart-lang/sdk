@@ -25,7 +25,7 @@ class TestTypeHierarchy extends TypeHierarchy {
   }
 
   @override
-  Type specializeTypeCone(TFClass base) {
+  Type specializeTypeCone(TFClass base, {bool allowWideCone = false}) {
     Type result = specializations[base.classNode];
     expect(result, isNotNull,
         reason: "specializeTypeCone($base) is not defined");
@@ -54,9 +54,11 @@ main() {
   final CoreTypes coreTypes = new CoreTypes(component);
 
   test('types-builder', () {
-    final Class c1 = new Class(name: 'C1');
-    final Class c2 =
-        new Class(name: 'C2', typeParameters: [new TypeParameter('E')]);
+    final Class c1 = new Class(name: 'C1', fileUri: dummyUri);
+    final Class c2 = new Class(
+        name: 'C2',
+        typeParameters: [new TypeParameter('E')],
+        fileUri: dummyUri);
 
     final TypesBuilder tb = new TestTypeHierarchy(coreTypes, {}, {});
     final tfc1 = tb.getTFClass(c1);
@@ -70,10 +72,8 @@ main() {
     final FunctionType f1 =
         new FunctionType([t1], const VoidType(), Nullability.legacy);
 
-    expect(tb.fromStaticType(const NeverType(Nullability.nonNullable), false),
+    expect(tb.fromStaticType(const NeverType.nonNullable(), false),
         equals(const EmptyType()));
-    expect(tb.fromStaticType(const BottomType(), true),
-        equals(new NullableType(const EmptyType())));
     expect(tb.fromStaticType(const DynamicType(), true),
         equals(new NullableType(const AnyType())));
     expect(tb.fromStaticType(const VoidType(), true),
@@ -102,10 +102,10 @@ main() {
   test('union-intersection', () {
     // T1 <: T3, T2 <: T3
 
-    final c1 = new Class(name: 'T1');
-    final c2 = new Class(name: 'T2');
-    final c3 = new Class(name: 'T3');
-    final c4 = new Class(name: 'T4');
+    final c1 = new Class(name: 'T1', fileUri: dummyUri);
+    final c2 = new Class(name: 'T2', fileUri: dummyUri);
+    final c3 = new Class(name: 'T3', fileUri: dummyUri);
+    final c4 = new Class(name: 'T4', fileUri: dummyUri);
 
     final tfc1 = new TFClass(1, c1);
     final tfc2 = new TFClass(2, c2);
@@ -293,9 +293,9 @@ main() {
   });
 
   test('hashcode-equals', () {
-    final c1 = new Class(name: 'C1');
-    final c2 = new Class(name: 'C2');
-    final c3 = new Class(name: 'C3');
+    final c1 = new Class(name: 'C1', fileUri: dummyUri);
+    final c2 = new Class(name: 'C2', fileUri: dummyUri);
+    final c3 = new Class(name: 'C3', fileUri: dummyUri);
 
     final tfc1 = new TFClass(1, c1);
     final tfc2 = new TFClass(2, c2);

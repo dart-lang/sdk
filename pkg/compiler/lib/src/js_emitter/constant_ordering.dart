@@ -161,6 +161,11 @@ class _ConstantOrdering
   }
 
   @override
+  int visitLateSentinel(
+          LateSentinelConstantValue a, LateSentinelConstantValue b) =>
+      0;
+
+  @override
   int visitUnreachable(UnreachableConstantValue a, UnreachableConstantValue b) {
     // Never emitted.
     return 0;

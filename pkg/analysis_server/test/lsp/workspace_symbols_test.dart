@@ -29,7 +29,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
 
     final namedExtensions =
         symbols.firstWhere((s) => s.name == 'StringExtensions');
-    expect(namedExtensions.kind, equals(SymbolKind.Obj));
+    expect(namedExtensions.kind, equals(SymbolKind.Class));
     expect(namedExtensions.containerName, isNull);
 
     // Unnamed extensions are not returned in Workspace Symbols.
@@ -91,17 +91,18 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
 
     // Create a request that doesn't supply the query param.
     final request = RequestMessage(
-      id: Either2<num, String>.t1(1),
+      id: Either2<int, String>.t1(1),
       method: Method.workspace_symbol,
       params: <String, dynamic>{},
       jsonrpc: jsonRpcVersion,
     );
 
     final response = await sendRequestToServer(request);
-    expect(response.error.code, equals(ErrorCodes.InvalidParams));
+    final error = response.error!;
+    expect(error.code, equals(ErrorCodes.InvalidParams));
     // Ensure the error is useful to the client.
     expect(
-      response.error.message,
+      error.message,
       equals('Invalid params for workspace/symbol:\n'
           'params.query must not be undefined'),
     );

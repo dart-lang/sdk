@@ -1,9 +1,15 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
+// @dart = 2.9
+
 import 'dart:math' as math;
 
 class SimpleTTestStat {
-  static TTestResult ttest(List<int> a, List<int> b) {
-    int aSum = a.reduce((value, element) => (value + element));
-    int bSum = b.reduce((value, element) => (value + element));
+  static TTestResult ttest<E extends num>(List<E> a, List<E> b) {
+    E aSum = a.reduce((value, element) => (value + element));
+    E bSum = b.reduce((value, element) => (value + element));
     int aCount = a.length;
     int bCount = b.length;
     double aMean = aSum / aCount;
@@ -30,13 +36,13 @@ class SimpleTTestStat {
     }
   }
 
-  static double variance(List<int> data) {
-    int sum = data.reduce((value, element) => (value + element));
+  static double variance<E extends num>(List<E> data) {
+    E sum = data.reduce((value, element) => (value + element));
     int count = data.length;
     double average = sum / count;
 
     double diffSquareSum = 0;
-    for (int value in data) {
+    for (E value in data) {
       double diff = value - average;
       double squared = diff * diff;
       diffSquareSum += squared;

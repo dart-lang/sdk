@@ -13,7 +13,7 @@ class ImplementedComputer {
   List<protocol.ImplementedClass> classes = <protocol.ImplementedClass>[];
   List<protocol.ImplementedMember> members = <protocol.ImplementedMember>[];
 
-  Set<String> subtypeMembers;
+  Set<String>? subtypeMembers;
 
   ImplementedComputer(this.searchEngine, this.unitElement);
 
@@ -21,7 +21,7 @@ class ImplementedComputer {
     for (var element in unitElement.mixins) {
       await _computeForClassElement(element);
     }
-    for (var element in unitElement.types) {
+    for (var element in unitElement.classes) {
       await _computeForClassElement(element);
     }
   }
@@ -69,7 +69,7 @@ class ImplementedComputer {
 
   bool _hasOverride(Element element) {
     var name = element.displayName;
-    return subtypeMembers.contains(name);
+    return subtypeMembers!.contains(name);
   }
 
   /// Return `true` if the given [element] is a static element.

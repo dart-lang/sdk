@@ -18,18 +18,18 @@ class WrongNumberOfTypeArgumentsTest extends PubPackageResolutionTest {
   test_class_tooFew() async {
     await assertErrorsInCode(r'''
 class A<E, F> {}
-A<A> a = null;
+A<A>? a;
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 17, 4),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 17, 5),
     ]);
   }
 
   test_class_tooMany() async {
     await assertErrorsInCode(r'''
 class A<E> {}
-A<A, A> a = null;
+A<A, A>? a;
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 14, 7),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 14, 8),
     ]);
   }
 
@@ -93,6 +93,110 @@ dynamic<int> v;
     ]);
   }
 
+  test_functionReference_tooFew() async {
+    await assertErrorsInCode('''
+f(void Function<T, U>() foo) {
+  foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 36, 5),
+    ]);
+  }
+
+  test_functionReference_tooMany() async {
+    await assertErrorsInCode('''
+f(void Function<T>() foo) {
+  foo<int, int>;
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 33, 10),
+    ]);
+  }
+
+  test_metadata_1of0() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 28, 5),
+    ]);
+  }
+
+  test_metadata_1of0_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+typedef B = A;
+
+@B<int>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 44, 5),
+    ]);
+  }
+
+  test_metadata_1of2() async {
+    await assertErrorsInCode(r'''
+class A<T, U> {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 5),
+    ]);
+  }
+
+  test_metadata_1of2_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+typedef B<T, U> = A;
+
+@B<int>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 5),
+    ]);
+  }
+
+  test_metadata_2of1() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  const A();
+}
+
+@A<int, String>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 13),
+    ]);
+  }
+
+  test_metadata_2of1_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+typedef B<T> = A;
+
+@B<int, String>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 13),
+    ]);
+  }
+
   test_new_nonGeneric() async {
     await assertErrorsInCode('''
 class C {}
@@ -132,36 +236,36 @@ f() {
   test_type_tooFew() async {
     await assertErrorsInCode(r'''
 class A<K, V> {
-  K element;
+  late K element;
 }
-main(A<int> a) {
+f(A<int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 36, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 38, 6),
     ]);
   }
 
   test_type_tooMany() async {
     await assertErrorsInCode(r'''
 class A<E> {
-  E element;
+  late E element;
 }
-main(A<int,int> a) {
+f(A<int, int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 33, 10),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 35, 11),
     ]);
   }
 
   test_typeParameter() async {
     await assertErrorsInCode(r'''
 class C<T> {
-  T<int> f;
+  late T<int> f;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 15, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 20, 6),
     ]);
   }
 

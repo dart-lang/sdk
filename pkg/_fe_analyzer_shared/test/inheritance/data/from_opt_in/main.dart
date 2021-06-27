@@ -122,8 +122,6 @@ class LegacyClass4c extends Class4a implements GenericInterface<num> {}
 /*cfe|cfe:builder.member: LegacyClass4d.==:bool* Function(dynamic)**/
 class LegacyClass4d implements Class4a, Class4b {}
 
-/*class: LegacyClass5:Class5,GenericInterface<dynamic>,LegacyClass5,Object*/
-/*analyzer.error: CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES*/
 class
 /*cfe|cfe:builder.error: AmbiguousSupertypes*/
     /*cfe|cfe:builder.member: LegacyClass5.toString:String* Function()**/
@@ -136,6 +134,8 @@ class
 /*cfe|cfe:builder.member: LegacyClass5._simpleInstanceOfFalse:bool* Function(dynamic)**/
 /*cfe|cfe:builder.member: LegacyClass5._simpleInstanceOfTrue:bool* Function(dynamic)**/
 /*cfe|cfe:builder.member: LegacyClass5.==:bool* Function(dynamic)**/
+/*class: LegacyClass5:Class5,GenericInterface<dynamic>,LegacyClass5,Object*/
+/*analyzer.error: CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES*/
     LegacyClass5 extends Class5 implements GenericInterface<Object> {}
 
 /*class: LegacyClass6a:

@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class1*
+    ;
+  method toString() → core::String*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class2 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class2*
+    ;
+  method toString() → core::String*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension1 on self::Class1* {
+  method method = self::Extension1|method;
+  tearoff method = self::Extension1|get#method;
+  method genericMethod = self::Extension1|genericMethod;
+  tearoff genericMethod = self::Extension1|get#genericMethod;
+}
+extension Extension2 on self::Class2* {
+  method method = self::Extension2|method;
+  tearoff method = self::Extension2|get#method;
+  method genericMethod = self::Extension2|genericMethod;
+  tearoff genericMethod = self::Extension2|get#genericMethod;
+}
+static method Extension1|method(lowered final self::Class1* #this) → core::int*
+  ;
+static method Extension1|get#method(lowered final self::Class1* #this) → () →* core::int*
+  return () → core::int* => self::Extension1|method(#this);
+static method Extension1|genericMethod<T extends core::num*>(lowered final self::Class1* #this, self::Extension1|genericMethod::T* t) → core::int*
+  ;
+static method Extension1|get#genericMethod(lowered final self::Class1* #this) → <T extends core::num*>(T*) →* core::int*
+  return <T extends core::num*>(T* t) → core::int* => self::Extension1|genericMethod<T*>(#this, t);
+static method Extension2|method(lowered final self::Class2* #this) → core::int*
+  ;
+static method Extension2|get#method(lowered final self::Class2* #this) → () →* core::int*
+  return () → core::int* => self::Extension2|method(#this);
+static method Extension2|genericMethod<T extends core::num*>(lowered final self::Class2* #this, self::Extension2|genericMethod::T* t) → core::int*
+  ;
+static method Extension2|get#genericMethod(lowered final self::Class2* #this) → <T extends core::num*>(T*) →* core::int*
+  return <T extends core::num*>(T* t) → core::int* => self::Extension2|genericMethod<T*>(#this, t);
+static method main() → dynamic
+  ;
+static method testExtension1() → dynamic
+  ;
+static method testExtension2() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

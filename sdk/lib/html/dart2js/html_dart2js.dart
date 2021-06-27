@@ -2185,7 +2185,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  gl.RenderingContext getContext3d(
+  gl.RenderingContext? getContext3d(
       {alpha: true,
       depth: true,
       stencil: false,
@@ -2204,7 +2204,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     if (context == null) {
       context = getContext('experimental-webgl', options);
     }
-    return context as gl.RenderingContext;
+    return context as gl.RenderingContext?;
   }
 
   /**
@@ -16545,7 +16545,7 @@ class FontFaceSet extends EventTarget {
 
   String? get status native;
 
-  FontFaceSet add(FontFace arg) native;
+  FontFaceSet? add(FontFace arg) native;
 
   bool check(String font, [String? text]) native;
 
@@ -16953,6 +16953,8 @@ class Geolocation extends Interceptor {
   @JSName('clearWatch')
   void _clearWatch(int watchID) native;
 
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition(_PositionCallback successCallback,
       [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
@@ -16972,14 +16974,22 @@ class Geolocation extends Interceptor {
   }
 
   @JSName('getCurrentPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition_1(
       successCallback, _PositionErrorCallback? errorCallback, options) native;
   @JSName('getCurrentPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition_2(
       successCallback, _PositionErrorCallback? errorCallback) native;
   @JSName('getCurrentPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition_3(successCallback) native;
 
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition(_PositionCallback successCallback,
       [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
@@ -16996,12 +17006,18 @@ class Geolocation extends Interceptor {
   }
 
   @JSName('watchPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition_1(
       successCallback, _PositionErrorCallback? errorCallback, options) native;
   @JSName('watchPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition_2(successCallback, _PositionErrorCallback? errorCallback)
       native;
   @JSName('watchPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition_3(successCallback) native;
 }
 
@@ -17021,7 +17037,7 @@ class _GeopositionWrapper implements Geoposition {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Native("Position")
+@Native("Position,GeolocationPosition")
 class Geoposition extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() {
@@ -25723,13 +25739,13 @@ class PopStateEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 @Unstable()
-typedef void _PositionCallback(Geoposition position);
+typedef void _PositionCallback(position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 @Unstable()
-@Native("PositionError")
+@Native("PositionError,GeolocationPositionError")
 class PositionError extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() {
@@ -33660,6 +33676,7 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Creates('SqlDatabase')
+  @deprecated
   SqlDatabase openDatabase(
       String name, String version, String displayName, int estimatedSize,
       [DatabaseCallback? creationCallback]) {
@@ -40994,8 +41011,8 @@ class _ThrowsNodeValidator implements NodeValidator {
 class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   NodeValidator validator;
 
-  /// Did we modify the tree by removing anything.
-  bool modifiedTree = false;
+  /// Number of tree modifications this instance has made.
+  int numTreeModifications = 0;
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
@@ -41026,12 +41043,12 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       }
     }
 
-    modifiedTree = false;
-    walk(node, null);
-    while (modifiedTree) {
-      modifiedTree = false;
+    // Walk the tree until no new modifications are added to the tree.
+    var previousTreeModifications;
+    do {
+      previousTreeModifications = numTreeModifications;
       walk(node, null);
-    }
+    } while (previousTreeModifications != numTreeModifications);
   }
 
   /// Aggressively try to remove node.
@@ -41039,7 +41056,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     // If we have the parent, it's presumably already passed more sanitization
     // or is the fragment, so ask it to remove the child. And if that fails
     // try to set the outer html.
-    modifiedTree = true;
+    numTreeModifications++;
     if (parent == null || parent != node.parentNode) {
       node.remove();
     } else {

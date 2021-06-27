@@ -681,8 +681,9 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   bool typeChecksEnabled = false;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
-  int heapAllocatedMemoryUsage = 0;
-  int heapAllocationCount = 0;
+  int mallocUsed = 0;
+  int mallocCapacity = 0;
+  String mallocImplementation = 'unknown';
   int currentMemory;
   int maxRSS;
   int currentRSS;
@@ -1044,8 +1045,9 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
-    heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
-    heapAllocationCount = map['_heapAllocationCount'];
+    mallocUsed = map['_mallocUsed'];
+    mallocCapacity = map['_mallocCapacity'];
+    mallocImplementation = map['_mallocImplementation'];
     embedder = map['_embedder'];
     currentMemory = map['_currentMemory'];
     maxRSS = map['_maxRSS'];
@@ -1505,6 +1507,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return _buildClassHierarchy(classes);
   }
 
+  Future<ServiceObject> getAllocationTraces() {
+    return invokeRpc('getAllocationTraces', {});
+  }
+
   Future<ServiceObject> getPorts() {
     return invokeRpc('_getPorts', {});
   }
@@ -1920,7 +1926,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> eval(ServiceObject target, String expression,
-      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
+      {Map<String, ServiceObject> scope,
+      bool disableBreakpoints: false}) async {
     Map params = {
       'targetId': target.id,
       'expression': expression,
@@ -1933,7 +1940,24 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       });
       params["scope"] = scopeWithIds;
     }
-    return invokeRpc('evaluate', params);
+    try {
+      return await invokeRpc('evaluate', params);
+    } on ServerRpcException catch (error) {
+      if (error.code == ServerRpcException.kExpressionCompilationError) {
+        final String details =
+            error.data != null ? error.data["details"]?.toString() ?? "" : "";
+        Map map = {
+          'type': 'Error',
+          'message': details,
+          'kind': 'LanguageError',
+          'exception': null,
+          'stacktrace': null,
+        };
+        return ServiceObject._fromMap(null, map);
+      } else {
+        rethrow;
+      }
+    }
   }
 
   Future<ServiceObject> evalFrame(int frameIndex, String expression,
@@ -1956,9 +1980,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       return await invokeRpc('evaluateInFrame', params);
     } on ServerRpcException catch (error) {
       if (error.code == ServerRpcException.kExpressionCompilationError) {
+        String details;
+        if (error.data != null) details = error.data["details"]?.toString();
+        details ??= "??";
         Map map = {
           'type': 'Error',
-          'message': error.data.toString(),
+          'message': details,
           'kind': 'LanguageError',
           'exception': null,
           'stacktrace': null,
@@ -2393,6 +2420,9 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
   // Either SourceLocation or UnresolvedSourceLocation.
   Location location;
 
+  // Is the breakpoint enabled?
+  bool enabled;
+
   // The breakpoint is in a file which is not yet loaded.
   bool latent;
 
@@ -2411,6 +2441,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
     // number never changes.
     assert((number == null) || (number == newNumber));
     number = newNumber;
+    enabled = map['enabled'];
     resolved = map['resolved'];
 
     var oldLocation = location;
@@ -2432,6 +2463,15 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
     isSyntheticAsyncContinuation = map['isSyntheticAsyncContinuation'] != null;
 
     assert(resolved || location is UnresolvedSourceLocation);
+  }
+
+  Future<void> setState(bool enable) {
+    return location.script.isolate.invokeRpcNoUpgrade('setBreakpointState', {
+      'breakpointId': 'breakpoints/$number',
+      'enable': enable,
+    }).then((Map result) {
+      _update(result, false);
+    });
   }
 
   void remove() {
@@ -2658,7 +2698,7 @@ class Class extends HeapObject implements M.Class {
     error = map['error'];
 
     traceAllocations =
-        (map['_traceAllocations'] != null) ? map['_traceAllocations'] : false;
+        (map['traceAllocations'] != null) ? map['traceAllocations'] : false;
   }
 
   void _addSubclass(Class subclass) {
@@ -2676,17 +2716,17 @@ class Class extends HeapObject implements M.Class {
   }
 
   Future<ServiceObject> setTraceAllocations(bool enable) {
-    return isolate.invokeRpc('_setTraceClassAllocation', {
+    return isolate.invokeRpc('setTraceClassAllocation', {
       'enable': enable,
       'classId': id,
     });
   }
 
-  Future<ServiceObject> getAllocationSamples() {
+  Future<ServiceObject> getAllocationTraces() {
     var params = {
       'classId': id,
     };
-    return isolate.invokeRpc('_getAllocationSamples', params);
+    return isolate.invokeRpc('getAllocationTraces', params);
   }
 
   String toString() => 'Class($vmName)';
@@ -2756,6 +2796,8 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.weakProperty;
     case 'Type':
       return M.InstanceKind.type;
+    case 'FunctionType':
+      return M.InstanceKind.functionType;
     case 'TypeParameter':
       return M.InstanceKind.typeParameter;
     case 'TypeRef':
@@ -3131,8 +3173,6 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.stub;
     case 'Tag':
       return M.FunctionKind.tag;
-    case 'SignatureFunction':
-      return M.FunctionKind.signatureFunction;
     case 'DynamicInvocationForwarder':
       return M.FunctionKind.dynamicInvocationForwarder;
   }
@@ -4725,7 +4765,7 @@ void _upgradeCollection(collection, ServiceObjectOwner owner) {
 
 void _upgradeMap(Map map, ServiceObjectOwner owner) {
   map.forEach((k, v) {
-    if ((v is Map) && _isServiceMap(v)) {
+    if ((v is Map) && owner != null && _isServiceMap(v)) {
       map[k] = owner.getFromMap(v);
     } else if (v is List) {
       _upgradeList(v, owner);

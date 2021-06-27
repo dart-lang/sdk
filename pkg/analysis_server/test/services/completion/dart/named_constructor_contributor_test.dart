@@ -22,12 +22,10 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
       String name, String returnType,
       [CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     var cs = assertSuggest(name, csKind: kind);
-    var element = cs.element;
-    expect(element, isNotNull);
+    var element = cs.element!;
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
     expect(element.name, equals(name));
-    var param = element.parameters;
-    expect(param, isNotNull);
+    var param = element.parameters!;
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
     expect(element.returnType, equals(returnType));

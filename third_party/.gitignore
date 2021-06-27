@@ -7,7 +7,6 @@
 !pkg_tested
 !/tcmalloc
 !d8
-!7zip.tar.gz.sha1
 !firefox_jsshell
 !clang.tar.gz.sha1
 !unittest.tar.gz.sha1

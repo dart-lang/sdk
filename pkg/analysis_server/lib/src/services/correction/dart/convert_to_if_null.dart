@@ -12,11 +12,20 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToIfNull extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_IF_NULL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_IF_NULL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is ConditionalExpression &&
         node.offset == errorOffset &&
         node.length == errorLength) {

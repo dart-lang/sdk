@@ -7,11 +7,7 @@
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: deprecated_member_use
-// ignore_for_file: deprecated_member_use_from_same_package
-// ignore_for_file: unnecessary_brace_in_string_interps
-// ignore_for_file: unused_import
-// ignore_for_file: unused_shown_name
+// ignore_for_file: unnecessary_parenthesis
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
@@ -19,10 +15,8 @@ import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart'
-    show listEqual, mapEqual;
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:meta/meta.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -33,22 +27,10 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
       LspJsonHandler(AnnotatedTextEdit.canParse, AnnotatedTextEdit.fromJson);
 
   AnnotatedTextEdit(
-      {@required this.annotationId,
-      @required this.range,
-      @required this.newText}) {
-    if (annotationId == null) {
-      throw 'annotationId is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (newText == null) {
-      throw 'newText is required but was not provided';
-    }
-  }
+      {required this.annotationId, required this.range, required this.newText});
   static AnnotatedTextEdit fromJson(Map<String, dynamic> json) {
     final annotationId = json['annotationId'];
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     final newText = json['newText'];
     return AnnotatedTextEdit(
         annotationId: annotationId, range: range, newText: newText);
@@ -66,16 +48,13 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['annotationId'] =
-        annotationId ?? (throw 'annotationId is required but was not set');
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['newText'] =
-        newText ?? (throw 'newText is required but was not set');
+    __result['annotationId'] = annotationId;
+    __result['range'] = range.toJson();
+    __result['newText'] = newText;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('annotationId');
       try {
@@ -163,15 +142,10 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ApplyWorkspaceEditParams.canParse, ApplyWorkspaceEditParams.fromJson);
 
-  ApplyWorkspaceEditParams({this.label, @required this.edit}) {
-    if (edit == null) {
-      throw 'edit is required but was not provided';
-    }
-  }
+  ApplyWorkspaceEditParams({this.label, required this.edit});
   static ApplyWorkspaceEditParams fromJson(Map<String, dynamic> json) {
     final label = json['label'];
-    final edit =
-        json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
+    final edit = WorkspaceEdit.fromJson(json['edit']);
     return ApplyWorkspaceEditParams(label: label, edit: edit);
   }
 
@@ -180,19 +154,18 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 
   /// An optional label of the workspace edit. This label is presented in the
   /// user interface for example on an undo stack to undo the workspace edit.
-  final String label;
+  final String? label;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (label != null) {
       __result['label'] = label;
     }
-    __result['edit'] =
-        edit?.toJson() ?? (throw 'edit is required but was not set');
+    __result['edit'] = edit.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -253,11 +226,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       ApplyWorkspaceEditResponse.canParse, ApplyWorkspaceEditResponse.fromJson);
 
   ApplyWorkspaceEditResponse(
-      {@required this.applied, this.failureReason, this.failedChange}) {
-    if (applied == null) {
-      throw 'applied is required but was not provided';
-    }
-  }
+      {required this.applied, this.failureReason, this.failedChange});
   static ApplyWorkspaceEditResponse fromJson(Map<String, dynamic> json) {
     final applied = json['applied'];
     final failureReason = json['failureReason'];
@@ -275,17 +244,16 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   /// contain the index of the change that failed. This property is only
   /// available if the client signals a `failureHandlingStrategy` in its client
   /// capabilities.
-  final num failedChange;
+  final int? failedChange;
 
   /// An optional textual description for why the edit was not applied. This may
   /// be used by the server for diagnostic logging or to provide a suitable
   /// error for a request that triggered the edit.
-  final String failureReason;
+  final String? failureReason;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['applied'] =
-        applied ?? (throw 'applied is required but was not set');
+    __result['applied'] = applied;
     if (failureReason != null) {
       __result['failureReason'] = failureReason;
     }
@@ -295,7 +263,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('applied');
       try {
@@ -325,8 +293,8 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       }
       reporter.push('failedChange');
       try {
-        if (obj['failedChange'] != null && !(obj['failedChange'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['failedChange'] != null && !(obj['failedChange'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -380,7 +348,7 @@ class CallHierarchyClientCapabilities implements ToJsonable {
   /// `true` the client supports the new `(TextDocumentRegistrationOptions &
   /// StaticRegistrationOptions)` return value for the corresponding server
   /// capability as well.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -390,7 +358,7 @@ class CallHierarchyClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -433,19 +401,11 @@ class CallHierarchyIncomingCall implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       CallHierarchyIncomingCall.canParse, CallHierarchyIncomingCall.fromJson);
 
-  CallHierarchyIncomingCall({@required this.from, @required this.fromRanges}) {
-    if (from == null) {
-      throw 'from is required but was not provided';
-    }
-    if (fromRanges == null) {
-      throw 'fromRanges is required but was not provided';
-    }
-  }
+  CallHierarchyIncomingCall({required this.from, required this.fromRanges});
   static CallHierarchyIncomingCall fromJson(Map<String, dynamic> json) {
-    final from =
-        json['from'] != null ? CallHierarchyItem.fromJson(json['from']) : null;
+    final from = CallHierarchyItem.fromJson(json['from']);
     final fromRanges = json['fromRanges']
-        ?.map((item) => item != null ? Range.fromJson(item) : null)
+        ?.map((item) => Range.fromJson(item))
         ?.cast<Range>()
         ?.toList();
     return CallHierarchyIncomingCall(from: from, fromRanges: fromRanges);
@@ -460,14 +420,12 @@ class CallHierarchyIncomingCall implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['from'] =
-        from?.toJson() ?? (throw 'from is required but was not set');
-    __result['fromRanges'] =
-        fromRanges ?? (throw 'fromRanges is required but was not set');
+    __result['from'] = from.toJson();
+    __result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('from');
       try {
@@ -543,28 +501,23 @@ class CallHierarchyIncomingCallsParams
       CallHierarchyIncomingCallsParams.fromJson);
 
   CallHierarchyIncomingCallsParams(
-      {@required this.item, this.workDoneToken, this.partialResultToken}) {
-    if (item == null) {
-      throw 'item is required but was not provided';
-    }
-  }
+      {required this.item, this.workDoneToken, this.partialResultToken});
   static CallHierarchyIncomingCallsParams fromJson(Map<String, dynamic> json) {
-    final item =
-        json['item'] != null ? CallHierarchyItem.fromJson(json['item']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final item = CallHierarchyItem.fromJson(json['item']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CallHierarchyIncomingCallsParams(
         item: item,
         workDoneToken: workDoneToken,
@@ -575,15 +528,14 @@ class CallHierarchyIncomingCallsParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['item'] =
-        item?.toJson() ?? (throw 'item is required but was not set');
+    __result['item'] = item.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -593,7 +545,7 @@ class CallHierarchyIncomingCallsParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('item');
       try {
@@ -615,9 +567,9 @@ class CallHierarchyIncomingCallsParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -626,9 +578,9 @@ class CallHierarchyIncomingCallsParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -671,44 +623,25 @@ class CallHierarchyItem implements ToJsonable {
       LspJsonHandler(CallHierarchyItem.canParse, CallHierarchyItem.fromJson);
 
   CallHierarchyItem(
-      {@required this.name,
-      @required this.kind,
+      {required this.name,
+      required this.kind,
       this.tags,
       this.detail,
-      @required this.uri,
-      @required this.range,
-      @required this.selectionRange,
-      this.data}) {
-    if (name == null) {
-      throw 'name is required but was not provided';
-    }
-    if (kind == null) {
-      throw 'kind is required but was not provided';
-    }
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (selectionRange == null) {
-      throw 'selectionRange is required but was not provided';
-    }
-  }
+      required this.uri,
+      required this.range,
+      required this.selectionRange,
+      this.data});
   static CallHierarchyItem fromJson(Map<String, dynamic> json) {
     final name = json['name'];
-    final kind =
-        json['kind'] != null ? SymbolKind.fromJson(json['kind']) : null;
+    final kind = SymbolKind.fromJson(json['kind']);
     final tags = json['tags']
         ?.map((item) => item != null ? SymbolTag.fromJson(item) : null)
         ?.cast<SymbolTag>()
         ?.toList();
     final detail = json['detail'];
     final uri = json['uri'];
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final selectionRange = json['selectionRange'] != null
-        ? Range.fromJson(json['selectionRange'])
-        : null;
+    final range = Range.fromJson(json['range']);
+    final selectionRange = Range.fromJson(json['selectionRange']);
     final data = json['data'];
     return CallHierarchyItem(
         name: name,
@@ -726,7 +659,7 @@ class CallHierarchyItem implements ToJsonable {
   final dynamic data;
 
   /// More detail for this item, e.g. the signature of a function.
-  final String detail;
+  final String? detail;
 
   /// The kind of this item.
   final SymbolKind kind;
@@ -744,34 +677,31 @@ class CallHierarchyItem implements ToJsonable {
   final Range selectionRange;
 
   /// Tags for this item.
-  final List<SymbolTag> tags;
+  final List<SymbolTag>? tags;
 
   /// The resource identifier of this item.
   final String uri;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['name'] = name ?? (throw 'name is required but was not set');
-    __result['kind'] =
-        kind?.toJson() ?? (throw 'kind is required but was not set');
+    __result['name'] = name;
+    __result['kind'] = kind.toJson();
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
     if (detail != null) {
       __result['detail'] = detail;
     }
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['selectionRange'] = selectionRange?.toJson() ??
-        (throw 'selectionRange is required but was not set');
+    __result['uri'] = uri;
+    __result['range'] = range.toJson();
+    __result['selectionRange'] = selectionRange.toJson();
     if (data != null) {
       __result['data'] = data;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -879,15 +809,6 @@ class CallHierarchyItem implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('data');
-      try {
-        if (obj['data'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       return true;
     } else {
       reporter.reportError('must be of type CallHierarchyItem');
@@ -942,7 +863,7 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
     return CallHierarchyOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -952,7 +873,7 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -995,19 +916,11 @@ class CallHierarchyOutgoingCall implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       CallHierarchyOutgoingCall.canParse, CallHierarchyOutgoingCall.fromJson);
 
-  CallHierarchyOutgoingCall({@required this.to, @required this.fromRanges}) {
-    if (to == null) {
-      throw 'to is required but was not provided';
-    }
-    if (fromRanges == null) {
-      throw 'fromRanges is required but was not provided';
-    }
-  }
+  CallHierarchyOutgoingCall({required this.to, required this.fromRanges});
   static CallHierarchyOutgoingCall fromJson(Map<String, dynamic> json) {
-    final to =
-        json['to'] != null ? CallHierarchyItem.fromJson(json['to']) : null;
+    final to = CallHierarchyItem.fromJson(json['to']);
     final fromRanges = json['fromRanges']
-        ?.map((item) => item != null ? Range.fromJson(item) : null)
+        ?.map((item) => Range.fromJson(item))
         ?.cast<Range>()
         ?.toList();
     return CallHierarchyOutgoingCall(to: to, fromRanges: fromRanges);
@@ -1022,13 +935,12 @@ class CallHierarchyOutgoingCall implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['to'] = to?.toJson() ?? (throw 'to is required but was not set');
-    __result['fromRanges'] =
-        fromRanges ?? (throw 'fromRanges is required but was not set');
+    __result['to'] = to.toJson();
+    __result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('to');
       try {
@@ -1104,28 +1016,23 @@ class CallHierarchyOutgoingCallsParams
       CallHierarchyOutgoingCallsParams.fromJson);
 
   CallHierarchyOutgoingCallsParams(
-      {@required this.item, this.workDoneToken, this.partialResultToken}) {
-    if (item == null) {
-      throw 'item is required but was not provided';
-    }
-  }
+      {required this.item, this.workDoneToken, this.partialResultToken});
   static CallHierarchyOutgoingCallsParams fromJson(Map<String, dynamic> json) {
-    final item =
-        json['item'] != null ? CallHierarchyItem.fromJson(json['item']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final item = CallHierarchyItem.fromJson(json['item']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CallHierarchyOutgoingCallsParams(
         item: item,
         workDoneToken: workDoneToken,
@@ -1136,15 +1043,14 @@ class CallHierarchyOutgoingCallsParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['item'] =
-        item?.toJson() ?? (throw 'item is required but was not set');
+    __result['item'] = item.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -1154,7 +1060,7 @@ class CallHierarchyOutgoingCallsParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('item');
       try {
@@ -1176,9 +1082,9 @@ class CallHierarchyOutgoingCallsParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -1187,9 +1093,9 @@ class CallHierarchyOutgoingCallsParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -1233,29 +1139,17 @@ class CallHierarchyPrepareParams
       CallHierarchyPrepareParams.canParse, CallHierarchyPrepareParams.fromJson);
 
   CallHierarchyPrepareParams(
-      {@required this.textDocument,
-      @required this.position,
-      this.workDoneToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      {required this.textDocument, required this.position, this.workDoneToken});
   static CallHierarchyPrepareParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return CallHierarchyPrepareParams(
         textDocument: textDocument,
         position: position,
@@ -1269,21 +1163,19 @@ class CallHierarchyPrepareParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -1322,9 +1214,9 @@ class CallHierarchyPrepareParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -1389,12 +1281,12 @@ class CallHierarchyRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
-  final bool workDoneProgress;
+  final String? id;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -1408,7 +1300,7 @@ class CallHierarchyRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -1482,30 +1374,26 @@ class CancelParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
 
-  CancelParams({@required this.id}) {
-    if (id == null) {
-      throw 'id is required but was not provided';
-    }
-  }
+  CancelParams({required this.id});
   static CancelParams fromJson(Map<String, dynamic> json) {
-    final id = json['id'] is num
-        ? Either2<num, String>.t1(json['id'])
+    final id = json['id'] is int
+        ? Either2<int, String>.t1(json['id'])
         : (json['id'] is String
-            ? Either2<num, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (num, String)'''));
+            ? Either2<int, String>.t2(json['id'])
+            : (throw '''${json['id']} was not one of (int, String)'''));
     return CancelParams(id: id);
   }
 
   /// The request id to cancel.
-  final Either2<num, String> id;
+  final Either2<int, String> id;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['id'] = id ?? (throw 'id is required but was not set');
+    __result['id'] = id;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -1517,8 +1405,8 @@ class CancelParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (!((obj['id'] is int || obj['id'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -1557,11 +1445,7 @@ class ChangeAnnotation implements ToJsonable {
       LspJsonHandler(ChangeAnnotation.canParse, ChangeAnnotation.fromJson);
 
   ChangeAnnotation(
-      {@required this.label, this.needsConfirmation, this.description}) {
-    if (label == null) {
-      throw 'label is required but was not provided';
-    }
-  }
+      {required this.label, this.needsConfirmation, this.description});
   static ChangeAnnotation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final needsConfirmation = json['needsConfirmation'];
@@ -1574,7 +1458,7 @@ class ChangeAnnotation implements ToJsonable {
 
   /// A human-readable string which is rendered less prominent in the user
   /// interface.
-  final String description;
+  final String? description;
 
   /// A human-readable string describing the actual change. The string is
   /// rendered prominent in the user interface.
@@ -1582,11 +1466,11 @@ class ChangeAnnotation implements ToJsonable {
 
   /// A flag which indicates that user confirmation is needed before applying
   /// the change.
-  final bool needsConfirmation;
+  final bool? needsConfirmation;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['label'] = label ?? (throw 'label is required but was not set');
+    __result['label'] = label;
     if (needsConfirmation != null) {
       __result['needsConfirmation'] = needsConfirmation;
     }
@@ -1596,7 +1480,7 @@ class ChangeAnnotation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -1702,30 +1586,30 @@ class ClientCapabilities implements ToJsonable {
 
   /// General client capabilities.
   ///  @since 3.16.0
-  final ClientCapabilitiesGeneral general;
+  final ClientCapabilitiesGeneral? general;
 
   /// Text document specific client capabilities.
-  final TextDocumentClientCapabilities textDocument;
+  final TextDocumentClientCapabilities? textDocument;
 
   /// Window specific client capabilities.
-  final ClientCapabilitiesWindow window;
+  final ClientCapabilitiesWindow? window;
 
   /// Workspace specific client capabilities.
-  final ClientCapabilitiesWorkspace workspace;
+  final ClientCapabilitiesWorkspace? workspace;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (workspace != null) {
-      __result['workspace'] = workspace.toJson();
+      __result['workspace'] = workspace?.toJson();
     }
     if (textDocument != null) {
-      __result['textDocument'] = textDocument.toJson();
+      __result['textDocument'] = textDocument?.toJson();
     }
     if (window != null) {
-      __result['window'] = window.toJson();
+      __result['window'] = window?.toJson();
     }
     if (general != null) {
-      __result['general'] = general.toJson();
+      __result['general'] = general?.toJson();
     }
     if (experimental != null) {
       __result['experimental'] = experimental;
@@ -1733,7 +1617,7 @@ class ClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workspace');
       try {
@@ -1773,15 +1657,6 @@ class ClientCapabilities implements ToJsonable {
         if (obj['general'] != null &&
             !(ClientCapabilitiesGeneral.canParse(obj['general'], reporter))) {
           reporter.reportError('must be of type ClientCapabilitiesGeneral');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('experimental');
-      try {
-        if (obj['experimental'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -1855,26 +1730,26 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
   }
 
   /// The client has support for sending didCreateFiles notifications.
-  final bool didCreate;
+  final bool? didCreate;
 
   /// The client has support for sending didDeleteFiles notifications.
-  final bool didDelete;
+  final bool? didDelete;
 
   /// The client has support for sending didRenameFiles notifications.
-  final bool didRename;
+  final bool? didRename;
 
   /// Whether the client supports dynamic registration for file
   /// requests/notifications.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// The client has support for sending willCreateFiles requests.
-  final bool willCreate;
+  final bool? willCreate;
 
   /// The client has support for sending willDeleteFiles requests.
-  final bool willDelete;
+  final bool? willDelete;
 
   /// The client has support for sending willRenameFiles requests.
-  final bool willRename;
+  final bool? willRename;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -1902,7 +1777,7 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -2027,24 +1902,24 @@ class ClientCapabilitiesGeneral implements ToJsonable {
 
   /// Client capabilities specific to the client's markdown parser.
   ///  @since 3.16.0
-  final MarkdownClientCapabilities markdown;
+  final MarkdownClientCapabilities? markdown;
 
   /// Client capabilities specific to regular expressions.
   ///  @since 3.16.0
-  final RegularExpressionsClientCapabilities regularExpressions;
+  final RegularExpressionsClientCapabilities? regularExpressions;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (regularExpressions != null) {
-      __result['regularExpressions'] = regularExpressions.toJson();
+      __result['regularExpressions'] = regularExpressions?.toJson();
     }
     if (markdown != null) {
-      __result['markdown'] = markdown.toJson();
+      __result['markdown'] = markdown?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('regularExpressions');
       try {
@@ -2120,17 +1995,17 @@ class ClientCapabilitiesWindow implements ToJsonable {
 
   /// Client capabilities for the show document request.
   ///  @since 3.16.0
-  final ShowDocumentClientCapabilities showDocument;
+  final ShowDocumentClientCapabilities? showDocument;
 
   /// Capabilities specific to the showMessage request
   ///  @since 3.16.0
-  final ShowMessageRequestClientCapabilities showMessage;
+  final ShowMessageRequestClientCapabilities? showMessage;
 
   /// Whether client supports handling progress notifications. If set servers
   /// are allowed to report in `workDoneProgress` property in the request
   /// specific server capabilities.
   ///  @since 3.15.0
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -2138,15 +2013,15 @@ class ClientCapabilitiesWindow implements ToJsonable {
       __result['workDoneProgress'] = workDoneProgress;
     }
     if (showMessage != null) {
-      __result['showMessage'] = showMessage.toJson();
+      __result['showMessage'] = showMessage?.toJson();
     }
     if (showDocument != null) {
-      __result['showDocument'] = showDocument.toJson();
+      __result['showDocument'] = showDocument?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -2278,45 +2153,45 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
 
   /// The client supports applying batch edits to the workspace by supporting
   /// the request 'workspace/applyEdit'
-  final bool applyEdit;
+  final bool? applyEdit;
 
   /// Capabilities specific to the code lens requests scoped to the workspace.
   ///  @since 3.16.0
-  final CodeLensWorkspaceClientCapabilities codeLens;
+  final CodeLensWorkspaceClientCapabilities? codeLens;
 
   /// The client supports `workspace/configuration` requests.
   ///  @since 3.6.0
-  final bool configuration;
+  final bool? configuration;
 
   /// Capabilities specific to the `workspace/didChangeConfiguration`
   /// notification.
-  final DidChangeConfigurationClientCapabilities didChangeConfiguration;
+  final DidChangeConfigurationClientCapabilities? didChangeConfiguration;
 
   /// Capabilities specific to the `workspace/didChangeWatchedFiles`
   /// notification.
-  final DidChangeWatchedFilesClientCapabilities didChangeWatchedFiles;
+  final DidChangeWatchedFilesClientCapabilities? didChangeWatchedFiles;
 
   /// Capabilities specific to the `workspace/executeCommand` request.
-  final ExecuteCommandClientCapabilities executeCommand;
+  final ExecuteCommandClientCapabilities? executeCommand;
 
   /// The client has support for file requests/notifications.
   ///  @since 3.16.0
-  final ClientCapabilitiesFileOperations fileOperations;
+  final ClientCapabilitiesFileOperations? fileOperations;
 
   /// Capabilities specific to the semantic token requests scoped to the
   /// workspace.
   ///  @since 3.16.0
-  final SemanticTokensWorkspaceClientCapabilities semanticTokens;
+  final SemanticTokensWorkspaceClientCapabilities? semanticTokens;
 
   /// Capabilities specific to the `workspace/symbol` request.
-  final WorkspaceSymbolClientCapabilities symbol;
+  final WorkspaceSymbolClientCapabilities? symbol;
 
   /// Capabilities specific to `WorkspaceEdit`s
-  final WorkspaceEditClientCapabilities workspaceEdit;
+  final WorkspaceEditClientCapabilities? workspaceEdit;
 
   /// The client has support for workspace folders.
   ///  @since 3.6.0
-  final bool workspaceFolders;
+  final bool? workspaceFolders;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -2324,19 +2199,19 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       __result['applyEdit'] = applyEdit;
     }
     if (workspaceEdit != null) {
-      __result['workspaceEdit'] = workspaceEdit.toJson();
+      __result['workspaceEdit'] = workspaceEdit?.toJson();
     }
     if (didChangeConfiguration != null) {
-      __result['didChangeConfiguration'] = didChangeConfiguration.toJson();
+      __result['didChangeConfiguration'] = didChangeConfiguration?.toJson();
     }
     if (didChangeWatchedFiles != null) {
-      __result['didChangeWatchedFiles'] = didChangeWatchedFiles.toJson();
+      __result['didChangeWatchedFiles'] = didChangeWatchedFiles?.toJson();
     }
     if (symbol != null) {
-      __result['symbol'] = symbol.toJson();
+      __result['symbol'] = symbol?.toJson();
     }
     if (executeCommand != null) {
-      __result['executeCommand'] = executeCommand.toJson();
+      __result['executeCommand'] = executeCommand?.toJson();
     }
     if (workspaceFolders != null) {
       __result['workspaceFolders'] = workspaceFolders;
@@ -2345,18 +2220,18 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       __result['configuration'] = configuration;
     }
     if (semanticTokens != null) {
-      __result['semanticTokens'] = semanticTokens.toJson();
+      __result['semanticTokens'] = semanticTokens?.toJson();
     }
     if (codeLens != null) {
-      __result['codeLens'] = codeLens.toJson();
+      __result['codeLens'] = codeLens?.toJson();
     }
     if (fileOperations != null) {
-      __result['fileOperations'] = fileOperations.toJson();
+      __result['fileOperations'] = fileOperations?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('applyEdit');
       try {
@@ -2540,18 +2415,14 @@ class CodeAction implements ToJsonable {
       LspJsonHandler(CodeAction.canParse, CodeAction.fromJson);
 
   CodeAction(
-      {@required this.title,
+      {required this.title,
       this.kind,
       this.diagnostics,
       this.isPreferred,
       this.disabled,
       this.edit,
       this.command,
-      this.data}) {
-    if (title == null) {
-      throw 'title is required but was not provided';
-    }
-  }
+      this.data});
   static CodeAction fromJson(Map<String, dynamic> json) {
     final title = json['title'];
     final kind =
@@ -2582,7 +2453,7 @@ class CodeAction implements ToJsonable {
 
   /// A command this code action executes. If a code action provides an edit and
   /// a command, first the edit is executed and then the command.
-  final Command command;
+  final Command? command;
 
   /// A data entry field that is preserved on a code action between a
   /// `textDocument/codeAction` and a `codeAction/resolve` request.
@@ -2590,7 +2461,7 @@ class CodeAction implements ToJsonable {
   final dynamic data;
 
   /// The diagnostics that this code action resolves.
-  final List<Diagnostic> diagnostics;
+  final List<Diagnostic>? diagnostics;
 
   /// Marks that the code action cannot currently be applied.
   ///
@@ -2608,10 +2479,10 @@ class CodeAction implements ToJsonable {
   ///   a disabled code actions are returned, the client should show the user
   ///   an error message with `reason` in the editor.
   ///  @since 3.16.0
-  final CodeActionDisabled disabled;
+  final CodeActionDisabled? disabled;
 
   /// The workspace edit this code action performs.
-  final WorkspaceEdit edit;
+  final WorkspaceEdit? edit;
 
   /// Marks this as a preferred action. Preferred actions are used by the `auto
   /// fix` command and can be targeted by keybindings.
@@ -2620,36 +2491,37 @@ class CodeAction implements ToJsonable {
   /// underlying error. A refactoring should be marked preferred if it is the
   /// most reasonable choice of actions to take.
   ///  @since 3.15.0
-  final bool isPreferred;
+  final bool? isPreferred;
 
   /// The kind of the code action.
   ///
   /// Used to filter code actions.
-  final CodeActionKind kind;
+  final CodeActionKind? kind;
 
   /// A short, human-readable, title for this code action.
   final String title;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['title'] = title ?? (throw 'title is required but was not set');
+    __result['title'] = title;
     if (kind != null) {
-      __result['kind'] = kind.toJson();
+      __result['kind'] = kind?.toJson();
     }
     if (diagnostics != null) {
-      __result['diagnostics'] = diagnostics;
+      __result['diagnostics'] =
+          diagnostics?.map((item) => item.toJson()).toList();
     }
     if (isPreferred != null) {
       __result['isPreferred'] = isPreferred;
     }
     if (disabled != null) {
-      __result['disabled'] = disabled.toJson();
+      __result['disabled'] = disabled?.toJson();
     }
     if (edit != null) {
-      __result['edit'] = edit.toJson();
+      __result['edit'] = edit?.toJson();
     }
     if (command != null) {
-      __result['command'] = command.toJson();
+      __result['command'] = command?.toJson();
     }
     if (data != null) {
       __result['data'] = data;
@@ -2657,7 +2529,7 @@ class CodeAction implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('title');
       try {
@@ -2732,15 +2604,6 @@ class CodeAction implements ToJsonable {
         if (obj['command'] != null &&
             !(Command.canParse(obj['command'], reporter))) {
           reporter.reportError('must be of type Command');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('data');
-      try {
-        if (obj['data'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -2828,36 +2691,36 @@ class CodeActionClientCapabilities implements ToJsonable {
   /// The client supports code action literals as a valid response of the
   /// `textDocument/codeAction` request.
   ///  @since 3.8.0
-  final CodeActionClientCapabilitiesCodeActionLiteralSupport
+  final CodeActionClientCapabilitiesCodeActionLiteralSupport?
       codeActionLiteralSupport;
 
   /// Whether code action supports the `data` property which is preserved
   /// between a `textDocument/codeAction` and a `codeAction/resolve` request.
   ///  @since 3.16.0
-  final bool dataSupport;
+  final bool? dataSupport;
 
   /// Whether code action supports the `disabled` property.
   ///  @since 3.16.0
-  final bool disabledSupport;
+  final bool? disabledSupport;
 
   /// Whether code action supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// Whether th client honors the change annotations in text edits and resource
   /// operations returned via the `CodeAction#edit` property by for example
   /// presenting the workspace edit in the user interface and asking for
   /// confirmation.
   ///  @since 3.16.0
-  final bool honorsChangeAnnotations;
+  final bool? honorsChangeAnnotations;
 
   /// Whether code action supports the `isPreferred` property.
   ///  @since 3.15.0
-  final bool isPreferredSupport;
+  final bool? isPreferredSupport;
 
   /// Whether the client supports resolving additional code action properties
   /// via a separate `codeAction/resolve` request.
   ///  @since 3.16.0
-  final CodeActionClientCapabilitiesResolveSupport resolveSupport;
+  final CodeActionClientCapabilitiesResolveSupport? resolveSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -2865,7 +2728,7 @@ class CodeActionClientCapabilities implements ToJsonable {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
     if (codeActionLiteralSupport != null) {
-      __result['codeActionLiteralSupport'] = codeActionLiteralSupport.toJson();
+      __result['codeActionLiteralSupport'] = codeActionLiteralSupport?.toJson();
     }
     if (isPreferredSupport != null) {
       __result['isPreferredSupport'] = isPreferredSupport;
@@ -2877,7 +2740,7 @@ class CodeActionClientCapabilities implements ToJsonable {
       __result['dataSupport'] = dataSupport;
     }
     if (resolveSupport != null) {
-      __result['resolveSupport'] = resolveSupport.toJson();
+      __result['resolveSupport'] = resolveSupport?.toJson();
     }
     if (honorsChangeAnnotations != null) {
       __result['honorsChangeAnnotations'] = honorsChangeAnnotations;
@@ -2885,7 +2748,7 @@ class CodeActionClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -3005,15 +2868,11 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
       CodeActionClientCapabilitiesCodeActionKind.canParse,
       CodeActionClientCapabilitiesCodeActionKind.fromJson);
 
-  CodeActionClientCapabilitiesCodeActionKind({@required this.valueSet}) {
-    if (valueSet == null) {
-      throw 'valueSet is required but was not provided';
-    }
-  }
+  CodeActionClientCapabilitiesCodeActionKind({required this.valueSet});
   static CodeActionClientCapabilitiesCodeActionKind fromJson(
       Map<String, dynamic> json) {
     final valueSet = json['valueSet']
-        ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
+        ?.map((item) => CodeActionKind.fromJson(item))
         ?.cast<CodeActionKind>()
         ?.toList();
     return CodeActionClientCapabilitiesCodeActionKind(valueSet: valueSet);
@@ -3026,12 +2885,11 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -3089,17 +2947,11 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
       CodeActionClientCapabilitiesCodeActionLiteralSupport.fromJson);
 
   CodeActionClientCapabilitiesCodeActionLiteralSupport(
-      {@required this.codeActionKind}) {
-    if (codeActionKind == null) {
-      throw 'codeActionKind is required but was not provided';
-    }
-  }
+      {required this.codeActionKind});
   static CodeActionClientCapabilitiesCodeActionLiteralSupport fromJson(
       Map<String, dynamic> json) {
-    final codeActionKind = json['codeActionKind'] != null
-        ? CodeActionClientCapabilitiesCodeActionKind.fromJson(
-            json['codeActionKind'])
-        : null;
+    final codeActionKind = CodeActionClientCapabilitiesCodeActionKind.fromJson(
+        json['codeActionKind']);
     return CodeActionClientCapabilitiesCodeActionLiteralSupport(
         codeActionKind: codeActionKind);
   }
@@ -3109,12 +2961,11 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['codeActionKind'] = codeActionKind?.toJson() ??
-        (throw 'codeActionKind is required but was not set');
+    __result['codeActionKind'] = codeActionKind.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('codeActionKind');
       try {
@@ -3169,11 +3020,7 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
       CodeActionClientCapabilitiesResolveSupport.canParse,
       CodeActionClientCapabilitiesResolveSupport.fromJson);
 
-  CodeActionClientCapabilitiesResolveSupport({@required this.properties}) {
-    if (properties == null) {
-      throw 'properties is required but was not provided';
-    }
-  }
+  CodeActionClientCapabilitiesResolveSupport({required this.properties});
   static CodeActionClientCapabilitiesResolveSupport fromJson(
       Map<String, dynamic> json) {
     final properties =
@@ -3186,12 +3033,11 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['properties'] =
-        properties ?? (throw 'properties is required but was not set');
+    __result['properties'] = properties;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('properties');
       try {
@@ -3247,14 +3093,10 @@ class CodeActionContext implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeActionContext.canParse, CodeActionContext.fromJson);
 
-  CodeActionContext({@required this.diagnostics, this.only}) {
-    if (diagnostics == null) {
-      throw 'diagnostics is required but was not provided';
-    }
-  }
+  CodeActionContext({required this.diagnostics, this.only});
   static CodeActionContext fromJson(Map<String, dynamic> json) {
     final diagnostics = json['diagnostics']
-        ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
+        ?.map((item) => Diagnostic.fromJson(item))
         ?.cast<Diagnostic>()
         ?.toList();
     final only = json['only']
@@ -3276,19 +3118,18 @@ class CodeActionContext implements ToJsonable {
   ///
   /// Actions not of this kind are filtered out by the client before being
   /// shown. So servers can omit computing them.
-  final List<CodeActionKind> only;
+  final List<CodeActionKind>? only;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['diagnostics'] =
-        diagnostics ?? (throw 'diagnostics is required but was not set');
+    __result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
     if (only != null) {
-      __result['only'] = only;
+      __result['only'] = only?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('diagnostics');
       try {
@@ -3356,11 +3197,7 @@ class CodeActionDisabled implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeActionDisabled.canParse, CodeActionDisabled.fromJson);
 
-  CodeActionDisabled({@required this.reason}) {
-    if (reason == null) {
-      throw 'reason is required but was not provided';
-    }
-  }
+  CodeActionDisabled({required this.reason});
   static CodeActionDisabled fromJson(Map<String, dynamic> json) {
     final reason = json['reason'];
     return CodeActionDisabled(reason: reason);
@@ -3373,11 +3210,11 @@ class CodeActionDisabled implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['reason'] = reason ?? (throw 'reason is required but was not set');
+    __result['reason'] = reason;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('reason');
       try {
@@ -3521,18 +3358,19 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   ///
   /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or
   /// the server may list out every specific kind they provide.
-  final List<CodeActionKind> codeActionKinds;
+  final List<CodeActionKind>? codeActionKinds;
 
   /// The server provides support to resolve additional information for a code
   /// action.
   ///  @since 3.16.0
-  final bool resolveProvider;
-  final bool workDoneProgress;
+  final bool? resolveProvider;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (codeActionKinds != null) {
-      __result['codeActionKinds'] = codeActionKinds;
+      __result['codeActionKinds'] =
+          codeActionKinds?.map((item) => item.toJson()).toList();
     }
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
@@ -3543,7 +3381,7 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('codeActionKinds');
       try {
@@ -3616,43 +3454,29 @@ class CodeActionParams
       LspJsonHandler(CodeActionParams.canParse, CodeActionParams.fromJson);
 
   CodeActionParams(
-      {@required this.textDocument,
-      @required this.range,
-      @required this.context,
+      {required this.textDocument,
+      required this.range,
+      required this.context,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (context == null) {
-      throw 'context is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static CodeActionParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final context = json['context'] != null
-        ? CodeActionContext.fromJson(json['context'])
-        : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final range = Range.fromJson(json['range']);
+    final context = CodeActionContext.fromJson(json['context']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CodeActionParams(
         textDocument: textDocument,
         range: range,
@@ -3666,7 +3490,7 @@ class CodeActionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The range for which the command was invoked.
   final Range range;
@@ -3675,16 +3499,13 @@ class CodeActionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['context'] =
-        context?.toJson() ?? (throw 'context is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['range'] = range.toJson();
+    __result['context'] = context.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -3694,7 +3515,7 @@ class CodeActionParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -3750,9 +3571,9 @@ class CodeActionParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -3761,9 +3582,9 @@ class CodeActionParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -3837,23 +3658,24 @@ class CodeActionRegistrationOptions
   ///
   /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or
   /// the server may list out every specific kind they provide.
-  final List<CodeActionKind> codeActionKinds;
+  final List<CodeActionKind>? codeActionKinds;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The server provides support to resolve additional information for a code
   /// action.
   ///  @since 3.16.0
-  final bool resolveProvider;
-  final bool workDoneProgress;
+  final bool? resolveProvider;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['documentSelector'] = documentSelector;
     if (codeActionKinds != null) {
-      __result['codeActionKinds'] = codeActionKinds;
+      __result['codeActionKinds'] =
+          codeActionKinds?.map((item) => item.toJson()).toList();
     }
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
@@ -3864,7 +3686,7 @@ class CodeActionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -3956,11 +3778,7 @@ class CodeDescription implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeDescription.canParse, CodeDescription.fromJson);
 
-  CodeDescription({@required this.href}) {
-    if (href == null) {
-      throw 'href is required but was not provided';
-    }
-  }
+  CodeDescription({required this.href});
   static CodeDescription fromJson(Map<String, dynamic> json) {
     final href = json['href'];
     return CodeDescription(href: href);
@@ -3971,11 +3789,11 @@ class CodeDescription implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['href'] = href ?? (throw 'href is required but was not set');
+    __result['href'] = href;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('href');
       try {
@@ -4030,13 +3848,9 @@ class CodeLens implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
 
-  CodeLens({@required this.range, this.command, this.data}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-  }
+  CodeLens({required this.range, this.command, this.data});
   static CodeLens fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     final command =
         json['command'] != null ? Command.fromJson(json['command']) : null;
     final data = json['data'];
@@ -4044,7 +3858,7 @@ class CodeLens implements ToJsonable {
   }
 
   /// The command this code lens represents.
-  final Command command;
+  final Command? command;
 
   /// A data entry field that is preserved on a code lens item between a code
   /// lens and a code lens resolve request.
@@ -4056,10 +3870,9 @@ class CodeLens implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['range'] = range.toJson();
     if (command != null) {
-      __result['command'] = command.toJson();
+      __result['command'] = command?.toJson();
     }
     if (data != null) {
       __result['data'] = data;
@@ -4067,7 +3880,7 @@ class CodeLens implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -4091,15 +3904,6 @@ class CodeLens implements ToJsonable {
         if (obj['command'] != null &&
             !(Command.canParse(obj['command'], reporter))) {
           reporter.reportError('must be of type Command');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('data');
-      try {
-        if (obj['data'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -4147,7 +3951,7 @@ class CodeLensClientCapabilities implements ToJsonable {
   }
 
   /// Whether code lens supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -4157,7 +3961,7 @@ class CodeLensClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -4212,8 +4016,8 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   /// Code lens has a resolve provider as well.
-  final bool resolveProvider;
-  final bool workDoneProgress;
+  final bool? resolveProvider;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -4226,7 +4030,7 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('resolveProvider');
       try {
@@ -4283,31 +4087,25 @@ class CodeLensParams
       LspJsonHandler(CodeLensParams.canParse, CodeLensParams.fromJson);
 
   CodeLensParams(
-      {@required this.textDocument,
+      {required this.textDocument,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static CodeLensParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CodeLensParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -4316,18 +4114,17 @@ class CodeLensParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The document to request code lens for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -4337,7 +4134,7 @@ class CodeLensParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -4359,9 +4156,9 @@ class CodeLensParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -4370,9 +4167,9 @@ class CodeLensParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -4432,11 +4229,11 @@ class CodeLensRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// Code lens has a resolve provider as well.
-  final bool resolveProvider;
-  final bool workDoneProgress;
+  final bool? resolveProvider;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -4450,7 +4247,7 @@ class CodeLensRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -4540,7 +4337,7 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
   /// code lenses currently shown. It should be used with absolute care and is
   /// useful for situation where a server for example detect a project wide
   /// change that requires such a calculation.
-  final bool refreshSupport;
+  final bool? refreshSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -4550,7 +4347,7 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('refreshSupport');
       try {
@@ -4594,23 +4391,10 @@ class Color implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Color.canParse, Color.fromJson);
 
   Color(
-      {@required this.red,
-      @required this.green,
-      @required this.blue,
-      @required this.alpha}) {
-    if (red == null) {
-      throw 'red is required but was not provided';
-    }
-    if (green == null) {
-      throw 'green is required but was not provided';
-    }
-    if (blue == null) {
-      throw 'blue is required but was not provided';
-    }
-    if (alpha == null) {
-      throw 'alpha is required but was not provided';
-    }
-  }
+      {required this.red,
+      required this.green,
+      required this.blue,
+      required this.alpha});
   static Color fromJson(Map<String, dynamic> json) {
     final red = json['red'];
     final green = json['green'];
@@ -4633,14 +4417,14 @@ class Color implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['red'] = red ?? (throw 'red is required but was not set');
-    __result['green'] = green ?? (throw 'green is required but was not set');
-    __result['blue'] = blue ?? (throw 'blue is required but was not set');
-    __result['alpha'] = alpha ?? (throw 'alpha is required but was not set');
+    __result['red'] = red;
+    __result['green'] = green;
+    __result['blue'] = blue;
+    __result['alpha'] = alpha;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('red');
       try {
@@ -4747,17 +4531,10 @@ class ColorInformation implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ColorInformation.canParse, ColorInformation.fromJson);
 
-  ColorInformation({@required this.range, @required this.color}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (color == null) {
-      throw 'color is required but was not provided';
-    }
-  }
+  ColorInformation({required this.range, required this.color});
   static ColorInformation fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final color = json['color'] != null ? Color.fromJson(json['color']) : null;
+    final range = Range.fromJson(json['range']);
+    final color = Color.fromJson(json['color']);
     return ColorInformation(range: range, color: color);
   }
 
@@ -4769,14 +4546,12 @@ class ColorInformation implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['color'] =
-        color?.toJson() ?? (throw 'color is required but was not set');
+    __result['range'] = range.toJson();
+    __result['color'] = color.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -4844,11 +4619,7 @@ class ColorPresentation implements ToJsonable {
       LspJsonHandler(ColorPresentation.canParse, ColorPresentation.fromJson);
 
   ColorPresentation(
-      {@required this.label, this.textEdit, this.additionalTextEdits}) {
-    if (label == null) {
-      throw 'label is required but was not provided';
-    }
-  }
+      {required this.label, this.textEdit, this.additionalTextEdits});
   static ColorPresentation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final textEdit =
@@ -4866,7 +4637,7 @@ class ColorPresentation implements ToJsonable {
   /// An optional array of additional text edits ([TextEdit]) that are applied
   /// when selecting this color presentation. Edits must not overlap with the
   /// main [edit](#ColorPresentation.textEdit) nor with themselves.
-  final List<TextEdit> additionalTextEdits;
+  final List<TextEdit>? additionalTextEdits;
 
   /// The label of this color presentation. It will be shown on the color picker
   /// header. By default this is also the text that is inserted when selecting
@@ -4876,21 +4647,22 @@ class ColorPresentation implements ToJsonable {
   /// An edit ([TextEdit]) which is applied to a document when selecting this
   /// presentation for the color.  When `falsy` the
   /// [label](#ColorPresentation.label) is used.
-  final TextEdit textEdit;
+  final TextEdit? textEdit;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['label'] = label ?? (throw 'label is required but was not set');
+    __result['label'] = label;
     if (textEdit != null) {
-      __result['textEdit'] = textEdit.toJson();
+      __result['textEdit'] = textEdit?.toJson();
     }
     if (additionalTextEdits != null) {
-      __result['additionalTextEdits'] = additionalTextEdits;
+      __result['additionalTextEdits'] =
+          additionalTextEdits?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -4969,41 +4741,29 @@ class ColorPresentationParams
       ColorPresentationParams.canParse, ColorPresentationParams.fromJson);
 
   ColorPresentationParams(
-      {@required this.textDocument,
-      @required this.color,
-      @required this.range,
+      {required this.textDocument,
+      required this.color,
+      required this.range,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (color == null) {
-      throw 'color is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static ColorPresentationParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final color = json['color'] != null ? Color.fromJson(json['color']) : null;
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final color = Color.fromJson(json['color']);
+    final range = Range.fromJson(json['range']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return ColorPresentationParams(
         textDocument: textDocument,
         color: color,
@@ -5017,7 +4777,7 @@ class ColorPresentationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The range where the color would be inserted. Serves as a context.
   final Range range;
@@ -5026,16 +4786,13 @@ class ColorPresentationParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['color'] =
-        color?.toJson() ?? (throw 'color is required but was not set');
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['color'] = color.toJson();
+    __result['range'] = range.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -5045,7 +4802,7 @@ class ColorPresentationParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -5101,9 +4858,9 @@ class ColorPresentationParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -5112,9 +4869,9 @@ class ColorPresentationParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -5159,14 +4916,7 @@ class ColorPresentationParams
 class Command implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Command.canParse, Command.fromJson);
 
-  Command({@required this.title, @required this.command, this.arguments}) {
-    if (title == null) {
-      throw 'title is required but was not provided';
-    }
-    if (command == null) {
-      throw 'command is required but was not provided';
-    }
-  }
+  Command({required this.title, required this.command, this.arguments});
   static Command fromJson(Map<String, dynamic> json) {
     final title = json['title'];
     final command = json['command'];
@@ -5176,7 +4926,7 @@ class Command implements ToJsonable {
   }
 
   /// Arguments that the command handler should be invoked with.
-  final List<dynamic> arguments;
+  final List<dynamic>? arguments;
 
   /// The identifier of the actual command handler.
   final String command;
@@ -5186,16 +4936,15 @@ class Command implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['title'] = title ?? (throw 'title is required but was not set');
-    __result['command'] =
-        command ?? (throw 'command is required but was not set');
+    __result['title'] = title;
+    __result['command'] = command;
     if (arguments != null) {
       __result['arguments'] = arguments;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('title');
       try {
@@ -5303,15 +5052,15 @@ class CompletionClientCapabilities implements ToJsonable {
   }
 
   /// The client supports the following `CompletionItem` specific capabilities.
-  final CompletionClientCapabilitiesCompletionItem completionItem;
-  final CompletionClientCapabilitiesCompletionItemKind completionItemKind;
+  final CompletionClientCapabilitiesCompletionItem? completionItem;
+  final CompletionClientCapabilitiesCompletionItemKind? completionItemKind;
 
   /// The client supports to send additional context information for a
   /// `textDocument/completion` request.
-  final bool contextSupport;
+  final bool? contextSupport;
 
   /// Whether completion supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -5319,10 +5068,10 @@ class CompletionClientCapabilities implements ToJsonable {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
     if (completionItem != null) {
-      __result['completionItem'] = completionItem.toJson();
+      __result['completionItem'] = completionItem?.toJson();
     }
     if (completionItemKind != null) {
-      __result['completionItemKind'] = completionItemKind.toJson();
+      __result['completionItemKind'] = completionItemKind?.toJson();
     }
     if (contextSupport != null) {
       __result['contextSupport'] = contextSupport;
@@ -5330,7 +5079,7 @@ class CompletionClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -5459,34 +5208,35 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   }
 
   /// Client supports commit characters on a completion item.
-  final bool commitCharactersSupport;
+  final bool? commitCharactersSupport;
 
   /// Client supports the deprecated property on a completion item.
-  final bool deprecatedSupport;
+  final bool? deprecatedSupport;
 
   /// Client supports the follow content formats for the documentation property.
   /// The order describes the preferred format of the client.
-  final List<MarkupKind> documentationFormat;
+  final List<MarkupKind>? documentationFormat;
 
   /// Client supports insert replace edit to control different behavior if a
   /// completion item is inserted in the text or should replace text.
   ///  @since 3.16.0
-  final bool insertReplaceSupport;
+  final bool? insertReplaceSupport;
 
   /// The client supports the `insertTextMode` property on a completion item to
   /// override the whitespace handling mode as defined by the client (see
   /// `insertTextMode`).
   ///  @since 3.16.0
-  final CompletionClientCapabilitiesInsertTextModeSupport insertTextModeSupport;
+  final CompletionClientCapabilitiesInsertTextModeSupport?
+      insertTextModeSupport;
 
   /// Client supports the preselect property on a completion item.
-  final bool preselectSupport;
+  final bool? preselectSupport;
 
   /// Indicates which properties a client can resolve lazily on a completion
   /// item. Before version 3.16.0 only the predefined properties `documentation`
   /// and `details` could be resolved lazily.
   ///  @since 3.16.0
-  final CompletionClientCapabilitiesResolveSupport resolveSupport;
+  final CompletionClientCapabilitiesResolveSupport? resolveSupport;
 
   /// Client supports snippets as insert text.
   ///
@@ -5494,14 +5244,14 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
   /// snippet. Placeholders with equal identifiers are linked, that is typing in
   /// one will update others too.
-  final bool snippetSupport;
+  final bool? snippetSupport;
 
   /// Client supports the tag property on a completion item. Clients supporting
   /// tags have to handle unknown tags gracefully. Clients especially need to
   /// preserve unknown tags when sending a completion item back to the server in
   /// a resolve call.
   ///  @since 3.15.0
-  final CompletionClientCapabilitiesTagSupport tagSupport;
+  final CompletionClientCapabilitiesTagSupport? tagSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -5512,7 +5262,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       __result['commitCharactersSupport'] = commitCharactersSupport;
     }
     if (documentationFormat != null) {
-      __result['documentationFormat'] = documentationFormat;
+      __result['documentationFormat'] =
+          documentationFormat?.map((item) => item.toJson()).toList();
     }
     if (deprecatedSupport != null) {
       __result['deprecatedSupport'] = deprecatedSupport;
@@ -5521,21 +5272,21 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       __result['preselectSupport'] = preselectSupport;
     }
     if (tagSupport != null) {
-      __result['tagSupport'] = tagSupport.toJson();
+      __result['tagSupport'] = tagSupport?.toJson();
     }
     if (insertReplaceSupport != null) {
       __result['insertReplaceSupport'] = insertReplaceSupport;
     }
     if (resolveSupport != null) {
-      __result['resolveSupport'] = resolveSupport.toJson();
+      __result['resolveSupport'] = resolveSupport?.toJson();
     }
     if (insertTextModeSupport != null) {
-      __result['insertTextModeSupport'] = insertTextModeSupport.toJson();
+      __result['insertTextModeSupport'] = insertTextModeSupport?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('snippetSupport');
       try {
@@ -5702,17 +5453,17 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
   /// If this property is not present the client only supports the completion
   /// items kinds from `Text` to `Reference` as defined in the initial version
   /// of the protocol.
-  final List<CompletionItemKind> valueSet;
+  final List<CompletionItemKind>? valueSet;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet;
+      __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -5761,15 +5512,11 @@ class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
       CompletionClientCapabilitiesInsertTextModeSupport.canParse,
       CompletionClientCapabilitiesInsertTextModeSupport.fromJson);
 
-  CompletionClientCapabilitiesInsertTextModeSupport({@required this.valueSet}) {
-    if (valueSet == null) {
-      throw 'valueSet is required but was not provided';
-    }
-  }
+  CompletionClientCapabilitiesInsertTextModeSupport({required this.valueSet});
   static CompletionClientCapabilitiesInsertTextModeSupport fromJson(
       Map<String, dynamic> json) {
     final valueSet = json['valueSet']
-        ?.map((item) => item != null ? InsertTextMode.fromJson(item) : null)
+        ?.map((item) => InsertTextMode.fromJson(item))
         ?.cast<InsertTextMode>()
         ?.toList();
     return CompletionClientCapabilitiesInsertTextModeSupport(
@@ -5780,12 +5527,11 @@ class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -5842,11 +5588,7 @@ class CompletionClientCapabilitiesResolveSupport implements ToJsonable {
       CompletionClientCapabilitiesResolveSupport.canParse,
       CompletionClientCapabilitiesResolveSupport.fromJson);
 
-  CompletionClientCapabilitiesResolveSupport({@required this.properties}) {
-    if (properties == null) {
-      throw 'properties is required but was not provided';
-    }
-  }
+  CompletionClientCapabilitiesResolveSupport({required this.properties});
   static CompletionClientCapabilitiesResolveSupport fromJson(
       Map<String, dynamic> json) {
     final properties =
@@ -5859,12 +5601,11 @@ class CompletionClientCapabilitiesResolveSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['properties'] =
-        properties ?? (throw 'properties is required but was not set');
+    __result['properties'] = properties;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('properties');
       try {
@@ -5919,15 +5660,11 @@ class CompletionClientCapabilitiesTagSupport implements ToJsonable {
       CompletionClientCapabilitiesTagSupport.canParse,
       CompletionClientCapabilitiesTagSupport.fromJson);
 
-  CompletionClientCapabilitiesTagSupport({@required this.valueSet}) {
-    if (valueSet == null) {
-      throw 'valueSet is required but was not provided';
-    }
-  }
+  CompletionClientCapabilitiesTagSupport({required this.valueSet});
   static CompletionClientCapabilitiesTagSupport fromJson(
       Map<String, dynamic> json) {
     final valueSet = json['valueSet']
-        ?.map((item) => item != null ? CompletionItemTag.fromJson(item) : null)
+        ?.map((item) => CompletionItemTag.fromJson(item))
         ?.cast<CompletionItemTag>()
         ?.toList();
     return CompletionClientCapabilitiesTagSupport(valueSet: valueSet);
@@ -5938,12 +5675,11 @@ class CompletionClientCapabilitiesTagSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -6000,15 +5736,9 @@ class CompletionContext implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CompletionContext.canParse, CompletionContext.fromJson);
 
-  CompletionContext({@required this.triggerKind, this.triggerCharacter}) {
-    if (triggerKind == null) {
-      throw 'triggerKind is required but was not provided';
-    }
-  }
+  CompletionContext({required this.triggerKind, this.triggerCharacter});
   static CompletionContext fromJson(Map<String, dynamic> json) {
-    final triggerKind = json['triggerKind'] != null
-        ? CompletionTriggerKind.fromJson(json['triggerKind'])
-        : null;
+    final triggerKind = CompletionTriggerKind.fromJson(json['triggerKind']);
     final triggerCharacter = json['triggerCharacter'];
     return CompletionContext(
         triggerKind: triggerKind, triggerCharacter: triggerCharacter);
@@ -6016,22 +5746,21 @@ class CompletionContext implements ToJsonable {
 
   /// The trigger character (a single character) that has trigger code complete.
   /// Is undefined if `triggerKind !== CompletionTriggerKind.TriggerCharacter`
-  final String triggerCharacter;
+  final String? triggerCharacter;
 
   /// How the completion was triggered.
   final CompletionTriggerKind triggerKind;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['triggerKind'] = triggerKind?.toJson() ??
-        (throw 'triggerKind is required but was not set');
+    __result['triggerKind'] = triggerKind.toJson();
     if (triggerCharacter != null) {
       __result['triggerCharacter'] = triggerCharacter;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('triggerKind');
       try {
@@ -6094,7 +5823,7 @@ class CompletionItem implements ToJsonable {
       LspJsonHandler(CompletionItem.canParse, CompletionItem.fromJson);
 
   CompletionItem(
-      {@required this.label,
+      {required this.label,
       this.kind,
       this.tags,
       this.detail,
@@ -6110,11 +5839,7 @@ class CompletionItem implements ToJsonable {
       this.additionalTextEdits,
       this.commitCharacters,
       this.command,
-      this.data}) {
-    if (label == null) {
-      throw 'label is required but was not provided';
-    }
-  }
+      this.data});
   static CompletionItem fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final kind =
@@ -6124,14 +5849,14 @@ class CompletionItem implements ToJsonable {
         ?.cast<CompletionItemTag>()
         ?.toList();
     final detail = json['detail'];
-    final documentation = json['documentation'] is String
-        ? Either2<String, MarkupContent>.t1(json['documentation'])
-        : (MarkupContent.canParse(json['documentation'], nullLspJsonReporter)
-            ? Either2<String, MarkupContent>.t2(json['documentation'] != null
-                ? MarkupContent.fromJson(json['documentation'])
-                : null)
-            : (json['documentation'] == null
-                ? null
+    final documentation = json['documentation'] == null
+        ? null
+        : (json['documentation'] is String
+            ? Either2<String, MarkupContent>.t1(json['documentation'])
+            : (MarkupContent.canParse(
+                    json['documentation'], nullLspJsonReporter)
+                ? Either2<String, MarkupContent>.t2(
+                    MarkupContent.fromJson(json['documentation']))
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
     final deprecated = json['deprecated'];
     final preselect = json['preselect'];
@@ -6144,8 +5869,15 @@ class CompletionItem implements ToJsonable {
     final insertTextMode = json['insertTextMode'] != null
         ? InsertTextMode.fromJson(json['insertTextMode'])
         : null;
-    final textEdit =
-        json['textEdit'] != null ? TextEdit.fromJson(json['textEdit']) : null;
+    final textEdit = json['textEdit'] == null
+        ? null
+        : (TextEdit.canParse(json['textEdit'], nullLspJsonReporter)
+            ? Either2<TextEdit, InsertReplaceEdit>.t1(
+                TextEdit.fromJson(json['textEdit']))
+            : (InsertReplaceEdit.canParse(json['textEdit'], nullLspJsonReporter)
+                ? Either2<TextEdit, InsertReplaceEdit>.t2(
+                    InsertReplaceEdit.fromJson(json['textEdit']))
+                : (throw '''${json['textEdit']} was not one of (TextEdit, InsertReplaceEdit)''')));
     final additionalTextEdits = json['additionalTextEdits']
         ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
@@ -6184,37 +5916,37 @@ class CompletionItem implements ToJsonable {
   /// Additional text edits should be used to change text unrelated to the
   /// current cursor position (for example adding an import statement at the top
   /// of the file if the completion item will insert an unqualified type).
-  final List<TextEdit> additionalTextEdits;
+  final List<TextEdit>? additionalTextEdits;
 
   /// An optional command that is executed *after* inserting this completion.
   /// *Note* that additional modifications to the current document should be
   /// described with the additionalTextEdits-property.
-  final Command command;
+  final Command? command;
 
   /// An optional set of characters that when pressed while this completion is
   /// active will accept it first and then type that character. *Note* that all
   /// commit characters should have `length=1` and that superfluous characters
   /// will be ignored.
-  final List<String> commitCharacters;
+  final List<String>? commitCharacters;
 
   /// A data entry field that is preserved on a completion item between a
   /// completion and a completion resolve request.
-  final CompletionItemResolutionInfo data;
+  final CompletionItemResolutionInfo? data;
 
   /// Indicates if this item is deprecated.
   ///  @deprecated Use `tags` instead if supported.
-  final bool deprecated;
+  final bool? deprecated;
 
   /// A human-readable string with additional information about this item, like
   /// type or symbol information.
-  final String detail;
+  final String? detail;
 
   /// A human-readable string that represents a doc-comment.
-  final Either2<String, MarkupContent> documentation;
+  final Either2<String, MarkupContent>? documentation;
 
   /// A string that should be used when filtering a set of completion items.
   /// When `falsy` the label is used.
-  final String filterText;
+  final String? filterText;
 
   /// A string that should be inserted into a document when selecting this
   /// completion. When `falsy` the label is used.
@@ -6225,23 +5957,23 @@ class CompletionItem implements ToJsonable {
   /// completion item with an `insertText` of `console` is provided it will only
   /// insert `sole`. Therefore it is recommended to use `textEdit` instead since
   /// it avoids additional client side interpretation.
-  final String insertText;
+  final String? insertText;
 
   /// The format of the insert text. The format applies to both the `insertText`
   /// property and the `newText` property of a provided `textEdit`. If omitted
   /// defaults to `InsertTextFormat.PlainText`.
-  final InsertTextFormat insertTextFormat;
+  final InsertTextFormat? insertTextFormat;
 
   /// How whitespace and indentation is handled during completion item
   /// insertion. If not provided the client's default value depends on the
   /// `textDocument.completion.insertTextMode` client capability.
   ///  @since 3.16.0
-  final InsertTextMode insertTextMode;
+  final InsertTextMode? insertTextMode;
 
   /// The kind of this completion item. Based of the kind an icon is chosen by
   /// the editor. The standardized set of available values is defined in
   /// `CompletionItemKind`.
-  final CompletionItemKind kind;
+  final CompletionItemKind? kind;
 
   /// The label of this completion item. By default also the text that is
   /// inserted when selecting this completion.
@@ -6252,15 +5984,15 @@ class CompletionItem implements ToJsonable {
   /// *Note* that only one completion item can be selected and that the tool /
   /// client decides which item that is. The rule is that the *first* item of
   /// those that match best is selected.
-  final bool preselect;
+  final bool? preselect;
 
   /// A string that should be used when comparing this item with other items.
   /// When `falsy` the label is used.
-  final String sortText;
+  final String? sortText;
 
   /// Tags for this completion item.
   ///  @since 3.15.0
-  final List<CompletionItemTag> tags;
+  final List<CompletionItemTag>? tags;
 
   /// An edit which is applied to a document when selecting this completion.
   /// When an edit is provided the value of `insertText` is ignored.
@@ -6282,16 +6014,16 @@ class CompletionItem implements ToJsonable {
   /// must be a prefix of the edit's replace range, that means it must be
   /// contained and starting at the same position.
   ///  @since 3.16.0 additional type `InsertReplaceEdit`
-  final TextEdit textEdit;
+  final Either2<TextEdit, InsertReplaceEdit>? textEdit;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['label'] = label ?? (throw 'label is required but was not set');
+    __result['label'] = label;
     if (kind != null) {
-      __result['kind'] = kind.toJson();
+      __result['kind'] = kind?.toJson();
     }
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
     if (detail != null) {
       __result['detail'] = detail;
@@ -6315,30 +6047,31 @@ class CompletionItem implements ToJsonable {
       __result['insertText'] = insertText;
     }
     if (insertTextFormat != null) {
-      __result['insertTextFormat'] = insertTextFormat.toJson();
+      __result['insertTextFormat'] = insertTextFormat?.toJson();
     }
     if (insertTextMode != null) {
-      __result['insertTextMode'] = insertTextMode.toJson();
+      __result['insertTextMode'] = insertTextMode?.toJson();
     }
     if (textEdit != null) {
-      __result['textEdit'] = textEdit.toJson();
+      __result['textEdit'] = textEdit;
     }
     if (additionalTextEdits != null) {
-      __result['additionalTextEdits'] = additionalTextEdits;
+      __result['additionalTextEdits'] =
+          additionalTextEdits?.map((item) => item.toJson()).toList();
     }
     if (commitCharacters != null) {
       __result['commitCharacters'] = commitCharacters;
     }
     if (command != null) {
-      __result['command'] = command.toJson();
+      __result['command'] = command?.toJson();
     }
     if (data != null) {
-      __result['data'] = data.toJson();
+      __result['data'] = data?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -6468,8 +6201,10 @@ class CompletionItem implements ToJsonable {
       reporter.push('textEdit');
       try {
         if (obj['textEdit'] != null &&
-            !(TextEdit.canParse(obj['textEdit'], reporter))) {
-          reporter.reportError('must be of type TextEdit');
+            !((TextEdit.canParse(obj['textEdit'], reporter) ||
+                InsertReplaceEdit.canParse(obj['textEdit'], reporter)))) {
+          reporter.reportError(
+              'must be of type Either2<TextEdit, InsertReplaceEdit>');
           return false;
         }
       } finally {
@@ -6585,10 +6320,10 @@ class CompletionItemKind {
   const CompletionItemKind(this._value);
   const CompletionItemKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   static const Text = CompletionItemKind(1);
@@ -6635,10 +6370,10 @@ class CompletionItemTag {
   const CompletionItemTag(this._value);
   const CompletionItemTag.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Render a completion as obsolete, usually using a strike-out.
@@ -6661,18 +6396,11 @@ class CompletionList implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
 
-  CompletionList({@required this.isIncomplete, @required this.items}) {
-    if (isIncomplete == null) {
-      throw 'isIncomplete is required but was not provided';
-    }
-    if (items == null) {
-      throw 'items is required but was not provided';
-    }
-  }
+  CompletionList({required this.isIncomplete, required this.items});
   static CompletionList fromJson(Map<String, dynamic> json) {
     final isIncomplete = json['isIncomplete'];
     final items = json['items']
-        ?.map((item) => item != null ? CompletionItem.fromJson(item) : null)
+        ?.map((item) => CompletionItem.fromJson(item))
         ?.cast<CompletionItem>()
         ?.toList();
     return CompletionList(isIncomplete: isIncomplete, items: items);
@@ -6687,13 +6415,12 @@ class CompletionList implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['isIncomplete'] =
-        isIncomplete ?? (throw 'isIncomplete is required but was not set');
-    __result['items'] = items ?? (throw 'items is required but was not set');
+    __result['isIncomplete'] = isIncomplete;
+    __result['items'] = items.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('isIncomplete');
       try {
@@ -6800,11 +6527,11 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   /// If a server provides both `allCommitCharacters` and commit characters on
   /// an individual completion item the ones on the completion item win.
   ///  @since 3.2.0
-  final List<String> allCommitCharacters;
+  final List<String>? allCommitCharacters;
 
   /// The server provides support to resolve additional information for a
   /// completion item.
-  final bool resolveProvider;
+  final bool? resolveProvider;
 
   /// Most tools trigger completion request automatically without explicitly
   /// requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically they
@@ -6816,8 +6543,8 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   /// If code complete should automatically be trigger on characters not being
   /// valid inside an identifier (for example `.` in JavaScript) list them in
   /// `triggerCharacters`.
-  final List<String> triggerCharacters;
-  final bool workDoneProgress;
+  final List<String>? triggerCharacters;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -6836,7 +6563,7 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('triggerCharacters');
       try {
@@ -6927,40 +6654,30 @@ class CompletionParams
 
   CompletionParams(
       {this.context,
-      @required this.textDocument,
-      @required this.position,
+      required this.textDocument,
+      required this.position,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static CompletionParams fromJson(Map<String, dynamic> json) {
     final context = json['context'] != null
         ? CompletionContext.fromJson(json['context'])
         : null;
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CompletionParams(
         context: context,
         textDocument: textDocument,
@@ -6971,11 +6688,11 @@ class CompletionParams
 
   /// The completion context. This is only available if the client specifies to
   /// send this using the client capability `completion.contextSupport === true`
-  final CompletionContext context;
+  final CompletionContext? context;
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -6984,17 +6701,15 @@ class CompletionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (context != null) {
-      __result['context'] = context.toJson();
+      __result['context'] = context?.toJson();
     }
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -7004,7 +6719,7 @@ class CompletionParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('context');
       try {
@@ -7053,9 +6768,9 @@ class CompletionParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -7064,9 +6779,9 @@ class CompletionParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -7150,15 +6865,15 @@ class CompletionRegistrationOptions
   /// If a server provides both `allCommitCharacters` and commit characters on
   /// an individual completion item the ones on the completion item win.
   ///  @since 3.2.0
-  final List<String> allCommitCharacters;
+  final List<String>? allCommitCharacters;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The server provides support to resolve additional information for a
   /// completion item.
-  final bool resolveProvider;
+  final bool? resolveProvider;
 
   /// Most tools trigger completion request automatically without explicitly
   /// requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically they
@@ -7170,8 +6885,8 @@ class CompletionRegistrationOptions
   /// If code complete should automatically be trigger on characters not being
   /// valid inside an identifier (for example `.` in JavaScript) list them in
   /// `triggerCharacters`.
-  final List<String> triggerCharacters;
-  final bool workDoneProgress;
+  final List<String>? triggerCharacters;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -7191,7 +6906,7 @@ class CompletionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -7343,10 +7058,10 @@ class ConfigurationItem implements ToJsonable {
   }
 
   /// The scope to get the configuration section for.
-  final String scopeUri;
+  final String? scopeUri;
 
   /// The configuration section asked for.
-  final String section;
+  final String? section;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -7359,7 +7074,7 @@ class ConfigurationItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('scopeUri');
       try {
@@ -7410,14 +7125,10 @@ class ConfigurationParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ConfigurationParams.canParse, ConfigurationParams.fromJson);
 
-  ConfigurationParams({@required this.items}) {
-    if (items == null) {
-      throw 'items is required but was not provided';
-    }
-  }
+  ConfigurationParams({required this.items});
   static ConfigurationParams fromJson(Map<String, dynamic> json) {
     final items = json['items']
-        ?.map((item) => item != null ? ConfigurationItem.fromJson(item) : null)
+        ?.map((item) => ConfigurationItem.fromJson(item))
         ?.cast<ConfigurationItem>()
         ?.toList();
     return ConfigurationParams(items: items);
@@ -7427,11 +7138,11 @@ class ConfigurationParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['items'] = items ?? (throw 'items is required but was not set');
+    __result['items'] = items.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('items');
       try {
@@ -7488,14 +7199,11 @@ class CreateFile implements ToJsonable {
 
   CreateFile(
       {this.kind = 'create',
-      @required this.uri,
+      required this.uri,
       this.options,
       this.annotationId}) {
     if (kind != 'create') {
       throw 'kind may only be the literal \'create\'';
-    }
-    if (uri == null) {
-      throw 'uri is required but was not provided';
     }
   }
   static CreateFile fromJson(Map<String, dynamic> json) {
@@ -7511,23 +7219,23 @@ class CreateFile implements ToJsonable {
 
   /// An optional annotation identifer describing the operation.
   ///  @since 3.16.0
-  final String annotationId;
+  final String? annotationId;
 
   /// A create
   final String kind;
 
   /// Additional options
-  final CreateFileOptions options;
+  final CreateFileOptions? options;
 
   /// The resource to create.
   final String uri;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['kind'] = kind ?? (throw 'kind is required but was not set');
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['kind'] = kind;
+    __result['uri'] = uri;
     if (options != null) {
-      __result['options'] = options.toJson();
+      __result['options'] = options?.toJson();
     }
     if (annotationId != null) {
       __result['annotationId'] = annotationId;
@@ -7535,7 +7243,7 @@ class CreateFile implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -7637,10 +7345,10 @@ class CreateFileOptions implements ToJsonable {
   }
 
   /// Ignore if exists.
-  final bool ignoreIfExists;
+  final bool? ignoreIfExists;
 
   /// Overwrite existing file. Overwrite wins over `ignoreIfExists`
-  final bool overwrite;
+  final bool? overwrite;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -7653,7 +7361,7 @@ class CreateFileOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('overwrite');
       try {
@@ -7709,14 +7417,10 @@ class CreateFilesParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CreateFilesParams.canParse, CreateFilesParams.fromJson);
 
-  CreateFilesParams({@required this.files}) {
-    if (files == null) {
-      throw 'files is required but was not provided';
-    }
-  }
+  CreateFilesParams({required this.files});
   static CreateFilesParams fromJson(Map<String, dynamic> json) {
     final files = json['files']
-        ?.map((item) => item != null ? FileCreate.fromJson(item) : null)
+        ?.map((item) => FileCreate.fromJson(item))
         ?.cast<FileCreate>()
         ?.toList();
     return CreateFilesParams(files: files);
@@ -7727,11 +7431,11 @@ class CreateFilesParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['files'] = files ?? (throw 'files is required but was not set');
+    __result['files'] = files.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('files');
       try {
@@ -7796,10 +7500,10 @@ class DeclarationClientCapabilities implements ToJsonable {
   /// Whether declaration supports dynamic registration. If this is set to
   /// `true` the client supports the new `DeclarationRegistrationOptions` return
   /// value for the corresponding server capability as well.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// The client supports additional metadata in the form of declaration links.
-  final bool linkSupport;
+  final bool? linkSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -7812,7 +7516,7 @@ class DeclarationClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -7876,7 +7580,7 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
     return DeclarationOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -7886,7 +7590,7 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -7935,37 +7639,27 @@ class DeclarationParams
       LspJsonHandler(DeclarationParams.canParse, DeclarationParams.fromJson);
 
   DeclarationParams(
-      {@required this.textDocument,
-      @required this.position,
+      {required this.textDocument,
+      required this.position,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static DeclarationParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DeclarationParams(
         textDocument: textDocument,
         position: position,
@@ -7975,7 +7669,7 @@ class DeclarationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -7984,14 +7678,12 @@ class DeclarationParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -8001,7 +7693,7 @@ class DeclarationParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -8040,9 +7732,9 @@ class DeclarationParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -8051,9 +7743,9 @@ class DeclarationParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -8119,12 +7811,12 @@ class DeclarationRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
-  final bool workDoneProgress;
+  final String? id;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -8138,7 +7830,7 @@ class DeclarationRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -8222,11 +7914,11 @@ class DefinitionClientCapabilities implements ToJsonable {
   }
 
   /// Whether definition supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
   ///  @since 3.14.0
-  final bool linkSupport;
+  final bool? linkSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -8239,7 +7931,7 @@ class DefinitionClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -8303,7 +7995,7 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     return DefinitionOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -8313,7 +8005,7 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -8361,37 +8053,27 @@ class DefinitionParams
       LspJsonHandler(DefinitionParams.canParse, DefinitionParams.fromJson);
 
   DefinitionParams(
-      {@required this.textDocument,
-      @required this.position,
+      {required this.textDocument,
+      required this.position,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static DefinitionParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DefinitionParams(
         textDocument: textDocument,
         position: position,
@@ -8401,7 +8083,7 @@ class DefinitionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -8410,14 +8092,12 @@ class DefinitionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -8427,7 +8107,7 @@ class DefinitionParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -8466,9 +8146,9 @@ class DefinitionParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -8477,9 +8157,9 @@ class DefinitionParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -8537,8 +8217,8 @@ class DefinitionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
-  final bool workDoneProgress;
+  final List<DocumentFilter>? documentSelector;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -8549,7 +8229,7 @@ class DefinitionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -8615,14 +8295,11 @@ class DeleteFile implements ToJsonable {
 
   DeleteFile(
       {this.kind = 'delete',
-      @required this.uri,
+      required this.uri,
       this.options,
       this.annotationId}) {
     if (kind != 'delete') {
       throw 'kind may only be the literal \'delete\'';
-    }
-    if (uri == null) {
-      throw 'uri is required but was not provided';
     }
   }
   static DeleteFile fromJson(Map<String, dynamic> json) {
@@ -8638,23 +8315,23 @@ class DeleteFile implements ToJsonable {
 
   /// An optional annotation identifer describing the operation.
   ///  @since 3.16.0
-  final String annotationId;
+  final String? annotationId;
 
   /// A delete
   final String kind;
 
   /// Delete options.
-  final DeleteFileOptions options;
+  final DeleteFileOptions? options;
 
   /// The file to delete.
   final String uri;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['kind'] = kind ?? (throw 'kind is required but was not set');
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['kind'] = kind;
+    __result['uri'] = uri;
     if (options != null) {
-      __result['options'] = options.toJson();
+      __result['options'] = options?.toJson();
     }
     if (annotationId != null) {
       __result['annotationId'] = annotationId;
@@ -8662,7 +8339,7 @@ class DeleteFile implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -8764,10 +8441,10 @@ class DeleteFileOptions implements ToJsonable {
   }
 
   /// Ignore the operation if the file doesn't exist.
-  final bool ignoreIfNotExists;
+  final bool? ignoreIfNotExists;
 
   /// Delete the content recursively if a folder is denoted.
-  final bool recursive;
+  final bool? recursive;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -8780,7 +8457,7 @@ class DeleteFileOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('recursive');
       try {
@@ -8837,14 +8514,10 @@ class DeleteFilesParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DeleteFilesParams.canParse, DeleteFilesParams.fromJson);
 
-  DeleteFilesParams({@required this.files}) {
-    if (files == null) {
-      throw 'files is required but was not provided';
-    }
-  }
+  DeleteFilesParams({required this.files});
   static DeleteFilesParams fromJson(Map<String, dynamic> json) {
     final files = json['files']
-        ?.map((item) => item != null ? FileDelete.fromJson(item) : null)
+        ?.map((item) => FileDelete.fromJson(item))
         ?.cast<FileDelete>()
         ?.toList();
     return DeleteFilesParams(files: files);
@@ -8855,11 +8528,11 @@ class DeleteFilesParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['files'] = files ?? (throw 'files is required but was not set');
+    __result['files'] = files.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('files');
       try {
@@ -8913,24 +8586,17 @@ class Diagnostic implements ToJsonable {
       LspJsonHandler(Diagnostic.canParse, Diagnostic.fromJson);
 
   Diagnostic(
-      {@required this.range,
+      {required this.range,
       this.severity,
       this.code,
       this.codeDescription,
       this.source,
-      @required this.message,
+      required this.message,
       this.tags,
       this.relatedInformation,
-      this.data}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (message == null) {
-      throw 'message is required but was not provided';
-    }
-  }
+      this.data});
   static Diagnostic fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     final severity = json['severity'] != null
         ? DiagnosticSeverity.fromJson(json['severity'])
         : null;
@@ -8963,11 +8629,11 @@ class Diagnostic implements ToJsonable {
   }
 
   /// The diagnostic's code, which might appear in the user interface.
-  final String code;
+  final String? code;
 
   /// An optional property to describe the error code.
   ///  @since 3.16.0
-  final CodeDescription codeDescription;
+  final CodeDescription? codeDescription;
 
   /// A data entry field that is preserved between a
   /// `textDocument/publishDiagnostics` notification and
@@ -8983,43 +8649,42 @@ class Diagnostic implements ToJsonable {
 
   /// An array of related diagnostic information, e.g. when symbol-names within
   /// a scope collide all definitions can be marked via this property.
-  final List<DiagnosticRelatedInformation> relatedInformation;
+  final List<DiagnosticRelatedInformation>? relatedInformation;
 
   /// The diagnostic's severity. Can be omitted. If omitted it is up to the
   /// client to interpret diagnostics as error, warning, info or hint.
-  final DiagnosticSeverity severity;
+  final DiagnosticSeverity? severity;
 
   /// A human-readable string describing the source of this diagnostic, e.g.
   /// 'typescript' or 'super lint'.
-  final String source;
+  final String? source;
 
   /// Additional metadata about the diagnostic.
   ///  @since 3.15.0
-  final List<DiagnosticTag> tags;
+  final List<DiagnosticTag>? tags;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['range'] = range.toJson();
     if (severity != null) {
-      __result['severity'] = severity.toJson();
+      __result['severity'] = severity?.toJson();
     }
     if (code != null) {
       __result['code'] = code;
     }
     if (codeDescription != null) {
-      __result['codeDescription'] = codeDescription.toJson();
+      __result['codeDescription'] = codeDescription?.toJson();
     }
     if (source != null) {
       __result['source'] = source;
     }
-    __result['message'] =
-        message ?? (throw 'message is required but was not set');
+    __result['message'] = message;
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
     if (relatedInformation != null) {
-      __result['relatedInformation'] = relatedInformation;
+      __result['relatedInformation'] =
+          relatedInformation?.map((item) => item.toJson()).toList();
     }
     if (data != null) {
       __result['data'] = data;
@@ -9027,7 +8692,7 @@ class Diagnostic implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -9126,15 +8791,6 @@ class Diagnostic implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('data');
-      try {
-        if (obj['data'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       return true;
     } else {
       reporter.reportError('must be of type Diagnostic');
@@ -9192,18 +8848,9 @@ class DiagnosticRelatedInformation implements ToJsonable {
       DiagnosticRelatedInformation.canParse,
       DiagnosticRelatedInformation.fromJson);
 
-  DiagnosticRelatedInformation(
-      {@required this.location, @required this.message}) {
-    if (location == null) {
-      throw 'location is required but was not provided';
-    }
-    if (message == null) {
-      throw 'message is required but was not provided';
-    }
-  }
+  DiagnosticRelatedInformation({required this.location, required this.message});
   static DiagnosticRelatedInformation fromJson(Map<String, dynamic> json) {
-    final location =
-        json['location'] != null ? Location.fromJson(json['location']) : null;
+    final location = Location.fromJson(json['location']);
     final message = json['message'];
     return DiagnosticRelatedInformation(location: location, message: message);
   }
@@ -9216,14 +8863,12 @@ class DiagnosticRelatedInformation implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['location'] =
-        location?.toJson() ?? (throw 'location is required but was not set');
-    __result['message'] =
-        message ?? (throw 'message is required but was not set');
+    __result['location'] = location.toJson();
+    __result['message'] = message;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('location');
       try {
@@ -9368,7 +9013,7 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
   }
 
   /// Did change configuration notification supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -9378,7 +9023,7 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -9438,21 +9083,8 @@ class DidChangeConfigurationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
-      reporter.push('settings');
-      try {
-        if (!obj.containsKey('settings')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        if (obj['settings'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       return true;
     } else {
       reporter.reportError('must be of type DidChangeConfigurationParams');
@@ -9486,32 +9118,21 @@ class DidChangeTextDocumentParams implements ToJsonable {
       DidChangeTextDocumentParams.fromJson);
 
   DidChangeTextDocumentParams(
-      {@required this.textDocument, @required this.contentChanges}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (contentChanges == null) {
-      throw 'contentChanges is required but was not provided';
-    }
-  }
+      {required this.textDocument, required this.contentChanges});
   static DidChangeTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? VersionedTextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
+    final textDocument =
+        VersionedTextDocumentIdentifier.fromJson(json['textDocument']);
     final contentChanges = json['contentChanges']
         ?.map((item) => TextDocumentContentChangeEvent1.canParse(
                 item, nullLspJsonReporter)
-            ? Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>.t1(
-                item != null
-                    ? TextDocumentContentChangeEvent1.fromJson(item)
-                    : null)
+            ? Either2<TextDocumentContentChangeEvent1,
+                    TextDocumentContentChangeEvent2>.t1(
+                TextDocumentContentChangeEvent1.fromJson(item))
             : (TextDocumentContentChangeEvent2.canParse(item, nullLspJsonReporter)
                 ? Either2<TextDocumentContentChangeEvent1,
                         TextDocumentContentChangeEvent2>.t2(
-                    item != null
-                        ? TextDocumentContentChangeEvent2.fromJson(item)
-                        : null)
-                : (throw '''${item} was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
+                    TextDocumentContentChangeEvent2.fromJson(item))
+                : (throw '''$item was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
         ?.cast<Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>>()
         ?.toList();
     return DidChangeTextDocumentParams(
@@ -9541,14 +9162,12 @@ class DidChangeTextDocumentParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['contentChanges'] =
-        contentChanges ?? (throw 'contentChanges is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['contentChanges'] = contentChanges;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -9646,7 +9265,7 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   /// Did change watched files notification supports dynamic registration.
   /// Please note that the current protocol doesn't support static configuration
   /// for file changes from the server side.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -9656,7 +9275,7 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -9701,14 +9320,10 @@ class DidChangeWatchedFilesParams implements ToJsonable {
       DidChangeWatchedFilesParams.canParse,
       DidChangeWatchedFilesParams.fromJson);
 
-  DidChangeWatchedFilesParams({@required this.changes}) {
-    if (changes == null) {
-      throw 'changes is required but was not provided';
-    }
-  }
+  DidChangeWatchedFilesParams({required this.changes});
   static DidChangeWatchedFilesParams fromJson(Map<String, dynamic> json) {
     final changes = json['changes']
-        ?.map((item) => item != null ? FileEvent.fromJson(item) : null)
+        ?.map((item) => FileEvent.fromJson(item))
         ?.cast<FileEvent>()
         ?.toList();
     return DidChangeWatchedFilesParams(changes: changes);
@@ -9719,12 +9334,11 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['changes'] =
-        changes ?? (throw 'changes is required but was not set');
+    __result['changes'] = changes.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('changes');
       try {
@@ -9780,15 +9394,11 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
       DidChangeWatchedFilesRegistrationOptions.canParse,
       DidChangeWatchedFilesRegistrationOptions.fromJson);
 
-  DidChangeWatchedFilesRegistrationOptions({@required this.watchers}) {
-    if (watchers == null) {
-      throw 'watchers is required but was not provided';
-    }
-  }
+  DidChangeWatchedFilesRegistrationOptions({required this.watchers});
   static DidChangeWatchedFilesRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final watchers = json['watchers']
-        ?.map((item) => item != null ? FileSystemWatcher.fromJson(item) : null)
+        ?.map((item) => FileSystemWatcher.fromJson(item))
         ?.cast<FileSystemWatcher>()
         ?.toList();
     return DidChangeWatchedFilesRegistrationOptions(watchers: watchers);
@@ -9799,12 +9409,11 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['watchers'] =
-        watchers ?? (throw 'watchers is required but was not set');
+    __result['watchers'] = watchers.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('watchers');
       try {
@@ -9860,15 +9469,9 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
       DidChangeWorkspaceFoldersParams.canParse,
       DidChangeWorkspaceFoldersParams.fromJson);
 
-  DidChangeWorkspaceFoldersParams({@required this.event}) {
-    if (event == null) {
-      throw 'event is required but was not provided';
-    }
-  }
+  DidChangeWorkspaceFoldersParams({required this.event});
   static DidChangeWorkspaceFoldersParams fromJson(Map<String, dynamic> json) {
-    final event = json['event'] != null
-        ? WorkspaceFoldersChangeEvent.fromJson(json['event'])
-        : null;
+    final event = WorkspaceFoldersChangeEvent.fromJson(json['event']);
     return DidChangeWorkspaceFoldersParams(event: event);
   }
 
@@ -9877,12 +9480,11 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['event'] =
-        event?.toJson() ?? (throw 'event is required but was not set');
+    __result['event'] = event.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('event');
       try {
@@ -9932,15 +9534,9 @@ class DidCloseTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DidCloseTextDocumentParams.canParse, DidCloseTextDocumentParams.fromJson);
 
-  DidCloseTextDocumentParams({@required this.textDocument}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-  }
+  DidCloseTextDocumentParams({required this.textDocument});
   static DidCloseTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     return DidCloseTextDocumentParams(textDocument: textDocument);
   }
 
@@ -9949,12 +9545,11 @@ class DidCloseTextDocumentParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -10004,15 +9599,9 @@ class DidOpenTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DidOpenTextDocumentParams.canParse, DidOpenTextDocumentParams.fromJson);
 
-  DidOpenTextDocumentParams({@required this.textDocument}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-  }
+  DidOpenTextDocumentParams({required this.textDocument});
   static DidOpenTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentItem.fromJson(json['textDocument'])
-        : null;
+    final textDocument = TextDocumentItem.fromJson(json['textDocument']);
     return DidOpenTextDocumentParams(textDocument: textDocument);
   }
 
@@ -10021,12 +9610,11 @@ class DidOpenTextDocumentParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -10076,37 +9664,30 @@ class DidSaveTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DidSaveTextDocumentParams.canParse, DidSaveTextDocumentParams.fromJson);
 
-  DidSaveTextDocumentParams({@required this.textDocument, this.text}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-  }
+  DidSaveTextDocumentParams({required this.textDocument, this.text});
   static DidSaveTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     final text = json['text'];
     return DidSaveTextDocumentParams(textDocument: textDocument, text: text);
   }
 
   /// Optional the content when saved. Depends on the includeText value when the
   /// save notification was requested.
-  final String text;
+  final String? text;
 
   /// The document that was saved.
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
     if (text != null) {
       __result['text'] = text;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -10175,7 +9756,7 @@ class DocumentColorClientCapabilities implements ToJsonable {
   }
 
   /// Whether document color supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -10185,7 +9766,7 @@ class DocumentColorClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -10237,7 +9818,7 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
     return DocumentColorOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -10247,7 +9828,7 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -10292,31 +9873,25 @@ class DocumentColorParams
       DocumentColorParams.canParse, DocumentColorParams.fromJson);
 
   DocumentColorParams(
-      {@required this.textDocument,
+      {required this.textDocument,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static DocumentColorParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DocumentColorParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -10325,18 +9900,17 @@ class DocumentColorParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -10346,7 +9920,7 @@ class DocumentColorParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -10368,9 +9942,9 @@ class DocumentColorParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -10379,9 +9953,9 @@ class DocumentColorParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -10446,12 +10020,12 @@ class DocumentColorRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
-  final bool workDoneProgress;
+  final String? id;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -10465,7 +10039,7 @@ class DocumentColorRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -10548,7 +10122,7 @@ class DocumentFilter implements ToJsonable {
   }
 
   /// A language id, like `typescript`.
-  final String language;
+  final String? language;
 
   /// A glob pattern, like `*.{ts,js}`.
   ///
@@ -10563,10 +10137,10 @@ class DocumentFilter implements ToJsonable {
   /// - `[!...]` to negate a range of characters to match in a path segment
   ///   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but
   ///   not `example.0`)
-  final String pattern;
+  final String? pattern;
 
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
-  final String scheme;
+  final String? scheme;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -10582,7 +10156,7 @@ class DocumentFilter implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('language');
       try {
@@ -10656,7 +10230,7 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
   }
 
   /// Whether formatting supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -10666,7 +10240,7 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -10720,7 +10294,7 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
     return DocumentFormattingOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -10730,7 +10304,7 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -10774,30 +10348,17 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
       DocumentFormattingParams.canParse, DocumentFormattingParams.fromJson);
 
   DocumentFormattingParams(
-      {@required this.textDocument,
-      @required this.options,
-      this.workDoneToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (options == null) {
-      throw 'options is required but was not provided';
-    }
-  }
+      {required this.textDocument, required this.options, this.workDoneToken});
   static DocumentFormattingParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final options = json['options'] != null
-        ? FormattingOptions.fromJson(json['options'])
-        : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final options = FormattingOptions.fromJson(json['options']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return DocumentFormattingParams(
         textDocument: textDocument,
         options: options,
@@ -10811,21 +10372,19 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['options'] =
-        options?.toJson() ?? (throw 'options is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['options'] = options.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -10864,9 +10423,9 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -10928,8 +10487,8 @@ class DocumentFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
-  final bool workDoneProgress;
+  final List<DocumentFilter>? documentSelector;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -10940,7 +10499,7 @@ class DocumentFormattingRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -11007,13 +10566,9 @@ class DocumentHighlight implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DocumentHighlight.canParse, DocumentHighlight.fromJson);
 
-  DocumentHighlight({@required this.range, this.kind}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-  }
+  DocumentHighlight({required this.range, this.kind});
   static DocumentHighlight fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     final kind = json['kind'] != null
         ? DocumentHighlightKind.fromJson(json['kind'])
         : null;
@@ -11021,22 +10576,21 @@ class DocumentHighlight implements ToJsonable {
   }
 
   /// The highlight kind, default is DocumentHighlightKind.Text.
-  final DocumentHighlightKind kind;
+  final DocumentHighlightKind? kind;
 
   /// The range this highlight applies to.
   final Range range;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['range'] = range.toJson();
     if (kind != null) {
-      __result['kind'] = kind.toJson();
+      __result['kind'] = kind?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -11106,7 +10660,7 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
   }
 
   /// Whether document highlight supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -11116,7 +10670,7 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -11161,10 +10715,10 @@ class DocumentHighlightKind {
   const DocumentHighlightKind(this._value);
   const DocumentHighlightKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// A textual occurrence.
@@ -11202,7 +10756,7 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
     return DocumentHighlightOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -11212,7 +10766,7 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -11261,37 +10815,27 @@ class DocumentHighlightParams
       DocumentHighlightParams.canParse, DocumentHighlightParams.fromJson);
 
   DocumentHighlightParams(
-      {@required this.textDocument,
-      @required this.position,
+      {required this.textDocument,
+      required this.position,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static DocumentHighlightParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DocumentHighlightParams(
         textDocument: textDocument,
         position: position,
@@ -11301,7 +10845,7 @@ class DocumentHighlightParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -11310,14 +10854,12 @@ class DocumentHighlightParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -11327,7 +10869,7 @@ class DocumentHighlightParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -11366,9 +10908,9 @@ class DocumentHighlightParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -11377,9 +10919,9 @@ class DocumentHighlightParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -11443,8 +10985,8 @@ class DocumentHighlightRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
-  final bool workDoneProgress;
+  final List<DocumentFilter>? documentSelector;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -11455,7 +10997,7 @@ class DocumentHighlightRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -11521,13 +11063,9 @@ class DocumentLink implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
 
-  DocumentLink({@required this.range, this.target, this.tooltip, this.data}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-  }
+  DocumentLink({required this.range, this.target, this.tooltip, this.data});
   static DocumentLink fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     final target = json['target'];
     final tooltip = json['tooltip'];
     final data = json['data'];
@@ -11543,7 +11081,7 @@ class DocumentLink implements ToJsonable {
   final Range range;
 
   /// The uri this link points to. If missing a resolve request is sent later.
-  final String target;
+  final String? target;
 
   /// The tooltip text when you hover over this link.
   ///
@@ -11552,12 +11090,11 @@ class DocumentLink implements ToJsonable {
   /// specific instructions vary depending on OS, user settings, and
   /// localization.
   ///  @since 3.15.0
-  final String tooltip;
+  final String? tooltip;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['range'] = range.toJson();
     if (target != null) {
       __result['target'] = target;
     }
@@ -11570,7 +11107,7 @@ class DocumentLink implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -11602,15 +11139,6 @@ class DocumentLink implements ToJsonable {
       try {
         if (obj['tooltip'] != null && !(obj['tooltip'] is String)) {
           reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('data');
-      try {
-        if (obj['data'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -11665,11 +11193,11 @@ class DocumentLinkClientCapabilities implements ToJsonable {
   }
 
   /// Whether document link supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// Whether the client supports the `tooltip` property on `DocumentLink`.
   ///  @since 3.15.0
-  final bool tooltipSupport;
+  final bool? tooltipSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -11682,7 +11210,7 @@ class DocumentLinkClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -11749,8 +11277,8 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   /// Document links have a resolve provider as well.
-  final bool resolveProvider;
-  final bool workDoneProgress;
+  final bool? resolveProvider;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -11763,7 +11291,7 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('resolveProvider');
       try {
@@ -11821,31 +11349,25 @@ class DocumentLinkParams
       LspJsonHandler(DocumentLinkParams.canParse, DocumentLinkParams.fromJson);
 
   DocumentLinkParams(
-      {@required this.textDocument,
+      {required this.textDocument,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static DocumentLinkParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DocumentLinkParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -11854,18 +11376,17 @@ class DocumentLinkParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The document to provide document links for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -11875,7 +11396,7 @@ class DocumentLinkParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -11897,9 +11418,9 @@ class DocumentLinkParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -11908,9 +11429,9 @@ class DocumentLinkParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -11974,11 +11495,11 @@ class DocumentLinkRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// Document links have a resolve provider as well.
-  final bool resolveProvider;
-  final bool workDoneProgress;
+  final bool? resolveProvider;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -11992,7 +11513,7 @@ class DocumentLinkRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -12077,7 +11598,7 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
   }
 
   /// Whether on type formatting supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -12087,7 +11608,7 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -12133,11 +11654,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       DocumentOnTypeFormattingOptions.fromJson);
 
   DocumentOnTypeFormattingOptions(
-      {@required this.firstTriggerCharacter, this.moreTriggerCharacter}) {
-    if (firstTriggerCharacter == null) {
-      throw 'firstTriggerCharacter is required but was not provided';
-    }
-  }
+      {required this.firstTriggerCharacter, this.moreTriggerCharacter});
   static DocumentOnTypeFormattingOptions fromJson(Map<String, dynamic> json) {
     if (DocumentOnTypeFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -12157,19 +11674,18 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   final String firstTriggerCharacter;
 
   /// More trigger characters.
-  final List<String> moreTriggerCharacter;
+  final List<String>? moreTriggerCharacter;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['firstTriggerCharacter'] = firstTriggerCharacter ??
-        (throw 'firstTriggerCharacter is required but was not set');
+    __result['firstTriggerCharacter'] = firstTriggerCharacter;
     if (moreTriggerCharacter != null) {
       __result['moreTriggerCharacter'] = moreTriggerCharacter;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('firstTriggerCharacter');
       try {
@@ -12238,33 +11754,15 @@ class DocumentOnTypeFormattingParams
       DocumentOnTypeFormattingParams.fromJson);
 
   DocumentOnTypeFormattingParams(
-      {@required this.ch,
-      @required this.options,
-      @required this.textDocument,
-      @required this.position}) {
-    if (ch == null) {
-      throw 'ch is required but was not provided';
-    }
-    if (options == null) {
-      throw 'options is required but was not provided';
-    }
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      {required this.ch,
+      required this.options,
+      required this.textDocument,
+      required this.position});
   static DocumentOnTypeFormattingParams fromJson(Map<String, dynamic> json) {
     final ch = json['ch'];
-    final options = json['options'] != null
-        ? FormattingOptions.fromJson(json['options'])
-        : null;
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
+    final options = FormattingOptions.fromJson(json['options']);
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
     return DocumentOnTypeFormattingParams(
         ch: ch,
         options: options,
@@ -12286,17 +11784,14 @@ class DocumentOnTypeFormattingParams
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['ch'] = ch ?? (throw 'ch is required but was not set');
-    __result['options'] =
-        options?.toJson() ?? (throw 'options is required but was not set');
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['ch'] = ch;
+    __result['options'] = options.toJson();
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('ch');
       try {
@@ -12411,12 +11906,8 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   DocumentOnTypeFormattingRegistrationOptions(
       {this.documentSelector,
-      @required this.firstTriggerCharacter,
-      this.moreTriggerCharacter}) {
-    if (firstTriggerCharacter == null) {
-      throw 'firstTriggerCharacter is required but was not provided';
-    }
-  }
+      required this.firstTriggerCharacter,
+      this.moreTriggerCharacter});
   static DocumentOnTypeFormattingRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
@@ -12436,26 +11927,25 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// A character on which formatting should be triggered, like `}`.
   final String firstTriggerCharacter;
 
   /// More trigger characters.
-  final List<String> moreTriggerCharacter;
+  final List<String>? moreTriggerCharacter;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['documentSelector'] = documentSelector;
-    __result['firstTriggerCharacter'] = firstTriggerCharacter ??
-        (throw 'firstTriggerCharacter is required but was not set');
+    __result['firstTriggerCharacter'] = firstTriggerCharacter;
     if (moreTriggerCharacter != null) {
       __result['moreTriggerCharacter'] = moreTriggerCharacter;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -12551,7 +12041,7 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
   }
 
   /// Whether formatting supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -12561,7 +12051,7 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -12617,7 +12107,7 @@ class DocumentRangeFormattingOptions
     return DocumentRangeFormattingOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -12627,7 +12117,7 @@ class DocumentRangeFormattingOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -12673,35 +12163,21 @@ class DocumentRangeFormattingParams
       DocumentRangeFormattingParams.fromJson);
 
   DocumentRangeFormattingParams(
-      {@required this.textDocument,
-      @required this.range,
-      @required this.options,
-      this.workDoneToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (options == null) {
-      throw 'options is required but was not provided';
-    }
-  }
+      {required this.textDocument,
+      required this.range,
+      required this.options,
+      this.workDoneToken});
   static DocumentRangeFormattingParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final options = json['options'] != null
-        ? FormattingOptions.fromJson(json['options'])
-        : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final range = Range.fromJson(json['range']);
+    final options = FormattingOptions.fromJson(json['options']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return DocumentRangeFormattingParams(
         textDocument: textDocument,
         range: range,
@@ -12719,23 +12195,20 @@ class DocumentRangeFormattingParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['options'] =
-        options?.toJson() ?? (throw 'options is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['range'] = range.toJson();
+    __result['options'] = options.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -12791,9 +12264,9 @@ class DocumentRangeFormattingParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -12857,8 +12330,8 @@ class DocumentRangeFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
-  final bool workDoneProgress;
+  final List<DocumentFilter>? documentSelector;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -12869,7 +12342,7 @@ class DocumentRangeFormattingRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -12938,41 +12411,25 @@ class DocumentSymbol implements ToJsonable {
       LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
 
   DocumentSymbol(
-      {@required this.name,
+      {required this.name,
       this.detail,
-      @required this.kind,
+      required this.kind,
       this.tags,
       this.deprecated,
-      @required this.range,
-      @required this.selectionRange,
-      this.children}) {
-    if (name == null) {
-      throw 'name is required but was not provided';
-    }
-    if (kind == null) {
-      throw 'kind is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (selectionRange == null) {
-      throw 'selectionRange is required but was not provided';
-    }
-  }
+      required this.range,
+      required this.selectionRange,
+      this.children});
   static DocumentSymbol fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final detail = json['detail'];
-    final kind =
-        json['kind'] != null ? SymbolKind.fromJson(json['kind']) : null;
+    final kind = SymbolKind.fromJson(json['kind']);
     final tags = json['tags']
         ?.map((item) => item != null ? SymbolTag.fromJson(item) : null)
         ?.cast<SymbolTag>()
         ?.toList();
     final deprecated = json['deprecated'];
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final selectionRange = json['selectionRange'] != null
-        ? Range.fromJson(json['selectionRange'])
-        : null;
+    final range = Range.fromJson(json['range']);
+    final selectionRange = Range.fromJson(json['selectionRange']);
     final children = json['children']
         ?.map((item) => item != null ? DocumentSymbol.fromJson(item) : null)
         ?.cast<DocumentSymbol>()
@@ -12989,14 +12446,14 @@ class DocumentSymbol implements ToJsonable {
   }
 
   /// Children of this symbol, e.g. properties of a class.
-  final List<DocumentSymbol> children;
+  final List<DocumentSymbol>? children;
 
   /// Indicates if this symbol is deprecated.
   ///  @deprecated Use tags instead
-  final bool deprecated;
+  final bool? deprecated;
 
   /// More detail for this symbol, e.g the signature of a function.
-  final String detail;
+  final String? detail;
 
   /// The kind of this symbol.
   final SymbolKind kind;
@@ -13018,33 +12475,30 @@ class DocumentSymbol implements ToJsonable {
 
   /// Tags for this document symbol.
   ///  @since 3.16.0
-  final List<SymbolTag> tags;
+  final List<SymbolTag>? tags;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['name'] = name ?? (throw 'name is required but was not set');
+    __result['name'] = name;
     if (detail != null) {
       __result['detail'] = detail;
     }
-    __result['kind'] =
-        kind?.toJson() ?? (throw 'kind is required but was not set');
+    __result['kind'] = kind.toJson();
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
     if (deprecated != null) {
       __result['deprecated'] = deprecated;
     }
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['selectionRange'] = selectionRange?.toJson() ??
-        (throw 'selectionRange is required but was not set');
+    __result['range'] = range.toJson();
+    __result['selectionRange'] = selectionRange.toJson();
     if (children != null) {
-      __result['children'] = children;
+      __result['children'] = children?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -13231,25 +12685,25 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
   }
 
   /// Whether document symbol supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// The client supports hierarchical document symbols.
-  final bool hierarchicalDocumentSymbolSupport;
+  final bool? hierarchicalDocumentSymbolSupport;
 
   /// The client supports an additional label presented in the UI when
   /// registering a document symbol provider.
   ///  @since 3.16.0
-  final bool labelSupport;
+  final bool? labelSupport;
 
   /// Specific capabilities for the `SymbolKind` in the
   /// `textDocument/documentSymbol` request.
-  final DocumentSymbolClientCapabilitiesSymbolKind symbolKind;
+  final DocumentSymbolClientCapabilitiesSymbolKind? symbolKind;
 
   /// The client supports tags on `SymbolInformation`. Tags are supported on
   /// `DocumentSymbol` if `hierarchicalDocumentSymbolSupport` is set to true.
   /// Clients supporting tags have to handle unknown tags gracefully.
   ///  @since 3.16.0
-  final DocumentSymbolClientCapabilitiesTagSupport tagSupport;
+  final DocumentSymbolClientCapabilitiesTagSupport? tagSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -13257,14 +12711,14 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
     if (symbolKind != null) {
-      __result['symbolKind'] = symbolKind.toJson();
+      __result['symbolKind'] = symbolKind?.toJson();
     }
     if (hierarchicalDocumentSymbolSupport != null) {
       __result['hierarchicalDocumentSymbolSupport'] =
           hierarchicalDocumentSymbolSupport;
     }
     if (tagSupport != null) {
-      __result['tagSupport'] = tagSupport.toJson();
+      __result['tagSupport'] = tagSupport?.toJson();
     }
     if (labelSupport != null) {
       __result['labelSupport'] = labelSupport;
@@ -13272,7 +12726,7 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -13386,17 +12840,17 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   ///
   /// If this property is not present the client only supports the symbol kinds
   /// from `File` to `Array` as defined in the initial version of the protocol.
-  final List<SymbolKind> valueSet;
+  final List<SymbolKind>? valueSet;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet;
+      __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -13445,15 +12899,11 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
       DocumentSymbolClientCapabilitiesTagSupport.canParse,
       DocumentSymbolClientCapabilitiesTagSupport.fromJson);
 
-  DocumentSymbolClientCapabilitiesTagSupport({@required this.valueSet}) {
-    if (valueSet == null) {
-      throw 'valueSet is required but was not provided';
-    }
-  }
+  DocumentSymbolClientCapabilitiesTagSupport({required this.valueSet});
   static DocumentSymbolClientCapabilitiesTagSupport fromJson(
       Map<String, dynamic> json) {
     final valueSet = json['valueSet']
-        ?.map((item) => item != null ? SymbolTag.fromJson(item) : null)
+        ?.map((item) => SymbolTag.fromJson(item))
         ?.cast<SymbolTag>()
         ?.toList();
     return DocumentSymbolClientCapabilitiesTagSupport(valueSet: valueSet);
@@ -13464,12 +12914,11 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -13538,8 +12987,8 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
   ///  @since 3.16.0
-  final String label;
-  final bool workDoneProgress;
+  final String? label;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -13552,7 +13001,7 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -13609,31 +13058,25 @@ class DocumentSymbolParams
       DocumentSymbolParams.canParse, DocumentSymbolParams.fromJson);
 
   DocumentSymbolParams(
-      {@required this.textDocument,
+      {required this.textDocument,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static DocumentSymbolParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DocumentSymbolParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -13642,18 +13085,17 @@ class DocumentSymbolParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -13663,7 +13105,7 @@ class DocumentSymbolParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -13685,9 +13127,9 @@ class DocumentSymbolParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -13696,9 +13138,9 @@ class DocumentSymbolParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -13762,13 +13204,13 @@ class DocumentSymbolRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
   ///  @since 3.16.0
-  final String label;
-  final bool workDoneProgress;
+  final String? label;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -13782,7 +13224,7 @@ class DocumentSymbolRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -13856,10 +13298,10 @@ class ErrorCodes {
   const ErrorCodes(this._value);
   const ErrorCodes.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Defined by JSON RPC
@@ -13918,7 +13360,7 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
   }
 
   /// Execute command supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -13928,7 +13370,7 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -13971,11 +13413,7 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ExecuteCommandOptions.canParse, ExecuteCommandOptions.fromJson);
 
-  ExecuteCommandOptions({@required this.commands, this.workDoneProgress}) {
-    if (commands == null) {
-      throw 'commands is required but was not provided';
-    }
-  }
+  ExecuteCommandOptions({required this.commands, this.workDoneProgress});
   static ExecuteCommandOptions fromJson(Map<String, dynamic> json) {
     if (ExecuteCommandRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ExecuteCommandRegistrationOptions.fromJson(json);
@@ -13989,19 +13427,18 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// The commands to be executed on the server
   final List<String> commands;
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['commands'] =
-        commands ?? (throw 'commands is required but was not set');
+    __result['commands'] = commands;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('commands');
       try {
@@ -14067,39 +13504,34 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
       ExecuteCommandParams.canParse, ExecuteCommandParams.fromJson);
 
   ExecuteCommandParams(
-      {@required this.command, this.arguments, this.workDoneToken}) {
-    if (command == null) {
-      throw 'command is required but was not provided';
-    }
-  }
+      {required this.command, this.arguments, this.workDoneToken});
   static ExecuteCommandParams fromJson(Map<String, dynamic> json) {
     final command = json['command'];
     final arguments =
         json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return ExecuteCommandParams(
         command: command, arguments: arguments, workDoneToken: workDoneToken);
   }
 
   /// Arguments that the command should be invoked with.
-  final List<dynamic> arguments;
+  final List<dynamic>? arguments;
 
   /// The identifier of the actual command handler.
   final String command;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['command'] =
-        command ?? (throw 'command is required but was not set');
+    __result['command'] = command;
     if (arguments != null) {
       __result['arguments'] = arguments;
     }
@@ -14109,7 +13541,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('command');
       try {
@@ -14142,9 +13574,9 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -14191,11 +13623,7 @@ class ExecuteCommandRegistrationOptions
       ExecuteCommandRegistrationOptions.fromJson);
 
   ExecuteCommandRegistrationOptions(
-      {@required this.commands, this.workDoneProgress}) {
-    if (commands == null) {
-      throw 'commands is required but was not provided';
-    }
-  }
+      {required this.commands, this.workDoneProgress});
   static ExecuteCommandRegistrationOptions fromJson(Map<String, dynamic> json) {
     final commands =
         json['commands']?.map((item) => item)?.cast<String>()?.toList();
@@ -14206,19 +13634,18 @@ class ExecuteCommandRegistrationOptions
 
   /// The commands to be executed on the server
   final List<String> commands;
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['commands'] =
-        commands ?? (throw 'commands is required but was not set');
+    __result['commands'] = commands;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('commands');
       try {
@@ -14331,10 +13758,10 @@ class FileChangeType {
   const FileChangeType(this._value);
   const FileChangeType.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// The file got created.
@@ -14363,11 +13790,7 @@ class FileCreate implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileCreate.canParse, FileCreate.fromJson);
 
-  FileCreate({@required this.uri}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-  }
+  FileCreate({required this.uri});
   static FileCreate fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     return FileCreate(uri: uri);
@@ -14378,11 +13801,11 @@ class FileCreate implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['uri'] = uri;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -14433,11 +13856,7 @@ class FileDelete implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileDelete.canParse, FileDelete.fromJson);
 
-  FileDelete({@required this.uri}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-  }
+  FileDelete({required this.uri});
   static FileDelete fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     return FileDelete(uri: uri);
@@ -14448,11 +13867,11 @@ class FileDelete implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['uri'] = uri;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -14502,14 +13921,7 @@ class FileEvent implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
 
-  FileEvent({@required this.uri, @required this.type}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-    if (type == null) {
-      throw 'type is required but was not provided';
-    }
-  }
+  FileEvent({required this.uri, required this.type});
   static FileEvent fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final type = json['type'];
@@ -14517,19 +13929,19 @@ class FileEvent implements ToJsonable {
   }
 
   /// The change type.
-  final num type;
+  final int type;
 
   /// The file's URI.
   final String uri;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['type'] = type ?? (throw 'type is required but was not set');
+    __result['uri'] = uri;
+    __result['type'] = type;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -14558,8 +13970,8 @@ class FileEvent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['type'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['type'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -14599,16 +14011,10 @@ class FileOperationFilter implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       FileOperationFilter.canParse, FileOperationFilter.fromJson);
 
-  FileOperationFilter({this.scheme, @required this.pattern}) {
-    if (pattern == null) {
-      throw 'pattern is required but was not provided';
-    }
-  }
+  FileOperationFilter({this.scheme, required this.pattern});
   static FileOperationFilter fromJson(Map<String, dynamic> json) {
     final scheme = json['scheme'];
-    final pattern = json['pattern'] != null
-        ? FileOperationPattern.fromJson(json['pattern'])
-        : null;
+    final pattern = FileOperationPattern.fromJson(json['pattern']);
     return FileOperationFilter(scheme: scheme, pattern: pattern);
   }
 
@@ -14616,19 +14022,18 @@ class FileOperationFilter implements ToJsonable {
   final FileOperationPattern pattern;
 
   /// A Uri like `file` or `untitled`.
-  final String scheme;
+  final String? scheme;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (scheme != null) {
       __result['scheme'] = scheme;
     }
-    __result['pattern'] =
-        pattern?.toJson() ?? (throw 'pattern is required but was not set');
+    __result['pattern'] = pattern.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('scheme');
       try {
@@ -14691,11 +14096,7 @@ class FileOperationPattern implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       FileOperationPattern.canParse, FileOperationPattern.fromJson);
 
-  FileOperationPattern({@required this.glob, this.matches, this.options}) {
-    if (glob == null) {
-      throw 'glob is required but was not provided';
-    }
-  }
+  FileOperationPattern({required this.glob, this.matches, this.options});
   static FileOperationPattern fromJson(Map<String, dynamic> json) {
     final glob = json['glob'];
     final matches = json['matches'] != null
@@ -14723,24 +14124,24 @@ class FileOperationPattern implements ToJsonable {
   /// Whether to match files or folders with this pattern.
   ///
   /// Matches both if undefined.
-  final FileOperationPatternKind matches;
+  final FileOperationPatternKind? matches;
 
   /// Additional options used during matching.
-  final FileOperationPatternOptions options;
+  final FileOperationPatternOptions? options;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['glob'] = glob ?? (throw 'glob is required but was not set');
+    __result['glob'] = glob;
     if (matches != null) {
-      __result['matches'] = matches.toJson();
+      __result['matches'] = matches?.toJson();
     }
     if (options != null) {
-      __result['options'] = options.toJson();
+      __result['options'] = options?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('glob');
       try {
@@ -14855,7 +14256,7 @@ class FileOperationPatternOptions implements ToJsonable {
   }
 
   /// The pattern should be matched ignoring casing.
-  final bool ignoreCase;
+  final bool? ignoreCase;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -14865,7 +14266,7 @@ class FileOperationPatternOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('ignoreCase');
       try {
@@ -14910,15 +14311,10 @@ class FileOperationRegistrationOptions implements ToJsonable {
       FileOperationRegistrationOptions.canParse,
       FileOperationRegistrationOptions.fromJson);
 
-  FileOperationRegistrationOptions({@required this.filters}) {
-    if (filters == null) {
-      throw 'filters is required but was not provided';
-    }
-  }
+  FileOperationRegistrationOptions({required this.filters});
   static FileOperationRegistrationOptions fromJson(Map<String, dynamic> json) {
     final filters = json['filters']
-        ?.map(
-            (item) => item != null ? FileOperationFilter.fromJson(item) : null)
+        ?.map((item) => FileOperationFilter.fromJson(item))
         ?.cast<FileOperationFilter>()
         ?.toList();
     return FileOperationRegistrationOptions(filters: filters);
@@ -14929,12 +14325,11 @@ class FileOperationRegistrationOptions implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['filters'] =
-        filters ?? (throw 'filters is required but was not set');
+    __result['filters'] = filters.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('filters');
       try {
@@ -14990,14 +14385,7 @@ class FileRename implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileRename.canParse, FileRename.fromJson);
 
-  FileRename({@required this.oldUri, @required this.newUri}) {
-    if (oldUri == null) {
-      throw 'oldUri is required but was not provided';
-    }
-    if (newUri == null) {
-      throw 'newUri is required but was not provided';
-    }
-  }
+  FileRename({required this.oldUri, required this.newUri});
   static FileRename fromJson(Map<String, dynamic> json) {
     final oldUri = json['oldUri'];
     final newUri = json['newUri'];
@@ -15012,12 +14400,12 @@ class FileRename implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['oldUri'] = oldUri ?? (throw 'oldUri is required but was not set');
-    __result['newUri'] = newUri ?? (throw 'newUri is required but was not set');
+    __result['oldUri'] = oldUri;
+    __result['newUri'] = newUri;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('oldUri');
       try {
@@ -15084,11 +14472,7 @@ class FileSystemWatcher implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
 
-  FileSystemWatcher({@required this.globPattern, this.kind}) {
-    if (globPattern == null) {
-      throw 'globPattern is required but was not provided';
-    }
-  }
+  FileSystemWatcher({required this.globPattern, this.kind});
   static FileSystemWatcher fromJson(Map<String, dynamic> json) {
     final globPattern = json['globPattern'];
     final kind = json['kind'] != null ? WatchKind.fromJson(json['kind']) : null;
@@ -15112,19 +14496,18 @@ class FileSystemWatcher implements ToJsonable {
 
   /// The kind of events of interest. If omitted it defaults to WatchKind.Create
   /// | WatchKind.Change | WatchKind.Delete which is 7.
-  final WatchKind kind;
+  final WatchKind? kind;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['globPattern'] =
-        globPattern ?? (throw 'globPattern is required but was not set');
+    __result['globPattern'] = globPattern;
     if (kind != null) {
-      __result['kind'] = kind.toJson();
+      __result['kind'] = kind?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('globPattern');
       try {
@@ -15188,18 +14571,11 @@ class FoldingRange implements ToJsonable {
       LspJsonHandler(FoldingRange.canParse, FoldingRange.fromJson);
 
   FoldingRange(
-      {@required this.startLine,
+      {required this.startLine,
       this.startCharacter,
-      @required this.endLine,
+      required this.endLine,
       this.endCharacter,
-      this.kind}) {
-    if (startLine == null) {
-      throw 'startLine is required but was not provided';
-    }
-    if (endLine == null) {
-      throw 'endLine is required but was not provided';
-    }
-  }
+      this.kind});
   static FoldingRange fromJson(Map<String, dynamic> json) {
     final startLine = json['startLine'];
     final startCharacter = json['startCharacter'];
@@ -15217,47 +14593,45 @@ class FoldingRange implements ToJsonable {
 
   /// The zero-based character offset before the folded range ends. If not
   /// defined, defaults to the length of the end line.
-  final num endCharacter;
+  final int? endCharacter;
 
   /// The zero-based end line of the range to fold. The folded area ends with
   /// the line's last character. To be valid, the end must be zero or larger and
   /// smaller than the number of lines in the document.
-  final num endLine;
+  final int endLine;
 
   /// Describes the kind of the folding range such as `comment` or `region`. The
   /// kind is used to categorize folding ranges and used by commands like 'Fold
   /// all comments'. See [FoldingRangeKind] for an enumeration of standardized
   /// kinds.
-  final FoldingRangeKind kind;
+  final FoldingRangeKind? kind;
 
   /// The zero-based character offset from where the folded range starts. If not
   /// defined, defaults to the length of the start line.
-  final num startCharacter;
+  final int? startCharacter;
 
   /// The zero-based start line of the range to fold. The folded area starts
   /// after the line's last character. To be valid, the end must be zero or
   /// larger and smaller than the number of lines in the document.
-  final num startLine;
+  final int startLine;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['startLine'] =
-        startLine ?? (throw 'startLine is required but was not set');
+    __result['startLine'] = startLine;
     if (startCharacter != null) {
       __result['startCharacter'] = startCharacter;
     }
-    __result['endLine'] =
-        endLine ?? (throw 'endLine is required but was not set');
+    __result['endLine'] = endLine;
     if (endCharacter != null) {
       __result['endCharacter'] = endCharacter;
     }
     if (kind != null) {
-      __result['kind'] = kind.toJson();
+      __result['kind'] = kind?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('startLine');
       try {
@@ -15269,8 +14643,8 @@ class FoldingRange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['startLine'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['startLine'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -15278,8 +14652,8 @@ class FoldingRange implements ToJsonable {
       }
       reporter.push('startCharacter');
       try {
-        if (obj['startCharacter'] != null && !(obj['startCharacter'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['startCharacter'] != null && !(obj['startCharacter'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -15295,8 +14669,8 @@ class FoldingRange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['endLine'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['endLine'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -15304,8 +14678,8 @@ class FoldingRange implements ToJsonable {
       }
       reporter.push('endCharacter');
       try {
-        if (obj['endCharacter'] != null && !(obj['endCharacter'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['endCharacter'] != null && !(obj['endCharacter'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -15377,17 +14751,17 @@ class FoldingRangeClientCapabilities implements ToJsonable {
   /// providers. If this is set to `true` the client supports the new
   /// `FoldingRangeRegistrationOptions` return value for the corresponding
   /// server capability as well.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// If set, the client signals that it only supports folding complete lines.
   /// If set, client will ignore specified `startCharacter` and `endCharacter`
   /// properties in a FoldingRange.
-  final bool lineFoldingOnly;
+  final bool? lineFoldingOnly;
 
   /// The maximum number of folding ranges that the client prefers to receive
   /// per document. The value serves as a hint, servers are free to follow the
   /// limit.
-  final num rangeLimit;
+  final int? rangeLimit;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -15403,7 +14777,7 @@ class FoldingRangeClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -15417,8 +14791,8 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       }
       reporter.push('rangeLimit');
       try {
-        if (obj['rangeLimit'] != null && !(obj['rangeLimit'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['rangeLimit'] != null && !(obj['rangeLimit'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -15510,7 +14884,7 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     return FoldingRangeOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -15520,7 +14894,7 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -15565,31 +14939,25 @@ class FoldingRangeParams
       LspJsonHandler(FoldingRangeParams.canParse, FoldingRangeParams.fromJson);
 
   FoldingRangeParams(
-      {@required this.textDocument,
+      {required this.textDocument,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static FoldingRangeParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return FoldingRangeParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -15598,18 +14966,17 @@ class FoldingRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -15619,7 +14986,7 @@ class FoldingRangeParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -15641,9 +15008,9 @@ class FoldingRangeParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -15652,9 +15019,9 @@ class FoldingRangeParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -15719,12 +15086,12 @@ class FoldingRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
-  final bool workDoneProgress;
+  final String? id;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -15738,7 +15105,7 @@ class FoldingRangeRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -15814,18 +15181,11 @@ class FormattingOptions implements ToJsonable {
       LspJsonHandler(FormattingOptions.canParse, FormattingOptions.fromJson);
 
   FormattingOptions(
-      {@required this.tabSize,
-      @required this.insertSpaces,
+      {required this.tabSize,
+      required this.insertSpaces,
       this.trimTrailingWhitespace,
       this.insertFinalNewline,
-      this.trimFinalNewlines}) {
-    if (tabSize == null) {
-      throw 'tabSize is required but was not provided';
-    }
-    if (insertSpaces == null) {
-      throw 'insertSpaces is required but was not provided';
-    }
-  }
+      this.trimFinalNewlines});
   static FormattingOptions fromJson(Map<String, dynamic> json) {
     final tabSize = json['tabSize'];
     final insertSpaces = json['insertSpaces'];
@@ -15842,28 +15202,26 @@ class FormattingOptions implements ToJsonable {
 
   /// Insert a newline character at the end of the file if one does not exist.
   ///  @since 3.15.0
-  final bool insertFinalNewline;
+  final bool? insertFinalNewline;
 
   /// Prefer spaces over tabs.
   final bool insertSpaces;
 
   /// Size of a tab in spaces.
-  final num tabSize;
+  final int tabSize;
 
   /// Trim all newlines after the final newline at the end of the file.
   ///  @since 3.15.0
-  final bool trimFinalNewlines;
+  final bool? trimFinalNewlines;
 
   /// Trim trailing whitespace on a line.
   ///  @since 3.15.0
-  final bool trimTrailingWhitespace;
+  final bool? trimTrailingWhitespace;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['tabSize'] =
-        tabSize ?? (throw 'tabSize is required but was not set');
-    __result['insertSpaces'] =
-        insertSpaces ?? (throw 'insertSpaces is required but was not set');
+    __result['tabSize'] = tabSize;
+    __result['insertSpaces'] = insertSpaces;
     if (trimTrailingWhitespace != null) {
       __result['trimTrailingWhitespace'] = trimTrailingWhitespace;
     }
@@ -15876,7 +15234,7 @@ class FormattingOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('tabSize');
       try {
@@ -15888,8 +15246,8 @@ class FormattingOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['tabSize'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['tabSize'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -15981,18 +15339,13 @@ class FormattingOptions implements ToJsonable {
 class Hover implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Hover.canParse, Hover.fromJson);
 
-  Hover({@required this.contents, this.range}) {
-    if (contents == null) {
-      throw 'contents is required but was not provided';
-    }
-  }
+  Hover({required this.contents, this.range});
   static Hover fromJson(Map<String, dynamic> json) {
     final contents = json['contents'] is String
         ? Either2<String, MarkupContent>.t1(json['contents'])
         : (MarkupContent.canParse(json['contents'], nullLspJsonReporter)
-            ? Either2<String, MarkupContent>.t2(json['contents'] != null
-                ? MarkupContent.fromJson(json['contents'])
-                : null)
+            ? Either2<String, MarkupContent>.t2(
+                MarkupContent.fromJson(json['contents']))
             : (throw '''${json['contents']} was not one of (String, MarkupContent)'''));
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     return Hover(contents: contents, range: range);
@@ -16003,19 +15356,18 @@ class Hover implements ToJsonable {
 
   /// An optional range is a range inside a text document that is used to
   /// visualize a hover, e.g. by changing the background color.
-  final Range range;
+  final Range? range;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['contents'] =
-        contents ?? (throw 'contents is required but was not set');
+    __result['contents'] = contents;
     if (range != null) {
-      __result['range'] = range.toJson();
+      __result['range'] = range?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('contents');
       try {
@@ -16090,10 +15442,10 @@ class HoverClientCapabilities implements ToJsonable {
   /// Client supports the follow content formats if the content property refers
   /// to a `literal of type MarkupContent`. The order describes the preferred
   /// format of the client.
-  final List<MarkupKind> contentFormat;
+  final List<MarkupKind>? contentFormat;
 
   /// Whether hover supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -16101,12 +15453,13 @@ class HoverClientCapabilities implements ToJsonable {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
     if (contentFormat != null) {
-      __result['contentFormat'] = contentFormat;
+      __result['contentFormat'] =
+          contentFormat?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -16174,7 +15527,7 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
     return HoverOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -16184,7 +15537,7 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -16228,29 +15581,17 @@ class HoverParams
       LspJsonHandler(HoverParams.canParse, HoverParams.fromJson);
 
   HoverParams(
-      {@required this.textDocument,
-      @required this.position,
-      this.workDoneToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      {required this.textDocument, required this.position, this.workDoneToken});
   static HoverParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return HoverParams(
         textDocument: textDocument,
         position: position,
@@ -16264,21 +15605,19 @@ class HoverParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -16317,9 +15656,9 @@ class HoverParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -16374,8 +15713,8 @@ class HoverRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
-  final bool workDoneProgress;
+  final List<DocumentFilter>? documentSelector;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -16386,7 +15725,7 @@ class HoverRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -16462,11 +15801,11 @@ class ImplementationClientCapabilities implements ToJsonable {
   /// Whether implementation supports dynamic registration. If this is set to
   /// `true` the client supports the new `ImplementationRegistrationOptions`
   /// return value for the corresponding server capability as well.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
   ///  @since 3.14.0
-  final bool linkSupport;
+  final bool? linkSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -16479,7 +15818,7 @@ class ImplementationClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -16543,7 +15882,7 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
     return ImplementationOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -16553,7 +15892,7 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -16602,37 +15941,27 @@ class ImplementationParams
       ImplementationParams.canParse, ImplementationParams.fromJson);
 
   ImplementationParams(
-      {@required this.textDocument,
-      @required this.position,
+      {required this.textDocument,
+      required this.position,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static ImplementationParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return ImplementationParams(
         textDocument: textDocument,
         position: position,
@@ -16642,7 +15971,7 @@ class ImplementationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -16651,14 +15980,12 @@ class ImplementationParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -16668,7 +15995,7 @@ class ImplementationParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -16707,9 +16034,9 @@ class ImplementationParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -16718,9 +16045,9 @@ class ImplementationParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -16787,12 +16114,12 @@ class ImplementationRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
-  final bool workDoneProgress;
+  final String? id;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -16806,7 +16133,7 @@ class ImplementationRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -16887,14 +16214,10 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       this.rootPath,
       this.rootUri,
       this.initializationOptions,
-      @required this.capabilities,
+      required this.capabilities,
       this.trace,
       this.workspaceFolders,
-      this.workDoneToken}) {
-    if (capabilities == null) {
-      throw 'capabilities is required but was not provided';
-    }
-  }
+      this.workDoneToken});
   static InitializeParams fromJson(Map<String, dynamic> json) {
     final processId = json['processId'];
     final clientInfo = json['clientInfo'] != null
@@ -16904,9 +16227,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     final rootPath = json['rootPath'];
     final rootUri = json['rootUri'];
     final initializationOptions = json['initializationOptions'];
-    final capabilities = json['capabilities'] != null
-        ? ClientCapabilities.fromJson(json['capabilities'])
-        : null;
+    final capabilities = ClientCapabilities.fromJson(json['capabilities']);
     final trace = const {null, 'off', 'message', 'verbose'}
             .contains(json['trace'])
         ? json['trace']
@@ -16915,13 +16236,13 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
         ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return InitializeParams(
         processId: processId,
         clientInfo: clientInfo,
@@ -16940,7 +16261,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
 
   /// Information about the client
   ///  @since 3.15.0
-  final InitializeParamsClientInfo clientInfo;
+  final InitializeParamsClientInfo? clientInfo;
 
   /// User provided initialization options.
   final dynamic initializationOptions;
@@ -16951,41 +16272,41 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   /// Uses IETF language tags as the value's syntax (See
   /// https://en.wikipedia.org/wiki/IETF_language_tag)
   ///  @since 3.16.0
-  final String locale;
+  final String? locale;
 
   /// The process Id of the parent process that started the server. Is null if
   /// the process has not been started by another process. If the parent process
   /// is not alive then the server should exit (see exit notification) its
   /// process.
-  final num processId;
+  final int? processId;
 
   /// The rootPath of the workspace. Is null if no folder is open.
   ///  @deprecated in favour of `rootUri`.
-  final String rootPath;
+  final String? rootPath;
 
   /// The rootUri of the workspace. Is null if no folder is open. If both
   /// `rootPath` and `rootUri` are set `rootUri` wins.
   ///  @deprecated in favour of `workspaceFolders`
-  final String rootUri;
+  final String? rootUri;
 
   /// The initial trace setting. If omitted trace is disabled ('off').
-  final String trace;
+  final String? trace;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   /// The workspace folders configured in the client when the server starts.
   /// This property is only available if the client supports workspace folders.
   /// It can be `null` if the client supports workspace folders but none are
   /// configured.
   ///  @since 3.6.0
-  final List<WorkspaceFolder> workspaceFolders;
+  final List<WorkspaceFolder>? workspaceFolders;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['processId'] = processId;
     if (clientInfo != null) {
-      __result['clientInfo'] = clientInfo.toJson();
+      __result['clientInfo'] = clientInfo?.toJson();
     }
     if (locale != null) {
       __result['locale'] = locale;
@@ -16997,13 +16318,13 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     if (initializationOptions != null) {
       __result['initializationOptions'] = initializationOptions;
     }
-    __result['capabilities'] = capabilities?.toJson() ??
-        (throw 'capabilities is required but was not set');
+    __result['capabilities'] = capabilities.toJson();
     if (trace != null) {
       __result['trace'] = trace;
     }
     if (workspaceFolders != null) {
-      __result['workspaceFolders'] = workspaceFolders;
+      __result['workspaceFolders'] =
+          workspaceFolders?.map((item) => item.toJson()).toList();
     }
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -17011,7 +16332,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('processId');
       try {
@@ -17019,8 +16340,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['processId'] != null && !(obj['processId'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['processId'] != null && !(obj['processId'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -17063,15 +16384,6 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
         }
         if (obj['rootUri'] != null && !(obj['rootUri'] is String)) {
           reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('initializationOptions');
-      try {
-        if (obj['initializationOptions'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -17121,9 +16433,9 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -17179,11 +16491,7 @@ class InitializeParamsClientInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       InitializeParamsClientInfo.canParse, InitializeParamsClientInfo.fromJson);
 
-  InitializeParamsClientInfo({@required this.name, this.version}) {
-    if (name == null) {
-      throw 'name is required but was not provided';
-    }
-  }
+  InitializeParamsClientInfo({required this.name, this.version});
   static InitializeParamsClientInfo fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final version = json['version'];
@@ -17194,18 +16502,18 @@ class InitializeParamsClientInfo implements ToJsonable {
   final String name;
 
   /// The client's version as defined by the client.
-  final String version;
+  final String? version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['name'] = name ?? (throw 'name is required but was not set');
+    __result['name'] = name;
     if (version != null) {
       __result['version'] = version;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -17265,15 +16573,9 @@ class InitializeResult implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(InitializeResult.canParse, InitializeResult.fromJson);
 
-  InitializeResult({@required this.capabilities, this.serverInfo}) {
-    if (capabilities == null) {
-      throw 'capabilities is required but was not provided';
-    }
-  }
+  InitializeResult({required this.capabilities, this.serverInfo});
   static InitializeResult fromJson(Map<String, dynamic> json) {
-    final capabilities = json['capabilities'] != null
-        ? ServerCapabilities.fromJson(json['capabilities'])
-        : null;
+    final capabilities = ServerCapabilities.fromJson(json['capabilities']);
     final serverInfo = json['serverInfo'] != null
         ? InitializeResultServerInfo.fromJson(json['serverInfo'])
         : null;
@@ -17285,19 +16587,18 @@ class InitializeResult implements ToJsonable {
 
   /// Information about the server.
   ///  @since 3.15.0
-  final InitializeResultServerInfo serverInfo;
+  final InitializeResultServerInfo? serverInfo;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['capabilities'] = capabilities?.toJson() ??
-        (throw 'capabilities is required but was not set');
+    __result['capabilities'] = capabilities.toJson();
     if (serverInfo != null) {
-      __result['serverInfo'] = serverInfo.toJson();
+      __result['serverInfo'] = serverInfo?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('capabilities');
       try {
@@ -17360,11 +16661,7 @@ class InitializeResultServerInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       InitializeResultServerInfo.canParse, InitializeResultServerInfo.fromJson);
 
-  InitializeResultServerInfo({@required this.name, this.version}) {
-    if (name == null) {
-      throw 'name is required but was not provided';
-    }
-  }
+  InitializeResultServerInfo({required this.name, this.version});
   static InitializeResultServerInfo fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final version = json['version'];
@@ -17375,18 +16672,18 @@ class InitializeResultServerInfo implements ToJsonable {
   final String name;
 
   /// The server's version as defined by the server.
-  final String version;
+  final String? version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['name'] = name ?? (throw 'name is required but was not set');
+    __result['name'] = name;
     if (version != null) {
       __result['version'] = version;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -17455,7 +16752,7 @@ class InitializedParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
@@ -17489,23 +16786,11 @@ class InsertReplaceEdit implements ToJsonable {
       LspJsonHandler(InsertReplaceEdit.canParse, InsertReplaceEdit.fromJson);
 
   InsertReplaceEdit(
-      {@required this.newText, @required this.insert, @required this.replace}) {
-    if (newText == null) {
-      throw 'newText is required but was not provided';
-    }
-    if (insert == null) {
-      throw 'insert is required but was not provided';
-    }
-    if (replace == null) {
-      throw 'replace is required but was not provided';
-    }
-  }
+      {required this.newText, required this.insert, required this.replace});
   static InsertReplaceEdit fromJson(Map<String, dynamic> json) {
     final newText = json['newText'];
-    final insert =
-        json['insert'] != null ? Range.fromJson(json['insert']) : null;
-    final replace =
-        json['replace'] != null ? Range.fromJson(json['replace']) : null;
+    final insert = Range.fromJson(json['insert']);
+    final replace = Range.fromJson(json['replace']);
     return InsertReplaceEdit(
         newText: newText, insert: insert, replace: replace);
   }
@@ -17521,16 +16806,13 @@ class InsertReplaceEdit implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['newText'] =
-        newText ?? (throw 'newText is required but was not set');
-    __result['insert'] =
-        insert?.toJson() ?? (throw 'insert is required but was not set');
-    __result['replace'] =
-        replace?.toJson() ?? (throw 'replace is required but was not set');
+    __result['newText'] = newText;
+    __result['insert'] = insert.toJson();
+    __result['replace'] = replace.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('newText');
       try {
@@ -17620,7 +16902,7 @@ class InsertTextFormat {
   const InsertTextFormat._(this._value);
   const InsertTextFormat.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
     switch (obj) {
@@ -17707,7 +16989,7 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
   /// `true` the client supports the new `(TextDocumentRegistrationOptions &
   /// StaticRegistrationOptions)` return value for the corresponding server
   /// capability as well.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -17717,7 +16999,7 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -17771,7 +17053,7 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     return LinkedEditingRangeOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -17781,7 +17063,7 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -17826,29 +17108,17 @@ class LinkedEditingRangeParams
       LinkedEditingRangeParams.canParse, LinkedEditingRangeParams.fromJson);
 
   LinkedEditingRangeParams(
-      {@required this.textDocument,
-      @required this.position,
-      this.workDoneToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      {required this.textDocument, required this.position, this.workDoneToken});
   static LinkedEditingRangeParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return LinkedEditingRangeParams(
         textDocument: textDocument,
         position: position,
@@ -17862,21 +17132,19 @@ class LinkedEditingRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -17915,9 +17183,9 @@ class LinkedEditingRangeParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -17983,12 +17251,12 @@ class LinkedEditingRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
-  final bool workDoneProgress;
+  final String? id;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -18002,7 +17270,7 @@ class LinkedEditingRangeRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -18077,14 +17345,10 @@ class LinkedEditingRanges implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       LinkedEditingRanges.canParse, LinkedEditingRanges.fromJson);
 
-  LinkedEditingRanges({@required this.ranges, this.wordPattern}) {
-    if (ranges == null) {
-      throw 'ranges is required but was not provided';
-    }
-  }
+  LinkedEditingRanges({required this.ranges, this.wordPattern});
   static LinkedEditingRanges fromJson(Map<String, dynamic> json) {
     final ranges = json['ranges']
-        ?.map((item) => item != null ? Range.fromJson(item) : null)
+        ?.map((item) => Range.fromJson(item))
         ?.cast<Range>()
         ?.toList();
     final wordPattern = json['wordPattern'];
@@ -18099,18 +17363,18 @@ class LinkedEditingRanges implements ToJsonable {
   /// An optional word pattern (regular expression) that describes valid
   /// contents for the given ranges. If no pattern is provided, the client
   /// configuration's word pattern will be used.
-  final String wordPattern;
+  final String? wordPattern;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['ranges'] = ranges ?? (throw 'ranges is required but was not set');
+    __result['ranges'] = ranges.map((item) => item.toJson()).toList();
     if (wordPattern != null) {
       __result['wordPattern'] = wordPattern;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('ranges');
       try {
@@ -18173,17 +17437,10 @@ class Location implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(Location.canParse, Location.fromJson);
 
-  Location({@required this.uri, @required this.range}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-  }
+  Location({required this.uri, required this.range});
   static Location fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     return Location(uri: uri, range: range);
   }
 
@@ -18192,13 +17449,12 @@ class Location implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['uri'] = uri;
+    __result['range'] = range.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -18267,30 +17523,16 @@ class LocationLink implements ToJsonable {
 
   LocationLink(
       {this.originSelectionRange,
-      @required this.targetUri,
-      @required this.targetRange,
-      @required this.targetSelectionRange}) {
-    if (targetUri == null) {
-      throw 'targetUri is required but was not provided';
-    }
-    if (targetRange == null) {
-      throw 'targetRange is required but was not provided';
-    }
-    if (targetSelectionRange == null) {
-      throw 'targetSelectionRange is required but was not provided';
-    }
-  }
+      required this.targetUri,
+      required this.targetRange,
+      required this.targetSelectionRange});
   static LocationLink fromJson(Map<String, dynamic> json) {
     final originSelectionRange = json['originSelectionRange'] != null
         ? Range.fromJson(json['originSelectionRange'])
         : null;
     final targetUri = json['targetUri'];
-    final targetRange = json['targetRange'] != null
-        ? Range.fromJson(json['targetRange'])
-        : null;
-    final targetSelectionRange = json['targetSelectionRange'] != null
-        ? Range.fromJson(json['targetSelectionRange'])
-        : null;
+    final targetRange = Range.fromJson(json['targetRange']);
+    final targetSelectionRange = Range.fromJson(json['targetSelectionRange']);
     return LocationLink(
         originSelectionRange: originSelectionRange,
         targetUri: targetUri,
@@ -18302,7 +17544,7 @@ class LocationLink implements ToJsonable {
   ///
   /// Used as the underlined span for mouse interaction. Defaults to the word
   /// range at the mouse position.
-  final Range originSelectionRange;
+  final Range? originSelectionRange;
 
   /// The full target range of this link. If the target for example is a symbol
   /// then target range is the range enclosing this symbol not including
@@ -18321,18 +17563,15 @@ class LocationLink implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (originSelectionRange != null) {
-      __result['originSelectionRange'] = originSelectionRange.toJson();
+      __result['originSelectionRange'] = originSelectionRange?.toJson();
     }
-    __result['targetUri'] =
-        targetUri ?? (throw 'targetUri is required but was not set');
-    __result['targetRange'] = targetRange?.toJson() ??
-        (throw 'targetRange is required but was not set');
-    __result['targetSelectionRange'] = targetSelectionRange?.toJson() ??
-        (throw 'targetSelectionRange is required but was not set');
+    __result['targetUri'] = targetUri;
+    __result['targetRange'] = targetRange.toJson();
+    __result['targetSelectionRange'] = targetSelectionRange.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('originSelectionRange');
       try {
@@ -18432,17 +17671,9 @@ class LogMessageParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(LogMessageParams.canParse, LogMessageParams.fromJson);
 
-  LogMessageParams({@required this.type, @required this.message}) {
-    if (type == null) {
-      throw 'type is required but was not provided';
-    }
-    if (message == null) {
-      throw 'message is required but was not provided';
-    }
-  }
+  LogMessageParams({required this.type, required this.message});
   static LogMessageParams fromJson(Map<String, dynamic> json) {
-    final type =
-        json['type'] != null ? MessageType.fromJson(json['type']) : null;
+    final type = MessageType.fromJson(json['type']);
     final message = json['message'];
     return LogMessageParams(type: type, message: message);
   }
@@ -18455,14 +17686,12 @@ class LogMessageParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['type'] =
-        type?.toJson() ?? (throw 'type is required but was not set');
-    __result['message'] =
-        message ?? (throw 'message is required but was not set');
+    __result['type'] = type.toJson();
+    __result['message'] = message;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('type');
       try {
@@ -18529,11 +17758,7 @@ class LogTraceParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(LogTraceParams.canParse, LogTraceParams.fromJson);
 
-  LogTraceParams({@required this.message, this.verbose}) {
-    if (message == null) {
-      throw 'message is required but was not provided';
-    }
-  }
+  LogTraceParams({required this.message, this.verbose});
   static LogTraceParams fromJson(Map<String, dynamic> json) {
     final message = json['message'];
     final verbose = json['verbose'];
@@ -18545,19 +17770,18 @@ class LogTraceParams implements ToJsonable {
 
   /// Additional information that can be computed if the `trace` configuration
   /// is set to `'verbose'`
-  final String verbose;
+  final String? verbose;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['message'] =
-        message ?? (throw 'message is required but was not set');
+    __result['message'] = message;
     if (verbose != null) {
       __result['verbose'] = verbose;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('message');
       try {
@@ -18618,11 +17842,7 @@ class MarkdownClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       MarkdownClientCapabilities.canParse, MarkdownClientCapabilities.fromJson);
 
-  MarkdownClientCapabilities({@required this.parser, this.version}) {
-    if (parser == null) {
-      throw 'parser is required but was not provided';
-    }
-  }
+  MarkdownClientCapabilities({required this.parser, this.version});
   static MarkdownClientCapabilities fromJson(Map<String, dynamic> json) {
     final parser = json['parser'];
     final version = json['version'];
@@ -18633,18 +17853,18 @@ class MarkdownClientCapabilities implements ToJsonable {
   final String parser;
 
   /// The version of the parser.
-  final String version;
+  final String? version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['parser'] = parser ?? (throw 'parser is required but was not set');
+    __result['parser'] = parser;
     if (version != null) {
       __result['version'] = version;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('parser');
       try {
@@ -18725,17 +17945,9 @@ class MarkupContent implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
 
-  MarkupContent({@required this.kind, @required this.value}) {
-    if (kind == null) {
-      throw 'kind is required but was not provided';
-    }
-    if (value == null) {
-      throw 'value is required but was not provided';
-    }
-  }
+  MarkupContent({required this.kind, required this.value});
   static MarkupContent fromJson(Map<String, dynamic> json) {
-    final kind =
-        json['kind'] != null ? MarkupKind.fromJson(json['kind']) : null;
+    final kind = MarkupKind.fromJson(json['kind']);
     final value = json['value'];
     return MarkupContent(kind: kind, value: value);
   }
@@ -18748,13 +17960,12 @@ class MarkupContent implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['kind'] =
-        kind?.toJson() ?? (throw 'kind is required but was not set');
-    __result['value'] = value ?? (throw 'value is required but was not set');
+    __result['kind'] = kind.toJson();
+    __result['value'] = value;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -18857,11 +18068,7 @@ class MarkupKind {
 class Message implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Message.canParse, Message.fromJson);
 
-  Message({@required this.jsonrpc}) {
-    if (jsonrpc == null) {
-      throw 'jsonrpc is required but was not provided';
-    }
-  }
+  Message({required this.jsonrpc});
   static Message fromJson(Map<String, dynamic> json) {
     if (RequestMessage.canParse(json, nullLspJsonReporter)) {
       return RequestMessage.fromJson(json);
@@ -18880,12 +18087,11 @@ class Message implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['jsonrpc'] =
-        jsonrpc ?? (throw 'jsonrpc is required but was not set');
+    __result['jsonrpc'] = jsonrpc;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('jsonrpc');
       try {
@@ -18934,11 +18140,7 @@ class MessageActionItem implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(MessageActionItem.canParse, MessageActionItem.fromJson);
 
-  MessageActionItem({@required this.title}) {
-    if (title == null) {
-      throw 'title is required but was not provided';
-    }
-  }
+  MessageActionItem({required this.title});
   static MessageActionItem fromJson(Map<String, dynamic> json) {
     final title = json['title'];
     return MessageActionItem(title: title);
@@ -18949,11 +18151,11 @@ class MessageActionItem implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['title'] = title ?? (throw 'title is required but was not set');
+    __result['title'] = title;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('title');
       try {
@@ -19002,10 +18204,10 @@ class MessageType {
   const MessageType(this._value);
   const MessageType.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// An error message.
@@ -19309,26 +18511,14 @@ class Moniker implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Moniker.canParse, Moniker.fromJson);
 
   Moniker(
-      {@required this.scheme,
-      @required this.identifier,
-      @required this.unique,
-      this.kind}) {
-    if (scheme == null) {
-      throw 'scheme is required but was not provided';
-    }
-    if (identifier == null) {
-      throw 'identifier is required but was not provided';
-    }
-    if (unique == null) {
-      throw 'unique is required but was not provided';
-    }
-  }
+      {required this.scheme,
+      required this.identifier,
+      required this.unique,
+      this.kind});
   static Moniker fromJson(Map<String, dynamic> json) {
     final scheme = json['scheme'];
     final identifier = json['identifier'];
-    final unique = json['unique'] != null
-        ? UniquenessLevel.fromJson(json['unique'])
-        : null;
+    final unique = UniquenessLevel.fromJson(json['unique']);
     final kind =
         json['kind'] != null ? MonikerKind.fromJson(json['kind']) : null;
     return Moniker(
@@ -19340,7 +18530,7 @@ class Moniker implements ToJsonable {
   final String identifier;
 
   /// The moniker kind if known.
-  final MonikerKind kind;
+  final MonikerKind? kind;
 
   /// The scheme of the moniker. For example tsc or .Net
   final String scheme;
@@ -19350,18 +18540,16 @@ class Moniker implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['scheme'] = scheme ?? (throw 'scheme is required but was not set');
-    __result['identifier'] =
-        identifier ?? (throw 'identifier is required but was not set');
-    __result['unique'] =
-        unique?.toJson() ?? (throw 'unique is required but was not set');
+    __result['scheme'] = scheme;
+    __result['identifier'] = identifier;
+    __result['unique'] = unique.toJson();
     if (kind != null) {
-      __result['kind'] = kind.toJson();
+      __result['kind'] = kind?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('scheme');
       try {
@@ -19471,7 +18659,7 @@ class MonikerClientCapabilities implements ToJsonable {
   /// `true` the client supports the new `(TextDocumentRegistrationOptions &
   /// StaticRegistrationOptions)` return value for the corresponding server
   /// capability as well.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -19481,7 +18669,7 @@ class MonikerClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -19565,7 +18753,7 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
     return MonikerOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -19575,7 +18763,7 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -19623,37 +18811,27 @@ class MonikerParams
       LspJsonHandler(MonikerParams.canParse, MonikerParams.fromJson);
 
   MonikerParams(
-      {@required this.textDocument,
-      @required this.position,
+      {required this.textDocument,
+      required this.position,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static MonikerParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return MonikerParams(
         textDocument: textDocument,
         position: position,
@@ -19663,7 +18841,7 @@ class MonikerParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -19672,14 +18850,12 @@ class MonikerParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -19689,7 +18865,7 @@ class MonikerParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -19728,9 +18904,9 @@ class MonikerParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -19739,9 +18915,9 @@ class MonikerParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -19798,8 +18974,8 @@ class MonikerRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
-  final bool workDoneProgress;
+  final List<DocumentFilter>? documentSelector;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -19810,7 +18986,7 @@ class MonikerRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -19874,17 +19050,9 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       NotificationMessage.canParse, NotificationMessage.fromJson);
 
   NotificationMessage(
-      {@required this.method, this.params, @required this.jsonrpc}) {
-    if (method == null) {
-      throw 'method is required but was not provided';
-    }
-    if (jsonrpc == null) {
-      throw 'jsonrpc is required but was not provided';
-    }
-  }
+      {required this.method, this.params, required this.jsonrpc});
   static NotificationMessage fromJson(Map<String, dynamic> json) {
-    final method =
-        json['method'] != null ? Method.fromJson(json['method']) : null;
+    final method = Method.fromJson(json['method']);
     final params = json['params'];
     final jsonrpc = json['jsonrpc'];
     return NotificationMessage(
@@ -19901,17 +19069,15 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['method'] =
-        method?.toJson() ?? (throw 'method is required but was not set');
+    __result['method'] = method.toJson();
     if (params != null) {
       __result['params'] = params;
     }
-    __result['jsonrpc'] =
-        jsonrpc ?? (throw 'jsonrpc is required but was not set');
+    __result['jsonrpc'] = jsonrpc;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('method');
       try {
@@ -19925,15 +19091,6 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
         }
         if (!(Method.canParse(obj['method'], reporter))) {
           reporter.reportError('must be of type Method');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('params');
-      try {
-        if (obj['params'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -19994,11 +19151,7 @@ class OptionalVersionedTextDocumentIdentifier
       OptionalVersionedTextDocumentIdentifier.canParse,
       OptionalVersionedTextDocumentIdentifier.fromJson);
 
-  OptionalVersionedTextDocumentIdentifier({this.version, @required this.uri}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-  }
+  OptionalVersionedTextDocumentIdentifier({this.version, required this.uri});
   static OptionalVersionedTextDocumentIdentifier fromJson(
       Map<String, dynamic> json) {
     final version = json['version'];
@@ -20018,16 +19171,16 @@ class OptionalVersionedTextDocumentIdentifier
   ///
   /// The version number of a document will increase after each change,
   /// including undo/redo. The number doesn't need to be consecutive.
-  final num version;
+  final int? version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['version'] = version;
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['uri'] = uri;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('version');
       try {
@@ -20035,8 +19188,8 @@ class OptionalVersionedTextDocumentIdentifier
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['version'] != null && !(obj['version'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['version'] != null && !(obj['version'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -20094,28 +19247,24 @@ class ParameterInformation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ParameterInformation.canParse, ParameterInformation.fromJson);
 
-  ParameterInformation({@required this.label, this.documentation}) {
-    if (label == null) {
-      throw 'label is required but was not provided';
-    }
-  }
+  ParameterInformation({required this.label, this.documentation});
   static ParameterInformation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
-    final documentation = json['documentation'] is String
-        ? Either2<String, MarkupContent>.t1(json['documentation'])
-        : (MarkupContent.canParse(json['documentation'], nullLspJsonReporter)
-            ? Either2<String, MarkupContent>.t2(json['documentation'] != null
-                ? MarkupContent.fromJson(json['documentation'])
-                : null)
-            : (json['documentation'] == null
-                ? null
+    final documentation = json['documentation'] == null
+        ? null
+        : (json['documentation'] is String
+            ? Either2<String, MarkupContent>.t1(json['documentation'])
+            : (MarkupContent.canParse(
+                    json['documentation'], nullLspJsonReporter)
+                ? Either2<String, MarkupContent>.t2(
+                    MarkupContent.fromJson(json['documentation']))
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
     return ParameterInformation(label: label, documentation: documentation);
   }
 
   /// The human-readable doc-comment of this parameter. Will be shown in the UI
   /// but can be omitted.
-  final Either2<String, MarkupContent> documentation;
+  final Either2<String, MarkupContent>? documentation;
 
   /// The label of this parameter information.
   ///
@@ -20131,14 +19280,14 @@ class ParameterInformation implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['label'] = label ?? (throw 'label is required but was not set');
+    __result['label'] = label;
     if (documentation != null) {
       __result['documentation'] = documentation;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -20271,19 +19420,19 @@ class PartialResultParams implements ToJsonable {
     if (MonikerParams.canParse(json, nullLspJsonReporter)) {
       return MonikerParams.fromJson(json);
     }
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return PartialResultParams(partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -20293,14 +19442,14 @@ class PartialResultParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -20337,14 +19486,7 @@ class Position implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(Position.canParse, Position.fromJson);
 
-  Position({@required this.line, @required this.character}) {
-    if (line == null) {
-      throw 'line is required but was not provided';
-    }
-    if (character == null) {
-      throw 'character is required but was not provided';
-    }
-  }
+  Position({required this.line, required this.character});
   static Position fromJson(Map<String, dynamic> json) {
     final line = json['line'];
     final character = json['character'];
@@ -20357,20 +19499,19 @@ class Position implements ToJsonable {
   ///
   /// If the character value is greater than the line length it defaults back to
   /// the line length.
-  final num character;
+  final int character;
 
   /// Line position in a document (zero-based).
-  final num line;
+  final int line;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['line'] = line ?? (throw 'line is required but was not set');
-    __result['character'] =
-        character ?? (throw 'character is required but was not set');
+    __result['line'] = line;
+    __result['character'] = character;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('line');
       try {
@@ -20382,8 +19523,8 @@ class Position implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['line'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['line'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -20399,8 +19540,8 @@ class Position implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['character'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['character'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -20437,20 +19578,10 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       PrepareRenameParams.canParse, PrepareRenameParams.fromJson);
 
-  PrepareRenameParams({@required this.textDocument, @required this.position}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+  PrepareRenameParams({required this.textDocument, required this.position});
   static PrepareRenameParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
     return PrepareRenameParams(textDocument: textDocument, position: position);
   }
 
@@ -20462,14 +19593,12 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -20565,38 +19694,31 @@ class ProgressParams<T> implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ProgressParams.canParse, ProgressParams.fromJson);
 
-  ProgressParams({@required this.token, @required this.value}) {
-    if (token == null) {
-      throw 'token is required but was not provided';
-    }
-    if (value == null) {
-      throw 'value is required but was not provided';
-    }
-  }
+  ProgressParams({required this.token, this.value});
   static ProgressParams<T> fromJson<T>(Map<String, dynamic> json) {
-    final token = json['token'] is num
-        ? Either2<num, String>.t1(json['token'])
+    final token = json['token'] is int
+        ? Either2<int, String>.t1(json['token'])
         : (json['token'] is String
-            ? Either2<num, String>.t2(json['token'])
-            : (throw '''${json['token']} was not one of (num, String)'''));
+            ? Either2<int, String>.t2(json['token'])
+            : (throw '''${json['token']} was not one of (int, String)'''));
     final value = json['value'];
     return ProgressParams<T>(token: token, value: value);
   }
 
   /// The progress token provided by the client or server.
-  final Either2<num, String> token;
+  final Either2<int, String> token;
 
   /// The progress data.
-  final T value;
+  final dynamic value;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['token'] = token ?? (throw 'token is required but was not set');
-    __result['value'] = value ?? (throw 'value is required but was not set');
+    __result['token'] = token;
+    __result['value'] = value;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('token');
       try {
@@ -20608,25 +19730,8 @@ class ProgressParams<T> implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['token'] is num || obj['token'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('value');
-      try {
-        if (!obj.containsKey('value')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        if (obj['value'] == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(true /* T.canParse(obj['value']) */)) {
-          reporter.reportError('must be of type T');
+        if (!((obj['token'] is int || obj['token'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -20690,26 +19795,26 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
 
   /// Client supports a codeDescription property
   ///  @since 3.16.0
-  final bool codeDescriptionSupport;
+  final bool? codeDescriptionSupport;
 
   /// Whether code action supports the `data` property which is preserved
   /// between a `textDocument/publishDiagnostics` and `textDocument/codeAction`
   /// request.
   ///  @since 3.16.0
-  final bool dataSupport;
+  final bool? dataSupport;
 
   /// Whether the clients accepts diagnostics with related information.
-  final bool relatedInformation;
+  final bool? relatedInformation;
 
   /// Client supports the tag property to provide meta data about a diagnostic.
   /// Clients supporting tags have to handle unknown tags gracefully.
   ///  @since 3.15.0
-  final PublishDiagnosticsClientCapabilitiesTagSupport tagSupport;
+  final PublishDiagnosticsClientCapabilitiesTagSupport? tagSupport;
 
   /// Whether the client interprets the version property of the
   /// `textDocument/publishDiagnostics` notification's parameter.
   ///  @since 3.15.0
-  final bool versionSupport;
+  final bool? versionSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -20717,7 +19822,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       __result['relatedInformation'] = relatedInformation;
     }
     if (tagSupport != null) {
-      __result['tagSupport'] = tagSupport.toJson();
+      __result['tagSupport'] = tagSupport?.toJson();
     }
     if (versionSupport != null) {
       __result['versionSupport'] = versionSupport;
@@ -20731,7 +19836,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('relatedInformation');
       try {
@@ -20825,15 +19930,11 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
       PublishDiagnosticsClientCapabilitiesTagSupport.canParse,
       PublishDiagnosticsClientCapabilitiesTagSupport.fromJson);
 
-  PublishDiagnosticsClientCapabilitiesTagSupport({@required this.valueSet}) {
-    if (valueSet == null) {
-      throw 'valueSet is required but was not provided';
-    }
-  }
+  PublishDiagnosticsClientCapabilitiesTagSupport({required this.valueSet});
   static PublishDiagnosticsClientCapabilitiesTagSupport fromJson(
       Map<String, dynamic> json) {
     final valueSet = json['valueSet']
-        ?.map((item) => item != null ? DiagnosticTag.fromJson(item) : null)
+        ?.map((item) => DiagnosticTag.fromJson(item))
         ?.cast<DiagnosticTag>()
         ?.toList();
     return PublishDiagnosticsClientCapabilitiesTagSupport(valueSet: valueSet);
@@ -20844,12 +19945,11 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -20905,19 +20005,12 @@ class PublishDiagnosticsParams implements ToJsonable {
       PublishDiagnosticsParams.canParse, PublishDiagnosticsParams.fromJson);
 
   PublishDiagnosticsParams(
-      {@required this.uri, this.version, @required this.diagnostics}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-    if (diagnostics == null) {
-      throw 'diagnostics is required but was not provided';
-    }
-  }
+      {required this.uri, this.version, required this.diagnostics});
   static PublishDiagnosticsParams fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final version = json['version'];
     final diagnostics = json['diagnostics']
-        ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
+        ?.map((item) => Diagnostic.fromJson(item))
         ?.cast<Diagnostic>()
         ?.toList();
     return PublishDiagnosticsParams(
@@ -20933,20 +20026,19 @@ class PublishDiagnosticsParams implements ToJsonable {
   /// Optional the version number of the document the diagnostics are published
   /// for.
   ///  @since 3.15.0
-  final num version;
+  final int? version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['uri'] = uri;
     if (version != null) {
       __result['version'] = version;
     }
-    __result['diagnostics'] =
-        diagnostics ?? (throw 'diagnostics is required but was not set');
+    __result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -20967,8 +20059,8 @@ class PublishDiagnosticsParams implements ToJsonable {
       }
       reporter.push('version');
       try {
-        if (obj['version'] != null && !(obj['version'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['version'] != null && !(obj['version'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -21029,18 +20121,10 @@ class PublishDiagnosticsParams implements ToJsonable {
 class Range implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Range.canParse, Range.fromJson);
 
-  Range({@required this.start, @required this.end}) {
-    if (start == null) {
-      throw 'start is required but was not provided';
-    }
-    if (end == null) {
-      throw 'end is required but was not provided';
-    }
-  }
+  Range({required this.start, required this.end});
   static Range fromJson(Map<String, dynamic> json) {
-    final start =
-        json['start'] != null ? Position.fromJson(json['start']) : null;
-    final end = json['end'] != null ? Position.fromJson(json['end']) : null;
+    final start = Position.fromJson(json['start']);
+    final end = Position.fromJson(json['end']);
     return Range(start: start, end: end);
   }
 
@@ -21052,14 +20136,12 @@ class Range implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['start'] =
-        start?.toJson() ?? (throw 'start is required but was not set');
-    __result['end'] =
-        end?.toJson() ?? (throw 'end is required but was not set');
+    __result['start'] = start.toJson();
+    __result['end'] = end.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('start');
       try {
@@ -21126,16 +20208,9 @@ class RangeAndPlaceholder implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       RangeAndPlaceholder.canParse, RangeAndPlaceholder.fromJson);
 
-  RangeAndPlaceholder({@required this.range, @required this.placeholder}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (placeholder == null) {
-      throw 'placeholder is required but was not provided';
-    }
-  }
+  RangeAndPlaceholder({required this.range, required this.placeholder});
   static RangeAndPlaceholder fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     final placeholder = json['placeholder'];
     return RangeAndPlaceholder(range: range, placeholder: placeholder);
   }
@@ -21145,14 +20220,12 @@ class RangeAndPlaceholder implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['placeholder'] =
-        placeholder ?? (throw 'placeholder is required but was not set');
+    __result['range'] = range.toJson();
+    __result['placeholder'] = placeholder;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -21229,7 +20302,7 @@ class ReferenceClientCapabilities implements ToJsonable {
   }
 
   /// Whether references supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -21239,7 +20312,7 @@ class ReferenceClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -21282,11 +20355,7 @@ class ReferenceContext implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ReferenceContext.canParse, ReferenceContext.fromJson);
 
-  ReferenceContext({@required this.includeDeclaration}) {
-    if (includeDeclaration == null) {
-      throw 'includeDeclaration is required but was not provided';
-    }
-  }
+  ReferenceContext({required this.includeDeclaration});
   static ReferenceContext fromJson(Map<String, dynamic> json) {
     final includeDeclaration = json['includeDeclaration'];
     return ReferenceContext(includeDeclaration: includeDeclaration);
@@ -21297,12 +20366,11 @@ class ReferenceContext implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['includeDeclaration'] = includeDeclaration ??
-        (throw 'includeDeclaration is required but was not set');
+    __result['includeDeclaration'] = includeDeclaration;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('includeDeclaration');
       try {
@@ -21360,7 +20428,7 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
     return ReferenceOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -21370,7 +20438,7 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -21418,44 +20486,29 @@ class ReferenceParams
       LspJsonHandler(ReferenceParams.canParse, ReferenceParams.fromJson);
 
   ReferenceParams(
-      {@required this.context,
-      @required this.textDocument,
-      @required this.position,
+      {required this.context,
+      required this.textDocument,
+      required this.position,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (context == null) {
-      throw 'context is required but was not provided';
-    }
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static ReferenceParams fromJson(Map<String, dynamic> json) {
-    final context = json['context'] != null
-        ? ReferenceContext.fromJson(json['context'])
-        : null;
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final context = ReferenceContext.fromJson(json['context']);
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return ReferenceParams(
         context: context,
         textDocument: textDocument,
@@ -21468,7 +20521,7 @@ class ReferenceParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -21477,16 +20530,13 @@ class ReferenceParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['context'] =
-        context?.toJson() ?? (throw 'context is required but was not set');
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['context'] = context.toJson();
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -21496,7 +20546,7 @@ class ReferenceParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('context');
       try {
@@ -21552,9 +20602,9 @@ class ReferenceParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -21563,9 +20613,9 @@ class ReferenceParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -21625,8 +20675,8 @@ class ReferenceRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
-  final bool workDoneProgress;
+  final List<DocumentFilter>? documentSelector;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -21637,7 +20687,7 @@ class ReferenceRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -21701,15 +20751,7 @@ class Registration implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(Registration.canParse, Registration.fromJson);
 
-  Registration(
-      {@required this.id, @required this.method, this.registerOptions}) {
-    if (id == null) {
-      throw 'id is required but was not provided';
-    }
-    if (method == null) {
-      throw 'method is required but was not provided';
-    }
-  }
+  Registration({required this.id, required this.method, this.registerOptions});
   static Registration fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     final method = json['method'];
@@ -21730,15 +20772,15 @@ class Registration implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['id'] = id ?? (throw 'id is required but was not set');
-    __result['method'] = method ?? (throw 'method is required but was not set');
+    __result['id'] = id;
+    __result['method'] = method;
     if (registerOptions != null) {
       __result['registerOptions'] = registerOptions;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -21769,15 +20811,6 @@ class Registration implements ToJsonable {
         }
         if (!(obj['method'] is String)) {
           reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('registerOptions');
-      try {
-        if (obj['registerOptions'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -21818,14 +20851,10 @@ class RegistrationParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(RegistrationParams.canParse, RegistrationParams.fromJson);
 
-  RegistrationParams({@required this.registrations}) {
-    if (registrations == null) {
-      throw 'registrations is required but was not provided';
-    }
-  }
+  RegistrationParams({required this.registrations});
   static RegistrationParams fromJson(Map<String, dynamic> json) {
     final registrations = json['registrations']
-        ?.map((item) => item != null ? Registration.fromJson(item) : null)
+        ?.map((item) => Registration.fromJson(item))
         ?.cast<Registration>()
         ?.toList();
     return RegistrationParams(registrations: registrations);
@@ -21836,11 +20865,11 @@ class RegistrationParams implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['registrations'] =
-        registrations ?? (throw 'registrations is required but was not set');
+        registrations.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('registrations');
       try {
@@ -21896,11 +20925,7 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
       RegularExpressionsClientCapabilities.canParse,
       RegularExpressionsClientCapabilities.fromJson);
 
-  RegularExpressionsClientCapabilities({@required this.engine, this.version}) {
-    if (engine == null) {
-      throw 'engine is required but was not provided';
-    }
-  }
+  RegularExpressionsClientCapabilities({required this.engine, this.version});
   static RegularExpressionsClientCapabilities fromJson(
       Map<String, dynamic> json) {
     final engine = json['engine'];
@@ -21913,18 +20938,18 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
   final String engine;
 
   /// The engine's version.
-  final String version;
+  final String? version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['engine'] = engine ?? (throw 'engine is required but was not set');
+    __result['engine'] = engine;
     if (version != null) {
       __result['version'] = version;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('engine');
       try {
@@ -22007,26 +21032,26 @@ class RenameClientCapabilities implements ToJsonable {
   }
 
   /// Whether rename supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// Whether th client honors the change annotations in text edits and resource
   /// operations returned via the rename request's workspace edit by for example
   /// presenting the workspace edit in the user interface and asking for
   /// confirmation.
   ///  @since 3.16.0
-  final bool honorsChangeAnnotations;
+  final bool? honorsChangeAnnotations;
 
   /// Client supports testing for validity of rename operations before
   /// execution.
   ///  @since version 3.12.0
-  final bool prepareSupport;
+  final bool? prepareSupport;
 
   /// Client supports the default behavior result (`{ defaultBehavior: boolean
   /// }`).
   ///
   /// The value indicates the default behavior used by the client.
   ///  @since version 3.16.0
-  final PrepareSupportDefaultBehavior prepareSupportDefaultBehavior;
+  final PrepareSupportDefaultBehavior? prepareSupportDefaultBehavior;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -22038,7 +21063,7 @@ class RenameClientCapabilities implements ToJsonable {
     }
     if (prepareSupportDefaultBehavior != null) {
       __result['prepareSupportDefaultBehavior'] =
-          prepareSupportDefaultBehavior.toJson();
+          prepareSupportDefaultBehavior?.toJson();
     }
     if (honorsChangeAnnotations != null) {
       __result['honorsChangeAnnotations'] = honorsChangeAnnotations;
@@ -22046,7 +21071,7 @@ class RenameClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -22130,18 +21155,12 @@ class RenameFile implements ToJsonable {
 
   RenameFile(
       {this.kind = 'rename',
-      @required this.oldUri,
-      @required this.newUri,
+      required this.oldUri,
+      required this.newUri,
       this.options,
       this.annotationId}) {
     if (kind != 'rename') {
       throw 'kind may only be the literal \'rename\'';
-    }
-    if (oldUri == null) {
-      throw 'oldUri is required but was not provided';
-    }
-    if (newUri == null) {
-      throw 'newUri is required but was not provided';
     }
   }
   static RenameFile fromJson(Map<String, dynamic> json) {
@@ -22162,7 +21181,7 @@ class RenameFile implements ToJsonable {
 
   /// An optional annotation identifer describing the operation.
   ///  @since 3.16.0
-  final String annotationId;
+  final String? annotationId;
 
   /// A rename
   final String kind;
@@ -22174,15 +21193,15 @@ class RenameFile implements ToJsonable {
   final String oldUri;
 
   /// Rename options.
-  final RenameFileOptions options;
+  final RenameFileOptions? options;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['kind'] = kind ?? (throw 'kind is required but was not set');
-    __result['oldUri'] = oldUri ?? (throw 'oldUri is required but was not set');
-    __result['newUri'] = newUri ?? (throw 'newUri is required but was not set');
+    __result['kind'] = kind;
+    __result['oldUri'] = oldUri;
+    __result['newUri'] = newUri;
     if (options != null) {
-      __result['options'] = options.toJson();
+      __result['options'] = options?.toJson();
     }
     if (annotationId != null) {
       __result['annotationId'] = annotationId;
@@ -22190,7 +21209,7 @@ class RenameFile implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -22311,10 +21330,10 @@ class RenameFileOptions implements ToJsonable {
   }
 
   /// Ignores if target exists.
-  final bool ignoreIfExists;
+  final bool? ignoreIfExists;
 
   /// Overwrite target if existing. Overwrite wins over `ignoreIfExists`
-  final bool overwrite;
+  final bool? overwrite;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -22327,7 +21346,7 @@ class RenameFileOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('overwrite');
       try {
@@ -22383,14 +21402,10 @@ class RenameFilesParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(RenameFilesParams.canParse, RenameFilesParams.fromJson);
 
-  RenameFilesParams({@required this.files}) {
-    if (files == null) {
-      throw 'files is required but was not provided';
-    }
-  }
+  RenameFilesParams({required this.files});
   static RenameFilesParams fromJson(Map<String, dynamic> json) {
     final files = json['files']
-        ?.map((item) => item != null ? FileRename.fromJson(item) : null)
+        ?.map((item) => FileRename.fromJson(item))
         ?.cast<FileRename>()
         ?.toList();
     return RenameFilesParams(files: files);
@@ -22402,11 +21417,11 @@ class RenameFilesParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['files'] = files ?? (throw 'files is required but was not set');
+    __result['files'] = files.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('files');
       try {
@@ -22471,8 +21486,8 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   /// Renames should be checked and tested before being executed.
-  final bool prepareProvider;
-  final bool workDoneProgress;
+  final bool? prepareProvider;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -22485,7 +21500,7 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('prepareProvider');
       try {
@@ -22542,34 +21557,21 @@ class RenameParams
       LspJsonHandler(RenameParams.canParse, RenameParams.fromJson);
 
   RenameParams(
-      {@required this.newName,
-      @required this.textDocument,
-      @required this.position,
-      this.workDoneToken}) {
-    if (newName == null) {
-      throw 'newName is required but was not provided';
-    }
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      {required this.newName,
+      required this.textDocument,
+      required this.position,
+      this.workDoneToken});
   static RenameParams fromJson(Map<String, dynamic> json) {
     final newName = json['newName'];
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return RenameParams(
         newName: newName,
         textDocument: textDocument,
@@ -22588,23 +21590,20 @@ class RenameParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['newName'] =
-        newName ?? (throw 'newName is required but was not set');
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['newName'] = newName;
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('newName');
       try {
@@ -22660,9 +21659,9 @@ class RenameParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -22723,11 +21722,11 @@ class RenameRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// Renames should be checked and tested before being executed.
-  final bool prepareProvider;
-  final bool workDoneProgress;
+  final bool? prepareProvider;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -22741,7 +21740,7 @@ class RenameRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -22817,28 +21816,17 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       LspJsonHandler(RequestMessage.canParse, RequestMessage.fromJson);
 
   RequestMessage(
-      {@required this.id,
-      @required this.method,
+      {required this.id,
+      required this.method,
       this.params,
-      @required this.jsonrpc}) {
-    if (id == null) {
-      throw 'id is required but was not provided';
-    }
-    if (method == null) {
-      throw 'method is required but was not provided';
-    }
-    if (jsonrpc == null) {
-      throw 'jsonrpc is required but was not provided';
-    }
-  }
+      required this.jsonrpc});
   static RequestMessage fromJson(Map<String, dynamic> json) {
-    final id = json['id'] is num
-        ? Either2<num, String>.t1(json['id'])
+    final id = json['id'] is int
+        ? Either2<int, String>.t1(json['id'])
         : (json['id'] is String
-            ? Either2<num, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (num, String)'''));
-    final method =
-        json['method'] != null ? Method.fromJson(json['method']) : null;
+            ? Either2<int, String>.t2(json['id'])
+            : (throw '''${json['id']} was not one of (int, String)'''));
+    final method = Method.fromJson(json['method']);
     final params = json['params'];
     final jsonrpc = json['jsonrpc'];
     return RequestMessage(
@@ -22846,7 +21834,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   /// The request id.
-  final Either2<num, String> id;
+  final Either2<int, String> id;
   final String jsonrpc;
 
   /// The method to be invoked.
@@ -22857,18 +21845,16 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['id'] = id ?? (throw 'id is required but was not set');
-    __result['method'] =
-        method?.toJson() ?? (throw 'method is required but was not set');
+    __result['id'] = id;
+    __result['method'] = method.toJson();
     if (params != null) {
       __result['params'] = params;
     }
-    __result['jsonrpc'] =
-        jsonrpc ?? (throw 'jsonrpc is required but was not set');
+    __result['jsonrpc'] = jsonrpc;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -22880,8 +21866,8 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (!((obj['id'] is int || obj['id'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -22899,15 +21885,6 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
         }
         if (!(Method.canParse(obj['method'], reporter))) {
           reporter.reportError('must be of type Method');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('params');
-      try {
-        if (obj['params'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -23004,17 +21981,9 @@ class ResponseError implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
 
-  ResponseError({@required this.code, @required this.message, this.data}) {
-    if (code == null) {
-      throw 'code is required but was not provided';
-    }
-    if (message == null) {
-      throw 'message is required but was not provided';
-    }
-  }
+  ResponseError({required this.code, required this.message, this.data});
   static ResponseError fromJson(Map<String, dynamic> json) {
-    final code =
-        json['code'] != null ? ErrorCodes.fromJson(json['code']) : null;
+    final code = ErrorCodes.fromJson(json['code']);
     final message = json['message'];
     final data = json['data'];
     return ResponseError(code: code, message: message, data: data);
@@ -23025,24 +21994,22 @@ class ResponseError implements ToJsonable {
 
   /// A string that contains additional information about the error. Can be
   /// omitted.
-  final String data;
+  final String? data;
 
   /// A string providing a short description of the error.
   final String message;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['code'] =
-        code?.toJson() ?? (throw 'code is required but was not set');
-    __result['message'] =
-        message ?? (throw 'message is required but was not set');
+    __result['code'] = code.toJson();
+    __result['message'] = message;
     if (data != null) {
       __result['data'] = data;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('code');
       try {
@@ -23122,19 +22089,15 @@ class ResponseMessage implements Message, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
 
-  ResponseMessage({this.id, this.result, this.error, @required this.jsonrpc}) {
-    if (jsonrpc == null) {
-      throw 'jsonrpc is required but was not provided';
-    }
-  }
+  ResponseMessage({this.id, this.result, this.error, required this.jsonrpc});
   static ResponseMessage fromJson(Map<String, dynamic> json) {
-    final id = json['id'] is num
-        ? Either2<num, String>.t1(json['id'])
-        : (json['id'] is String
-            ? Either2<num, String>.t2(json['id'])
-            : (json['id'] == null
-                ? null
-                : (throw '''${json['id']} was not one of (num, String)''')));
+    final id = json['id'] == null
+        ? null
+        : (json['id'] is int
+            ? Either2<int, String>.t1(json['id'])
+            : (json['id'] is String
+                ? Either2<int, String>.t2(json['id'])
+                : (throw '''${json['id']} was not one of (int, String)''')));
     final result = json['result'];
     final error =
         json['error'] != null ? ResponseError.fromJson(json['error']) : null;
@@ -23144,10 +22107,10 @@ class ResponseMessage implements Message, ToJsonable {
   }
 
   /// The error object in case a request fails.
-  final ResponseError error;
+  final ResponseError? error;
 
   /// The request id.
-  final Either2<num, String> id;
+  final Either2<int, String>? id;
   final String jsonrpc;
 
   /// The result of a request. This member is REQUIRED on success. This member
@@ -23157,8 +22120,7 @@ class ResponseMessage implements Message, ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['id'] = id;
-    __result['jsonrpc'] =
-        jsonrpc ?? (throw 'jsonrpc is required but was not set');
+    __result['jsonrpc'] = jsonrpc;
     if (error != null && result != null) {
       throw 'result and error cannot both be set';
     } else if (error != null) {
@@ -23169,7 +22131,7 @@ class ResponseMessage implements Message, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -23177,17 +22139,8 @@ class ResponseMessage implements Message, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['id'] != null && !((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('result');
-      try {
-        if (obj['result'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
+        if (obj['id'] != null && !((obj['id'] is int || obj['id'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -23264,7 +22217,7 @@ class SaveOptions implements ToJsonable {
   }
 
   /// The client is supposed to include the content on save.
-  final bool includeText;
+  final bool? includeText;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -23274,7 +22227,7 @@ class SaveOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('includeText');
       try {
@@ -23315,13 +22268,9 @@ class SelectionRange implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(SelectionRange.canParse, SelectionRange.fromJson);
 
-  SelectionRange({@required this.range, this.parent}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-  }
+  SelectionRange({required this.range, this.parent});
   static SelectionRange fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     final parent =
         json['parent'] != null ? SelectionRange.fromJson(json['parent']) : null;
     return SelectionRange(range: range, parent: parent);
@@ -23329,22 +22278,21 @@ class SelectionRange implements ToJsonable {
 
   /// The parent selection range containing this range. Therefore `parent.range`
   /// must contain `this.range`.
-  final SelectionRange parent;
+  final SelectionRange? parent;
 
   /// The range ([Range]) of this selection range.
   final Range range;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['range'] = range.toJson();
     if (parent != null) {
-      __result['parent'] = parent.toJson();
+      __result['parent'] = parent?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -23416,7 +22364,7 @@ class SelectionRangeClientCapabilities implements ToJsonable {
   /// providers. If this is set to `true` the client supports the new
   /// `SelectionRangeRegistrationOptions` return value for the corresponding
   /// server capability as well.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -23426,7 +22374,7 @@ class SelectionRangeClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -23478,7 +22426,7 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     return SelectionRangeOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -23488,7 +22436,7 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -23533,39 +22481,30 @@ class SelectionRangeParams
       SelectionRangeParams.canParse, SelectionRangeParams.fromJson);
 
   SelectionRangeParams(
-      {@required this.textDocument,
-      @required this.positions,
+      {required this.textDocument,
+      required this.positions,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (positions == null) {
-      throw 'positions is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static SelectionRangeParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     final positions = json['positions']
-        ?.map((item) => item != null ? Position.fromJson(item) : null)
+        ?.map((item) => Position.fromJson(item))
         ?.cast<Position>()
         ?.toList();
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return SelectionRangeParams(
         textDocument: textDocument,
         positions: positions,
@@ -23575,7 +22514,7 @@ class SelectionRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The positions inside the text document.
   final List<Position> positions;
@@ -23584,14 +22523,12 @@ class SelectionRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['positions'] =
-        positions ?? (throw 'positions is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['positions'] = positions.map((item) => item.toJson()).toList();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -23601,7 +22538,7 @@ class SelectionRangeParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -23642,9 +22579,9 @@ class SelectionRangeParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -23653,9 +22590,9 @@ class SelectionRangeParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -23723,12 +22660,12 @@ class SelectionRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
-  final bool workDoneProgress;
+  final String? id;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -23742,7 +22679,7 @@ class SelectionRangeRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -23896,36 +22833,32 @@ class SemanticTokens implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(SemanticTokens.canParse, SemanticTokens.fromJson);
 
-  SemanticTokens({this.resultId, @required this.data}) {
-    if (data == null) {
-      throw 'data is required but was not provided';
-    }
-  }
+  SemanticTokens({this.resultId, required this.data});
   static SemanticTokens fromJson(Map<String, dynamic> json) {
     final resultId = json['resultId'];
-    final data = json['data']?.map((item) => item)?.cast<num>()?.toList();
+    final data = json['data']?.map((item) => item)?.cast<int>()?.toList();
     return SemanticTokens(resultId: resultId, data: data);
   }
 
   /// The actual tokens.
-  final List<num> data;
+  final List<int> data;
 
   /// An optional result id. If provided and clients support delta updating the
   /// client will include the result id in the next semantic token request. A
   /// server can then instead of computing all semantic tokens again simply send
   /// a delta.
-  final String resultId;
+  final String? resultId;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (resultId != null) {
       __result['resultId'] = resultId;
     }
-    __result['data'] = data ?? (throw 'data is required but was not set');
+    __result['data'] = data;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('resultId');
       try {
@@ -23947,8 +22880,8 @@ class SemanticTokens implements ToJsonable {
           return false;
         }
         if (!((obj['data'] is List &&
-            (obj['data'].every((item) => item is num))))) {
-          reporter.reportError('must be of type List<num>');
+            (obj['data'].every((item) => item is int))))) {
+          reporter.reportError('must be of type List<int>');
           return false;
         }
       } finally {
@@ -23965,7 +22898,7 @@ class SemanticTokens implements ToJsonable {
   bool operator ==(Object other) {
     if (other is SemanticTokens && other.runtimeType == SemanticTokens) {
       return resultId == other.resultId &&
-          listEqual(data, other.data, (num a, num b) => a == b) &&
+          listEqual(data, other.data, (int a, int b) => a == b) &&
           true;
     }
     return false;
@@ -23990,36 +22923,22 @@ class SemanticTokensClientCapabilities implements ToJsonable {
 
   SemanticTokensClientCapabilities(
       {this.dynamicRegistration,
-      @required this.requests,
-      @required this.tokenTypes,
-      @required this.tokenModifiers,
-      @required this.formats,
+      required this.requests,
+      required this.tokenTypes,
+      required this.tokenModifiers,
+      required this.formats,
       this.overlappingTokenSupport,
-      this.multilineTokenSupport}) {
-    if (requests == null) {
-      throw 'requests is required but was not provided';
-    }
-    if (tokenTypes == null) {
-      throw 'tokenTypes is required but was not provided';
-    }
-    if (tokenModifiers == null) {
-      throw 'tokenModifiers is required but was not provided';
-    }
-    if (formats == null) {
-      throw 'formats is required but was not provided';
-    }
-  }
+      this.multilineTokenSupport});
   static SemanticTokensClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    final requests = json['requests'] != null
-        ? SemanticTokensClientCapabilitiesRequests.fromJson(json['requests'])
-        : null;
+    final requests =
+        SemanticTokensClientCapabilitiesRequests.fromJson(json['requests']);
     final tokenTypes =
         json['tokenTypes']?.map((item) => item)?.cast<String>()?.toList();
     final tokenModifiers =
         json['tokenModifiers']?.map((item) => item)?.cast<String>()?.toList();
     final formats = json['formats']
-        ?.map((item) => item != null ? TokenFormat.fromJson(item) : null)
+        ?.map((item) => TokenFormat.fromJson(item))
         ?.cast<TokenFormat>()
         ?.toList();
     final overlappingTokenSupport = json['overlappingTokenSupport'];
@@ -24038,16 +22957,16 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   /// `true` the client supports the new `(TextDocumentRegistrationOptions &
   /// StaticRegistrationOptions)` return value for the corresponding server
   /// capability as well.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// The formats the clients supports.
   final List<TokenFormat> formats;
 
   /// Whether the client supports tokens that can span multiple lines.
-  final bool multilineTokenSupport;
+  final bool? multilineTokenSupport;
 
   /// Whether the client supports tokens that can overlap each other.
-  final bool overlappingTokenSupport;
+  final bool? overlappingTokenSupport;
 
   /// Which requests the client supports and might send to the server depending
   /// on the server's capability. Please note that clients might not show
@@ -24070,14 +22989,10 @@ class SemanticTokensClientCapabilities implements ToJsonable {
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
-    __result['requests'] =
-        requests?.toJson() ?? (throw 'requests is required but was not set');
-    __result['tokenTypes'] =
-        tokenTypes ?? (throw 'tokenTypes is required but was not set');
-    __result['tokenModifiers'] =
-        tokenModifiers ?? (throw 'tokenModifiers is required but was not set');
-    __result['formats'] =
-        formats ?? (throw 'formats is required but was not set');
+    __result['requests'] = requests.toJson();
+    __result['tokenTypes'] = tokenTypes;
+    __result['tokenModifiers'] = tokenModifiers;
+    __result['formats'] = formats.map((item) => item.toJson()).toList();
     if (overlappingTokenSupport != null) {
       __result['overlappingTokenSupport'] = overlappingTokenSupport;
     }
@@ -24087,7 +23002,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -24250,7 +23165,7 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
 
   /// The client will send the `textDocument/semanticTokens/full/delta` request
   /// if the server provides a corresponding handler.
-  final bool delta;
+  final bool? delta;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -24260,7 +23175,7 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('delta');
       try {
@@ -24314,7 +23229,7 @@ class SemanticTokensClientCapabilitiesRange implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
@@ -24351,40 +23266,37 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
   SemanticTokensClientCapabilitiesRequests({this.range, this.full});
   static SemanticTokensClientCapabilitiesRequests fromJson(
       Map<String, dynamic> json) {
-    final range = json['range'] is bool
-        ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t1(json['range'])
-        : (SemanticTokensClientCapabilitiesRange.canParse(
-                json['range'], nullLspJsonReporter)
-            ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t2(
-                json['range'] != null
-                    ? SemanticTokensClientCapabilitiesRange.fromJson(
-                        json['range'])
-                    : null)
-            : (json['range'] == null
-                ? null
+    final range = json['range'] == null
+        ? null
+        : (json['range'] is bool
+            ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t1(
+                json['range'])
+            : (SemanticTokensClientCapabilitiesRange.canParse(
+                    json['range'], nullLspJsonReporter)
+                ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t2(
+                    SemanticTokensClientCapabilitiesRange.fromJson(
+                        json['range']))
                 : (throw '''${json['range']} was not one of (bool, SemanticTokensClientCapabilitiesRange)''')));
-    final full = json['full'] is bool
-        ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t1(json['full'])
-        : (SemanticTokensClientCapabilitiesFull.canParse(
-                json['full'], nullLspJsonReporter)
-            ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t2(
-                json['full'] != null
-                    ? SemanticTokensClientCapabilitiesFull.fromJson(
-                        json['full'])
-                    : null)
-            : (json['full'] == null
-                ? null
+    final full = json['full'] == null
+        ? null
+        : (json['full'] is bool
+            ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t1(
+                json['full'])
+            : (SemanticTokensClientCapabilitiesFull.canParse(
+                    json['full'], nullLspJsonReporter)
+                ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t2(
+                    SemanticTokensClientCapabilitiesFull.fromJson(json['full']))
                 : (throw '''${json['full']} was not one of (bool, SemanticTokensClientCapabilitiesFull)''')));
     return SemanticTokensClientCapabilitiesRequests(range: range, full: full);
   }
 
   /// The client will send the `textDocument/semanticTokens/full` request if the
   /// server provides a corresponding handler.
-  final Either2<bool, SemanticTokensClientCapabilitiesFull> full;
+  final Either2<bool, SemanticTokensClientCapabilitiesFull>? full;
 
   /// The client will send the `textDocument/semanticTokens/range` request if
   /// the server provides a corresponding handler.
-  final Either2<bool, SemanticTokensClientCapabilitiesRange> range;
+  final Either2<bool, SemanticTokensClientCapabilitiesRange>? range;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -24397,7 +23309,7 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -24458,15 +23370,11 @@ class SemanticTokensDelta implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       SemanticTokensDelta.canParse, SemanticTokensDelta.fromJson);
 
-  SemanticTokensDelta({this.resultId, @required this.edits}) {
-    if (edits == null) {
-      throw 'edits is required but was not provided';
-    }
-  }
+  SemanticTokensDelta({this.resultId, required this.edits});
   static SemanticTokensDelta fromJson(Map<String, dynamic> json) {
     final resultId = json['resultId'];
     final edits = json['edits']
-        ?.map((item) => item != null ? SemanticTokensEdit.fromJson(item) : null)
+        ?.map((item) => SemanticTokensEdit.fromJson(item))
         ?.cast<SemanticTokensEdit>()
         ?.toList();
     return SemanticTokensDelta(resultId: resultId, edits: edits);
@@ -24474,18 +23382,18 @@ class SemanticTokensDelta implements ToJsonable {
 
   /// The semantic token edits to transform a previous result into a new result.
   final List<SemanticTokensEdit> edits;
-  final String resultId;
+  final String? resultId;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (resultId != null) {
       __result['resultId'] = resultId;
     }
-    __result['edits'] = edits ?? (throw 'edits is required but was not set');
+    __result['edits'] = edits.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('resultId');
       try {
@@ -24552,36 +23460,27 @@ class SemanticTokensDeltaParams
       SemanticTokensDeltaParams.canParse, SemanticTokensDeltaParams.fromJson);
 
   SemanticTokensDeltaParams(
-      {@required this.textDocument,
-      @required this.previousResultId,
+      {required this.textDocument,
+      required this.previousResultId,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (previousResultId == null) {
-      throw 'previousResultId is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static SemanticTokensDeltaParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     final previousResultId = json['previousResultId'];
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return SemanticTokensDeltaParams(
         textDocument: textDocument,
         previousResultId: previousResultId,
@@ -24591,7 +23490,7 @@ class SemanticTokensDeltaParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The result id of a previous response. The result Id can either point to a
   /// full response or a delta response depending on what was received last.
@@ -24601,14 +23500,12 @@ class SemanticTokensDeltaParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['previousResultId'] = previousResultId ??
-        (throw 'previousResultId is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['previousResultId'] = previousResultId;
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -24618,7 +23515,7 @@ class SemanticTokensDeltaParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -24657,9 +23554,9 @@ class SemanticTokensDeltaParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -24668,9 +23565,9 @@ class SemanticTokensDeltaParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -24715,14 +23612,10 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
       SemanticTokensDeltaPartialResult.canParse,
       SemanticTokensDeltaPartialResult.fromJson);
 
-  SemanticTokensDeltaPartialResult({@required this.edits}) {
-    if (edits == null) {
-      throw 'edits is required but was not provided';
-    }
-  }
+  SemanticTokensDeltaPartialResult({required this.edits});
   static SemanticTokensDeltaPartialResult fromJson(Map<String, dynamic> json) {
     final edits = json['edits']
-        ?.map((item) => item != null ? SemanticTokensEdit.fromJson(item) : null)
+        ?.map((item) => SemanticTokensEdit.fromJson(item))
         ?.cast<SemanticTokensEdit>()
         ?.toList();
     return SemanticTokensDeltaPartialResult(edits: edits);
@@ -24732,11 +23625,11 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['edits'] = edits ?? (throw 'edits is required but was not set');
+    __result['edits'] = edits.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('edits');
       try {
@@ -24791,43 +23684,35 @@ class SemanticTokensEdit implements ToJsonable {
       LspJsonHandler(SemanticTokensEdit.canParse, SemanticTokensEdit.fromJson);
 
   SemanticTokensEdit(
-      {@required this.start, @required this.deleteCount, this.data}) {
-    if (start == null) {
-      throw 'start is required but was not provided';
-    }
-    if (deleteCount == null) {
-      throw 'deleteCount is required but was not provided';
-    }
-  }
+      {required this.start, required this.deleteCount, this.data});
   static SemanticTokensEdit fromJson(Map<String, dynamic> json) {
     final start = json['start'];
     final deleteCount = json['deleteCount'];
-    final data = json['data']?.map((item) => item)?.cast<num>()?.toList();
+    final data = json['data']?.map((item) => item)?.cast<int>()?.toList();
     return SemanticTokensEdit(
         start: start, deleteCount: deleteCount, data: data);
   }
 
   /// The elements to insert.
-  final List<num> data;
+  final List<int>? data;
 
   /// The count of elements to remove.
-  final num deleteCount;
+  final int deleteCount;
 
   /// The start offset of the edit.
-  final num start;
+  final int start;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['start'] = start ?? (throw 'start is required but was not set');
-    __result['deleteCount'] =
-        deleteCount ?? (throw 'deleteCount is required but was not set');
+    __result['start'] = start;
+    __result['deleteCount'] = deleteCount;
     if (data != null) {
       __result['data'] = data;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('start');
       try {
@@ -24839,8 +23724,8 @@ class SemanticTokensEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['start'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['start'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -24856,8 +23741,8 @@ class SemanticTokensEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['deleteCount'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['deleteCount'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -24867,8 +23752,8 @@ class SemanticTokensEdit implements ToJsonable {
       try {
         if (obj['data'] != null &&
             !((obj['data'] is List &&
-                (obj['data'].every((item) => item is num))))) {
-          reporter.reportError('must be of type List<num>');
+                (obj['data'].every((item) => item is int))))) {
+          reporter.reportError('must be of type List<int>');
           return false;
         }
       } finally {
@@ -24887,7 +23772,7 @@ class SemanticTokensEdit implements ToJsonable {
         other.runtimeType == SemanticTokensEdit) {
       return start == other.start &&
           deleteCount == other.deleteCount &&
-          listEqual(data, other.data, (num a, num b) => a == b) &&
+          listEqual(data, other.data, (int a, int b) => a == b) &&
           true;
     }
     return false;
@@ -24911,14 +23796,7 @@ class SemanticTokensLegend implements ToJsonable {
       SemanticTokensLegend.canParse, SemanticTokensLegend.fromJson);
 
   SemanticTokensLegend(
-      {@required this.tokenTypes, @required this.tokenModifiers}) {
-    if (tokenTypes == null) {
-      throw 'tokenTypes is required but was not provided';
-    }
-    if (tokenModifiers == null) {
-      throw 'tokenModifiers is required but was not provided';
-    }
-  }
+      {required this.tokenTypes, required this.tokenModifiers});
   static SemanticTokensLegend fromJson(Map<String, dynamic> json) {
     final tokenTypes =
         json['tokenTypes']?.map((item) => item)?.cast<String>()?.toList();
@@ -24936,14 +23814,12 @@ class SemanticTokensLegend implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['tokenTypes'] =
-        tokenTypes ?? (throw 'tokenTypes is required but was not set');
-    __result['tokenModifiers'] =
-        tokenModifiers ?? (throw 'tokenModifiers is required but was not set');
+    __result['tokenTypes'] = tokenTypes;
+    __result['tokenModifiers'] = tokenModifiers;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('tokenTypes');
       try {
@@ -25018,36 +23894,29 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
       SemanticTokensOptions.canParse, SemanticTokensOptions.fromJson);
 
   SemanticTokensOptions(
-      {@required this.legend, this.range, this.full, this.workDoneProgress}) {
-    if (legend == null) {
-      throw 'legend is required but was not provided';
-    }
-  }
+      {required this.legend, this.range, this.full, this.workDoneProgress});
   static SemanticTokensOptions fromJson(Map<String, dynamic> json) {
     if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensRegistrationOptions.fromJson(json);
     }
-    final legend = json['legend'] != null
-        ? SemanticTokensLegend.fromJson(json['legend'])
-        : null;
-    final range = json['range'] is bool
-        ? Either2<bool, SemanticTokensOptionsRange>.t1(json['range'])
-        : (SemanticTokensOptionsRange.canParse(
-                json['range'], nullLspJsonReporter)
-            ? Either2<bool, SemanticTokensOptionsRange>.t2(json['range'] != null
-                ? SemanticTokensOptionsRange.fromJson(json['range'])
-                : null)
-            : (json['range'] == null
-                ? null
+    final legend = SemanticTokensLegend.fromJson(json['legend']);
+    final range = json['range'] == null
+        ? null
+        : (json['range'] is bool
+            ? Either2<bool, SemanticTokensOptionsRange>.t1(json['range'])
+            : (SemanticTokensOptionsRange.canParse(
+                    json['range'], nullLspJsonReporter)
+                ? Either2<bool, SemanticTokensOptionsRange>.t2(
+                    SemanticTokensOptionsRange.fromJson(json['range']))
                 : (throw '''${json['range']} was not one of (bool, SemanticTokensOptionsRange)''')));
-    final full = json['full'] is bool
-        ? Either2<bool, SemanticTokensOptionsFull>.t1(json['full'])
-        : (SemanticTokensOptionsFull.canParse(json['full'], nullLspJsonReporter)
-            ? Either2<bool, SemanticTokensOptionsFull>.t2(json['full'] != null
-                ? SemanticTokensOptionsFull.fromJson(json['full'])
-                : null)
-            : (json['full'] == null
-                ? null
+    final full = json['full'] == null
+        ? null
+        : (json['full'] is bool
+            ? Either2<bool, SemanticTokensOptionsFull>.t1(json['full'])
+            : (SemanticTokensOptionsFull.canParse(
+                    json['full'], nullLspJsonReporter)
+                ? Either2<bool, SemanticTokensOptionsFull>.t2(
+                    SemanticTokensOptionsFull.fromJson(json['full']))
                 : (throw '''${json['full']} was not one of (bool, SemanticTokensOptionsFull)''')));
     final workDoneProgress = json['workDoneProgress'];
     return SemanticTokensOptions(
@@ -25058,20 +23927,19 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   /// Server supports providing semantic tokens for a full document.
-  final Either2<bool, SemanticTokensOptionsFull> full;
+  final Either2<bool, SemanticTokensOptionsFull>? full;
 
   /// The legend used by the server
   final SemanticTokensLegend legend;
 
   /// Server supports providing semantic tokens for a specific range of a
   /// document.
-  final Either2<bool, SemanticTokensOptionsRange> range;
-  final bool workDoneProgress;
+  final Either2<bool, SemanticTokensOptionsRange>? range;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['legend'] =
-        legend?.toJson() ?? (throw 'legend is required but was not set');
+    __result['legend'] = legend.toJson();
     if (range != null) {
       __result['range'] = range;
     }
@@ -25084,7 +23952,7 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('legend');
       try {
@@ -25182,7 +24050,7 @@ class SemanticTokensOptionsFull implements ToJsonable {
   }
 
   /// The server supports deltas for full documents.
-  final bool delta;
+  final bool? delta;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -25192,7 +24060,7 @@ class SemanticTokensOptionsFull implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('delta');
       try {
@@ -25243,7 +24111,7 @@ class SemanticTokensOptionsRange implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
@@ -25277,31 +24145,25 @@ class SemanticTokensParams
       SemanticTokensParams.canParse, SemanticTokensParams.fromJson);
 
   SemanticTokensParams(
-      {@required this.textDocument,
+      {required this.textDocument,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static SemanticTokensParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return SemanticTokensParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -25310,18 +24172,17 @@ class SemanticTokensParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -25331,7 +24192,7 @@ class SemanticTokensParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -25353,9 +24214,9 @@ class SemanticTokensParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -25364,9 +24225,9 @@ class SemanticTokensParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -25409,25 +24270,21 @@ class SemanticTokensPartialResult implements ToJsonable {
       SemanticTokensPartialResult.canParse,
       SemanticTokensPartialResult.fromJson);
 
-  SemanticTokensPartialResult({@required this.data}) {
-    if (data == null) {
-      throw 'data is required but was not provided';
-    }
-  }
+  SemanticTokensPartialResult({required this.data});
   static SemanticTokensPartialResult fromJson(Map<String, dynamic> json) {
-    final data = json['data']?.map((item) => item)?.cast<num>()?.toList();
+    final data = json['data']?.map((item) => item)?.cast<int>()?.toList();
     return SemanticTokensPartialResult(data: data);
   }
 
-  final List<num> data;
+  final List<int> data;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['data'] = data ?? (throw 'data is required but was not set');
+    __result['data'] = data;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('data');
       try {
@@ -25440,8 +24297,8 @@ class SemanticTokensPartialResult implements ToJsonable {
           return false;
         }
         if (!((obj['data'] is List &&
-            (obj['data'].every((item) => item is num))))) {
-          reporter.reportError('must be of type List<num>');
+            (obj['data'].every((item) => item is int))))) {
+          reporter.reportError('must be of type List<int>');
           return false;
         }
       } finally {
@@ -25458,7 +24315,7 @@ class SemanticTokensPartialResult implements ToJsonable {
   bool operator ==(Object other) {
     if (other is SemanticTokensPartialResult &&
         other.runtimeType == SemanticTokensPartialResult) {
-      return listEqual(data, other.data, (num a, num b) => a == b) && true;
+      return listEqual(data, other.data, (int a, int b) => a == b) && true;
     }
     return false;
   }
@@ -25480,36 +24337,27 @@ class SemanticTokensRangeParams
       SemanticTokensRangeParams.canParse, SemanticTokensRangeParams.fromJson);
 
   SemanticTokensRangeParams(
-      {@required this.textDocument,
-      @required this.range,
+      {required this.textDocument,
+      required this.range,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static SemanticTokensRangeParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final range = Range.fromJson(json['range']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return SemanticTokensRangeParams(
         textDocument: textDocument,
         range: range,
@@ -25519,7 +24367,7 @@ class SemanticTokensRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The range the semantic tokens are requested for.
   final Range range;
@@ -25528,14 +24376,12 @@ class SemanticTokensRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['range'] = range.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -25545,7 +24391,7 @@ class SemanticTokensRangeParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -25584,9 +24430,9 @@ class SemanticTokensRangeParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -25595,9 +24441,9 @@ class SemanticTokensRangeParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -25649,41 +24495,34 @@ class SemanticTokensRegistrationOptions
 
   SemanticTokensRegistrationOptions(
       {this.documentSelector,
-      @required this.legend,
+      required this.legend,
       this.range,
       this.full,
       this.workDoneProgress,
-      this.id}) {
-    if (legend == null) {
-      throw 'legend is required but was not provided';
-    }
-  }
+      this.id});
   static SemanticTokensRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    final legend = json['legend'] != null
-        ? SemanticTokensLegend.fromJson(json['legend'])
-        : null;
-    final range = json['range'] is bool
-        ? Either2<bool, SemanticTokensOptionsRange>.t1(json['range'])
-        : (SemanticTokensOptionsRange.canParse(
-                json['range'], nullLspJsonReporter)
-            ? Either2<bool, SemanticTokensOptionsRange>.t2(json['range'] != null
-                ? SemanticTokensOptionsRange.fromJson(json['range'])
-                : null)
-            : (json['range'] == null
-                ? null
+    final legend = SemanticTokensLegend.fromJson(json['legend']);
+    final range = json['range'] == null
+        ? null
+        : (json['range'] is bool
+            ? Either2<bool, SemanticTokensOptionsRange>.t1(json['range'])
+            : (SemanticTokensOptionsRange.canParse(
+                    json['range'], nullLspJsonReporter)
+                ? Either2<bool, SemanticTokensOptionsRange>.t2(
+                    SemanticTokensOptionsRange.fromJson(json['range']))
                 : (throw '''${json['range']} was not one of (bool, SemanticTokensOptionsRange)''')));
-    final full = json['full'] is bool
-        ? Either2<bool, SemanticTokensOptionsFull>.t1(json['full'])
-        : (SemanticTokensOptionsFull.canParse(json['full'], nullLspJsonReporter)
-            ? Either2<bool, SemanticTokensOptionsFull>.t2(json['full'] != null
-                ? SemanticTokensOptionsFull.fromJson(json['full'])
-                : null)
-            : (json['full'] == null
-                ? null
+    final full = json['full'] == null
+        ? null
+        : (json['full'] is bool
+            ? Either2<bool, SemanticTokensOptionsFull>.t1(json['full'])
+            : (SemanticTokensOptionsFull.canParse(
+                    json['full'], nullLspJsonReporter)
+                ? Either2<bool, SemanticTokensOptionsFull>.t2(
+                    SemanticTokensOptionsFull.fromJson(json['full']))
                 : (throw '''${json['full']} was not one of (bool, SemanticTokensOptionsFull)''')));
     final workDoneProgress = json['workDoneProgress'];
     final id = json['id'];
@@ -25698,28 +24537,27 @@ class SemanticTokensRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// Server supports providing semantic tokens for a full document.
-  final Either2<bool, SemanticTokensOptionsFull> full;
+  final Either2<bool, SemanticTokensOptionsFull>? full;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
+  final String? id;
 
   /// The legend used by the server
   final SemanticTokensLegend legend;
 
   /// Server supports providing semantic tokens for a specific range of a
   /// document.
-  final Either2<bool, SemanticTokensOptionsRange> range;
-  final bool workDoneProgress;
+  final Either2<bool, SemanticTokensOptionsRange>? range;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['documentSelector'] = documentSelector;
-    __result['legend'] =
-        legend?.toJson() ?? (throw 'legend is required but was not set');
+    __result['legend'] = legend.toJson();
     if (range != null) {
       __result['range'] = range;
     }
@@ -25735,7 +24573,7 @@ class SemanticTokensRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -25872,7 +24710,7 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   /// semantic tokens currently shown. It should be used with absolute care and
   /// is useful for situation where a server for example detect a project wide
   /// change that requires such a calculation.
-  final bool refreshSupport;
+  final bool? refreshSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -25882,7 +24720,7 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('refreshSupport');
       try {
@@ -25956,149 +24794,126 @@ class ServerCapabilities implements ToJsonable {
       this.workspace,
       this.experimental});
   static ServerCapabilities fromJson(Map<String, dynamic> json) {
-    final textDocumentSync = TextDocumentSyncOptions.canParse(
-            json['textDocumentSync'], nullLspJsonReporter)
-        ? Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t1(
-            json['textDocumentSync'] != null
-                ? TextDocumentSyncOptions.fromJson(json['textDocumentSync'])
-                : null)
-        : (TextDocumentSyncKind.canParse(
+    final textDocumentSync = json['textDocumentSync'] == null
+        ? null
+        : (TextDocumentSyncOptions.canParse(
                 json['textDocumentSync'], nullLspJsonReporter)
-            ? Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t2(
-                json['textDocumentSync'] != null
-                    ? TextDocumentSyncKind.fromJson(json['textDocumentSync'])
-                    : null)
-            : (json['textDocumentSync'] == null
-                ? null
+            ? Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t1(
+                TextDocumentSyncOptions.fromJson(json['textDocumentSync']))
+            : (TextDocumentSyncKind.canParse(
+                    json['textDocumentSync'], nullLspJsonReporter)
+                ? Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t2(
+                    TextDocumentSyncKind.fromJson(json['textDocumentSync']))
                 : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, TextDocumentSyncKind)''')));
     final completionProvider = json['completionProvider'] != null
         ? CompletionOptions.fromJson(json['completionProvider'])
         : null;
-    final hoverProvider = json['hoverProvider'] is bool
-        ? Either2<bool, HoverOptions>.t1(json['hoverProvider'])
-        : (HoverOptions.canParse(json['hoverProvider'], nullLspJsonReporter)
-            ? Either2<bool, HoverOptions>.t2(json['hoverProvider'] != null
-                ? HoverOptions.fromJson(json['hoverProvider'])
-                : null)
-            : (json['hoverProvider'] == null
-                ? null
+    final hoverProvider = json['hoverProvider'] == null
+        ? null
+        : (json['hoverProvider'] is bool
+            ? Either2<bool, HoverOptions>.t1(json['hoverProvider'])
+            : (HoverOptions.canParse(json['hoverProvider'], nullLspJsonReporter)
+                ? Either2<bool, HoverOptions>.t2(
+                    HoverOptions.fromJson(json['hoverProvider']))
                 : (throw '''${json['hoverProvider']} was not one of (bool, HoverOptions)''')));
     final signatureHelpProvider = json['signatureHelpProvider'] != null
         ? SignatureHelpOptions.fromJson(json['signatureHelpProvider'])
         : null;
-    final declarationProvider = json['declarationProvider'] is bool
-        ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t1(
-            json['declarationProvider'])
-        : (DeclarationOptions.canParse(
-                json['declarationProvider'], nullLspJsonReporter)
-            ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t2(
-                json['declarationProvider'] != null
-                    ? DeclarationOptions.fromJson(json['declarationProvider'])
-                    : null)
-            : (DeclarationRegistrationOptions.canParse(
+    final declarationProvider = json['declarationProvider'] == null
+        ? null
+        : (json['declarationProvider'] is bool
+            ? Either3<bool, DeclarationOptions,
+                DeclarationRegistrationOptions>.t1(json['declarationProvider'])
+            : (DeclarationOptions.canParse(
                     json['declarationProvider'], nullLspJsonReporter)
-                ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t3(
-                    json['declarationProvider'] != null
-                        ? DeclarationRegistrationOptions.fromJson(
-                            json['declarationProvider'])
-                        : null)
-                : (json['declarationProvider'] == null
-                    ? null
+                ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t2(
+                    DeclarationOptions.fromJson(json['declarationProvider']))
+                : (DeclarationRegistrationOptions.canParse(
+                        json['declarationProvider'], nullLspJsonReporter)
+                    ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t3(
+                        DeclarationRegistrationOptions.fromJson(
+                            json['declarationProvider']))
                     : (throw '''${json['declarationProvider']} was not one of (bool, DeclarationOptions, DeclarationRegistrationOptions)'''))));
-    final definitionProvider = json['definitionProvider'] is bool
-        ? Either2<bool, DefinitionOptions>.t1(json['definitionProvider'])
-        : (DefinitionOptions.canParse(
-                json['definitionProvider'], nullLspJsonReporter)
-            ? Either2<bool, DefinitionOptions>.t2(
-                json['definitionProvider'] != null
-                    ? DefinitionOptions.fromJson(json['definitionProvider'])
-                    : null)
-            : (json['definitionProvider'] == null
-                ? null
+    final definitionProvider = json['definitionProvider'] == null
+        ? null
+        : (json['definitionProvider'] is bool
+            ? Either2<bool, DefinitionOptions>.t1(json['definitionProvider'])
+            : (DefinitionOptions.canParse(
+                    json['definitionProvider'], nullLspJsonReporter)
+                ? Either2<bool, DefinitionOptions>.t2(
+                    DefinitionOptions.fromJson(json['definitionProvider']))
                 : (throw '''${json['definitionProvider']} was not one of (bool, DefinitionOptions)''')));
-    final typeDefinitionProvider = json['typeDefinitionProvider'] is bool
-        ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t1(
-            json['typeDefinitionProvider'])
-        : (TypeDefinitionOptions.canParse(
-                json['typeDefinitionProvider'], nullLspJsonReporter)
-            ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t2(json['typeDefinitionProvider'] != null
-                ? TypeDefinitionOptions.fromJson(json['typeDefinitionProvider'])
-                : null)
-            : (TypeDefinitionRegistrationOptions.canParse(
+    final typeDefinitionProvider = json['typeDefinitionProvider'] == null
+        ? null
+        : (json['typeDefinitionProvider'] is bool
+            ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t1(
+                json['typeDefinitionProvider'])
+            : (TypeDefinitionOptions.canParse(
                     json['typeDefinitionProvider'], nullLspJsonReporter)
-                ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t3(
-                    json['typeDefinitionProvider'] != null
-                        ? TypeDefinitionRegistrationOptions.fromJson(
-                            json['typeDefinitionProvider'])
-                        : null)
-                : (json['typeDefinitionProvider'] == null
-                    ? null
+                ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t2(
+                    TypeDefinitionOptions.fromJson(
+                        json['typeDefinitionProvider']))
+                : (TypeDefinitionRegistrationOptions.canParse(
+                        json['typeDefinitionProvider'], nullLspJsonReporter)
+                    ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t3(
+                        TypeDefinitionRegistrationOptions.fromJson(
+                            json['typeDefinitionProvider']))
                     : (throw '''${json['typeDefinitionProvider']} was not one of (bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions)'''))));
-    final implementationProvider = json['implementationProvider'] is bool
-        ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t1(
-            json['implementationProvider'])
-        : (ImplementationOptions.canParse(
-                json['implementationProvider'], nullLspJsonReporter)
-            ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t2(json['implementationProvider'] != null
-                ? ImplementationOptions.fromJson(json['implementationProvider'])
-                : null)
-            : (ImplementationRegistrationOptions.canParse(
+    final implementationProvider = json['implementationProvider'] == null
+        ? null
+        : (json['implementationProvider'] is bool
+            ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t1(
+                json['implementationProvider'])
+            : (ImplementationOptions.canParse(
                     json['implementationProvider'], nullLspJsonReporter)
-                ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t3(
-                    json['implementationProvider'] != null
-                        ? ImplementationRegistrationOptions.fromJson(
-                            json['implementationProvider'])
-                        : null)
-                : (json['implementationProvider'] == null
-                    ? null
+                ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t2(
+                    ImplementationOptions.fromJson(
+                        json['implementationProvider']))
+                : (ImplementationRegistrationOptions.canParse(
+                        json['implementationProvider'], nullLspJsonReporter)
+                    ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t3(
+                        ImplementationRegistrationOptions.fromJson(
+                            json['implementationProvider']))
                     : (throw '''${json['implementationProvider']} was not one of (bool, ImplementationOptions, ImplementationRegistrationOptions)'''))));
-    final referencesProvider = json['referencesProvider'] is bool
-        ? Either2<bool, ReferenceOptions>.t1(json['referencesProvider'])
-        : (ReferenceOptions.canParse(
-                json['referencesProvider'], nullLspJsonReporter)
-            ? Either2<bool, ReferenceOptions>.t2(
-                json['referencesProvider'] != null
-                    ? ReferenceOptions.fromJson(json['referencesProvider'])
-                    : null)
-            : (json['referencesProvider'] == null
-                ? null
+    final referencesProvider = json['referencesProvider'] == null
+        ? null
+        : (json['referencesProvider'] is bool
+            ? Either2<bool, ReferenceOptions>.t1(json['referencesProvider'])
+            : (ReferenceOptions.canParse(
+                    json['referencesProvider'], nullLspJsonReporter)
+                ? Either2<bool, ReferenceOptions>.t2(
+                    ReferenceOptions.fromJson(json['referencesProvider']))
                 : (throw '''${json['referencesProvider']} was not one of (bool, ReferenceOptions)''')));
-    final documentHighlightProvider = json['documentHighlightProvider'] is bool
-        ? Either2<bool, DocumentHighlightOptions>.t1(
-            json['documentHighlightProvider'])
-        : (DocumentHighlightOptions.canParse(
-                json['documentHighlightProvider'], nullLspJsonReporter)
-            ? Either2<bool, DocumentHighlightOptions>.t2(
-                json['documentHighlightProvider'] != null
-                    ? DocumentHighlightOptions.fromJson(
-                        json['documentHighlightProvider'])
-                    : null)
-            : (json['documentHighlightProvider'] == null
-                ? null
+    final documentHighlightProvider = json['documentHighlightProvider'] == null
+        ? null
+        : (json['documentHighlightProvider'] is bool
+            ? Either2<bool, DocumentHighlightOptions>.t1(
+                json['documentHighlightProvider'])
+            : (DocumentHighlightOptions.canParse(
+                    json['documentHighlightProvider'], nullLspJsonReporter)
+                ? Either2<bool, DocumentHighlightOptions>.t2(
+                    DocumentHighlightOptions.fromJson(
+                        json['documentHighlightProvider']))
                 : (throw '''${json['documentHighlightProvider']} was not one of (bool, DocumentHighlightOptions)''')));
-    final documentSymbolProvider = json['documentSymbolProvider'] is bool
-        ? Either2<bool, DocumentSymbolOptions>.t1(
-            json['documentSymbolProvider'])
-        : (DocumentSymbolOptions.canParse(
-                json['documentSymbolProvider'], nullLspJsonReporter)
-            ? Either2<bool, DocumentSymbolOptions>.t2(
-                json['documentSymbolProvider'] != null
-                    ? DocumentSymbolOptions.fromJson(
-                        json['documentSymbolProvider'])
-                    : null)
-            : (json['documentSymbolProvider'] == null
-                ? null
+    final documentSymbolProvider = json['documentSymbolProvider'] == null
+        ? null
+        : (json['documentSymbolProvider'] is bool
+            ? Either2<bool, DocumentSymbolOptions>.t1(
+                json['documentSymbolProvider'])
+            : (DocumentSymbolOptions.canParse(
+                    json['documentSymbolProvider'], nullLspJsonReporter)
+                ? Either2<bool, DocumentSymbolOptions>.t2(
+                    DocumentSymbolOptions.fromJson(
+                        json['documentSymbolProvider']))
                 : (throw '''${json['documentSymbolProvider']} was not one of (bool, DocumentSymbolOptions)''')));
-    final codeActionProvider = json['codeActionProvider'] is bool
-        ? Either2<bool, CodeActionOptions>.t1(json['codeActionProvider'])
-        : (CodeActionOptions.canParse(
-                json['codeActionProvider'], nullLspJsonReporter)
-            ? Either2<bool, CodeActionOptions>.t2(
-                json['codeActionProvider'] != null
-                    ? CodeActionOptions.fromJson(json['codeActionProvider'])
-                    : null)
-            : (json['codeActionProvider'] == null
-                ? null
+    final codeActionProvider = json['codeActionProvider'] == null
+        ? null
+        : (json['codeActionProvider'] is bool
+            ? Either2<bool, CodeActionOptions>.t1(json['codeActionProvider'])
+            : (CodeActionOptions.canParse(
+                    json['codeActionProvider'], nullLspJsonReporter)
+                ? Either2<bool, CodeActionOptions>.t2(
+                    CodeActionOptions.fromJson(json['codeActionProvider']))
                 : (throw '''${json['codeActionProvider']} was not one of (bool, CodeActionOptions)''')));
     final codeLensProvider = json['codeLensProvider'] != null
         ? CodeLensOptions.fromJson(json['codeLensProvider'])
@@ -26106,190 +24921,166 @@ class ServerCapabilities implements ToJsonable {
     final documentLinkProvider = json['documentLinkProvider'] != null
         ? DocumentLinkOptions.fromJson(json['documentLinkProvider'])
         : null;
-    final colorProvider = json['colorProvider'] is bool
-        ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t1(
-            json['colorProvider'])
-        : (DocumentColorOptions.canParse(
-                json['colorProvider'], nullLspJsonReporter)
-            ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t2(
-                json['colorProvider'] != null
-                    ? DocumentColorOptions.fromJson(json['colorProvider'])
-                    : null)
-            : (DocumentColorRegistrationOptions.canParse(
-                    json['colorProvider'], nullLspJsonReporter)
-                ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t3(
-                    json['colorProvider'] != null
-                        ? DocumentColorRegistrationOptions.fromJson(
-                            json['colorProvider'])
-                        : null)
-                : (json['colorProvider'] == null
-                    ? null
+    final colorProvider = json['colorProvider'] == null
+        ? null
+        : (json['colorProvider'] is bool
+            ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t1(
+                json['colorProvider'])
+            : (DocumentColorOptions.canParse(json['colorProvider'], nullLspJsonReporter)
+                ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t2(
+                    DocumentColorOptions.fromJson(json['colorProvider']))
+                : (DocumentColorRegistrationOptions.canParse(
+                        json['colorProvider'], nullLspJsonReporter)
+                    ? Either3<bool, DocumentColorOptions,
+                            DocumentColorRegistrationOptions>.t3(
+                        DocumentColorRegistrationOptions.fromJson(
+                            json['colorProvider']))
                     : (throw '''${json['colorProvider']} was not one of (bool, DocumentColorOptions, DocumentColorRegistrationOptions)'''))));
-    final documentFormattingProvider = json['documentFormattingProvider']
-            is bool
-        ? Either2<bool, DocumentFormattingOptions>.t1(
-            json['documentFormattingProvider'])
-        : (DocumentFormattingOptions.canParse(
-                json['documentFormattingProvider'], nullLspJsonReporter)
-            ? Either2<bool, DocumentFormattingOptions>.t2(
-                json['documentFormattingProvider'] != null
-                    ? DocumentFormattingOptions.fromJson(
-                        json['documentFormattingProvider'])
-                    : null)
-            : (json['documentFormattingProvider'] == null
-                ? null
+    final documentFormattingProvider = json['documentFormattingProvider'] ==
+            null
+        ? null
+        : (json['documentFormattingProvider'] is bool
+            ? Either2<bool, DocumentFormattingOptions>.t1(
+                json['documentFormattingProvider'])
+            : (DocumentFormattingOptions.canParse(
+                    json['documentFormattingProvider'], nullLspJsonReporter)
+                ? Either2<bool, DocumentFormattingOptions>.t2(
+                    DocumentFormattingOptions.fromJson(
+                        json['documentFormattingProvider']))
                 : (throw '''${json['documentFormattingProvider']} was not one of (bool, DocumentFormattingOptions)''')));
     final documentRangeFormattingProvider = json[
-            'documentRangeFormattingProvider'] is bool
-        ? Either2<bool, DocumentRangeFormattingOptions>.t1(
-            json['documentRangeFormattingProvider'])
-        : (DocumentRangeFormattingOptions.canParse(
-                json['documentRangeFormattingProvider'], nullLspJsonReporter)
-            ? Either2<bool, DocumentRangeFormattingOptions>.t2(
-                json['documentRangeFormattingProvider'] != null
-                    ? DocumentRangeFormattingOptions.fromJson(
-                        json['documentRangeFormattingProvider'])
-                    : null)
-            : (json['documentRangeFormattingProvider'] == null
-                ? null
+                'documentRangeFormattingProvider'] ==
+            null
+        ? null
+        : (json['documentRangeFormattingProvider'] is bool
+            ? Either2<bool, DocumentRangeFormattingOptions>.t1(
+                json['documentRangeFormattingProvider'])
+            : (DocumentRangeFormattingOptions.canParse(
+                    json['documentRangeFormattingProvider'],
+                    nullLspJsonReporter)
+                ? Either2<bool, DocumentRangeFormattingOptions>.t2(
+                    DocumentRangeFormattingOptions.fromJson(
+                        json['documentRangeFormattingProvider']))
                 : (throw '''${json['documentRangeFormattingProvider']} was not one of (bool, DocumentRangeFormattingOptions)''')));
     final documentOnTypeFormattingProvider =
         json['documentOnTypeFormattingProvider'] != null
             ? DocumentOnTypeFormattingOptions.fromJson(
                 json['documentOnTypeFormattingProvider'])
             : null;
-    final renameProvider = json['renameProvider'] is bool
-        ? Either2<bool, RenameOptions>.t1(json['renameProvider'])
-        : (RenameOptions.canParse(json['renameProvider'], nullLspJsonReporter)
-            ? Either2<bool, RenameOptions>.t2(json['renameProvider'] != null
-                ? RenameOptions.fromJson(json['renameProvider'])
-                : null)
-            : (json['renameProvider'] == null
-                ? null
+    final renameProvider = json['renameProvider'] == null
+        ? null
+        : (json['renameProvider'] is bool
+            ? Either2<bool, RenameOptions>.t1(json['renameProvider'])
+            : (RenameOptions.canParse(
+                    json['renameProvider'], nullLspJsonReporter)
+                ? Either2<bool, RenameOptions>.t2(
+                    RenameOptions.fromJson(json['renameProvider']))
                 : (throw '''${json['renameProvider']} was not one of (bool, RenameOptions)''')));
-    final foldingRangeProvider = json['foldingRangeProvider'] is bool
-        ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t1(
-            json['foldingRangeProvider'])
-        : (FoldingRangeOptions.canParse(
-                json['foldingRangeProvider'], nullLspJsonReporter)
-            ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t2(
-                json['foldingRangeProvider'] != null
-                    ? FoldingRangeOptions.fromJson(json['foldingRangeProvider'])
-                    : null)
-            : (FoldingRangeRegistrationOptions.canParse(
+    final foldingRangeProvider = json['foldingRangeProvider'] == null
+        ? null
+        : (json['foldingRangeProvider'] is bool
+            ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t1(
+                json['foldingRangeProvider'])
+            : (FoldingRangeOptions.canParse(
                     json['foldingRangeProvider'], nullLspJsonReporter)
-                ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t3(
-                    json['foldingRangeProvider'] != null
-                        ? FoldingRangeRegistrationOptions.fromJson(
-                            json['foldingRangeProvider'])
-                        : null)
-                : (json['foldingRangeProvider'] == null
-                    ? null
+                ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t2(
+                    FoldingRangeOptions.fromJson(json['foldingRangeProvider']))
+                : (FoldingRangeRegistrationOptions.canParse(
+                        json['foldingRangeProvider'], nullLspJsonReporter)
+                    ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t3(
+                        FoldingRangeRegistrationOptions.fromJson(
+                            json['foldingRangeProvider']))
                     : (throw '''${json['foldingRangeProvider']} was not one of (bool, FoldingRangeOptions, FoldingRangeRegistrationOptions)'''))));
     final executeCommandProvider = json['executeCommandProvider'] != null
         ? ExecuteCommandOptions.fromJson(json['executeCommandProvider'])
         : null;
-    final selectionRangeProvider = json['selectionRangeProvider'] is bool
-        ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t1(
-            json['selectionRangeProvider'])
-        : (SelectionRangeOptions.canParse(
-                json['selectionRangeProvider'], nullLspJsonReporter)
-            ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t2(json['selectionRangeProvider'] != null
-                ? SelectionRangeOptions.fromJson(json['selectionRangeProvider'])
-                : null)
-            : (SelectionRangeRegistrationOptions.canParse(
+    final selectionRangeProvider = json['selectionRangeProvider'] == null
+        ? null
+        : (json['selectionRangeProvider'] is bool
+            ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t1(
+                json['selectionRangeProvider'])
+            : (SelectionRangeOptions.canParse(
                     json['selectionRangeProvider'], nullLspJsonReporter)
-                ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t3(
-                    json['selectionRangeProvider'] != null
-                        ? SelectionRangeRegistrationOptions.fromJson(
-                            json['selectionRangeProvider'])
-                        : null)
-                : (json['selectionRangeProvider'] == null
-                    ? null
+                ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t2(
+                    SelectionRangeOptions.fromJson(
+                        json['selectionRangeProvider']))
+                : (SelectionRangeRegistrationOptions.canParse(
+                        json['selectionRangeProvider'], nullLspJsonReporter)
+                    ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t3(
+                        SelectionRangeRegistrationOptions.fromJson(
+                            json['selectionRangeProvider']))
                     : (throw '''${json['selectionRangeProvider']} was not one of (bool, SelectionRangeOptions, SelectionRangeRegistrationOptions)'''))));
-    final linkedEditingRangeProvider = json['linkedEditingRangeProvider']
-            is bool
-        ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t1(
-            json['linkedEditingRangeProvider'])
-        : (LinkedEditingRangeOptions.canParse(json['linkedEditingRangeProvider'], nullLspJsonReporter)
-            ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t2(
-                json['linkedEditingRangeProvider'] != null
-                    ? LinkedEditingRangeOptions.fromJson(
-                        json['linkedEditingRangeProvider'])
-                    : null)
-            : (LinkedEditingRangeRegistrationOptions.canParse(json['linkedEditingRangeProvider'], nullLspJsonReporter)
-                ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t3(
-                    json['linkedEditingRangeProvider'] != null
-                        ? LinkedEditingRangeRegistrationOptions.fromJson(
-                            json['linkedEditingRangeProvider'])
-                        : null)
-                : (json['linkedEditingRangeProvider'] == null
-                    ? null
+    final linkedEditingRangeProvider = json['linkedEditingRangeProvider'] == null
+        ? null
+        : (json['linkedEditingRangeProvider'] is bool
+            ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t1(
+                json['linkedEditingRangeProvider'])
+            : (LinkedEditingRangeOptions.canParse(
+                    json['linkedEditingRangeProvider'], nullLspJsonReporter)
+                ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t2(
+                    LinkedEditingRangeOptions.fromJson(
+                        json['linkedEditingRangeProvider']))
+                : (LinkedEditingRangeRegistrationOptions.canParse(
+                        json['linkedEditingRangeProvider'], nullLspJsonReporter)
+                    ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t3(
+                        LinkedEditingRangeRegistrationOptions.fromJson(
+                            json['linkedEditingRangeProvider']))
                     : (throw '''${json['linkedEditingRangeProvider']} was not one of (bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions)'''))));
-    final callHierarchyProvider = json['callHierarchyProvider'] is bool
-        ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t1(
-            json['callHierarchyProvider'])
-        : (CallHierarchyOptions.canParse(
-                json['callHierarchyProvider'], nullLspJsonReporter)
-            ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t2(json['callHierarchyProvider'] != null
-                ? CallHierarchyOptions.fromJson(json['callHierarchyProvider'])
-                : null)
-            : (CallHierarchyRegistrationOptions.canParse(
+    final callHierarchyProvider = json['callHierarchyProvider'] == null
+        ? null
+        : (json['callHierarchyProvider'] is bool
+            ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t1(
+                json['callHierarchyProvider'])
+            : (CallHierarchyOptions.canParse(
                     json['callHierarchyProvider'], nullLspJsonReporter)
-                ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t3(
-                    json['callHierarchyProvider'] != null
-                        ? CallHierarchyRegistrationOptions.fromJson(
-                            json['callHierarchyProvider'])
-                        : null)
-                : (json['callHierarchyProvider'] == null
-                    ? null
+                ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t2(
+                    CallHierarchyOptions.fromJson(
+                        json['callHierarchyProvider']))
+                : (CallHierarchyRegistrationOptions.canParse(
+                        json['callHierarchyProvider'], nullLspJsonReporter)
+                    ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t3(
+                        CallHierarchyRegistrationOptions.fromJson(
+                            json['callHierarchyProvider']))
                     : (throw '''${json['callHierarchyProvider']} was not one of (bool, CallHierarchyOptions, CallHierarchyRegistrationOptions)'''))));
-    final semanticTokensProvider = SemanticTokensOptions.canParse(
-            json['semanticTokensProvider'], nullLspJsonReporter)
-        ? Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>.t1(
-            json['semanticTokensProvider'] != null
-                ? SemanticTokensOptions.fromJson(json['semanticTokensProvider'])
-                : null)
-        : (SemanticTokensRegistrationOptions.canParse(
+    final semanticTokensProvider = json['semanticTokensProvider'] == null
+        ? null
+        : (SemanticTokensOptions.canParse(
                 json['semanticTokensProvider'], nullLspJsonReporter)
-            ? Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>.t2(
-                json['semanticTokensProvider'] != null
-                    ? SemanticTokensRegistrationOptions.fromJson(
-                        json['semanticTokensProvider'])
-                    : null)
-            : (json['semanticTokensProvider'] == null
-                ? null
+            ? Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>.t1(
+                SemanticTokensOptions.fromJson(json['semanticTokensProvider']))
+            : (SemanticTokensRegistrationOptions.canParse(
+                    json['semanticTokensProvider'], nullLspJsonReporter)
+                ? Either2<SemanticTokensOptions,
+                        SemanticTokensRegistrationOptions>.t2(
+                    SemanticTokensRegistrationOptions.fromJson(
+                        json['semanticTokensProvider']))
                 : (throw '''${json['semanticTokensProvider']} was not one of (SemanticTokensOptions, SemanticTokensRegistrationOptions)''')));
-    final monikerProvider = json['monikerProvider'] is bool
-        ? Either3<bool, MonikerOptions, MonikerRegistrationOptions>.t1(
-            json['monikerProvider'])
-        : (MonikerOptions.canParse(json['monikerProvider'], nullLspJsonReporter)
-            ? Either3<bool, MonikerOptions, MonikerRegistrationOptions>.t2(
-                json['monikerProvider'] != null
-                    ? MonikerOptions.fromJson(json['monikerProvider'])
-                    : null)
-            : (MonikerRegistrationOptions.canParse(
+    final monikerProvider = json['monikerProvider'] == null
+        ? null
+        : (json['monikerProvider'] is bool
+            ? Either3<bool, MonikerOptions, MonikerRegistrationOptions>.t1(
+                json['monikerProvider'])
+            : (MonikerOptions.canParse(
                     json['monikerProvider'], nullLspJsonReporter)
-                ? Either3<bool, MonikerOptions, MonikerRegistrationOptions>.t3(
-                    json['monikerProvider'] != null
-                        ? MonikerRegistrationOptions.fromJson(
-                            json['monikerProvider'])
-                        : null)
-                : (json['monikerProvider'] == null
-                    ? null
+                ? Either3<bool, MonikerOptions, MonikerRegistrationOptions>.t2(
+                    MonikerOptions.fromJson(json['monikerProvider']))
+                : (MonikerRegistrationOptions.canParse(
+                        json['monikerProvider'], nullLspJsonReporter)
+                    ? Either3<bool, MonikerOptions,
+                            MonikerRegistrationOptions>.t3(
+                        MonikerRegistrationOptions.fromJson(
+                            json['monikerProvider']))
                     : (throw '''${json['monikerProvider']} was not one of (bool, MonikerOptions, MonikerRegistrationOptions)'''))));
-    final workspaceSymbolProvider = json['workspaceSymbolProvider'] is bool
-        ? Either2<bool, WorkspaceSymbolOptions>.t1(
-            json['workspaceSymbolProvider'])
-        : (WorkspaceSymbolOptions.canParse(
-                json['workspaceSymbolProvider'], nullLspJsonReporter)
-            ? Either2<bool, WorkspaceSymbolOptions>.t2(
-                json['workspaceSymbolProvider'] != null
-                    ? WorkspaceSymbolOptions.fromJson(
-                        json['workspaceSymbolProvider'])
-                    : null)
-            : (json['workspaceSymbolProvider'] == null
-                ? null
+    final workspaceSymbolProvider = json['workspaceSymbolProvider'] == null
+        ? null
+        : (json['workspaceSymbolProvider'] is bool
+            ? Either2<bool, WorkspaceSymbolOptions>.t1(
+                json['workspaceSymbolProvider'])
+            : (WorkspaceSymbolOptions.canParse(
+                    json['workspaceSymbolProvider'], nullLspJsonReporter)
+                ? Either2<bool, WorkspaceSymbolOptions>.t2(
+                    WorkspaceSymbolOptions.fromJson(
+                        json['workspaceSymbolProvider']))
                 : (throw '''${json['workspaceSymbolProvider']} was not one of (bool, WorkspaceSymbolOptions)''')));
     final workspace = json['workspace'] != null
         ? ServerCapabilitiesWorkspace.fromJson(json['workspace'])
@@ -26329,118 +25120,119 @@ class ServerCapabilities implements ToJsonable {
 
   /// The server provides call hierarchy support.
   ///  @since 3.16.0
-  final Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>
+  final Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>?
       callHierarchyProvider;
 
   /// The server provides code actions. The `CodeActionOptions` return type is
   /// only valid if the client signals code action literal support via the
   /// property `textDocument.codeAction.codeActionLiteralSupport`.
-  final Either2<bool, CodeActionOptions> codeActionProvider;
+  final Either2<bool, CodeActionOptions>? codeActionProvider;
 
   /// The server provides code lens.
-  final CodeLensOptions codeLensProvider;
+  final CodeLensOptions? codeLensProvider;
 
   /// The server provides color provider support.
   ///  @since 3.6.0
-  final Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>
+  final Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>?
       colorProvider;
 
   /// The server provides completion support.
-  final CompletionOptions completionProvider;
+  final CompletionOptions? completionProvider;
 
   /// The server provides go to declaration support.
   ///  @since 3.14.0
-  final Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>
+  final Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>?
       declarationProvider;
 
   /// The server provides goto definition support.
-  final Either2<bool, DefinitionOptions> definitionProvider;
+  final Either2<bool, DefinitionOptions>? definitionProvider;
 
   /// The server provides document formatting.
-  final Either2<bool, DocumentFormattingOptions> documentFormattingProvider;
+  final Either2<bool, DocumentFormattingOptions>? documentFormattingProvider;
 
   /// The server provides document highlight support.
-  final Either2<bool, DocumentHighlightOptions> documentHighlightProvider;
+  final Either2<bool, DocumentHighlightOptions>? documentHighlightProvider;
 
   /// The server provides document link support.
-  final DocumentLinkOptions documentLinkProvider;
+  final DocumentLinkOptions? documentLinkProvider;
 
   /// The server provides document formatting on typing.
-  final DocumentOnTypeFormattingOptions documentOnTypeFormattingProvider;
+  final DocumentOnTypeFormattingOptions? documentOnTypeFormattingProvider;
 
   /// The server provides document range formatting.
-  final Either2<bool, DocumentRangeFormattingOptions>
+  final Either2<bool, DocumentRangeFormattingOptions>?
       documentRangeFormattingProvider;
 
   /// The server provides document symbol support.
-  final Either2<bool, DocumentSymbolOptions> documentSymbolProvider;
+  final Either2<bool, DocumentSymbolOptions>? documentSymbolProvider;
 
   /// The server provides execute command support.
-  final ExecuteCommandOptions executeCommandProvider;
+  final ExecuteCommandOptions? executeCommandProvider;
 
   /// Experimental server capabilities.
   final dynamic experimental;
 
   /// The server provides folding provider support.
   ///  @since 3.10.0
-  final Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>
+  final Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>?
       foldingRangeProvider;
 
   /// The server provides hover support.
-  final Either2<bool, HoverOptions> hoverProvider;
+  final Either2<bool, HoverOptions>? hoverProvider;
 
   /// The server provides goto implementation support.
   ///  @since 3.6.0
-  final Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>
+  final Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>?
       implementationProvider;
 
   /// The server provides linked editing range support.
   ///  @since 3.16.0
   final Either3<bool, LinkedEditingRangeOptions,
-      LinkedEditingRangeRegistrationOptions> linkedEditingRangeProvider;
+      LinkedEditingRangeRegistrationOptions>? linkedEditingRangeProvider;
 
   /// Whether server provides moniker support.
   ///  @since 3.16.0
-  final Either3<bool, MonikerOptions, MonikerRegistrationOptions>
+  final Either3<bool, MonikerOptions, MonikerRegistrationOptions>?
       monikerProvider;
 
   /// The server provides find references support.
-  final Either2<bool, ReferenceOptions> referencesProvider;
+  final Either2<bool, ReferenceOptions>? referencesProvider;
 
   /// The server provides rename support. RenameOptions may only be specified if
   /// the client states that it supports `prepareSupport` in its initial
   /// `initialize` request.
-  final Either2<bool, RenameOptions> renameProvider;
+  final Either2<bool, RenameOptions>? renameProvider;
 
   /// The server provides selection range support.
   ///  @since 3.15.0
-  final Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>
+  final Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>?
       selectionRangeProvider;
 
   /// The server provides semantic tokens support.
   ///  @since 3.16.0
-  final Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>
+  final Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>?
       semanticTokensProvider;
 
   /// The server provides signature help support.
-  final SignatureHelpOptions signatureHelpProvider;
+  final SignatureHelpOptions? signatureHelpProvider;
 
   /// Defines how text documents are synced. Is either a detailed structure
   /// defining each notification or for backwards compatibility the
   /// TextDocumentSyncKind number. If omitted it defaults to
   /// `TextDocumentSyncKind.None`.
-  final Either2<TextDocumentSyncOptions, TextDocumentSyncKind> textDocumentSync;
+  final Either2<TextDocumentSyncOptions, TextDocumentSyncKind>?
+      textDocumentSync;
 
   /// The server provides goto type definition support.
   ///  @since 3.6.0
-  final Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>
+  final Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>?
       typeDefinitionProvider;
 
   /// Workspace specific server capabilities
-  final ServerCapabilitiesWorkspace workspace;
+  final ServerCapabilitiesWorkspace? workspace;
 
   /// The server provides workspace symbol support.
-  final Either2<bool, WorkspaceSymbolOptions> workspaceSymbolProvider;
+  final Either2<bool, WorkspaceSymbolOptions>? workspaceSymbolProvider;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -26448,13 +25240,13 @@ class ServerCapabilities implements ToJsonable {
       __result['textDocumentSync'] = textDocumentSync;
     }
     if (completionProvider != null) {
-      __result['completionProvider'] = completionProvider.toJson();
+      __result['completionProvider'] = completionProvider?.toJson();
     }
     if (hoverProvider != null) {
       __result['hoverProvider'] = hoverProvider;
     }
     if (signatureHelpProvider != null) {
-      __result['signatureHelpProvider'] = signatureHelpProvider.toJson();
+      __result['signatureHelpProvider'] = signatureHelpProvider?.toJson();
     }
     if (declarationProvider != null) {
       __result['declarationProvider'] = declarationProvider;
@@ -26481,10 +25273,10 @@ class ServerCapabilities implements ToJsonable {
       __result['codeActionProvider'] = codeActionProvider;
     }
     if (codeLensProvider != null) {
-      __result['codeLensProvider'] = codeLensProvider.toJson();
+      __result['codeLensProvider'] = codeLensProvider?.toJson();
     }
     if (documentLinkProvider != null) {
-      __result['documentLinkProvider'] = documentLinkProvider.toJson();
+      __result['documentLinkProvider'] = documentLinkProvider?.toJson();
     }
     if (colorProvider != null) {
       __result['colorProvider'] = colorProvider;
@@ -26498,7 +25290,7 @@ class ServerCapabilities implements ToJsonable {
     }
     if (documentOnTypeFormattingProvider != null) {
       __result['documentOnTypeFormattingProvider'] =
-          documentOnTypeFormattingProvider.toJson();
+          documentOnTypeFormattingProvider?.toJson();
     }
     if (renameProvider != null) {
       __result['renameProvider'] = renameProvider;
@@ -26507,7 +25299,7 @@ class ServerCapabilities implements ToJsonable {
       __result['foldingRangeProvider'] = foldingRangeProvider;
     }
     if (executeCommandProvider != null) {
-      __result['executeCommandProvider'] = executeCommandProvider.toJson();
+      __result['executeCommandProvider'] = executeCommandProvider?.toJson();
     }
     if (selectionRangeProvider != null) {
       __result['selectionRangeProvider'] = selectionRangeProvider;
@@ -26528,7 +25320,7 @@ class ServerCapabilities implements ToJsonable {
       __result['workspaceSymbolProvider'] = workspaceSymbolProvider;
     }
     if (workspace != null) {
-      __result['workspace'] = workspace.toJson();
+      __result['workspace'] = workspace?.toJson();
     }
     if (experimental != null) {
       __result['experimental'] = experimental;
@@ -26536,7 +25328,7 @@ class ServerCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocumentSync');
       try {
@@ -26902,15 +25694,6 @@ class ServerCapabilities implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('experimental');
-      try {
-        if (obj['experimental'] != null && !(true)) {
-          reporter.reportError('must be of type dynamic');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
       return true;
     } else {
       reporter.reportError('must be of type ServerCapabilities');
@@ -27040,47 +25823,47 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
   }
 
   /// The server is interested in receiving didCreateFiles notifications.
-  final FileOperationRegistrationOptions didCreate;
+  final FileOperationRegistrationOptions? didCreate;
 
   /// The server is interested in receiving didDeleteFiles file notifications.
-  final FileOperationRegistrationOptions didDelete;
+  final FileOperationRegistrationOptions? didDelete;
 
   /// The server is interested in receiving didRenameFiles notifications.
-  final FileOperationRegistrationOptions didRename;
+  final FileOperationRegistrationOptions? didRename;
 
   /// The server is interested in receiving willCreateFiles requests.
-  final FileOperationRegistrationOptions willCreate;
+  final FileOperationRegistrationOptions? willCreate;
 
   /// The server is interested in receiving willDeleteFiles file requests.
-  final FileOperationRegistrationOptions willDelete;
+  final FileOperationRegistrationOptions? willDelete;
 
   /// The server is interested in receiving willRenameFiles requests.
-  final FileOperationRegistrationOptions willRename;
+  final FileOperationRegistrationOptions? willRename;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (didCreate != null) {
-      __result['didCreate'] = didCreate.toJson();
+      __result['didCreate'] = didCreate?.toJson();
     }
     if (willCreate != null) {
-      __result['willCreate'] = willCreate.toJson();
+      __result['willCreate'] = willCreate?.toJson();
     }
     if (didRename != null) {
-      __result['didRename'] = didRename.toJson();
+      __result['didRename'] = didRename?.toJson();
     }
     if (willRename != null) {
-      __result['willRename'] = willRename.toJson();
+      __result['willRename'] = willRename?.toJson();
     }
     if (didDelete != null) {
-      __result['didDelete'] = didDelete.toJson();
+      __result['didDelete'] = didDelete?.toJson();
     }
     if (willDelete != null) {
-      __result['willDelete'] = willDelete.toJson();
+      __result['willDelete'] = willDelete?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('didCreate');
       try {
@@ -27211,24 +25994,24 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 
   /// The server is interested in file notifications/requests.
   ///  @since 3.16.0
-  final ServerCapabilitiesFileOperations fileOperations;
+  final ServerCapabilitiesFileOperations? fileOperations;
 
   /// The server supports workspace folder.
   ///  @since 3.6.0
-  final WorkspaceFoldersServerCapabilities workspaceFolders;
+  final WorkspaceFoldersServerCapabilities? workspaceFolders;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (workspaceFolders != null) {
-      __result['workspaceFolders'] = workspaceFolders.toJson();
+      __result['workspaceFolders'] = workspaceFolders?.toJson();
     }
     if (fileOperations != null) {
-      __result['fileOperations'] = fileOperations.toJson();
+      __result['fileOperations'] = fileOperations?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workspaceFolders');
       try {
@@ -27288,11 +26071,7 @@ class SetTraceParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(SetTraceParams.canParse, SetTraceParams.fromJson);
 
-  SetTraceParams({@required this.value}) {
-    if (value == null) {
-      throw 'value is required but was not provided';
-    }
-  }
+  SetTraceParams({required this.value});
   static SetTraceParams fromJson(Map<String, dynamic> json) {
     final value = const {'off', 'message', 'verbose'}.contains(json['value'])
         ? json['value']
@@ -27305,11 +26084,11 @@ class SetTraceParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['value'] = value ?? (throw 'value is required but was not set');
+    __result['value'] = value;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('value');
       try {
@@ -27363,11 +26142,7 @@ class ShowDocumentClientCapabilities implements ToJsonable {
       ShowDocumentClientCapabilities.canParse,
       ShowDocumentClientCapabilities.fromJson);
 
-  ShowDocumentClientCapabilities({@required this.support}) {
-    if (support == null) {
-      throw 'support is required but was not provided';
-    }
-  }
+  ShowDocumentClientCapabilities({required this.support});
   static ShowDocumentClientCapabilities fromJson(Map<String, dynamic> json) {
     final support = json['support'];
     return ShowDocumentClientCapabilities(support: support);
@@ -27378,12 +26153,11 @@ class ShowDocumentClientCapabilities implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['support'] =
-        support ?? (throw 'support is required but was not set');
+    __result['support'] = support;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('support');
       try {
@@ -27436,11 +26210,7 @@ class ShowDocumentParams implements ToJsonable {
       LspJsonHandler(ShowDocumentParams.canParse, ShowDocumentParams.fromJson);
 
   ShowDocumentParams(
-      {@required this.uri, this.external, this.takeFocus, this.selection}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-  }
+      {required this.uri, this.external, this.takeFocus, this.selection});
   static ShowDocumentParams fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final external = json['external'];
@@ -27457,24 +26227,24 @@ class ShowDocumentParams implements ToJsonable {
   /// Indicates to show the resource in an external program. To show for example
   /// `https://code.visualstudio.com/` in the default WEB browser set `external`
   /// to `true`.
-  final bool external;
+  final bool? external;
 
   /// An optional selection range if the document is a text document. Clients
   /// might ignore the property if an external program is started or the file is
   /// not a text file.
-  final Range selection;
+  final Range? selection;
 
   /// An optional property to indicate whether the editor showing the document
   /// should take focus or not. Clients might ignore this property if an
   /// external program is started.
-  final bool takeFocus;
+  final bool? takeFocus;
 
   /// The document uri to show.
   final String uri;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['uri'] = uri;
     if (external != null) {
       __result['external'] = external;
     }
@@ -27482,12 +26252,12 @@ class ShowDocumentParams implements ToJsonable {
       __result['takeFocus'] = takeFocus;
     }
     if (selection != null) {
-      __result['selection'] = selection.toJson();
+      __result['selection'] = selection?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -27574,11 +26344,7 @@ class ShowDocumentResult implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ShowDocumentResult.canParse, ShowDocumentResult.fromJson);
 
-  ShowDocumentResult({@required this.success}) {
-    if (success == null) {
-      throw 'success is required but was not provided';
-    }
-  }
+  ShowDocumentResult({required this.success});
   static ShowDocumentResult fromJson(Map<String, dynamic> json) {
     final success = json['success'];
     return ShowDocumentResult(success: success);
@@ -27589,12 +26355,11 @@ class ShowDocumentResult implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['success'] =
-        success ?? (throw 'success is required but was not set');
+    __result['success'] = success;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('success');
       try {
@@ -27644,17 +26409,9 @@ class ShowMessageParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ShowMessageParams.canParse, ShowMessageParams.fromJson);
 
-  ShowMessageParams({@required this.type, @required this.message}) {
-    if (type == null) {
-      throw 'type is required but was not provided';
-    }
-    if (message == null) {
-      throw 'message is required but was not provided';
-    }
-  }
+  ShowMessageParams({required this.type, required this.message});
   static ShowMessageParams fromJson(Map<String, dynamic> json) {
-    final type =
-        json['type'] != null ? MessageType.fromJson(json['type']) : null;
+    final type = MessageType.fromJson(json['type']);
     final message = json['message'];
     return ShowMessageParams(type: type, message: message);
   }
@@ -27667,14 +26424,12 @@ class ShowMessageParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['type'] =
-        type?.toJson() ?? (throw 'type is required but was not set');
-    __result['message'] =
-        message ?? (throw 'message is required but was not set');
+    __result['type'] = type.toJson();
+    __result['message'] = message;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('type');
       try {
@@ -27755,17 +26510,18 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
   }
 
   /// Capabilities specific to the `MessageActionItem` type.
-  final ShowMessageRequestClientCapabilitiesMessageActionItem messageActionItem;
+  final ShowMessageRequestClientCapabilitiesMessageActionItem?
+      messageActionItem;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (messageActionItem != null) {
-      __result['messageActionItem'] = messageActionItem.toJson();
+      __result['messageActionItem'] = messageActionItem?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('messageActionItem');
       try {
@@ -27824,7 +26580,7 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
 
   /// Whether the client supports additional attributes which are preserved and
   /// sent back to the server in the request's response.
-  final bool additionalPropertiesSupport;
+  final bool? additionalPropertiesSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -27834,7 +26590,7 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('additionalPropertiesSupport');
       try {
@@ -27881,17 +26637,9 @@ class ShowMessageRequestParams implements ToJsonable {
       ShowMessageRequestParams.canParse, ShowMessageRequestParams.fromJson);
 
   ShowMessageRequestParams(
-      {@required this.type, @required this.message, this.actions}) {
-    if (type == null) {
-      throw 'type is required but was not provided';
-    }
-    if (message == null) {
-      throw 'message is required but was not provided';
-    }
-  }
+      {required this.type, required this.message, this.actions});
   static ShowMessageRequestParams fromJson(Map<String, dynamic> json) {
-    final type =
-        json['type'] != null ? MessageType.fromJson(json['type']) : null;
+    final type = MessageType.fromJson(json['type']);
     final message = json['message'];
     final actions = json['actions']
         ?.map((item) => item != null ? MessageActionItem.fromJson(item) : null)
@@ -27902,7 +26650,7 @@ class ShowMessageRequestParams implements ToJsonable {
   }
 
   /// The message action items to present.
-  final List<MessageActionItem> actions;
+  final List<MessageActionItem>? actions;
 
   /// The actual message
   final String message;
@@ -27912,17 +26660,15 @@ class ShowMessageRequestParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['type'] =
-        type?.toJson() ?? (throw 'type is required but was not set');
-    __result['message'] =
-        message ?? (throw 'message is required but was not set');
+    __result['type'] = type.toJson();
+    __result['message'] = message;
     if (actions != null) {
-      __result['actions'] = actions;
+      __result['actions'] = actions?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('type');
       try {
@@ -28010,15 +26756,10 @@ class SignatureHelp implements ToJsonable {
       LspJsonHandler(SignatureHelp.canParse, SignatureHelp.fromJson);
 
   SignatureHelp(
-      {@required this.signatures, this.activeSignature, this.activeParameter}) {
-    if (signatures == null) {
-      throw 'signatures is required but was not provided';
-    }
-  }
+      {required this.signatures, this.activeSignature, this.activeParameter});
   static SignatureHelp fromJson(Map<String, dynamic> json) {
     final signatures = json['signatures']
-        ?.map(
-            (item) => item != null ? SignatureInformation.fromJson(item) : null)
+        ?.map((item) => SignatureInformation.fromJson(item))
         ?.cast<SignatureInformation>()
         ?.toList();
     final activeSignature = json['activeSignature'];
@@ -28035,7 +26776,7 @@ class SignatureHelp implements ToJsonable {
   /// parameters it is ignored. In future version of the protocol this property
   /// might become mandatory to better express the active parameter if the
   /// active signature does have any.
-  final num activeParameter;
+  final int? activeParameter;
 
   /// The active signature. If omitted or the value lies outside the range of
   /// `signatures` the value defaults to zero or is ignore if the
@@ -28046,7 +26787,7 @@ class SignatureHelp implements ToJsonable {
   ///
   /// In future version of the protocol this property might become mandatory to
   /// better express this.
-  final num activeSignature;
+  final int? activeSignature;
 
   /// One or more signatures. If no signatures are available the signature help
   /// request should return `null`.
@@ -28054,8 +26795,7 @@ class SignatureHelp implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['signatures'] =
-        signatures ?? (throw 'signatures is required but was not set');
+    __result['signatures'] = signatures.map((item) => item.toJson()).toList();
     if (activeSignature != null) {
       __result['activeSignature'] = activeSignature;
     }
@@ -28065,7 +26805,7 @@ class SignatureHelp implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('signatures');
       try {
@@ -28089,8 +26829,8 @@ class SignatureHelp implements ToJsonable {
       reporter.push('activeSignature');
       try {
         if (obj['activeSignature'] != null &&
-            !(obj['activeSignature'] is num)) {
-          reporter.reportError('must be of type num');
+            !(obj['activeSignature'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -28099,8 +26839,8 @@ class SignatureHelp implements ToJsonable {
       reporter.push('activeParameter');
       try {
         if (obj['activeParameter'] != null &&
-            !(obj['activeParameter'] is num)) {
-          reporter.reportError('must be of type num');
+            !(obj['activeParameter'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -28165,14 +26905,14 @@ class SignatureHelpClientCapabilities implements ToJsonable {
   /// contextSupport will also support the `retriggerCharacters` on
   /// `SignatureHelpOptions`.
   ///  @since 3.15.0
-  final bool contextSupport;
+  final bool? contextSupport;
 
   /// Whether signature help supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// The client supports the following `SignatureInformation` specific
   /// properties.
-  final SignatureHelpClientCapabilitiesSignatureInformation
+  final SignatureHelpClientCapabilitiesSignatureInformation?
       signatureInformation;
 
   Map<String, dynamic> toJson() {
@@ -28181,7 +26921,7 @@ class SignatureHelpClientCapabilities implements ToJsonable {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
     if (signatureInformation != null) {
-      __result['signatureInformation'] = signatureInformation.toJson();
+      __result['signatureInformation'] = signatureInformation?.toJson();
     }
     if (contextSupport != null) {
       __result['contextSupport'] = contextSupport;
@@ -28189,7 +26929,7 @@ class SignatureHelpClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -28272,7 +27012,7 @@ class SignatureHelpClientCapabilitiesParameterInformation
   /// The client supports processing label offsets instead of a simple label
   /// string.
   ///  @since 3.14.0
-  final bool labelOffsetSupport;
+  final bool? labelOffsetSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -28282,7 +27022,7 @@ class SignatureHelpClientCapabilitiesParameterInformation
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('labelOffsetSupport');
       try {
@@ -28353,23 +27093,24 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   /// The client supports the `activeParameter` property on
   /// `SignatureInformation` literal.
   ///  @since 3.16.0
-  final bool activeParameterSupport;
+  final bool? activeParameterSupport;
 
   /// Client supports the follow content formats for the documentation property.
   /// The order describes the preferred format of the client.
-  final List<MarkupKind> documentationFormat;
+  final List<MarkupKind>? documentationFormat;
 
   /// Client capabilities specific to parameter information.
-  final SignatureHelpClientCapabilitiesParameterInformation
+  final SignatureHelpClientCapabilitiesParameterInformation?
       parameterInformation;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (documentationFormat != null) {
-      __result['documentationFormat'] = documentationFormat;
+      __result['documentationFormat'] =
+          documentationFormat?.map((item) => item.toJson()).toList();
     }
     if (parameterInformation != null) {
-      __result['parameterInformation'] = parameterInformation.toJson();
+      __result['parameterInformation'] = parameterInformation?.toJson();
     }
     if (activeParameterSupport != null) {
       __result['activeParameterSupport'] = activeParameterSupport;
@@ -28377,7 +27118,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentationFormat');
       try {
@@ -28456,21 +27197,12 @@ class SignatureHelpContext implements ToJsonable {
       SignatureHelpContext.canParse, SignatureHelpContext.fromJson);
 
   SignatureHelpContext(
-      {@required this.triggerKind,
+      {required this.triggerKind,
       this.triggerCharacter,
-      @required this.isRetrigger,
-      this.activeSignatureHelp}) {
-    if (triggerKind == null) {
-      throw 'triggerKind is required but was not provided';
-    }
-    if (isRetrigger == null) {
-      throw 'isRetrigger is required but was not provided';
-    }
-  }
+      required this.isRetrigger,
+      this.activeSignatureHelp});
   static SignatureHelpContext fromJson(Map<String, dynamic> json) {
-    final triggerKind = json['triggerKind'] != null
-        ? SignatureHelpTriggerKind.fromJson(json['triggerKind'])
-        : null;
+    final triggerKind = SignatureHelpTriggerKind.fromJson(json['triggerKind']);
     final triggerCharacter = json['triggerCharacter'];
     final isRetrigger = json['isRetrigger'];
     final activeSignatureHelp = json['activeSignatureHelp'] != null
@@ -28487,7 +27219,7 @@ class SignatureHelpContext implements ToJsonable {
   ///
   /// The `activeSignatureHelp` has its `SignatureHelp.activeSignature` field
   /// updated based on the user navigating through available signatures.
-  final SignatureHelp activeSignatureHelp;
+  final SignatureHelp? activeSignatureHelp;
 
   /// `true` if signature help was already showing when it was triggered.
   ///
@@ -28500,27 +27232,25 @@ class SignatureHelpContext implements ToJsonable {
   ///
   /// This is undefined when triggerKind !==
   /// SignatureHelpTriggerKind.TriggerCharacter
-  final String triggerCharacter;
+  final String? triggerCharacter;
 
   /// Action that caused signature help to be triggered.
   final SignatureHelpTriggerKind triggerKind;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['triggerKind'] = triggerKind?.toJson() ??
-        (throw 'triggerKind is required but was not set');
+    __result['triggerKind'] = triggerKind.toJson();
     if (triggerCharacter != null) {
       __result['triggerCharacter'] = triggerCharacter;
     }
-    __result['isRetrigger'] =
-        isRetrigger ?? (throw 'isRetrigger is required but was not set');
+    __result['isRetrigger'] = isRetrigger;
     if (activeSignatureHelp != null) {
-      __result['activeSignatureHelp'] = activeSignatureHelp.toJson();
+      __result['activeSignatureHelp'] = activeSignatureHelp?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('triggerKind');
       try {
@@ -28643,11 +27373,11 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   /// These trigger characters are only active when signature help is already
   /// showing. All trigger characters are also counted as re-trigger characters.
   ///  @since 3.15.0
-  final List<String> retriggerCharacters;
+  final List<String>? retriggerCharacters;
 
   /// The characters that trigger signature help automatically.
-  final List<String> triggerCharacters;
-  final bool workDoneProgress;
+  final List<String>? triggerCharacters;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -28663,7 +27393,7 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('triggerCharacters');
       try {
@@ -28739,32 +27469,22 @@ class SignatureHelpParams
 
   SignatureHelpParams(
       {this.context,
-      @required this.textDocument,
-      @required this.position,
-      this.workDoneToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      required this.textDocument,
+      required this.position,
+      this.workDoneToken});
   static SignatureHelpParams fromJson(Map<String, dynamic> json) {
     final context = json['context'] != null
         ? SignatureHelpContext.fromJson(json['context'])
         : null;
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return SignatureHelpParams(
         context: context,
         textDocument: textDocument,
@@ -28776,7 +27496,7 @@ class SignatureHelpParams
   /// to send this using the client capability
   /// `textDocument.signatureHelp.contextSupport === true`
   ///  @since 3.15.0
-  final SignatureHelpContext context;
+  final SignatureHelpContext? context;
 
   /// The position inside the text document.
   final Position position;
@@ -28785,24 +27505,22 @@ class SignatureHelpParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (context != null) {
-      __result['context'] = context.toJson();
+      __result['context'] = context?.toJson();
     }
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('context');
       try {
@@ -28851,9 +27569,9 @@ class SignatureHelpParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -28930,18 +27648,18 @@ class SignatureHelpRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// List of characters that re-trigger signature help.
   ///
   /// These trigger characters are only active when signature help is already
   /// showing. All trigger characters are also counted as re-trigger characters.
   ///  @since 3.15.0
-  final List<String> retriggerCharacters;
+  final List<String>? retriggerCharacters;
 
   /// The characters that trigger signature help automatically.
-  final List<String> triggerCharacters;
-  final bool workDoneProgress;
+  final List<String>? triggerCharacters;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -28958,7 +27676,7 @@ class SignatureHelpRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -29087,24 +27805,20 @@ class SignatureInformation implements ToJsonable {
       SignatureInformation.canParse, SignatureInformation.fromJson);
 
   SignatureInformation(
-      {@required this.label,
+      {required this.label,
       this.documentation,
       this.parameters,
-      this.activeParameter}) {
-    if (label == null) {
-      throw 'label is required but was not provided';
-    }
-  }
+      this.activeParameter});
   static SignatureInformation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
-    final documentation = json['documentation'] is String
-        ? Either2<String, MarkupContent>.t1(json['documentation'])
-        : (MarkupContent.canParse(json['documentation'], nullLspJsonReporter)
-            ? Either2<String, MarkupContent>.t2(json['documentation'] != null
-                ? MarkupContent.fromJson(json['documentation'])
-                : null)
-            : (json['documentation'] == null
-                ? null
+    final documentation = json['documentation'] == null
+        ? null
+        : (json['documentation'] is String
+            ? Either2<String, MarkupContent>.t1(json['documentation'])
+            : (MarkupContent.canParse(
+                    json['documentation'], nullLspJsonReporter)
+                ? Either2<String, MarkupContent>.t2(
+                    MarkupContent.fromJson(json['documentation']))
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
     final parameters = json['parameters']
         ?.map(
@@ -29123,26 +27837,27 @@ class SignatureInformation implements ToJsonable {
   ///
   /// If provided, this is used in place of `SignatureHelp.activeParameter`.
   ///  @since 3.16.0
-  final num activeParameter;
+  final int? activeParameter;
 
   /// The human-readable doc-comment of this signature. Will be shown in the UI
   /// but can be omitted.
-  final Either2<String, MarkupContent> documentation;
+  final Either2<String, MarkupContent>? documentation;
 
   /// The label of this signature. Will be shown in the UI.
   final String label;
 
   /// The parameters of this signature.
-  final List<ParameterInformation> parameters;
+  final List<ParameterInformation>? parameters;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['label'] = label ?? (throw 'label is required but was not set');
+    __result['label'] = label;
     if (documentation != null) {
       __result['documentation'] = documentation;
     }
     if (parameters != null) {
-      __result['parameters'] = parameters;
+      __result['parameters'] =
+          parameters?.map((item) => item.toJson()).toList();
     }
     if (activeParameter != null) {
       __result['activeParameter'] = activeParameter;
@@ -29150,7 +27865,7 @@ class SignatureInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -29196,8 +27911,8 @@ class SignatureInformation implements ToJsonable {
       reporter.push('activeParameter');
       try {
         if (obj['activeParameter'] != null &&
-            !(obj['activeParameter'] is num)) {
-          reporter.reportError('must be of type num');
+            !(obj['activeParameter'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -29279,7 +27994,7 @@ class StaticRegistrationOptions implements ToJsonable {
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
+  final String? id;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -29289,7 +28004,7 @@ class StaticRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -29334,33 +28049,21 @@ class SymbolInformation implements ToJsonable {
       LspJsonHandler(SymbolInformation.canParse, SymbolInformation.fromJson);
 
   SymbolInformation(
-      {@required this.name,
-      @required this.kind,
+      {required this.name,
+      required this.kind,
       this.tags,
       this.deprecated,
-      @required this.location,
-      this.containerName}) {
-    if (name == null) {
-      throw 'name is required but was not provided';
-    }
-    if (kind == null) {
-      throw 'kind is required but was not provided';
-    }
-    if (location == null) {
-      throw 'location is required but was not provided';
-    }
-  }
+      required this.location,
+      this.containerName});
   static SymbolInformation fromJson(Map<String, dynamic> json) {
     final name = json['name'];
-    final kind =
-        json['kind'] != null ? SymbolKind.fromJson(json['kind']) : null;
+    final kind = SymbolKind.fromJson(json['kind']);
     final tags = json['tags']
         ?.map((item) => item != null ? SymbolTag.fromJson(item) : null)
         ?.cast<SymbolTag>()
         ?.toList();
     final deprecated = json['deprecated'];
-    final location =
-        json['location'] != null ? Location.fromJson(json['location']) : null;
+    final location = Location.fromJson(json['location']);
     final containerName = json['containerName'];
     return SymbolInformation(
         name: name,
@@ -29375,11 +28078,11 @@ class SymbolInformation implements ToJsonable {
   /// user interface purposes (e.g. to render a qualifier in the user interface
   /// if necessary). It can't be used to re-infer a hierarchy for the document
   /// symbols.
-  final String containerName;
+  final String? containerName;
 
   /// Indicates if this symbol is deprecated.
   ///  @deprecated Use tags instead
-  final bool deprecated;
+  final bool? deprecated;
 
   /// The kind of this symbol.
   final SymbolKind kind;
@@ -29400,28 +28103,26 @@ class SymbolInformation implements ToJsonable {
 
   /// Tags for this completion item.
   ///  @since 3.16.0
-  final List<SymbolTag> tags;
+  final List<SymbolTag>? tags;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['name'] = name ?? (throw 'name is required but was not set');
-    __result['kind'] =
-        kind?.toJson() ?? (throw 'kind is required but was not set');
+    __result['name'] = name;
+    __result['kind'] = kind.toJson();
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
     if (deprecated != null) {
       __result['deprecated'] = deprecated;
     }
-    __result['location'] =
-        location?.toJson() ?? (throw 'location is required but was not set');
+    __result['location'] = location.toJson();
     if (containerName != null) {
       __result['containerName'] = containerName;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -29546,10 +28247,10 @@ class SymbolKind {
   const SymbolKind(this._value);
   const SymbolKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   static const File = SymbolKind(1);
@@ -29625,16 +28326,10 @@ class TextDocumentChangeRegistrationOptions
       TextDocumentChangeRegistrationOptions.fromJson);
 
   TextDocumentChangeRegistrationOptions(
-      {@required this.syncKind, this.documentSelector}) {
-    if (syncKind == null) {
-      throw 'syncKind is required but was not provided';
-    }
-  }
+      {required this.syncKind, this.documentSelector});
   static TextDocumentChangeRegistrationOptions fromJson(
       Map<String, dynamic> json) {
-    final syncKind = json['syncKind'] != null
-        ? TextDocumentSyncKind.fromJson(json['syncKind'])
-        : null;
+    final syncKind = TextDocumentSyncKind.fromJson(json['syncKind']);
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
@@ -29645,7 +28340,7 @@ class TextDocumentChangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// How documents are synced to the server. See TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental.
@@ -29653,13 +28348,12 @@ class TextDocumentChangeRegistrationOptions
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['syncKind'] =
-        syncKind?.toJson() ?? (throw 'syncKind is required but was not set');
+    __result['syncKind'] = syncKind.toJson();
     __result['documentSelector'] = documentSelector;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('syncKind');
       try {
@@ -29874,177 +28568,177 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
   /// Capabilities specific to the various call hierarchy requests.
   ///  @since 3.16.0
-  final CallHierarchyClientCapabilities callHierarchy;
+  final CallHierarchyClientCapabilities? callHierarchy;
 
   /// Capabilities specific to the `textDocument/codeAction` request.
-  final CodeActionClientCapabilities codeAction;
+  final CodeActionClientCapabilities? codeAction;
 
   /// Capabilities specific to the `textDocument/codeLens` request.
-  final CodeLensClientCapabilities codeLens;
+  final CodeLensClientCapabilities? codeLens;
 
   /// Capabilities specific to the `textDocument/documentColor` and the
   /// `textDocument/colorPresentation` request.
   ///  @since 3.6.0
-  final DocumentColorClientCapabilities colorProvider;
+  final DocumentColorClientCapabilities? colorProvider;
 
   /// Capabilities specific to the `textDocument/completion` request.
-  final CompletionClientCapabilities completion;
+  final CompletionClientCapabilities? completion;
 
   /// Capabilities specific to the `textDocument/declaration` request.
   ///  @since 3.14.0
-  final DeclarationClientCapabilities declaration;
+  final DeclarationClientCapabilities? declaration;
 
   /// Capabilities specific to the `textDocument/definition` request.
-  final DefinitionClientCapabilities definition;
+  final DefinitionClientCapabilities? definition;
 
   /// Capabilities specific to the `textDocument/documentHighlight` request.
-  final DocumentHighlightClientCapabilities documentHighlight;
+  final DocumentHighlightClientCapabilities? documentHighlight;
 
   /// Capabilities specific to the `textDocument/documentLink` request.
-  final DocumentLinkClientCapabilities documentLink;
+  final DocumentLinkClientCapabilities? documentLink;
 
   /// Capabilities specific to the `textDocument/documentSymbol` request.
-  final DocumentSymbolClientCapabilities documentSymbol;
+  final DocumentSymbolClientCapabilities? documentSymbol;
 
   /// Capabilities specific to the `textDocument/foldingRange` request.
   ///  @since 3.10.0
-  final FoldingRangeClientCapabilities foldingRange;
+  final FoldingRangeClientCapabilities? foldingRange;
 
   /// Capabilities specific to the `textDocument/formatting` request.
-  final DocumentFormattingClientCapabilities formatting;
+  final DocumentFormattingClientCapabilities? formatting;
 
   /// Capabilities specific to the `textDocument/hover` request.
-  final HoverClientCapabilities hover;
+  final HoverClientCapabilities? hover;
 
   /// Capabilities specific to the `textDocument/implementation` request.
   ///  @since 3.6.0
-  final ImplementationClientCapabilities implementation;
+  final ImplementationClientCapabilities? implementation;
 
   /// Capabilities specific to the `textDocument/linkedEditingRange` request.
   ///  @since 3.16.0
-  final LinkedEditingRangeClientCapabilities linkedEditingRange;
+  final LinkedEditingRangeClientCapabilities? linkedEditingRange;
 
   /// Capabilities specific to the `textDocument/moniker` request.
   ///  @since 3.16.0
-  final MonikerClientCapabilities moniker;
+  final MonikerClientCapabilities? moniker;
 
   /// request. Capabilities specific to the `textDocument/onTypeFormatting`
   /// request.
-  final DocumentOnTypeFormattingClientCapabilities onTypeFormatting;
+  final DocumentOnTypeFormattingClientCapabilities? onTypeFormatting;
 
   /// Capabilities specific to the `textDocument/publishDiagnostics`
   /// notification.
-  final PublishDiagnosticsClientCapabilities publishDiagnostics;
+  final PublishDiagnosticsClientCapabilities? publishDiagnostics;
 
   /// Capabilities specific to the `textDocument/rangeFormatting` request.
-  final DocumentRangeFormattingClientCapabilities rangeFormatting;
+  final DocumentRangeFormattingClientCapabilities? rangeFormatting;
 
   /// Capabilities specific to the `textDocument/references` request.
-  final ReferenceClientCapabilities references;
+  final ReferenceClientCapabilities? references;
 
   /// Capabilities specific to the `textDocument/rename` request.
-  final RenameClientCapabilities rename;
+  final RenameClientCapabilities? rename;
 
   /// Capabilities specific to the `textDocument/selectionRange` request.
   ///  @since 3.15.0
-  final SelectionRangeClientCapabilities selectionRange;
+  final SelectionRangeClientCapabilities? selectionRange;
 
   /// Capabilities specific to the various semantic token requests.
   ///  @since 3.16.0
-  final SemanticTokensClientCapabilities semanticTokens;
+  final SemanticTokensClientCapabilities? semanticTokens;
 
   /// Capabilities specific to the `textDocument/signatureHelp` request.
-  final SignatureHelpClientCapabilities signatureHelp;
-  final TextDocumentSyncClientCapabilities synchronization;
+  final SignatureHelpClientCapabilities? signatureHelp;
+  final TextDocumentSyncClientCapabilities? synchronization;
 
   /// Capabilities specific to the `textDocument/typeDefinition` request.
   ///  @since 3.6.0
-  final TypeDefinitionClientCapabilities typeDefinition;
+  final TypeDefinitionClientCapabilities? typeDefinition;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (synchronization != null) {
-      __result['synchronization'] = synchronization.toJson();
+      __result['synchronization'] = synchronization?.toJson();
     }
     if (completion != null) {
-      __result['completion'] = completion.toJson();
+      __result['completion'] = completion?.toJson();
     }
     if (hover != null) {
-      __result['hover'] = hover.toJson();
+      __result['hover'] = hover?.toJson();
     }
     if (signatureHelp != null) {
-      __result['signatureHelp'] = signatureHelp.toJson();
+      __result['signatureHelp'] = signatureHelp?.toJson();
     }
     if (declaration != null) {
-      __result['declaration'] = declaration.toJson();
+      __result['declaration'] = declaration?.toJson();
     }
     if (definition != null) {
-      __result['definition'] = definition.toJson();
+      __result['definition'] = definition?.toJson();
     }
     if (typeDefinition != null) {
-      __result['typeDefinition'] = typeDefinition.toJson();
+      __result['typeDefinition'] = typeDefinition?.toJson();
     }
     if (implementation != null) {
-      __result['implementation'] = implementation.toJson();
+      __result['implementation'] = implementation?.toJson();
     }
     if (references != null) {
-      __result['references'] = references.toJson();
+      __result['references'] = references?.toJson();
     }
     if (documentHighlight != null) {
-      __result['documentHighlight'] = documentHighlight.toJson();
+      __result['documentHighlight'] = documentHighlight?.toJson();
     }
     if (documentSymbol != null) {
-      __result['documentSymbol'] = documentSymbol.toJson();
+      __result['documentSymbol'] = documentSymbol?.toJson();
     }
     if (codeAction != null) {
-      __result['codeAction'] = codeAction.toJson();
+      __result['codeAction'] = codeAction?.toJson();
     }
     if (codeLens != null) {
-      __result['codeLens'] = codeLens.toJson();
+      __result['codeLens'] = codeLens?.toJson();
     }
     if (documentLink != null) {
-      __result['documentLink'] = documentLink.toJson();
+      __result['documentLink'] = documentLink?.toJson();
     }
     if (colorProvider != null) {
-      __result['colorProvider'] = colorProvider.toJson();
+      __result['colorProvider'] = colorProvider?.toJson();
     }
     if (formatting != null) {
-      __result['formatting'] = formatting.toJson();
+      __result['formatting'] = formatting?.toJson();
     }
     if (rangeFormatting != null) {
-      __result['rangeFormatting'] = rangeFormatting.toJson();
+      __result['rangeFormatting'] = rangeFormatting?.toJson();
     }
     if (onTypeFormatting != null) {
-      __result['onTypeFormatting'] = onTypeFormatting.toJson();
+      __result['onTypeFormatting'] = onTypeFormatting?.toJson();
     }
     if (rename != null) {
-      __result['rename'] = rename.toJson();
+      __result['rename'] = rename?.toJson();
     }
     if (publishDiagnostics != null) {
-      __result['publishDiagnostics'] = publishDiagnostics.toJson();
+      __result['publishDiagnostics'] = publishDiagnostics?.toJson();
     }
     if (foldingRange != null) {
-      __result['foldingRange'] = foldingRange.toJson();
+      __result['foldingRange'] = foldingRange?.toJson();
     }
     if (selectionRange != null) {
-      __result['selectionRange'] = selectionRange.toJson();
+      __result['selectionRange'] = selectionRange?.toJson();
     }
     if (linkedEditingRange != null) {
-      __result['linkedEditingRange'] = linkedEditingRange.toJson();
+      __result['linkedEditingRange'] = linkedEditingRange?.toJson();
     }
     if (callHierarchy != null) {
-      __result['callHierarchy'] = callHierarchy.toJson();
+      __result['callHierarchy'] = callHierarchy?.toJson();
     }
     if (semanticTokens != null) {
-      __result['semanticTokens'] = semanticTokens.toJson();
+      __result['semanticTokens'] = semanticTokens?.toJson();
     }
     if (moniker != null) {
-      __result['moniker'] = moniker.toJson();
+      __result['moniker'] = moniker?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('synchronization');
       try {
@@ -30429,16 +29123,9 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
       TextDocumentContentChangeEvent1.fromJson);
 
   TextDocumentContentChangeEvent1(
-      {@required this.range, this.rangeLength, @required this.text}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (text == null) {
-      throw 'text is required but was not provided';
-    }
-  }
+      {required this.range, this.rangeLength, required this.text});
   static TextDocumentContentChangeEvent1 fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     final rangeLength = json['rangeLength'];
     final text = json['text'];
     return TextDocumentContentChangeEvent1(
@@ -30450,23 +29137,22 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
 
   /// The optional length of the range that got replaced.
   ///  @deprecated use range instead.
-  final num rangeLength;
+  final int? rangeLength;
 
   /// The new text for the provided range.
   final String text;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['range'] = range.toJson();
     if (rangeLength != null) {
       __result['rangeLength'] = rangeLength;
     }
-    __result['text'] = text ?? (throw 'text is required but was not set');
+    __result['text'] = text;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -30487,8 +29173,8 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
       }
       reporter.push('rangeLength');
       try {
-        if (obj['rangeLength'] != null && !(obj['rangeLength'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['rangeLength'] != null && !(obj['rangeLength'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -30548,11 +29234,7 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
       TextDocumentContentChangeEvent2.canParse,
       TextDocumentContentChangeEvent2.fromJson);
 
-  TextDocumentContentChangeEvent2({@required this.text}) {
-    if (text == null) {
-      throw 'text is required but was not provided';
-    }
-  }
+  TextDocumentContentChangeEvent2({required this.text});
   static TextDocumentContentChangeEvent2 fromJson(Map<String, dynamic> json) {
     final text = json['text'];
     return TextDocumentContentChangeEvent2(text: text);
@@ -30563,11 +29245,11 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['text'] = text ?? (throw 'text is required but was not set');
+    __result['text'] = text;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('text');
       try {
@@ -30617,27 +29299,22 @@ class TextDocumentEdit implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
 
-  TextDocumentEdit({@required this.textDocument, @required this.edits}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (edits == null) {
-      throw 'edits is required but was not provided';
-    }
-  }
+  TextDocumentEdit({required this.textDocument, required this.edits});
   static TextDocumentEdit fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? OptionalVersionedTextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
+    final textDocument =
+        OptionalVersionedTextDocumentIdentifier.fromJson(json['textDocument']);
     final edits = json['edits']
-        ?.map((item) => TextEdit.canParse(item, nullLspJsonReporter)
-            ? Either2<TextEdit, AnnotatedTextEdit>.t1(
-                item != null ? TextEdit.fromJson(item) : null)
+        ?.map((item) => SnippetTextEdit.canParse(item, nullLspJsonReporter)
+            ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t1(
+                SnippetTextEdit.fromJson(item))
             : (AnnotatedTextEdit.canParse(item, nullLspJsonReporter)
-                ? Either2<TextEdit, AnnotatedTextEdit>.t2(
-                    item != null ? AnnotatedTextEdit.fromJson(item) : null)
-                : (throw '''${item} was not one of (TextEdit, AnnotatedTextEdit)''')))
-        ?.cast<Either2<TextEdit, AnnotatedTextEdit>>()
+                ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t2(
+                    AnnotatedTextEdit.fromJson(item))
+                : (TextEdit.canParse(item, nullLspJsonReporter)
+                    ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t3(
+                        TextEdit.fromJson(item))
+                    : (throw '''$item was not one of (SnippetTextEdit, AnnotatedTextEdit, TextEdit)'''))))
+        ?.cast<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>>()
         ?.toList();
     return TextDocumentEdit(textDocument: textDocument, edits: edits);
   }
@@ -30645,20 +29322,19 @@ class TextDocumentEdit implements ToJsonable {
   /// The edits to be applied.
   ///  @since 3.16.0 - support for AnnotatedTextEdit. This is guarded by the
   /// client capability `workspace.workspaceEdit.changeAnnotationSupport`
-  final List<Either2<TextEdit, AnnotatedTextEdit>> edits;
+  final List<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>> edits;
 
   /// The text document to change.
   final OptionalVersionedTextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['edits'] = edits ?? (throw 'edits is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['edits'] = edits;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -30690,10 +29366,12 @@ class TextDocumentEdit implements ToJsonable {
           return false;
         }
         if (!((obj['edits'] is List &&
-            (obj['edits'].every((item) => (TextEdit.canParse(item, reporter) ||
-                AnnotatedTextEdit.canParse(item, reporter))))))) {
+            (obj['edits'].every((item) =>
+                (SnippetTextEdit.canParse(item, reporter) ||
+                    AnnotatedTextEdit.canParse(item, reporter) ||
+                    TextEdit.canParse(item, reporter))))))) {
           reporter.reportError(
-              'must be of type List<Either2<TextEdit, AnnotatedTextEdit>>');
+              'must be of type List<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>>');
           return false;
         }
       } finally {
@@ -30713,8 +29391,9 @@ class TextDocumentEdit implements ToJsonable {
           listEqual(
               edits,
               other.edits,
-              (Either2<TextEdit, AnnotatedTextEdit> a,
-                      Either2<TextEdit, AnnotatedTextEdit> b) =>
+              (Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit> a,
+                      Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>
+                          b) =>
                   a == b) &&
           true;
     }
@@ -30737,11 +29416,7 @@ class TextDocumentIdentifier implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       TextDocumentIdentifier.canParse, TextDocumentIdentifier.fromJson);
 
-  TextDocumentIdentifier({@required this.uri}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-  }
+  TextDocumentIdentifier({required this.uri});
   static TextDocumentIdentifier fromJson(Map<String, dynamic> json) {
     if (VersionedTextDocumentIdentifier.canParse(json, nullLspJsonReporter)) {
       return VersionedTextDocumentIdentifier.fromJson(json);
@@ -30759,11 +29434,11 @@ class TextDocumentIdentifier implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['uri'] = uri;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -30814,23 +29489,10 @@ class TextDocumentItem implements ToJsonable {
       LspJsonHandler(TextDocumentItem.canParse, TextDocumentItem.fromJson);
 
   TextDocumentItem(
-      {@required this.uri,
-      @required this.languageId,
-      @required this.version,
-      @required this.text}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-    if (languageId == null) {
-      throw 'languageId is required but was not provided';
-    }
-    if (version == null) {
-      throw 'version is required but was not provided';
-    }
-    if (text == null) {
-      throw 'text is required but was not provided';
-    }
-  }
+      {required this.uri,
+      required this.languageId,
+      required this.version,
+      required this.text});
   static TextDocumentItem fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final languageId = json['languageId'];
@@ -30851,20 +29513,18 @@ class TextDocumentItem implements ToJsonable {
 
   /// The version number of this document (it will increase after each change,
   /// including undo/redo).
-  final num version;
+  final int version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['languageId'] =
-        languageId ?? (throw 'languageId is required but was not set');
-    __result['version'] =
-        version ?? (throw 'version is required but was not set');
-    __result['text'] = text ?? (throw 'text is required but was not set');
+    __result['uri'] = uri;
+    __result['languageId'] = languageId;
+    __result['version'] = version;
+    __result['text'] = text;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -30910,8 +29570,8 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['version'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['version'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -30972,14 +29632,7 @@ class TextDocumentPositionParams implements ToJsonable {
       TextDocumentPositionParams.canParse, TextDocumentPositionParams.fromJson);
 
   TextDocumentPositionParams(
-      {@required this.textDocument, @required this.position}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      {required this.textDocument, required this.position});
   static TextDocumentPositionParams fromJson(Map<String, dynamic> json) {
     if (CompletionParams.canParse(json, nullLspJsonReporter)) {
       return CompletionParams.fromJson(json);
@@ -31026,11 +29679,8 @@ class TextDocumentPositionParams implements ToJsonable {
     if (MonikerParams.canParse(json, nullLspJsonReporter)) {
       return MonikerParams.fromJson(json);
     }
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
     return TextDocumentPositionParams(
         textDocument: textDocument, position: position);
   }
@@ -31043,14 +29693,12 @@ class TextDocumentPositionParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -31218,7 +29866,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31226,7 +29874,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -31278,10 +29926,10 @@ class TextDocumentSaveReason {
   const TextDocumentSaveReason(this._value);
   const TextDocumentSaveReason.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Manually triggered, e.g. by the user pressing save, by starting debugging,
@@ -31327,10 +29975,10 @@ class TextDocumentSaveRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The client is supposed to include the content on save.
-  final bool includeText;
+  final bool? includeText;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31341,7 +29989,7 @@ class TextDocumentSaveRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('includeText');
       try {
@@ -31424,18 +30072,18 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
   }
 
   /// The client supports did save notifications.
-  final bool didSave;
+  final bool? didSave;
 
   /// Whether text document synchronization supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// The client supports sending will save notifications.
-  final bool willSave;
+  final bool? willSave;
 
   /// The client supports sending a will save request and waits for a response
   /// providing text edits which will be applied to the document before it is
   /// saved.
-  final bool willSaveWaitUntil;
+  final bool? willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31454,7 +30102,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -31535,10 +30183,10 @@ class TextDocumentSyncKind {
   const TextDocumentSyncKind(this._value);
   const TextDocumentSyncKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Documents should not be synced at all.
@@ -31579,14 +30227,13 @@ class TextDocumentSyncOptions implements ToJsonable {
         : null;
     final willSave = json['willSave'];
     final willSaveWaitUntil = json['willSaveWaitUntil'];
-    final save = json['save'] is bool
-        ? Either2<bool, SaveOptions>.t1(json['save'])
-        : (SaveOptions.canParse(json['save'], nullLspJsonReporter)
-            ? Either2<bool, SaveOptions>.t2(json['save'] != null
-                ? SaveOptions.fromJson(json['save'])
-                : null)
-            : (json['save'] == null
-                ? null
+    final save = json['save'] == null
+        ? null
+        : (json['save'] is bool
+            ? Either2<bool, SaveOptions>.t1(json['save'])
+            : (SaveOptions.canParse(json['save'], nullLspJsonReporter)
+                ? Either2<bool, SaveOptions>.t2(
+                    SaveOptions.fromJson(json['save']))
                 : (throw '''${json['save']} was not one of (bool, SaveOptions)''')));
     return TextDocumentSyncOptions(
         openClose: openClose,
@@ -31600,23 +30247,23 @@ class TextDocumentSyncOptions implements ToJsonable {
   /// TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental. If omitted it defaults to
   /// TextDocumentSyncKind.None.
-  final TextDocumentSyncKind change;
+  final TextDocumentSyncKind? change;
 
   /// Open and close notifications are sent to the server. If omitted open close
   /// notification should not be sent.
-  final bool openClose;
+  final bool? openClose;
 
   /// If present save notifications are sent to the server. If omitted the
   /// notification should not be sent.
-  final Either2<bool, SaveOptions> save;
+  final Either2<bool, SaveOptions>? save;
 
   /// If present will save notifications are sent to the server. If omitted the
   /// notification should not be sent.
-  final bool willSave;
+  final bool? willSave;
 
   /// If present will save wait until requests are sent to the server. If
   /// omitted the request should not be sent.
-  final bool willSaveWaitUntil;
+  final bool? willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31624,7 +30271,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       __result['openClose'] = openClose;
     }
     if (change != null) {
-      __result['change'] = change.toJson();
+      __result['change'] = change?.toJson();
     }
     if (willSave != null) {
       __result['willSave'] = willSave;
@@ -31638,7 +30285,7 @@ class TextDocumentSyncOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('openClose');
       try {
@@ -31729,19 +30376,15 @@ class TextEdit implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
 
-  TextEdit({@required this.range, @required this.newText}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (newText == null) {
-      throw 'newText is required but was not provided';
-    }
-  }
+  TextEdit({required this.range, required this.newText});
   static TextEdit fromJson(Map<String, dynamic> json) {
     if (AnnotatedTextEdit.canParse(json, nullLspJsonReporter)) {
       return AnnotatedTextEdit.fromJson(json);
     }
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    if (SnippetTextEdit.canParse(json, nullLspJsonReporter)) {
+      return SnippetTextEdit.fromJson(json);
+    }
+    final range = Range.fromJson(json['range']);
     final newText = json['newText'];
     return TextEdit(range: range, newText: newText);
   }
@@ -31755,14 +30398,12 @@ class TextEdit implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['newText'] =
-        newText ?? (throw 'newText is required but was not set');
+    __result['range'] = range.toJson();
+    __result['newText'] = newText;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -31865,11 +30506,11 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
   /// Whether implementation supports dynamic registration. If this is set to
   /// `true` the client supports the new `TypeDefinitionRegistrationOptions`
   /// return value for the corresponding server capability as well.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
   ///  @since 3.14.0
-  final bool linkSupport;
+  final bool? linkSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31882,7 +30523,7 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -31946,7 +30587,7 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     return TypeDefinitionOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31956,7 +30597,7 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -32005,37 +30646,27 @@ class TypeDefinitionParams
       TypeDefinitionParams.canParse, TypeDefinitionParams.fromJson);
 
   TypeDefinitionParams(
-      {@required this.textDocument,
-      @required this.position,
+      {required this.textDocument,
+      required this.position,
       this.workDoneToken,
-      this.partialResultToken}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (position == null) {
-      throw 'position is required but was not provided';
-    }
-  }
+      this.partialResultToken});
   static TypeDefinitionParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final position =
-        json['position'] != null ? Position.fromJson(json['position']) : null;
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final position = Position.fromJson(json['position']);
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return TypeDefinitionParams(
         textDocument: textDocument,
         position: position,
@@ -32045,7 +30676,7 @@ class TypeDefinitionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -32054,14 +30685,12 @@ class TypeDefinitionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['position'] =
-        position?.toJson() ?? (throw 'position is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['position'] = position.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -32071,7 +30700,7 @@ class TypeDefinitionParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -32110,9 +30739,9 @@ class TypeDefinitionParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -32121,9 +30750,9 @@ class TypeDefinitionParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -32190,12 +30819,12 @@ class TypeDefinitionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<DocumentFilter> documentSelector;
+  final List<DocumentFilter>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
-  final String id;
-  final bool workDoneProgress;
+  final String? id;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -32209,7 +30838,7 @@ class TypeDefinitionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -32321,14 +30950,7 @@ class Unregistration implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
 
-  Unregistration({@required this.id, @required this.method}) {
-    if (id == null) {
-      throw 'id is required but was not provided';
-    }
-    if (method == null) {
-      throw 'method is required but was not provided';
-    }
-  }
+  Unregistration({required this.id, required this.method});
   static Unregistration fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     final method = json['method'];
@@ -32344,12 +30966,12 @@ class Unregistration implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['id'] = id ?? (throw 'id is required but was not set');
-    __result['method'] = method ?? (throw 'method is required but was not set');
+    __result['id'] = id;
+    __result['method'] = method;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -32416,14 +31038,10 @@ class UnregistrationParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       UnregistrationParams.canParse, UnregistrationParams.fromJson);
 
-  UnregistrationParams({@required this.unregisterations}) {
-    if (unregisterations == null) {
-      throw 'unregisterations is required but was not provided';
-    }
-  }
+  UnregistrationParams({required this.unregisterations});
   static UnregistrationParams fromJson(Map<String, dynamic> json) {
     final unregisterations = json['unregisterations']
-        ?.map((item) => item != null ? Unregistration.fromJson(item) : null)
+        ?.map((item) => Unregistration.fromJson(item))
         ?.cast<Unregistration>()
         ?.toList();
     return UnregistrationParams(unregisterations: unregisterations);
@@ -32436,12 +31054,12 @@ class UnregistrationParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['unregisterations'] = unregisterations ??
-        (throw 'unregisterations is required but was not set');
+    __result['unregisterations'] =
+        unregisterations.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('unregisterations');
       try {
@@ -32497,15 +31115,7 @@ class VersionedTextDocumentIdentifier
       VersionedTextDocumentIdentifier.canParse,
       VersionedTextDocumentIdentifier.fromJson);
 
-  VersionedTextDocumentIdentifier(
-      {@required this.version, @required this.uri}) {
-    if (version == null) {
-      throw 'version is required but was not provided';
-    }
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-  }
+  VersionedTextDocumentIdentifier({required this.version, required this.uri});
   static VersionedTextDocumentIdentifier fromJson(Map<String, dynamic> json) {
     final version = json['version'];
     final uri = json['uri'];
@@ -32519,17 +31129,16 @@ class VersionedTextDocumentIdentifier
   ///
   /// The version number of a document will increase after each change,
   /// including undo/redo. The number doesn't need to be consecutive.
-  final num version;
+  final int version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['version'] =
-        version ?? (throw 'version is required but was not set');
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['version'] = version;
+    __result['uri'] = uri;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('version');
       try {
@@ -32541,8 +31150,8 @@ class VersionedTextDocumentIdentifier
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['version'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['version'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -32597,10 +31206,10 @@ class WatchKind {
   const WatchKind(this._value);
   const WatchKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Interested in create events.
@@ -32629,21 +31238,10 @@ class WillSaveTextDocumentParams implements ToJsonable {
       WillSaveTextDocumentParams.canParse, WillSaveTextDocumentParams.fromJson);
 
   WillSaveTextDocumentParams(
-      {@required this.textDocument, @required this.reason}) {
-    if (textDocument == null) {
-      throw 'textDocument is required but was not provided';
-    }
-    if (reason == null) {
-      throw 'reason is required but was not provided';
-    }
-  }
+      {required this.textDocument, required this.reason});
   static WillSaveTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentIdentifier.fromJson(json['textDocument'])
-        : null;
-    final reason = json['reason'] != null
-        ? TextDocumentSaveReason.fromJson(json['reason'])
-        : null;
+    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+    final reason = TextDocumentSaveReason.fromJson(json['reason']);
     return WillSaveTextDocumentParams(
         textDocument: textDocument, reason: reason);
   }
@@ -32656,14 +31254,12 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['textDocument'] = textDocument?.toJson() ??
-        (throw 'textDocument is required but was not set');
-    __result['reason'] =
-        reason?.toJson() ?? (throw 'reason is required but was not set');
+    __result['textDocument'] = textDocument.toJson();
+    __result['reason'] = reason.toJson();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -32735,15 +31331,12 @@ class WorkDoneProgressBegin implements ToJsonable {
 
   WorkDoneProgressBegin(
       {this.kind = 'begin',
-      @required this.title,
+      required this.title,
       this.cancellable,
       this.message,
       this.percentage}) {
     if (kind != 'begin') {
       throw 'kind may only be the literal \'begin\'';
-    }
-    if (title == null) {
-      throw 'title is required but was not provided';
     }
   }
   static WorkDoneProgressBegin fromJson(Map<String, dynamic> json) {
@@ -32763,7 +31356,7 @@ class WorkDoneProgressBegin implements ToJsonable {
   /// Controls if a cancel button should show to allow the user to cancel the
   /// long running operation. Clients that don't support cancellation are
   /// allowed to ignore the setting.
-  final bool cancellable;
+  final bool? cancellable;
   final String kind;
 
   /// Optional, more detailed associated progress message. Contains
@@ -32771,7 +31364,7 @@ class WorkDoneProgressBegin implements ToJsonable {
   ///
   /// Examples: "3/25 files", "project/src/module2", "node_modules/some_dep". If
   /// unset, the previous progress message (if any) is still valid.
-  final String message;
+  final String? message;
 
   /// Optional progress percentage to display (value 100 is considered 100%). If
   /// not provided infinite progress is assumed and clients are allowed to
@@ -32779,7 +31372,7 @@ class WorkDoneProgressBegin implements ToJsonable {
   ///
   /// The value should be steadily rising. Clients are free to ignore values
   /// that are not following this rule. The value range is [0, 100]
-  final num percentage;
+  final int? percentage;
 
   /// Mandatory title of the progress operation. Used to briefly inform about
   /// the kind of operation being performed.
@@ -32789,8 +31382,8 @@ class WorkDoneProgressBegin implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['kind'] = kind ?? (throw 'kind is required but was not set');
-    __result['title'] = title ?? (throw 'title is required but was not set');
+    __result['kind'] = kind;
+    __result['title'] = title;
     if (cancellable != null) {
       __result['cancellable'] = cancellable;
     }
@@ -32803,7 +31396,7 @@ class WorkDoneProgressBegin implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -32859,8 +31452,8 @@ class WorkDoneProgressBegin implements ToJsonable {
       }
       reporter.push('percentage');
       try {
-        if (obj['percentage'] != null && !(obj['percentage'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['percentage'] != null && !(obj['percentage'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -32907,30 +31500,26 @@ class WorkDoneProgressCancelParams implements ToJsonable {
       WorkDoneProgressCancelParams.canParse,
       WorkDoneProgressCancelParams.fromJson);
 
-  WorkDoneProgressCancelParams({@required this.token}) {
-    if (token == null) {
-      throw 'token is required but was not provided';
-    }
-  }
+  WorkDoneProgressCancelParams({required this.token});
   static WorkDoneProgressCancelParams fromJson(Map<String, dynamic> json) {
-    final token = json['token'] is num
-        ? Either2<num, String>.t1(json['token'])
+    final token = json['token'] is int
+        ? Either2<int, String>.t1(json['token'])
         : (json['token'] is String
-            ? Either2<num, String>.t2(json['token'])
-            : (throw '''${json['token']} was not one of (num, String)'''));
+            ? Either2<int, String>.t2(json['token'])
+            : (throw '''${json['token']} was not one of (int, String)'''));
     return WorkDoneProgressCancelParams(token: token);
   }
 
   /// The token to be used to report progress.
-  final Either2<num, String> token;
+  final Either2<int, String> token;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['token'] = token ?? (throw 'token is required but was not set');
+    __result['token'] = token;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('token');
       try {
@@ -32942,8 +31531,8 @@ class WorkDoneProgressCancelParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['token'] is num || obj['token'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (!((obj['token'] is int || obj['token'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -32981,30 +31570,26 @@ class WorkDoneProgressCreateParams implements ToJsonable {
       WorkDoneProgressCreateParams.canParse,
       WorkDoneProgressCreateParams.fromJson);
 
-  WorkDoneProgressCreateParams({@required this.token}) {
-    if (token == null) {
-      throw 'token is required but was not provided';
-    }
-  }
+  WorkDoneProgressCreateParams({required this.token});
   static WorkDoneProgressCreateParams fromJson(Map<String, dynamic> json) {
-    final token = json['token'] is num
-        ? Either2<num, String>.t1(json['token'])
+    final token = json['token'] is int
+        ? Either2<int, String>.t1(json['token'])
         : (json['token'] is String
-            ? Either2<num, String>.t2(json['token'])
-            : (throw '''${json['token']} was not one of (num, String)'''));
+            ? Either2<int, String>.t2(json['token'])
+            : (throw '''${json['token']} was not one of (int, String)'''));
     return WorkDoneProgressCreateParams(token: token);
   }
 
   /// The token to be used to report progress.
-  final Either2<num, String> token;
+  final Either2<int, String> token;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['token'] = token ?? (throw 'token is required but was not set');
+    __result['token'] = token;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('token');
       try {
@@ -33016,8 +31601,8 @@ class WorkDoneProgressCreateParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['token'] is num || obj['token'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (!((obj['token'] is int || obj['token'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -33069,18 +31654,18 @@ class WorkDoneProgressEnd implements ToJsonable {
 
   /// Optional, a final message indicating to for example indicate the outcome
   /// of the operation.
-  final String message;
+  final String? message;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['kind'] = kind ?? (throw 'kind is required but was not set');
+    __result['kind'] = kind;
     if (message != null) {
       __result['message'] = message;
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -33221,7 +31806,7 @@ class WorkDoneProgressOptions implements ToJsonable {
     return WorkDoneProgressOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -33231,7 +31816,7 @@ class WorkDoneProgressOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -33369,18 +31954,18 @@ class WorkDoneProgressParams implements ToJsonable {
     if (MonikerParams.canParse(json, nullLspJsonReporter)) {
       return MonikerParams.fromJson(json);
     }
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return WorkDoneProgressParams(workDoneToken: workDoneToken);
   }
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -33390,14 +31975,14 @@ class WorkDoneProgressParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -33458,7 +32043,7 @@ class WorkDoneProgressReport implements ToJsonable {
   ///
   /// Clients that don't support cancellation or don't support control the
   /// button's enablement state are allowed to ignore the setting.
-  final bool cancellable;
+  final bool? cancellable;
   final String kind;
 
   /// Optional, more detailed associated progress message. Contains
@@ -33466,7 +32051,7 @@ class WorkDoneProgressReport implements ToJsonable {
   ///
   /// Examples: "3/25 files", "project/src/module2", "node_modules/some_dep". If
   /// unset, the previous progress message (if any) is still valid.
-  final String message;
+  final String? message;
 
   /// Optional progress percentage to display (value 100 is considered 100%). If
   /// not provided infinite progress is assumed and clients are allowed to
@@ -33474,11 +32059,11 @@ class WorkDoneProgressReport implements ToJsonable {
   ///
   /// The value should be steadily rising. Clients are free to ignore values
   /// that are not following this rule. The value range is [0, 100]
-  final num percentage;
+  final int? percentage;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['kind'] = kind ?? (throw 'kind is required but was not set');
+    __result['kind'] = kind;
     if (cancellable != null) {
       __result['cancellable'] = cancellable;
     }
@@ -33491,7 +32076,7 @@ class WorkDoneProgressReport implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -33530,8 +32115,8 @@ class WorkDoneProgressReport implements ToJsonable {
       }
       reporter.push('percentage');
       try {
-        if (obj['percentage'] != null && !(obj['percentage'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['percentage'] != null && !(obj['percentage'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -33585,24 +32170,25 @@ class WorkspaceEdit implements ToJsonable {
                 ?.cast<TextEdit>()
                 ?.toList()))
         ?.cast<String, List<TextEdit>>();
-    final documentChanges = (json['documentChanges'] is List && (json['documentChanges'].every((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter))))
-        ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(
-            json['documentChanges']
-                ?.map((item) =>
-                    item != null ? TextDocumentEdit.fromJson(item) : null)
+    final documentChanges = json['documentChanges'] == null
+        ? null
+        : ((json['documentChanges'] is List && (json['documentChanges'].every((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter))))
+            ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(json['documentChanges']
+                ?.map((item) => TextDocumentEdit.fromJson(item))
                 ?.cast<TextDocumentEdit>()
                 ?.toList())
-        : ((json['documentChanges'] is List && (json['documentChanges'].every((item) => (TextDocumentEdit.canParse(item, nullLspJsonReporter) || CreateFile.canParse(item, nullLspJsonReporter) || RenameFile.canParse(item, nullLspJsonReporter) || DeleteFile.canParse(item, nullLspJsonReporter)))))
-            ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(json['documentChanges']
-                ?.map((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter)
-                    ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(
-                        item != null ? TextDocumentEdit.fromJson(item) : null)
-                    : (CreateFile.canParse(item, nullLspJsonReporter)
-                        ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(item != null ? CreateFile.fromJson(item) : null)
-                        : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
-                ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
-                ?.toList())
-            : (json['documentChanges'] == null ? null : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
+            : ((json['documentChanges'] is List &&
+                    (json['documentChanges'].every((item) => (TextDocumentEdit.canParse(item, nullLspJsonReporter) ||
+                        CreateFile.canParse(item, nullLspJsonReporter) ||
+                        RenameFile.canParse(item, nullLspJsonReporter) ||
+                        DeleteFile.canParse(item, nullLspJsonReporter)))))
+                ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(json['documentChanges']
+                    ?.map((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter)
+                        ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(TextDocumentEdit.fromJson(item))
+                        : (CreateFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(CreateFile.fromJson(item)) : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(RenameFile.fromJson(item)) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(DeleteFile.fromJson(item)) : (throw '''$item was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)''')))))
+                    ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
+                    ?.toList())
+                : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
     final changeAnnotations = json['changeAnnotations']
         ?.map((key, value) => MapEntry(
             key, value != null ? ChangeAnnotation.fromJson(value) : null))
@@ -33619,10 +32205,10 @@ class WorkspaceEdit implements ToJsonable {
   /// Whether clients honor this property depends on the client capability
   /// `workspace.changeAnnotationSupport`.
   ///  @since 3.16.0
-  final Map<String, ChangeAnnotation> changeAnnotations;
+  final Map<String, ChangeAnnotation>? changeAnnotations;
 
   /// Holds changes to existing resources.
-  final Map<String, List<TextEdit>> changes;
+  final Map<String, List<TextEdit>>? changes;
 
   /// Depending on the client capability
   /// `workspace.workspaceEdit.resourceOperations` document changes are either
@@ -33638,7 +32224,7 @@ class WorkspaceEdit implements ToJsonable {
   /// `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
   /// using the `changes` property are supported.
   final Either2<List<TextDocumentEdit>,
-          List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+          List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>?
       documentChanges;
 
   Map<String, dynamic> toJson() {
@@ -33655,7 +32241,7 @@ class WorkspaceEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('changes');
       try {
@@ -33778,27 +32364,27 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
   /// Whether the client in general supports change annotations on text edits,
   /// create file, rename file and delete file changes.
   ///  @since 3.16.0
-  final WorkspaceEditClientCapabilitiesChangeAnnotationSupport
+  final WorkspaceEditClientCapabilitiesChangeAnnotationSupport?
       changeAnnotationSupport;
 
   /// The client supports versioned document changes in `WorkspaceEdit`s
-  final bool documentChanges;
+  final bool? documentChanges;
 
   /// The failure handling strategy of a client if applying the workspace edit
   /// fails.
   ///  @since 3.13.0
-  final FailureHandlingKind failureHandling;
+  final FailureHandlingKind? failureHandling;
 
   /// Whether the client normalizes line endings to the client specific setting.
   /// If set to `true` the client will normalize line ending characters in a
   /// workspace edit to the client specific new line character(s).
   ///  @since 3.16.0
-  final bool normalizesLineEndings;
+  final bool? normalizesLineEndings;
 
   /// The resource operations the client supports. Clients should at least
   /// support 'create', 'rename' and 'delete' files and folders.
   ///  @since 3.13.0
-  final List<ResourceOperationKind> resourceOperations;
+  final List<ResourceOperationKind>? resourceOperations;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -33806,21 +32392,22 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       __result['documentChanges'] = documentChanges;
     }
     if (resourceOperations != null) {
-      __result['resourceOperations'] = resourceOperations;
+      __result['resourceOperations'] =
+          resourceOperations?.map((item) => item.toJson()).toList();
     }
     if (failureHandling != null) {
-      __result['failureHandling'] = failureHandling.toJson();
+      __result['failureHandling'] = failureHandling?.toJson();
     }
     if (normalizesLineEndings != null) {
       __result['normalizesLineEndings'] = normalizesLineEndings;
     }
     if (changeAnnotationSupport != null) {
-      __result['changeAnnotationSupport'] = changeAnnotationSupport.toJson();
+      __result['changeAnnotationSupport'] = changeAnnotationSupport?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentChanges');
       try {
@@ -33930,7 +32517,7 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
   /// Whether the client groups edits with equal labels into tree nodes, for
   /// instance all edits labelled with "Changes in Strings" would be a tree
   /// node.
-  final bool groupsOnLabel;
+  final bool? groupsOnLabel;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -33940,7 +32527,7 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('groupsOnLabel');
       try {
@@ -33984,14 +32571,7 @@ class WorkspaceFolder implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
 
-  WorkspaceFolder({@required this.uri, @required this.name}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-    if (name == null) {
-      throw 'name is required but was not provided';
-    }
-  }
+  WorkspaceFolder({required this.uri, required this.name});
   static WorkspaceFolder fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final name = json['name'];
@@ -34007,12 +32587,12 @@ class WorkspaceFolder implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['name'] = name ?? (throw 'name is required but was not set');
+    __result['uri'] = uri;
+    __result['name'] = name;
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -34081,21 +32661,14 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       WorkspaceFoldersChangeEvent.canParse,
       WorkspaceFoldersChangeEvent.fromJson);
 
-  WorkspaceFoldersChangeEvent({@required this.added, @required this.removed}) {
-    if (added == null) {
-      throw 'added is required but was not provided';
-    }
-    if (removed == null) {
-      throw 'removed is required but was not provided';
-    }
-  }
+  WorkspaceFoldersChangeEvent({required this.added, required this.removed});
   static WorkspaceFoldersChangeEvent fromJson(Map<String, dynamic> json) {
     final added = json['added']
-        ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
+        ?.map((item) => WorkspaceFolder.fromJson(item))
         ?.cast<WorkspaceFolder>()
         ?.toList();
     final removed = json['removed']
-        ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
+        ?.map((item) => WorkspaceFolder.fromJson(item))
         ?.cast<WorkspaceFolder>()
         ?.toList();
     return WorkspaceFoldersChangeEvent(added: added, removed: removed);
@@ -34109,13 +32682,12 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['added'] = added ?? (throw 'added is required but was not set');
-    __result['removed'] =
-        removed ?? (throw 'removed is required but was not set');
+    __result['added'] = added.map((item) => item.toJson()).toList();
+    __result['removed'] = removed.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('added');
       try {
@@ -34197,12 +32769,12 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   static WorkspaceFoldersServerCapabilities fromJson(
       Map<String, dynamic> json) {
     final supported = json['supported'];
-    final changeNotifications = json['changeNotifications'] is String
-        ? Either2<String, bool>.t1(json['changeNotifications'])
-        : (json['changeNotifications'] is bool
-            ? Either2<String, bool>.t2(json['changeNotifications'])
-            : (json['changeNotifications'] == null
-                ? null
+    final changeNotifications = json['changeNotifications'] == null
+        ? null
+        : (json['changeNotifications'] is String
+            ? Either2<String, bool>.t1(json['changeNotifications'])
+            : (json['changeNotifications'] is bool
+                ? Either2<String, bool>.t2(json['changeNotifications'])
                 : (throw '''${json['changeNotifications']} was not one of (String, bool)''')));
     return WorkspaceFoldersServerCapabilities(
         supported: supported, changeNotifications: changeNotifications);
@@ -34214,10 +32786,10 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   /// notification is registered on the client side. The ID can be used to
   /// unregister for these events using the `client/unregisterCapability`
   /// request.
-  final Either2<String, bool> changeNotifications;
+  final Either2<String, bool>? changeNotifications;
 
   /// The server has support for workspace folders
-  final bool supported;
+  final bool? supported;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -34230,7 +32802,7 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('supported');
       try {
@@ -34307,16 +32879,16 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
   }
 
   /// Symbol request supports dynamic registration.
-  final bool dynamicRegistration;
+  final bool? dynamicRegistration;
 
   /// Specific capabilities for the `SymbolKind` in the `workspace/symbol`
   /// request.
-  final WorkspaceSymbolClientCapabilitiesSymbolKind symbolKind;
+  final WorkspaceSymbolClientCapabilitiesSymbolKind? symbolKind;
 
   /// The client supports tags on `SymbolInformation`. Clients supporting tags
   /// have to handle unknown tags gracefully.
   ///  @since 3.16.0
-  final WorkspaceSymbolClientCapabilitiesTagSupport tagSupport;
+  final WorkspaceSymbolClientCapabilitiesTagSupport? tagSupport;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -34324,15 +32896,15 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
     if (symbolKind != null) {
-      __result['symbolKind'] = symbolKind.toJson();
+      __result['symbolKind'] = symbolKind?.toJson();
     }
     if (tagSupport != null) {
-      __result['tagSupport'] = tagSupport.toJson();
+      __result['tagSupport'] = tagSupport?.toJson();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -34421,17 +32993,17 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   ///
   /// If this property is not present the client only supports the symbol kinds
   /// from `File` to `Array` as defined in the initial version of the protocol.
-  final List<SymbolKind> valueSet;
+  final List<SymbolKind>? valueSet;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet;
+      __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -34480,15 +33052,11 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
       WorkspaceSymbolClientCapabilitiesTagSupport.canParse,
       WorkspaceSymbolClientCapabilitiesTagSupport.fromJson);
 
-  WorkspaceSymbolClientCapabilitiesTagSupport({@required this.valueSet}) {
-    if (valueSet == null) {
-      throw 'valueSet is required but was not provided';
-    }
-  }
+  WorkspaceSymbolClientCapabilitiesTagSupport({required this.valueSet});
   static WorkspaceSymbolClientCapabilitiesTagSupport fromJson(
       Map<String, dynamic> json) {
     final valueSet = json['valueSet']
-        ?.map((item) => item != null ? SymbolTag.fromJson(item) : null)
+        ?.map((item) => SymbolTag.fromJson(item))
         ?.cast<SymbolTag>()
         ?.toList();
     return WorkspaceSymbolClientCapabilitiesTagSupport(valueSet: valueSet);
@@ -34499,12 +33067,11 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -34569,7 +33136,7 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
     return WorkspaceSymbolOptions(workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -34579,7 +33146,7 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -34625,27 +33192,23 @@ class WorkspaceSymbolParams
       WorkspaceSymbolParams.canParse, WorkspaceSymbolParams.fromJson);
 
   WorkspaceSymbolParams(
-      {@required this.query, this.workDoneToken, this.partialResultToken}) {
-    if (query == null) {
-      throw 'query is required but was not provided';
-    }
-  }
+      {required this.query, this.workDoneToken, this.partialResultToken});
   static WorkspaceSymbolParams fromJson(Map<String, dynamic> json) {
     final query = json['query'];
-    final workDoneToken = json['workDoneToken'] is num
-        ? Either2<num, String>.t1(json['workDoneToken'])
-        : (json['workDoneToken'] is String
-            ? Either2<num, String>.t2(json['workDoneToken'])
-            : (json['workDoneToken'] == null
-                ? null
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    final partialResultToken = json['partialResultToken'] is num
-        ? Either2<num, String>.t1(json['partialResultToken'])
-        : (json['partialResultToken'] is String
-            ? Either2<num, String>.t2(json['partialResultToken'])
-            : (json['partialResultToken'] == null
-                ? null
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+    final workDoneToken = json['workDoneToken'] == null
+        ? null
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
+            : (json['workDoneToken'] is String
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+    final partialResultToken = json['partialResultToken'] == null
+        ? null
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
+            : (json['partialResultToken'] is String
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return WorkspaceSymbolParams(
         query: query,
         workDoneToken: workDoneToken,
@@ -34654,18 +33217,18 @@ class WorkspaceSymbolParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String> partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// A query string to filter symbols by. Clients may send an empty string here
   /// to request all symbols.
   final String query;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String> workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['query'] = query ?? (throw 'query is required but was not set');
+    __result['query'] = query;
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -34675,7 +33238,7 @@ class WorkspaceSymbolParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('query');
       try {
@@ -34697,9 +33260,9 @@ class WorkspaceSymbolParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -34708,9 +33271,9 @@ class WorkspaceSymbolParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -34762,7 +33325,7 @@ class WorkspaceSymbolRegistrationOptions
         workDoneProgress: workDoneProgress);
   }
 
-  final bool workDoneProgress;
+  final bool? workDoneProgress;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -34772,7 +33335,7 @@ class WorkspaceSymbolRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {

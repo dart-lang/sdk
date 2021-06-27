@@ -14,7 +14,7 @@ import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 /// migration results.
 class MigrationSummary {
   /// Path to which the summary should be written.
-  final String summaryPath;
+  final String? summaryPath;
 
   final ResourceProvider resourceProvider;
 
@@ -28,7 +28,7 @@ class MigrationSummary {
   MigrationSummary(this.summaryPath, this.resourceProvider, this.rootPath);
 
   /// Records information about the [changes] made to a [source] file.
-  void recordChanges(Source source, Map<int, List<AtomicEdit>> changes) {
+  void recordChanges(Source source, Map<int?, List<AtomicEdit>> changes) {
     var changeSummary = <String, int>{};
     var hintsSeen = <HintComment>{};
     for (var entry in changes.entries) {
@@ -38,11 +38,8 @@ class MigrationSummary {
           var hint = info.hintComment;
           if (hint == null || hintsSeen.add(hint)) {
             var description = info.description;
-            if (description != null) {
-              var key = _keyForKind(description.kind);
-              changeSummary[key] ??= 0;
-              changeSummary[key]++;
-            }
+            var key = _keyForKind(description.kind);
+            changeSummary[key] = (changeSummary[key] ?? 0) + 1;
           }
         }
       }
@@ -53,13 +50,15 @@ class MigrationSummary {
 
   /// Writes out the summary data accumulated so far
   void write() {
-    resourceProvider.getFile(summaryPath).writeAsStringSync(jsonEncode({
+    resourceProvider.getFile(summaryPath!).writeAsStringSync(jsonEncode({
           'changes': {'byPath': _changesByRelativePath}
         }));
   }
 
   String _keyForKind(NullabilityFixKind kind) {
     switch (kind) {
+      case NullabilityFixKind.addThen:
+        return 'addThen';
       case NullabilityFixKind.addImport:
         return 'addImport';
       case NullabilityFixKind.addLate:
@@ -115,6 +114,5 @@ class MigrationSummary {
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
         return 'typeNotMadeNullableDueToHint';
     }
-    return '???';
   }
 }

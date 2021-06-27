@@ -10,7 +10,7 @@ import 'package:nnbd_migration/src/preview/preview_site.dart';
 class IndexFilePage extends PreviewPage {
   /// Initialize a newly created index file page within the given [site].
   IndexFilePage(PreviewSite site)
-      : super(site, site.migrationInfo.includedRoot);
+      : super(site, site.migrationInfo!.includedRoot);
 
   @override
   bool get requiresAuth => true;
@@ -23,7 +23,7 @@ class IndexFilePage extends PreviewPage {
   @override
   Future<void> generatePage(Map<String, String> params) async {
     var renderer = InstrumentationRenderer(site.migrationInfo, site.pathMapper,
-        site.migrationState.hasBeenApplied, site.migrationState.needsRerun);
+        site.migrationState!.hasBeenApplied, site.migrationState!.needsRerun);
     buf.write(renderer.render());
   }
 }

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.42
+# Dart VM Service Protocol 3.48
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.42_ of the Dart VM Service Protocol. This
+This document describes of _version 3.48_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -39,6 +39,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
+  - [getAllocationTraces](#getallocationtraces)
   - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
@@ -66,10 +67,12 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [reloadSources](#reloadsources)
   - [removeBreakpoint](#removebreakpoint)
   - [resume](#resume)
+  - [setBreakpointState](#setbreakpointstate)
   - [setExceptionPauseMode](#setexceptionpausemode)
   - [setFlag](#setflag)
   - [setLibraryDebuggable](#setlibrarydebuggable)
   - [setName](#setname)
+  - [setTraceClassAllocation](#settraceclassallocation)
   - [setVMName](#setvmname)
   - [setVMTimelineFlags](#setvmtimelineflags)
   - [streamCancel](#streamcancel)
@@ -728,6 +731,26 @@ collection will be actually be performed.
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
+### getAllocationTraces
+
+```
+CpuSamples getAllocationTraces(string isolateId, int timeOriginMicros [optional], int timeExtentMicros [optional], string classId [optional])
+```
+
+The _getAllocationTraces_ RPC allows for the retrieval of allocation traces for objects of a
+specific set of types (see [setTraceClassAllocation](#setTraceClassAllocation)). Only samples
+collected in the time range `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
+reported.
+
+If `classId` is provided, only traces for allocations with the matching `classId` will be
+reported.
+
+If the profiler is disabled, an RPC error response will be returned.
+
+If isolateId refers to an isolate which has exited, then the Collected Sentinel is returned.
+
+See [CpuSamples](#cpusamples).
+
 ### getClassList
 
 ```
@@ -1283,6 +1306,24 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success), [StepOption](#StepOption).
 
+### setBreakpointState
+
+```
+Breakpoint setBreakpointState(string isolateId,
+                              string breakpointId,
+                              bool enable)
+```
+
+The _setBreakpointState_ RPC allows for breakpoints to be enabled or disabled,
+without requiring for the breakpoint to be completely removed.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+The returned [Breakpoint](#breakpoint) is the updated breakpoint with its new
+values.
+
+See [Breakpoint](#breakpoint).
 ### setExceptionPauseMode
 
 ```
@@ -1361,6 +1402,20 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
 
+### setTraceClassAllocation
+
+```
+Success|Sentinel setTraceClassAllocation(string isolateId, string classId, bool enable)
+```
+
+The _setTraceClassAllocation_ RPC allows for enabling or disabling allocation tracing for a specific type of object. Allocation traces can be retrieved with the _getAllocationTraces_ RPC.
+
+If `enable` is true, allocations of objects of the class represented by `classId` will be traced.
+
+If `isolateId` refers to an isolate which has exited, then the _Collected_ [Sentinel](#sentinel) is returned.
+
+See [Success](#success).
+
 ### setVMName
 
 ```
@@ -1421,7 +1476,8 @@ streamId | event types provided
 -------- | -----------
 VM | VMUpdate, VMFlagUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
-Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
+Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
+Profiler | UserTagChanged
 GC | GC
 Extension | Extension
 Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
@@ -1603,6 +1659,9 @@ class Breakpoint extends Object {
   // A number identifying this breakpoint to the user.
   int breakpointNumber;
 
+  // Is this breakpoint enabled?
+  bool enabled;
+
   // Has this breakpoint been assigned to a specific program location?
   bool resolved;
 
@@ -1629,6 +1688,12 @@ been loaded (i.e. a deferred library).
 class @Class extends @Object {
   // The name of this class.
   string name;
+
+  // The location of this class in the source code.
+  SourceLocation location [optional];
+
+  // The library which contains this class.
+  @Library library;
 }
 ```
 
@@ -1639,6 +1704,12 @@ class Class extends Object {
   // The name of this class.
   string name;
 
+  // The location of this class in the source code.
+  SourceLocation location [optional];
+
+  // The library which contains this class.
+  @Library library;
+
   // The error which occurred during class finalization, if it exists.
   @Error error [optional];
 
@@ -1648,11 +1719,8 @@ class Class extends Object {
   // Is this a const class?
   bool const;
 
-  // The library which contains this class.
-  @Library library;
-
-  // The location of this class in the source code.
-  SourceLocation location [optional];
+  // Are allocations of this class being traced?
+  bool traceAllocations;
 
   // The superclass of this class, if any.
   @Class super [optional];
@@ -1771,7 +1839,7 @@ class Context extends Object {
   int length;
 
   // The enclosing context for this context.
-  Context parent [optional];
+  @Context parent [optional];
 
   // The variables in this context object.
   ContextElement[] variables;
@@ -1802,7 +1870,10 @@ class CpuSamples extends Response {
   // The number of samples returned.
   int sampleCount;
 
-  // The timespan the set of returned samples covers, in microseconds.
+  // The timespan the set of returned samples covers, in microseconds (deprecated).
+  //
+  // Note: this property is deprecated and will always return -1. Use `timeExtentMicros`
+  // instead.
   int timeSpan;
 
   // The start of the period of time in which the returned samples were
@@ -1861,6 +1932,15 @@ class CpuSample {
   // `functions[stack[1]] = @Function(foo())`
   // `functions[stack[2]] = @Function(main())`
   int[] stack;
+
+  // The identityHashCode assigned to the allocated object. This hash
+  // code is the same as the hash code provided in HeapSnapshot. Provided for
+  // CpuSample instances returned from a getAllocationTraces().
+  int identityHashCode [optional];
+
+  // Matches the index of a class in HeapSnapshot.classes. Provided for
+  // CpuSample instances returned from a getAllocationTraces().
+  int classId [optional];
 }
 ```
 
@@ -1951,6 +2031,7 @@ class Event extends Response {
   //   BreakpointAdded
   //   BreakpointRemoved
   //   BreakpointResolved
+  //   BreakpointUpdated
   Breakpoint breakpoint [optional];
 
   // The list of breakpoints at which we are currently paused
@@ -2074,6 +2155,12 @@ class Event extends Response {
   // This is provided for the event kinds:
   //   HeapSnapshot
   bool last [optional];
+
+  // The current UserTag label.
+  string updatedTag [optional];
+
+  // The previous UserTag label.
+  string previousTag [optional];
 }
 ```
 
@@ -2148,6 +2235,9 @@ enum EventKind {
   // A breakpoint has been removed.
   BreakpointRemoved,
 
+  // A breakpoint has been updated.
+  BreakpointUpdated,
+
   // A garbage collection event.
   GC,
 
@@ -2181,6 +2271,9 @@ enum EventKind {
   // Notification that a Service has been removed from the Service Protocol
   // from another client.
   ServiceUnregistered,
+
+  // Notification that the UserTag for an isolate has been changed.
+  UserTagChanged,
 }
 ```
 
@@ -2221,6 +2314,9 @@ class @Field extends @Object {
 
   // Is this field static?
   bool static;
+
+  // The location of this field in the source code.
+  SourceLocation location [optional];
 }
 ```
 
@@ -2250,11 +2346,12 @@ class Field extends Object {
   // Is this field static?
   bool static;
 
-  // The value of this field, if the field is static.
-  @Instance staticValue [optional];
-
   // The location of this field in the source code.
   SourceLocation location [optional];
+
+  // The value of this field, if the field is static. If uninitialized,
+  // this will take the value of an uninitialized Sentinel.
+  @Instance|Sentinel staticValue [optional];
 }
 ```
 
@@ -2323,6 +2420,9 @@ class @Function extends @Object {
 
   // Is this function const?
   bool const;
+
+  // The location of this function in the source code.
+  SourceLocation location [optional];
 }
 ```
 
@@ -2359,6 +2459,11 @@ A _Function_ represents a Dart language function.
 class @Instance extends @Object {
   // What kind of instance is this?
   InstanceKind kind;
+
+  // The identityHashCode assigned to the allocated object. This hash
+  // code is the same as the hash code provided in HeapSnapshot and
+  // CpuSample's returned by getAllocationTraces().
+  int identityHashCode;
 
   // Instance references always include their class.
   @Class class;
@@ -2471,6 +2576,11 @@ _@Instance_ is a reference to an _Instance_.
 class Instance extends Object {
   // What kind of instance is this?
   InstanceKind kind;
+
+  // The identityHashCode assigned to the allocated object. This hash
+  // code is the same as the hash code provided in HeapSnapshot and
+  // CpuSample's returned by getAllocationTraces().
+  int identityHashCode;
 
   // Instance references always include their class.
   @Class class;
@@ -3055,6 +3165,12 @@ class LibraryDependency {
 
   // The library being imported or exported.
   @Library target;
+
+  // The list of symbols made visible from this dependency.
+  string[] shows [optional];
+
+  // The list of symbols hidden from this dependency.
+  string[] hides [optional];
 }
 ```
 
@@ -3718,7 +3834,7 @@ The _Success_ type is used to indicate that an operation completed successfully.
 
 ```
 class Timeline extends Response {
-  // A list of timeline events. No order is guarenteed for these events; in particular, these events may be unordered with respect to their timestamps.
+  // A list of timeline events. No order is guaranteed for these events; in particular, these events may be unordered with respect to their timestamps.
   TimelineEvent[] traceEvents;
 
   // The start of the period of time in which traceEvents were collected.
@@ -3947,5 +4063,11 @@ version | comments
 3.40 | Added `IsolateFlag` object and `isolateFlags` property to `Isolate`.
 3.41 | Added `PortList` object, `ReceivePort` `InstanceKind`, and `getPorts` RPC.
 3.42 | Added `limit` optional parameter to `getStack` RPC.
+3.43 | Updated heap snapshot format to include identity hash codes. Added `getAllocationTraces` and `setTraceClassAllocation` RPCs, updated `CpuSample` to include `identityHashCode` and `classId` properties, updated `Class` to include `traceAllocations` property.
+3.44 | Added `identityHashCode` property to `@Instance` and `Instance`.
+3.45 | Added `setBreakpointState` RPC and `BreakpointUpdated` event kind.
+3.46 | Moved `sourceLocation` property into reference types for `Class`, `Field`, and `Function`.
+3.47 | Added `shows` and `hides` properties to `LibraryDependency`.
+3.48 | Added `Profiler` stream, `UserTagChanged` event kind, and `updatedTag` and `previousTag` properties to `Event`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

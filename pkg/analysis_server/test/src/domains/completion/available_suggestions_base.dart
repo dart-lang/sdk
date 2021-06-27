@@ -4,9 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
@@ -45,11 +43,11 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
       var params = CompletionAvailableSuggestionsParams.fromNotification(
         notification,
       );
-      for (var set in params.changedLibraries) {
+      for (var set in params.changedLibraries!) {
         idToSetMap[set.id] = set;
         uriToSetMap[set.uri] = set;
       }
-      for (var id in params.removedLibraries) {
+      for (var id in params.removedLibraries!) {
         var set = idToSetMap.remove(id);
         uriToSetMap.remove(set?.uri);
       }
@@ -69,9 +67,7 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
   /// Remove the set with the given [uri].
   /// The set must be already received.
   void removeSet(String uri) {
-    var set = uriToSetMap.remove(uri);
-    expect(set, isNotNull);
-
+    var set = uriToSetMap.remove(uri)!;
     idToSetMap.remove(set.id);
   }
 
@@ -81,8 +77,8 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
     projectPath = convertPath('/home');
     testFile = convertPath('/home/test/lib/test.dart');
 
-    newFile('/home/test/pubspec.yaml', content: '');
-    newFile('/home/test/.packages', content: '''
+    newPubspecYamlFile('/home/test', '');
+    newDotPackagesFile('/home/test', content: '''
 test:${toUri('/home/test/lib')}
 ''');
 

@@ -24,12 +24,32 @@ class B extends A with A {}
     ]);
   }
 
+  test_class_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+typedef B = A;
+class C extends A with B {}
+''', [
+      error(CompileTimeErrorCode.MIXINS_SUPER_CLASS, 49, 1),
+    ]);
+  }
+
   test_classAlias() async {
     await assertErrorsInCode(r'''
 class A {}
 class B = A with A;
 ''', [
       error(CompileTimeErrorCode.MIXINS_SUPER_CLASS, 28, 1),
+    ]);
+  }
+
+  test_classAlias_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+typedef B = A;
+class C = A with B;
+''', [
+      error(CompileTimeErrorCode.MIXINS_SUPER_CLASS, 43, 1),
     ]);
   }
 }

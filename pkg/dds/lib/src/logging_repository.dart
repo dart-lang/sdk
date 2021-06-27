@@ -2,19 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'dart:math';
 
-/// [_LoggingRepository] is used to store historical log messages from the
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+
+import 'client.dart';
+
+/// [LoggingRepository] is used to store historical log messages from the
 /// target VM service. Clients which connect to DDS and subscribe to the
 /// `Logging` stream will be sent all messages contained within this repository
 /// upon initial subscription.
-class _LoggingRepository extends _RingBuffer<Map<String, dynamic>> {
-  _LoggingRepository([int logHistoryLength = 10000]) : super(logHistoryLength) {
+class LoggingRepository extends _RingBuffer<Map<String, dynamic>> {
+  LoggingRepository([int logHistoryLength = 10000]) : super(logHistoryLength) {
     // TODO(bkonyi): enforce log history limit when DartDevelopmentService
     // allows for this to be set via Dart code.
   }
 
-  void sendHistoricalLogs(_DartDevelopmentServiceClient client) {
+  void sendHistoricalLogs(DartDevelopmentServiceClient client) {
     // Only send historical log messages when the client first subscribes to
     // the logging stream.
     if (_sentHistoricLogsClientSet.contains(client)) {
@@ -38,15 +42,14 @@ class _LoggingRepository extends _RingBuffer<Map<String, dynamic>> {
 
   // The set of clients which have subscribed to the Logging stream at some
   // point in time.
-  final Set<_DartDevelopmentServiceClient> _sentHistoricLogsClientSet = {};
+  final Set<DartDevelopmentServiceClient> _sentHistoricLogsClientSet = {};
   static const int _kMaxLogBufferSize = 100000;
 }
 
 // TODO(bkonyi): move to standalone file if we decide to use this elsewhere.
 class _RingBuffer<T> {
-  _RingBuffer(int initialSize) {
-    _bufferSize = initialSize;
-    _buffer = List<T>.filled(
+  _RingBuffer(this._bufferSize) {
+    _buffer = List<T?>.filled(
       _bufferSize,
       null,
     );
@@ -54,7 +57,7 @@ class _RingBuffer<T> {
 
   Iterable<T> call() sync* {
     for (int i = _size - 1; i >= 0; --i) {
-      yield _buffer[(_count - i - 1) % _bufferSize];
+      yield _buffer[(_count - i - 1) % _bufferSize]!;
     }
   }
 
@@ -70,7 +73,7 @@ class _RingBuffer<T> {
     if (size == _bufferSize) {
       return;
     }
-    final resized = List<T>.filled(
+    final resized = List<T?>.filled(
       size,
       null,
     );
@@ -86,9 +89,10 @@ class _RingBuffer<T> {
   }
 
   int get bufferSize => _bufferSize;
+
   int get _size => min(_count, _bufferSize);
 
   int _bufferSize;
   int _count = 0;
-  List<T> _buffer;
+  late List<T?> _buffer;
 }

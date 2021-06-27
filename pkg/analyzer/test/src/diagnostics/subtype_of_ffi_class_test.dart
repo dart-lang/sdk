@@ -75,7 +75,9 @@ class C extends Int8 {}
   test_Pointer() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Pointer {}
+class C extends Pointer {
+  external factory C();
+}
 ''', [
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 7),
     ]);
@@ -84,7 +86,9 @@ class C extends Pointer {}
   test_Struct() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct {}
+class C extends Struct {
+  external Pointer notEmpty;
+}
 ''');
   }
 
@@ -122,6 +126,15 @@ class C extends Uint8 {}
 ''', [
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
+  }
+
+  test_Union() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+class C extends Union {
+  external Pointer notEmpty;
+}
+''');
   }
 
   test_Void() async {
@@ -239,6 +252,15 @@ class C implements Uint64 {}
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C implements Uint8 {}
+''', [
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
+    ]);
+  }
+
+  test_Union() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+class C implements Union {}
 ''', [
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
@@ -381,6 +403,16 @@ import 'dart:ffi';
 class C with Uint8 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
+    ]);
+  }
+
+  test_Union() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+class C with Union {}
+''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
     ]);

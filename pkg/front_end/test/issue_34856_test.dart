@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show File;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
@@ -95,7 +97,7 @@ Future<void> test() async {
   List<Object> errors = await CompilerContext.runWithOptions(
       new ProcessedOptions(options: options, inputs: inputs),
       (_) => new Future<List<Object>>.value(
-          verifyComponent(component, skipPlatform: true)));
+          verifyComponent(component, options.target, skipPlatform: true)));
 
   serializeComponent(component);
 

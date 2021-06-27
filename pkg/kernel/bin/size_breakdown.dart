@@ -50,9 +50,9 @@ class WrappedBinaryBuilder extends BinaryBuilder {
     return result;
   }
 
-  void readStringTable(List<String> table) {
+  void readStringTable() {
     stringTableSize -= byteOffset;
-    super.readStringTable(table);
+    super.readStringTable();
     stringTableSize += byteOffset;
   }
 
@@ -62,9 +62,9 @@ class WrappedBinaryBuilder extends BinaryBuilder {
     linkTableSize += byteOffset;
   }
 
-  Map<Uri, Source> readUriToSource(bool readCoverage) {
+  Map<Uri, Source> readUriToSource({required bool readCoverage}) {
     uriToSourceSize -= byteOffset;
-    var result = super.readUriToSource(readCoverage);
+    Map<Uri, Source> result = super.readUriToSource(readCoverage: readCoverage);
     uriToSourceSize += byteOffset;
     return result;
   }
@@ -102,7 +102,7 @@ class WrappedBinaryBuilder extends BinaryBuilder {
     print("Constant table: ${_bytesToReadable(constantTableSize)}");
     print("");
     for (Uri uri in librarySizes.keys) {
-      print("Library '$uri': ${_bytesToReadable(librarySizes[uri])}.");
+      print("Library '$uri': ${_bytesToReadable(librarySizes[uri]!)}.");
     }
   }
 }

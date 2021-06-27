@@ -5,6 +5,8 @@
 // Dart test program testing generic type allocations and generic type tests.
 // Regression test for issue 8710.
 
+// @dart = 2.9
+
 class C1<T> {}
 
 class C2<T> {}

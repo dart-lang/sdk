@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryNonNullAssertionTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class UnnecessaryNonNullAssertionTest extends PubPackageResolutionTest {
   test_legacy() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5

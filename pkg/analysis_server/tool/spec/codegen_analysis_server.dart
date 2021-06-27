@@ -29,7 +29,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
     writeln('''/**
  * The interface {@code AnalysisServer} defines the behavior of objects that interface to an
  * analysis server.
- * 
+ *
  * @coverage dart.server
  */''');
     makeClass('public interface AnalysisServer', () {
@@ -40,7 +40,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         writeln('''/**
  * Add the given listener to the list of listeners that will receive notification when new
  * analysis results become available.
- * 
+ *
  * @param listener the listener to be added
  */''');
         writeln(
@@ -54,7 +54,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         writeln('''/**
  * Remove the given listener from the list of listeners that will receive notification when new
    * analysis results become available.
- * 
+ *
  * @param listener the listener to be removed
  */''');
         writeln(
@@ -68,7 +68,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         writeln('''/**
  * Add the given listener to the list of listeners that will receive notification when
    * requests are made by an analysis server client.
- * 
+ *
  * @param listener the listener to be added
  */''');
         writeln('public void addRequestListener(RequestListener listener);');
@@ -81,7 +81,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         writeln('''/**
  * Remove the given listener from the list of listeners that will receive notification when
    * requests are made by an analysis server client.
- * 
+ *
  * @param listener the listener to be removed
  */''');
         writeln('public void removeRequestListener(RequestListener listener);');
@@ -94,7 +94,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         writeln('''/**
  * Add the given listener to the list of listeners that will receive notification when
  * responses are received by an analysis server client.
- * 
+ *
  * @param listener the listener to be added
  */''');
         writeln('public void addResponseListener(ResponseListener listener);');
@@ -107,7 +107,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         writeln('''/**
  * Remove the given listener from the list of listeners that will receive notification when
    * responses are received by an analysis server client.
- * 
+ *
  * @param listener the listener to be removed
  */''');
         writeln(
@@ -121,7 +121,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         writeln('''/**
  * Add the given listener to the list of listeners that will receive notification when the server
  * is not active
- * 
+ *
  * @param listener the listener to be added
  */''');
         writeln(
@@ -165,14 +165,18 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       }));
       write('public void $methodName(');
       var arguments = <String>[];
-      if (request.params != null) {
-        for (var field in request.params.fields) {
+
+      var params = request.params;
+      if (params != null) {
+        for (var field in params.fields) {
           arguments.add('${javaType(field.type)} ${javaName(field.name)}');
         }
       }
+
       if (request.result != null) {
         arguments.add('${consumerName(request)} consumer');
       }
+
       write(arguments.join(', '));
       writeln(');');
     });

@@ -8,5 +8,5 @@ static method main() → void {}
 
 constants  {
   #C1 = <Null>[]
-  #C2 = <core::int*>[]
+  #C2 = <core::int?>[]
 }

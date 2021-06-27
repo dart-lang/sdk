@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static const field core::Symbol* tripleShiftSymbol = const _in::Symbol::•(">>>");
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:5:40 -> SymbolConstant(#>>>)
+Extra constant evaluation: evaluated: 1, effectively constant: 1

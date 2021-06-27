@@ -12,16 +12,17 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -36,7 +37,7 @@ main() {
 
 @reflectiveTest
 class FileSystemStateTest with ResourceProviderMixin {
-  MockSdk sdk;
+  late final MockSdk sdk;
 
   final ByteStore byteStore = MemoryByteStore();
   final FileContentOverlay contentOverlay = FileContentOverlay();
@@ -44,10 +45,10 @@ class FileSystemStateTest with ResourceProviderMixin {
   final StringBuffer logBuffer = StringBuffer();
   final _GeneratedUriResolverMock generatedUriResolver =
       _GeneratedUriResolverMock();
-  SourceFactory sourceFactory;
-  PerformanceLog logger;
+  late final SourceFactory sourceFactory;
+  late final PerformanceLog logger;
 
-  FileSystemState fileSystemState;
+  late final FileSystemState fileSystemState;
 
   void setUp() {
     logger = PerformanceLog(logBuffer);
@@ -83,7 +84,6 @@ class FileSystemStateTest with ResourceProviderMixin {
     fileSystemState = FileSystemState(
       logger,
       byteStore,
-      contentOverlay,
       resourceProvider,
       'contextName',
       sourceFactory,
@@ -93,6 +93,7 @@ class FileSystemStateTest with ResourceProviderMixin {
       Uint32List(0),
       Uint32List(0),
       featureSetProvider,
+      fileContentCache: FileContentCache.ephemeral(resourceProvider),
     );
   }
 
@@ -194,21 +195,21 @@ part ':[invalid uri]';
     FileState file = fileSystemState.getFileForPath(a);
 
     expect(_excludeSdk(file.importedFiles), hasLength(2));
-    expect(file.importedFiles[0].path, a1);
-    expect(file.importedFiles[0].uri, Uri.parse('package:aaa/a1.dart'));
-    expect(file.importedFiles[0].source, isNotNull);
+    expect(file.importedFiles[0]!.path, a1);
+    expect(file.importedFiles[0]!.uri, Uri.parse('package:aaa/a1.dart'));
+    expect(file.importedFiles[0]!.source, isNotNull);
     _assertIsUnresolvedFile(file.importedFiles[1]);
 
     expect(_excludeSdk(file.exportedFiles), hasLength(2));
-    expect(file.exportedFiles[0].path, a2);
-    expect(file.exportedFiles[0].uri, Uri.parse('package:aaa/a2.dart'));
-    expect(file.exportedFiles[0].source, isNotNull);
+    expect(file.exportedFiles[0]!.path, a2);
+    expect(file.exportedFiles[0]!.uri, Uri.parse('package:aaa/a2.dart'));
+    expect(file.exportedFiles[0]!.source, isNotNull);
     _assertIsUnresolvedFile(file.exportedFiles[1]);
 
     expect(_excludeSdk(file.partedFiles), hasLength(2));
-    expect(file.partedFiles[0].path, a3);
-    expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a3.dart'));
-    expect(file.partedFiles[0].source, isNotNull);
+    expect(file.partedFiles[0]!.path, a3);
+    expect(file.partedFiles[0]!.uri, Uri.parse('package:aaa/a3.dart'));
+    expect(file.partedFiles[0]!.source, isNotNull);
     _assertIsUnresolvedFile(file.partedFiles[1]);
   }
 
@@ -240,24 +241,24 @@ class A1 {}
     expect(file.unlinked2, isNotNull);
 
     expect(_excludeSdk(file.importedFiles), hasLength(2));
-    expect(file.importedFiles[0].path, a2);
-    expect(file.importedFiles[0].uri, Uri.parse('package:aaa/a2.dart'));
-    expect(file.importedFiles[0].source, isNotNull);
-    expect(file.importedFiles[1].path, b1);
-    expect(file.importedFiles[1].uri, Uri.parse('package:bbb/b1.dart'));
-    expect(file.importedFiles[1].source, isNotNull);
+    expect(file.importedFiles[0]!.path, a2);
+    expect(file.importedFiles[0]!.uri, Uri.parse('package:aaa/a2.dart'));
+    expect(file.importedFiles[0]!.source, isNotNull);
+    expect(file.importedFiles[1]!.path, b1);
+    expect(file.importedFiles[1]!.uri, Uri.parse('package:bbb/b1.dart'));
+    expect(file.importedFiles[1]!.source, isNotNull);
 
     expect(file.exportedFiles, hasLength(2));
-    expect(file.exportedFiles[0].path, b2);
-    expect(file.exportedFiles[0].uri, Uri.parse('package:bbb/b2.dart'));
-    expect(file.exportedFiles[0].source, isNotNull);
-    expect(file.exportedFiles[1].path, a3);
-    expect(file.exportedFiles[1].uri, Uri.parse('package:aaa/a3.dart'));
-    expect(file.exportedFiles[1].source, isNotNull);
+    expect(file.exportedFiles[0]!.path, b2);
+    expect(file.exportedFiles[0]!.uri, Uri.parse('package:bbb/b2.dart'));
+    expect(file.exportedFiles[0]!.source, isNotNull);
+    expect(file.exportedFiles[1]!.path, a3);
+    expect(file.exportedFiles[1]!.uri, Uri.parse('package:aaa/a3.dart'));
+    expect(file.exportedFiles[1]!.source, isNotNull);
 
     expect(file.partedFiles, hasLength(1));
-    expect(file.partedFiles[0].path, a4);
-    expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a4.dart'));
+    expect(file.partedFiles[0]!.path, a4);
+    expect(file.partedFiles[0]!.uri, Uri.parse('package:aaa/a4.dart'));
 
     expect(file.libraryFiles, [file, file.partedFiles[0]]);
 
@@ -283,11 +284,9 @@ part 'd.dart';
 part 'not_dart.txt';
 ''');
     FileState file = fileSystemState.getFileForPath(a);
-    expect(_excludeSdk(file.importedFiles).map((f) => f.path),
-        unorderedEquals([b, not_dart]));
-    expect(
-        file.exportedFiles.map((f) => f.path), unorderedEquals([c, not_dart]));
-    expect(file.partedFiles.map((f) => f.path), unorderedEquals([d, not_dart]));
+    expect(_excludeSdk(file.importedFiles).map((f) => f!.path), [b, not_dart]);
+    expect(file.exportedFiles.map((f) => f!.path), [c, not_dart]);
+    expect(file.partedFiles.map((f) => f!.path), [d, not_dart]);
     expect(_excludeSdk(fileSystemState.knownFilePaths),
         unorderedEquals([a, b, c, d, not_dart]));
   }
@@ -349,11 +348,14 @@ part 'not-a2.dart';
 
   test_getFileForUri_invalidUri() {
     var uri = Uri.parse('package:x');
-    var file = fileSystemState.getFileForUri(uri);
-    expect(file.isUnresolved, isTrue);
-    expect(file.uri, isNull);
-    expect(file.path, isNull);
-    expect(file.isPart, isFalse);
+    fileSystemState.getFileForUri(uri).map(
+      (file) {
+        expect(file, isNull);
+      },
+      (_) {
+        fail('Expected null.');
+      },
+    );
   }
 
   test_getFileForUri_packageVsFileUri() {
@@ -362,8 +364,8 @@ part 'not-a2.dart';
     var fileUri = toUri(path);
 
     // The files with `package:` and `file:` URIs are different.
-    FileState filePackageUri = fileSystemState.getFileForUri(packageUri);
-    FileState fileFileUri = fileSystemState.getFileForUri(fileUri);
+    var filePackageUri = fileSystemState.getFileForUri(packageUri).asFileState;
+    var fileFileUri = fileSystemState.getFileForUri(fileUri).asFileState;
     expect(filePackageUri, isNot(same(fileFileUri)));
 
     expect(filePackageUri.path, path);
@@ -421,8 +423,7 @@ class D implements C {}
 
     Source generatedSource = _SourceMock(generatedPath, uri);
 
-    generatedUriResolver.resolveAbsoluteFunction =
-        (uri, actualUri) => generatedSource;
+    generatedUriResolver.resolveAbsoluteFunction = (uri) => generatedSource;
 
     expect(fileSystemState.hasUri(templatePath), isFalse);
     expect(fileSystemState.hasUri(generatedPath), isTrue);
@@ -670,10 +671,8 @@ part of 'a.dart';
     expect(_excludeSdk(actual), unorderedEquals(expected));
   }
 
-  void _assertIsUnresolvedFile(FileState file) {
-    expect(file.path, isNull);
-    expect(file.uri, isNull);
-    expect(file.source, isNull);
+  void _assertIsUnresolvedFile(FileState? file) {
+    expect(file, isNull);
   }
 
   void _assertLibraryCycle(
@@ -689,11 +688,13 @@ part of 'a.dart';
   }
 
   List<T> _excludeSdk<T>(Iterable<T> files) {
-    return files.where((Object file) {
+    return files.where((file) {
       if (file is LibraryCycle) {
         return !file.libraries.any((file) => file.uri.isScheme('dart'));
       } else if (file is FileState) {
-        return file.uri?.scheme != 'dart';
+        return file.uri.scheme != 'dart';
+      } else if (file == null) {
+        return true;
       } else {
         return !(file as String).startsWith(convertPath('/sdk'));
       }
@@ -706,9 +707,9 @@ part of 'a.dart';
 }
 
 class _GeneratedUriResolverMock implements UriResolver {
-  Source Function(Uri, Uri) resolveAbsoluteFunction;
+  Source? Function(Uri)? resolveAbsoluteFunction;
 
-  Uri Function(Source) restoreAbsoluteFunction;
+  Uri? Function(Source)? restoreAbsoluteFunction;
 
   @override
   noSuchMethod(Invocation invocation) {
@@ -716,17 +717,17 @@ class _GeneratedUriResolverMock implements UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (resolveAbsoluteFunction != null) {
-      return resolveAbsoluteFunction(uri, actualUri);
+      return resolveAbsoluteFunction!(uri);
     }
     return null;
   }
 
   @override
-  Uri restoreAbsolute(Source source) {
+  Uri? restoreAbsolute(Source source) {
     if (restoreAbsoluteFunction != null) {
-      return restoreAbsoluteFunction(source);
+      return restoreAbsoluteFunction!(source);
     }
     return null;
   }
@@ -744,5 +745,14 @@ class _SourceMock implements Source {
   @override
   noSuchMethod(Invocation invocation) {
     throw StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
+
+extension on Either2<FileState?, ExternalLibrary> {
+  FileState get asFileState {
+    return map(
+      (file) => file!,
+      (_) => fail('Expected a file'),
+    );
   }
 }

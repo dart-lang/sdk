@@ -25,10 +25,9 @@ class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
       // Make sure that reanalyze causes analysis to restart.
       var analysisRestarted = false;
       onServerStatus.listen((ServerStatusParams data) {
-        if (data.analysis != null) {
-          if (data.analysis.isAnalyzing) {
-            analysisRestarted = true;
-          }
+        var analysisStatus = data.analysis;
+        if (analysisStatus != null && analysisStatus.isAnalyzing) {
+          analysisRestarted = true;
         }
       });
       sendAnalysisReanalyze();

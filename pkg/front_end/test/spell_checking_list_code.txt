@@ -21,7 +21,9 @@ acon
 acov
 across
 activated
+adequate
 adi
+advantage
 affecting
 afterwards
 agree
@@ -34,6 +36,7 @@ alexmarkov
 aligned
 alive
 allocate
+allocator
 altered
 analogous
 analogy
@@ -73,6 +76,7 @@ automagically
 auxiliary
 awaited
 awaiting
+awaits
 b
 b0i
 b0m
@@ -98,6 +102,7 @@ bb
 became
 beforehand
 behave
+believe
 bellow
 belonging
 beloning
@@ -179,6 +184,7 @@ claim
 claimed
 claims
 clamp
+clamped
 clarification
 clashes
 class's
@@ -196,6 +202,7 @@ class6a
 class6b
 clazz
 cli
+client's
 clil
 clock
 cls
@@ -206,6 +213,7 @@ codebase
 codec
 codes
 collision
+colorized
 com
 combinations
 combinator
@@ -246,6 +254,7 @@ corelib
 corrected
 corrections
 cosmetic
+costly
 counters
 covariances
 coverage
@@ -293,6 +302,7 @@ degrades
 degree
 del
 delimit
+delimiting
 demands
 demangle
 demangled
@@ -306,6 +316,7 @@ deserializers
 deserializes
 deserializing
 design
+designation
 despite
 destination
 destinations
@@ -325,6 +336,7 @@ dirtify
 dirtifying
 dirty
 disallow
+disambiguating
 disambiguator
 disjoint
 dispatched
@@ -346,6 +358,7 @@ dsdk
 dst
 dummy
 dupdate
+dyn
 e
 easy
 ecma
@@ -357,6 +370,7 @@ ef
 effects
 efficient
 efficiently
+eighth
 elem
 eliminating
 elt
@@ -371,21 +385,27 @@ end'ed
 enforce
 enforced
 enforces
+enforcing
 enumerates
 env
 eof
 eq
 equation
+erased
 erasure
 es
+establish
 established
 estimate
 eval
+execute
 exhausted
+existence
 existentially
 exp
 expando
 expense
+explaining
 exportable
 exportee
 exportees
@@ -399,8 +419,10 @@ f
 faced
 factor
 factored
+fairly
 fangorn
 fasta
+favored
 favoring
 fc
 fcon
@@ -429,7 +451,12 @@ fishy
 fishythefish
 fixnum
 fleshed
+float32
+float32x
+float32x4
 float64
+float64x
+float64x2
 floitsch
 flowed
 flushed
@@ -439,6 +466,7 @@ fo
 foo
 foobar
 footer
+forcing
 foreign
 formed
 former
@@ -460,6 +488,8 @@ g
 gardening
 gen
 generation
+getable
+getables
 gets
 getter1a
 getter1b
@@ -479,6 +509,7 @@ goto
 gotos
 gradually
 graphs
+growability
 gt
 guarantee
 guarded
@@ -490,6 +521,7 @@ h
 hacky
 hadn't
 hang
+happy
 hardcode
 harness
 hashes
@@ -551,6 +583,7 @@ infos
 init
 initializations
 initializer's
+inlines
 insertion
 inspect
 inspecting
@@ -560,6 +593,12 @@ inspired
 inst
 instanceof
 instantiator
+int16
+int32
+int32x
+int32x4
+int64
+int8
 integrate
 intentionally
 interim
@@ -576,6 +615,7 @@ ints
 invariants
 io
 is64
+isolated
 issuecomment
 issuing
 iterables
@@ -620,6 +660,7 @@ layout
 lc
 ld
 leafp
+leeway
 len
 lets
 letting
@@ -661,6 +702,7 @@ macos
 maintaining
 mangled
 manipulation
+manner
 markdown
 masking
 masks
@@ -673,6 +715,7 @@ meeting
 merely
 meta
 metadata's
+metadatum
 method10a
 method10b
 method1a
@@ -700,6 +743,7 @@ method8b
 method9a
 method9b
 mi
+migrated
 migration
 mime
 min
@@ -784,6 +828,8 @@ ordered
 orders
 ordinal
 org
+orig
+orphancy
 orphans
 ors
 os
@@ -831,15 +877,20 @@ per
 perf
 permanently
 permit
+permits
+physically
 pi
 picking
 pkg
+play
 player
 plugin
 pm
 pn
+pointed
 pointwise
 polluted
+polymorphism
 pool
 popped
 pos
@@ -852,7 +903,9 @@ prebuilt
 preexisted
 preexisting
 preorder
+presented
 presubmit
+presumably
 prev
 prime
 printer
@@ -862,6 +915,7 @@ proc
 producers
 product
 progresses
+promo
 proof
 prop
 propose
@@ -901,9 +955,11 @@ ran
 randomly
 ranges
 ranked
+rarely
 ratio
 rb
 rc
+rd
 re
 reach
 reachabilities
@@ -925,6 +981,7 @@ received
 receivers
 recheck
 recognizing
+recompile
 recompiled
 recompiling
 recompute
@@ -969,6 +1026,7 @@ replaces
 replicated
 repo
 repositories
+repurposed
 requirement
 res
 residue
@@ -999,6 +1057,7 @@ rpc
 rs
 runnable
 s
+sanitizing
 saw
 say
 sb
@@ -1009,11 +1068,13 @@ scoping
 sdk's
 seconds
 sections
+selectively
 selectors
 semantically
 semver
 separators
 sequencing
+sequential
 serializables
 serializer
 serializers
@@ -1021,6 +1082,8 @@ serve
 server
 service
 session
+setable
+setables
 setaf
 sh
 sha1hash
@@ -1093,7 +1156,9 @@ stdlib
 stdout
 sticky
 stmt
+stopgap
 stopped
+storage
 str
 strategies
 streak
@@ -1101,6 +1166,7 @@ streaming
 strict
 stringified
 stringify
+structs
 structures
 stub
 stubs
@@ -1155,6 +1221,7 @@ tells
 temp
 temporaries
 temps
+tempting
 term
 termcap
 terminator
@@ -1201,6 +1268,7 @@ traverse
 trees
 tricky
 trips
+trivially
 ts
 tty
 tuple
@@ -1210,6 +1278,7 @@ tuple4
 tuple5
 tuple6
 tuple7
+tuple8
 type1
 type2
 typeref
@@ -1220,6 +1289,7 @@ ui
 uint
 uint16
 uint32
+uint64
 uint8
 umbrella
 un
@@ -1233,12 +1303,15 @@ uncommon
 unconditionally
 unconstrained
 undeclare
+undergo
 undo
 undoable
 unequal
 unescape
 unexact
+unexpectedly
 unfinalized
+unfold
 unfolds
 unfuture
 unfutured
@@ -1248,6 +1321,7 @@ unification
 unifier
 unify
 uninstantiable
+uninstantiated
 unions
 uniqueness
 unittest
@@ -1255,6 +1329,7 @@ universally
 unlinked
 unlower
 unmark
+unmodifiable
 unneeded
 unordered
 unpaired
@@ -1262,6 +1337,7 @@ unparsed
 unpleasant
 unreachable
 unseen
+unset
 unshadowed
 unsortable
 unsound
@@ -1284,6 +1360,7 @@ utf8
 util
 utils
 v
+validly
 variable's
 variances
 variant
@@ -1296,6 +1373,7 @@ vector
 vegorov
 verbosity
 versa
+viable
 vice
 video
 violated
@@ -1308,6 +1386,8 @@ vn
 vs
 vtab
 w
+waiting
+wanting
 waste
 wasted
 watch
@@ -1327,11 +1407,14 @@ widgets
 wiki
 wikipedia
 wind
+wiser
 with1
 wn
 worthwhile
 worthy
+woven
 writeln
+wrongfully
 wrt
 wtf
 www

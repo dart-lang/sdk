@@ -15,16 +15,14 @@ class RemoveParametersInGetterDeclaration extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    final node = this.node;
     if (node is MethodDeclaration) {
       // Support for the analyzer error.
-      var method = node as MethodDeclaration;
-      var name = method.name;
-      var body = method.body;
-      if (name != null && body != null) {
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.endStart(name, body), ' ');
-        });
-      }
+      var name = node.name;
+      var body = node.body;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.endStart(name, body), ' ');
+      });
     } else if (node is FormalParameterList) {
       // Support for the fasta error.
       await builder.addDartFileEdit(file, (builder) {

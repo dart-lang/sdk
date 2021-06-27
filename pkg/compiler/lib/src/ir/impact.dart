@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show operatorFromString;
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -167,12 +164,12 @@ abstract class ImpactRegistry {
   void registerInstanceSet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target);
 
-  void registerSuperInvocation(ir.Name name, int positionalArguments,
+  void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments);
 
-  void registerSuperGet(ir.Name name);
+  void registerSuperGet(ir.Member target);
 
-  void registerSuperSet(ir.Name name);
+  void registerSuperSet(ir.Member target);
 
   void registerSuperInitializer(
       ir.Constructor source,
@@ -181,7 +178,9 @@ abstract class ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments);
 
-  void registerRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+  // TODO(johnniwinther): Change [node] to `InstanceGet` when the old method
+  // invocation encoding is no longer used.
+  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType);
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
@@ -255,13 +254,19 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
-  void handleStaticGet(ir.StaticGet node, ir.DartType resultType) {
-    ir.Member target = node.target;
-    if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
-      registerStaticTearOff(target, getDeferredImport(node));
-    } else {
-      registerStaticGet(target, getDeferredImport(node));
-    }
+  void handleStaticGet(
+      ir.Expression node, ir.Member target, ir.DartType resultType) {
+    assert(!(target is ir.Procedure && target.kind == ir.ProcedureKind.Method),
+        "Static tear off registered as static get: $node");
+    registerStaticGet(target, getDeferredImport(node));
+  }
+
+  @override
+  void handleStaticTearOff(
+      ir.Expression node, ir.Member target, ir.DartType resultType) {
+    assert(target is ir.Procedure && target.kind == ir.ProcedureKind.Method,
+        "Static get registered as static tear off: $node");
+    registerStaticTearOff(target, getDeferredImport(node));
   }
 
   @override
@@ -520,89 +525,129 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
-  void handleMethodInvocation(
-      ir.MethodInvocation node,
+  void handleDynamicInvocation(
+      ir.InvocationExpression node,
       ir.DartType receiverType,
       ArgumentTypes argumentTypes,
       ir.DartType returnType) {
     int positionArguments = node.arguments.positional.length;
     List<String> namedArguments = _getNamedArguments(node.arguments);
     List<ir.DartType> typeArguments = node.arguments.types;
-    ir.Expression receiver = node.receiver;
-    if (receiver is ir.VariableGet &&
-        receiver.variable.isFinal &&
-        receiver.variable.parent is ir.FunctionDeclaration) {
-      registerLocalFunctionInvocation(receiver.variable.parent,
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+    registerDynamicInvocation(receiverType, relation, node.name,
+        positionArguments, namedArguments, typeArguments);
+  }
+
+  @override
+  void handleFunctionInvocation(
+      ir.InvocationExpression node,
+      ir.DartType receiverType,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
+    int positionArguments = node.arguments.positional.length;
+    List<String> namedArguments = _getNamedArguments(node.arguments);
+    List<ir.DartType> typeArguments = node.arguments.types;
+    registerFunctionInvocation(
+        receiverType, positionArguments, namedArguments, typeArguments);
+  }
+
+  @override
+  void handleInstanceInvocation(
+      ir.InvocationExpression node,
+      ir.DartType receiverType,
+      ir.Member interfaceTarget,
+      ArgumentTypes argumentTypes) {
+    int positionArguments = node.arguments.positional.length;
+    List<String> namedArguments = _getNamedArguments(node.arguments);
+    List<ir.DartType> typeArguments = node.arguments.types;
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+
+    if (interfaceTarget is ir.Field ||
+        interfaceTarget is ir.Procedure &&
+            interfaceTarget.kind == ir.ProcedureKind.Getter) {
+      registerInstanceInvocation(receiverType, relation, interfaceTarget,
           positionArguments, namedArguments, typeArguments);
+      registerFunctionInvocation(interfaceTarget.getterType, positionArguments,
+          namedArguments, typeArguments);
     } else {
-      ClassRelation relation = computeClassRelationFromType(receiverType);
-
-      ir.Member interfaceTarget = node.interfaceTarget;
-      if (interfaceTarget == null) {
-        registerDynamicInvocation(receiverType, relation, node.name,
-            positionArguments, namedArguments, typeArguments);
-        // TODO(johnniwinther): Avoid treating a known function call as a
-        // dynamic call when CFE provides a way to distinguish the two.
-        if (operatorFromString(node.name.text) == null &&
-            receiverType is ir.DynamicType) {
-          // We might implicitly call a getter that returns a function.
-          registerFunctionInvocation(const ir.DynamicType(), positionArguments,
-              namedArguments, typeArguments);
-        }
-      } else {
-        if (interfaceTarget is ir.Field ||
-            interfaceTarget is ir.Procedure &&
-                interfaceTarget.kind == ir.ProcedureKind.Getter) {
-          registerInstanceInvocation(receiverType, relation, interfaceTarget,
-              positionArguments, namedArguments, typeArguments);
-          registerFunctionInvocation(interfaceTarget.getterType,
-              positionArguments, namedArguments, typeArguments);
-        } else {
-          registerInstanceInvocation(receiverType, relation, interfaceTarget,
-              positionArguments, namedArguments, typeArguments);
-        }
-      }
+      registerInstanceInvocation(receiverType, relation, interfaceTarget,
+          positionArguments, namedArguments, typeArguments);
     }
   }
 
   @override
-  void handlePropertyGet(
-      ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
-    ClassRelation relation = computeClassRelationFromType(receiverType);
-    if (node.interfaceTarget != null) {
-      registerInstanceGet(receiverType, relation, node.interfaceTarget);
-    } else {
-      registerDynamicGet(receiverType, relation, node.name);
-    }
+  void handleLocalFunctionInvocation(
+      ir.InvocationExpression node,
+      ir.FunctionDeclaration function,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
+    int positionArguments = node.arguments.positional.length;
+    List<String> namedArguments = _getNamedArguments(node.arguments);
+    List<ir.DartType> typeArguments = node.arguments.types;
+    registerLocalFunctionInvocation(
+        function, positionArguments, namedArguments, typeArguments);
   }
 
   @override
-  void handlePropertySet(
-      ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
+  void handleEqualsCall(ir.Expression left, ir.DartType leftType,
+      ir.Expression right, ir.DartType rightType, ir.Member interfaceTarget) {
+    ClassRelation relation = computeClassRelationFromType(leftType);
+    registerInstanceInvocation(leftType, relation, interfaceTarget, 1,
+        const <String>[], const <ir.DartType>[]);
+  }
+
+  @override
+  void handleEqualsNull(ir.EqualsNull node, ir.DartType expressionType) {
+    registerNullLiteral();
+  }
+
+  @override
+  void handleDynamicGet(ir.Expression node, ir.DartType receiverType,
+      ir.Name name, ir.DartType resultType) {
     ClassRelation relation = computeClassRelationFromType(receiverType);
-    if (node.interfaceTarget != null) {
-      registerInstanceSet(receiverType, relation, node.interfaceTarget);
-    } else {
-      registerDynamicSet(receiverType, relation, node.name);
-    }
+    registerDynamicGet(receiverType, relation, name);
+  }
+
+  @override
+  void handleInstanceGet(ir.Expression node, ir.DartType receiverType,
+      ir.Member interfaceTarget, ir.DartType resultType) {
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+    registerInstanceGet(receiverType, relation, interfaceTarget);
+  }
+
+  @override
+  void handleDynamicSet(ir.Expression node, ir.DartType receiverType,
+      ir.Name name, ir.DartType valueType) {
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+    registerDynamicSet(receiverType, relation, name);
+  }
+
+  @override
+  void handleInstanceSet(ir.Expression node, ir.DartType receiverType,
+      ir.Member interfaceTarget, ir.DartType valueType) {
+    ClassRelation relation = computeClassRelationFromType(receiverType);
+    registerInstanceSet(receiverType, relation, interfaceTarget);
   }
 
   @override
   void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
       ArgumentTypes argumentTypes, ir.DartType returnType) {
-    registerSuperInvocation(node.name, node.arguments.positional.length,
-        _getNamedArguments(node.arguments), node.arguments.types);
+    registerSuperInvocation(
+        getEffectiveSuperTarget(node.interfaceTarget),
+        node.arguments.positional.length,
+        _getNamedArguments(node.arguments),
+        node.arguments.types);
   }
 
   @override
   void handleSuperPropertyGet(
       ir.SuperPropertyGet node, ir.DartType resultType) {
-    registerSuperGet(node.name);
+    registerSuperGet(getEffectiveSuperTarget(node.interfaceTarget));
   }
 
   @override
   void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
-    registerSuperSet(node.name);
+    registerSuperSet(getEffectiveSuperTarget(node.interfaceTarget));
   }
 
   @override
@@ -622,8 +667,10 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     return super.visitSwitchStatement(node);
   }
 
+  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
+  // invocation encoding is no longer used.
   @override
-  void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+  void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
     registerRuntimeTypeUse(node, kind, receiverType, argumentType);
   }

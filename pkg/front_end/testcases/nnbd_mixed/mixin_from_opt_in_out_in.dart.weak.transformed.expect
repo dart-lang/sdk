@@ -45,6 +45,11 @@ abstract class _DwB0&C0&B extends mix::C0 implements mix2::B /*isAnonymousMixin,
   synthetic constructor •() → self::_DwB0&C0&B
     : super mix::C0::•()
     ;
+  get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int) → core::int>
+    return core::_GrowableList::•<(core::int) → core::int>(0);
+  set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int) → core::int> _) → void {}
+  method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int) → core::int x) → (core::int) → core::int
+    return x;
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
@@ -54,11 +59,6 @@ abstract class _DwB0&C0&B extends mix::C0 implements mix2::B /*isAnonymousMixin,
   abstract member-signature method toString() → core::String; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
-  get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
-  set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int) → core::int> _) → void {}
-  method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int) → core::int x) → (core::int) → core::int
-    return x;
 }
 class DwB0 extends self::_DwB0&C0&B {
   synthetic constructor •() → self::DwB0
@@ -69,6 +69,11 @@ abstract class _DwBq0&C0&Bq extends mix::C0 implements mix2::Bq /*isAnonymousMix
   synthetic constructor •() → self::_DwBq0&C0&Bq
     : super mix::C0::•()
     ;
+  get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int?) → core::int?>
+    return core::_GrowableList::•<(core::int?) → core::int?>(0);
+  set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int?) → core::int?> _) → void {}
+  method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int?) → core::int? x) → (core::int?) → core::int?
+    return x;
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
@@ -78,11 +83,6 @@ abstract class _DwBq0&C0&Bq extends mix::C0 implements mix2::Bq /*isAnonymousMix
   abstract member-signature method toString() → core::String; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
-  get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int?) → core::int?>
-    return <(core::int?) → core::int?>[];
-  set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int?) → core::int?> _) → void {}
-  method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int?) → core::int? x) → (core::int?) → core::int?
-    return x;
 }
 class DwBq0 extends self::_DwBq0&C0&Bq {
   synthetic constructor •() → self::DwBq0
@@ -127,6 +127,11 @@ abstract class _DwB3&C3&B extends mix::C3 implements mix2::B /*isAnonymousMixin,
   synthetic constructor •() → self::_DwB3&C3&B
     : super mix::C3::•()
     ;
+  get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int) → core::int>
+    return core::_GrowableList::•<(core::int) → core::int>(0);
+  set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int) → core::int> _) → void {}
+  method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int) → core::int x) → (core::int) → core::int
+    return x;
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
@@ -136,11 +141,6 @@ abstract class _DwB3&C3&B extends mix::C3 implements mix2::B /*isAnonymousMixin,
   abstract member-signature method toString() → core::String; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
-  get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
-  set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int) → core::int> _) → void {}
-  method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int) → core::int x) → (core::int) → core::int
-    return x;
 }
 class DwB3 extends self::_DwB3&C3&B {
   synthetic constructor •() → self::DwB3
@@ -151,6 +151,11 @@ abstract class _DwBq3&C3&Bq extends mix::C3 implements mix2::Bq /*isAnonymousMix
   synthetic constructor •() → self::_DwBq3&C3&Bq
     : super mix::C3::•()
     ;
+  get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int?) → core::int?>
+    return core::_GrowableList::•<(core::int?) → core::int?>(0);
+  set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int?) → core::int?> _) → void {}
+  method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int?) → core::int? x) → (core::int?) → core::int?
+    return x;
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
@@ -160,11 +165,6 @@ abstract class _DwBq3&C3&Bq extends mix::C3 implements mix2::Bq /*isAnonymousMix
   abstract member-signature method toString() → core::String; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
-  get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int?) → core::int?>
-    return <(core::int?) → core::int?>[];
-  set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int?) → core::int?> _) → void {}
-  method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int?) → core::int? x) → (core::int?) → core::int?
-    return x;
 }
 class DwBq3 extends self::_DwBq3&C3&Bq {
   synthetic constructor •() → self::DwBq3
@@ -226,7 +226,7 @@ class B extends core::Object {
     : super core::Object::•()
     ;
   get a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
+    return core::_GrowableList::•<(core::int) → core::int>(0);
   set a(core::List<(core::int) → core::int> _) → void {}
   method m((core::int) → core::int x) → (core::int) → core::int
     return x;
@@ -236,7 +236,7 @@ class Bq extends core::Object {
     : super core::Object::•()
     ;
   get a() → core::List<(core::int?) → core::int?>
-    return <(core::int?) → core::int?>[];
+    return core::_GrowableList::•<(core::int?) → core::int?>(0);
   set a(core::List<(core::int?) → core::int?> _) → void {}
   method m((core::int?) → core::int? x) → (core::int?) → core::int?
     return x;

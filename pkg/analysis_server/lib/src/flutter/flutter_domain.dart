@@ -27,12 +27,13 @@ class FlutterDomainHandler extends AbstractRequestHandler {
 
     var resolvedUnit = await server.getResolvedUnit(file);
     if (resolvedUnit == null) {
-      // TODO(scheglov) report error
+      server.sendResponse(Response.fileNotAnalyzed(request, file));
+      return;
     }
 
     var computer = server.flutterWidgetDescriptions;
 
-    FlutterGetWidgetDescriptionResult result;
+    FlutterGetWidgetDescriptionResult? result;
     try {
       result = await computer.getDescription(
         resolvedUnit,
@@ -70,7 +71,7 @@ class FlutterDomainHandler extends AbstractRequestHandler {
   }
 
   @override
-  Response handleRequest(Request request) {
+  Response? handleRequest(Request request) {
     try {
       var requestName = request.method;
       if (requestName == FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION) {
@@ -99,18 +100,19 @@ class FlutterDomainHandler extends AbstractRequestHandler {
       params.value,
     );
 
-    if (result.errorCode != null) {
+    var errorCode = result.errorCode;
+    if (errorCode != null) {
       server.sendResponse(
         Response(
           request.id,
-          error: RequestError(result.errorCode, ''),
+          error: RequestError(errorCode, ''),
         ),
       );
     }
 
     server.sendResponse(
       FlutterSetWidgetPropertyValueResult(
-        result.change,
+        result.change!,
       ).toResponse(request.id),
     );
   }

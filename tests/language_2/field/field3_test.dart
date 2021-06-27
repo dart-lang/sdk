@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to catch error reporting bugs in class fields declarations.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class C {

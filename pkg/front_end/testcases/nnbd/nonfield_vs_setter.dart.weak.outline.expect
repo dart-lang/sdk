@@ -1,0 +1,171 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:9:10: Error: 'topLevelMethodAndSetter' is already declared in this scope.
+// void set topLevelMethodAndSetter(value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:6:10: Context: Previous declaration of 'topLevelMethodAndSetter'.
+// void set topLevelMethodAndSetter(value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:29:12: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   void set Class(value) {}
+//            ^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart: Error: 'topLevelMethodAndSetter' is exported from both 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart' and 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:9:10: Error: Conflicts with member 'topLevelMethodAndSetter'.
+// void set topLevelMethodAndSetter(value) {}
+//          ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:6:10: Error: Conflicts with member 'topLevelMethodAndSetter'.
+// void set topLevelMethodAndSetter(value) {}
+//          ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:5:1: Error: Conflicts with setter 'topLevelMethodAndSetter'.
+// topLevelMethodAndSetter() {}
+// ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:13:10: Error: Conflicts with member 'classAndSetter'.
+// void set classAndSetter(value) {}
+//          ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:11:7: Error: Conflicts with setter 'classAndSetter'.
+// class classAndSetter {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:34:12: Error: Conflicts with member 'extensionInstanceMethodAndSetter'.
+//   void set extensionInstanceMethodAndSetter(value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:33:3: Error: Conflicts with setter 'extensionInstanceMethodAndSetter'.
+//   extensionInstanceMethodAndSetter() {}
+//   ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:37:19: Error: Conflicts with member 'extensionStaticMethodAndSetter'.
+//   static void set extensionStaticMethodAndSetter(value) {}
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:36:10: Error: Conflicts with setter 'extensionStaticMethodAndSetter'.
+//   static extensionStaticMethodAndSetter() {}
+//          ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:40:19: Error: Conflicts with member 'extensionInstanceMethodAndStaticSetter'.
+//   static void set extensionInstanceMethodAndStaticSetter(value) {}
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:39:3: Error: Conflicts with setter 'extensionInstanceMethodAndStaticSetter'.
+//   extensionInstanceMethodAndStaticSetter() {}
+//   ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:43:12: Error: Conflicts with member 'extensionStaticMethodAndInstanceSetter'.
+//   void set extensionStaticMethodAndInstanceSetter(value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:42:10: Error: Conflicts with setter 'extensionStaticMethodAndInstanceSetter'.
+//   static extensionStaticMethodAndInstanceSetter() {}
+//          ^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:17:12: Error: 'instanceMethodAndSetter' is already declared in this scope.
+//   void set instanceMethodAndSetter(value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:16:3: Context: Previous declaration of 'instanceMethodAndSetter'.
+//   instanceMethodAndSetter() {}
+//   ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:20:19: Error: 'staticMethodAndSetter' is already declared in this scope.
+//   static void set staticMethodAndSetter(value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:19:10: Context: Previous declaration of 'staticMethodAndSetter'.
+//   static staticMethodAndSetter() {}
+//          ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:23:19: Error: This static member conflicts with an instance member.
+//   static void set instanceMethodAndStaticSetter(value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:22:3: Context: This is the instance member.
+//   instanceMethodAndStaticSetter() {}
+//   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:25:10: Error: This static member conflicts with an instance member.
+//   static staticMethodAndInstanceSetter() {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:26:12: Context: This is the instance member.
+//   void set staticMethodAndInstanceSetter(value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef typedefAndSetter = () → dynamic;
+class classAndSetter extends core::Object {
+  synthetic constructor •() → self::classAndSetter
+    ;
+}
+class Class extends core::Object {
+  constructor •() → self::Class
+    ;
+  method instanceMethodAndSetter() → dynamic
+    ;
+  set instanceMethodAndSetter(dynamic value) → void
+    ;
+  static method staticMethodAndSetter() → dynamic
+    ;
+  static set staticMethodAndSetter(dynamic value) → void
+    ;
+  method instanceMethodAndStaticSetter() → dynamic
+    ;
+  static set instanceMethodAndStaticSetter(dynamic value) → void
+    ;
+  static method staticMethodAndInstanceSetter() → dynamic
+    ;
+  set staticMethodAndInstanceSetter(dynamic value) → void
+    ;
+  set Class(dynamic value) → void
+    ;
+}
+extension Extension on core::int? {
+  method extensionInstanceMethodAndSetter = self::Extension|extensionInstanceMethodAndSetter;
+  tearoff extensionInstanceMethodAndSetter = self::Extension|get#extensionInstanceMethodAndSetter;
+  static method extensionStaticMethodAndSetter = self::Extension|extensionStaticMethodAndSetter;
+  method extensionInstanceMethodAndStaticSetter = self::Extension|extensionInstanceMethodAndStaticSetter;
+  tearoff extensionInstanceMethodAndStaticSetter = self::Extension|get#extensionInstanceMethodAndStaticSetter;
+  static method extensionStaticMethodAndInstanceSetter = self::Extension|extensionStaticMethodAndInstanceSetter;
+  set extensionInstanceMethodAndSetter = self::Extension|set#extensionInstanceMethodAndSetter;
+  static set extensionStaticMethodAndSetter = set self::Extension|extensionStaticMethodAndSetter;
+  static set extensionInstanceMethodAndStaticSetter = set self::Extension|extensionInstanceMethodAndStaticSetter;
+  set extensionStaticMethodAndInstanceSetter = self::Extension|set#extensionStaticMethodAndInstanceSetter;
+}
+static const field dynamic _exports# = "{\"topLevelMethodAndSetter\":\"'topLevelMethodAndSetter' is exported from both 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart' and 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.\"}" /*isLegacy*/;
+static method topLevelMethodAndSetter() → dynamic
+  ;
+static set topLevelMethodAndSetter(dynamic value) → void
+  ;
+static set classAndSetter(dynamic value) → void
+  ;
+static method Extension|extensionInstanceMethodAndSetter(lowered final core::int? #this) → dynamic
+  ;
+static method Extension|get#extensionInstanceMethodAndSetter(lowered final core::int? #this) → () → dynamic
+  return () → dynamic => self::Extension|extensionInstanceMethodAndSetter(#this);
+static method Extension|set#extensionInstanceMethodAndSetter(lowered final core::int? #this, dynamic value) → void
+  ;
+static method Extension|extensionStaticMethodAndSetter() → dynamic
+  ;
+static set Extension|extensionStaticMethodAndSetter(dynamic value) → void
+  ;
+static method Extension|extensionInstanceMethodAndStaticSetter(lowered final core::int? #this) → dynamic
+  ;
+static method Extension|get#extensionInstanceMethodAndStaticSetter(lowered final core::int? #this) → () → dynamic
+  return () → dynamic => self::Extension|extensionInstanceMethodAndStaticSetter(#this);
+static set Extension|extensionInstanceMethodAndStaticSetter(dynamic value) → void
+  ;
+static method Extension|extensionStaticMethodAndInstanceSetter() → dynamic
+  ;
+static method Extension|set#extensionStaticMethodAndInstanceSetter(lowered final core::int? #this, dynamic value) → void
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

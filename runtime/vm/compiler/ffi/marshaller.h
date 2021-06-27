@@ -110,7 +110,7 @@ class BaseMarshaller : public ZoneAllocated {
            kFfiHandleCid;
   }
 
-  bool IsStruct(intptr_t arg_index) const {
+  bool IsCompound(intptr_t arg_index) const {
     const auto& type = AbstractType::Handle(zone_, CType(arg_index));
     const bool predefined = IsFfiTypeClassId(type.type_class_id());
     return !predefined;
@@ -135,7 +135,7 @@ class BaseMarshaller : public ZoneAllocated {
   // Contains the function pointer as argument #0.
   // The Dart signature is used for the function and argument names.
   const Function& dart_signature_;
-  const Function& c_signature_;
+  const FunctionType& c_signature_;
   const NativeCallingConvention& native_calling_convention_;
 };
 

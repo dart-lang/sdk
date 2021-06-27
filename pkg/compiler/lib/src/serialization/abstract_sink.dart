@@ -538,6 +538,8 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
         break;
       case ConstantValueKind.DUMMY_INTERCEPTOR:
         break;
+      case ConstantValueKind.LATE_SENTINEL:
+        break;
       case ConstantValueKind.UNREACHABLE:
         break;
       case ConstantValueKind.JS_NAME:

@@ -12,12 +12,8 @@ html/custom/document_register_basic_test: Slow, Pass
 html/custom/document_register_type_extensions_test/construction: Slow, Pass
 html/custom/document_register_type_extensions_test/registration: Slow, Pass
 html/custom/entered_left_view/shadow_dom_test: Slow, Pass
-html/custom/js_custom_test: Skip # mirrors not supported, delete this test.
-html/custom/mirrors_2_test: Skip # mirrors not supported, delete this test.
-html/custom/mirrors_test: Skip # mirrors not supported, delete this test.
 html/custom_elements_test: Slow, Pass # Issue 26789
 html/isolates_test: SkipByDesign
-html/mirrors_js_typed_interop_test: Skip # mirrors not supported, delete this test.
 html/worker_api_test: SkipByDesign
 html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 html/xhr_test: Slow, Pass
@@ -35,7 +31,6 @@ convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 2
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
-html/crypto_test/functional: Slow, Pass # TODO(dart2js-team): Please triage this failure.
 html/input_element_datetime_test: Slow, Pass # TODO(dart2js-team): Please triage this failure.
 
 [ $compiler == dart2js && $runtime == d8 ]
@@ -87,7 +82,6 @@ html/js_typed_interop_type3_test: SkipByDesign
 html/js_typed_interop_type_test: SkipByDesign
 html/js_typed_interop_window_property_test: SkipByDesign
 html/js_util_test: SkipByDesign
-html/mirrors_js_typed_interop_test: SkipByDesign
 html/postmessage_structured_test: SkipByDesign
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]

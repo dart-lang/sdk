@@ -18,11 +18,11 @@ class RedirectToNonClassTest extends PubPackageResolutionTest {
   test_notAType() async {
     await assertErrorsInCode('''
 class B {
-  int A;
+  int A = 0;
   factory B() = A;
 }''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 35, 1),
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 35, 1),
+      error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 39, 1),
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 39, 1),
     ]);
   }
 

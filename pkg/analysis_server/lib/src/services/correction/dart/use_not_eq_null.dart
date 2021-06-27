@@ -11,7 +11,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class UseNotEqNull extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.USE_NOT_EQ_NULL;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.USE_NOT_EQ_NULL_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // VMOptions=--deterministic
+// VMOptions=--deterministic --use_slow_path
 
 // Unit tests on DIV and MOV operations by various constants.
 

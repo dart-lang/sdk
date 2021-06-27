@@ -32,8 +32,7 @@ SharedClassTable::SharedClassTable()
         calloc(capacity_, sizeof(RelaxedAtomic<intptr_t>))));
   } else {
     // Duplicate the class table from the VM isolate.
-    auto vm_shared_class_table =
-        Dart::vm_isolate()->group()->shared_class_table();
+    auto vm_shared_class_table = Dart::vm_isolate_group()->shared_class_table();
     capacity_ = vm_shared_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
     RelaxedAtomic<intptr_t>* table = reinterpret_cast<RelaxedAtomic<intptr_t>*>(
@@ -73,10 +72,11 @@ SharedClassTable::~SharedClassTable() {
 }
 
 void ClassTable::set_table(ClassPtr* table) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != nullptr);
+  // We don't have to stop mutators, since the old table is the prefix of the
+  // new table. But we should ensure that all writes to the current table are
+  // visible once the new table is visible.
   table_.store(table);
-  isolate->set_cached_class_table_table(table);
+  IsolateGroup::Current()->set_cached_class_table_table(table);
 }
 
 ClassTable::ClassTable(SharedClassTable* shared_class_table)
@@ -98,7 +98,7 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     table_.store(static_cast<ClassPtr*>(calloc(capacity_, sizeof(ClassPtr))));
   } else {
     // Duplicate the class table from the VM isolate.
-    ClassTable* vm_class_table = Dart::vm_isolate()->class_table();
+    ClassTable* vm_class_table = Dart::vm_isolate_group()->class_table();
     capacity_ = vm_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
     ClassPtr* table =
@@ -161,7 +161,7 @@ void ClassTable::Register(const Class& cls) {
   // parallel to [ClassTable].
 
   const intptr_t instance_size =
-      cls.is_abstract() ? 0 : Class::host_instance_size(cls.raw());
+      cls.is_abstract() ? 0 : Class::host_instance_size(cls.ptr());
 
   const intptr_t expected_cid =
       shared_class_table_->Register(cid, instance_size);
@@ -169,7 +169,7 @@ void ClassTable::Register(const Class& cls) {
   if (cid != kIllegalCid) {
     ASSERT(cid > 0 && cid < kNumPredefinedCids && cid < top_);
     ASSERT(table_.load()[cid] == nullptr);
-    table_.load()[cid] = cls.raw();
+    table_.load()[cid] = cls.ptr();
   } else {
     if (top_ == capacity_) {
       const intptr_t new_capacity = capacity_ + kCapacityIncrement;
@@ -177,7 +177,7 @@ void ClassTable::Register(const Class& cls) {
     }
     ASSERT(top_ < capacity_);
     cls.set_id(top_);
-    table_.load()[top_] = cls.raw();
+    table_.load()[top_] = cls.ptr();
     top_++;  // Increment next index.
   }
   ASSERT(expected_cid == cls.id());
@@ -201,7 +201,7 @@ void ClassTable::RegisterTopLevel(const Class& cls) {
   }
   ASSERT(tlc_top_ < tlc_capacity_);
   cls.set_id(ClassTable::CidFromTopLevelIndex(tlc_top_));
-  tlc_table_.load()[tlc_top_] = cls.raw();
+  tlc_table_.load()[tlc_top_] = cls.ptr();
   tlc_top_++;  // Increment next index.
 }
 
@@ -411,7 +411,7 @@ void SharedClassTable::Unregister(intptr_t index) {
 }
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
   const intptr_t num_cids = NumCids();
   std::unique_ptr<ClassPtr[]> cls_by_old_cid(new ClassPtr[num_cids]);
   auto* table = table_.load();
@@ -422,7 +422,7 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
 }
 
 void SharedClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
   const intptr_t num_cids = NumCids();
   std::unique_ptr<intptr_t[]> size_by_old_cid(new intptr_t[num_cids]);
   auto* table = table_.load();
@@ -483,7 +483,14 @@ void ClassTable::Validate() {
     if (HasValidClassAt(cid)) {
       cls = At(cid);
       ASSERT(cls.IsClass());
+#if defined(DART_PRECOMPILER)
+      // Precompiler can drop classes and set their id() to kIllegalCid.
+      // It still leaves them in the class table so dropped program
+      // structure could still be accessed while writing debug info.
+      ASSERT((cls.id() == cid) || (cls.id() == kIllegalCid));
+#else
       ASSERT(cls.id() == cid);
+#endif  // defined(DART_PRECOMPILER)
     }
   }
 }
@@ -497,7 +504,7 @@ void ClassTable::Print() {
       continue;
     }
     cls = At(i);
-    if (cls.raw() != nullptr) {
+    if (cls.ptr() != nullptr) {
       name = cls.Name();
       OS::PrintErr("%" Pd ": %s\n", i, name.ToCString());
     }
@@ -524,17 +531,13 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
   object->AddProperty("type", "ClassList");
   {
     JSONArray members(object, "classes");
-    for (intptr_t i = 1; i < top_; i++) {
+    for (intptr_t i = ClassId::kObjectCid; i < top_; i++) {
       if (HasValidClassAt(i)) {
         cls = At(i);
         members.AddValue(cls);
       }
     }
   }
-}
-
-bool SharedClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
-  return !IsVariableSizeClassId(cid);
 }
 
 intptr_t SharedClassTable::ClassOffsetFor(intptr_t cid) {

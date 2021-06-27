@@ -84,7 +84,7 @@ class CallbackOptionProcessor : public OptionProcessor {
 
 #define DEFINE_ENUM_OPTION(name, enum_name, variable)                          \
   DEFINE_STRING_OPTION_CB(name, {                                              \
-    const char** kNames = k##enum_name##Names;                                 \
+    const char* const* kNames = k##enum_name##Names;                           \
     for (intptr_t i = 0; kNames[i] != NULL; i++) {                             \
       if (strcmp(value, kNames[i]) == 0) {                                     \
         variable = static_cast<enum_name>(i);                                  \

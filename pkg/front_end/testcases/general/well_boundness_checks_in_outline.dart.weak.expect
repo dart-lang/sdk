@@ -1,0 +1,116 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:8:10: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   A<num> fieldOfA; // Error.
+//          ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:9:17: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   static A<num> staticFieldOfA; // Error.
+//                 ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:12:13: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+// extension E<X extends A<num>> // Error.
+//             ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:14:17: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   static A<num> fieldOfE; // Error.
+//                 ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:15:16: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A' in the return type.
+// Try changing type arguments so that they conform to the bounds.
+//   A<num> fooOfE() => null; // Error.
+//                ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:16:22: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   void barOfE(A<num> a) {} // Error.
+//                      ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:17:15: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   void bazOfE<Y extends A<num>>() {} // Error.
+//               ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::int*> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends core::Object {
+  field self::A<core::num*>* fieldOfA = null;
+  static field self::A<core::num*>* staticFieldOfA = null;
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension E<X extends self::A<core::num*>*> on self::A<core::int*>* {
+  static field fieldOfE = self::E|fieldOfE;
+  method fooOfE = self::E|fooOfE;
+  tearoff fooOfE = self::E|get#fooOfE;
+  method barOfE = self::E|barOfE;
+  tearoff barOfE = self::E|get#barOfE;
+  method bazOfE = self::E|bazOfE;
+  tearoff bazOfE = self::E|get#bazOfE;
+}
+static field self::A<core::num*>* E|fieldOfE;
+static method E|fooOfE<X extends self::A<core::num*>*>(lowered final self::A<core::int*>* #this) → self::A<core::num*>*
+  return null;
+static method E|get#fooOfE<X extends self::A<core::num*>*>(lowered final self::A<core::int*>* #this) → () →* self::A<core::num*>*
+  return () → self::A<core::num*>* => self::E|fooOfE<self::E|get#fooOfE::X*>(#this);
+static method E|barOfE<X extends self::A<core::num*>*>(lowered final self::A<core::int*>* #this, self::A<core::num*>* a) → void {}
+static method E|get#barOfE<X extends self::A<core::num*>*>(lowered final self::A<core::int*>* #this) → (self::A<core::num*>*) →* void
+  return (self::A<core::num*>* a) → void => self::E|barOfE<self::E|get#barOfE::X*>(#this, a);
+static method E|bazOfE<X extends self::A<core::num*>*, Y extends self::A<core::num*>*>(lowered final self::A<core::int*>* #this) → void {}
+static method E|get#bazOfE<X extends self::A<core::num*>*>(lowered final self::A<core::int*>* #this) → <Y extends self::A<core::num*>*>() →* void
+  return <Y extends self::A<core::num*>*>() → void => self::E|bazOfE<self::E|get#bazOfE::X*, Y*>(#this);
+static method main() → dynamic {}

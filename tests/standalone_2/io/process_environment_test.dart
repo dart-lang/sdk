@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "dart:io";
 
 import "package:async_helper/async_helper.dart";
@@ -16,9 +18,14 @@ runEnvironmentProcess(
   if (!new File(printEnv).existsSync()) {
     printEnv = '../$printEnv';
   }
-  Process.run(dartExecutable,
-          []..addAll(Platform.executableArguments)..addAll([printEnv, name]),
-          environment: environment, includeParentEnvironment: includeParent)
+  Process.run(
+          dartExecutable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..add('--verbosity=warning')
+            ..addAll([printEnv, name]),
+          environment: environment,
+          includeParentEnvironment: includeParent)
       .then((result) {
     if (result.exitCode != 0) {
       print('print_env.dart subprocess failed '

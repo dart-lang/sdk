@@ -69,7 +69,8 @@ typedef F<P, R> = R Function(P x);
 }
 
 @reflectiveTest
-class UseFunctionTypeSyntaxForParametersTest extends FixProcessorLintTest {
+class UseFunctionTypeSyntaxForParametersTest extends FixProcessorLintTest
+    with WithNullSafetyLintMixin {
   @override
   FixKind get kind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
 
@@ -81,6 +82,24 @@ class UseFunctionTypeSyntaxForParametersTest extends FixProcessorLintTest {
 g(String f(x)) {}
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_functionTypedParameter_nullable() async {
+    await resolveTestCode('''
+g(List<String> f()?) {}
+''');
+    await assertHasFix('''
+g(List<String> Function()? f) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_requiredNamed() async {
+    await resolveTestCode('''
+g({required List<Object?> f()}) {}
+''');
+    await assertHasFix('''
+g({required List<Object?> Function() f}) {}
+''');
   }
 
   Future<void> test_functionTypedParameter_returnType() async {

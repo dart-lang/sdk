@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -153,16 +155,22 @@ main(List<String> args) async {
 
   List<helper.Interest> interests = <helper.Interest>[];
   interests.add(new helper.Interest(
-      Uri.parse("package:kernel/ast.dart"), "Library", ["fileUri"]));
+    Uri.parse("package:kernel/ast.dart"),
+    "Library",
+    ["fileUri"],
+  ));
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
       new helper.VMServiceHeapHelperSpecificExactLeakFinder(
-          interests,
-          [
-            new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library",
-                ["fileUri", "_libraryIdString"]),
-          ],
-          true,
-          false);
+    interests: interests,
+    prettyPrints: [
+      new helper.Interest(
+        Uri.parse("package:kernel/ast.dart"),
+        "Library",
+        ["fileUri", "libraryIdForTesting"],
+      ),
+    ],
+    throwOnPossibleLeak: true,
+  );
 
   print("About to run with "
       "quicker = $quicker; "
@@ -195,7 +203,7 @@ main(List<String> args) async {
   }
 
   await heapHelper.start(processArgs,
-      stdinReceiver: (s) {
+      stdoutReceiver: (s) {
         if (s.startsWith("+")) {
           files.add(s.substring(1));
         } else if (s.startsWith("-")) {
@@ -214,10 +222,10 @@ main(List<String> args) async {
       },
       stderrReceiver: (s) => print("err> $s"));
 
-  await sendAndWait(heapHelper.process, ['compile package:gallery/main.dart']);
   Stopwatch stopwatch = new Stopwatch()..start();
-  await pauseAndWait(heapHelper);
+  await sendAndWait(heapHelper.process, ['compile package:gallery/main.dart']);
   print("First compile took ${stopwatch.elapsedMilliseconds} ms");
+  await pauseAndWait(heapHelper);
 
   await recompileAndWait(heapHelper.process, "package:gallery/main.dart", []);
   await accept(heapHelper);

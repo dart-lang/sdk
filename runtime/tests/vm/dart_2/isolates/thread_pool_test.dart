@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // SharedObjects=ffi_test_functions
-// VMOptions=--enable-isolate-groups --disable-heap-verification
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --disable-heap-verification
 
 import 'dart:async';
 import 'dart:ffi';
@@ -16,7 +16,7 @@ import '../../../../../tests/ffi_2/dylib_utils.dart';
 // This should be larger than max-new-space-size/tlab-size.
 const int threadCount = 200;
 
-class Isolate extends Struct {}
+class Isolate extends Opaque {}
 
 typedef Dart_CurrentIsolateFT = Pointer<Isolate> Function();
 typedef Dart_CurrentIsolateNFT = Pointer<Isolate> Function();

@@ -16,7 +16,7 @@ file issues in their repository:
 * Dart website: https://github.com/dart-lang/site-www
 * Flutter: https://github.com/flutter/flutter
 * Linter: https://github.com/dart-lang/linter
-* dartfmt: https://github.com/dart-lang/dart_style
+* dart format: https://github.com/dart-lang/dart_style
 
 If you aren't sure, file the issue here and we'll find the right home for it.
 In your issue, please include:

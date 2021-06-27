@@ -31,7 +31,7 @@ class BuiltInServerIsolateChannel extends ServerIsolateChannel {
   @override
   Future<Isolate> _spawnIsolate() {
     return Isolate.spawn(
-        (message) => entryPoint(message as SendPort), _receivePort.sendPort,
+        (message) => entryPoint(message as SendPort), _receivePort?.sendPort,
         onError: _errorPort?.sendPort, onExit: _exitPort?.sendPort);
   }
 }
@@ -57,7 +57,7 @@ class DiscoveredServerIsolateChannel extends ServerIsolateChannel {
 
   @override
   Future<Isolate> _spawnIsolate() {
-    return Isolate.spawnUri(pluginUri, <String>[], _receivePort.sendPort,
+    return Isolate.spawnUri(pluginUri, <String>[], _receivePort?.sendPort,
         onError: _errorPort?.sendPort,
         onExit: _exitPort?.sendPort,
         packageConfig: packagesUri);
@@ -72,10 +72,10 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   final SendPort _sendPort;
 
   /// The port used to receive requests from the server.
-  ReceivePort _receivePort;
+  late final ReceivePort _receivePort;
 
   /// The subscription that needs to be cancelled when the channel is closed.
-  StreamSubscription _subscription;
+  StreamSubscription? _subscription;
 
   /// Initialize a newly created channel to communicate with the server.
   PluginIsolateChannel(this._sendPort) {
@@ -85,21 +85,17 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
 
   @override
   void close() {
-    if (_subscription != null) {
-      _subscription.cancel();
-      _subscription = null;
-    }
+    _subscription?.cancel();
+    _subscription = null;
   }
 
   @override
   void listen(void Function(Request request) onRequest,
-      {Function onError, void Function() onDone}) {
+      {Function? onError, void Function()? onDone}) {
     void onData(data) {
       var requestMap = data as Map<String, Object>;
       var request = Request.fromJson(requestMap);
-      if (request != null) {
-        onRequest(request);
-      }
+      onRequest(request);
     }
 
     if (_subscription != null) {
@@ -130,20 +126,20 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   /// The isolate in which the plugin is running, or `null` if the plugin has
   /// not yet been started by invoking [listen].
-  Isolate _isolate;
+  Isolate? _isolate;
 
   /// The port used to send requests to the plugin, or `null` if the plugin has
   /// not yet been started by invoking [listen].
-  SendPort _sendPort;
+  SendPort? _sendPort;
 
   /// The port used to receive responses and notifications from the plugin.
-  ReceivePort _receivePort;
+  ReceivePort? _receivePort;
 
   /// The port used to receive unhandled exceptions thrown in the plugin.
-  ReceivePort _errorPort;
+  ReceivePort? _errorPort;
 
   /// The port used to receive notification when the plugin isolate has exited.
-  ReceivePort _exitPort;
+  ReceivePort? _exitPort;
 
   /// Return a communication channel appropriate for communicating with a
   /// built-in plugin.
@@ -180,25 +176,30 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   @override
   Future<void> listen(void Function(Response response) onResponse,
       void Function(Notification notification) onNotification,
-      {void Function(dynamic error) onError, void Function() onDone}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+      {void Function(dynamic error)? onError, void Function()? onDone}) async {
     if (_isolate != null) {
       throw StateError('Cannot listen to the same channel more than once.');
     }
-    _receivePort = ReceivePort();
+
+    var receivePort = ReceivePort();
+    _receivePort = receivePort;
+
     if (onError != null) {
-      _errorPort = ReceivePort();
-      _errorPort.listen((error) {
+      var errorPort = ReceivePort();
+      _errorPort = errorPort;
+      errorPort.listen((error) {
         onError(error);
       });
     }
+
     if (onDone != null) {
-      _exitPort = ReceivePort();
-      _exitPort.listen((_) {
+      var exitPort = ReceivePort();
+      _exitPort = exitPort;
+      exitPort.listen((_) {
         onDone();
       });
     }
+
     try {
       _isolate = await _spawnIsolate();
     } catch (exception, stackTrace) {
@@ -216,12 +217,13 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       close();
       return null;
     }
+
     var channelReady = Completer<void>();
-    _receivePort.listen((dynamic input) {
+    receivePort.listen((dynamic input) {
       if (input is SendPort) {
         _sendPort = input;
         channelReady.complete(null);
-      } else if (input is Map) {
+      } else if (input is Map<String, Object?>) {
         if (input.containsKey('id')) {
           var encodedInput = json.encode(input);
           instrumentationService.logPluginResponse(pluginId, encodedInput);
@@ -233,16 +235,18 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
         }
       }
     });
+
     return channelReady.future;
   }
 
   @override
   void sendRequest(Request request) {
-    if (_sendPort != null) {
+    var sendPort = _sendPort;
+    if (sendPort != null) {
       var jsonData = request.toJson();
       var encodedRequest = json.encode(jsonData);
       instrumentationService.logPluginRequest(pluginId, encodedRequest);
-      _sendPort.send(jsonData);
+      sendPort.send(jsonData);
     }
   }
 

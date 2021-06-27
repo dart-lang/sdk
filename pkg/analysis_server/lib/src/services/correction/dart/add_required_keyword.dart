@@ -16,24 +16,27 @@ class AddRequiredKeyword extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
-      var insertOffset = node.parent.offset;
-
-      var parent = node.parent;
-      if (parent is FormalParameter) {
-        var metadata = parent.metadata;
-        // Check for redundant `@required` annotations.
-        if (metadata.isNotEmpty) {
-          for (var annotation in metadata) {
-            if (annotation.elementAnnotation.isRequired) {
-              var length = annotation.endToken.next.offset -
-                  annotation.beginToken.offset;
-              builder.addDeletion(SourceRange(annotation.offset, length));
-              break;
-            }
-          }
-          insertOffset = metadata.endToken.next.offset;
-        }
+      var parameter = node.parent;
+      if (parameter is! FormalParameter) {
+        return;
       }
+
+      var insertOffset = parameter.offset;
+
+      // Check for redundant `@required` annotations.
+      var metadata = parameter.metadata;
+      if (metadata.isNotEmpty) {
+        for (var annotation in metadata) {
+          if (annotation.elementAnnotation!.isRequired) {
+            var length =
+                annotation.endToken.next!.offset - annotation.beginToken.offset;
+            builder.addDeletion(SourceRange(annotation.offset, length));
+            break;
+          }
+        }
+        insertOffset = metadata.endToken!.next!.offset;
+      }
+
       builder.addSimpleInsertion(insertOffset, 'required ');
     });
   }

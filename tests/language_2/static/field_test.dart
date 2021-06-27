@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing setting/getting/initializing static fields.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class First {

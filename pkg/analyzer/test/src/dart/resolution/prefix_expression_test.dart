@@ -17,7 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class PrefixExpressionResolutionTest extends PubPackageResolutionTest {
+class PrefixExpressionResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_bang_bool_context() async {
     await assertNoErrorsInCode(r'''
 T f<T>() {
@@ -145,7 +146,7 @@ class B extends A {
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
-  
+
   void f() {
     ++this[0];
   }
@@ -648,7 +649,8 @@ void f(A? a) {
   !a?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 55, 6),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          55, 6),
     ]);
 
     assertPrefixExpression(
@@ -672,7 +674,8 @@ void f(A? a) {
   -a?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 51, 6),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          50, 1),
     ]);
 
     assertPrefixExpression(
@@ -746,7 +749,8 @@ void f(A? a) {
   ~a?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 51, 6),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          50, 1),
     ]);
 
     assertPrefixExpression(

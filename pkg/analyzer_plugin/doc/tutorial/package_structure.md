@@ -10,7 +10,7 @@ plugins as simply the _tool_.
 In order to describe the way tools use plugins, we need to refer to four
 different packages. In order to keep the discussion clear, we will refer to
 those packages as the target package, the host package, the bootstrap package,
-and the plugin package. (If you're not familiar will packages, you should read
+and the plugin package. (If you're not familiar with packages, you should read
 about the Dart [package manager][pub].)
 
 The _target package_ is the package for which the tool is producing analysis
@@ -56,7 +56,7 @@ analyzer:
 
 If a listed host package can be found (via the `.packages` file associated with
 the target package), then the tool looks in the host package for the folder
-`<host_package>/tools/analysis_plugin`. If that directory exists and contains a
+`<host_package>/tools/analyzer_plugin`. If that directory exists and contains a
 valid bootstrap package, then the bootstrap package is run as a plugin.
 
 ## Bootstrap Package Structure
@@ -87,7 +87,7 @@ function within the plugin package that will create and start the plugin.
 When a bootstrap package is to be run, the contents of the directory containing
 the bootstrap package are copied to a temporary directory, the [`pub`][pub]
 command is run in that directory to produce a `.packages` file for the bootstrap
-package, and the file `tools/analysis_plugin/bin/plugin.dart` is run in its own
+package, and the file `tools/analyzer_plugin/bin/plugin.dart` is run in its own
 isolate.
 
 [pub]:https://www.dartlang.org/tools/pub/get-started

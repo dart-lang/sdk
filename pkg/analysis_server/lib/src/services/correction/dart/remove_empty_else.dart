@@ -11,16 +11,32 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveEmptyElse extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_EMPTY_ELSE;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_ELSE_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var parent = node.parent;
     if (parent is IfStatement) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(utils.getLinesRange(
-            range.startEnd(parent.elseKeyword, parent.elseStatement)));
-      });
+      var elseKeyword = parent.elseKeyword;
+      var elseStatement = parent.elseStatement;
+      if (elseKeyword != null && elseStatement != null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(
+            utils.getLinesRange(
+              range.startEnd(elseKeyword, elseStatement),
+            ),
+          );
+        });
+      }
     }
   }
 

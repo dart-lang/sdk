@@ -1,3 +1,4 @@
+// @dart = 2.9
 import './forwarder_propagation_lib.dart';
 
 abstract class A {

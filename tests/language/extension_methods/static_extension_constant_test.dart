@@ -24,7 +24,7 @@ var dynamicInstanceCalls = <Object>[
   b ^ b,
   i ~/ i,
   i >> i,
-  // i >>> i, // Requries triple-shift.
+  i >>> i,
   i << i,
   i + i,
   -i,

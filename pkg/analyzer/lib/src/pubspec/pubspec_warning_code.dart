@@ -4,10 +4,10 @@
 
 import 'package:analyzer/error/error.dart';
 
-/// The error codes used for warnings in analysis options files. The convention
-/// for this class is for the name of the error code to indicate the problem
-/// that caused the error to be generated and for the error message to explain
-/// what is wrong and, when appropriate, how the problem can be corrected.
+/// The error codes used for warnings in pubspec files. The convention for this
+/// class is for the name of the error code to indicate the problem that caused
+/// the error to be generated and for the error message to explain what is wrong
+/// and, when appropriate, how the problem can be corrected.
 class PubspecWarningCode extends ErrorCode {
   /// A code indicating that a specified asset does not exist.
   ///
@@ -45,6 +45,12 @@ class PubspecWarningCode extends ErrorCode {
       PubspecWarningCode('DEPENDENCIES_FIELD_NOT_MAP',
           "The value of the '{0}' field is expected to be a map.",
           correction: "Try converting the value to be a map.");
+
+  /// A code indicating that a field is deprecated.
+  static const PubspecWarningCode DEPRECATED_FIELD = PubspecWarningCode(
+      'DEPRECATED_FIELD',
+      "The '{0}' field is no longer used and may be removed.",
+      correction: "Try removing the field.");
 
   /// A code indicating that the value of the flutter field is not a map.
   static const PubspecWarningCode FLUTTER_FIELD_NOT_MAP = PubspecWarningCode(
@@ -116,7 +122,7 @@ class PubspecWarningCode extends ErrorCode {
 
   /// Initialize a newly created warning code to have the given [name],
   /// [message] and [correction].
-  const PubspecWarningCode(String name, String message, {String correction})
+  const PubspecWarningCode(String name, String message, {String? correction})
       : super(
           correction: correction,
           message: message,

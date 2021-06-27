@@ -12,7 +12,7 @@ DEFINE_NATIVE_ENTRY(Identical_comparison, 0, 2) {
   GET_NATIVE_ARGUMENT(Instance, a, arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(Instance, b, arguments->NativeArgAt(1));
   const bool is_identical = a.IsIdenticalTo(b);
-  return Bool::Get(is_identical).raw();
+  return Bool::Get(is_identical).ptr();
 }
 
 }  // namespace dart

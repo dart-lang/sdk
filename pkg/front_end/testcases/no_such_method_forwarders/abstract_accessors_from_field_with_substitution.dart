@@ -1,7 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+// @dart=2.9
 // This test checks that noSuchMethod forwarders that are generated for abstract
 // accessors synthesized from a field of an interface have the proper type
 // substitution performed on the types of their parameters and on the return

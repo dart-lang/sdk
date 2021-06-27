@@ -1,3 +1,9 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 import 'dart:io';
 
 import "vm_service_heap_helper.dart" as helper;
@@ -5,33 +11,38 @@ import "vm_service_heap_helper.dart" as helper;
 main(List<String> args) async {
   List<helper.Interest> interests = <helper.Interest>[];
   interests.add(new helper.Interest(
-      Uri.parse(
-          "package:front_end/src/fasta/source/source_library_builder.dart"),
-      "SourceLibraryBuilder",
-      ["fileUri"]));
+    Uri.parse("package:front_end/src/fasta/source/source_library_builder.dart"),
+    "SourceLibraryBuilder",
+    ["fileUri"],
+  ));
   interests.add(new helper.Interest(
-      Uri.parse(
-          "package:front_end/src/fasta/source/source_extension_builder.dart"),
-      "SourceExtensionBuilder",
-      ["_extension"]));
+    Uri.parse(
+        "package:front_end/src/fasta/source/source_extension_builder.dart"),
+    "SourceExtensionBuilder",
+    ["extension"],
+  ));
   interests.add(new helper.Interest(
-      Uri.parse("package:kernel/ast.dart"), "Library", ["fileUri"]));
+    Uri.parse("package:kernel/ast.dart"),
+    "Library",
+    ["fileUri"],
+  ));
+  interests.add(new helper.Interest(
+    Uri.parse("package:kernel/ast.dart"),
+    "Extension",
+    ["name", "fileUri"],
+  ));
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
       new helper.VMServiceHeapHelperSpecificExactLeakFinder(
-          interests,
-          [
-            new helper.Interest(
-                Uri.parse(
-                    "package:front_end/src/fasta/source/source_extension_builder.dart"),
-                "SourceExtensionBuilder",
-                ["_extension"]),
-            new helper.Interest(Uri.parse("package:kernel/ast.dart"),
-                "Extension", ["name", "fileUri"]),
-            new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library",
-                ["fileUri", "_libraryIdString"]),
-          ],
-          true,
-          true);
+    interests: interests,
+    prettyPrints: [
+      new helper.Interest(
+        Uri.parse("package:kernel/ast.dart"),
+        "Library",
+        ["fileUri", "libraryIdForTesting"],
+      ),
+    ],
+    throwOnPossibleLeak: true,
+  );
 
   if (args.length > 0 && args[0] == "--dart2js") {
     heapHelper.start([
@@ -41,15 +52,19 @@ main(List<String> args) async {
       "--fast",
       "--experimental",
     ]);
+  } else if (args.length > 0 && args[0] == "--weekly") {
+    heapHelper.start([
+      "--enable-asserts",
+      Platform.script.resolve("incremental_suite.dart").toString(),
+      "-DaddDebugBreaks=true",
+    ]);
   } else {
     heapHelper.start([
       "--enable-asserts",
-      Platform.script
-          .resolve("incremental_load_from_dill_suite.dart")
-          .toString(),
+      Platform.script.resolve("incremental_suite.dart").toString(),
       "-DaddDebugBreaks=true",
       "--",
-      "incremental_load_from_dill/no_outline_change_38",
+      "incremental/no_outline_change_38",
     ]);
   }
 }

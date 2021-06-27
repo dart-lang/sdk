@@ -21,11 +21,11 @@ export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 /// A base class defining support for writing assist processor tests.
 abstract class AssistProcessorTest extends AbstractSingleUnitTest {
-  int _offset;
-  int _length;
+  late int _offset;
+  late int _length;
 
-  SourceChange _change;
-  String _resultCode;
+  late SourceChange _change;
+  late String _resultCode;
 
   /// Return the kind of assist expected by this class.
   AssistKind get kind;
@@ -65,9 +65,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     super.addTestSource(code);
   }
 
-  void assertExitPosition({String before, String after}) {
-    var exitPosition = _change.selection;
-    expect(exitPosition, isNotNull);
+  void assertExitPosition({String? before, String? after}) {
+    var exitPosition = _change.selection!;
     expect(exitPosition.file, testFile);
     if (before != null) {
       expect(exitPosition.offset, _resultCode.indexOf(before));
@@ -86,7 +85,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// pairs of source code: the states of the code before and after the edits
   /// have been applied.
   Future<void> assertHasAssist(String expected,
-      {Map<String, List<String>> additionallyChangedFiles}) async {
+      {Map<String, List<String>>? additionallyChangedFiles}) async {
     if (useLineEndingsForPlatform) {
       expected = normalizeNewlinesForPlatform(expected);
       additionallyChangedFiles = additionallyChangedFiles?.map((key, value) =>
@@ -103,13 +102,14 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       expect(_resultCode, expected);
     } else {
       expect(fileEdits, hasLength(additionallyChangedFiles.length + 1));
-      _resultCode = SourceEdit.applySequence(
-          testCode, _change.getFileEdit(testFile).edits);
+      var fileEdit = _change.getFileEdit(testFile)!;
+      _resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
       expect(_resultCode, expected);
-      for (var filePath in additionallyChangedFiles.keys) {
-        var pair = additionallyChangedFiles[filePath];
-        var resultCode = SourceEdit.applySequence(
-            pair[0], _change.getFileEdit(filePath).edits);
+      for (var additionalEntry in additionallyChangedFiles.entries) {
+        var filePath = additionalEntry.key;
+        var pair = additionalEntry.value;
+        var fileEdit = _change.getFileEdit(filePath)!;
+        var resultCode = SourceEdit.applySequence(pair[0], fileEdit.edits);
         expect(resultCode, pair[1]);
       }
     }
@@ -135,7 +135,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   void assertLinkedGroup(int groupIndex, List<String> expectedStrings,
-      [List<LinkedEditSuggestion> expectedSuggestions]) {
+      [List<LinkedEditSuggestion>? expectedSuggestions]) {
     var group = _change.linkedEditGroups[groupIndex];
     var expectedPositions = _findResultPositions(expectedStrings);
     expect(group.positions, unorderedEquals(expectedPositions));

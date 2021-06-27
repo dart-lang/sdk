@@ -18,38 +18,130 @@ class InconsistentInheritanceTest extends PubPackageResolutionTest {
   test_class_parameterType() async {
     await assertErrorsInCode(r'''
 abstract class A {
-  void foo(int i);
+  void m(int i);
 }
 abstract class B {
-  void foo(String s);
+  void m(String s);
 }
 abstract class C implements A, B {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 98, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 94, 1),
+    ]);
+  }
+
+  test_class_parameterType_inheritedFromBase() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  void m(int i);
+}
+abstract class B {
+  void m(String s);
+}
+abstract class C extends B implements A {}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 94, 1),
+    ]);
+  }
+
+  test_class_parameterType_inheritedInInterface() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  void m(int i);
+}
+abstract class B {
+  void m(String s);
+}
+abstract class B2 extends B {}
+abstract class C implements A, B2 {}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 125, 1),
+    ]);
+  }
+
+  test_class_parameterType_inheritedInInterface_andMixin() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  void m(int i);
+}
+abstract class B {
+  void m(String s);
+}
+abstract class B2 extends B {}
+abstract class C extends Object with A implements B2 {}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 125, 1),
+    ]);
+  }
+
+  test_class_parameterType_inheritedInInterface_andMixinApplication() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  void m(int i);
+}
+abstract class B {
+  void m(String s);
+}
+abstract class B2 extends B {}
+abstract class C = Object with A implements B2;
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 125, 1),
+    ]);
+  }
+
+  test_class_parameterType_mixedIntoInterface() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  void m(int i);
+}
+abstract class B {
+  void m(String s);
+}
+abstract class B2 extends Object with B {}
+abstract class C implements A, B2 {}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 137, 1),
+    ]);
+  }
+
+  test_class_parameterType_mixedIntoInterface_andMixin() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  void m(int i);
+}
+abstract class B {
+  void m(String s);
+}
+abstract class B2 extends Object with B {}
+abstract class C extends Object with A implements B2 {}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 137, 1),
+    ]);
+  }
+
+  test_class_parameterType_twoConflictingInterfaces() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  void m(int i);
+}
+abstract class B {
+  void m(String s);
+}
+abstract class C {
+  void n(String s);
+}
+abstract class D implements A, B, C {}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 135, 1),
     ]);
   }
 
   test_class_requiredParameters() async {
     await assertErrorsInCode(r'''
 abstract class A {
-  void foo();
+  void m();
 }
 abstract class B {
-  void foo(int y);
-}
-abstract class C implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 90, 1),
-    ]);
-  }
-
-  test_class_returnType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int foo();
-}
-abstract class B {
-  String foo();
+  void m(int y);
 }
 abstract class C implements A, B {}
 ''', [
@@ -57,87 +149,133 @@ abstract class C implements A, B {}
     ]);
   }
 
+  test_class_returnType() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  int m();
+}
+abstract class B {
+  String m();
+}
+abstract class C implements A, B {}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 82, 1),
+    ]);
+  }
+
   test_mixin_implements_parameterType() async {
     await assertErrorsInCode(r'''
 abstract class A {
-  void foo(int i);
+  void m(int i);
 }
 abstract class B {
-  void foo(String s);
+  void m(String s);
 }
 mixin M implements A, B {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 89, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 85, 1),
     ]);
   }
 
   test_mixin_implements_requiredParameters() async {
     await assertErrorsInCode(r'''
 abstract class A {
-  void foo();
+  void m();
 }
 abstract class B {
-  void foo(int y);
+  void m(int y);
 }
 mixin M implements A, B {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 81, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 77, 1),
     ]);
   }
 
   test_mixin_implements_returnType() async {
     await assertErrorsInCode(r'''
 abstract class A {
-  int foo();
+  int m();
 }
 abstract class B {
-  String foo();
+  String m();
 }
 mixin M implements A, B {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 77, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 73, 1),
     ]);
   }
 
   test_mixin_on_parameterType() async {
     await assertErrorsInCode(r'''
 abstract class A {
-  void foo(int i);
+  void m(int i);
 }
 abstract class B {
-  void foo(String s);
+  void m(String s);
 }
 mixin M on A, B {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 89, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 85, 1),
     ]);
   }
 
   test_mixin_on_requiredParameters() async {
     await assertErrorsInCode(r'''
 abstract class A {
-  void foo();
+  void m();
 }
 abstract class B {
-  void foo(int y);
+  void m(int y);
 }
 mixin M on A, B {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 81, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 77, 1),
     ]);
   }
 
   test_mixin_on_returnType() async {
     await assertErrorsInCode(r'''
 abstract class A {
-  int foo();
+  int m();
 }
 abstract class B {
-  String foo();
+  String m();
 }
 mixin M on A, B {}
 ''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 77, 1),
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 73, 1),
     ]);
+  }
+
+  test_overrideWithDynamicParameterType_inheritsAndInterface() async {
+    await assertNoErrorsInCode('''
+class B {
+  void m(int i) {}
+}
+
+class I {
+  void m(String s) {}
+}
+
+class C extends B implements I {
+  void m(dynamic d) {}
+}
+''');
+  }
+
+  test_overrideWithDynamicParameterType_mixinAndInterface() async {
+    await assertNoErrorsInCode('''
+class B {
+  void m(int i) {}
+}
+
+class I {
+  void m(String s) {}
+}
+
+class C extends Object with B implements I {
+  void m(dynamic d) {}
+}
+''');
   }
 }

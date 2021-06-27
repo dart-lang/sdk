@@ -30,6 +30,9 @@ foo() {
   FNowhere<num?> fNowhereNumNullable; // Error.
   FNowhere<int?> fNowhereIntNullable; // Error.
   FNowhere<Null> fNowhereNull; // Error.
+  FArgument<Object?> fArgumentObjectNullable; // Error.
+  FArgument<dynamic> fArgumentDynamic; // Error.
+  FArgument<void> fArgumentVoid; // Error.
 
   A<Object?> aObjectNullable; // Ok.
   A<dynamic> aDynamic; // Ok.
@@ -37,9 +40,6 @@ foo() {
   A<num> aNum; // Ok.
   A<int> aInt; // Ok.
   A<Never> aNever; // Ok.
-  FArgument<Object?> fArgumentObjectNullable; // Ok.
-  FArgument<dynamic> fArgumentDynamic; // Ok.
-  FArgument<void> fArgumentVoid; // Ok.
   FArgument<num> fArgumentNum; // Ok.
   FArgument<int> fArgumentInt; // Ok.
   FArgument<Never> fArgumentNever; // Ok.

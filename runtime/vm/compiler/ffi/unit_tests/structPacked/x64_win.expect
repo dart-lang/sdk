@@ -1,0 +1,15 @@
+P(rcx int64) Struct(size: 9)
+P(rdx int64) Struct(size: 9)
+P(r8 int64) Struct(size: 9)
+P(r9 int64) Struct(size: 9)
+P(S+0 int64) Struct(size: 9)
+P(S+8 int64) Struct(size: 9)
+P(S+16 int64) Struct(size: 9)
+P(S+24 int64) Struct(size: 9)
+P(S+32 int64) Struct(size: 9)
+P(S+40 int64) Struct(size: 9)
+S+48 double
+S+56 int32
+S+64 int32
+=>
+xmm0 double

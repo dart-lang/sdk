@@ -6,7 +6,9 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -18,9 +20,8 @@ class AssignToLocalVariable extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // prepare enclosing ExpressionStatement
-    ExpressionStatement expressionStatement;
-    // ignore: unnecessary_this
-    for (var node = this.node; node != null; node = node.parent) {
+    ExpressionStatement? expressionStatement;
+    for (var node in this.node.withParents) {
       if (node is ExpressionStatement) {
         expressionStatement = node;
         break;
@@ -40,7 +41,7 @@ class AssignToLocalVariable extends CorrectionProducer {
     var expression = expressionStatement.expression;
     var offset = expression.offset;
     // prepare expression type
-    var type = expression.staticType;
+    var type = expression.typeOrThrow;
     if (type.isVoid) {
       return;
     }
@@ -77,9 +78,9 @@ class AssignToLocalVariable extends CorrectionProducer {
       var index = statements.indexOf(statement);
       if (index > 0) {
         var precedingStatement = statements[index - 1];
-        if (precedingStatement is ExpressionStatement &&
-            precedingStatement.semicolon.isSynthetic) {
-          return true;
+        if (precedingStatement is ExpressionStatement) {
+          var semicolon = precedingStatement.semicolon;
+          return semicolon != null && semicolon.isSynthetic;
         } else if (precedingStatement is VariableDeclarationStatement &&
             precedingStatement.semicolon.isSynthetic) {
           return true;

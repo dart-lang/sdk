@@ -1,0 +1,93 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = #C1;
+static const field core::int var2 = #C2;
+static const field core::int var3 = #C1;
+static const field core::int var4 = #C1;
+static const field core::int var5 = #C3;
+static const field core::int var6 = #C4;
+static const field core::int var7 = #C5;
+static const field core::int var8 = #C6;
+static const field core::int var9 = #C3;
+static method basicSwitch(core::int x) → core::int {
+  #L1:
+  switch(x) {
+    #L2:
+    case #C7:
+      {
+        return 100;
+      }
+    #L3:
+    default:
+      {
+        x = x.{core::num::+}(1){(core::num) → core::int};
+        break #L1;
+      }
+  }
+  return x;
+}
+static method multipleCaseSwitch(core::int x) → core::int {
+  #L4:
+  switch(x) {
+    #L5:
+    case #C7:
+    case #C8:
+      {
+        return 100;
+      }
+    #L6:
+    default:
+      {
+        break #L4;
+      }
+  }
+  return 0;
+}
+static method continueLabelSwitch(core::int x) → core::int {
+  switch(x) {
+    #L7:
+    case #C7:
+      {
+        x = x.{core::num::+}(100){(core::num) → core::int};
+        continue #L8;
+      }
+    #L9:
+    case #C8:
+      {
+        continue #L7;
+      }
+    #L8:
+    case #C2:
+      {
+        return x.{core::num::+}(3){(core::num) → core::int};
+      }
+  }
+  return 0;
+}
+static method main() → void {
+  exp::Expect::equals(#C1, 100);
+  exp::Expect::equals(#C2, 3);
+  exp::Expect::equals(#C1, 100);
+  exp::Expect::equals(#C1, 100);
+  exp::Expect::equals(#C3, 0);
+  exp::Expect::equals(#C4, 104);
+  exp::Expect::equals(#C5, 105);
+  exp::Expect::equals(#C6, 6);
+  exp::Expect::equals(#C3, 0);
+}
+
+constants  {
+  #C1 = 100
+  #C2 = 3
+  #C3 = 0
+  #C4 = 104
+  #C5 = 105
+  #C6 = 6
+  #C7 = 1
+  #C8 = 2
+}

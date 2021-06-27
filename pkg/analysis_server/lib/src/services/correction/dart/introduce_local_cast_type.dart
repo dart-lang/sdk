@@ -17,42 +17,25 @@ class IntroduceLocalCastType extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is IfStatement) {
-      node = (node as IfStatement).condition;
-    } else if (node is WhileStatement) {
-      node = (node as WhileStatement).condition;
-    }
-    // prepare IsExpression
-    if (node is! IsExpression) {
+    var isExpression = _getCondition(node);
+    if (isExpression is! IsExpression) {
       return;
     }
-    IsExpression isExpression = node;
     var castType = isExpression.type.type;
     var castTypeCode = utils.getNodeText(isExpression.type);
     // prepare environment
-    var indent = utils.getIndent(1);
-    String prefix;
-    Block targetBlock;
-    {
-      var statement = node.thisOrAncestorOfType<Statement>();
-      if (statement is IfStatement && statement.thenStatement is Block) {
-        targetBlock = statement.thenStatement;
-      } else if (statement is WhileStatement && statement.body is Block) {
-        targetBlock = statement.body;
-      } else {
-        return;
-      }
-      prefix = utils.getNodePrefix(statement);
+    var enclosingStatement = _enclosingStatement(isExpression);
+    if (enclosingStatement == null) {
+      return;
     }
     // prepare location
     int offset;
     String statementPrefix;
     if (isExpression.notOperator == null) {
-      offset = targetBlock.leftBracket.end;
-      statementPrefix = indent;
+      offset = enclosingStatement.block.leftBracket.end;
+      statementPrefix = utils.getIndent(1);
     } else {
-      offset = targetBlock.rightBracket.end;
+      offset = enclosingStatement.block.rightBracket.end;
       statementPrefix = '';
     }
     // prepare excluded names
@@ -67,7 +50,7 @@ class IntroduceLocalCastType extends CorrectionProducer {
     if (suggestions.isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {
-          builder.write(eol + prefix + statementPrefix);
+          builder.write(eol + enclosingStatement.prefix + statementPrefix);
           builder.write(castTypeCode);
           builder.write(' ');
           builder.addSimpleLinkedEdit('NAME', suggestions[0],
@@ -82,6 +65,54 @@ class IntroduceLocalCastType extends CorrectionProducer {
     }
   }
 
+  _EnclosingStatement? _enclosingStatement(IsExpression condition) {
+    var statement = condition.thisOrAncestorOfType<Statement>();
+    if (statement is IfStatement) {
+      var thenStatement = statement.thenStatement;
+      if (thenStatement is Block) {
+        return _EnclosingStatement(
+          utils.getNodePrefix(statement),
+          thenStatement,
+        );
+      }
+    } else if (statement is WhileStatement) {
+      var body = statement.body;
+      if (body is Block) {
+        return _EnclosingStatement(
+          utils.getNodePrefix(statement),
+          body,
+        );
+      }
+    }
+    return null;
+  }
+
   /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
   static IntroduceLocalCastType newInstance() => IntroduceLocalCastType();
+
+  static Expression? _getCondition(AstNode node) {
+    if (node is IfStatement) {
+      return node.condition;
+    } else if (node is WhileStatement) {
+      return node.condition;
+    }
+
+    if (node is Expression) {
+      var parent = node.parent;
+      if (parent is IfStatement && parent.condition == node) {
+        return node;
+      } else if (parent is WhileStatement && parent.condition == node) {
+        return node;
+      }
+    }
+
+    return null;
+  }
+}
+
+class _EnclosingStatement {
+  final String prefix;
+  final Block block;
+
+  _EnclosingStatement(this.prefix, this.block);
 }

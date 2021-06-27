@@ -27,7 +27,7 @@ class UnitApiSignatureTest extends ParseBase {
     assertSignature(oldCode, newCode, same: true);
   }
 
-  void assertSignature(String oldCode, String newCode, {bool same}) {
+  void assertSignature(String oldCode, String newCode, {required bool same}) {
     var path = convertPath('/test.dart');
 
     newFile(path, content: oldCode);
@@ -232,6 +232,34 @@ class B implements A {
 ''');
   }
 
+  test_class_documentation_add() async {
+    assertSameSignature(r'''
+class C {}
+''', r'''
+/// foo
+class C {}
+''');
+  }
+
+  test_class_documentation_change() async {
+    assertSameSignature(r'''
+/// foo
+class C {}
+''', r'''
+/// bar bar
+class C {}
+''');
+  }
+
+  test_class_documentation_remove() async {
+    assertSameSignature(r'''
+/// foo
+class C {}
+''', r'''
+class C {}
+''');
+  }
+
   test_class_extends() {
     assertNotSameSignature(r'''
 class A {}
@@ -239,6 +267,67 @@ class B {}
 ''', r'''
 class A {}
 class B extends A {}
+''');
+  }
+
+  /// The code `=;` is parsed as `= <emptyString>;`, and there was a bug that
+  /// the absence of the redirecting constructor was encoded as the same
+  /// byte sequence as the empty string. But these are different ASTs,
+  /// so they should have different signatures.
+  test_class_factoryConstructor_addEqNothing() {
+    assertNotSameSignature(r'''
+class A {
+  factory A();
+}
+''', r'''
+class A {
+  factory A() =;
+}
+''');
+  }
+
+  /// The token `static` is moving from the field declaration to the factory
+  /// constructor (its redirected constructor), so semantically its meaning
+  /// changes. But we had a bug that we put `static` into the signature
+  /// at the same position, without any separator, so failed to see the
+  /// difference.
+  test_class_factoryConstructor_empty_to_eq() {
+    assertNotSameSignature(r'''
+class A {
+  factory A();
+  static void foo<U>() {}
+}
+''', r'''
+class A {
+  factory A() =
+  static void foo<U>() {}
+}
+''');
+  }
+
+  test_class_field_const_add_outOfOrder() {
+    assertNotSameSignature(r'''
+class A {
+  static f = Object();
+}
+''', r'''
+class A {
+  const
+  static f = Object();
+}
+''');
+  }
+
+  test_class_field_const_add_outOfOrder_hasFinal() {
+    assertNotSameSignature(r'''
+class A {
+  static final f = Object();
+}
+''', r'''
+class A {
+  const
+  static final f = Object();
+}
 ''');
   }
 
@@ -840,6 +929,54 @@ var c = 3;
 var a = 1;
 var b = 2;
 var c = 3;
+''');
+  }
+
+  test_directive_library_add() {
+    assertNotSameSignature(r'''
+class A {}
+''', r'''
+library foo;
+class A {}
+''');
+  }
+
+  test_directive_library_change_name() {
+    assertNotSameSignature(r'''
+library foo;
+class A {}
+''', r'''
+library bar;
+class A {}
+''');
+  }
+
+  test_directive_library_change_name_length() {
+    assertSameSignature(r'''
+library foo.bar;
+class A {}
+''', r'''
+library foo. bar;
+class A {}
+''');
+  }
+
+  test_directive_library_change_name_offset() {
+    assertSameSignature(r'''
+library foo;
+class A {}
+''', r'''
+library  foo;
+class A {}
+''');
+  }
+
+  test_directive_library_remove() {
+    assertNotSameSignature(r'''
+library foo;
+class A {}
+''', r'''
+class A {}
 ''');
   }
 

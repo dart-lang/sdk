@@ -2,6 +2,43 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart/dart_action.gni")
+import("../../sdk_args.gni")
+
+_dart_root = get_path_info("../..", "abspath")
+
+prebuilt_dart_action("bootstrap_gen_kernel") {
+  deps = [
+    "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
+    "$_dart_root/runtime/vm:vm_platform",
+  ]
+  gen_kernel_script = "$_dart_root/pkg/vm/bin/gen_kernel.dart"
+  platform_dill = "$root_out_dir/vm_platform_strong.dill"
+  dot_packages = rebase_path("$_dart_root/.packages")
+
+  inputs = [
+    gen_kernel_script,
+    platform_dill,
+    dot_packages,
+  ]
+  output = "$target_gen_dir/bootstrap_gen_kernel.dill"
+  outputs = [ output ]
+
+  depfile = "$output.d"
+  vm_args = [
+    "--snapshot-kind=kernel",
+    "--snapshot=" + rebase_path(output, root_build_dir),
+    "--depfile=" + rebase_path(depfile),
+
+    # Ensure gen_kernel.dart will use this SDK hash when consuming/producing kernel.
+    "-Dsdk_hash=$sdk_hash",
+
+    "--packages=" + rebase_path(dot_packages),
+  ]
+  script = gen_kernel_script
+  args = []
+}
+
 import("../application_snapshot.gni")
 
 application_snapshot("gen_kernel") {

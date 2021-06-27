@@ -17,9 +17,13 @@ dart bin/snapshots/analysis_server.dart.snapshot --lsp --client-id my-editor.my-
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
 
+## Handling of "Loose" Files
+
+When there are no open workspace folders (or if the initialization option `onlyAnalyzeProjectsWithOpenFiles` is set to `true`), analysis will be performed based on project folders located by the open files. For each open file, the project root will be located, and that whole project analyzed. If the file does not have a project (eg. there is no pubspec.yaml in its ancestor folders) then the file will be analyzed in isolation.
+
 ## Initialization Options
 
-- `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, analysis will only be performed for projects that have open files rather than the root workspace folder. Defaults to `false`.
+- `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, workspace folders will be ignored and analysis will be performed based on the open files, as if no workspace was open at all. This allows opening large folders without causing them to be completely analyzed. Defaults to `false`.
 - `suggestFromUnimportedLibraries`: When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
 - `closingLabels`: When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
 - `outline`: When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
@@ -85,6 +89,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/references | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/documentHighlight | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/documentSymbol | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/selectionRanges | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/codeAction (sortMembers) | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/codeAction (organiseImports) | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/codeAction (refactors) | ✅ | ✅ | | ✅ | ✅ |
@@ -103,6 +108,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/prepareRename | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ | ✅ |
 | textDocument/semanticTokens/full | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/semanticTokens/range | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ## Custom Methods and Notifications
 

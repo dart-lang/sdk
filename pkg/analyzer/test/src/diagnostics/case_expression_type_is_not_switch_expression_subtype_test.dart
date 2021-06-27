@@ -9,13 +9,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CaseExpressionTypeIsNotSswitchExpressionSubtype);
+    defineReflectiveTests(CaseExpressionTypeIsNotSwitchExpressionSubtype);
   });
 }
 
 @reflectiveTest
-class CaseExpressionTypeIsNotSswitchExpressionSubtype
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+class CaseExpressionTypeIsNotSwitchExpressionSubtype
+    extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode {
     return CompileTimeErrorCode
         .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE;

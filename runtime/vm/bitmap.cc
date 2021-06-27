@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "vm/object.h"
+#include "vm/log.h"
 
 namespace dart {
 
@@ -42,11 +43,13 @@ bool BitmapBuilder::Get(intptr_t bit_offset) const {
 void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
   if (!InRange(bit_offset)) {
     length_ = bit_offset + 1;
-    // Bits not covered by the backing store are implicitly false.
-    if (!value) return;
-    // Grow the backing store if necessary.
-    intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
-    if (byte_offset >= data_size_in_bytes_) {
+  }
+
+  // Bits not covered by the backing store are implicitly false.
+  // Grow the backing store if necessary.
+  if (value) {
+    if (!InBackingStore(bit_offset)) {
+      intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
       uint8_t* old_data = data_;
       intptr_t old_size = data_size_in_bytes_;
       data_size_in_bytes_ =
@@ -57,8 +60,13 @@ void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
       memmove(data_, old_data, old_size);
       memset(&data_[old_size], 0, (data_size_in_bytes_ - old_size));
     }
+    ASSERT(InBackingStore(bit_offset));
   }
-  SetBit(bit_offset, value);
+
+  // Set bit if in backing store.
+  if (InBackingStore(bit_offset)) {
+    SetBit(bit_offset, value);
+  }
 }
 
 void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
@@ -70,9 +78,9 @@ void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
 void BitmapBuilder::Print() const {
   for (intptr_t i = 0; i < Length(); i++) {
     if (Get(i)) {
-      OS::PrintErr("1");
+      THR_Print("1");
     } else {
-      OS::PrintErr("0");
+      THR_Print("0");
     }
   }
 }

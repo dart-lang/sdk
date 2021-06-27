@@ -9,6 +9,7 @@ import 'conditional_expression_test.dart' as conditional_expression;
 import 'equality_expressions_test.dart' as equality_expressions;
 import 'extension_methods_test.dart' as extension_methods;
 import 'function_expression_test.dart' as function_expression;
+import 'function_test.dart' as function;
 import 'list_literal_test.dart' as list_literal;
 import 'local_variable_test.dart' as local_variable;
 import 'logical_boolean_expressions_test.dart' as logical_boolean_expressions;
@@ -25,6 +26,7 @@ main() {
     conditional_expression.main();
     equality_expressions.main();
     extension_methods.main();
+    function.main();
     function_expression.main();
     list_literal.main();
     local_variable.main();

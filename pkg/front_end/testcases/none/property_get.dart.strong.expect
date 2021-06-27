@@ -61,7 +61,7 @@ static const field dynamic dynamicString = #C1;
 static const field core::int dynamicStringLength = #C2;
 static method topLevelMethod(core::double o) → core::int
   return 0;
-static method test<T1 extends core::Function = core::Function, T2 extends () → core::int = () → core::int>(self::Class1 nonNullableClass1, self::Class1? nullableClass1, dynamic dyn, Never never, self::Class2<core::String> nonNullableClass2, self::Class2<core::String>? nullableClass2, core::Function nonNullableFunction, core::Function? nullableFunction, () → core::int nonNullableFunctionType, () →? core::int nullableFunctionType, self::test::T1 nonNullableTypeVariable1, self::test::T1? nullableTypeVariable1, self::test::T2 nonNullableTypeVariable2, self::test::T2? nullableTypeVariable2) → dynamic {
+static method test<T1 extends core::Function, T2 extends () → core::int>(self::Class1 nonNullableClass1, self::Class1? nullableClass1, dynamic dyn, Never never, self::Class2<core::String> nonNullableClass2, self::Class2<core::String>? nullableClass2, core::Function nonNullableFunction, core::Function? nullableFunction, () → core::int nonNullableFunctionType, () →? core::int nullableFunctionType, self::test::T1 nonNullableTypeVariable1, self::test::T1? nullableTypeVariable1, self::test::T2 nonNullableTypeVariable2, self::test::T2? nullableTypeVariable2) → dynamic {
   core::print("InstanceGet");
   nonNullableClass1.{self::Class1::field}{core::int};
   let final self::Class1? #t1 = nullableClass1 in #t1 == null ?{core::int?} null : #t1{self::Class1}.{self::Class1::field}{core::int};
@@ -84,8 +84,8 @@ static method test<T1 extends core::Function = core::Function, T2 extends () →
   core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:63:36: Error: Not a constant expression.
   const dynamic instance_tearOff = nonNullableClass1.method;
                                    ^^^^^^^^^^^^^^^^^");
-  core::Function f1 = let final self::Class2<core::String> #t5 = nonNullableClass2 in #t5 == null ?{() → core::int} null : #t5.{self::Class2::call};
-  core::Function? f2 = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/none/property_get.dart:67:18: Error: Can't tear off method 'call' from a potentially null value.
+  core::Function f1 = let final self::Class2<core::String> #t5 = nonNullableClass2 in #t5 == null ?{() → core::int} null : #t5.{self::Class2::call}{() → core::int};
+  core::Function? f2 = let final Never #t6 = invalid-expression "pkg/front_end/testcases/none/property_get.dart:67:18: Error: Can't tear off method 'call' from a potentially null value.
   Function? f2 = nullableClass2;
                  ^" in nullableClass2 as{TypeError} core::Function?;
   core::print("StaticGet");
@@ -129,7 +129,7 @@ static method test<T1 extends core::Function = core::Function, T2 extends () →
   const dynamic function_tearOff = nonNullableFunction.call;
                                    ^^^^^^^^^^^^^^^^^^^");
   core::print("DynamicGet (Invalid)");
-  (let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/none/property_get.dart:110:27: Error: Too few positional arguments: 1 required, 0 given.
+  (let final Never #t12 = invalid-expression "pkg/front_end/testcases/none/property_get.dart:110:27: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass1.method().field;
                           ^" in nonNullableClass1.{self::Class1::method}{<inapplicable>}.(){() → invalid-type}){<invalid>}.field;
   core::print("DynamicGet (Unresolved)");

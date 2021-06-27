@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart' hide MapEntry;
-import 'package:kernel/visitor.dart';
+import 'package:kernel/ast.dart';
 
 import '../type_inference/type_schema.dart';
 
@@ -23,8 +22,16 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
 
   @override
   bool defaultDartType(DartType node, Set<TypedefType> visitedTypedefs) {
-    if (node is UnknownType) return false;
-    throw new StateError("Unhandled type ${node.runtimeType}.");
+    if (node is UnknownType) {
+      return false;
+    } else if (node is ExtensionType) {
+      for (DartType typeArgument in node.typeArguments) {
+        if (typeArgument.accept1(this, visitedTypedefs)) return true;
+      }
+      return false;
+    } else {
+      throw new StateError("Unhandled type ${node.runtimeType}.");
+    }
   }
 
   @override
@@ -48,6 +55,15 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   }
 
   @override
+  bool visitExtensionType(
+      ExtensionType node, Set<TypedefType> visitedTypedefs) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (typeArgument.accept1(this, visitedTypedefs)) return true;
+    }
+    return false;
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node, Set<TypedefType> visitedTypedefs) {
     return node.typeArgument.accept1(this, visitedTypedefs);
   }
@@ -58,10 +74,6 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
 
   @override
   bool visitNullType(NullType node, Set<TypedefType> visitedTypedefs) => false;
-
-  @override
-  bool visitBottomType(BottomType node, Set<TypedefType> visitedTypedefs) =>
-      false;
 
   @override
   bool visitFunctionType(FunctionType node, Set<TypedefType> visitedTypedefs) {
@@ -77,8 +89,8 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
     for (NamedType parameter in node.namedParameters) {
       if (parameter.type.accept1(this, visitedTypedefs)) return true;
     }
-    if (node.typedefType != null && visitedTypedefs.add(node.typedefType)) {
-      if (node.typedefType.accept1(this, visitedTypedefs)) return true;
+    if (node.typedefType != null && visitedTypedefs.add(node.typedefType!)) {
+      if (node.typedefType!.accept1(this, visitedTypedefs)) return true;
     }
     return false;
   }
@@ -91,7 +103,7 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
     for (DartType typeArgument in node.typeArguments) {
       if (typeArgument.accept1(this, visitedTypedefs)) return true;
     }
-    if (node.typedefNode.type.accept1(this, visitedTypedefs)) return true;
+    if (node.typedefNode.type!.accept1(this, visitedTypedefs)) return true;
     return false;
   }
 
@@ -102,7 +114,7 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
     // automatically means that the potential errors related to the occurrences
     // of the type-parameter type itself are reported.
     if (node.promotedBound != null &&
-        node.promotedBound.accept1(this, visitedTypedefs)) {
+        node.promotedBound!.accept1(this, visitedTypedefs)) {
       return true;
     }
     return false;

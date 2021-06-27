@@ -62,7 +62,7 @@ import 'package:meta/meta.dart';
 
 class C {
   @nonVirtual
-  int f;
+  int f = 0;
 }
 ''');
   }
@@ -96,7 +96,7 @@ import 'package:meta/meta.dart';
 
 class C {
    @nonVirtual
-   static int f;
+   static int f = 0;
 }
 ''', [
       error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 47, 11),
@@ -204,7 +204,7 @@ import 'package:meta/meta.dart';
 
 mixin M {
   @nonVirtual
-  static int f;
+  static int f = 0;
 }
 ''', [
       error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 46, 11),
@@ -262,7 +262,7 @@ set s(int v) {}
 import 'package:meta/meta.dart';
 
 @nonVirtual
-int x;
+int x = 0;
 ''', [
       error(HintCode.INVALID_NON_VIRTUAL_ANNOTATION, 34, 11),
     ]);

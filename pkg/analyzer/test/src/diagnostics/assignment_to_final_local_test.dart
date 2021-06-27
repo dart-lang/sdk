@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToFinalLocalTest extends PubPackageResolutionTest {
+class AssignmentToFinalLocalTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_localVariable() async {
     await assertErrorsInCode('''
 f() {
@@ -57,6 +57,30 @@ f(final x) {
   x = 1;
 }''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 15, 1),
+    ]);
+  }
+
+  /// See `10.6.1 Generative Constructors`.
+  ///
+  /// Each initializing formal in the formal parameter list introduces a final
+  /// local variable into the formal parameter initializer scope, but not into
+  /// the formal parameter scope; every other formal parameter introduces a
+  /// local variable into both the formal parameter scope and the formal
+  /// parameter initializer scope.
+  ///
+  /// Note that it says 'final local variable', regardless whether the instance
+  /// variable is final.
+  test_parameter_fieldFormal() async {
+    await assertErrorsInCode('''
+class A {
+  int x;
+  final Object y;
+  A(this.x) : y = (() {
+    x = 0;
+  });
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 65, 1),
     ]);
   }
 
@@ -128,8 +152,8 @@ f() {
 }
 
 @reflectiveTest
-class AssignmentToFinalLocalWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class AssignmentToFinalLocalWithNullSafetyTest
+    extends PubPackageResolutionTest {
   test_localVariable_late() async {
     await assertNoErrorsInCode('''
 void f() {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // OtherResources=process_sync_script.dart
 
 import "dart:io";
@@ -15,6 +17,7 @@ test(int blockCount, int stdoutBlockSize, int stderrBlockSize, int exitCode,
       Platform.script.resolve("process_sync_script.dart").toFilePath());
   var args = <String>[]
     ..addAll(Platform.executableArguments)
+    ..add('--verbosity=warning')
     ..addAll([
       scriptFile.path,
       blockCount.toString(),

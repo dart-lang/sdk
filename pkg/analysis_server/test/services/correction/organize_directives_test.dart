@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
@@ -19,7 +20,7 @@ void main() {
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
-  List<AnalysisError> testErrors;
+  late List<AnalysisError> testErrors;
 
   Future<void> test_docComment_beforeDirective_hasUnresolvedIdentifier() async {
     await _computeUnitAndErrors(r'''
@@ -581,8 +582,8 @@ import 'package:b/a.dart';''');
 
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
-    var result = await session.getResolvedUnit(testFile);
-    testUnit = result.unit;
+    var result = await session.getResolvedUnit2(testFile) as ResolvedUnitResult;
+    testUnit = result.unit!;
     testErrors = result.errors;
   }
 }

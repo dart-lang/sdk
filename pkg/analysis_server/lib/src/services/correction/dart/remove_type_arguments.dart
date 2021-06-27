@@ -15,12 +15,14 @@ class RemoveTypeArguments extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (coveredNode is TypeArgumentList) {
-      TypeArgumentList typeArguments = coveredNode;
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.node(typeArguments));
-      });
+    var typeArguments = coveredNode;
+    if (typeArguments is! TypeArgumentList) {
+      return;
     }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addDeletion(range.node(typeArguments));
+    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

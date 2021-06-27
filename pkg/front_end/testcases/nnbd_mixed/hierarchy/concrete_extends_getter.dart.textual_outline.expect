@@ -1,0 +1,19 @@
+class ConcreteSuper {
+  int get extendedConcreteGetter => 0;
+  int get extendedAbstractGetter;
+  int get declaredConcreteExtendsConcreteGetter => 0;
+  int get declaredAbstractExtendsConcreteGetter => 0;
+  int get declaredConcreteExtendsAbstractGetter;
+  int get declaredAbstractExtendsAbstractGetter;
+}
+
+class ConcreteClass extends ConcreteSuper {
+  int get declaredConcreteGetter => 0;
+  int get declaredAbstractGetter;
+  int get declaredConcreteExtendsConcreteGetter => 0;
+  int get declaredAbstractExtendsConcreteGetter;
+  int get declaredConcreteExtendsAbstractGetter => 0;
+  int get declaredAbstractExtendsAbstractGetter;
+}
+
+main() {}

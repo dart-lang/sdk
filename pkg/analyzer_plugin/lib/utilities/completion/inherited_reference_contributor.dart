@@ -20,13 +20,13 @@ class InheritedReferenceContributor
     with ElementSuggestionBuilder
     implements CompletionContributor {
   @override
-  LibraryElement containingLibrary;
+  LibraryElement? containingLibrary;
 
   @override
-  CompletionSuggestionKind kind;
+  CompletionSuggestionKind? kind;
 
   @override
-  ResourceProvider resourceProvider;
+  ResourceProvider? resourceProvider;
 
   /// Plugin contributors should primarily overload this function. Should more
   /// parameters be needed for autocompletion needs, the overloaded function
@@ -34,10 +34,8 @@ class InheritedReferenceContributor
   @override
   Future<void> computeSuggestions(
       DartCompletionRequest request, CompletionCollector collector) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var target =
-        CompletionTarget.forOffset(request.result.unit, request.offset);
+        CompletionTarget.forOffset(request.result.unit!, request.offset);
     var optype = OpType.forCompletion(target, request.offset);
     if (!optype.includeIdentifiers) {
       return;
@@ -48,22 +46,20 @@ class InheritedReferenceContributor
     }
     containingLibrary = request.result.libraryElement;
     _computeSuggestionsForClass2(
-        collector, target, classDecl.declaredElement, optype);
+        collector, target, classDecl.declaredElement!, optype);
   }
 
   /// Clients should not overload this function.
   Future<void> computeSuggestionsForClass(
     DartCompletionRequest request,
     CompletionCollector collector,
-    ClassElement classElement, {
-    AstNode entryPoint,
-    bool skipChildClass,
-    CompletionTarget target,
-    OpType optype,
+    ClassElement? classElement, {
+    AstNode? entryPoint,
+    bool skipChildClass = true,
+    CompletionTarget? target,
+    OpType? optype,
   }) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    target ??= CompletionTarget.forOffset(request.result.unit, request.offset,
+    target ??= CompletionTarget.forOffset(request.result.unit!, request.offset,
         entryPoint: entryPoint);
     optype ??= OpType.forCompletion(target, request.offset);
     if (!optype.includeIdentifiers) {
@@ -77,7 +73,7 @@ class InheritedReferenceContributor
       classElement = classDecl.declaredElement;
     }
     containingLibrary = request.result.libraryElement;
-    _computeSuggestionsForClass2(collector, target, classElement, optype,
+    _computeSuggestionsForClass2(collector, target, classElement!, optype,
         skipChildClass: skipChildClass);
   }
 
@@ -97,9 +93,7 @@ class InheritedReferenceContributor
       }
     }
     for (var elem in type.methods) {
-      if (elem.returnType == null) {
-        addSuggestion(elem);
-      } else if (!elem.returnType.isVoid) {
+      if (!elem.returnType.isVoid) {
         if (optype.includeReturnValueSuggestions) {
           addSuggestion(elem);
         }
@@ -135,8 +129,8 @@ class InheritedReferenceContributor
 
   /// Return the class containing the target or `null` if the target is in a
   /// static method or field or not in a class.
-  ClassDeclaration _enclosingClass(CompletionTarget target) {
-    var node = target.containingNode;
+  ClassDeclaration? _enclosingClass(CompletionTarget? target) {
+    var node = target?.containingNode;
     while (node != null) {
       if (node is ClassDeclaration) {
         return node;

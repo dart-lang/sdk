@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:cli_util/cli_logging.dart';
@@ -35,7 +36,7 @@ class AnalyzeCommand extends DartdevCommand {
   static final int _return = '\r'.codeUnitAt(0);
 
   AnalyzeCommand({bool verbose = false})
-      : super(cmdName, "Analyze the project's Dart code.") {
+      : super(cmdName, 'Analyze Dart code in a directory.', verbose) {
     argParser
       ..addFlag('fatal-infos',
           help: 'Treat info level issues as fatal.', negatable: false)
@@ -47,12 +48,13 @@ class AnalyzeCommand extends DartdevCommand {
         'format',
         valueHelp: 'value',
         help: 'Specifies the format to display errors.',
-        allowed: ['default', 'machine'],
+        allowed: ['default', 'json', 'machine'],
         allowedHelp: {
           'default':
               'The default output format. This format is intended to be user '
                   'consumable.\nThe format is not specified and can change '
                   'between releases.',
+          'json': 'A machine readable output in a JSON format.',
           'machine': 'A machine readable output. The format is:\n\n'
               'SEVERITY|TYPE|ERROR_CODE|FILE_PATH|LINE|COLUMN|LENGTH|ERROR_MESSAGE\n\n'
               'Note that the pipe character is escaped with backslashes for '
@@ -67,29 +69,37 @@ class AnalyzeCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
-    if (argResults.rest.length > 1) {
-      usageException('Only one directory is expected.');
-    }
-
-    // find directory from argResults.rest
-    var dir = argResults.rest.isEmpty
-        ? io.Directory.current
-        : io.Directory(argResults.rest.single);
-    if (!dir.existsSync()) {
-      usageException("Directory doesn't exist: ${dir.path}");
+    // Find targets from the 'rest' params.
+    final List<io.FileSystemEntity> targets = [];
+    if (argResults.rest.isEmpty) {
+      targets.add(io.Directory.current);
+    } else {
+      for (String targetPath in argResults.rest) {
+        if (io.Directory(targetPath).existsSync()) {
+          targets.add(io.Directory(targetPath));
+        } else if (io.File(targetPath).existsSync()) {
+          targets.add(io.File(targetPath));
+        } else {
+          usageException("Directory or file doesn't exist: $targetPath");
+        }
+      }
     }
 
     final List<AnalysisError> errors = <AnalysisError>[];
 
     final machineFormat = argResults['format'] == 'machine';
+    final jsonFormat = argResults['format'] == 'json';
 
-    var progress = machineFormat
-        ? null
-        : log.progress('Analyzing ${path.basename(dir.path)}');
+    final targetsNames =
+        targets.map((entity) => path.basename(entity.path)).join(', ');
+
+    var progress =
+        machineFormat ? null : log.progress('Analyzing $targetsNames');
 
     final AnalysisServer server = AnalysisServer(
       io.Directory(sdk.sdkPath),
-      dir,
+      targets,
+      commandName: 'analyze',
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
@@ -127,8 +137,17 @@ class AnalyzeCommand extends DartdevCommand {
 
     if (machineFormat) {
       emitMachineFormat(log, errors);
+    } else if (jsonFormat) {
+      emitJsonFormat(log, errors);
     } else {
-      emitDefaultFormat(log, errors, relativeToDir: dir, verbose: verbose);
+      var relativeTo = targets.length == 1 ? targets.single : null;
+
+      emitDefaultFormat(
+        log,
+        errors,
+        relativeToDir: relativeTo is io.File ? relativeTo.parent : relativeTo,
+        verbose: verbose,
+      );
     }
 
     bool hasErrors = false;
@@ -166,7 +185,8 @@ class AnalyzeCommand extends DartdevCommand {
     io.Directory relativeToDir,
     bool verbose = false,
   }) {
-    final bullet = log.ansi.bullet;
+    final ansi = log.ansi;
+    final bullet = ansi.bullet;
 
     log.stdout('');
 
@@ -175,44 +195,43 @@ class AnalyzeCommand extends DartdevCommand {
         : (dartdevUsageLineLength - _bodyIndentWidth);
 
     for (final AnalysisError error in errors) {
-      // error • Message ... at path.dart:line:col • (code)
-
-      var filePath = path.relative(error.file, from: relativeToDir?.path);
       var severity = error.severity.toLowerCase().padLeft(_severityWidth);
       if (error.isError) {
-        severity = log.ansi.error(severity);
+        severity = ansi.error(severity);
+      }
+      var filePath = _relativePath(error.file, relativeToDir);
+      var codeRef = error.code;
+      // If we're in verbose mode, write any error urls instead of error codes.
+      if (error.url != null && verbose) {
+        codeRef = error.url;
       }
 
+      // Emit "file:line:col * Error message. Correction (code)."
+      var message = ansi.emphasized(error.message);
+      if (error.correction != null) {
+        message += ' ${error.correction}';
+      }
+      var location = '$filePath:${error.startLine}:${error.startColumn}';
+      var output = '$location $bullet '
+          '$message $bullet '
+          '${ansi.green}$codeRef${ansi.none}';
+
+      // TODO(devoncarew): We need to take into account ansi color codes when
+      // performing line wrapping.
+      output = wrapText(output, width: wrapWidth);
       log.stdout(
         '$severity $bullet '
-        '${log.ansi.emphasized(error.messageSentenceFragment)} '
-        'at $filePath:${error.startLine}:${error.startColumn} $bullet '
-        '(${error.code})',
+        '${output.replaceAll('\n', '\n$_bodyIndent')}',
       );
 
-      if (verbose) {
-        for (var message in error.contextMessages) {
-          // Wrap longer context messages.
-          var contextMessage = wrapText(
-              '${message.message} at '
-              '${message.filePath}:${message.line}:${message.column}',
-              width: wrapWidth);
-          log.stdout('$_bodyIndent'
-              '${contextMessage.replaceAll('\n', '\n$_bodyIndent')}');
-        }
-      }
+      // Add any context messages as bullet list items.
+      for (var message in error.contextMessages) {
+        var contextPath = _relativePath(error.file, relativeToDir);
+        var messageSentenceFragment = trimEnd(message.message, '.');
 
-      if (error.correction != null) {
-        // Wrap longer correction messages.
-        var correction = wrapText(error.correction, width: wrapWidth);
-        log.stdout(
-            '$_bodyIndent${correction.replaceAll('\n', '\n$_bodyIndent')}');
-      }
-
-      if (verbose) {
-        if (error.url != null) {
-          log.stdout('$_bodyIndent${error.url}');
-        }
+        log.stdout('$_bodyIndent'
+            ' - $messageSentenceFragment at '
+            '$contextPath:${message.line}:${message.column}.');
       }
     }
 
@@ -220,6 +239,74 @@ class AnalyzeCommand extends DartdevCommand {
 
     final errorCount = errors.length;
     log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
+  }
+
+  @visibleForTesting
+  static void emitJsonFormat(Logger log, List<AnalysisError> errors) {
+    Map<String, dynamic> location(
+            String filePath, Map<String, dynamic> range) =>
+        {
+          'file': filePath,
+          'range': range,
+        };
+
+    Map<String, dynamic> position(int offset, int line, int column) => {
+          'offset': offset,
+          'line': line,
+          'column': column,
+        };
+
+    Map<String, dynamic> range(
+            Map<String, dynamic> start, Map<String, dynamic> end) =>
+        {
+          'start': start,
+          'end': end,
+        };
+
+    var diagnostics = <Map<String, dynamic>>[];
+    for (final AnalysisError error in errors) {
+      var contextMessages = [];
+      for (var contextMessage in error.contextMessages) {
+        var startOffset = contextMessage.offset;
+        contextMessages.add({
+          'location': location(
+              contextMessage.filePath,
+              range(
+                  position(
+                      startOffset, contextMessage.line, contextMessage.column),
+                  position(startOffset + contextMessage.length,
+                      contextMessage.endLine, contextMessage.endColumn))),
+          'message': contextMessage.message,
+        });
+      }
+      var startOffset = error.offset;
+      diagnostics.add({
+        'code': error.code,
+        'severity': error.severity,
+        'type': error.type,
+        'location': location(
+            error.file,
+            range(
+                position(startOffset, error.startLine, error.startColumn),
+                position(startOffset + error.length, error.endLine,
+                    error.endColumn))),
+        'problemMessage': error.message,
+        if (error.correction != null) 'correctionMessage': error.correction,
+        if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
+        if (error.url != null) 'documentation': error.url,
+      });
+    }
+    log.stdout(json.encode({
+      'version': 1,
+      'diagnostics': diagnostics,
+    }));
+  }
+
+  /// Return a relative path if it is a shorter reference than the given dir.
+  static String _relativePath(String givenPath, io.Directory fromDir) {
+    String fromPath = fromDir?.absolute?.resolveSymbolicLinksSync();
+    String relative = path.relative(givenPath, from: fromPath);
+    return relative.length <= givenPath.length ? relative : givenPath;
   }
 
   @visibleForTesting

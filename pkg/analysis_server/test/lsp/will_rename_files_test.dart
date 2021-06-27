@@ -54,7 +54,7 @@ final a = A();
     final contents = {
       mainFilePath: withoutMarkers(mainContent),
     };
-    applyChanges(contents, edit.changes);
+    applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedMainContent));
   }
 }

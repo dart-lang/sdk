@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test verifies that for a local async function, the following three
 // types are all appropriately matched:
 // - The static return type
@@ -103,7 +105,7 @@ main() {
     int v2 = f_inferred_futureObject();
     //       ^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    //                              ^
+    //       ^
     // [cfe] A value of type 'Future<Object>' can't be assigned to a variable of type 'int'.
 
     // Check that f_inferred_A's static return type is `Future<A>`, by verifying
@@ -113,7 +115,7 @@ main() {
     Future<int> v4 = f_inferred_A();
     //               ^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    //                           ^
+    //               ^
     // [cfe] A value of type 'Future<A>' can't be assigned to a variable of type 'Future<int>'.
   }
 

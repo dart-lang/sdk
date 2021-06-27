@@ -34,7 +34,7 @@ abstract class _Class&SuperClass&Mixin = mai::SuperClass with mai::Mixin /*isAno
     : super mai::SuperClass::•()
     ;
   forwarding-stub method method(covariant core::num i) → void
-    return super.{mai::SuperClass::method}(i);
+    return super.{mai::Mixin::method}(i);
 }
 class Class extends mai::_Class&SuperClass&Mixin {
   synthetic constructor •() → mai::Class

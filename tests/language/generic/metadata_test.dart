@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 // Check that annotations cannot use type arguments, but can be raw.
 
 class C<T> {
@@ -12,9 +14,9 @@ class C<T> {
 @C<dynamic>()
 //^
 // [analyzer] SYNTACTIC_ERROR.ANNOTATION_WITH_TYPE_ARGUMENTS
-// [cfe] An annotation (metadata) can't use type arguments.
+// [cfe] An annotation can't use type arguments.
 @C<int>()
 //^
 // [analyzer] SYNTACTIC_ERROR.ANNOTATION_WITH_TYPE_ARGUMENTS
-// [cfe] An annotation (metadata) can't use type arguments.
+// [cfe] An annotation can't use type arguments.
 main() {}

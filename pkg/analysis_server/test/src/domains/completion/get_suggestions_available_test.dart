@@ -34,8 +34,7 @@ import 'ht:';
   }
 
   void _assertHasImport(String exportingUri, String declaringUri, String name) {
-    var existingImports = fileToExistingImports[testFile];
-    expect(existingImports, isNotNull);
+    var existingImports = fileToExistingImports[testFile]!;
 
     var existingImport = existingImports.imports.singleWhere((import) =>
         existingImports.elements.strings[import.uri] == exportingUri);
@@ -62,9 +61,31 @@ class GetSuggestionAvailableTest extends GetSuggestionsBase {
     var results = await _getSuggestions(testFile, 0);
     expect(results.includedElementKinds, isNotEmpty);
 
-    var includedIdSet = results.includedSuggestionSets.map((set) => set.id);
+    var includedIdSet = results.includedSuggestionSets!.map((set) => set.id);
     expect(includedIdSet, contains(mathSet.id));
     expect(includedIdSet, contains(asyncSet.id));
+  }
+
+  Future<void> test_dart_afterRecovery() async {
+    addTestFile('');
+    // Wait for a known set to be available.
+    await waitForSetWithUri('dart:math');
+
+    // Ensure the set is returned in the results.
+    var results = await _getSuggestions(testFile, 0);
+    expect(results.includedSuggestionSets, isNotEmpty);
+
+    // Force the server to rebuild all contexts, as happens when the file watcher
+    // fails on Windows.
+    // https://github.com/dart-lang/sdk/issues/44650
+    server.contextManager.refresh();
+
+    // Give it time to process the newly scheduled files.
+    await pumpEventQueue(times: 5000);
+
+    // Ensure the set is still returned after the rebuild.
+    results = await _getSuggestions(testFile, 0);
+    expect(results.includedSuggestionSets, isNotEmpty);
   }
 
   Future<void> test_dart_instanceCreationExpression() async {
@@ -83,7 +104,7 @@ main() {
       unorderedEquals([ElementKind.CONSTRUCTOR]),
     );
 
-    var includedIdSet = results.includedSuggestionSets.map((set) => set.id);
+    var includedIdSet = results.includedSuggestionSets!.map((set) => set.id);
     expect(includedIdSet, contains(mathSet.id));
     expect(includedIdSet, contains(asyncSet.id));
   }
@@ -116,7 +137,7 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
     var results = await _getSuggestions(testPath, 0);
 
     expect(
-      results.includedSuggestionSets.singleWhere((set) {
+      results.includedSuggestionSets!.singleWhere((set) {
         return set.id == aSet.id;
       }).displayUri,
       '../a.dart',
@@ -132,7 +153,7 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
 
     var results = await _getSuggestions(testPath, 0);
     expect(
-      results.includedSuggestionSets.singleWhere((set) {
+      results.includedSuggestionSets!.singleWhere((set) {
         return set.id == aSet.id;
       }).displayUri,
       isNull,
@@ -218,7 +239,7 @@ main() {
       testCode.indexOf('); // ref'),
     );
 
-    var includedTags = results.includedSuggestionRelevanceTags;
+    var includedTags = results.includedSuggestionRelevanceTags!;
     int findBoost(String tag) {
       for (var includedTag in includedTags) {
         if (includedTag.tag == tag) {
@@ -252,7 +273,7 @@ void f(MyEnum e) {
       testCode.indexOf(' // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags!, r'''
 [
   {
     "tag": "ElementKind.PREFIX",
@@ -316,7 +337,7 @@ main() {
       testCode.indexOf('); // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags!, r'''
 [
   {
     "tag": "ElementKind.PREFIX",
@@ -380,7 +401,7 @@ main() {
       testCode.indexOf('); // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags!, r'''
 [
   {
     "tag": "ElementKind.MIXIN",
@@ -451,7 +472,7 @@ main() {
       testCode.indexOf(' // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags!, r'''
 [
   {
     "tag": "ElementKind.PREFIX",
@@ -511,7 +532,7 @@ int v = // ref;
       testCode.indexOf(' // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags!, r'''
 [
   {
     "tag": "ElementKind.MIXIN",
@@ -581,7 +602,7 @@ main() {
       testCode.indexOf(']; // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    assertJsonText(results.includedSuggestionRelevanceTags!, r'''
 [
   {
     "tag": "dart:core::int",

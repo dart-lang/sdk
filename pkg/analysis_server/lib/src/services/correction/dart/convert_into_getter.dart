@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -16,8 +17,8 @@ class ConvertIntoGetter extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // Find the enclosing field declaration.
-    FieldDeclaration fieldDeclaration;
-    for (var n = node; n != null; n = n.parent) {
+    FieldDeclaration? fieldDeclaration;
+    for (var n in node.withParents) {
       if (n is FieldDeclaration) {
         fieldDeclaration = n;
         break;
@@ -36,7 +37,8 @@ class ConvertIntoGetter extends CorrectionProducer {
     }
     // The field must be final and has only one variable.
     var fieldList = fieldDeclaration.fields;
-    if (!fieldList.isFinal || fieldList.variables.length != 1) {
+    var finalKeyword = fieldList.keyword;
+    if (finalKeyword == null || fieldList.variables.length != 1) {
       return;
     }
     var field = fieldList.variables.first;
@@ -47,14 +49,15 @@ class ConvertIntoGetter extends CorrectionProducer {
     }
     // Add proposal.
     var code = '';
-    if (fieldList.type != null) {
-      code += utils.getNodeText(fieldList.type) + ' ';
+    var typeAnnotation = fieldList.type;
+    if (typeAnnotation != null) {
+      code += utils.getNodeText(typeAnnotation) + ' ';
     }
     code += 'get';
     code += ' ' + utils.getNodeText(field.name);
     code += ' => ' + utils.getNodeText(initializer);
     code += ';';
-    var replacementRange = range.startEnd(fieldList.keyword, fieldDeclaration);
+    var replacementRange = range.startEnd(finalKeyword, fieldDeclaration);
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(replacementRange, code);
     });

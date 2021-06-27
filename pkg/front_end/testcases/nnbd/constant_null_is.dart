@@ -20,7 +20,7 @@ const c10 = null is FutureOr<Never>;
 const c11 = null is FutureOr<Never?>;
 const c12 = null is FutureOr<Never>?;
 const e1 = const Class<int>.constructor1(null);
-const e2 = const Class<int?>.constructor1(null);
+const e2 = const Class<List<int>>.constructor1(<Null>[null]);
 const e3 = const Class<Null>.constructor1(null);
 const e4 = const Class<int>.constructor2(null);
 const e5 = const Class<int?>.constructor2(null);
@@ -59,15 +59,17 @@ main() {
       "Class<int>.constructor1(null).field");
   expect(true, new Class<int?>.constructor1(null).field,
       "new Class<int?>.constructor1(null).field");
-  // const Class<int?> is evaluated as const Class<int*> in weak mode:
-  expect(!isWeakMode, e2.field, "const Class<int?>.constructor1(null).field");
+  // const Class<List<int>> is evaluated as const Class<List<int*>*> in weak
+  // mode:
+  expect(isWeakMode, e2.field,
+      "const Class<List<int>>.constructor1(<Null>[null]).field");
   expect(new Class<Null>.constructor1(null).field, e3.field,
       "Class<Null>.constructor1(null).field");
   expect(new Class<int>.constructor2(null).field, e4.field,
       "Class<int>.constructor2(null).field");
   expect(true, new Class<int?>.constructor2(null).field,
       "new Class<int?>.constructor2(null).field");
-  // const Class<int?> is evaluated as const Class<int*> in weak mode:
+  // const Class<int?> is evaluated as const Class<int?> in weak mode:
   expect(new Class<int?>.constructor2(null).field, e5.field,
       "Class<int?>.constructor2(null).field");
   expect(new Class<Null>.constructor2(null).field, e6.field,

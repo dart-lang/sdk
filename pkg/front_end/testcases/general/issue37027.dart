@@ -5,5 +5,5 @@ class C {
   final Set<int> s;
   C(List<int> ell) : s = {for (var e in ell) if (e.isOdd) 2 * e};
 }
-
+// @dart=2.9
 main() {}

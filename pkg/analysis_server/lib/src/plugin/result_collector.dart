@@ -14,7 +14,7 @@ class ResultCollector<E> {
 
   /// A function used to determine whether results should be collected for the
   /// file whose path is passed in as an argument.
-  final ShouldCollectPredicate _shouldCollect;
+  final ShouldCollectPredicate? _shouldCollect;
 
   /// A multi-keyed map, where the first key is the (normalized and absolute)
   /// path to the file associated with the results, and the second is the id of
@@ -23,7 +23,7 @@ class ResultCollector<E> {
   final Map<String, Map<String, E>> resultMap = <String, Map<String, E>>{};
 
   /// Initialize a newly created result manager.
-  ResultCollector(this.serverId, {ShouldCollectPredicate predicate})
+  ResultCollector(this.serverId, {ShouldCollectPredicate? predicate})
       : _shouldCollect = predicate;
 
   /// Clear any results that have been contributed for the file with the given
@@ -63,8 +63,9 @@ class ResultCollector<E> {
   /// Return `true` if this collector is collecting results associated with the
   /// given [filePath].
   bool isCollectingFor(String filePath) {
-    if (_shouldCollect != null) {
-      return _shouldCollect(filePath);
+    var predicate = _shouldCollect;
+    if (predicate != null) {
+      return predicate(filePath);
     }
     return resultMap.containsKey(filePath);
   }
@@ -74,7 +75,8 @@ class ResultCollector<E> {
   void putResults(String filePath, String pluginId, E partialResults) {
     var fileResults = resultMap[filePath];
     if (fileResults == null) {
-      if (_shouldCollect != null && _shouldCollect(filePath)) {
+      var predicate = _shouldCollect;
+      if (predicate != null && predicate(filePath)) {
         resultMap[filePath] = <String, E>{pluginId: partialResults};
       }
     } else {

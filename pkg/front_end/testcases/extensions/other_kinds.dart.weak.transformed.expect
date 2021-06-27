@@ -1,0 +1,62 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  field core::int* _instanceField = null;
+  static field core::int* _staticField = 0;
+  synthetic constructor •() → self::A1*
+    : super core::Object::•()
+    ;
+  method getInstanceField() → core::int*
+    return this.{self::A1::_instanceField}{core::int*};
+  method setInstanceField(core::int* value) → void {
+    this.{self::A1::_instanceField} = value;
+  }
+  static method getStaticField() → core::int*
+    return self::A1::_staticField;
+  static method setStaticField(core::int* value) → void {
+    self::A1::_staticField = value;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension A2 on self::A1* {
+  get instanceProperty = self::A2|get#instanceProperty;
+  operator + = self::A2|+;
+  operator - = self::A2|-;
+  operator unary- = self::A2|unary-;
+  static field staticField = self::A2|staticField;
+  static get staticProperty = get self::A2|staticProperty;
+  set instanceProperty = self::A2|set#instanceProperty;
+  static set staticProperty = set self::A2|staticProperty;
+}
+static field core::int* A2|staticField = self::A1::getStaticField();
+static method A2|get#instanceProperty(lowered final self::A1* #this) → core::int*
+  return #this.{self::A1::getInstanceField}(){() →* core::int*};
+static method A2|set#instanceProperty(lowered final self::A1* #this, core::int* value) → void {
+  #this.{self::A1::setInstanceField}(value){(core::int*) →* void};
+}
+static method A2|+(lowered final self::A1* #this, core::int* value) → core::int* {
+  return #this.{self::A1::getInstanceField}(){() →* core::int*}.{core::num::+}(value){(core::num*) →* core::int*};
+}
+static method A2|-(lowered final self::A1* #this, core::int* value) → core::int* {
+  return #this.{self::A1::getInstanceField}(){() →* core::int*}.{core::num::-}(value){(core::num*) →* core::int*};
+}
+static method A2|unary-(lowered final self::A1* #this) → core::int* {
+  return #this.{self::A1::getInstanceField}(){() →* core::int*}.{core::int::unary-}(){() →* core::int*};
+}
+static get A2|staticProperty() → core::int*
+  return self::A1::getStaticField();
+static set A2|staticProperty(core::int* value) → void {
+  self::A1::setStaticField(value);
+}
+static method main() → dynamic {}

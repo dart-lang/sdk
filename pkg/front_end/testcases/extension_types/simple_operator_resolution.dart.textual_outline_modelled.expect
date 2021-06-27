@@ -1,0 +1,13 @@
+class A {
+  dynamic operator *(dynamic other) => 42;
+  dynamic operator -() => 42;
+  dynamic operator [](int index) => 42;
+  void operator []=(int index, dynamic value) {}
+}
+
+extension E on A {
+  dynamic operator +(dynamic other) => 42;
+}
+
+main() {}
+test(A a, E e) {}

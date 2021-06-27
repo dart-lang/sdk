@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:ffi';
-import "package:ffi/ffi.dart" show allocate, free;
+
+import "package:ffi/ffi.dart";
 
 main() {
-  final data = allocate<Uint8>(count: 3);
+  final data = calloc<Uint8>(3);
   for (int i = 0; i < 3; ++i) {
     data.elementAt(i).value = 1;
   }
-  free(data);
+  calloc.free(data);
 }

@@ -25,7 +25,7 @@ import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
 
 import 'package:kernel/ast.dart' show Class, Member, Node;
 
-void printNodeOn(Node node, StringSink sink, {NameSystem syntheticNames}) {
+void printNodeOn(Node? node, StringSink sink, {NameSystem? syntheticNames}) {
   if (node == null) {
     sink.write("null");
   } else {
@@ -34,19 +34,17 @@ void printNodeOn(Node node, StringSink sink, {NameSystem syntheticNames}) {
   }
 }
 
-void printQualifiedNameOn(Member member, StringSink sink,
-    {NameSystem syntheticNames}) {
+void printQualifiedNameOn(Member? member, StringSink sink) {
   if (member == null) {
     sink.write("null");
   } else {
-    syntheticNames ??= new NameSystem();
     sink.write(member.enclosingLibrary.importUri);
     sink.write("::");
-    Class cls = member.enclosingClass;
+    Class? cls = member.enclosingClass;
     if (cls != null) {
-      sink.write(cls.name ?? syntheticNames.nameClass(cls));
+      sink.write(cls.name);
       sink.write("::");
     }
-    sink.write(member.name?.text ?? syntheticNames.nameMember(member));
+    sink.write(member.name.text);
   }
 }

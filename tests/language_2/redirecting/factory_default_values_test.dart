@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that parameter default values are disallowed in a redirecting factory.
 
 import "package:expect/expect.dart";
@@ -33,7 +35,8 @@ main() {
   Expect.equals(x.b, 0);
 
   var y = new A.f(42, 43);
-  //             ^^^^^^^^
+  //                  ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //             ^^^^^^^^
   // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 }

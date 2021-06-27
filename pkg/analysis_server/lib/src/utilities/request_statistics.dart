@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -18,17 +17,16 @@ class RequestStatisticsHelper {
   final Map<String, _RequestStatistics> _statisticsMap = {};
 
   /// The [StringSink] to which performance logger should copy its output.
-  _ServerLogStringSink _perfLoggerStringSink;
+  late final _ServerLogStringSink _perfLoggerStringSink =
+      _ServerLogStringSink(this);
 
   /// The channel to send 'server.log' notifications to.
-  ByteStreamServerChannel _serverChannel;
+  ByteStreamServerChannel? _serverChannel;
 
   /// Is `true` if the client subscribed for "server.log" notification.
   bool _isNotificationSubscribed = false;
 
-  RequestStatisticsHelper() {
-    _perfLoggerStringSink = _ServerLogStringSink(this);
-  }
+  RequestStatisticsHelper();
 
   /// Set whether the client subscribed for "server.log" notification.
   set isNotificationSubscribed(bool value) {
@@ -91,8 +89,8 @@ class RequestStatisticsHelper {
     var id = response.id;
     var stat = _statisticsMap.remove(id);
     if (stat != null) {
-      stat.responseTime = DateTime.now();
-      _sendLogEntry(ServerLogEntryKind.RESPONSE, stat.toJson());
+      var responseTime = DateTime.now();
+      _sendLogEntry(ServerLogEntryKind.RESPONSE, stat.toJson(responseTime));
     }
   }
 
@@ -108,6 +106,11 @@ class RequestStatisticsHelper {
       return;
     }
 
+    var params = notification.params;
+    if (params == null) {
+      return;
+    }
+
     var map = <String, Object>{
       'event': event,
     };
@@ -117,13 +120,13 @@ class RequestStatisticsHelper {
         event == 'analysis.navigation' ||
         event == 'analysis.outline' ||
         event == 'analysis.overrides') {
-      map['file'] = notification.params['file'];
+      map['file'] = params['file'] as String;
     }
 
     if (event == 'server.status') {
-      var analysis = notification.params['analysis'];
-      if (analysis is Map<String, Object>) {
-        map['isAnalyzing'] = analysis['isAnalyzing'];
+      var analysis = params['analysis'];
+      if (analysis is Map<String, Object?>) {
+        map['isAnalyzing'] = analysis['isAnalyzing'] as bool;
       }
     }
 
@@ -161,9 +164,11 @@ class RequestStatisticsHelper {
 
   void _sendLogEntry(ServerLogEntryKind kind, Object data) {
     if (!_isNotificationSubscribed) return;
-    if (_serverChannel == null) return;
 
-    _serverChannel.sendNotification(
+    var serverChannel = _serverChannel;
+    if (serverChannel == null) return;
+
+    serverChannel.sendNotification(
       Notification(
         'server.log',
         <String, Object>{
@@ -183,7 +188,6 @@ class _RequestStatistics {
   final DateTime clientRequestTime;
   final DateTime serverRequestTime;
   final List<_RequestStatisticsItem> items = [];
-  DateTime responseTime;
 
   _RequestStatistics(
     this.id,
@@ -192,7 +196,7 @@ class _RequestStatistics {
     this.serverRequestTime,
   );
 
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(DateTime responseTime) {
     var map = {
       'id': id,
       'method': method,
@@ -205,21 +209,16 @@ class _RequestStatistics {
     }
     return map;
   }
-
-  @override
-  String toString() {
-    var map = toJson();
-    return json.encode(map);
-  }
 }
 
 class _RequestStatisticsItem {
   final String name;
-  final DateTime timeValue;
+  final DateTime? timeValue;
 
   _RequestStatisticsItem(this.name, {this.timeValue});
 
   Map<String, Object> toJson() {
+    final timeValue = this.timeValue;
     if (timeValue != null) {
       return {
         'name': name,
@@ -236,7 +235,7 @@ class _ServerLogStringSink implements StringSink {
   _ServerLogStringSink(this.helper);
 
   @override
-  void write(Object obj) {
+  void write(Object? obj) {
     throw UnimplementedError();
   }
 
@@ -251,7 +250,7 @@ class _ServerLogStringSink implements StringSink {
   }
 
   @override
-  void writeln([Object obj = '']) {
+  void writeln([Object? obj = '']) {
     helper._sendLogEntry(ServerLogEntryKind.RAW, '$obj');
   }
 }

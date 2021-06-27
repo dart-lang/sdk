@@ -15,7 +15,7 @@ class LibraryPrefixContributor extends DartCompletionContributor {
       return;
     }
 
-    var imports = request.libraryElement.imports;
+    var imports = request.libraryElement?.imports;
     if (imports == null) {
       return;
     }

@@ -1,0 +1,12 @@
+S+4 Union(size: 5)
+S+12 Union(size: 5)
+S+20 Union(size: 5)
+S+28 Union(size: 5)
+S+36 Union(size: 5)
+S+44 Union(size: 5)
+S+52 Union(size: 5)
+S+60 Union(size: 5)
+S+68 Union(size: 5)
+S+76 Union(size: 5)
+=>
+P(S+0 uint32, ret:eax uint32) Union(size: 5)

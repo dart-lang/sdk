@@ -26,11 +26,6 @@ test:
 }
 ''');
     createRenameRefactoringAtString('test:');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Label name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(

@@ -21,13 +21,13 @@ void main() {
 class AnalysisGetImportElementsIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   /// Pathname of the file containing Dart code.
-  String pathname;
+  late String pathname;
 
   /// Check that an edit.importElements request with the given list of
   /// [elements] produces the [expected] list of edits.
   Future<void> checkEdits(
       List<ImportedElements> elements, List<SourceEdit> expected,
-      {String expectedFile}) async {
+      {String? expectedFile}) async {
     bool equals(SourceEdit actualEdit, SourceEdit expectedEdit) {
       return actualEdit.offset == expectedEdit.offset &&
           actualEdit.length == expectedEdit.length &&
@@ -46,8 +46,7 @@ class AnalysisGetImportElementsIntegrationTest
 
     var result = await sendEditImportElements(pathname, elements);
 
-    var edit = result.edit;
-    expect(edit, isNotNull);
+    var edit = result.edit!;
     if (expectedFile == null) {
       expect(edit.file, pathname);
     } else {

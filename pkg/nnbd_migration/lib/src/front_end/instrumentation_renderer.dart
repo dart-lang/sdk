@@ -20,19 +20,19 @@ String get _dartSdkVersion {
 
   // Convert a git hash to 8 chars.
   // '2.8.0-edge.fd992e423ef69ece9f44bd3ac58fa2355b563212'
-  var versionRegExp = RegExp(r'^.*\.([0123456789abcdef]+)$');
+  var versionRegExp = RegExp(r'^.*\.([0-9a-f]+)$');
   var match = versionRegExp.firstMatch(version);
-  if (match != null && match.group(1).length == 40) {
-    var commit = match.group(1);
+  if (match != null && match.group(1)!.length == 40) {
+    var commit = match.group(1)!;
     version = version.replaceAll(commit, commit.substring(0, 10));
   }
 
   return version;
 }
 
-String substituteVariables(String content, Map<String, String> variables) {
+String substituteVariables(String content, Map<String, String?> variables) {
   for (var variable in variables.keys) {
-    var value = variables[variable];
+    var value = variables[variable]!;
     content = content.replaceAll('{{ $variable }}', value);
   }
 
@@ -44,7 +44,7 @@ String substituteVariables(String content, Map<String, String> variables) {
 class InstrumentationRenderer {
   /// Information for a whole migration, so that libraries can reference each
   /// other.
-  final MigrationInfo migrationInfo;
+  final MigrationInfo? migrationInfo;
 
   /// Whether the migration has been applied already or not.
   final bool hasBeenApplied;
@@ -54,24 +54,24 @@ class InstrumentationRenderer {
 
   /// An object used to map the file paths of analyzed files to the file paths
   /// of the HTML files used to view the content of those files.
-  final PathMapper pathMapper;
+  final PathMapper? pathMapper;
 
   /// Creates an output object for the given library info.
   InstrumentationRenderer(this.migrationInfo, this.pathMapper,
       this.hasBeenApplied, this.needsRerun);
 
   /// Returns the path context used to manipulate paths.
-  path.Context get pathContext => migrationInfo.pathContext;
+  path.Context get pathContext => migrationInfo!.pathContext;
 
   /// Builds an HTML view of the instrumentation information.
   String render() {
-    var variables = <String, String>{
-      'root': migrationInfo.includedRoot,
+    var variables = <String, String?>{
+      'root': migrationInfo!.includedRoot,
       'dartPageScript': resources.migration_js,
       'dartPageStyle': resources.migration_css,
-      'highlightJsPath': migrationInfo.highlightJsPath,
-      'highlightStylePath': migrationInfo.highlightStylePath,
-      'dartLogoPath': migrationInfo.dartLogoPath,
+      'highlightJsPath': migrationInfo!.highlightJsPath,
+      'highlightStylePath': migrationInfo!.highlightStylePath,
+      'dartLogoPath': migrationInfo!.dartLogoPath,
       'sdkVersion': _dartSdkVersion,
       'migrationAppliedStyle': hasBeenApplied ? 'applied' : 'proposed',
       'needsRerunStyle': needsRerun ? 'needs-rerun' : '',

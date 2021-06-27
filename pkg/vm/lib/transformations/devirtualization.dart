@@ -27,7 +27,7 @@ Component transformComponent(CoreTypes coreTypes, Component component) {
 /// Subclasses should implement particular devirtualization strategy in
 /// [getDirectCall] method. Once direct target is determined, the invocation
 /// node is annotated with direct call metadata.
-abstract class Devirtualization extends RecursiveVisitor<Null> {
+abstract class Devirtualization extends RecursiveVisitor {
   /// Toggles tracing (useful for debugging).
   static const _trace = const bool.fromEnvironment('trace.devirtualization');
 
@@ -101,11 +101,8 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
     super.visitLibrary(node);
   }
 
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-
-    final Member target = node.interfaceTarget;
+  void _handleMethodInvocation(
+      TreeNode node, Member target, Arguments arguments) {
     if (target != null && !isMethod(target)) {
       return;
     }
@@ -116,17 +113,36 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
     // check into an assertion once front-end implements all override checks.
     if ((directCall != null) &&
         isMethod(directCall.target) &&
-        isLegalTargetForMethodInvocation(directCall.target, node.arguments) &&
+        isLegalTargetForMethodInvocation(directCall.target, arguments) &&
         !hasExtraTargetForNull(directCall)) {
       makeDirectCall(node, target, directCall);
     }
   }
 
   @override
-  visitPropertyGet(PropertyGet node) {
-    super.visitPropertyGet(node);
+  visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
+    _handleMethodInvocation(node, node.interfaceTarget, node.arguments);
+  }
 
-    final Member target = node.interfaceTarget;
+  @override
+  visitDynamicInvocation(DynamicInvocation node) {
+    super.visitDynamicInvocation(node);
+    _handleMethodInvocation(node, null, node.arguments);
+  }
+
+  @override
+  visitEqualsCall(EqualsCall node) {
+    super.visitEqualsCall(node);
+
+    final target = node.interfaceTarget;
+    final DirectCallMetadata directCall = getDirectCall(node, target);
+    if (directCall != null && !directCall.checkReceiverForNull) {
+      makeDirectCall(node, target, directCall);
+    }
+  }
+
+  void _handlePropertyGet(TreeNode node, Member target) {
     if (target != null && !isFieldOrGetter(target)) {
       return;
     }
@@ -141,15 +157,35 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   }
 
   @override
-  visitPropertySet(PropertySet node) {
-    super.visitPropertySet(node);
+  visitInstanceGet(InstanceGet node) {
+    super.visitInstanceGet(node);
+    _handlePropertyGet(node, node.interfaceTarget);
+  }
 
-    final Member target = node.interfaceTarget;
+  @override
+  visitDynamicGet(DynamicGet node) {
+    super.visitDynamicGet(node);
+    _handlePropertyGet(node, null);
+  }
+
+  void _handlePropertySet(TreeNode node, Member target) {
     final DirectCallMetadata directCall =
         getDirectCall(node, target, setter: true);
     if (directCall != null) {
       makeDirectCall(node, target, directCall);
     }
+  }
+
+  @override
+  visitInstanceSet(InstanceSet node) {
+    super.visitInstanceSet(node);
+    _handlePropertySet(node, node.interfaceTarget);
+  }
+
+  @override
+  visitDynamicSet(DynamicSet node) {
+    super.visitDynamicSet(node);
+    _handlePropertySet(node, null);
   }
 }
 

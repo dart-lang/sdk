@@ -1,0 +1,37 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/field_inference_circularity.dart:12:7: Error: Can't infer the type of 'x': circularity found during type inference.
+// Specify the type explicitly.
+//   var x = /*@returnType=invalid-type*/ () => new B(). /*@target=B.x*/ x;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field invalid-type x = () → invalid-type => new self::B::•().{self::B::x}{invalid-type};
+  field () →* invalid-type y = () → invalid-type => new self::B::•().{self::B::x}{invalid-type};
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  field invalid-type x = null;
+  field () →* invalid-type y = null;
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {}

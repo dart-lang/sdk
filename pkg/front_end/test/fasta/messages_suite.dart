@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "dart:convert" show utf8;
 
 import 'dart:io' show File, Platform;
@@ -26,10 +28,14 @@ import "package:vm/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show
+        CompilerOptions,
+        InvocationMode,
+        parseExperimentalArguments,
+        parseExperimentalFlags;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
+    show ExperimentalFlag, defaultExperimentalFlags;
 
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;
@@ -70,20 +76,20 @@ class MessageTestDescription extends TestDescription {
 
 class Configuration {
   final NnbdMode nnbdMode;
+  final Set<InvocationMode> invocationModes;
 
-  const Configuration(this.nnbdMode);
+  const Configuration(this.nnbdMode, this.invocationModes);
 
   CompilerOptions apply(CompilerOptions options) {
     if (nnbdMode != null) {
-      options.explicitExperimentalFlags[ExperimentalFlag.nonNullable] = true;
       options.nnbdMode = nnbdMode;
-    } else {
-      options.explicitExperimentalFlags[ExperimentalFlag.nonNullable] = false;
     }
+    options.invocationModes = invocationModes;
     return options;
   }
 
-  static const Configuration defaultConfiguration = const Configuration(null);
+  static const Configuration defaultConfiguration =
+      const Configuration(null, const {});
 }
 
 class MessageTestSuite extends ChainContext {
@@ -164,6 +170,7 @@ class MessageTestSuite extends ChainContext {
           "'spell_checking_list_messages.txt' or "
           "'spell_checking_list_common.txt'.";
       Configuration configuration;
+      Map<ExperimentalFlag, bool> experimentalFlags;
 
       Source source;
       List<String> formatSpellingMistakes(spell.SpellingResult spellResult,
@@ -345,12 +352,35 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "configuration":
-            if (value == "nnbd-weak") {
-              configuration = const Configuration(NnbdMode.Weak);
-            } else if (value == "nnbd-strong") {
-              configuration = const Configuration(NnbdMode.Strong);
+            if (value is String) {
+              NnbdMode nnbdMode;
+              Set<InvocationMode> invocationModes = {};
+              for (String part in value.split(',')) {
+                if (part.isEmpty) continue;
+                if (part == "nnbd-weak") {
+                  nnbdMode = NnbdMode.Weak;
+                } else if (part == "nnbd-strong") {
+                  nnbdMode = NnbdMode.Strong;
+                } else {
+                  InvocationMode invocationMode = InvocationMode.fromName(part);
+                  if (invocationMode != null) {
+                    invocationModes.add(invocationMode);
+                  } else {
+                    throw new ArgumentError("Unknown configuration '$part'.");
+                  }
+                }
+              }
+              configuration = new Configuration(nnbdMode, invocationModes);
+            }
+            break;
+
+          case "experiments":
+            if (value is String) {
+              experimentalFlags = parseExperimentalFlags(
+                  parseExperimentalArguments(value.split(',')),
+                  onError: (message) => throw new ArgumentError(message));
             } else {
-              throw new ArgumentError("Unknown configuration '$value'.");
+              throw new ArgumentError("Unknown experiments value: $value.");
             }
             break;
 
@@ -368,6 +398,8 @@ class MessageTestSuite extends ChainContext {
       for (Example example in examples) {
         example.configuration =
             configuration ?? Configuration.defaultConfiguration;
+        example.experimentalFlags =
+            experimentalFlags ?? defaultExperimentalFlags;
       }
 
       MessageTestDescription createDescription(
@@ -509,15 +541,13 @@ abstract class Example {
 
   Configuration configuration;
 
+  Map<ExperimentalFlag, bool> experimentalFlags;
+
   Example(this.name, this.expectedCode);
 
   YamlNode get node;
 
-  Uint8List get bytes;
-
-  Map<String, Uint8List> get scripts {
-    return {mainFilename: bytes};
-  }
+  Map<String, Script> get scripts;
 
   String get mainFilename => "main.dart";
 }
@@ -526,12 +556,16 @@ class BytesExample extends Example {
   @override
   final YamlList node;
 
-  @override
   final Uint8List bytes;
 
   BytesExample(String name, String code, this.node)
       : bytes = new Uint8List.fromList(node.cast<int>()),
         super(name, code);
+
+  @override
+  Map<String, Script> get scripts {
+    return {mainFilename: new Script(bytes, '', null)};
+  }
 }
 
 class DeclarationExample extends Example {
@@ -545,13 +579,15 @@ class DeclarationExample extends Example {
         super(name, code);
 
   @override
-  Uint8List get bytes {
-    return new Uint8List.fromList(utf8.encode("""
+  Map<String, Script> get scripts {
+    return {
+      mainFilename: new Script.fromSource("""
 $declaration
 
 main() {
 }
-"""));
+""")
+    };
   }
 }
 
@@ -566,12 +602,14 @@ class StatementExample extends Example {
         super(name, code);
 
   @override
-  Uint8List get bytes {
-    return new Uint8List.fromList(utf8.encode("""
+  Map<String, Script> get scripts {
+    return {
+      mainFilename: new Script.fromSource("""
 main() {
   $statement
 }
-"""));
+""")
+    };
   }
 }
 
@@ -585,13 +623,14 @@ class ExpressionExample extends Example {
       : expression = node.value,
         super(name, code);
 
-  @override
-  Uint8List get bytes {
-    return new Uint8List.fromList(utf8.encode("""
+  Map<String, Script> get scripts {
+    return {
+      mainFilename: new Script.fromSource("""
 main() {
   $expression;
 }
-"""));
+""")
+    };
   }
 }
 
@@ -612,20 +651,17 @@ class ScriptExample extends Example {
   }
 
   @override
-  Uint8List get bytes => throw "Unsupported: ScriptExample.bytes";
-
-  @override
-  Map<String, Uint8List> get scripts {
+  Map<String, Script> get scripts {
     Object script = this.script;
     if (script is Map) {
-      var scriptFiles = <String, Uint8List>{};
+      Map<String, Script> scriptFiles = <String, Script>{};
       script.forEach((fileName, value) {
-        scriptFiles[fileName] = new Uint8List.fromList(utf8.encode(value));
+        scriptFiles[fileName] = new Script.fromSource(value);
         print("$fileName => $value\n\n======\n\n");
       });
       return scriptFiles;
     } else {
-      return {mainFilename: new Uint8List.fromList(utf8.encode(script))};
+      return {mainFilename: new Script.fromSource(script)};
     }
   }
 }
@@ -638,19 +674,17 @@ class PartWrapExample extends Example {
   PartWrapExample(String name, String code, this.allowMoreCodes, this.example)
       : super(name, code) {
     configuration = example.configuration;
+    experimentalFlags = example.experimentalFlags;
   }
-
-  @override
-  Uint8List get bytes => throw "Unsupported: PartWrapExample.bytes";
 
   @override
   String get mainFilename => "main_wrapped.dart";
 
   @override
-  Map<String, Uint8List> get scripts {
-    Map<String, Uint8List> wrapped = example.scripts;
+  Map<String, Script> get scripts {
+    Map<String, Script> wrapped = example.scripts;
 
-    var scriptFiles = <String, Uint8List>{};
+    Map<String, Script> scriptFiles = <String, Script>{};
     scriptFiles.addAll(wrapped);
 
     // Create a new main file
@@ -659,21 +693,35 @@ class PartWrapExample extends Example {
       throw "Framework failure: "
           "Wanted to create wrapper file, but the file already exists!";
     }
-    scriptFiles[mainFilename] = new Uint8List.fromList(utf8.encode("""
-      part "${example.mainFilename}";
-    """));
+    Script originalMainScript = scriptFiles[example.mainFilename];
+    String preamble = originalMainScript.preamble;
+    scriptFiles[mainFilename] = new Script.fromSource("""
+${preamble}part "${example.mainFilename}";
+    """);
 
     // Modify the original main file to be part of the wrapper and add lots of
     // gunk so every actual position in the file is not a valid position in the
     // wrapper.
-    scriptFiles[example.mainFilename] = new Uint8List.fromList(utf8.encode("""
-      part of "${mainFilename}";
-      // La la la la la la la la la la la la la.
-      // La la la la la la la la la la la la la.
-      // La la la la la la la la la la la la la.
-      // La la la la la la la la la la la la la.
-      // La la la la la la la la la la la la la.
-    """) + scriptFiles[example.mainFilename]);
+    String originalMainSource = originalMainScript.sourceWithoutPreamble;
+    String partPrefix = """
+${preamble}part of "${mainFilename}";
+// La la la la la la la la la la la la la.
+// La la la la la la la la la la la la la.
+// La la la la la la la la la la la la la.
+// La la la la la la la la la la la la la.
+// La la la la la la la la la la la la la.
+
+""";
+    if (originalMainSource != null) {
+      scriptFiles[example.mainFilename] =
+          new Script.fromSource('$partPrefix$originalMainSource');
+    } else {
+      scriptFiles[example.mainFilename] = new Script(
+          new Uint8List.fromList(
+              utf8.encode(partPrefix) + originalMainScript.bytes),
+          '',
+          null);
+    }
 
     return scriptFiles;
   }
@@ -705,9 +753,9 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
   Future<Result<Null>> run(Example example, MessageTestSuite suite) async {
     if (example == null) return pass(null);
     String dir = "${example.expectedCode}/${example.name}";
-    example.scripts.forEach((String fileName, Uint8List bytes) {
+    example.scripts.forEach((String fileName, Script script) {
       Uri uri = suite.fileSystem.currentDirectory.resolve("$dir/$fileName");
-      suite.fileSystem.entityForUri(uri).writeAsBytesSync(bytes);
+      suite.fileSystem.entityForUri(uri).writeAsBytesSync(script.bytes);
     });
     Uri main = suite.fileSystem.currentDirectory
         .resolve("$dir/${example.mainFilename}");
@@ -731,6 +779,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
         example.configuration.apply(new CompilerOptions()
           ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
               .resolve("vm_platform_strong.dill")
+          ..explicitExperimentalFlags = example.experimentalFlags ?? {}
           ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
           ..packagesFileUri = dotPackagesUri
@@ -793,6 +842,30 @@ String relativize(Uri uri) {
     return filename.substring(base.length);
   } else {
     return filename;
+  }
+}
+
+class Script {
+  final Uint8List bytes;
+  final String preamble;
+  final String sourceWithoutPreamble;
+
+  Script(this.bytes, this.preamble, this.sourceWithoutPreamble);
+
+  factory Script.fromSource(String source) {
+    List<String> lines = source.split('\n');
+    String firstLine = lines.first;
+    String preamble;
+    String sourceWithoutPreamble;
+    if (firstLine.trim().startsWith('//') && firstLine.contains('@dart=')) {
+      preamble = '$firstLine\n';
+      sourceWithoutPreamble = lines.skip(1).join('\n');
+    } else {
+      preamble = '';
+      sourceWithoutPreamble = source;
+    }
+    return new Script(new Uint8List.fromList(utf8.encode(source)), preamble,
+        sourceWithoutPreamble);
   }
 }
 

@@ -28,10 +28,10 @@ class A {
   test_expressionFunctionBody() async {
     await assertErrorsInCode(r'''
 class A {
-  A() => null;
+  A() => A();
 }
 ''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 16, 8),
+      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 16, 7),
     ]);
   }
 

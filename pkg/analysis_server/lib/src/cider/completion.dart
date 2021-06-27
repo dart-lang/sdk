@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 
 /// The cache that can be reuse for across multiple completion request.
@@ -34,7 +33,7 @@ class CiderCompletionComputer {
   final OperationPerformanceImpl _performanceRoot =
       OperationPerformanceImpl('<root>');
 
-  DartCompletionRequestImpl _dartCompletionRequest;
+  late DartCompletionRequestImpl _dartCompletionRequest;
 
   /// Paths of imported libraries for which suggestions were (re)computed
   /// during processing of this request. Does not include libraries that were
@@ -52,10 +51,10 @@ class CiderCompletionComputer {
   ///
   /// The [line] and [column] are zero based.
   Future<CiderCompletionResult> compute({
-    @required String path,
-    @required int line,
-    @required int column,
-    @visibleForTesting void Function(ResolvedUnitResult) testResolvedUnit,
+    required String path,
+    required int line,
+    required int column,
+    @visibleForTesting void Function(ResolvedUnitResult)? testResolvedUnit,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
       var resolvedUnit = performance.run('resolution', (performance) {
@@ -100,6 +99,7 @@ class CiderCompletionComputer {
             return await manager.computeSuggestions(
               performance,
               completionRequest,
+              enableImportedReferenceContributor: false,
               enableOverrideContributor: false,
               enableUriContributor: false,
             );
@@ -146,9 +146,9 @@ class CiderCompletionComputer {
         suggestions: suggestions,
         performance: CiderCompletionPerformance._(
           file: Duration.zero,
-          imports: performance.getChild('imports').elapsed,
-          resolution: performance.getChild('resolution').elapsed,
-          suggestions: performance.getChild('suggestions').elapsed,
+          imports: performance.getChild('imports')!.elapsed,
+          resolution: performance.getChild('resolution')!.elapsed,
+          suggestions: performance.getChild('suggestions')!.elapsed,
           operations: _performanceRoot.children.first,
         ),
         prefixStart: CiderPosition(line, column - filter._pattern.length),
@@ -160,9 +160,9 @@ class CiderCompletionComputer {
 
   @Deprecated('Use compute')
   Future<CiderCompletionResult> compute2({
-    @required String path,
-    @required int line,
-    @required int column,
+    required String path,
+    required int line,
+    required int column,
   }) async {
     return compute(path: path, line: line, column: column);
   }
@@ -183,8 +183,8 @@ class CiderCompletionComputer {
   /// TODO(scheglov) Implement show / hide combinators.
   /// TODO(scheglov) Implement prefixes.
   List<CompletionSuggestion> _importedLibrariesSuggestions({
-    @required LibraryElement target,
-    @required OperationPerformanceImpl performance,
+    required LibraryElement target,
+    required OperationPerformanceImpl performance,
   }) {
     var suggestions = <CompletionSuggestion>[];
     for (var importedLibrary in target.importedLibraries) {
@@ -201,8 +201,8 @@ class CiderCompletionComputer {
   /// Return cached, or compute unprefixed suggestions for all elements
   /// exported from the library.
   List<CompletionSuggestion> _importedLibrarySuggestions({
-    @required LibraryElement element,
-    @required OperationPerformanceImpl performance,
+    required LibraryElement element,
+    required OperationPerformanceImpl performance,
   }) {
     performance.getDataInt('libraryCount').increment();
 
@@ -261,11 +261,11 @@ class CiderCompletionPerformance {
   final OperationPerformance operations;
 
   CiderCompletionPerformance._({
-    @required this.file,
-    @required this.imports,
-    @required this.resolution,
-    @required this.suggestions,
-    @required this.operations,
+    required this.file,
+    required this.imports,
+    required this.resolution,
+    required this.suggestions,
+    required this.operations,
   });
 }
 
@@ -280,9 +280,9 @@ class CiderCompletionResult {
   final CiderPosition prefixStart;
 
   CiderCompletionResult._({
-    @required this.suggestions,
-    @required this.performance,
-    @required this.prefixStart,
+    required this.suggestions,
+    required this.performance,
+    required this.prefixStart,
   });
 }
 
@@ -304,8 +304,8 @@ class _FilterSort {
   final DartCompletionRequestImpl _request;
   final List<CompletionSuggestion> _suggestions;
 
-  FuzzyMatcher _matcher;
-  String _pattern;
+  late FuzzyMatcher _matcher;
+  late String _pattern;
 
   _FilterSort(this._request, this._suggestions);
 

@@ -46,8 +46,10 @@ ask the analysis session for the compilation unit representing that file.
 
 ```dart
 void analyzeSingleFile(AnalysisSession session, String path) async {
-  UnitElementResult result = await session.getUnitElement(path);
-  CompilationUnitElement element = result.element;
+  var result = await session.getUnitElement2(path);
+  if (result is UnitElementResult) {
+    CompilationUnitElement element = result.element;
+  }
 }
 ```
 
@@ -69,7 +71,7 @@ it might look something like this:
 
 ```dart
 void printMembers(CompilationUnitElement unitElement) {
-  for (ClassElement classElement in unitElement.types) {
+  for (ClassElement classElement in unitElement.classes) {
     print(classElement.name);
     for (ConstructorElement constructorElement in classElement.constructors) {
       if (!constructorElement.isSynthetic) {

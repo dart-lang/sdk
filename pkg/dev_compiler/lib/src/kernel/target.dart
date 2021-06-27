@@ -5,10 +5,11 @@
 // @dart = 2.9
 
 import 'dart:collection';
-import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
+import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -16,7 +17,6 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
-import 'package:_js_interop_checks/js_interop_checks.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
@@ -29,6 +29,8 @@ class DevCompilerTarget extends Target {
   final TargetFlags flags;
 
   WidgetCreatorTracker _widgetTracker;
+
+  Map<String, Class> _nativeClasses;
 
   @override
   bool get enableSuperMixins => true;
@@ -91,11 +93,14 @@ class DevCompilerTarget extends Target {
         'dart:collection',
         'dart:html',
         'dart:indexed_db',
+        'dart:js',
+        'dart:js_util',
         'dart:math',
         'dart:svg',
         'dart:web_audio',
         'dart:web_gl',
         'dart:web_sql',
+        'dart:_foreign_helper',
         'dart:_interceptors',
         'dart:_js_helper',
         'dart:_native_typed_data',
@@ -104,8 +109,11 @@ class DevCompilerTarget extends Target {
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
-      uri.scheme == 'dart' &&
-      (uri.path == 'core' || uri.path == '_interceptors');
+      uri.isScheme('dart') &&
+      (uri.path == 'core' ||
+          uri.path == 'typed_data' ||
+          uri.path == '_interceptors' ||
+          uri.path == '_native_typed_data');
 
   /// Returns [true] if [uri] represents a test script has been whitelisted to
   /// import private platform libraries.
@@ -116,9 +124,7 @@ class DevCompilerTarget extends Target {
   bool _allowedTestLibrary(Uri uri) {
     // Multi-root scheme used by modular test framework.
     if (uri.scheme == 'dev-dart-app') return true;
-
-    var scriptName = uri.path;
-    return scriptName.contains('tests/dartdevc');
+    return allowedNativeTest(uri);
   }
 
   bool _allowedDartLibrary(Uri uri) => uri.scheme == 'dart';
@@ -152,10 +158,15 @@ class DevCompilerTarget extends Target {
       ReferenceFromIndex referenceFromIndex,
       {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
+    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      JsInteropChecks(coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+      jsUtilOptimizer.visitLibrary(library);
+      JsInteropChecks(
+              coreTypes,
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+              _nativeClasses)
           .visitLibrary(library);
     }
   }
@@ -210,7 +221,7 @@ class DevCompilerTarget extends Target {
       if (arguments.named.isNotEmpty)
         MapLiteral([
           for (var n in arguments.named)
-            MapEntry(SymbolLiteral(n.name), n.value)
+            MapLiteralEntry(SymbolLiteral(n.name), n.value)
         ], keyType: coreTypes.symbolLegacyRawType),
     ];
     return createInvocation('method', ctorArgs);
@@ -242,7 +253,7 @@ class DevCompilerTarget extends Target {
 /// members can be eliminated, and adjusts the flags to remove those checks.
 ///
 /// See [_CovarianceTransformer.transform].
-class _CovarianceTransformer extends RecursiveVisitor<void> {
+class _CovarianceTransformer extends RecursiveVisitor {
   /// The set of private instance members in [_library] that (potentially) need
   /// covariance checks.
   ///
@@ -433,6 +444,12 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
   }
 
   @override
+  void visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceGetterInvocation(node);
+  }
+
+  @override
   void visitInstanceTearOff(InstanceTearOff node) {
     _checkTearoff(node.interfaceTarget);
     super.visitInstanceTearOff(node);
@@ -443,4 +460,17 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
     _checkTarget(node.left, node.interfaceTarget);
     super.visitEqualsCall(node);
   }
+}
+
+List<Pattern> _allowedNativeTestPatterns = [
+  'tests/dartdevc',
+  'tests/web/native',
+  'tests/web_2/native',
+  'tests/web/internal',
+  'tests/web_2/internal',
+];
+
+bool allowedNativeTest(Uri uri) {
+  var path = uri.path;
+  return _allowedNativeTestPatterns.any((pattern) => path.contains(pattern));
 }

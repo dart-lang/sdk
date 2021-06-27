@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // VMOptions=--optimization-counter-threshold=100 --deterministic
 
 // Tests allocation sinking of arrays and typed data objects.
@@ -66,9 +68,13 @@ String foo(double x, num doDeopt) {
   Vector2 v2 = new Vector2(1.0, 2.0);
   Vector2 v3 = v2 + Vector2(x, x);
   double sum = v3.x + v3.y;
+  Float32List v4 = Float32List(2);
+  v4[0] = 11.0;
+  v4[1] = sum + 3;
+  print(v4[0]);
   // Deoptimization is triggered here to materialize removed allocations.
   doDeopt + 2;
-  return "v1: [${v1[0]},${v1[1]}], v2: [${v2.x},${v2.y}], v3: [${v3.x},${v3.y}], sum: $sum";
+  return "v1: [${v1[0]},${v1[1]}], v2: [${v2.x},${v2.y}], v3: [${v3.x},${v3.y}], v4: [${v4[0]}, ${v4[1]}], sum: $sum";
 }
 
 main() {
@@ -80,6 +86,8 @@ main() {
   for (int i = 0; i < 130; ++i) {
     final num doDeopt = (i < 120 ? 1 : 2.0);
     final result = foo(3.0, doDeopt);
-    Expect.equals("v1: [1,hi], v2: [1.0,2.0], v3: [4.0,5.0], sum: 9.0", result);
+    Expect.equals(
+        "v1: [1,hi], v2: [1.0,2.0], v3: [4.0,5.0], v4: [11.0, 12.0], sum: 9.0",
+        result);
   }
 }

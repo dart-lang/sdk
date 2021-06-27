@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
-import 'package:dartdev/src/commands/fix.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -61,16 +60,39 @@ ${result.stderr}
     return p.runSync(['fix', ...args], workingDir: workingDir);
   }
 
-  test('help', () {
+  test('--help', () {
     p = project(mainSrc: 'int get foo => 1;\n');
 
     var result = runFix([p.dirPath, '--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains(FixCommand.disclaimer));
     expect(
-        result.stdout, contains('Apply automated fixes to Dart source code.'));
+      result.stdout,
+      contains(
+        'Apply automated fixes to Dart source code.',
+      ),
+    );
+    expect(result.stdout, contains('Usage: dart fix [arguments]'));
+  });
+
+  test('--help --verbose', () {
+    p = project(mainSrc: 'int get foo => 1;\n');
+
+    var result = runFix([p.dirPath, '--help', '--verbose']);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(
+      result.stdout,
+      contains(
+        'Apply automated fixes to Dart source code.',
+      ),
+    );
+    expect(
+      result.stdout,
+      contains('Usage: dart [vm-options] fix [arguments]'),
+    );
   });
 
   test('none', () {
@@ -80,7 +102,6 @@ ${result.stderr}
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains(FixCommand.disclaimer));
     expect(
         result.stdout, contains('Apply automated fixes to Dart source code.'));
   });
@@ -92,7 +113,6 @@ ${result.stderr}
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains(FixCommand.disclaimer));
     expect(result.stdout, contains('Nothing to fix!'));
   });
 

@@ -551,12 +551,12 @@ class LintFixInfo extends DartFixInfo {
     this.fixKind,
     String description, {
     bool isPedantic = false,
-  }) : super(lintName, description, null, isPedantic: isPedantic);
+  }) : super(lintName, description, (_, __, ___) {}, isPedantic: isPedantic);
 
   @override
   void setup(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
     registrar.registerLintTask(
-        Registry.ruleRegistry[lintName], FixLintTask(listener));
+        Registry.ruleRegistry[lintName]!, FixLintTask(listener));
   }
 }

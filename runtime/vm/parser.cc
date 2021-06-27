@@ -116,7 +116,7 @@ void ParsedFunction::AddToGuardedFields(const Field* field) const {
   // inlining.
   ASSERT(field->IsOriginal() ==
          !CompilerState::Current().should_clone_fields());
-  guarded_fields_->Add(&Field::ZoneHandle(Z, field->raw()));
+  guarded_fields_->Add(&Field::ZoneHandle(Z, field->ptr()));
 }
 
 void ParsedFunction::Bailout(const char* origin, const char* reason) const {

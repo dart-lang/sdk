@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,39 +21,54 @@ class ExtraPositionalArgumentsCouldBeNamedTest
   test_constConstructor() async {
     await assertErrorsInCode(r'''
 class A {
-  const A({int x});
+  const A({int x = 0});
 }
 main() {
   const A(0);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 50,
-          3),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 55,
+          1),
     ]);
   }
 
   test_constConstructor_super() async {
     await assertErrorsInCode(r'''
 class A {
-  const A({int x});
+  const A({int x = 0});
 }
 class B extends A {
   const B() : super(0);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 71,
-          3),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 76,
+          1),
+    ]);
+  }
+
+  test_constConstructor_typedef() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A({int x = 0});
+}
+typedef B = A;
+main() {
+  const B(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 70,
+          1),
     ]);
   }
 
   test_functionExpressionInvocation() async {
     await assertErrorsInCode('''
 main() {
-  (int x, {int y}) {} (0, 1);
+  (int x, {int y = 0}) {} (0, 1);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 31,
-          6),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 39,
+          1),
     ]);
   }
 
@@ -63,8 +79,23 @@ main() {
   f(0, 1, '2');
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 25,
-          11),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 26,
+          1),
+    ]);
+  }
+
+  test_partiallyTypedName() async {
+    await assertErrorsInCode(r'''
+f({int xx = 0, int yy = 0, int zz = 0}) {}
+
+main() {
+  f(xx: 1, yy: 2, z);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 71,
+          1),
+      error(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, 71, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 71, 1),
     ]);
   }
 }
@@ -80,7 +111,7 @@ main() {
   const A(0);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 43, 3),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1),
     ]);
   }
 
@@ -93,7 +124,7 @@ class B extends A {
   const B() : super(0);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 64, 3),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 1),
     ]);
   }
 
@@ -103,7 +134,7 @@ main() {
   (int x) {} (0, 1);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 22, 6),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 26, 1),
     ]);
   }
 
@@ -114,7 +145,7 @@ main() {
   f(0, 1, '2');
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 19, 11),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 20, 1),
     ]);
   }
 }

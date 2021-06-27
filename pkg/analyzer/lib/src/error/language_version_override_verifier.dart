@@ -20,9 +20,9 @@ class LanguageVersionOverrideVerifier {
 
     Token beginToken = unit.beginToken;
     if (beginToken.type == TokenType.SCRIPT_TAG) {
-      beginToken = beginToken.next;
+      beginToken = beginToken.next!;
     }
-    Token commentToken = beginToken.precedingComments;
+    Token? commentToken = beginToken.precedingComments;
     while (commentToken != null) {
       if (_findLanguageVersionOverrideComment(commentToken)) {
         // A valid language version override was found. Do not search for any
@@ -278,7 +278,7 @@ class LanguageVersionOverrideVerifier {
     var token = firstMeaningfulToken.next;
     while (token != null) {
       if (token.offset > firstMeaningfulToken.offset) {
-        var commentToken = token.precedingComments;
+        Token? commentToken = token.precedingComments;
         for (; commentToken != null; commentToken = commentToken.next) {
           var lexeme = commentToken.lexeme;
 

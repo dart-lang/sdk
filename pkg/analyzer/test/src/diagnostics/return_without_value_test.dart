@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ReturnWithoutValueTest extends PubPackageResolutionTest {
+class ReturnWithoutValueTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_async_futureInt() async {
     await assertErrorsInCode('''
 Future<int> f() async {
@@ -34,6 +35,16 @@ Future<Object> f() async {
 ''', [
       error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 29, 6),
     ]);
+  }
+
+  test_catchError_futureOfVoid() async {
+    await assertNoErrorsInCode('''
+void f(Future<void> future) {
+  future.catchError((e) {
+    return;
+  });
+}
+''');
   }
 
   test_factoryConstructor() async {

@@ -21,12 +21,37 @@ main() {
 
 @reflectiveTest
 class CompilationUnitImplTest extends ParserTestCase {
-  /*late*/ String testSource;
-  /*late*/ CompilationUnitImpl testUnit;
+  late final String testSource;
+  late final CompilationUnitImpl testUnit;
 
   parse(String source) {
     testSource = source;
-    testUnit = parseCompilationUnit(source);
+    testUnit = parseCompilationUnit(source) as CompilationUnitImpl;
+  }
+
+  test_languageVersionComment_afterScriptTag() {
+    parse('''
+#!/bin/false
+// @dart=2.9
+void main() {}
+''');
+    var token = testUnit.languageVersionToken!;
+    expect(token.major, 2);
+    expect(token.minor, 9);
+    expect(token.offset, 13);
+  }
+
+  test_languageVersionComment_afterScriptTag_andComment() {
+    parse('''
+#!/bin/false
+// A normal comment.
+// @dart=2.9
+void main() {}
+''');
+    var token = testUnit.languageVersionToken!;
+    expect(token.major, 2);
+    expect(token.minor, 9);
+    expect(token.offset, 34);
   }
 
   test_languageVersionComment_firstComment() {
@@ -60,7 +85,7 @@ void main() {}
 void main() {}
 ''');
     expect(testUnit.languageVersionToken,
-        testUnit.beginToken.precedingComments.next);
+        testUnit.beginToken.precedingComments!.next);
   }
 
   test_languageVersionComment_thirdComment() {
@@ -71,14 +96,14 @@ void main() {}
 void main() {}
 ''');
     expect(testUnit.languageVersionToken,
-        testUnit.beginToken.precedingComments.next.next);
+        testUnit.beginToken.precedingComments!.next!.next);
   }
 }
 
 @reflectiveTest
 class ExpressionImplTest extends ParserTestCase {
-  String testSource;
-  CompilationUnitImpl testUnit;
+  late final String testSource;
+  late final CompilationUnitImpl testUnit;
 
   assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
@@ -92,7 +117,7 @@ class ExpressionImplTest extends ParserTestCase {
 
   parse(String source) {
     testSource = source;
-    testUnit = parseCompilationUnit(source);
+    testUnit = parseCompilationUnit(source) as CompilationUnitImpl;
   }
 
   test_inConstantContext_instanceCreation_annotation_true() {

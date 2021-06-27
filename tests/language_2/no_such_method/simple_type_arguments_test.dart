@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // dart2jsOptions=--disable-rti-optimization
 
+// @dart = 2.9
+
 // Dart test program testing that type arguments are captured by the Invocation
 // passed to noSuchMethod from a dynamic call.
 

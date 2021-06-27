@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
@@ -71,16 +71,17 @@ Future setupFiles() async {
 
 var fileTests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
+    final isolateId = isolate.id!;
     await service.callServiceExtension(
       'ext.dart.io.setup',
       isolateId: isolate.id,
     );
     try {
-      final result = await service.getOpenFiles(isolate.id);
+      final result = await service.getOpenFiles(isolateId);
       expect(result, isA<OpenFileList>());
       expect(result.files.length, equals(2));
       final writing = await service.getOpenFileById(
-        isolate.id,
+        isolateId,
         result.files[0].id,
       );
 
@@ -92,7 +93,7 @@ var fileTests = <IsolateTest>[
       expect(writing.lastReadTime.millisecondsSinceEpoch, 0);
 
       final reading = await service.getOpenFileById(
-        isolate.id,
+        isolateId,
         result.files[1].id,
       );
       expect(reading.readBytes, 5);
@@ -110,4 +111,9 @@ var fileTests = <IsolateTest>[
   },
 ];
 
-main(args) async => runIsolateTests(args, fileTests, testeeBefore: setupFiles);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      fileTests,
+      'file_service_test.dart',
+      testeeBefore: setupFiles,
+    );

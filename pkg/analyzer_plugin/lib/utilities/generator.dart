@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 /// The result produced by a generator.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class GeneratorResult<T extends ResponseResult> {
+class GeneratorResult<T extends ResponseResult?> {
   /// The result to be sent to the server, or `null` if there is no response, as
   /// when the generator is generating a notification.
   final T result;

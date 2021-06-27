@@ -1,0 +1,8 @@
+class B extends C with A {}
+
+class C {}
+
+class D {}
+
+main() {}
+mixin A on D, E {}

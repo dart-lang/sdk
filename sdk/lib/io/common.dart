@@ -19,9 +19,7 @@ const int _osErrorResponseMessage = 2;
 bool _isErrorResponse(response) =>
     response is List && response[0] != _successResponse;
 
-/**
- * Returns an Exception or an Error
- */
+/// Returns an [Exception] or an [Error].
 _exceptionFromResponse(response, String message, String path) {
   assert(_isErrorResponse(response));
   switch (response[_errorResponseErrorType]) {
@@ -38,20 +36,16 @@ _exceptionFromResponse(response, String message, String path) {
   }
 }
 
-/**
- * Base class for all IO related exceptions.
- */
+/// Base class for all IO related exceptions.
 abstract class IOException implements Exception {
   String toString() => "IOException";
 }
 
-/**
-  * An [OSError] object holds information about an error from the
-  * operating system.
-  */
+/// An [Exception] holding information about an error from the
+/// operating system.
 @pragma("vm:entry-point")
 class OSError implements Exception {
-  /** Constant used to indicate that no OS error code is available. */
+  /// Constant used to indicate that no OS error code is available.
   static const int noErrorCode = -1;
 
   /// Error message supplied by the operating system. This will be empty if no
@@ -64,11 +58,11 @@ class OSError implements Exception {
   /// associated with the error.
   final int errorCode;
 
-  /** Creates an OSError object from a message and an errorCode. */
+  /// Creates an OSError object from a message and an errorCode.
   @pragma("vm:entry-point")
   const OSError([this.message = "", this.errorCode = noErrorCode]);
 
-  /** Converts an OSError object to a string representation. */
+  /// Converts an OSError object to a string representation.
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("OS Error");

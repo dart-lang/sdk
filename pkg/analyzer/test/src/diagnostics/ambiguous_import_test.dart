@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:matcher/src/core_matchers.dart';
-import 'package:test_api/src/frontend/expect.dart';
+import 'package:test/test.dart' show expect;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
@@ -20,6 +19,27 @@ main() {
 
 @reflectiveTest
 class AmbiguousImportTest extends PubPackageResolutionTest {
+  test_annotation_getter() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+const foo = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+const foo = 0;
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+import 'b.dart';
+
+@foo
+class A {}
+''', [
+      error(CompileTimeErrorCode.INVALID_ANNOTATION, 35, 4),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 36, 3),
+    ]);
+  }
+
   test_as() async {
     newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
@@ -32,18 +52,6 @@ import 'lib1.dart';
 import 'lib2.dart';
 f(p) {p as N;}''', [
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 51, 1),
-    ]);
-  }
-
-  @FailingTest(reason: 'Different approach to MockSdk')
-  test_dart() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-import 'dart:async2';
-
-Future v;
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 44, 6),
     ]);
   }
 
@@ -157,6 +165,30 @@ g() { N.FOO; }''', [
     ]);
   }
 
+  test_systemLibrary_nonSystemLibrary() async {
+    // From the spec, "a declaration from a non-system library shadows
+    // declarations from system libraries."
+    newFile('$testPackageLibPath/a.dart', content: '''
+class StreamController {}
+''');
+    await assertNoErrorsInCode('''
+import 'dart:async'; // ignore: unused_import
+import 'a.dart';
+
+StreamController s = StreamController();
+''');
+  }
+
+  test_systemLibrary_systemLibrary() async {
+    await assertErrorsInCode('''
+import 'dart:html';
+import 'dart:io';
+g(File f) {}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 40, 4),
+    ]);
+  }
+
   test_typeAnnotation() async {
     newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;
@@ -198,7 +230,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
-A<N> f() { return null; }''', [
+A<N>? f() { return null; }''', [
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 56, 1),
     ]);
   }

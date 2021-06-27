@@ -291,6 +291,17 @@ switch (true) {
   // Interpolated Literals
   testStatement('a = {#: 1}', [eOne], 'a = {1: 1};');
   testStatement('a = {#a: 1}', {'a': eOne}, 'a = {1: 1};');
+  // Interpolated Literals with Methods
+  testStatement('a = {#: 1, foo() {}}', [eOne], '''
+a = {1: 1,
+  foo() {
+  }
+};''');
+  testStatement('a = {#a: 1, foo() {}}', {'a': eOne}, '''
+a = {1: 1,
+  foo() {
+  }
+};''');
   // Maybe we should make this work?
   testError('a = {#: 1}', [1], 'is not a Literal: 1');
   testError('a = {#a: 1}', {'a': 1}, 'is not a Literal: 1');

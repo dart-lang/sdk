@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=nonfunction-type-aliases
 
 // Introduce an aliased type.
 
@@ -48,9 +47,6 @@ class C1 implements C {
   noSuchMethod(Invocation invocation) => throw 0;
 }
 
-class D1 extends T {}
-abstract class D3 implements T {}
-
 extension E on T {
   T foo(T t) => t;
 }
@@ -62,7 +58,6 @@ T Function(T) id = (x) => x;
 main() {
   var v13 = <T>[];
   var v14 = <Set<T>, Set<T>>{{}: {}};
-  v14[{}] = {D1()};
   var v15 = {v13};
   Set<List<T>> v16 = v15;
   v15 = v16;

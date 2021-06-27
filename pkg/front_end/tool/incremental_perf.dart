@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 /// An entrypoint used to measure performance of the incremental compiler.
 ///
 /// Given an input a program and a .json file describing edits, this script will
@@ -46,8 +48,6 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
-import 'package:front_end/src/api_prototype/file_system.dart'
-    show FileSystemEntity;
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
@@ -247,7 +247,15 @@ class OverlayFileSystemEntity implements FileSystemEntity {
   Future<bool> exists() async => (await delegate).exists();
 
   @override
+  Future<bool> existsAsyncIfPossible() async =>
+      (await delegate).existsAsyncIfPossible();
+
+  @override
   Future<List<int>> readAsBytes() async => (await delegate).readAsBytes();
+
+  @override
+  Future<List<int>> readAsBytesAsyncIfPossible() async =>
+      (await delegate).readAsBytesAsyncIfPossible();
 
   @override
   Future<String> readAsString() async => (await delegate).readAsString();

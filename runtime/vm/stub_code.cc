@@ -58,8 +58,32 @@ void StubCode::Init() {
       ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
 
   for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
-    entries_[i].code->set_object_pool(object_pool.raw());
+    entries_[i].code->set_object_pool(object_pool.ptr());
   }
+
+#if defined(DART_PRECOMPILER)
+  {
+    // Set Function owner for UnknownDartCode stub so it pretends to
+    // be a Dart code.
+    Zone* zone = Thread::Current()->zone();
+    const auto& signature = FunctionType::Handle(zone, FunctionType::New());
+    auto& owner = Object::Handle(zone);
+    owner = Object::void_class();
+    ASSERT(!owner.IsNull());
+    owner = Function::New(signature, Object::null_string(),
+                          UntaggedFunction::kRegularFunction,
+                          /*is_static=*/true,
+                          /*is_const=*/false,
+                          /*is_abstract=*/false,
+                          /*is_external=*/false,
+                          /*is_native=*/false, owner, TokenPosition::kNoSource);
+    StubCode::UnknownDartCode().set_owner(owner);
+    StubCode::UnknownDartCode().set_exception_handlers(
+        Object::empty_exception_handlers());
+    StubCode::UnknownDartCode().set_pc_descriptors(Object::empty_descriptors());
+    ASSERT(StubCode::UnknownDartCode().IsFunctionCode());
+  }
+#endif  // defined(DART_PRECOMPILER)
 }
 
 #undef STUB_CODE_GENERATE
@@ -69,6 +93,9 @@ CodePtr StubCode::Generate(
     const char* name,
     compiler::ObjectPoolBuilder* object_pool_builder,
     void (*GenerateStub)(compiler::Assembler* assembler)) {
+  auto thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
   compiler::Assembler assembler(object_pool_builder);
   GenerateStub(&assembler);
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
@@ -79,7 +106,7 @@ CodePtr StubCode::Generate(
     Disassembler::DisassembleStub(name, code);
   }
 #endif  // !PRODUCT
-  return code.raw();
+  return code.ptr();
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -133,26 +160,37 @@ ArrayPtr compiler::StubCodeCompiler::BuildStaticCallsTable(
     view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
     view.Set<Code::kSCallTableCodeOrTypeTarget>(unresolved_call->target());
   }
-  return static_calls_table.raw();
+  return static_calls_table.ptr();
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
-  auto object_store = thread->isolate()->object_store();
+  auto object_store = thread->isolate_group()->object_store();
   Zone* zone = thread->zone();
   const Error& error =
       Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
   ASSERT(error.IsNull());
-  if (cls.id() == kArrayCid) {
-    return object_store->allocate_array_stub();
-  } else if (cls.id() == kContextCid) {
-    return object_store->allocate_context_stub();
-  } else if (cls.id() == kUnhandledExceptionCid) {
-    return object_store->allocate_unhandled_exception_stub();
+  switch (cls.id()) {
+    case kArrayCid:
+      return object_store->allocate_array_stub();
+    case kContextCid:
+      return object_store->allocate_context_stub();
+    case kUnhandledExceptionCid:
+      return object_store->allocate_unhandled_exception_stub();
+    case kMintCid:
+      return object_store->allocate_mint_stub();
+    case kDoubleCid:
+      return object_store->allocate_double_stub();
+    case kFloat32x4Cid:
+      return object_store->allocate_float32x4_stub();
+    case kFloat64x2Cid:
+      return object_store->allocate_float64x2_stub();
+    case kInt32x4Cid:
+      return object_store->allocate_int32x4_stub();
+    case kClosureCid:
+      return object_store->allocate_closure_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
     compiler::ObjectPoolBuilder object_pool_builder;
     Precompiler* precompiler = Precompiler::Instance();
@@ -168,7 +206,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
             : Code::PoolAttachment::kAttachPool;
 
     auto zone = thread->zone();
-    auto object_store = thread->isolate()->object_store();
+    auto object_store = thread->isolate_group()->object_store();
     auto& allocate_object_stub = Code::ZoneHandle(zone);
     auto& allocate_object_parametrized_stub = Code::ZoneHandle(zone);
     if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
@@ -188,11 +226,13 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
         Array::Handle(zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
                                 zone, &unresolved_calls));
 
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
     auto mutator_fun = [&]() {
       stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
                                 /*optimized=*/false,
                                 /*stats=*/nullptr);
-      // Check if background compilation thread has not already added the stub.
+      // Check if some other thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
         if (!static_calls_table.IsNull()) {
@@ -201,32 +241,13 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
         cls.set_allocation_stub(stub);
       }
     };
-    auto bg_compiler_fun = [&]() {
-      ASSERT(Thread::Current()->IsAtSafepoint());
-      stub = cls.allocation_stub();
-      // Check if stub was already generated.
-      if (!stub.IsNull()) {
-        return;
-      }
-      stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
-                                /*optimized=*/false, /*stats=*/nullptr);
-      stub.set_owner(cls);
-      if (!static_calls_table.IsNull()) {
-        stub.set_static_calls_target_table(static_calls_table);
-      }
-      cls.set_allocation_stub(stub);
-    };
 
     // We have to ensure no mutators are running, because:
     //
     //   a) We allocate an instructions object, which might cause us to
     //      temporarily flip page protections from (RX -> RW -> RX).
-    //
-    //   b) To ensure only one thread succeeds installing an allocation for the
-    //      given class.
-    //
-    thread->isolate_group()->RunWithStoppedMutators(
-        mutator_fun, bg_compiler_fun, /*use_force_growth=*/true);
+    thread->isolate_group()->RunWithStoppedMutators(mutator_fun,
+                                                    /*use_force_growth=*/true);
 
     // We notify code observers after finalizing the code in order to be
     // outside a [SafepointOperationScope].
@@ -237,12 +258,11 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     }
 #endif  // !PRODUCT
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  return stub.raw();
+  return stub.ptr();
 }
 
 CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
-  auto object_store = Thread::Current()->isolate()->object_store();
+  auto object_store = Thread::Current()->isolate_group()->object_store();
   switch (class_id) {
     case kTypedDataInt8ArrayCid:
       return object_store->allocate_int8_array_stub();
@@ -276,6 +296,7 @@ CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
   UNREACHABLE();
   return Code::null();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(TARGET_ARCH_IA32)
 CodePtr StubCode::GetBuildMethodExtractorStub(
@@ -283,13 +304,12 @@ CodePtr StubCode::GetBuildMethodExtractorStub(
 #if !defined(DART_PRECOMPILED_RUNTIME)
   auto thread = Thread::Current();
   auto Z = thread->zone();
-  auto object_store = thread->isolate()->object_store();
+  auto object_store = thread->isolate_group()->object_store();
 
-  const auto& closure_class =
-      Class::ZoneHandle(Z, object_store->closure_class());
   const auto& closure_allocation_stub =
-      Code::ZoneHandle(Z, StubCode::GetAllocationStubForClass(closure_class));
-  const auto& context_allocation_stub = StubCode::AllocateContext();
+      Code::ZoneHandle(Z, object_store->allocate_closure_stub());
+  const auto& context_allocation_stub =
+      Code::ZoneHandle(Z, object_store->allocate_context_stub());
 
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
@@ -310,7 +330,7 @@ CodePtr StubCode::GetBuildMethodExtractorStub(
     Disassembler::DisassembleStub(name, stub);
   }
 #endif  // !PRODUCT
-  return stub.raw();
+  return stub.ptr();
 #else   // !defined(DART_PRECOMPILED_RUNTIME)
   UNIMPLEMENTED();
   return nullptr;
@@ -340,7 +360,7 @@ const char* StubCode::NameOfStub(uword entry_point) {
     }
   }
 
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
 
 #define MATCH(member, name)                                                    \
   if (object_store->member() != Code::null() &&                                \

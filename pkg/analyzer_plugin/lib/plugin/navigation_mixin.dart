@@ -21,15 +21,13 @@ mixin DartNavigationMixin implements NavigationMixin {
   @override
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var path = parameters.file;
     var result = await getResolvedUnitResult(path);
     var offset = parameters.offset;
     var length = parameters.length;
     if (offset < 0 && length < 0) {
       offset = 0;
-      length = result.content.length;
+      length = result.content?.length ?? 0;
     }
     return DartNavigationRequestImpl(resourceProvider, offset, length, result);
   }
@@ -55,8 +53,6 @@ mixin NavigationMixin implements ServerPlugin {
   @override
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
       AnalysisGetNavigationParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var path = parameters.file;
     var request = await getNavigationRequest(parameters);
     var generator = NavigationGenerator(getNavigationContributors(path));
@@ -69,8 +65,6 @@ mixin NavigationMixin implements ServerPlugin {
   /// server.
   @override
   Future<void> sendNavigationNotification(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     try {
       var request =
           await getNavigationRequest(AnalysisGetNavigationParams(path, -1, -1));

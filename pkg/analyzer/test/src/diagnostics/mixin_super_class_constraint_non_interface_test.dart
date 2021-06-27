@@ -16,8 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class MixinSuperClassConstraintNonInterfaceTest
-    extends PubPackageResolutionTest {}
+class MixinSuperClassConstraintNonInterfaceTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {}
 
 @reflectiveTest
 class MixinSuperClassConstraintNonInterfaceWithNullSafetyTest

@@ -4,6 +4,8 @@
 // Test for dart2js to handle a typed selector with a typedef as a
 // receiver type.
 
+// @dart = 2.9
+
 getComparator() => (a, b) => 42;
 
 class A {

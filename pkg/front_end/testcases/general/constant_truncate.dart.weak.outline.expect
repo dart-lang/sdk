@@ -1,0 +1,98 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int* a0 = 0.{core::num::~/}(0){(core::num*) →* core::int*};
+static const field core::int* a1 = 0.0.{core::double::~/}(0){(core::num*) →* core::int*};
+static const field core::int* a2 = 0.0.{core::double::unary-}(){() →* core::double*}.{core::double::~/}(0){(core::num*) →* core::int*};
+static const field core::int* a3 = core::double::nan.{core::double::~/}(0){(core::num*) →* core::int*};
+static const field core::int* a4 = core::double::infinity.{core::double::~/}(0){(core::num*) →* core::int*};
+static const field core::int* a5 = core::double::negativeInfinity.{core::double::~/}(0){(core::num*) →* core::int*};
+static const field core::int* b0 = 0.{core::num::~/}(0.0){(core::num*) →* core::int*};
+static const field core::int* b1 = 0.0.{core::double::~/}(0.0){(core::num*) →* core::int*};
+static const field core::int* b2 = 0.0.{core::double::unary-}(){() →* core::double*}.{core::double::~/}(0.0){(core::num*) →* core::int*};
+static const field core::int* b3 = core::double::nan.{core::double::~/}(0.0){(core::num*) →* core::int*};
+static const field core::int* b4 = core::double::infinity.{core::double::~/}(0.0){(core::num*) →* core::int*};
+static const field core::int* b5 = core::double::negativeInfinity.{core::double::~/}(0.0){(core::num*) →* core::int*};
+static const field core::int* c0 = 0.{core::num::~/}(0.0.{core::double::unary-}(){() →* core::double*}){(core::num*) →* core::int*};
+static const field core::int* c1 = 0.0.{core::double::~/}(0.0.{core::double::unary-}(){() →* core::double*}){(core::num*) →* core::int*};
+static const field core::int* c2 = 0.0.{core::double::unary-}(){() →* core::double*}.{core::double::~/}(0.0.{core::double::unary-}(){() →* core::double*}){(core::num*) →* core::int*};
+static const field core::int* c3 = core::double::nan.{core::double::~/}(0.0.{core::double::unary-}(){() →* core::double*}){(core::num*) →* core::int*};
+static const field core::int* c4 = core::double::infinity.{core::double::~/}(0.0.{core::double::unary-}(){() →* core::double*}){(core::num*) →* core::int*};
+static const field core::int* c5 = core::double::negativeInfinity.{core::double::~/}(0.0.{core::double::unary-}(){() →* core::double*}){(core::num*) →* core::int*};
+static const field core::int* d0 = 0.{core::num::~/}(core::double::nan){(core::num*) →* core::int*};
+static const field core::int* d1 = 0.0.{core::double::~/}(core::double::nan){(core::num*) →* core::int*};
+static const field core::int* d2 = 0.0.{core::double::unary-}(){() →* core::double*}.{core::double::~/}(core::double::nan){(core::num*) →* core::int*};
+static const field core::int* d3 = core::double::nan.{core::double::~/}(core::double::nan){(core::num*) →* core::int*};
+static const field core::int* d4 = core::double::infinity.{core::double::~/}(core::double::nan){(core::num*) →* core::int*};
+static const field core::int* d5 = core::double::negativeInfinity.{core::double::~/}(core::double::nan){(core::num*) →* core::int*};
+static const field core::int* e0 = 0.{core::num::~/}(core::double::infinity){(core::num*) →* core::int*};
+static const field core::int* e1 = 0.0.{core::double::~/}(core::double::infinity){(core::num*) →* core::int*};
+static const field core::int* e2 = 0.0.{core::double::unary-}(){() →* core::double*}.{core::double::~/}(core::double::infinity){(core::num*) →* core::int*};
+static const field core::int* e3 = core::double::nan.{core::double::~/}(core::double::infinity){(core::num*) →* core::int*};
+static const field core::int* e4 = core::double::infinity.{core::double::~/}(core::double::infinity){(core::num*) →* core::int*};
+static const field core::int* e5 = core::double::negativeInfinity.{core::double::~/}(core::double::infinity){(core::num*) →* core::int*};
+static const field core::int* f0 = 0.{core::num::~/}(core::double::negativeInfinity){(core::num*) →* core::int*};
+static const field core::int* f1 = 0.0.{core::double::~/}(core::double::negativeInfinity){(core::num*) →* core::int*};
+static const field core::int* f2 = 0.0.{core::double::unary-}(){() →* core::double*}.{core::double::~/}(core::double::negativeInfinity){(core::num*) →* core::int*};
+static const field core::int* f3 = core::double::nan.{core::double::~/}(core::double::negativeInfinity){(core::num*) →* core::int*};
+static const field core::int* f4 = core::double::infinity.{core::double::~/}(core::double::negativeInfinity){(core::num*) →* core::int*};
+static const field core::int* f5 = core::double::negativeInfinity.{core::double::~/}(core::double::negativeInfinity){(core::num*) →* core::int*};
+static method main() → dynamic
+  ;
+static method test(core::num* a, core::num* b, () →* core::num* f) → void
+  ;
+static method expect(dynamic expected, dynamic actual) → void
+  ;
+static method throws(() →* core::num* f) → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:7:12 -> DoubleConstant(-0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:8:19 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:9:19 -> DoubleConstant(Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:10:19 -> DoubleConstant(-Infinity)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:14:12 -> DoubleConstant(-0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:15:19 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:16:19 -> DoubleConstant(Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:17:19 -> DoubleConstant(-Infinity)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:19:17 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:20:19 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:21:12 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:21:20 -> DoubleConstant(-0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:22:19 -> DoubleConstant(NaN)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:22:26 -> DoubleConstant(-0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:23:19 -> DoubleConstant(Infinity)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:23:31 -> DoubleConstant(-0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:24:19 -> DoubleConstant(-Infinity)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:24:39 -> DoubleConstant(-0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:26:24 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:27:26 -> DoubleConstant(NaN)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:28:12 -> DoubleConstant(-0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:28:27 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:29:19 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:29:33 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:30:19 -> DoubleConstant(Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:30:38 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:31:19 -> DoubleConstant(-Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:31:46 -> DoubleConstant(NaN)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:33:14 -> IntConstant(0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:34:16 -> IntConstant(0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:35:17 -> IntConstant(0)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:36:19 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:36:33 -> DoubleConstant(Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:37:19 -> DoubleConstant(Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:37:38 -> DoubleConstant(Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:38:19 -> DoubleConstant(-Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:38:46 -> DoubleConstant(Infinity)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:40:14 -> IntConstant(0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:41:16 -> IntConstant(0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:42:17 -> IntConstant(0)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:43:19 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:43:33 -> DoubleConstant(-Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:44:19 -> DoubleConstant(Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:44:38 -> DoubleConstant(-Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:45:19 -> DoubleConstant(-Infinity)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:45:46 -> DoubleConstant(-Infinity)
+Extra constant evaluation: evaluated: 76, effectively constant: 46

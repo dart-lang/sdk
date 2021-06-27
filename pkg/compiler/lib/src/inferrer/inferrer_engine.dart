@@ -64,6 +64,7 @@ class InferrerEngine {
 
   final TypeSystem types;
   final Map<ir.TreeNode, TypeInformation> concreteTypes = {};
+  final GlobalLocalsMap globalLocalsMap;
   final InferredDataBuilder inferredDataBuilder;
 
   final FunctionEntity mainElement;
@@ -114,9 +115,10 @@ class InferrerEngine {
       this._compilerOutput,
       this.closedWorld,
       this.mainElement,
+      this.globalLocalsMap,
       this.inferredDataBuilder)
-      : this.types = new TypeSystem(
-            closedWorld, new KernelTypeSystemStrategy(closedWorld));
+      : this.types = new TypeSystem(closedWorld,
+            new KernelTypeSystemStrategy(closedWorld, globalLocalsMap));
 
   /// Applies [f] to all elements in the universe that match [selector] and
   /// [mask]. If [f] returns false, aborts the iteration.
@@ -634,7 +636,7 @@ class InferrerEngine {
         this,
         member,
         body,
-        closedWorld.globalLocalsMap.getLocalsMap(member),
+        globalLocalsMap.getLocalsMap(member),
         closedWorld.elementMap.getStaticTypeProvider(member));
     return visitor.run();
   }
@@ -649,10 +651,24 @@ class InferrerEngine {
     // mimicks that ast inferrer which return `true` for [ast.Send] and
     // non-const [ast.NewExpression].
     if (initializer is ir.MethodInvocation ||
+        initializer is ir.InstanceInvocation ||
+        initializer is ir.InstanceGetterInvocation ||
+        initializer is ir.DynamicInvocation ||
+        initializer is ir.FunctionInvocation ||
+        initializer is ir.LocalFunctionInvocation ||
+        initializer is ir.EqualsNull ||
+        initializer is ir.EqualsCall ||
         initializer is ir.PropertyGet ||
+        initializer is ir.InstanceGet ||
+        initializer is ir.DynamicGet ||
+        initializer is ir.InstanceTearOff ||
+        initializer is ir.FunctionTearOff ||
         initializer is ir.PropertySet ||
+        initializer is ir.InstanceSet ||
+        initializer is ir.DynamicSet ||
         initializer is ir.StaticInvocation ||
         initializer is ir.StaticGet ||
+        initializer is ir.StaticTearOff ||
         initializer is ir.StaticSet ||
         initializer is ir.Let ||
         initializer is ir.ConstructorInvocation && !initializer.isConst) {
@@ -669,7 +685,7 @@ class InferrerEngine {
 
   /// Returns `true` if [cls] has a 'call' method.
   bool _hasCallType(ClassEntity cls) {
-    return closedWorld.elementMap.types
+    return closedWorld.dartTypes
             .getCallType(closedWorld.elementEnvironment.getThisType(cls)) !=
         null;
   }
@@ -1224,8 +1240,9 @@ class _InferrerEngineMetrics extends MetricsBase {
 
 class KernelTypeSystemStrategy implements TypeSystemStrategy {
   final JsClosedWorld _closedWorld;
+  final GlobalLocalsMap _globalLocalsMap;
 
-  KernelTypeSystemStrategy(this._closedWorld);
+  KernelTypeSystemStrategy(this._closedWorld, this._globalLocalsMap);
 
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
@@ -1252,8 +1269,8 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {
     forEachOrderedParameterAsLocal(
-        _closedWorld.globalLocalsMap, _closedWorld.elementMap, function,
-        (Local parameter, {bool isElided}) {
+        _globalLocalsMap, _closedWorld.elementMap, function, (Local parameter,
+            {bool isElided}) {
       f(parameter);
     });
   }
@@ -1264,8 +1281,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
       covariant JLocal parameter,
       TypeSystem types) {
     MemberEntity context = parameter.memberContext;
-    KernelToLocalsMap localsMap =
-        _closedWorld.globalLocalsMap.getLocalsMap(context);
+    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(context);
     ir.FunctionNode functionNode =
         localsMap.getFunctionNodeForParameter(parameter);
     DartType type = localsMap.getLocalType(_closedWorld.elementMap, parameter);

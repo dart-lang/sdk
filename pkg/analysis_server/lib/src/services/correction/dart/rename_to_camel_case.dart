@@ -14,7 +14,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RenameToCamelCase extends CorrectionProducer {
   /// The camel-case version of the name.
-  String _newName;
+  String _newName = '';
+
+  @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
 
   @override
   List<Object> get fixArguments => [_newName];
@@ -23,11 +29,14 @@ class RenameToCamelCase extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.RENAME_TO_CAMEL_CASE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.RENAME_TO_CAMEL_CASE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! SimpleIdentifier) {
+    var identifier = node;
+    if (identifier is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier identifier = node;
 
     // Prepare the new name.
     var words = identifier.name.split('_');
@@ -37,17 +46,21 @@ class RenameToCamelCase extends CorrectionProducer {
     _newName = words.first + words.skip(1).map((w) => capitalize(w)).join();
 
     // Find references to the identifier.
-    List<SimpleIdentifier> references;
+    List<SimpleIdentifier>? references;
     var element = identifier.staticElement;
     if (element is LocalVariableElement) {
-      AstNode root = node.thisOrAncestorOfType<Block>();
-      references = findLocalElementReferences(root, element);
+      var root = node.thisOrAncestorOfType<Block>();
+      if (root != null) {
+        references = findLocalElementReferences(root, element);
+      }
     } else if (element is ParameterElement) {
       if (!element.isNamed) {
         var root = node.thisOrAncestorMatching((node) =>
             node.parent is ClassOrMixinDeclaration ||
             node.parent is CompilationUnit);
-        references = findLocalElementReferences(root, element);
+        if (root != null) {
+          references = findLocalElementReferences(root, element);
+        }
       }
     }
     if (references == null) {
@@ -55,8 +68,9 @@ class RenameToCamelCase extends CorrectionProducer {
     }
 
     // Compute the change.
+    var references_final = references;
     await builder.addDartFileEdit(file, (builder) {
-      for (var reference in references) {
+      for (var reference in references_final) {
         builder.addSimpleReplacement(range.node(reference), _newName);
       }
     });

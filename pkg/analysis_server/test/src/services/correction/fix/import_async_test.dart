@@ -40,12 +40,12 @@ environment:
   sdk: ^2.0.0
 ''');
     await resolveTestCode('''
-Stream<int> zero() => null;
+Stream<int> zero() => throw '';
 ''');
     await assertHasFix('''
 import 'dart:async';
 
-Stream<int> zero() => null;
+Stream<int> zero() => throw '';
 ''');
   }
 }

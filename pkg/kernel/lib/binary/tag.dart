@@ -1,6 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 library kernel.binary.tag;
 
 class Tag {
@@ -75,6 +76,7 @@ class Tag {
   static const int BigIntLiteral = 57;
   static const int ConstListLiteral = 58;
   static const int ConstMapLiteral = 59;
+  static const int ConstructorTearOff = 60;
 
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
@@ -89,6 +91,7 @@ class Tag {
   static const int InstanceGet = 118;
   static const int InstanceSet = 119;
   static const int InstanceInvocation = 120;
+  static const int InstanceGetterInvocation = 89;
   static const int InstanceTearOff = 121;
   static const int DynamicGet = 122;
   static const int DynamicSet = 123;
@@ -123,7 +126,7 @@ class Tag {
 
   // Types
   static const int TypedefType = 87;
-  static const int BottomType = 89;
+  // 89 is occupied by [InstanceGetterInvocation] (expression).
   static const int InvalidType = 90;
   static const int DynamicType = 91;
   static const int VoidType = 92;
@@ -172,7 +175,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 53;
+  static const int BinaryFormatVersion = 66;
 }
 
 abstract class ConstantTag {

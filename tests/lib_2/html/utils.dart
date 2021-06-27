@@ -11,4 +11,6 @@
 /// directory to import.
 // TODO(rnystrom): If the DDC test runner is fixed to use a different module
 // root that handles "../" imports, move "custom/utils.dart" to here.
+
+// @dart = 2.9
 export 'custom/utils.dart';

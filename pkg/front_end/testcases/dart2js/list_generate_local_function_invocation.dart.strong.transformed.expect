@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_interceptors" as _in;
+
+static method main() → dynamic {
+  function localFunction(core::int i) → core::int
+    return i.{core::num::*}(2){(core::num) → core::int};
+  block {
+    final _in::JSArray<core::int> _list = _in::JSArray::allocateGrowable<core::int>(10);
+    for (core::int* i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::int*) → core::int*}) {
+      core::int i = i;
+      _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, localFunction(i){(core::int) → core::int}){(core::int, core::int) → void};
+    }
+  } =>_list;
+}

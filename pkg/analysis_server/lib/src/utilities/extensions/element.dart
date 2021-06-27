@@ -2,26 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/generic_inferrer.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 
 extension ClassElementExtensions on ClassElement {
   /// Return `true` if this element represents the class `Iterable` from
   /// `dart:core`.
-  bool get isDartCoreIterable =>
-      this != null && name == 'Iterable' && library.isDartCore;
+  bool get isDartCoreIterable => name == 'Iterable' && library.isDartCore;
 
   /// Return `true` if this element represents the class `List` from
   /// `dart:core`.
-  bool get isDartCoreList =>
-      this != null && name == 'List' && library.isDartCore;
+  bool get isDartCoreList => name == 'List' && library.isDartCore;
 
   /// Return `true` if this element represents the class `Map` from
   /// `dart:core`.
-  bool get isDartCoreMap => this != null && name == 'Map' && library.isDartCore;
+  bool get isDartCoreMap => name == 'Map' && library.isDartCore;
 
   /// Return `true` if this element represents the class `Set` from
   /// `dart:core`.
-  bool get isDartCoreSet => this != null && name == 'Set' && library.isDartCore;
+  bool get isDartCoreSet => name == 'Set' && library.isDartCore;
 }
 
 extension ElementExtension on Element {
@@ -42,6 +45,71 @@ extension ElementExtension on Element {
     return ancestor is CompilationUnitElement &&
         ancestor.enclosingElement.hasDeprecated;
   }
+
+  /// Return this element and all its enclosing elements.
+  Iterable<Element> get withAncestors sync* {
+    var current = this;
+    while (true) {
+      yield current;
+      var enclosing = current.enclosingElement;
+      if (enclosing == null) {
+        break;
+      }
+      current = enclosing;
+    }
+  }
+}
+
+extension ExtensionElementExtensions on ExtensionElement {
+  /// Use the [type] of the object being extended in the [library] to compute
+  /// the actual type extended by this [extension]. Return the computed type,
+  /// or `null` if the type can't be computed.
+  DartType? resolvedExtendedType(LibraryElement library, DartType type) {
+    final typeParameters = this.typeParameters;
+    var inferrer =
+        GenericInferrer(library.typeSystem as TypeSystemImpl, typeParameters);
+    inferrer.constrainArgument(
+      type,
+      extendedType,
+      'extendedType',
+    );
+    var typeArguments = inferrer.infer(typeParameters,
+        failAtError: true, genericMetadataIsEnabled: true);
+    if (typeArguments == null) {
+      return null;
+    }
+    var substitution = Substitution.fromPairs(
+      typeParameters,
+      typeArguments,
+    );
+    return substitution.substituteType(
+      extendedType,
+    );
+  }
+}
+
+extension LibraryElementExtensions on LibraryElement {
+  /// Return the extensions in this library that can be applied, within the
+  /// [containingLibrary], to the [targetType] and that define a member with the
+  /// given [memberName].
+  Iterable<ExtensionElement> matchingExtensionsWithMember(
+      LibraryElement containingLibrary,
+      DartType targetType,
+      String memberName) sync* {
+    for (var unit in units) {
+      for (var extension in unit.extensions) {
+        var extensionName = extension.name;
+        if (extensionName != null && !Identifier.isPrivateName(extensionName)) {
+          var extendedType =
+              extension.resolvedExtendedType(containingLibrary, targetType);
+          if (extendedType != null &&
+              typeSystem.isSubtypeOf(targetType, extendedType)) {
+            yield extension;
+          }
+        }
+      }
+    }
+  }
 }
 
 extension MethodElementExtensions on MethodElement {
@@ -51,7 +119,10 @@ extension MethodElementExtensions on MethodElement {
     if (name != 'cast') {
       return false;
     }
-    ClassElement definingClass = enclosingElement;
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
+      return false;
+    }
     return definingClass.isDartCoreIterable ||
         definingClass.isDartCoreList ||
         definingClass.isDartCoreMap ||
@@ -64,7 +135,10 @@ extension MethodElementExtensions on MethodElement {
     if (name != 'toList') {
       return false;
     }
-    ClassElement definingClass = enclosingElement;
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
+      return false;
+    }
     return definingClass.isDartCoreIterable || definingClass.isDartCoreList;
   }
 }

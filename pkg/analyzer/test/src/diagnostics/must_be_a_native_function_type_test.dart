@@ -42,6 +42,51 @@ void f(DynamicLibrary lib) {
     ]);
   }
 
+  test_lookupFunction_Pointer() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+typedef S = Void Function(Pointer);
+typedef F = void Function(Pointer);
+void f(DynamicLibrary lib) {
+  lib.lookupFunction<S, F>('g');
+}
+''');
+  }
+
+  // TODO(https://dartbug.com/44594): Should this be an error or not?
+  test_lookupFunction_PointerNativeFunction() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+typedef S = Void Function(Pointer<NativeFunction>);
+typedef F = void Function(Pointer<NativeFunction>);
+void f(DynamicLibrary lib) {
+  lib.lookupFunction<S, F>('g');
+}
+''', [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 173, 1)]);
+  }
+
+  test_lookupFunction_PointerNativeFunction2() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+typedef S = Void Function(Pointer<NativeFunction<Int8 Function()>>);
+typedef F = void Function(Pointer<NativeFunction<Int8 Function()>>);
+void f(DynamicLibrary lib) {
+  lib.lookupFunction<S, F>('g');
+}
+''');
+  }
+
+  test_lookupFunction_PointerVoid() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+typedef S = Pointer<Void> Function(Pointer<Void>);
+typedef F = Pointer<Void> Function(Pointer<Void>);
+void f(DynamicLibrary lib) {
+  lib.lookupFunction<S, F>('g');
+}
+''');
+  }
+
   test_lookupFunction_T() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

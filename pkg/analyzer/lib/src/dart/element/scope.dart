@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' as impl;
-import 'package:meta/meta.dart';
 
 /// The scope defined by a class.
 class ClassScope extends EnclosedScope {
@@ -112,49 +111,30 @@ class LibraryScope extends EnclosedScope {
   }
 
   bool shouldIgnoreUndefined({
-    @required String prefix,
-    @required String name,
+    required String? prefix,
+    required String name,
   }) {
-    Iterable<NamespaceCombinator> getShowCombinators(
-        ImportElement importElement) {
-      return importElement.combinators.whereType<ShowElementCombinator>();
+    for (var importElement in _element.imports) {
+      if (importElement.prefix?.name == prefix &&
+          importElement.importedLibrary?.isSynthetic != false) {
+        var showCombinators = importElement.combinators
+            .whereType<ShowElementCombinator>()
+            .toList();
+        if (prefix != null && showCombinators.isEmpty) {
+          return true;
+        }
+        for (var combinator in showCombinators) {
+          if (combinator.shownNames.contains(name)) {
+            return true;
+          }
+        }
+      }
     }
 
-    if (prefix != null) {
-      for (var importElement in _element.imports) {
-        if (importElement.prefix?.name == prefix &&
-            importElement.importedLibrary?.isSynthetic != false) {
-          var showCombinators = getShowCombinators(importElement);
-          if (showCombinators.isEmpty) {
-            return true;
-          }
-          for (ShowElementCombinator combinator in showCombinators) {
-            if (combinator.shownNames.contains(name)) {
-              return true;
-            }
-          }
-        }
-      }
-    } else {
-      // TODO(scheglov) merge for(s).
-      for (var importElement in _element.imports) {
-        if (importElement.prefix == null &&
-            importElement.importedLibrary?.isSynthetic != false) {
-          for (ShowElementCombinator combinator
-              in getShowCombinators(importElement)) {
-            if (combinator.shownNames.contains(name)) {
-              return true;
-            }
-          }
-        }
-      }
-
-      if (name.startsWith(r'_$')) {
-        for (var partElement in _element.parts) {
-          if (partElement.isSynthetic &&
-              isGeneratedSource(partElement.source)) {
-            return true;
-          }
+    if (prefix == null && name.startsWith(r'_$')) {
+      for (var partElement in _element.parts) {
+        if (partElement.isSynthetic && isGeneratedSource(partElement.source)) {
+          return true;
         }
       }
     }
@@ -176,7 +156,7 @@ class LibraryScope extends EnclosedScope {
     compilationUnit.functions.forEach(_addGetter);
     compilationUnit.typeAliases.forEach(_addGetter);
     compilationUnit.mixins.forEach(_addGetter);
-    compilationUnit.types.forEach(_addGetter);
+    compilationUnit.classes.forEach(_addGetter);
   }
 }
 
@@ -193,9 +173,9 @@ class PrefixScope implements Scope {
   final Map<String, Element> _getters = {};
   final Map<String, Element> _setters = {};
   final Set<ExtensionElement> _extensions = {};
-  LibraryElement _deferredLibrary;
+  LibraryElement? _deferredLibrary;
 
-  PrefixScope(this._library, PrefixElement prefix) {
+  PrefixScope(this._library, PrefixElement? prefix) {
     for (var import in _library.imports) {
       if (import.prefix == prefix) {
         var elements = impl.NamespaceBuilder().getImportedElements(import);
@@ -209,8 +189,9 @@ class PrefixScope implements Scope {
 
   @override
   ScopeLookupResult lookup(String id) {
-    if (_deferredLibrary != null && id == FunctionElement.LOAD_LIBRARY_NAME) {
-      return ScopeLookupResult(_deferredLibrary.loadLibraryFunction, null);
+    var deferredLibrary = _deferredLibrary;
+    if (deferredLibrary != null && id == FunctionElement.LOAD_LIBRARY_NAME) {
+      return ScopeLookupResult(deferredLibrary.loadLibraryFunction, null);
     }
 
     var getter = _getters[id];
@@ -236,8 +217,8 @@ class PrefixScope implements Scope {
   }
 
   void _addTo({
-    @required Map<String, Element> map,
-    @required Element element,
+    required Map<String, Element> map,
+    required Element element,
   }) {
     var id = element.displayName;
 
@@ -268,7 +249,7 @@ class PrefixScope implements Scope {
     return MultiplyDefinedElementImpl(
       _library.context,
       _library.session,
-      conflictingElements.first.name,
+      conflictingElements.first.name!,
       conflictingElements.toList(),
     );
   }
@@ -291,7 +272,7 @@ class PrefixScope implements Scope {
     if (element is MultiplyDefinedElement) {
       return false;
     }
-    return element.library.isInSdk;
+    return element.library!.isInSdk;
   }
 }
 
@@ -307,7 +288,7 @@ class TypeParameterScope extends EnclosedScope {
 class _LibraryImportScope implements Scope {
   final LibraryElement _library;
   final PrefixScope _nullPrefixScope;
-  List<ExtensionElement> _extensions;
+  List<ExtensionElement>? _extensions;
 
   _LibraryImportScope(LibraryElement library)
       : _library = library,

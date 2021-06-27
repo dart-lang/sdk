@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Test of toString on generators.
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -25,7 +27,8 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         VariableDeclaration,
         VariableGet,
-        VoidType;
+        VoidType,
+        defaultLanguageVersion;
 
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
@@ -51,7 +54,7 @@ import 'package:front_end/src/fasta/kernel/expression_generator.dart';
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
+    show ImplicitLanguageVersion, SourceLibraryBuilder;
 
 void check(String expected, Generator generator) {
   Expect.stringEquals(expected, "$generator");
@@ -72,6 +75,7 @@ main() async {
         uri,
         uri,
         /*packageUri*/ null,
+        new ImplicitLanguageVersion(defaultLanguageVersion),
         new KernelTarget(
                 null,
                 false,
@@ -83,11 +87,14 @@ main() async {
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, null, -1);
     Procedure getter = new Procedure(
-        new Name("myGetter"), ProcedureKind.Getter, new FunctionNode(null));
+        new Name("myGetter"), ProcedureKind.Getter, new FunctionNode(null),
+        fileUri: uri);
     Procedure interfaceTarget = new Procedure(new Name("myInterfaceTarget"),
-        ProcedureKind.Method, new FunctionNode(null));
+        ProcedureKind.Method, new FunctionNode(null),
+        fileUri: uri);
     Procedure setter = new Procedure(
-        new Name("mySetter"), ProcedureKind.Setter, new FunctionNode(null));
+        new Name("mySetter"), ProcedureKind.Setter, new FunctionNode(null),
+        fileUri: uri);
     Message message = templateUnspecified.withArguments("My Message.");
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
@@ -106,8 +113,8 @@ main() async {
     Generator generator =
         new ThisAccessGenerator(helper, token, false, false, false);
 
-    Library library = new Library(uri);
-    Class cls = new Class();
+    Library library = new Library(uri, fileUri: uri);
+    Class cls = new Class(name: 'foo', fileUri: uri);
     library.addClass(cls);
     library.addProcedure(getter);
     library.addProcedure(setter);

@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = self::fn("s");
+static const field core::int var2 = self::fn(1);
+static const field core::int var3 = self::fn1(10);
+static const field core::int var4 = self::fn1("s");
+static const field core::int var5 = self::finallyReturn(10);
+static const field core::int var6 = self::finallyReturn("s");
+static const field core::int var7 = self::finallyReturn(1);
+static const field core::int var8 = self::finallyReturn1(0);
+static const field core::int var9 = self::finallyReturn1(1);
+static const field core::int var10 = self::finallyMutate();
+static const field core::int var11 = self::subtypeFn();
+static const field core::String var12 = self::orderFn();
+static const field core::int var13 = self::notThrowStatement();
+static method fn(dynamic error) → core::int
+  ;
+static method fn1(dynamic error) → core::int
+  ;
+static method finallyReturn(dynamic error) → core::int
+  ;
+static method finallyReturn1(core::int x) → core::int
+  ;
+static method finallyMutate() → core::int
+  ;
+static method subtypeFn() → core::int
+  ;
+static method orderFn() → core::String
+  ;
+static method notThrowStatement() → core::int
+  ;
+static method main() → void
+  ;

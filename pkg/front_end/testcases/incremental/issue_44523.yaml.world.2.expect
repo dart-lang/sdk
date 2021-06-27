@@ -1,0 +1,47 @@
+main = <No Member>;
+library from "org-dartlang-test:///app/main.dart" as main {
+
+  import "package:flutter/lib1.dart";
+
+  class _Bar extends lib1::RestorableProperty {
+    synthetic constructor •() → main::_Bar*
+      : super lib1::RestorableProperty::•()
+      ;
+    abstract member-signature method _debugAssertNotDisposed() → dart.core::bool*; -> lib1::RestorableProperty::_debugAssertNotDisposed
+    abstract member-signature method _debugAssertNotDisposed() → dart.core::bool*; -> lib2::ChangeNotifier::_debugAssertNotDisposed
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+}
+library from "package:flutter/lib1.dart" as lib1 {
+
+  import "package:flutter/lib2.dart";
+
+  abstract class RestorableProperty extends lib2::ChangeNotifier {
+    synthetic constructor •() → lib1::RestorableProperty
+      : super lib2::ChangeNotifier::•()
+      ;
+    method _debugAssertNotDisposed() → dart.core::bool {
+      return true;
+    }
+  }
+}
+library from "package:flutter/lib2.dart" as lib2 {
+
+  class ChangeNotifier extends dart.core::Object {
+    synthetic constructor •() → lib2::ChangeNotifier
+      : super dart.core::Object::•()
+      ;
+    method _debugAssertNotDisposed() → dart.core::bool {
+      return true;
+    }
+  }
+}

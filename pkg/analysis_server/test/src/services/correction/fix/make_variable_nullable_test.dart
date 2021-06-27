@@ -29,7 +29,9 @@ class C {
 }
 ''');
     // TODO(srawlins): Remove the type if the quick fix as is would use the same
-    // type as the field's type.
+    //  type as the field's type. (brianwilkerson) I would argue that removing
+    //  the type should be a separate fix/assist. There was a reason why the
+    //  user used an explicit type, and we shouldn't remove it when it's valid.
     await assertHasFix('''
 class C {
   String? s;
@@ -95,6 +97,55 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_localVariable_initializedToNull() async {
+    await resolveTestCode('''
+void f() {
+  String s = null;
+  print(s);
+}
+''');
+    await assertHasFix('''
+void f() {
+  String? s = null;
+  print(s);
+}
+''');
+  }
+
+  Future<void> test_localVariable_type() async {
+    await resolveTestCode('''
+void f() {
+  String s = '';
+  s = null;
+  print(s);
+}
+''');
+    await assertHasFix('''
+void f() {
+  String? s = '';
+  s = null;
+  print(s);
+}
+''');
+  }
+
+  Future<void> test_localVariable_var() async {
+    await resolveTestCode('''
+void f() {
+  var s = '';
+  s = null;
+  print(s);
+}
+''');
+    await assertHasFix('''
+void f() {
+  String? s = '';
+  s = null;
+  print(s);
+}
+''');
+  }
+
   Future<void> test_multipleVariables() async {
     await resolveTestCode('''
 void f() {
@@ -157,40 +208,6 @@ void f<T>({T s}) {}
 ''');
     await assertHasFix('''
 void f<T>({T? s}) {}
-''');
-  }
-
-  Future<void> test_type() async {
-    await resolveTestCode('''
-void f() {
-  String s = '';
-  s = null;
-  print(s);
-}
-''');
-    await assertHasFix('''
-void f() {
-  String? s = '';
-  s = null;
-  print(s);
-}
-''');
-  }
-
-  Future<void> test_var() async {
-    await resolveTestCode('''
-void f() {
-  var s = '';
-  s = null;
-  print(s);
-}
-''');
-    await assertHasFix('''
-void f() {
-  String? s = '';
-  s = null;
-  print(s);
-}
 ''');
   }
 }

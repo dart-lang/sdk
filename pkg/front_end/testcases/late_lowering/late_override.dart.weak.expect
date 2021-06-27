@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Interface extends core::Object {
+  field core::int? _#Interface#implementedLateFieldDeclaredGetterSetter = null;
+  field core::bool _#Interface#implementedLateFieldDeclaredGetterSetter#isSet = false;
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  get implementedLateFieldDeclaredGetterSetter() → core::int
+    return this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("implementedLateFieldDeclaredGetterSetter");
+  set implementedLateFieldDeclaredGetterSetter(core::int #t2) → void {
+    this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter#isSet} = true;
+    this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter} = #t2;
+  }
+}
+class Class extends core::Object implements self::Interface {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get implementedLateFieldDeclaredGetterSetter() → core::int
+    return 0;
+  set implementedLateFieldDeclaredGetterSetter(core::int value) → void {}
+}
+static method main() → dynamic {}

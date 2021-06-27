@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class PropertyAccessResolutionTest extends PubPackageResolutionTest {
+class PropertyAccessResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_extensionOverride_read() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -520,7 +521,8 @@ class C<T> {
 ''');
     assertErrorsInResult(expectedErrorsByNullability(
       nullable: [
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 33, 3),
+        error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+            37, 3),
       ],
       legacy: [
         error(CompileTimeErrorCode.UNDEFINED_GETTER, 37, 3),

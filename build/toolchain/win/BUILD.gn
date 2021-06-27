@@ -26,7 +26,9 @@ toolchain_data = exec_script("setup_toolchain.py",
                                visual_studio_path,
                                windows_sdk_path,
                                visual_studio_runtime_dirs,
+                               "win",
                                current_cpu,
+                               "environment." + current_cpu,
                              ],
                              "scope")
 
@@ -258,8 +260,7 @@ if (current_cpu == "x86") {
   msvc_toolchain("clang_x86") {
     environment = "environment.x86"
     current_cpu = "x86"
-    prefix = rebase_path("//third_party/llvm-build/Release+Asserts/bin",
-                         root_build_dir)
+    prefix = rebase_path("//buildtools/win-x64/clang/bin", root_build_dir)
     cl = "${goma_prefix}$prefix/clang-cl.exe"
     is_clang = true
   }
@@ -275,8 +276,7 @@ if (current_cpu == "x64") {
   msvc_toolchain("clang_x64") {
     environment = "environment.x64"
     current_cpu = "x64"
-    prefix = rebase_path("//third_party/llvm-build/Release+Asserts/bin",
-                         root_build_dir)
+    prefix = rebase_path("//buildtools/win-x64/clang/bin", root_build_dir)
     cl = "${goma_prefix}$prefix/clang-cl.exe"
     is_clang = true
   }

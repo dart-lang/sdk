@@ -6,7 +6,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -55,7 +54,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
       fail('Expected an exception to be thrown');
     } on RequestFailure catch (e) {
       expect(e.response.id, id);
-      expect(e.response.error.code, RequestErrorCode.INVALID_OVERLAY_CHANGE);
+      expect(e.response.error!.code, RequestErrorCode.INVALID_OVERLAY_CHANGE);
     }
   }
 
@@ -161,8 +160,8 @@ f() {}
 
     // exactly 2 contexts
     expect(server.driverMap, hasLength(2));
-    var driver1 = server.getAnalysisDriver(filePath1);
-    var driver2 = server.getAnalysisDriver(filePath2);
+    var driver1 = server.getAnalysisDriver(filePath1)!;
+    var driver2 = server.getAnalysisDriver(filePath2)!;
 
     // no sources
     expect(_getUserSources(driver1), isEmpty);
@@ -228,52 +227,44 @@ f() {}
     // Add
     //
     handleSuccessfulRequest(AnalysisUpdateContentParams(
-            <String, dynamic>{filePath: AddContentOverlay(fileContent)})
+            <String, Object>{filePath: AddContentOverlay(fileContent)})
         .toRequest('0'));
-    var params = pluginManager.analysisUpdateContentParams;
-    expect(params, isNotNull);
+    var params = pluginManager.analysisUpdateContentParams!;
     var files = params.files;
     expect(files, hasLength(1));
-    Object overlay = files[filePath];
-    expect(overlay, const TypeMatcher<plugin.AddContentOverlay>());
-    plugin.AddContentOverlay addOverlay = overlay;
+    var overlay = files[filePath];
+    expect(overlay, const TypeMatcher<AddContentOverlay>());
+    var addOverlay = overlay as AddContentOverlay;
     expect(addOverlay.content, fileContent);
     //
     // Change
     //
     pluginManager.analysisUpdateContentParams = null;
-    handleSuccessfulRequest(AnalysisUpdateContentParams(<String, dynamic>{
+    handleSuccessfulRequest(AnalysisUpdateContentParams(<String, Object>{
       filePath: ChangeContentOverlay(
           <SourceEdit>[SourceEdit(8, 1, "'"), SourceEdit(18, 1, "'")])
     }).toRequest('1'));
-    params = pluginManager.analysisUpdateContentParams;
+    params = pluginManager.analysisUpdateContentParams!;
     expect(params, isNotNull);
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, const TypeMatcher<plugin.ChangeContentOverlay>());
-    plugin.ChangeContentOverlay changeOverlay = overlay;
+    expect(overlay, const TypeMatcher<ChangeContentOverlay>());
+    var changeOverlay = overlay as ChangeContentOverlay;
     expect(changeOverlay.edits, hasLength(2));
     //
     // Remove
     //
     pluginManager.analysisUpdateContentParams = null;
     handleSuccessfulRequest(AnalysisUpdateContentParams(
-        <String, dynamic>{filePath: RemoveContentOverlay()}).toRequest('2'));
-    params = pluginManager.analysisUpdateContentParams;
+        <String, Object>{filePath: RemoveContentOverlay()}).toRequest('2'));
+    params = pluginManager.analysisUpdateContentParams!;
     expect(params, isNotNull);
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, const TypeMatcher<plugin.RemoveContentOverlay>());
+    expect(overlay, const TypeMatcher<RemoveContentOverlay>());
   }
-
-//  CompilationUnit _getTestUnit() {
-//    ContextSourcePair pair = server.getContextSourcePair(testFile);
-//    AnalysisContext context = pair.context;
-//    Source source = pair.source;
-//    return context.getResolvedCompilationUnit2(source, source);
-//  }
 
   List<String> _getUserSources(AnalysisDriver driver) {
     var sources = <String>[];

@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Tests that non-deferred type literals are constant expressions.
 
 import "dart:core";
 import "dart:core" as core;
 // No reloading support for deferred loading.
 // See https://github.com/dart-lang/sdk/issues/33118.
-import "dart:core" deferred as dcore; //# 01: compile-time error
+import "dart:core" deferred as dcore show int; //# 01: compile-time error
 
 // Declares F function type alias, M mixin and C class.
 import "constant_type_literal_types.dart";

@@ -639,6 +639,7 @@ class CommandExecutorImpl implements CommandExecutor {
       AdbDevice device, AdbPrecompilationCommand command, int timeout) async {
     var buildPath = command.buildPath;
     var processTest = command.processTestFilename;
+    var abstractSocketTest = command.abstractSocketTestFilename;
     var testdir = command.precompiledTestDirectory;
     var arguments = command.arguments;
     var devicedir = DartPrecompiledAdbRuntimeConfiguration.deviceDir;
@@ -662,10 +663,12 @@ class CommandExecutorImpl implements CommandExecutor {
         '$devicedir/dart_precompiled_runtime'));
     steps.add(
         () => device.pushCachedData(processTest, '$devicedir/process_test'));
+    steps.add(() => device.pushCachedData(
+        abstractSocketTest, '$devicedir/abstract_socket_test'));
     steps.add(() => device.runAdbShellCommand([
           'chmod',
           '777',
-          '$devicedir/dart_precompiled_runtime $devicedir/process_test'
+          '$devicedir/dart_precompiled_runtime $devicedir/process_test $devicedir/abstract_socket_test'
         ]));
 
     steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
@@ -1082,11 +1085,19 @@ class BatchRunnerProcess {
     if (outcome == "CRASH") exitCode = unhandledCompilerExceptionExitCode;
     if (outcome == "PARSE_FAIL") exitCode = parseFailExitCode;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
+
+    // Fail if the output was too long or incorrectly formatted.
+    if (_testStdout.hasNonUtf8 || _testStderr.hasNonUtf8) {
+      exitCode = nonUtfFakeExitCode;
+    } else if (_testStdout.wasTruncated || _testStderr.wasTruncated) {
+      exitCode = truncatedFakeExitCode;
+    }
+
     var output = _command.createOutput(
         exitCode,
         outcome == "TIMEOUT",
-        _testStdout.toList(),
-        _testStderr.toList(),
+        _testStdout.bytes,
+        _testStderr.bytes,
         DateTime.now().difference(_startTime),
         false);
     assert(_completer != null);

@@ -18,22 +18,22 @@ namespace dart {
 
 void VerifyObjectVisitor::VisitObject(ObjectPtr raw_obj) {
   if (raw_obj->IsHeapObject()) {
-    uword raw_addr = ObjectLayout::ToAddr(raw_obj);
+    uword raw_addr = UntaggedObject::ToAddr(raw_obj);
     if (raw_obj->IsFreeListElement() || raw_obj->IsForwardingCorpse()) {
-      if (raw_obj->IsOldObject() && raw_obj->ptr()->IsMarked()) {
+      if (raw_obj->IsOldObject() && raw_obj->untag()->IsMarked()) {
         FATAL1("Marked free list element encountered %#" Px "\n", raw_addr);
       }
     } else {
       switch (mark_expectation_) {
         case kForbidMarked:
-          if (raw_obj->IsOldObject() && raw_obj->ptr()->IsMarked()) {
+          if (raw_obj->IsOldObject() && raw_obj->untag()->IsMarked()) {
             FATAL1("Marked object encountered %#" Px "\n", raw_addr);
           }
           break;
         case kAllowMarked:
           break;
         case kRequireMarked:
-          if (raw_obj->IsOldObject() && !raw_obj->ptr()->IsMarked()) {
+          if (raw_obj->IsOldObject() && !raw_obj->untag()->IsMarked()) {
             FATAL1("Unmarked object encountered %#" Px "\n", raw_addr);
           }
           break;
@@ -53,8 +53,26 @@ void VerifyPointersVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
             allocated_set_->Contains(OldPage::ToWritable(raw_obj))) {
           continue;
         }
-        FATAL2("Invalid object pointer encountered %#" Px ": %#" Px "\n",
-               reinterpret_cast<uword>(current), static_cast<uword>(raw_obj));
+        uword raw_addr = UntaggedObject::ToAddr(raw_obj);
+        FATAL1("Invalid object pointer encountered %#" Px "\n", raw_addr);
+      }
+    }
+  }
+}
+
+void VerifyPointersVisitor::VisitCompressedPointers(uword heap_base,
+                                                    CompressedObjectPtr* first,
+                                                    CompressedObjectPtr* last) {
+  for (CompressedObjectPtr* current = first; current <= last; current++) {
+    ObjectPtr raw_obj = current->Decompress(heap_base);
+    if (raw_obj->IsHeapObject()) {
+      if (!allocated_set_->Contains(raw_obj)) {
+        if (raw_obj->IsInstructions() &&
+            allocated_set_->Contains(OldPage::ToWritable(raw_obj))) {
+          continue;
+        }
+        uword raw_addr = UntaggedObject::ToAddr(raw_obj);
+        FATAL1("Invalid object pointer encountered %#" Px "\n", raw_addr);
       }
     }
   }
@@ -63,7 +81,7 @@ void VerifyPointersVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
 void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
   FinalizablePersistentHandle* handle =
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
-  ObjectPtr raw_obj = handle->raw();
+  ObjectPtr raw_obj = handle->ptr();
   visitor_->VisitPointer(&raw_obj);
 }
 
@@ -104,10 +122,10 @@ void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
   // other isolates. We should either scan live objects from the roots of each
   // individual isolate, or wait until we are ready to share constants across
   // isolates.
-  if (!FLAG_enable_isolate_groups || FLAG_precompiled_mode) {
+  if (!IsolateGroup::AreIsolateGroupsEnabled() || FLAG_precompiled_mode) {
     if ((obj->GetClassId() >= kInstanceCid) &&
         (obj->GetClassId() != kTypeArgumentsCid)) {
-      if (obj->ptr()->IsCanonical()) {
+      if (obj->untag()->IsCanonical()) {
         instanceHandle_ ^= obj;
         const bool is_canonical = instanceHandle_.CheckIsCanonical(thread_);
         if (!is_canonical) {

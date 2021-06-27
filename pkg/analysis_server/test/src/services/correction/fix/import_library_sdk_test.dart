@@ -24,8 +24,8 @@ class ImportLibrarySdkTest extends FixProcessorTest {
     await resolveTestCode('''
 import 'dart:collection' show HashMap;
 main() {
-  HashMap s = null;
-  LinkedHashMap f = null;
+  HashMap? s = null;
+  LinkedHashMap? f = null;
   print('\$s \$f');
 }
 ''');

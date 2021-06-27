@@ -1,0 +1,31 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///literal_from_opt_in_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+class Const<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self2::Const::T% field;
+  const constructor •(self2::Const::T% field) → self2::Const<self2::Const::T%>
+    : self2::Const::field = field, super core::Object::•()
+    ;
+}
+static const field self2::Const<core::int> a = const self2::Const::•<core::int>(0);
+static const field self2::Const<core::int?> b = const self2::Const::•<core::int?>(0);
+static const field self2::Const<core::int?> c = const self2::Const::•<core::int?>(null);
+static const field self2::Const<core::int>? d = const self2::Const::•<core::int>(0);
+static const field self2::Const<core::int>? e = null;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///literal_from_opt_in_lib.dart:11:28 -> InstanceConstant(const Const<int*>{Const.field: 0})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///literal_from_opt_in_lib.dart:12:29 -> InstanceConstant(const Const<int?>{Const.field: 0})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///literal_from_opt_in_lib.dart:13:29 -> InstanceConstant(const Const<int?>{Const.field: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///literal_from_opt_in_lib.dart:14:29 -> InstanceConstant(const Const<int*>{Const.field: 0})
+Extra constant evaluation: evaluated: 5, effectively constant: 4

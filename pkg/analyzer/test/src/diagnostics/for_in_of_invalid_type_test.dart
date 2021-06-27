@@ -10,12 +10,78 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ForInOfInvalidTypeTest);
-    defineReflectiveTests(ForInOfInvalidTypeWithNullSafetyTest);
+    defineReflectiveTests(ForInOfInvalidTypeWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ForInOfInvalidTypeTest extends PubPackageResolutionTest {
+class ForInOfInvalidTypeTest extends PubPackageResolutionTest
+    with ForInOfInvalidTypeTestCases {
+  test_awaitForIn_never() async {
+    await assertErrorsInCode('''
+f(Never e) async {
+  await for (var id in e) {
+    id;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 32, 26),
+    ]);
+    // TODO(scheglov) extract for-in resolution and implement
+//    assertType(findNode.simple('id;'), 'Never');
+  }
+
+  test_awaitForIn_object() async {
+    await assertErrorsInCode('''
+f(Object e) async {
+  await for (var id in e) {
+    id;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 43, 1),
+    ]);
+  }
+
+  test_forIn_interfaceTypeTypedef_iterable() async {
+    await assertNoErrorsInCode('''
+typedef L = List<String>;
+f(L e) {
+  for (var id in e) {
+    id;
+  }
+}
+''');
+  }
+
+  test_forIn_never() async {
+    await assertErrorsInCode('''
+f(Never e) {
+  for (var id in e) {
+    id;
+  }
+}
+''', [
+      error(HintCode.DEAD_CODE, 20, 26),
+    ]);
+    // TODO(scheglov) extract for-in resolution and implement
+//    assertType(findNode.simple('id;'), 'Never');
+  }
+
+  test_forIn_object() async {
+    await assertErrorsInCode('''
+f(Object e) async {
+  for (var id in e) {
+    id;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1),
+    ]);
+  }
+}
+
+mixin ForInOfInvalidTypeTestCases on PubPackageResolutionTest {
   test_awaitForIn_dynamic() async {
     await assertNoErrorsInCode('''
 f(dynamic e) async {
@@ -38,9 +104,42 @@ f(bool e) async {
     ]);
   }
 
+  test_awaitForIn_streamOfDynamic() async {
+    await assertNoErrorsInCode('''
+f(Stream<dynamic> e) async {
+  await for (var id in e) {
+    id;
+  }
+}
+''');
+  }
+
+  test_awaitForIn_streamOfDynamicSubclass() async {
+    await assertNoErrorsInCode('''
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => throw 0;
+}
+f(MyStream<dynamic> e) async {
+  await for (var id in e) {
+    id;
+  }
+}
+''');
+  }
+
   test_forIn_dynamic() async {
     await assertNoErrorsInCode('''
 f(dynamic e) {
+  for (var id in e) {
+    id;
+  }
+}
+''');
+  }
+
+  test_forIn_interfaceType_iterable() async {
+    await assertNoErrorsInCode('''
+f(Iterable e) {
   for (var id in e) {
     id;
   }
@@ -62,33 +161,25 @@ f(bool e) {
 }
 
 @reflectiveTest
-class ForInOfInvalidTypeWithNullSafetyTest extends ForInOfInvalidTypeTest
-    with WithNullSafetyMixin {
-  test_awaitForIn_never() async {
-    await assertErrorsInCode('''
-f(Never e) async {
+class ForInOfInvalidTypeWithoutNullSafetyTest extends PubPackageResolutionTest
+    with ForInOfInvalidTypeTestCases, WithoutNullSafetyMixin {
+  test_awaitForIn_object() async {
+    await assertNoErrorsInCode('''
+f(Object e) async {
   await for (var id in e) {
     id;
   }
 }
-''', [
-      error(HintCode.DEAD_CODE, 32, 26),
-    ]);
-    // TODO(scheglov) extract for-in resolution and implement
-//    assertType(findNode.simple('id;'), 'Never');
+''');
   }
 
-  test_forIn_never() async {
-    await assertErrorsInCode('''
-f(Never e) {
+  test_forIn_object() async {
+    await assertNoErrorsInCode('''
+f(Object e) async {
   for (var id in e) {
     id;
   }
 }
-''', [
-      error(HintCode.DEAD_CODE, 20, 26),
-    ]);
-    // TODO(scheglov) extract for-in resolution and implement
-//    assertType(findNode.simple('id;'), 'Never');
+''');
   }
 }

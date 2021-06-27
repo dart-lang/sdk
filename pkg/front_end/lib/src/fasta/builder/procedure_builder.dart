@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core' hide MapEntry;
+// @dart = 2.9
 
 import 'package:front_end/src/fasta/dill/dill_member_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';
-
-import 'package:kernel/type_algebra.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/forest.dart';
@@ -27,6 +25,8 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
+
+import '../util/helpers.dart';
 
 import 'builder.dart';
 import 'constructor_reference_builder.dart';
@@ -65,7 +65,7 @@ abstract class ProcedureBuilder implements FunctionBuilder {
 
 abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
     implements ProcedureBuilder {
-  final Procedure _procedure;
+  Procedure _procedure;
 
   @override
   final int charOpenParenOffset;
@@ -92,24 +92,34 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       this.kind,
-      SourceLibraryBuilder compilationUnit,
+      SourceLibraryBuilder libraryBuilder,
       int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      Procedure referenceFrom,
-      this.isExtensionInstanceMember,
-      [String nativeMethodName])
-      : _procedure = new Procedure(
-            null, isExtensionInstanceMember ? ProcedureKind.Method : kind, null,
-            fileUri: compilationUnit.fileUri,
-            reference: referenceFrom?.reference)
-          ..startFileOffset = startCharOffset
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
+      Reference procedureReference,
+      ProcedureNameScheme procedureNameScheme,
+      {bool isExtensionMember,
+      bool isInstanceMember,
+      String nativeMethodName})
+      : assert(isExtensionMember != null),
+        assert(isInstanceMember != null),
+        this.isExtensionInstanceMember = isInstanceMember && isExtensionMember,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
-            compilationUnit, charOffset, nativeMethodName);
+            libraryBuilder, charOffset, nativeMethodName) {
+    _procedure = new Procedure(
+        procedureNameScheme.getName(kind, name),
+        isExtensionInstanceMember ? ProcedureKind.Method : kind,
+        new FunctionNode(null),
+        fileUri: libraryBuilder.fileUri,
+        reference: procedureReference)
+      ..startFileOffset = startCharOffset
+      ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+  }
+
+  FunctionNode get function => _procedure.function;
 
   @override
   ProcedureBuilder get origin => actualOrigin ?? this;
@@ -131,11 +141,8 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   void set asyncModifier(AsyncMarker newModifier) {
     actualAsyncModifier = newModifier;
-    if (function != null) {
-      // No parent, it's an enum.
-      function.asyncMarker = actualAsyncModifier;
-      function.dartAsyncMarker = actualAsyncModifier;
-    }
+    function.asyncMarker = actualAsyncModifier;
+    function.dartAsyncMarker = actualAsyncModifier;
   }
 
   @override
@@ -197,12 +204,14 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
     origin.procedure.isExternal = _procedure.isExternal;
     origin.procedure.function = _procedure.function;
     origin.procedure.function.parent = origin.procedure;
+    origin.procedure.isRedirectingFactoryConstructor =
+        _procedure.isRedirectingFactoryConstructor;
     return 1;
   }
 }
 
 class SourceProcedureBuilder extends ProcedureBuilderImpl {
-  final Procedure _tearOffReferenceFrom;
+  final Reference _tearOffReference;
 
   /// If this is an extension instance method then [_extensionTearOff] holds
   /// the synthetically created tear off function.
@@ -224,16 +233,18 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
-      SourceLibraryBuilder compilationUnit,
+      SourceLibraryBuilder libraryBuilder,
       int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      Procedure referenceFrom,
-      this._tearOffReferenceFrom,
+      Reference procedureReference,
+      this._tearOffReference,
       AsyncMarker asyncModifier,
-      bool isExtensionInstanceMember,
-      [String nativeMethodName])
+      ProcedureNameScheme procedureNameScheme,
+      {bool isExtensionMember,
+      bool isInstanceMember,
+      String nativeMethodName})
       : super(
             metadata,
             modifiers,
@@ -242,15 +253,28 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
             typeVariables,
             formals,
             kind,
-            compilationUnit,
+            libraryBuilder,
             startCharOffset,
             charOffset,
             charOpenParenOffset,
             charEndOffset,
-            referenceFrom,
-            isExtensionInstanceMember,
-            nativeMethodName) {
+            procedureReference,
+            procedureNameScheme,
+            isExtensionMember: isExtensionMember,
+            isInstanceMember: isInstanceMember,
+            nativeMethodName: nativeMethodName) {
     this.asyncModifier = asyncModifier;
+    if (isExtensionMember && isInstanceMember && kind == ProcedureKind.Method) {
+      _extensionTearOff ??= new Procedure(
+          procedureNameScheme.getName(ProcedureKind.Getter, name),
+          ProcedureKind.Method,
+          new FunctionNode(null),
+          isStatic: true,
+          isExtensionMember: true,
+          reference: _tearOffReference,
+          fileUri: fileUri)
+        ..isNonNullableByDefault = library.isNonNullableByDefault;
+    }
   }
 
   bool _typeEnsured = false;
@@ -358,33 +382,25 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
 
   @override
   Procedure build(SourceLibraryBuilder libraryBuilder) {
-    // TODO(ahe): I think we may call this twice on parts. Investigate.
-    if (_procedure.name == null) {
-      _procedure.function = buildFunction(libraryBuilder);
-      _procedure.function.parent = _procedure;
-      _procedure.function.fileOffset = charOpenParenOffset;
-      _procedure.function.fileEndOffset = _procedure.fileEndOffset;
-      _procedure.isAbstract = isAbstract;
-      _procedure.isExternal = isExternal;
-      _procedure.isConst = isConst;
-      if (isExtensionMethod) {
-        ExtensionBuilder extensionBuilder = parent;
-        _procedure.isExtensionMember = true;
-        _procedure.isStatic = true;
-        if (isExtensionInstanceMember) {
-          assert(_procedure.kind == ProcedureKind.Method);
-        }
-        _procedure.name = new Name(
-            createProcedureName(true, !isExtensionInstanceMember, kind,
-                extensionBuilder.name, name),
-            libraryBuilder.library);
-      } else {
-        _procedure.isStatic = isStatic;
-        _procedure.name = new Name(name, libraryBuilder.library);
+    buildFunction(libraryBuilder);
+    _procedure.function.fileOffset = charOpenParenOffset;
+    _procedure.function.fileEndOffset = _procedure.fileEndOffset;
+    _procedure.isAbstract = isAbstract;
+    _procedure.isExternal = isExternal;
+    _procedure.isConst = isConst;
+    updatePrivateMemberName(_procedure, libraryBuilder);
+    if (isExtensionMethod) {
+      _procedure.isExtensionMember = true;
+      _procedure.isStatic = true;
+      if (isExtensionInstanceMember) {
+        assert(_procedure.kind == ProcedureKind.Method);
       }
-      if (extensionTearOff != null) {
-        _buildExtensionTearOff(libraryBuilder, parent);
-      }
+    } else {
+      _procedure.isStatic = isStatic;
+    }
+    if (extensionTearOff != null) {
+      _buildExtensionTearOff(libraryBuilder, parent);
+      updatePrivateMemberName(extensionTearOff, libraryBuilder);
     }
     return _procedure;
   }
@@ -441,7 +457,6 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       SourceLibraryBuilder libraryBuilder, ExtensionBuilder extensionBuilder) {
     assert(
         _extensionTearOff != null, "No extension tear off created for $this.");
-    if (_extensionTearOff.name != null) return;
 
     _extensionTearOffParameterMap = {};
 
@@ -549,8 +564,6 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       ..fileOffset = fileOffset;
 
     _extensionTearOff
-      ..name = new Name(
-          '${extensionBuilder.name}|get#${name}', libraryBuilder.library)
       ..function = (new FunctionNode(
           new ReturnStatement(closure)..fileOffset = fileOffset,
           typeParameters: tearOffTypeParameters,
@@ -565,16 +578,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
     _extensionTearOff.function.parent = _extensionTearOff;
   }
 
-  Procedure get extensionTearOff {
-    if (isExtensionInstanceMember && kind == ProcedureKind.Method) {
-      _extensionTearOff ??= new Procedure(null, ProcedureKind.Method, null,
-          isStatic: true,
-          isExtensionMember: true,
-          reference: _tearOffReferenceFrom?.reference)
-        ..isNonNullableByDefault = library.isNonNullableByDefault;
-    }
-    return _extensionTearOff;
-  }
+  Procedure get extensionTearOff => _extensionTearOff;
 
   @override
   VariableDeclaration getExtensionTearOffParameter(int index) {
@@ -593,9 +597,10 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       : <ClassMember>[new SourceProcedureMember(this)];
 
   @override
-  List<ClassMember> get localSetters => _localSetters ??= isSetter
-      ? <ClassMember>[new SourceProcedureMember(this)]
-      : const <ClassMember>[];
+  List<ClassMember> get localSetters =>
+      _localSetters ??= isSetter && !isConflictingSetter
+          ? <ClassMember>[new SourceProcedureMember(this)]
+          : const <ClassMember>[];
 }
 
 class SourceProcedureMember extends BuilderClassMember {
@@ -640,9 +645,6 @@ class SourceProcedureMember extends BuilderClassMember {
       memberBuilder.kind == ProcedureKind.Setter;
 
   @override
-  bool get isFunction => !isProperty;
-
-  @override
   bool isSameDeclaration(ClassMember other) {
     return other is SourceProcedureMember &&
         memberBuilder == other.memberBuilder;
@@ -665,7 +667,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      Procedure referenceFrom,
+      Reference reference,
+      ProcedureNameScheme procedureNameScheme,
       [String nativeMethodName,
       this.redirectionTarget])
       : super(
@@ -681,9 +684,11 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             charOffset,
             charOpenParenOffset,
             charEndOffset,
-            referenceFrom,
-            /* isExtensionInstanceMember = */ false,
-            nativeMethodName);
+            reference,
+            procedureNameScheme,
+            isExtensionMember: false,
+            isInstanceMember: false,
+            nativeMethodName: nativeMethodName);
 
   @override
   Member get readTarget => null;
@@ -715,6 +720,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     bodyInternal = new RedirectingFactoryBody(target, typeArguments);
     function.body = bodyInternal;
     bodyInternal?.parent = function;
+    procedure.isRedirectingFactoryConstructor = true;
     if (isPatch) {
       if (function.typeParameters != null) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
@@ -743,18 +749,13 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
 
   @override
   Procedure build(SourceLibraryBuilder libraryBuilder) {
-    // TODO(ahe): I think we may call this twice on parts. Investigate.
-    if (_procedure.name == null) {
-      _procedure.function = buildFunction(libraryBuilder);
-      _procedure.function.parent = _procedure;
-      _procedure.function.fileOffset = charOpenParenOffset;
-      _procedure.function.fileEndOffset = _procedure.fileEndOffset;
-      _procedure.isAbstract = isAbstract;
-      _procedure.isExternal = isExternal;
-      _procedure.isConst = isConst;
-      _procedure.isStatic = isStatic;
-      _procedure.name = new Name(name, libraryBuilder.library);
-    }
+    buildFunction(libraryBuilder);
+    _procedure.function.fileOffset = charOpenParenOffset;
+    _procedure.function.fileEndOffset = _procedure.fileEndOffset;
+    _procedure.isAbstract = isAbstract;
+    _procedure.isExternal = isExternal;
+    _procedure.isConst = isConst;
+    _procedure.isStatic = isStatic;
     _procedure.isRedirectingFactoryConstructor = true;
     if (redirectionTarget.typeArguments != null) {
       typeArguments = new List<DartType>.filled(
@@ -763,12 +764,14 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
         typeArguments[i] = redirectionTarget.typeArguments[i].build(library);
       }
     }
+    updatePrivateMemberName(_procedure, libraryBuilder);
     return _procedure;
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
-    super.buildOutlineExpressions(library, coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
     LibraryBuilder thisLibrary = this.library;
     if (thisLibrary is SourceLibraryBuilder) {
       RedirectingFactoryBody redirectingFactoryBody = procedure.function.body;
@@ -796,23 +799,15 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
           for (VariableDeclaration parameter
               in member.function.positionalParameters) {
             inferrer.flowAnalysis?.declare(parameter, true);
-            positionalArguments.add(new VariableGetImpl(
-                parameter,
-                inferrer.typePromoter.getFactForAccess(parameter, 0),
-                inferrer.typePromoter.currentScope,
-                forNullGuardedAccess: false));
+            positionalArguments.add(
+                new VariableGetImpl(parameter, forNullGuardedAccess: false));
           }
           List<NamedExpression> namedArguments = <NamedExpression>[];
           for (VariableDeclaration parameter
               in member.function.namedParameters) {
             inferrer.flowAnalysis?.declare(parameter, true);
-            namedArguments.add(new NamedExpression(
-                parameter.name,
-                new VariableGetImpl(
-                    parameter,
-                    inferrer.typePromoter.getFactForAccess(parameter, 0),
-                    inferrer.typePromoter.currentScope,
-                    forNullGuardedAccess: false)));
+            namedArguments.add(new NamedExpression(parameter.name,
+                new VariableGetImpl(parameter, forNullGuardedAccess: false)));
           }
           // If arguments are created using [Forest.createArguments], and the
           // type arguments are omitted, they are to be inferred.
@@ -862,5 +857,30 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     }
 
     return 1;
+  }
+}
+
+class ProcedureNameScheme {
+  final bool isExtensionMember;
+  final bool isStatic;
+  final String extensionName;
+  final Reference libraryReference;
+
+  ProcedureNameScheme(
+      {this.isExtensionMember,
+      this.isStatic,
+      this.extensionName,
+      this.libraryReference})
+      : assert(isExtensionMember != null),
+        assert(isStatic != null),
+        assert(!isExtensionMember || extensionName != null),
+        assert(libraryReference != null);
+
+  Name getName(ProcedureKind kind, String name) {
+    assert(kind != null);
+    return new Name.byReference(
+        SourceProcedureBuilder.createProcedureName(
+            isExtensionMember, isStatic, kind, extensionName, name),
+        libraryReference);
   }
 }

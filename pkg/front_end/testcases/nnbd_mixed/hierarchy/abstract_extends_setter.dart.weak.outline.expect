@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class AbstractSuper extends core::Object {
+  synthetic constructor •() → self::AbstractSuper
+    ;
+  set extendedConcreteSetter(core::int value) → void
+    ;
+  abstract set extendedAbstractSetter(core::int value) → void;
+  set declaredConcreteExtendsConcreteSetter(core::int value) → void
+    ;
+  set declaredAbstractExtendsConcreteSetter(core::int value) → void
+    ;
+  abstract set declaredConcreteExtendsAbstractSetter(core::int value) → void;
+  abstract set declaredAbstractExtendsAbstractSetter(core::int value) → void;
+}
+abstract class AbstractClass extends self::AbstractSuper {
+  synthetic constructor •() → self::AbstractClass
+    ;
+  set declaredConcreteSetter(core::int value) → void
+    ;
+  abstract set declaredAbstractSetter(core::int value) → void;
+  set declaredConcreteExtendsConcreteSetter(core::int value) → void
+    ;
+  abstract set declaredAbstractExtendsConcreteSetter(core::int value) → void;
+  set declaredConcreteExtendsAbstractSetter(core::int value) → void
+    ;
+  abstract set declaredAbstractExtendsAbstractSetter(core::int value) → void;
+}
+static method main() → dynamic
+  ;

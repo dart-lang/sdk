@@ -42,7 +42,7 @@ class ExchangeOperands extends CorrectionProducer {
     // maybe replace the operator
     var operator = binaryExpression.operator;
     // prepare a new operator
-    String newOperator;
+    String? newOperator;
     var operatorType = operator.type;
     if (operatorType == TokenType.LT) {
       newOperator = '>';

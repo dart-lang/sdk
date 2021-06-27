@@ -1,0 +1,15 @@
+M(r0 int32, r1 int32, r2 int32) Struct(size: 9)
+M(r3 int32, S+0 int32, S+4 int32) Struct(size: 9)
+M(S+8 int32, S+12 int32, S+16 int32) Struct(size: 9)
+M(S+20 int32, S+24 int32, S+28 int32) Struct(size: 9)
+M(S+32 int32, S+36 int32, S+40 int32) Struct(size: 9)
+M(S+44 int32, S+48 int32, S+52 int32) Struct(size: 9)
+M(S+56 int32, S+60 int32, S+64 int32) Struct(size: 9)
+M(S+68 int32, S+72 int32, S+76 int32) Struct(size: 9)
+M(S+80 int32, S+84 int32, S+88 int32) Struct(size: 9)
+M(S+92 int32, S+96 int32, S+100 int32) Struct(size: 9)
+S+104 double
+S+112 int32
+S+116 int32
+=>
+(r0, r1) int64[double]

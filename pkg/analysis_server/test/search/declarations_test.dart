@@ -17,10 +17,10 @@ void main() {
 
 @reflectiveTest
 class DeclarationsTest extends AbstractSearchDomainTest {
-  SearchGetElementDeclarationsResult declarationsResult;
+  late SearchGetElementDeclarationsResult declarationsResult;
 
   ElementDeclaration assertHas(String name, ElementKind kind,
-      {String className, String mixinName}) {
+      {String? className, String? mixinName}) {
     return declarationsResult.declarations.singleWhere((ElementDeclaration d) =>
         declarationsResult.files[d.fileIndex] == testFile &&
         d.name == name &&
@@ -212,7 +212,7 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
   }
 
   Future<void> _getDeclarations(
-      {String file, String pattern, int maxResults}) async {
+      {String? file, String? pattern, int? maxResults}) async {
     var request = SearchGetElementDeclarationsParams(
             file: file, pattern: pattern, maxResults: maxResults)
         .toRequest('0');

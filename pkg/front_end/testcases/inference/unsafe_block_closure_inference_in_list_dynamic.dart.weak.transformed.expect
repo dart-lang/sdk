@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::List<dynamic>* v = core::_GrowableList::_literal1<dynamic>(() → core::int* {
+    return 1;
+  });
+}

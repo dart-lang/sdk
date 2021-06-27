@@ -2,7 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
+
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:meta/meta.dart';
+import 'package:pedantic/pedantic.dart';
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:shelf_proxy/shelf_proxy.dart';
+import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:sse/server/sse_handler.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+import '../dds.dart';
+import 'binary_compatible_peer.dart';
+import 'client.dart';
+import 'client_manager.dart';
+import 'constants.dart';
+import 'devtools/devtools_handler.dart';
+import 'expression_evaluator.dart';
+import 'isolate_manager.dart';
+import 'stream_manager.dart';
 
 @visibleForTesting
 typedef PeerBuilder = Future<json_rpc.Peer> Function(WebSocketChannel, dynamic);
@@ -18,20 +42,26 @@ WebSocketBuilder webSocketBuilder = _defaultWebSocketBuilder;
 
 Future<json_rpc.Peer> _defaultPeerBuilder(
     WebSocketChannel ws, dynamic streamManager) async {
-  return _BinaryCompatiblePeer(ws, streamManager);
+  return BinaryCompatiblePeer(ws, streamManager);
 }
 
 WebSocketChannel _defaultWebSocketBuilder(Uri uri) {
   return WebSocketChannel.connect(uri.replace(scheme: 'ws'));
 }
 
-class _DartDevelopmentService implements DartDevelopmentService {
-  _DartDevelopmentService(
-      this._remoteVmServiceUri, this._uri, this._authCodesEnabled, this._ipv6) {
-    _clientManager = _ClientManager(this);
-    _expressionEvaluator = _ExpressionEvaluator(this);
-    _isolateManager = _IsolateManager(this);
-    _streamManager = _StreamManager(this);
+class DartDevelopmentServiceImpl implements DartDevelopmentService {
+  DartDevelopmentServiceImpl(
+    this._remoteVmServiceUri,
+    this._uri,
+    this._authCodesEnabled,
+    this._ipv6,
+    this._devToolsConfiguration,
+    this.shouldLogRequests,
+  ) {
+    _clientManager = ClientManager(this);
+    _expressionEvaluator = ExpressionEvaluator(this);
+    _isolateManager = IsolateManager(this);
+    _streamManager = StreamManager(this);
     _authCode = _authCodesEnabled ? _makeAuthToken() : '';
   }
 
@@ -41,22 +71,22 @@ class _DartDevelopmentService implements DartDevelopmentService {
     // TODO(bkonyi): throw if we've already shutdown.
     // Establish the connection to the VM service.
     _vmServiceSocket = webSocketBuilder(remoteVmServiceWsUri);
-    _vmServiceClient = await peerBuilder(_vmServiceSocket, _streamManager);
+    vmServiceClient = await peerBuilder(_vmServiceSocket, _streamManager);
     // Setup the JSON RPC client with the VM service.
     unawaited(
-      _vmServiceClient.listen().then(
+      vmServiceClient.listen().then(
         (_) {
           shutdown();
           if (!started && !completer.isCompleted) {
-            completer.completeError(
-                DartDevelopmentServiceException._failedToStartError());
+            completer
+                .completeError(DartDevelopmentServiceException.failedToStart());
           }
         },
         onError: (e, st) {
           shutdown();
           if (!completer.isCompleted) {
             completer.completeError(
-              DartDevelopmentServiceException._connectionError(e.toString()),
+              DartDevelopmentServiceException.connectionIssue(e.toString()),
               st,
             );
           }
@@ -89,55 +119,64 @@ class _DartDevelopmentService implements DartDevelopmentService {
         (_ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4)
             .host;
     final port = uri?.port ?? 0;
-
+    var pipeline = const Pipeline();
+    if (shouldLogRequests) {
+      pipeline = pipeline.addMiddleware(
+        logRequests(
+          logger: (String message, bool isError) {
+            print('Log: $message');
+          },
+        ),
+      );
+    }
+    pipeline = pipeline.addMiddleware(_authCodeMiddleware);
+    final handler = pipeline.addHandler(_handlers().handler);
     // Start the DDS server.
-    _server = await io.serve(
-        const Pipeline()
-            .addMiddleware(_authCodeMiddleware)
-            .addHandler(_handlers().handler),
-        host,
-        port);
+    _server = await io.serve(handler, host, port);
 
     final tmpUri = Uri(
       scheme: 'http',
       host: host,
       port: _server.port,
-      path: '$_authCode/',
+      path: '$authCode/',
     );
 
     // Notify the VM service that this client is DDS and that it should close
     // and refuse connections from other clients. DDS is now acting in place of
     // the VM service.
     try {
-      await _vmServiceClient.sendRequest('_yieldControlToDDS', {
+      await vmServiceClient.sendRequest('_yieldControlToDDS', {
         'uri': tmpUri.toString(),
       });
     } on json_rpc.RpcException catch (e) {
       await _server.close(force: true);
+      String message = e.toString();
+      if (e.data != null) {
+        message += ' data: ${e.data}';
+      }
       // _yieldControlToDDS fails if DDS is not the only VM service client.
-      throw DartDevelopmentServiceException._existingDdsInstanceError(
-        e.data != null ? e.data['details'] : e.toString(),
-      );
+      throw DartDevelopmentServiceException.existingDdsInstance(message);
     }
 
     _uri = tmpUri;
   }
 
   /// Stop accepting requests after gracefully handling existing requests.
+  @override
   Future<void> shutdown() async {
     if (_done.isCompleted || _shuttingDown) {
       // Already shutdown.
       return;
     }
     _shuttingDown = true;
-    // Don't accept anymore HTTP requests.
-    await _server?.close();
+    // Don't accept any more HTTP requests.
+    await _server.close();
 
     // Close connections to clients.
     await clientManager.shutdown();
 
     // Close connection to VM service.
-    await _vmServiceSocket?.sink?.close();
+    await _vmServiceSocket.sink.close();
 
     _done.complete();
   }
@@ -170,7 +209,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
             return forbidden;
           }
           final authToken = pathSegments[0];
-          if (authToken != _authCode) {
+          if (authToken != authCode) {
             return forbidden;
           }
           // Creates a new request with the authentication code stripped from
@@ -197,24 +236,27 @@ class _DartDevelopmentService implements DartDevelopmentService {
   }
 
   Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws) {
-        final client = _DartDevelopmentServiceClient.fromWebSocket(
+        final client = DartDevelopmentServiceClient.fromWebSocket(
           this,
           ws,
-          _vmServiceClient,
+          vmServiceClient,
         );
         clientManager.addClient(client);
       });
 
   Handler _sseHandler() {
-    final handler = authCodesEnabled
-        ? SseHandler(Uri.parse('/$_authCode/$_kSseHandlerPath'))
-        : SseHandler(Uri.parse('/$_kSseHandlerPath'));
+    final handler = SseHandler(
+      authCodesEnabled
+          ? Uri.parse('/$authCode/$_kSseHandlerPath')
+          : Uri.parse('/$_kSseHandlerPath'),
+      keepAlive: sseKeepAlive,
+    );
 
     handler.connections.rest.listen((sseConnection) {
-      final client = _DartDevelopmentServiceClient.fromSSEConnection(
+      final client = DartDevelopmentServiceClient.fromSSEConnection(
         this,
         sseConnection,
-        _vmServiceClient,
+        vmServiceClient,
       );
       clientManager.addClient(client);
     });
@@ -223,10 +265,18 @@ class _DartDevelopmentService implements DartDevelopmentService {
   }
 
   Handler _httpHandler() {
-    // DDS doesn't support any HTTP requests itself, so we just forward all of
-    // them to the VM service.
-    final cascade = Cascade().add(proxyHandler(remoteVmServiceUri));
-    return cascade.handler;
+    if (_devToolsConfiguration != null && _devToolsConfiguration!.enable) {
+      // Install the DevTools handlers and forward any unhandled HTTP requests to
+      // the VM service.
+      final String buildDir =
+          _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
+      return devtoolsHandler(
+        dds: this,
+        buildDir: buildDir,
+        notFoundHandler: proxyHandler(remoteVmServiceUri),
+      ) as FutureOr<Response> Function(Request);
+    }
+    return proxyHandler(remoteVmServiceUri);
   }
 
   List<String> _cleanupPathSegments(Uri uri) {
@@ -242,7 +292,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     return pathSegments;
   }
 
-  Uri _toWebSocket(Uri uri) {
+  Uri? _toWebSocket(Uri? uri) {
     if (uri == null) {
       return null;
     }
@@ -251,7 +301,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     return uri.replace(scheme: 'ws', pathSegments: pathSegments);
   }
 
-  Uri _toSse(Uri uri) {
+  Uri? _toSse(Uri? uri) {
     if (uri == null) {
       return null;
     }
@@ -260,45 +310,87 @@ class _DartDevelopmentService implements DartDevelopmentService {
     return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
-  String _getNamespace(_DartDevelopmentServiceClient client) =>
+  Uri? _toDevTools(Uri? uri) {
+    // The DevTools URI is a bit strange as the query parameters appear after
+    // the fragment. There's no nice way to encode the query parameters
+    // properly, so we create another Uri just to grab the formatted query.
+    // The result will need to have '/?' prepended when being used as the
+    // fragment to get the correct format.
+    final query = Uri(
+      queryParameters: {
+        'uri': wsUri.toString(),
+      },
+    ).query;
+    return Uri(
+      scheme: 'http',
+      host: uri!.host,
+      port: uri.port,
+      pathSegments: [
+        ...uri.pathSegments.where(
+          (e) => e.isNotEmpty,
+        ),
+        'devtools',
+        '',
+      ],
+      fragment: '/?$query',
+    );
+  }
+
+  String? getNamespace(DartDevelopmentServiceClient client) =>
       clientManager.clients.keyOf(client);
 
   bool get authCodesEnabled => _authCodesEnabled;
   final bool _authCodesEnabled;
-  String _authCode;
+  String? get authCode => _authCode;
+  String? _authCode;
+
+  final bool shouldLogRequests;
 
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
-  Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri);
+
+  @override
+  Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri)!;
   Uri _remoteVmServiceUri;
 
-  Uri get uri => _uri;
-  Uri get sseUri => _toSse(_uri);
-  Uri get wsUri => _toWebSocket(_uri);
-  Uri _uri;
+  @override
+  Uri? get uri => _uri;
+  Uri? _uri;
+
+  @override
+  Uri? get sseUri => _toSse(_uri);
+
+  @override
+  Uri? get wsUri => _toWebSocket(_uri);
+
+  @override
+  Uri? get devToolsUri =>
+      _devToolsConfiguration?.enable ?? false ? _toDevTools(_uri) : null;
 
   final bool _ipv6;
 
   bool get isRunning => _uri != null;
 
+  final DevToolsConfiguration? _devToolsConfiguration;
+
   Future<void> get done => _done.future;
   Completer _done = Completer<void>();
   bool _shuttingDown = false;
 
-  _ClientManager get clientManager => _clientManager;
-  _ClientManager _clientManager;
+  ClientManager get clientManager => _clientManager;
+  late ClientManager _clientManager;
 
-  _ExpressionEvaluator get expressionEvaluator => _expressionEvaluator;
-  _ExpressionEvaluator _expressionEvaluator;
+  ExpressionEvaluator get expressionEvaluator => _expressionEvaluator;
+  late ExpressionEvaluator _expressionEvaluator;
 
-  _IsolateManager get isolateManager => _isolateManager;
-  _IsolateManager _isolateManager;
+  IsolateManager get isolateManager => _isolateManager;
+  late IsolateManager _isolateManager;
 
-  _StreamManager get streamManager => _streamManager;
-  _StreamManager _streamManager;
+  StreamManager get streamManager => _streamManager;
+  late StreamManager _streamManager;
 
   static const _kSseHandlerPath = '\$debugHandler';
 
-  json_rpc.Peer _vmServiceClient;
-  WebSocketChannel _vmServiceSocket;
-  HttpServer _server;
+  late json_rpc.Peer vmServiceClient;
+  late WebSocketChannel _vmServiceSocket;
+  late HttpServer _server;
 }

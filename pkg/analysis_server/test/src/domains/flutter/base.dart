@@ -43,8 +43,8 @@ class FlutterBase extends AbstractAnalysisTest {
     projectPath = convertPath('/home');
     testFile = convertPath('/home/test/lib/test.dart');
 
-    newFile('/home/test/pubspec.yaml', content: '');
-    newFile('/home/test/.packages', content: '''
+    newPubspecYamlFile('/home/test', '');
+    newDotPackagesFile('/home/test', content: '''
 test:${toUri('/home/test/lib')}
 ''');
 
@@ -57,12 +57,12 @@ test:${toUri('/home/test/lib')}
   void _addFlutterPackage() {
     _addMetaPackage();
     var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-    _addPackageDependency('flutter', libFolder.parent.path);
+    _addPackageDependency('flutter', libFolder.parent2.path);
   }
 
   void _addMetaPackage() {
     var libFolder = MockPackages.instance.addMeta(resourceProvider);
-    _addPackageDependency('meta', libFolder.parent.path);
+    _addPackageDependency('meta', libFolder.parent2.path);
   }
 
   void _addPackageDependency(String name, String rootPath) {

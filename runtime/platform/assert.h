@@ -30,7 +30,7 @@ class DynamicAssertionHelper {
       : file_(file), line_(line) {}
 
  protected:
-  void Print(const char* format, va_list arguments);
+  void Print(const char* format, va_list arguments, bool will_abort = false);
 
   const char* const file_;
   const int line_;
@@ -339,7 +339,15 @@ void Expect::Null(const T p) {
 
 #define EXPECT_NULLPTR(ptr) dart::Expect(__FILE__, __LINE__).Null((ptr))
 
-#define FAIL(error) dart::Expect(__FILE__, __LINE__).Fail("%s", error)
+#if defined(_MSC_VER)
+#define FAIL(format, ...)                                                      \
+  dart::Expect(__FILE__, __LINE__).Fail(format, __VA_ARGS__);
+#else
+#define FAIL(format, ...)                                                      \
+  dart::Expect(__FILE__, __LINE__).Fail(format, ##__VA_ARGS__);
+#endif
+
+// Leaving old non-varargs versions to avoid having to rewrite all uses.
 
 #define FAIL1(format, p1) dart::Expect(__FILE__, __LINE__).Fail(format, (p1))
 

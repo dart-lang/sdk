@@ -18,15 +18,18 @@ class ConvertIntoForIndex extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // find enclosing ForEachStatement
-    var forEachStatement = node.thisOrAncestorMatching(
-            (node) => node is ForStatement && node.forLoopParts is ForEachParts)
-        as ForStatement;
-    if (forEachStatement == null) {
+    var forStatement = node.thisOrAncestorOfType<ForStatement>();
+    if (forStatement is! ForStatement) {
       return;
     }
-    ForEachParts forEachParts = forEachStatement.forLoopParts;
-    if (selectionOffset < forEachStatement.offset ||
-        forEachStatement.rightParenthesis.end < selectionOffset) {
+
+    var forEachParts = forStatement.forLoopParts;
+    if (forEachParts is! ForEachParts) {
+      return;
+    }
+
+    if (selectionOffset < forStatement.offset ||
+        forStatement.rightParenthesis.end < selectionOffset) {
       return;
     }
     // loop should declare variable
@@ -54,15 +57,15 @@ class ConvertIntoForIndex extends CorrectionProducer {
       }
     }
     // body should be Block
-    if (forEachStatement.body is! Block) {
+    var body = forStatement.body;
+    if (body is! Block) {
       return;
     }
-    Block body = forEachStatement.body;
     // prepare a name for the index variable
     String indexName;
     {
       var conflicts =
-          utils.findPossibleLocalVariableConflicts(forEachStatement.offset);
+          utils.findPossibleLocalVariableConflicts(forStatement.offset);
       if (!conflicts.contains('i')) {
         indexName = 'i';
       } else if (!conflicts.contains('j')) {
@@ -74,14 +77,14 @@ class ConvertIntoForIndex extends CorrectionProducer {
       }
     }
     // prepare environment
-    var prefix = utils.getNodePrefix(forEachStatement);
+    var prefix = utils.getNodePrefix(forStatement);
     var indent = utils.getIndent(1);
     var firstBlockLine = utils.getLineContentEnd(body.leftBracket.end);
     // add change
     await builder.addDartFileEdit(file, (builder) {
       // TODO(brianwilkerson) Create linked positions for the loop variable.
       builder.addSimpleReplacement(
-          range.startEnd(forEachStatement, forEachStatement.rightParenthesis),
+          range.startEnd(forStatement, forStatement.rightParenthesis),
           'for (int $indexName = 0; $indexName < $listName.length; $indexName++)');
       builder.addSimpleInsertion(firstBlockLine,
           '$prefix$indent$loopVariable = $listName[$indexName];$eol');

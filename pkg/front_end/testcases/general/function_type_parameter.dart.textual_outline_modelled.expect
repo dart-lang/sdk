@@ -1,0 +1,13 @@
+// @dart = 2.13
+class A {
+  const A();
+}
+
+class Class<T extends void Function<@A() S>(S)> {}
+
+main() {}
+typedef F = void Function<@A() T>(T);
+typedef void G<@A() T>(T t);
+void Function<@A() T>(T)? f;
+void method1<@A() T>(T t) {}
+void method2(void Function<@A() T>(T) f) {}

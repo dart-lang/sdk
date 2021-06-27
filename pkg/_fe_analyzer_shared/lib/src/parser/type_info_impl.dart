@@ -412,14 +412,23 @@ class VoidType implements TypeInfo {
   }
 }
 
-bool looksLikeName(Token token) =>
-    token.kind == IDENTIFIER_TOKEN ||
-    optional('this', token) ||
-    (token.isIdentifier &&
-        // Although `typedef` is a legal identifier,
-        // type `typedef` identifier is not legal and in this situation
-        // `typedef` is probably a separate declaration.
-        (!optional('typedef', token) || !token.next!.isIdentifier));
+bool looksLikeName(Token token) {
+  // End-of-file isn't a name, but this is called in a situation where
+  // if there had been a name it would have used the type-info it had
+  // collected --- this being eof probably mean the user is currently
+  // typing and will probably write a name in a moment.
+  return looksLikeNameSimpleType(token) || token.isEof;
+}
+
+bool looksLikeNameSimpleType(Token token) {
+  return token.kind == IDENTIFIER_TOKEN ||
+      optional('this', token) ||
+      (token.isIdentifier &&
+          // Although `typedef` is a legal identifier,
+          // type `typedef` identifier is not legal and in this situation
+          // `typedef` is probably a separate declaration.
+          (!optional('typedef', token) || !token.next!.isIdentifier));
+}
 
 /// When missing a comma, determine if the given token looks like it should
 /// be part of a collection of type parameters or arguments.
@@ -906,13 +915,16 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   final bool allowsVariance;
 
   @override
-  late int typeArgumentCount;
+  int typeArgumentCount = 0;
 
   /// The `>` token which ends the type parameter or argument.
   /// This closer may be synthetic, points to the next token in the stream,
   /// is only used when skipping over the type parameters or arguments,
   /// and may not be part of the token stream.
   Token? skipEnd;
+
+  @override
+  bool recovered = false;
 
   ComplexTypeParamOrArgInfo(
       Token token, this.inDeclaration, this.allowsVariance)
@@ -929,7 +941,6 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   TypeParamOrArgInfo compute() {
     Token token;
     Token next = start;
-    typeArgumentCount = 0;
     while (true) {
       TypeInfo typeInfo =
           computeType(next, /* required = */ true, inDeclaration);
@@ -980,6 +991,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     // Recovery
     skipEnd = splitCloser(next);
     if (skipEnd == null) {
+      recovered = true;
       if (optional('(', next)) {
         token = next.endGroup!;
         next = token.next!;

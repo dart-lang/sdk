@@ -1,0 +1,10 @@
+// @dart = 2.9
+import 'main_lib1.dart';
+import 'object_lib.dart';
+
+class AdaptorElement extends RenderObject {
+  Adaptor get renderObject => super.renderObject;
+  void foo() {}
+}
+
+main() {}

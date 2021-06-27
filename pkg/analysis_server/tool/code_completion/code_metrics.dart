@@ -12,7 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
 
 /// Compute and print lexical and semantic information about a package.
@@ -50,7 +50,7 @@ ArgParser createArgParser() {
 }
 
 /// Print usage information for this tool.
-void printUsage(ArgParser parser, {String error}) {
+void printUsage(ArgParser parser, {String? error}) {
   if (error != null) {
     print(error);
     print('');
@@ -110,7 +110,7 @@ class CodeShapeData {
   /// Record that an element of the given [node] was found in the given
   /// [context].
   void recordNode(String nodeClassName, String property, AstNode node) {
-    var childClass = node?.runtimeType?.toString() ?? 'null';
+    var childClass = node.runtimeType.toString();
     if (childClass.endsWith('Impl')) {
       childClass = childClass.substring(0, childClass.length - 4);
     }
@@ -134,7 +134,7 @@ class CodeShapeData {
     classMap[parentClassName] = (classMap[parentClassName] ?? 0) + 1;
   }
 
-  void recordToken(String nodeClassName, String property, Token token) {
+  void recordToken(String nodeClassName, String property, Token? token) {
     var lexeme = token?.lexeme ?? 'null';
     _recordChildData(nodeClassName, property, lexeme);
   }
@@ -1311,7 +1311,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   /// Visit the children of a node. The node is an instance of the class named
   /// [parentClass] and the children are in the [childMap], keyed by the name of
   /// the child property.
-  void _visitChildren(AstNode node, Map<String, Object> childMap) {
+  void _visitChildren(AstNode node, Map<String, Object?> childMap) {
     var nodeClassName = _className(node);
 
     data.recordNodeClass(nodeClassName);
@@ -1331,7 +1331,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       } else if (child is NodeList) {
         data.recordNodeList(nodeClassName, property, child);
         visitChildren.addAll(child);
-      } else if (child is Token || child == null) {
+      } else if (child is Token?) {
         data.recordToken(nodeClassName, property, child);
       } else {
         throw ArgumentError('Unknown class of child: ${child.runtimeType}');
@@ -1389,15 +1389,16 @@ class CodeShapeMetricsComputer {
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (AnalysisEngine.isDartFileName(filePath)) {
+      if (file_paths.isDart(pathContext, filePath)) {
         try {
           var resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+              await context.currentSession.getResolvedUnit2(filePath);
           //
           // Check for errors that cause the file to be skipped.
           //
-          if (resolvedUnitResult.state != ResultState.VALID) {
+          if (resolvedUnitResult is! ResolvedUnitResult) {
             print('File $filePath skipped because it could not be analyzed.');
             print('');
             continue;
@@ -1410,7 +1411,7 @@ class CodeShapeMetricsComputer {
             continue;
           }
 
-          resolvedUnitResult.unit.accept(collector);
+          resolvedUnitResult.unit!.accept(collector);
         } catch (exception) {
           print('Exception caught analyzing: "$filePath"');
           print(exception.toString());
@@ -1423,9 +1424,6 @@ class CodeShapeMetricsComputer {
   /// column occupied by the map.
   List<String> _convertMap<T extends Object>(String context, Map<T, int> map) {
     var columns = <String>[];
-    if (map == null) {
-      return columns;
-    }
     var entries = map.entries.toList()
       ..sort((first, second) {
         return second.value.compareTo(first.value);

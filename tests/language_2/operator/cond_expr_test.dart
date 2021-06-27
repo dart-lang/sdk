@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that conditional expressions can contain assignment expressions.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 var e1, e2;

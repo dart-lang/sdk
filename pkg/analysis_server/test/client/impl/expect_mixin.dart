@@ -8,7 +8,7 @@ typedef _Predicate<T> = bool Function(T value);
 
 /// Lightweight expect that can be run outside of a test context.
 class ExpectMixin {
-  void expect(actual, matcher, {String reason}) {
+  void expect(actual, matcher, {String? reason}) {
     matcher = _wrapMatcher(matcher);
     var matchState = {};
     try {
@@ -30,7 +30,6 @@ class ExpectMixin {
     } else if (x is _Predicate<Null>) {
       // x is a unary predicate, but expects a specific type
       // so wrap it.
-      // ignore: unnecessary_lambdas
       return predicate((a) => (x as dynamic)(a));
     } else {
       return equals(x);

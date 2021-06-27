@@ -1,0 +1,109 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib1.dart" as mai;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+import "org-dartlang-testcase:///main_lib2.dart";
+
+abstract class _Class&Object&Mixin1<T extends core::Object* = dynamic> = core::Object with mai::Mixin1<self::_Class&Object&Mixin1::T*> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class&Object&Mixin1<self::_Class&Object&Mixin1::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _Class&Object&Mixin1&Mixin2<T extends core::Object* = dynamic> = self::_Class&Object&Mixin1<self::_Class&Object&Mixin1&Mixin2::T*> with mai::Mixin2<self::_Class&Object&Mixin1&Mixin2::T*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Object&Mixin1&Mixin2<self::_Class&Object&Mixin1&Mixin2::T*>*
+    : super self::_Class&Object&Mixin1::•()
+    ;
+  mixin-super-stub get field() → (dynamic) →* core::Type*
+    return super.{mai::Mixin2::field};
+  mixin-super-stub set field((dynamic) →* core::Type* value) → void
+    return super.{mai::Mixin2::field} = value;
+  mixin-super-stub method method1() → (dynamic) →* core::Type*
+    return super.{mai::Mixin2::method1}();
+  mixin-super-stub method method2((dynamic) →* core::Type* t) → void
+    return super.{mai::Mixin2::method2}(t);
+}
+class Class<T extends core::Object* = dynamic> extends self::_Class&Object&Mixin1&Mixin2<self::Class::T*> {
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    ;
+  set field((dynamic) →* core::Type* value) → void
+    ;
+}
+static method main() → dynamic
+  ;
+
+library;
+import self as mai;
+import "dart:core" as core;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib2.dart";
+
+abstract class Mixin1<T extends core::Object* = dynamic> extends core::Object implements mai2::Interface<mai2::Value<dynamic>*, core::Object*> {
+  synthetic constructor •() → mai::Mixin1<mai::Mixin1::T*>*
+    ;
+  abstract member-signature get field() → (core::Object*) →* core::Type*; -> mai2::Interface::field
+  abstract member-signature set field((core::Object*) →* core::Type* value) → void; -> mai2::Interface::field
+  abstract member-signature method method1() → (core::Object*) →* core::Type*; -> mai2::Interface::method1
+  abstract member-signature method method2((core::Object*) →* core::Type* t) → void; -> mai2::Interface::method2
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class Mixin2<T extends core::Object* = dynamic> extends core::Object implements mai2::Interface<mai2::Value<dynamic>*, core::Object*> {
+  field (dynamic) →* core::Type* field;
+  synthetic constructor •() → mai::Mixin2<mai::Mixin2::T*>*
+    ;
+  method method1() → (dynamic) →* core::Type*
+    ;
+  method method2((dynamic) →* core::Type* t) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai2;
+import "dart:core" as core;
+
+typedef Typedef<unrelated T extends mai2::Value<dynamic>, contravariant I extends core::Object? = dynamic> = (I%) → core::Type;
+abstract class Value<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → mai2::Value<mai2::Value::T%>
+    ;
+}
+class Interface<T extends mai2::Value<dynamic>, I extends core::Object? = dynamic> extends core::Object {
+  field (mai2::Interface::I%) →? core::Type field;
+  synthetic constructor •() → mai2::Interface<mai2::Interface::T, mai2::Interface::I%>
+    ;
+  method method1() → (mai2::Interface::I%) →? core::Type
+    ;
+  method method2((mai2::Interface::I%) →? core::Type t) → void
+    ;
+}

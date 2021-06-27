@@ -62,7 +62,7 @@ class MyAssistContributor extends Object
     with AssistContributorMixin
     implements AssistContributor {
   static AssistKind wrapInIf =
-      new AssistKind('wrapInIf', 100, "Wrap in an 'if' statement");
+      AssistKind('wrapInIf', 100, "Wrap in an 'if' statement");
 
   DartAssistRequest request;
 
@@ -71,21 +71,24 @@ class MyAssistContributor extends Object
   AnalysisSession get session => request.result.session;
 
   @override
-  void computeAssists(DartAssistRequest request, AssistCollector collector) {
+  Future<void> computeAssists(DartAssistRequest request, AssistCollector collector) async {
     this.request = request;
     this.collector = collector;
-    _wrapInIf();
-    _wrapInWhile();
+    await _wrapInIf();
+    await _wrapInWhile();
     // ...
   }
 
-  void _wrapInIf() {
-    ChangeBuilder builder = new ChangeBuilder(session: session);
-    // TODO Build the edit to wrap the selection in a 'if' statement.
+  Future<void> _wrapInIf() async {
+    ChangeBuilder builder = ChangeBuilder(session: session);
+    await changeBuilder.addDartFileEdit(path,
+        (DartFileEditBuilder fileEditBuilder) {
+      // TODO Build the edit to wrap the selection in a 'if' statement.
+    });
     addAssist(wrapInIf, builder);
   }
 
-  void _wrapInWhile() {
+  Future<void> _wrapInWhile() async {
     // ...
   }
 }
@@ -99,8 +102,8 @@ class MyPlugin extends ServerPlugin with AssistsMixin, DartAssistsMixin {
   // ...
 
   @override
-  List<AssistContributor> getAssistContributors(AnalysisDriver driver) {
-    return <AssistContributor>[new MyAssistContributor()];
+  List<AssistContributor> getAssistContributors(String path) {
+    return <AssistContributor>[MyAssistContributor()];
   }
 }
 ```

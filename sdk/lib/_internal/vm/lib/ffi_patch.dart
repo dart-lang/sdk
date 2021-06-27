@@ -26,18 +26,9 @@ int get _intPtrSize => (const [8, 4, 4])[_abi()];
 
 @patch
 int sizeOf<T extends NativeType>() {
-  // This is not super fast, but it is faster than a runtime entry.
-  // Hot loops with elementAt().load() do not use this sizeOf, elementAt is
-  // optimized per NativeType statically to prevent use of sizeOf at runtime.
-  final int? knownSize = _knownSizes[T];
-  if (knownSize != null) return knownSize;
-  if (T == IntPtr) return _intPtrSize;
-  if (T == Pointer) return _intPtrSize;
-  // For structs we fall back to a runtime entry.
-  return _sizeOf<T>();
+  // This case should have been rewritten in pre-processing.
+  throw UnimplementedError("$T");
 }
-
-int _sizeOf<T extends NativeType>() native "Ffi_sizeOf";
 
 @pragma("vm:recognized", "other")
 Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
@@ -47,7 +38,8 @@ Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
 // this function.
 @pragma("vm:recognized", "other")
 DS _asFunctionInternal<DS extends Function, NS extends Function>(
-    Pointer<NativeFunction<NS>> ptr) native "Ffi_asFunctionInternal";
+    Pointer<NativeFunction<NS>> ptr,
+    bool isLeaf) native "Ffi_asFunctionInternal";
 
 dynamic _asExternalTypedData(Pointer ptr, int count)
     native "Ffi_asExternalTypedData";
@@ -98,11 +90,13 @@ class Pointer<T extends NativeType> {
   @pragma("vm:recognized", "other")
   int get address native "Ffi_address";
 
-  // For statically known types, this is rewired.
-  // (Method sizeOf is slow, see notes above.)
+  // For statically known types, this is rewritten.
   @patch
-  Pointer<T> elementAt(int index) =>
-      Pointer.fromAddress(address + sizeOf<T>() * index);
+  Pointer<T> elementAt(int index) {
+    // This case should have been rewritten in pre-processing.
+    // Only dynamic invocations are not rewritten in pre-processing.
+    throw UnsupportedError("Pointer.elementAt cannot be called dynamically.");
+  }
 
   @patch
   Pointer<T> _offsetBy(int offsetInBytes) =>
@@ -110,6 +104,35 @@ class Pointer<T extends NativeType> {
 
   @patch
   Pointer<U> cast<U extends NativeType>() => Pointer.fromAddress(address);
+}
+
+@patch
+@pragma("vm:entry-point")
+class Array<T extends NativeType> {
+  @pragma("vm:entry-point")
+  final Object _typedDataBase;
+
+  @pragma("vm:entry-point")
+  final int _size;
+
+  @pragma("vm:entry-point")
+  final List<int> _nestedDimensions;
+
+  @pragma("vm:entry-point")
+  Array._(this._typedDataBase, this._size, this._nestedDimensions);
+
+  late final int _nestedDimensionsFlattened = _nestedDimensions.fold(
+      1, (accumulator, element) => accumulator * element);
+
+  late final int _nestedDimensionsFirst = _nestedDimensions.first;
+
+  late final List<int> _nestedDimensionsRest = _nestedDimensions.sublist(1);
+
+  _checkIndex(int index) {
+    if (index < 0 || index >= _size) {
+      throw RangeError.range(index, 0, _size - 1);
+    }
+  }
 }
 
 /// Returns an integer encoding the ABI used for size and alignment
@@ -168,92 +191,111 @@ void _memCopy(Object target, int targetOffsetInBytes, Object source,
 // and GCing new spaces takes a lot of the benchmark time. The next speedup is
 // getting rid of these allocations by inlining these functions.
 @pragma("vm:recognized", "other")
-int _loadInt8(Pointer pointer, int offsetInBytes) native "Ffi_loadInt8";
+int _loadInt8(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt8";
 
 @pragma("vm:recognized", "other")
-int _loadInt16(Pointer pointer, int offsetInBytes) native "Ffi_loadInt16";
+int _loadInt16(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt16";
 
 @pragma("vm:recognized", "other")
-int _loadInt32(Pointer pointer, int offsetInBytes) native "Ffi_loadInt32";
+int _loadInt32(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt32";
 
 @pragma("vm:recognized", "other")
-int _loadInt64(Pointer pointer, int offsetInBytes) native "Ffi_loadInt64";
+int _loadInt64(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt64";
 
 @pragma("vm:recognized", "other")
-int _loadUint8(Pointer pointer, int offsetInBytes) native "Ffi_loadUint8";
+int _loadUint8(Object typedDataBase, int offsetInBytes) native "Ffi_loadUint8";
 
 @pragma("vm:recognized", "other")
-int _loadUint16(Pointer pointer, int offsetInBytes) native "Ffi_loadUint16";
+int _loadUint16(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadUint16";
 
 @pragma("vm:recognized", "other")
-int _loadUint32(Pointer pointer, int offsetInBytes) native "Ffi_loadUint32";
+int _loadUint32(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadUint32";
 
 @pragma("vm:recognized", "other")
-int _loadUint64(Pointer pointer, int offsetInBytes) native "Ffi_loadUint64";
+int _loadUint64(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadUint64";
 
 @pragma("vm:recognized", "other")
-int _loadIntPtr(Pointer pointer, int offsetInBytes) native "Ffi_loadIntPtr";
+int _loadIntPtr(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadIntPtr";
 
 @pragma("vm:recognized", "other")
-double _loadFloat(Pointer pointer, int offsetInBytes) native "Ffi_loadFloat";
+double _loadFloat(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadFloat";
 
 @pragma("vm:recognized", "other")
-double _loadDouble(Pointer pointer, int offsetInBytes) native "Ffi_loadDouble";
+double _loadDouble(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadDouble";
+
+@pragma("vm:recognized", "other")
+double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadFloatUnaligned";
+
+@pragma("vm:recognized", "other")
+double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadDoubleUnaligned";
 
 @pragma("vm:recognized", "other")
 Pointer<S> _loadPointer<S extends NativeType>(
-    Pointer pointer, int offsetInBytes) native "Ffi_loadPointer";
-
-S _loadStruct<S extends Struct>(Pointer<S> pointer, int index)
-    native "Ffi_loadStruct";
+    Object typedDataBase, int offsetInBytes) native "Ffi_loadPointer";
 
 @pragma("vm:recognized", "other")
-void _storeInt8(Pointer pointer, int offsetInBytes, int value)
+void _storeInt8(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeInt8";
 
 @pragma("vm:recognized", "other")
-void _storeInt16(Pointer pointer, int offsetInBytes, int value)
+void _storeInt16(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeInt16";
 
 @pragma("vm:recognized", "other")
-void _storeInt32(Pointer pointer, int offsetInBytes, int value)
+void _storeInt32(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeInt32";
 
 @pragma("vm:recognized", "other")
-void _storeInt64(Pointer pointer, int offsetInBytes, int value)
+void _storeInt64(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeInt64";
 
 @pragma("vm:recognized", "other")
-void _storeUint8(Pointer pointer, int offsetInBytes, int value)
+void _storeUint8(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeUint8";
 
 @pragma("vm:recognized", "other")
-void _storeUint16(Pointer pointer, int offsetInBytes, int value)
+void _storeUint16(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeUint16";
 
 @pragma("vm:recognized", "other")
-void _storeUint32(Pointer pointer, int offsetInBytes, int value)
+void _storeUint32(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeUint32";
 
 @pragma("vm:recognized", "other")
-void _storeUint64(Pointer pointer, int offsetInBytes, int value)
+void _storeUint64(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeUint64";
 
 @pragma("vm:recognized", "other")
-void _storeIntPtr(Pointer pointer, int offsetInBytes, int value)
+void _storeIntPtr(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeIntPtr";
 
 @pragma("vm:recognized", "other")
-void _storeFloat(Pointer pointer, int offsetInBytes, double value)
+void _storeFloat(Object typedDataBase, int offsetInBytes, double value)
     native "Ffi_storeFloat";
 
 @pragma("vm:recognized", "other")
-void _storeDouble(Pointer pointer, int offsetInBytes, double value)
+void _storeDouble(Object typedDataBase, int offsetInBytes, double value)
     native "Ffi_storeDouble";
 
 @pragma("vm:recognized", "other")
-void _storePointer<S extends NativeType>(Pointer pointer, int offsetInBytes,
-    Pointer<S> value) native "Ffi_storePointer";
+void _storeFloatUnaligned(Object typedDataBase, int offsetInBytes, double value)
+    native "Ffi_storeFloatUnaligned";
+
+@pragma("vm:recognized", "other")
+void _storeDoubleUnaligned(Object typedDataBase, int offsetInBytes,
+    double value) native "Ffi_storeDoubleUnaligned";
+
+@pragma("vm:recognized", "other")
+void _storePointer<S extends NativeType>(Object typedDataBase,
+    int offsetInBytes, Pointer<S> value) native "Ffi_storePointer";
 
 Pointer<Int8> _elementAtInt8(Pointer<Int8> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 1 * index);
@@ -295,7 +337,7 @@ Pointer<Pointer<S>> _elementAtPointer<S extends NativeType>(
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   @patch
-  DF asFunction<DF extends Function>() =>
+  DF asFunction<DF extends Function>({bool isLeaf: false}) =>
       throw UnsupportedError("The body is inlined in the frontend.");
 }
 
@@ -490,6 +532,160 @@ extension DoublePointer on Pointer<Double> {
   Float64List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
+extension Int8Array on Array<Int8> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadInt8(_typedDataBase, index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeInt8(_typedDataBase, index, value);
+  }
+}
+
+extension Int16Array on Array<Int16> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadInt16(_typedDataBase, 2 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeInt16(_typedDataBase, 2 * index, value);
+  }
+}
+
+extension Int32Array on Array<Int32> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadInt32(_typedDataBase, 4 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeInt32(_typedDataBase, 4 * index, value);
+  }
+}
+
+extension Int64Array on Array<Int64> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadInt64(_typedDataBase, 8 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeInt64(_typedDataBase, 8 * index, value);
+  }
+}
+
+extension Uint8Array on Array<Uint8> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadUint8(_typedDataBase, index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeUint8(_typedDataBase, index, value);
+  }
+}
+
+extension Uint16Array on Array<Uint16> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadUint16(_typedDataBase, 2 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeUint16(_typedDataBase, 2 * index, value);
+  }
+}
+
+extension Uint32Array on Array<Uint32> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadUint32(_typedDataBase, 4 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeUint32(_typedDataBase, 4 * index, value);
+  }
+}
+
+extension Uint64Array on Array<Uint64> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadUint64(_typedDataBase, 8 * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeUint64(_typedDataBase, 8 * index, value);
+  }
+}
+
+extension IntPtrArray on Array<IntPtr> {
+  @patch
+  int operator [](int index) {
+    _checkIndex(index);
+    return _loadIntPtr(_typedDataBase, _intPtrSize * index);
+  }
+
+  @patch
+  operator []=(int index, int value) {
+    _checkIndex(index);
+    return _storeIntPtr(_typedDataBase, _intPtrSize * index, value);
+  }
+}
+
+extension FloatArray on Array<Float> {
+  @patch
+  double operator [](int index) {
+    _checkIndex(index);
+    return _loadFloat(_typedDataBase, 4 * index);
+  }
+
+  @patch
+  operator []=(int index, double value) {
+    _checkIndex(index);
+    return _storeFloat(_typedDataBase, 4 * index, value);
+  }
+}
+
+extension DoubleArray on Array<Double> {
+  @patch
+  double operator [](int index) {
+    _checkIndex(index);
+    return _loadDouble(_typedDataBase, 8 * index);
+  }
+
+  @patch
+  operator []=(int index, double value) {
+    _checkIndex(index);
+    return _storeDouble(_typedDataBase, 8 * index, value);
+  }
+}
+
 //
 // End of generated code.
 //
@@ -511,10 +707,57 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
 
 extension StructPointer<T extends Struct> on Pointer<T> {
   @patch
-  T get ref => _loadStruct(this, 0);
+  T get ref =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch
-  T operator [](int index) => _loadStruct(this, index);
+  T operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+}
+
+extension UnionPointer<T extends Union> on Pointer<T> {
+  @patch
+  T get ref =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  T operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+}
+
+extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
+  @patch
+  Pointer<T> operator [](int index) =>
+      _loadPointer(_typedDataBase, _intPtrSize * index);
+
+  @patch
+  void operator []=(int index, Pointer<T> value) =>
+      _storePointer(_typedDataBase, _intPtrSize * index, value);
+}
+
+extension ArrayArray<T extends NativeType> on Array<Array<T>> {
+  @patch
+  Array<T> operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  void operator []=(int index, Array<T> value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+}
+
+extension StructArray<T extends Struct> on Array<T> {
+  @patch
+  T operator [](int index) {
+    throw ArgumentError(
+        "S ($T) should be a subtype of Struct at compile-time.");
+  }
+}
+
+extension UnionArray<T extends Union> on Array<T> {
+  @patch
+  T operator [](int index) {
+    throw ArgumentError("S ($T) should be a subtype of Union at compile-time.");
+  }
 }
 
 extension NativePort on SendPort {

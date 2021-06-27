@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,8 +41,8 @@ class FuzzyMapTest {
   static MatchStyle SYM = MatchStyle.SYMBOL;
 
   void map(
-      {@required String str,
-      @required String want,
+      {required String str,
+      required String want,
       MatchStyle matchStyle = MatchStyle.TEXT}) {
 //    test('maps characters of $str', () {
     var out = List<CharRole>.filled(str.length, CharRole.NONE);
@@ -199,9 +198,9 @@ class FuzzyScorerTest {
   static MatchStyle SYM = MatchStyle.SYMBOL;
 
   void score(
-      {@required String p,
-      @required String str,
-      String want,
+      {required String p,
+      required String str,
+      String? want,
       MatchStyle input = MatchStyle.TEXT}) {
 //    test('scores $str against $p', () {
     var matcher = FuzzyMatcher(p, matchStyle: input);
@@ -306,7 +305,7 @@ class FuzzyScorerTest {
 @reflectiveTest
 class ScoringFunctionTest {
   ///
-  void score({@required String p, @required String str, double want}) {
+  void score({required String p, required String str, required double want}) {
 //    test('scores $str against $p', () {
     var matcher = FuzzyMatcher(p, matchStyle: MatchStyle.SYMBOL);
     expect(

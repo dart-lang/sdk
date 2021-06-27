@@ -19,13 +19,28 @@ DEFINE_FLAG(int,
             250,
             "Definition count threshold for extensive instruction checks");
 
+#define ASSERT1(cond, ctxt1)                                                   \
+  do {                                                                         \
+    if (!(cond))                                                               \
+      dart::Assert(__FILE__, __LINE__)                                         \
+          .Fail("expected: %s (%s=%s)", #cond, #ctxt1, (ctxt1)->ToCString());  \
+  } while (false)
+
+#define ASSERT2(cond, ctxt1, ctxt2)                                            \
+  do {                                                                         \
+    if (!(cond))                                                               \
+      dart::Assert(__FILE__, __LINE__)                                         \
+          .Fail("expected: %s (%s=%s, %s=%s)", #cond, #ctxt1,                  \
+                (ctxt1)->ToCString(), #ctxt2, (ctxt2)->ToCString());           \
+  } while (false)
+
 // Returns true for the "optimized out" and "null" constant.
 // Such constants reside outside the IR in the sense that
 // succ/pred/block links are not maintained.
 static bool IsSpecialConstant(Definition* def) {
   if (auto c = def->AsConstant()) {
-    return c->value().raw() == Symbols::OptimizedOut().raw() ||
-           c->value().raw() == Object::ZoneHandle().raw();
+    return c->value().ptr() == Symbols::OptimizedOut().ptr() ||
+           c->value().ptr() == Object::ZoneHandle().ptr();
   }
   return false;
 }
@@ -118,15 +133,19 @@ static void AssertArgumentsInEnv(FlowGraph* flow_graph, Definition* call) {
     // correspond directly with the arguments.
     const intptr_t env_count = env->Length();
     const intptr_t arg_count = call->ArgumentCount();
-    ASSERT(arg_count <= env_count);
-    const intptr_t env_base = env_count - arg_count;
+    // Some calls (e.g. closure calls) have more inputs than actual arguments.
+    // Those extra inputs will be consumed from the stack before the call.
+    const intptr_t after_args_input_count = call->env()->LazyDeoptPruneCount();
+    ASSERT1((arg_count + after_args_input_count) <= env_count, call);
+    const intptr_t env_base = env_count - arg_count - after_args_input_count;
     for (intptr_t i = 0; i < arg_count; i++) {
       if (call->HasPushArguments()) {
-        ASSERT(call->ArgumentAt(i) == env->ValueAt(env_base + i)
-                                          ->definition()
-                                          ->AsPushArgument()
-                                          ->value()
-                                          ->definition());
+        ASSERT1(call->ArgumentAt(i) == env->ValueAt(env_base + i)
+                                           ->definition()
+                                           ->AsPushArgument()
+                                           ->value()
+                                           ->definition(),
+                call);
       } else {
         // Redefintion instructions and boxing/unboxing are inserted
         // without updating environment uses (FlowGraph::RenameDominatedUses,
@@ -139,10 +158,11 @@ static void AssertArgumentsInEnv(FlowGraph* flow_graph, Definition* call) {
             env->ValueAt(env_base + i)
                 ->definition()
                 ->OriginalDefinitionIgnoreBoxingAndConstraints();
-        ASSERT((arg_def == env_def) ||
-               (arg_def->IsConstant() && env_def->IsConstant() &&
-                arg_def->AsConstant()->value().raw() ==
-                    env_def->AsConstant()->value().raw()));
+        ASSERT2((arg_def == env_def) ||
+                    (arg_def->IsConstant() && env_def->IsConstant() &&
+                     arg_def->AsConstant()->value().ptr() ==
+                         env_def->AsConstant()->value().ptr()),
+                arg_def, env_def);
       }
     }
   }
@@ -169,26 +189,26 @@ void FlowGraphChecker::VisitBlocks() {
   for (BlockIterator it = flow_graph_->reverse_postorder_iterator(); !it.Done();
        it.Advance()) {
     BlockEntryInstr* block = it.Current();
-    ASSERT(block->block_id() <= max_block_id);
+    ASSERT1(block->block_id() <= max_block_id, block);
     // Make sure ordering is consistent.
-    ASSERT(block->preorder_number() <= block_count);
-    ASSERT(block->postorder_number() <= block_count);
-    ASSERT(preorder[block->preorder_number()] == block);
-    ASSERT(postorder[block->postorder_number()] == block);
+    ASSERT1(block->preorder_number() <= block_count, block);
+    ASSERT1(block->postorder_number() <= block_count, block);
+    ASSERT1(preorder[block->preorder_number()] == block, block);
+    ASSERT1(postorder[block->postorder_number()] == block, block);
     // Make sure predecessors and successors agree.
     Instruction* last = block->last_instruction();
     for (intptr_t i = 0, n = last->SuccessorCount(); i < n; ++i) {
-      ASSERT(IsPred(block, last->SuccessorAt(i)));
+      ASSERT1(IsPred(block, last->SuccessorAt(i)), block);
     }
     for (intptr_t i = 0, n = block->PredecessorCount(); i < n; ++i) {
-      ASSERT(IsSucc(block, block->PredecessorAt(i)));
+      ASSERT1(IsSucc(block, block->PredecessorAt(i)), block);
     }
     // Make sure dominance relations agree.
     for (intptr_t i = 0, n = block->dominated_blocks().length(); i < n; ++i) {
-      ASSERT(block->dominated_blocks()[i]->dominator() == block);
+      ASSERT1(block->dominated_blocks()[i]->dominator() == block, block);
     }
     if (block->dominator() != nullptr) {
-      ASSERT(IsDirectlyDominated(block, block->dominator()));
+      ASSERT1(IsDirectlyDominated(block, block->dominator()), block);
     }
     // Visit all instructions in this block.
     VisitInstructions(block);
@@ -208,15 +228,16 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
   if (auto entry = block->AsBlockEntryWithInitialDefs()) {
     for (auto def : *entry->initial_definitions()) {
       ASSERT(def != nullptr);
-      ASSERT(def->IsConstant() || def->IsParameter() ||
-             def->IsSpecialParameter());
+      ASSERT1(
+          def->IsConstant() || def->IsParameter() || def->IsSpecialParameter(),
+          def);
       // Special constants reside outside the IR.
       if (IsSpecialConstant(def)) continue;
       // Make sure block lookup agrees.
-      ASSERT(def->GetBlock() == entry);
+      ASSERT1(def->GetBlock() == entry, def);
       // Initial definitions are partially linked into graph.
-      ASSERT(def->next() == nullptr);
-      ASSERT(def->previous() == entry);
+      ASSERT1(def->next() == nullptr, def);
+      ASSERT1(def->previous() == entry, def);
       // Visit the initial definition as instruction.
       VisitInstruction(def);
     }
@@ -226,30 +247,30 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
     for (PhiIterator it(entry); !it.Done(); it.Advance()) {
       PhiInstr* phi = it.Current();
       // Make sure block lookup agrees.
-      ASSERT(phi->GetBlock() == entry);
+      ASSERT1(phi->GetBlock() == entry, phi);
       // Phis are never linked into graph.
-      ASSERT(phi->next() == nullptr);
-      ASSERT(phi->previous() == nullptr);
+      ASSERT1(phi->next() == nullptr, phi);
+      ASSERT1(phi->previous() == nullptr, phi);
       // Visit the phi as instruction.
       VisitInstruction(phi);
     }
   }
   // Visit regular instructions.
   Instruction* last = block->last_instruction();
-  ASSERT((last == block) == block->IsGraphEntry());
+  ASSERT1((last == block) == block->IsGraphEntry(), block);
   Instruction* prev = block;
   ASSERT(prev->previous() == nullptr);
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* instruction = it.Current();
     // Make sure block lookup agrees (scan in scan).
-    ASSERT(instruction->GetBlock() == block);
+    ASSERT1(instruction->GetBlock() == block, instruction);
     // Make sure linked list agrees.
-    ASSERT(prev->next() == instruction);
-    ASSERT(instruction->previous() == prev);
+    ASSERT1(prev->next() == instruction, instruction);
+    ASSERT1(instruction->previous() == prev, instruction);
     prev = instruction;
     // Make sure control flow makes sense.
-    ASSERT(IsControlFlow(instruction) == (instruction == last));
-    ASSERT(!instruction->IsPhi());
+    ASSERT1(IsControlFlow(instruction) == (instruction == last), instruction);
+    ASSERT1(!instruction->IsPhi(), instruction);
     // Visit the instruction.
     VisitInstruction(instruction);
   }
@@ -259,19 +280,20 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
   if (flow_graph_->loop_hierarchy_ != nullptr) {
     for (LoopInfo* loop = block->loop_info(); loop != nullptr;
          loop = loop->outer()) {
-      ASSERT(loop->Contains(block));
+      ASSERT1(loop->Contains(block), block);
     }
   }
 }
 
 void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
-  ASSERT(!instruction->IsBlockEntry());
+  ASSERT1(!instruction->IsBlockEntry(), instruction);
 
 #if !defined(DART_PRECOMPILER)
   // In JIT mode, any instruction which may throw must have a deopt-id, except
   // tail-call because it replaces the stack frame.
-  ASSERT(!instruction->MayThrow() || instruction->IsTailCall() ||
-         instruction->deopt_id() != DeoptId::kNone);
+  ASSERT1(!instruction->MayThrow() || instruction->IsTailCall() ||
+              instruction->deopt_id() != DeoptId::kNone,
+          instruction);
 #endif  // !defined(DART_PRECOMPILER)
 
   // If checking token positions and the flow graph has an inlining ID,
@@ -280,7 +302,7 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
   if (FLAG_check_token_positions && flow_graph_->inlining_id() >= 0) {
     const TokenPosition& pos = instruction->token_pos();
     if (pos.IsReal() || pos.IsSynthetic()) {
-      ASSERT(instruction->has_inlining_id());
+      ASSERT1(instruction->has_inlining_id(), instruction);
       const intptr_t inlining_id = instruction->inlining_id();
       const auto& function = *inline_id_to_function_[inlining_id];
       if (function.end_token_pos().IsReal() &&
@@ -333,9 +355,9 @@ void FlowGraphChecker::VisitDefinition(Definition* def) {
   // Used definitions must have an SSA name, and the SSA name must
   // be less than the current_ssa_temp_index.
   if (def->HasSSATemp()) {
-    ASSERT(def->ssa_temp_index() < flow_graph_->current_ssa_temp_index());
+    ASSERT1(def->ssa_temp_index() < flow_graph_->current_ssa_temp_index(), def);
   } else {
-    ASSERT(def->input_use_list() == nullptr);
+    ASSERT1(def->input_use_list() == nullptr, def);
   }
   // Check all regular uses.
   Value* prev = nullptr;
@@ -357,36 +379,38 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
                                    Value* use,
                                    intptr_t index,
                                    bool is_env) {
-  ASSERT(use->instruction() == instruction);
-  ASSERT(use->use_index() == index);
+  ASSERT2(use->instruction() == instruction, use, instruction);
+  ASSERT1(use->use_index() == index, use);
   // Get definition.
   Definition* def = use->definition();
   ASSERT(def != nullptr);
-  ASSERT(def != instruction || def->IsPhi() || def->IsMaterializeObject());
+  ASSERT1(def != instruction || def->IsPhi() || def->IsMaterializeObject(),
+          def);
   // Make sure each input is properly defined in the graph by something
   // that dominates the input (note that the proper dominance relation
   // on the input values of Phis is checked by the Phi visitor below).
   if (def->IsPhi()) {
-    ASSERT(def->GetBlock()->IsJoinEntry());
+    ASSERT1(def->GetBlock()->IsJoinEntry(), def);
     // Phis are never linked into graph.
-    ASSERT(def->next() == nullptr);
-    ASSERT(def->previous() == nullptr);
+    ASSERT1(def->next() == nullptr, def);
+    ASSERT1(def->previous() == nullptr, def);
   } else if (def->IsConstant() || def->IsParameter() ||
              def->IsSpecialParameter()) {
     // Special constants reside outside the IR.
     if (IsSpecialConstant(def)) return;
     // Initial definitions are partially linked into graph, but some
     // constants are fully linked into graph (so no next() assert).
-    ASSERT(def->previous() != nullptr);
+    ASSERT1(def->previous() != nullptr, def);
   } else {
     // Others are fully linked into graph.
-    ASSERT(def->next() != nullptr);
-    ASSERT(def->previous() != nullptr);
+    ASSERT1(def->next() != nullptr, def);
+    ASSERT1(def->previous() != nullptr, def);
   }
   if (def->HasSSATemp()) {
-    ASSERT(DefDominatesUse(def, instruction));
-    ASSERT(IsInUseList(is_env ? def->env_use_list() : def->input_use_list(),
-                       instruction));
+    ASSERT2(DefDominatesUse(def, instruction), def, instruction);
+    ASSERT2(IsInUseList(is_env ? def->env_use_list() : def->input_use_list(),
+                        instruction),
+            def, instruction);
   }
 }
 
@@ -394,41 +418,45 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
                                    Value* use,
                                    Value* prev,
                                    bool is_env) {
-  ASSERT(use->definition() == def);
-  ASSERT(use->previous_use() == prev);
+  ASSERT2(use->definition() == def, use, def);
+  ASSERT1(use->previous_use() == prev, use);
   // Get using instruction.
   Instruction* instruction = use->instruction();
   ASSERT(instruction != nullptr);
-  ASSERT(def != instruction || def->IsPhi() || def->IsMaterializeObject());
+  ASSERT1(def != instruction || def->IsPhi() || def->IsMaterializeObject(),
+          def);
   if (is_env) {
-    ASSERT(instruction->env()->ValueAtUseIndex(use->use_index()) == use);
+    ASSERT2(instruction->env()->ValueAtUseIndex(use->use_index()) == use,
+            instruction, use);
   } else {
-    ASSERT(instruction->InputAt(use->use_index()) == use);
+    ASSERT2(instruction->InputAt(use->use_index()) == use, instruction, use);
   }
   // Make sure the reaching type, if any, has an owner consistent with this use.
   if (auto const type = use->reaching_type()) {
-    ASSERT(type->owner() == nullptr || type->owner() == def);
+    ASSERT1(type->owner() == nullptr || type->owner() == def, use);
   }
   // Make sure each use appears in the graph and is properly dominated
   // by the definition (note that the proper dominance relation on the
   // input values of Phis is checked by the Phi visitor below).
   if (instruction->IsPhi()) {
-    ASSERT(instruction->AsPhi()->is_alive());
-    ASSERT(instruction->GetBlock()->IsJoinEntry());
+    ASSERT1(instruction->AsPhi()->is_alive(), instruction);
+    ASSERT1(instruction->GetBlock()->IsJoinEntry(), instruction);
     // Phis are never linked into graph.
-    ASSERT(instruction->next() == nullptr);
-    ASSERT(instruction->previous() == nullptr);
+    ASSERT1(instruction->next() == nullptr, instruction);
+    ASSERT1(instruction->previous() == nullptr, instruction);
   } else if (instruction->IsBlockEntry()) {
     // BlockEntry instructions have environments attached to them but
     // have no reliable way to verify if they are still in the graph.
-    ASSERT(is_env);
-    ASSERT(instruction->next() != nullptr);
-    ASSERT(DefDominatesUse(def, instruction));
+    ASSERT1(is_env, instruction);
+    ASSERT1(instruction->next() != nullptr, instruction);
+    ASSERT2(DefDominatesUse(def, instruction), def, instruction);
   } else {
     // Others are fully linked into graph.
-    ASSERT(IsControlFlow(instruction) || instruction->next() != nullptr);
-    ASSERT(instruction->previous() != nullptr);
-    ASSERT(!def->HasSSATemp() || DefDominatesUse(def, instruction));
+    ASSERT1(IsControlFlow(instruction) || instruction->next() != nullptr,
+            instruction);
+    ASSERT1(instruction->previous() != nullptr, instruction);
+    ASSERT2(!def->HasSSATemp() || DefDominatesUse(def, instruction), def,
+            instruction);
   }
 }
 
@@ -451,29 +479,29 @@ void FlowGraphChecker::VisitConstant(ConstantInstr* constant) {
 void FlowGraphChecker::VisitPhi(PhiInstr* phi) {
   // Make sure the definition of each input value of a Phi dominates
   // the corresponding incoming edge, as defined by order.
-  ASSERT(phi->InputCount() == current_block_->PredecessorCount());
+  ASSERT1(phi->InputCount() == current_block_->PredecessorCount(), phi);
   for (intptr_t i = 0, n = phi->InputCount(); i < n; ++i) {
     Definition* def = phi->InputAt(i)->definition();
-    ASSERT(def->HasSSATemp());  // phis have SSA defs
+    ASSERT1(def->HasSSATemp(), def);  // phis have SSA defs
     BlockEntryInstr* edge = current_block_->PredecessorAt(i);
-    ASSERT(DefDominatesUse(def, edge->last_instruction()));
+    ASSERT1(DefDominatesUse(def, edge->last_instruction()), def);
   }
 }
 
 void FlowGraphChecker::VisitGoto(GotoInstr* jmp) {
-  ASSERT(jmp->SuccessorCount() == 1);
+  ASSERT1(jmp->SuccessorCount() == 1, jmp);
 }
 
 void FlowGraphChecker::VisitIndirectGoto(IndirectGotoInstr* jmp) {
-  ASSERT(jmp->SuccessorCount() >= 1);
+  ASSERT1(jmp->SuccessorCount() >= 1, jmp);
 }
 
 void FlowGraphChecker::VisitBranch(BranchInstr* branch) {
-  ASSERT(branch->SuccessorCount() == 2);
+  ASSERT1(branch->SuccessorCount() == 2, branch);
 }
 
 void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
-  ASSERT(def->value()->definition() != def);
+  ASSERT1(def->value()->definition() != def, def);
 }
 
 void FlowGraphChecker::VisitClosureCall(ClosureCallInstr* call) {

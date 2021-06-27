@@ -2,22 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+
+import 'output_utilities.dart';
 
 /// https://en.wikipedia.org/wiki/Average#Arithmetic_mean
 class ArithmeticMeanComputer {
   final String name;
-  num sum = 0;
+  int sum = 0;
   int count = 0;
+  int? min;
+  int? max;
 
   ArithmeticMeanComputer(this.name);
 
-  num get mean => sum / count;
+  double get mean => sum / count;
 
-  void addValue(num val) {
+  /// Add the data from the given [computer] to this computer.
+  void addData(ArithmeticMeanComputer computer) {
+    sum += computer.sum;
+    count += computer.count;
+    min = _min(min, computer.min);
+    max = _max(max, computer.max);
+  }
+
+  void addValue(int val) {
     sum += val;
     count++;
+    min = _min(min, val);
+    max = _max(max, val);
   }
 
   void clear() {
@@ -25,12 +41,47 @@ class ArithmeticMeanComputer {
     count = 0;
   }
 
-  void printMean() {
-    print('Mean \'$name\' ${mean.toStringAsFixed(6)} (total = $count)');
+  /// Set the state of this computer to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    sum = map['sum'] as int;
+    count = map['count'] as int;
+    min = map['min'] as int?;
+    max = map['max'] as int?;
+  }
+
+  /// Return a map used to represent this computer in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'sum': sum,
+      'count': count,
+      if (min != null) 'min': min,
+      if (max != null) 'max': max,
+    };
+  }
+
+  int? _max(int? first, int? second) {
+    if (first == null) {
+      return second;
+    } else if (second == null) {
+      return first;
+    } else {
+      return math.max(first, second);
+    }
+  }
+
+  int? _min(int? first, int? second) {
+    if (first == null) {
+      return second;
+    } else if (second == null) {
+      return first;
+    } else {
+      return math.min(first, second);
+    }
   }
 }
 
-/// A simple counter class.  A [String] name is passed to name the counter. Each
+/// A simple counter class. A [String] name is passed to name the counter. Each
 /// time something is counted, a non-null, non-empty [String] key is passed to
 /// [count] to increment the amount from zero. [printCounterValues] is provided
 /// to have a [String] summary of the generated counts, example:
@@ -56,36 +107,112 @@ class Counter {
 
   int get totalCount => _totalCount;
 
+  /// Add the data from the given [counter] to this counter.
+  void addData(Counter counter) {
+    for (var entry in counter._buckets.entries) {
+      var bucket = entry.key;
+      _buckets[bucket] = (_buckets[bucket] ?? 0) + entry.value;
+    }
+    _totalCount += counter._totalCount;
+  }
+
   void clear() {
     _buckets.clear();
     _totalCount = 0;
   }
 
   void count(String id, [int countNumber = 1]) {
-    assert(id != null && id.isNotEmpty && 1 <= countNumber);
-    if (_buckets.containsKey(id)) {
-      _buckets[id] += countNumber;
-    } else {
-      _buckets.putIfAbsent(id, () => countNumber);
-    }
+    assert(id.isNotEmpty && 1 <= countNumber);
+    _buckets.update(
+      id,
+      (value) => value + countNumber,
+      ifAbsent: () => countNumber,
+    );
     _totalCount += countNumber;
+  }
+
+  /// Set the state of this counter to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    for (var entry in (map['buckets'] as Map<String, dynamic>).entries) {
+      _buckets[entry.key] = entry.value as int;
+    }
+    _totalCount = map['totalCount'] as int;
   }
 
   int getCountOf(String id) => _buckets[id] ?? 0;
 
   void printCounterValues() {
-    print('Counts for \'$name\' (total = $_totalCount):');
     if (_totalCount > 0) {
+      var table = [
+        ['', 'count', 'percent']
+      ];
       var entries = _buckets.entries.toList();
       entries.sort((first, second) => second.value - first.value);
       for (var entry in entries) {
         var id = entry.key;
         var count = entry.value;
-        print('[$id] $count (${printPercentage(count / _totalCount, 2)})');
+        table.add(
+            [id, count.toString(), printPercentage(count / _totalCount, 2)]);
       }
+      printTable(table);
     } else {
       print('<no counts>');
     }
+  }
+
+  /// Return a map used to represent this counter in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'buckets': _buckets,
+      'totalCount': _totalCount,
+    };
+  }
+}
+
+class DistributionComputer {
+  /// The buckets in which values are counted: [0..9], [10..19], ... [100..].
+  List<int> buckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+  /// Add the data from the given [computer] to this computer.
+  void addData(DistributionComputer computer) {
+    for (var i = 0; i < buckets.length; i++) {
+      buckets[i] += computer.buckets[i];
+    }
+  }
+
+  /// Add a millisecond value to the list of buckets.
+  void addValue(int value) {
+    var bucket = math.min(value ~/ 10, buckets.length - 1);
+    buckets[bucket]++;
+  }
+
+  /// Return a textual representation of the distribution.
+  String displayString() {
+    var buffer = StringBuffer();
+    for (var i = 0; i < buckets.length; i++) {
+      if (i > 0) {
+        buffer.write(' ');
+      }
+      buffer.write('[');
+      buffer.write(i * 10);
+      buffer.write('] ');
+      buffer.write(buckets[i]);
+    }
+    return buffer.toString();
+  }
+
+  /// Set the state of this computer to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    buckets = map['buckets'] as List<int>;
+  }
+
+  /// Return a map used to represent this computer in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'buckets': buckets,
+    };
   }
 }
 
@@ -119,6 +246,13 @@ class MeanReciprocalRankComputer {
     return _sum_5 / count;
   }
 
+  /// Add the data from the given [computer] to this computer.
+  void addData(MeanReciprocalRankComputer computer) {
+    _sum += computer._sum;
+    _sum_5 += computer._sum_5;
+    _count += computer._count;
+  }
+
   void addRank(int rank) {
     if (rank != 0) {
       _sum += 1 / rank;
@@ -135,6 +269,14 @@ class MeanReciprocalRankComputer {
     _count = 0;
   }
 
+  /// Set the state of this computer to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    _sum = map['sum'] as double;
+    _sum_5 = map['sum_5'] as double;
+    _count = map['count'] as int;
+  }
+
   void printMean() {
     print('Mean Reciprocal Rank \'$name\' (total = $count)');
     print('mrr   = ${mrr.toStringAsFixed(6)} '
@@ -142,6 +284,15 @@ class MeanReciprocalRankComputer {
 
     print('mrr_5 = ${mrr_5.toStringAsFixed(6)} '
         '(inverse = ${(1 / mrr_5).toStringAsFixed(3)})');
+  }
+
+  /// Return a map used to represent this computer in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'sum': _sum,
+      'sum_5': _sum_5,
+      'count': _count,
+    };
   }
 }
 
@@ -157,6 +308,11 @@ class Place {
   const Place(this._numerator, this._denominator)
       : assert(_numerator > 0),
         assert(_denominator >= _numerator);
+
+  /// Return an instance extracted from the decoded JSON [map].
+  factory Place.fromJson(Map<String, dynamic> map) {
+    return Place(map['numerator'] as int, map['denominator'] as int);
+  }
 
   const Place.none()
       : _numerator = 0,
@@ -176,4 +332,12 @@ class Place {
       other is Place &&
       _numerator == other._numerator &&
       _denominator == other._denominator;
+
+  /// Return a map used to represent this place in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'numerator': _numerator,
+      'denominator': _denominator,
+    };
+  }
 }

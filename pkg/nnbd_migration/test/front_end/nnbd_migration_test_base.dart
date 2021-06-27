@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
@@ -14,6 +13,7 @@ import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -41,15 +41,15 @@ class ListenerClient implements DartFixListenerClient {
 class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// The information produced by the InfoBuilder, or `null` if [buildInfo] has
   /// not yet completed.
-  Set<UnitInfo> infos;
-  NodeMapper nodeMapper;
+  Set<UnitInfo>? infos;
+  NodeMapper? nodeMapper;
 
   /// Assert that some target in [targets] has various properties.
   void assertInTargets(
-      {@required Iterable<NavigationTarget> targets,
-      int offset,
-      int length,
-      OffsetMapper offsetMapper}) {
+      {required Iterable<NavigationTarget> targets,
+      int? offset,
+      int? length,
+      OffsetMapper? offsetMapper}) {
     var failureReasons = [
       if (offset != null) 'offset: $offset',
       if (length != null) 'length: $length',
@@ -57,7 +57,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     ].join(' and ');
     offsetMapper ??= OffsetMapper.identity;
     expect(targets.any((t) {
-      return (offset == null || offset == offsetMapper.map(t.offset)) &&
+      return (offset == null || offset == offsetMapper!.map(t.offset)) &&
           (length == null || length == t.length);
     }), isTrue, reason: 'Expected one of $targets to contain $failureReasons');
   }
@@ -66,9 +66,9 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// provided but no [length] is provided, a default length of `1` will be
   /// used.
   void assertRegion(
-      {@required RegionInfo region,
-      int offset,
-      int length,
+      {required RegionInfo region,
+      int? offset,
+      int? length,
       Object explanation = anything,
       Object edits = anything,
       Object traces = anything,
@@ -89,10 +89,10 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// `regions[index + 1]`.  The expected offsets and lengths are specified
   /// separately; everything else is asserted using the same matcher.
   void assertRegionPair(List<RegionInfo> regions, int index,
-      {int offset1,
-      int length1,
-      int offset2,
-      int length2,
+      {int? offset1,
+      int? length1,
+      int? offset2,
+      int? length2,
       Object explanation = anything,
       Object edits = anything,
       Object traces = anything,
@@ -117,17 +117,13 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
 
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
       String function, int offset, Object descriptionMatcher,
-      {Set<HintActionKind> hintActions}) {
-    if (offset == null) {
-      expect(entryInfo.target, isNull);
-    } else {
-      assert(offset >= 0);
-      var lineInfo = LineInfo.fromContent(unit.content);
-      var expectedLocation = lineInfo.getLocation(offset);
-      expect(entryInfo.target.filePath, unit.path);
-      expect(entryInfo.target.line, expectedLocation.lineNumber);
-      expect(unit.offsetMapper.map(entryInfo.target.offset), offset);
-    }
+      {Set<HintActionKind>? hintActions}) {
+    assert(offset >= 0);
+    var lineInfo = LineInfo.fromContent(unit.content!);
+    var expectedLocation = lineInfo.getLocation(offset);
+    expect(entryInfo.target!.filePath, unit.path);
+    expect(entryInfo.target!.line, expectedLocation.lineNumber);
+    expect(unit.offsetMapper.map(entryInfo.target!.offset), offset);
     expect(entryInfo.function, function);
     expect(entryInfo.description, descriptionMatcher);
     if (hintActions != null) {
@@ -142,11 +138,11 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         traceEntry.hintActions);
     expect(actionsByKind, hasLength(expectedHints.length));
     for (final expectedHint in expectedHints) {
-      final action = actionsByKind[expectedHint];
+      final action = actionsByKind[expectedHint]!;
       expect(action, isNotNull);
-      final node = nodeMapper.nodeForId(action.nodeId);
+      final node = nodeMapper!.nodeForId(action.nodeId)!;
       expect(node, isNotNull);
-      expect(unit.offsetMapper.map(node.codeReference.offset), nodeOffset);
+      expect(unit.offsetMapper.map(node.codeReference!.offset), nodeOffset);
     }
   }
 
@@ -155,9 +151,11 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// The information is stored in [infos].
   Future<void> buildInfo(
       {bool removeViaComments = true, bool warnOnWeakCode = false}) async {
-    var includedRoot = resourceProvider.pathContext.dirname(testFile);
+    var includedRoot = resourceProvider.pathContext.dirname(testFile!);
     await _buildMigrationInfo([testFile],
         includedRoot: includedRoot,
+        shouldBeMigratedFunction: (String? path) => true,
+        pathsToProcess: [testFile],
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
   }
@@ -167,7 +165,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// Asserts that [originalContent] is migrated to [migratedContent]. Returns
   /// the singular UnitInfo which was built.
   Future<UnitInfo> buildInfoForSingleTestFile(String originalContent,
-      {@required String migratedContent,
+      {required String migratedContent,
       bool removeViaComments = true,
       bool warnOnWeakCode = false}) async {
     addTestFile(originalContent);
@@ -175,8 +173,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode);
     // Ignore info for dart:core.
     var filteredInfos = [
-      for (var info in infos)
-        if (!info.path.contains('core.dart')) info
+      for (var info in infos!)
+        if (!info.path!.contains('core.dart')) info
     ];
     expect(filteredInfos, hasLength(1));
     var unit = filteredInfos[0];
@@ -189,17 +187,24 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   ///
   /// Returns the singular [UnitInfo] which was built.
   Future<List<UnitInfo>> buildInfoForTestFiles(Map<String, String> files,
-      {String includedRoot}) async {
+      {required String? includedRoot,
+      bool Function(String?)? shouldBeMigratedFunction,
+      Iterable<String>? pathsToProcess}) async {
+    shouldBeMigratedFunction ??= (String? path) => true;
     var testPaths = <String>[];
     files.forEach((String path, String content) {
       newFile(path, content: content);
       testPaths.add(path);
     });
-    await _buildMigrationInfo(testPaths, includedRoot: includedRoot);
+    pathsToProcess ??= testPaths;
+    await _buildMigrationInfo(testPaths,
+        includedRoot: includedRoot,
+        shouldBeMigratedFunction: shouldBeMigratedFunction,
+        pathsToProcess: pathsToProcess);
     // Ignore info for dart:core.
     var filteredInfos = [
-      for (var info in infos)
-        if (!info.path.contains('core.dart')) info
+      for (var info in infos!)
+        if (!info.path!.contains('core.dart')) info
     ];
     return filteredInfos;
   }
@@ -211,12 +216,14 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
 
   /// Uses the InfoBuilder to build information for files at [testPaths], which
   /// should all share a common parent directory, [includedRoot].
-  Future<void> _buildMigrationInfo(List<String> testPaths,
-      {String includedRoot,
+  Future<void> _buildMigrationInfo(Iterable<String?> testPaths,
+      {required String? includedRoot,
+      required bool Function(String?) shouldBeMigratedFunction,
+      required Iterable<String?> pathsToProcess,
       bool removeViaComments = true,
       bool warnOnWeakCode = false}) async {
     // Compute the analysis results.
-    var server = DriverProviderImpl(resourceProvider, driver.analysisContext);
+    var server = DriverProviderImpl(resourceProvider, driver!.analysisContext);
     // Run the migration engine.
     var listener = DartFixListener(server, ListenerClient());
     var instrumentationListener = InstrumentationListener();
@@ -229,7 +236,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     Future<void> _forEachPath(
         void Function(ResolvedUnitResult) callback) async {
       for (var testPath in testPaths) {
-        var result = await driver.currentSession.getResolvedUnit(testPath);
+        var result = await driver!.currentSession.getResolvedUnit2(testPath!)
+            as ResolvedUnitResult;
         callback(result);
       }
     }
@@ -242,8 +250,16 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     // Build the migration info.
     var info = instrumentationListener.data;
     var logger = TestLogger(false);
-    var builder = InfoBuilder(resourceProvider, includedRoot, info, listener,
-        migration, nodeMapper, logger);
+    var builder = InfoBuilder(
+        resourceProvider,
+        includedRoot,
+        info,
+        listener,
+        migration,
+        nodeMapper,
+        logger,
+        shouldBeMigratedFunction,
+        pathsToProcess);
     infos = await builder.explainMigration();
   }
 }

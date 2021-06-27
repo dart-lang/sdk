@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,9 +24,9 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   List<LocalElement> elements = [];
 
-  RenameLocalRefactoringImpl(
-      RefactoringWorkspace workspace, LocalElement element)
-      : sessionHelper = AnalysisSessionHelper(element.session),
+  RenameLocalRefactoringImpl(RefactoringWorkspace workspace,
+      AnalysisSession session, LocalElement element)
+      : sessionHelper = AnalysisSessionHelper(session),
         super(workspace, element);
 
   @override
@@ -48,8 +49,8 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     await _prepareElements();
     for (var element in elements) {
       var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
-      var unit = resolvedUnit.unit;
-      unit.accept(
+      var unit = resolvedUnit?.unit;
+      unit?.accept(
         _ConflictValidatorVisitor(
           result,
           newName,
@@ -92,7 +93,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   /// Fills [elements] with [Element]s to rename.
   Future _prepareElements() async {
-    Element element = this.element;
+    final element = this.element;
     if (element is ParameterElement && element.isNamed) {
       elements = await getHierarchyNamedParameters(searchEngine, element);
     } else {
@@ -139,7 +140,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
         nodeElement = getSyntheticAccessorVariable(nodeElement);
         var nodeKind = nodeElement.kind.displayName;
         var nodeName = getElementQualifiedName(nodeElement);
-        var nameElementSourceName = nodeElement.source.shortName;
+        var nameElementSourceName = nodeElement.source!.shortName;
         var refKind = target.kind.displayName;
         var message = 'Usage of $nodeKind "$nodeName" declared in '
             '"$nameElementSourceName" will be shadowed by renamed $refKind.';
@@ -148,7 +149,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  SourceRange _getVisibleRange(LocalElement element) {
+  SourceRange? _getVisibleRange(LocalElement element) {
     return visibleRangeMap[element];
   }
 
@@ -165,6 +166,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   }
 
   static bool _isNamedExpressionName(SimpleIdentifier node) {
-    return node.parent is Label && node.parent.parent is NamedExpression;
+    var parent = node.parent;
+    return parent is Label && parent.parent is NamedExpression;
   }
 }

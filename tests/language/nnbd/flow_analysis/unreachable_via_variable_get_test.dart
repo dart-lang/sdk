@@ -5,7 +5,6 @@
 // This test verifies that if a read is performed on a variable whose type is
 // `Never`, the resulting code block is considered unreachable by flow analysis.
 
-// SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
 
 void explicitNeverType(Never Function() f, Object x, bool b1, bool b2) {

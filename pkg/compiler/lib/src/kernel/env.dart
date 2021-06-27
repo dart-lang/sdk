@@ -131,7 +131,7 @@ class KLibraryEnv {
           }
         } else if (member is ir.Field) {
           _memberMap[member.name.text] = member;
-          if (member.isMutable) {
+          if (member.hasSetter) {
             _setterMap[member.name.text] = member;
           }
         } else {
@@ -242,9 +242,11 @@ abstract class KClassEnv {
   /// Whether the class is an unnamed mixin application.
   bool get isUnnamedMixinApplication;
 
-  /// Whether the class is a mixin application that mixes in methods with super
-  /// calls.
-  bool get isSuperMixinApplication;
+  /// Whether the class is a mixin application with its own members.
+  ///
+  /// This occurs when a mixin contains methods with super calls or when
+  /// the mixin application contains concrete forwarding stubs.
+  bool get isMixinApplicationWithMembers;
 
   /// Ensures that all members have been computed for [cls].
   void ensureMembers(KernelToElementMapImpl elementMap);
@@ -273,6 +275,12 @@ abstract class KClassEnv {
   /// the members in [liveMembers].
   JClassEnv convert(IrToElementMap elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage);
+
+  /// Returns `true` if [node] is a known member of this class.
+  ///
+  /// This method is used for checking the integrity of the K-model and does
+  /// not alter the state of this class environment.
+  bool checkHasMember(ir.Member node);
 }
 
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
@@ -294,7 +302,7 @@ class KClassEnvImpl implements KClassEnv {
   Map<String, ir.Member> _memberMap;
   Map<String, ir.Member> _setterMap;
   List<ir.Member> _members; // in declaration order.
-  bool _isSuperMixinApplication;
+  bool _isMixinApplicationWithMembers;
 
   /// Constructor bodies created for this class.
   List<ConstructorBodyEntity> _constructorBodyList;
@@ -302,15 +310,23 @@ class KClassEnvImpl implements KClassEnv {
   KClassEnvImpl(this.cls);
 
   KClassEnvImpl.internal(this.cls, this._constructorMap, this._memberMap,
-      this._setterMap, this._members, this._isSuperMixinApplication);
+      this._setterMap, this._members, this._isMixinApplicationWithMembers);
 
   @override
   bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
 
   @override
-  bool get isSuperMixinApplication {
-    assert(_isSuperMixinApplication != null);
-    return _isSuperMixinApplication;
+  bool get isMixinApplicationWithMembers {
+    assert(_isMixinApplicationWithMembers != null);
+    return _isMixinApplicationWithMembers;
+  }
+
+  @override
+  bool checkHasMember(ir.Member node) {
+    if (_memberMap == null) return false;
+    return _memberMap.values.contains(node) ||
+        _setterMap.values.contains(node) ||
+        _constructorMap.values.contains(node);
   }
 
   @override
@@ -325,21 +341,23 @@ class KClassEnvImpl implements KClassEnv {
     _setterMap = <String, ir.Member>{};
     _constructorMap = <String, ir.Member>{};
     var members = <ir.Member>[];
-    _isSuperMixinApplication = false;
+    _isMixinApplicationWithMembers = false;
 
     void addField(ir.Field member, {bool includeStatic}) {
       if (!includeStatic && member.isStatic) return;
       if (isRedirectingFactoryField(member)) return;
       var name = member.name.text;
       _memberMap[name] = member;
-      if (member.isMutable) {
+      if (member.hasSetter) {
         _setterMap[name] = member;
       }
       members.add(member);
     }
 
     void addProcedure(ir.Procedure member,
-        {bool includeStatic, bool includeNoSuchMethodForwarders}) {
+        {bool includeStatic,
+        bool includeNoSuchMethodForwarders,
+        bool isFromMixinApplication: false}) {
       if (memberIsIgnorable(member, cls: cls)) return;
       if (!includeStatic && member.isStatic) return;
       if (member.isNoSuchMethodForwarder) {
@@ -360,12 +378,18 @@ class KClassEnvImpl implements KClassEnv {
       } else if (member.kind == ir.ProcedureKind.Setter) {
         _setterMap[name] = member;
         members.add(member);
+        if (isFromMixinApplication) {
+          _isMixinApplicationWithMembers = true;
+        }
       } else {
         assert(member.kind == ir.ProcedureKind.Method ||
             member.kind == ir.ProcedureKind.Getter ||
             member.kind == ir.ProcedureKind.Operator);
         _memberMap[name] = member;
         members.add(member);
+        if (isFromMixinApplication) {
+          _isMixinApplicationWithMembers = true;
+        }
       }
     }
 
@@ -379,27 +403,68 @@ class KClassEnvImpl implements KClassEnv {
     int mixinMemberCount = 0;
 
     if (cls.mixedInClass != null) {
+      Map<ir.Name, ir.Procedure> existingNonSetters;
+      Map<ir.Name, ir.Procedure> existingSetters;
+
+      void ensureExistingProcedureMaps() {
+        if (existingNonSetters == null) {
+          existingNonSetters = {};
+          existingSetters = {};
+          for (ir.Procedure procedure in cls.procedures) {
+            if (procedure.kind == ir.ProcedureKind.Setter) {
+              existingSetters[procedure.name] = procedure;
+            } else {
+              existingNonSetters[procedure.name] = procedure;
+            }
+          }
+        }
+      }
+
       CloneVisitorWithMembers cloneVisitor;
       for (ir.Field field in cls.mixedInClass.mixin.fields) {
         if (field.containsSuperCalls) {
-          _isSuperMixinApplication = true;
-          cloneVisitor ??= new CloneVisitorWithMembers(
+          _isMixinApplicationWithMembers = true;
+          cloneVisitor ??= new MixinApplicationCloner(cls,
               typeSubstitution: getSubstitutionMap(cls.mixedInType));
           // TODO(jensj): Provide a "referenceFrom" if we need to support
           // the incremental compiler.
-          cls.addField(cloneVisitor.cloneField(field, null));
+          ensureExistingProcedureMaps();
+          ir.Procedure existingGetter = existingNonSetters[field.name];
+          ir.Procedure existingSetter = existingSetters[field.name];
+          cls.addField(cloneVisitor.cloneField(
+              field, existingGetter?.reference, existingSetter?.reference));
+          // TODO(johnniwinther): We need to unbind the canonical names before
+          // serializing these references since the canonical names refer to
+          // @getters and @setters instead of @fields and @fields=. This will
+          // not be needed if stop using @fields/@fields= in favor of
+          // @getters/@setters in general.
+          if (existingGetter != null) {
+            cls.procedures.remove(existingGetter);
+          }
+          if (existingSetter != null) {
+            cls.procedures.remove(existingSetter);
+          }
           continue;
         }
         addField(field, includeStatic: false);
       }
       for (ir.Procedure procedure in cls.mixedInClass.mixin.procedures) {
         if (procedure.containsSuperCalls) {
-          _isSuperMixinApplication = true;
-          cloneVisitor ??= new CloneVisitorWithMembers(
+          _isMixinApplicationWithMembers = true;
+          cloneVisitor ??= new MixinApplicationCloner(cls,
               typeSubstitution: getSubstitutionMap(cls.mixedInType));
           // TODO(jensj): Provide a "referenceFrom" if we need to support
           // the incremental compiler.
-          cls.addProcedure(cloneVisitor.cloneProcedure(procedure, null));
+          ensureExistingProcedureMaps();
+          ir.Procedure existingProcedure =
+              procedure.kind == ir.ProcedureKind.Setter
+                  ? existingSetters[procedure.name]
+                  : existingNonSetters[procedure.name];
+          if (existingProcedure != null) {
+            cls.procedures.remove(existingProcedure);
+          }
+          cls.addProcedure(cloneVisitor.cloneProcedure(
+              procedure, existingProcedure?.reference));
           continue;
         }
         addProcedure(procedure,
@@ -415,7 +480,9 @@ class KClassEnvImpl implements KClassEnv {
     addConstructors(cls);
     for (ir.Procedure member in cls.procedures) {
       addProcedure(member,
-          includeStatic: true, includeNoSuchMethodForwarders: true);
+          includeStatic: true,
+          includeNoSuchMethodForwarders: true,
+          isFromMixinApplication: cls.mixedInClass != null);
     }
 
     mergeSort(members, start: mixinMemberCount, compare: orderByFileOffset);
@@ -516,7 +583,7 @@ class KClassEnvImpl implements KClassEnv {
       });
     }
     return new JClassEnvImpl(cls, constructorMap, memberMap, setterMap, members,
-        _isSuperMixinApplication ?? false);
+        _isMixinApplicationWithMembers ?? false);
   }
 }
 
@@ -548,7 +615,6 @@ class KClassDataImpl implements KClassData {
   final ir.Class node;
   @override
   bool isMixinApplication;
-  bool isCallTypeComputed = false;
 
   @override
   InterfaceType thisType;
@@ -576,7 +642,8 @@ class KClassDataImpl implements KClassData {
   bool get isEnumClass => node.isEnum;
 
   @override
-  DartType get callType => null;
+  FunctionType callType;
+  bool isCallTypeComputed = false;
 
   @override
   Iterable<ConstantValue> getMetadata(

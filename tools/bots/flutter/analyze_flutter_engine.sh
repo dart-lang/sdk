@@ -5,7 +5,7 @@
 
 # Analyze Dart code in the flutter/engine repo.
 
-set -e
+set -ex
 
 checkout=$(pwd)
 dart=$checkout/out/ReleaseX64/dart-sdk/bin/dart

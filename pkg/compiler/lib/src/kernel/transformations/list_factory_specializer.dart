@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/type_algebra.dart';
 import 'factory_specializer.dart';
 
 /// Replaces invocation of List factory constructors.
@@ -41,16 +42,16 @@ class ListFactorySpecializer extends BaseSpecializer {
     });
   }
 
-  Member _intPlus;
-  Member get intPlus =>
+  Procedure _intPlus;
+  Procedure get intPlus =>
       _intPlus ??= hierarchy.getInterfaceMember(_intClass, Name('+'));
 
-  Member _intLess;
-  Member get intLess =>
+  Procedure _intLess;
+  Procedure get intLess =>
       _intLess ??= hierarchy.getInterfaceMember(_intClass, Name('<'));
 
-  Member _jsArrayIndexSet;
-  Member get jsArrayIndexSet => _jsArrayIndexSet ??=
+  Procedure _jsArrayIndexSet;
+  Procedure get jsArrayIndexSet => _jsArrayIndexSet ??=
       hierarchy.getInterfaceMember(_jsArrayClass, Name('[]='));
 
   /// Replace calls to `List.generate(length, (i) => e)` with an expansion
@@ -131,20 +132,30 @@ class ListFactorySpecializer extends BaseSpecializer {
       // initializers: _i = 0
       [indexVariable],
       // condition: _i < _length
-      MethodInvocation(
+      InstanceInvocation(
+        InstanceAccessKind.Instance,
         VariableGet(indexVariable)..fileOffset = node.fileOffset,
         Name('<'),
         Arguments([getLength()]),
-      )..interfaceTarget = intLess,
+        interfaceTarget: intLess,
+        functionType: intLess.getterType,
+      ),
       // updates: _i++
       [
         VariableSet(
           indexVariable,
-          MethodInvocation(
-            VariableGet(indexVariable)..fileOffset = node.fileOffset,
-            Name('+'),
-            Arguments([IntLiteral(1)]),
-          )..interfaceTarget = intPlus,
+          InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(indexVariable)..fileOffset = node.fileOffset,
+              Name('+'),
+              Arguments([IntLiteral(1)]),
+              interfaceTarget: intPlus,
+              functionType: FunctionType(
+                  [intType],
+                  intType,
+                  contextMember.isNonNullableByDefault
+                      ? Nullability.nonNullable
+                      : Nullability.legacy)),
         )..fileOffset = node.fileOffset,
       ],
       // body, e.g. _list[_i] = expression;
@@ -283,7 +294,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
         type: closureParameter.type)
       ..fileOffset = closureParameter.fileOffset;
     this.argument = argument;
-    variables[closureParameter] = parameter;
+    setVariableClone(closureParameter, parameter);
   }
 
   Statement run() {
@@ -315,15 +326,18 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
     final value = expression == null ? NullLiteral() : clone(expression);
     // TODO(sra): Indicate that this indexed setter is safe.
     return ExpressionStatement(
-      MethodInvocation(
-        VariableGet(listVariable)..fileOffset = constructorFileOffset,
-        Name('[]='),
-        Arguments([
-          VariableGet(argument)..fileOffset = node.fileOffset,
-          value,
-        ]),
-      )
-        ..interfaceTarget = listFactorySpecializer.jsArrayIndexSet
+      InstanceInvocation(
+          InstanceAccessKind.Instance,
+          VariableGet(listVariable)..fileOffset = constructorFileOffset,
+          Name('[]='),
+          Arguments([
+            VariableGet(argument)..fileOffset = node.fileOffset,
+            value,
+          ]),
+          interfaceTarget: listFactorySpecializer.jsArrayIndexSet,
+          functionType: Substitution.fromInterfaceType(listVariable.type)
+              .substituteType(
+                  listFactorySpecializer.jsArrayIndexSet.getterType))
         ..isInvariant = true
         ..isBoundsSafe = true
         ..fileOffset = constructorFileOffset,
@@ -340,17 +354,8 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
   }
 
   @override
-  visitVariableGet(VariableGet node) {
-    // Unmapped variables are from an outer scope.
-    var mapped = variables[node.variable] ?? node.variable;
-    return VariableGet(mapped, visitOptionalType(node.promotedType))
-      ..fileOffset = node.fileOffset;
-  }
-
-  @override
-  visitVariableSet(VariableSet node) {
-    // Unmapped variables are from an outer scope.
-    var mapped = variables[node.variable] ?? node.variable;
-    return VariableSet(mapped, clone(node.value))..fileOffset = node.fileOffset;
+  VariableDeclaration getVariableClone(VariableDeclaration variable) {
+    VariableDeclaration clone = super.getVariableClone(variable);
+    return clone ?? variable;
   }
 }

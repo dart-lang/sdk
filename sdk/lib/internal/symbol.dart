@@ -50,7 +50,7 @@ class Symbol implements core.Symbol {
    * is "unary-".
    */
   static const String operatorRE =
-      r'(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>[>=]?|unary-)';
+      r'(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>(?:|=|>>?)|unary-)';
 
   // Grammar if symbols:
   //    symbol ::= qualifiedName | <empty>
@@ -105,9 +105,6 @@ class Symbol implements core.Symbol {
    * otherwise invalid names.
    */
   const Symbol.unvalidated(this._name);
-
-  // This is called by dart2js.
-  Symbol.validated(String name) : this._name = validatePublicSymbol(name);
 
   bool operator ==(Object other) => other is Symbol && _name == other._name;
 

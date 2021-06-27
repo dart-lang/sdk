@@ -4,7 +4,7 @@
 
 /// This class is used to gather and print performance information.
 class PerformanceLog {
-  final StringSink sink;
+  final StringSink? sink;
   int _level = 0;
 
   PerformanceLog(this.sink);
@@ -59,7 +59,7 @@ class PerformanceLog {
   void writeln(String msg) {
     if (sink != null) {
       String indent = '\t' * _level;
-      sink.writeln('$indent$msg');
+      sink!.writeln('$indent$msg');
     }
   }
 }

@@ -4,6 +4,8 @@
 //
 // Process test program to test process communication.
 
+// @dart = 2.9
+
 library PlatformExecutableTest;
 
 import "dart:io";
@@ -23,8 +25,11 @@ void verify(String exePath, {String altPath}) {
     env['PATH'] = altPath;
   }
 
+  List<String> execArgs =
+      ([]..addAll(Platform.executableArguments)
+         ..add('--verbosity=warning'));
   var processResult = Process.runSync(
-      exePath, [...Platform.executableArguments, scriptPath],
+      exePath, [...execArgs, scriptPath],
       includeParentEnvironment: false, runInShell: true, environment: env);
 
   if (processResult.exitCode != 0) {
@@ -47,7 +52,8 @@ void testDartExecShouldNotBeInCurrentDir() {
 void testShouldFailOutsidePath() {
   var threw = false;
   try {
-    Process.runSync(platformExeName, ['--version'],
+    Process.runSync(([platformExeName]..add('--verbosity=warning')).join(' '),
+        ['--version'],
         includeParentEnvironment: false,
         environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
   } catch (_) {

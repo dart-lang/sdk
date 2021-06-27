@@ -2073,9 +2073,9 @@ void f(C<int> c) {
 ''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'int');
-    expect(suggestion.parameterTypes[0], 'int');
-    expect(suggestion.element.returnType, 'int');
-    expect(suggestion.element.parameters, '(int t)');
+    expect(suggestion.parameterTypes![0], 'int');
+    expect(suggestion.element!.returnType, 'int');
+    expect(suggestion.element!.parameters, '(int t)');
   }
 
   Future<void> test_generic_setter() async {
@@ -2092,7 +2092,7 @@ void f(C<int> c) {
     // as a parmeter to it, and it will check the appropriate field in
     // the suggestion object.
     var suggestion = assertSuggestSetter('t');
-    expect(suggestion.element.parameters, '(int value)');
+    expect(suggestion.element!.parameters, '(int value)');
   }
 
   Future<void> test_genericTypeAlias_noFunctionType() async {
@@ -2738,11 +2738,13 @@ class C {
 void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -2755,11 +2757,13 @@ class C {
 void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -2772,11 +2776,13 @@ class C {
 void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -2803,11 +2809,13 @@ class C {
 void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -2820,11 +2828,13 @@ class C {
 void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    var parameterNames = suggestion.parameterNames!;
+    var parameterTypes = suggestion.parameterTypes!;
+    expect(parameterNames, hasLength(2));
+    expect(parameterNames[0], 'x');
+    expect(parameterTypes[0], 'dynamic');
+    expect(parameterNames[1], 'y');
+    expect(parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -3065,6 +3075,21 @@ void main() {new C().^}''');
     assertNotSuggested('X');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+
+  Future<void> test_methodInvocation_typeParameter() async {
+    addTestSource('''
+class A {
+  void a() {}
+}
+class C<T extends A> {
+  void c(T t) {
+    t.^;
+  }
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('a', 'A', 'void');
   }
 
   Future<void> test_mixin() async {

@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
-testHttpUri() {
+void testHttpUri() {
   void check(Uri uri, String expected) {
     Expect.equals(expected, uri.toString());
   }
@@ -40,7 +42,7 @@ testHttpUri() {
   check(new Uri.http('[ff02::1%%321]', ''), 'http://[ff02::1%2521]');
 }
 
-testHttpsUri() {
+void testHttpsUri() {
   void check(Uri uri, String expected) {
     Expect.equals(expected, uri.toString());
   }
@@ -71,7 +73,7 @@ testHttpsUri() {
   check(new Uri.https("[::127.0.0.1]", "a"), "https://[::127.0.0.1]/a");
 }
 
-testResolveHttpScheme() {
+void testResolveHttpScheme() {
   String s = "//myserver:1234/path/some/thing";
   Uri uri = Uri.parse(s);
   Uri http = new Uri(scheme: "http");
@@ -80,8 +82,34 @@ testResolveHttpScheme() {
   Expect.equals("https:$s", https.resolveUri(uri).toString());
 }
 
+void testQuery() {
+  var uri = Uri.http("example.com", "a/b", <String, dynamic>{
+    "a": "b",
+    "c": ["d", "e"]
+  });
+  Expect.equals(uri.toString(), "http://example.com/a/b?a=b&c=d&c=e");
+  Expect.listEquals(uri.queryParametersAll["c"], ["d", "e"]);
+
+  uri = Uri.https("example.com", "a/b", <String, dynamic>{
+    "a": "b",
+    "c": ["d", "e"]
+  });
+  Expect.equals(uri.toString(), "https://example.com/a/b?a=b&c=d&c=e");
+  Expect.listEquals(uri.queryParametersAll["c"], ["d", "e"]);
+
+  uri = Uri.http("example.com", "a/b", {
+    "a b c": ["d e", "f g"]
+  });
+  Expect.equals(uri.toString(), "http://example.com/a/b?a+b+c=d+e&a+b+c=f+g");
+  uri = Uri.https("example.com", "a/b", {
+    "a b c": ["d e", "f g"]
+  });
+  Expect.equals(uri.toString(), "https://example.com/a/b?a+b+c=d+e&a+b+c=f+g");
+}
+
 main() {
   testHttpUri();
   testHttpsUri();
   testResolveHttpScheme();
+  testQuery();
 }

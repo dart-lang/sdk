@@ -10,7 +10,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TryStatementTest);
-    defineReflectiveTests(TryStatementWithNullSafetyTest);
   });
 }
 
@@ -37,8 +36,8 @@ main() {
     assertType(st.type, 'StackTrace');
 
     var node = findNode.catchClause('catch');
-    expect(node.exceptionParameter.staticElement, e);
-    expect(node.stackTraceParameter.staticElement, st);
+    expect(node.exceptionParameter!.staticElement, e);
+    expect(node.stackTraceParameter!.staticElement, st);
   }
 
   test_catch_withType() async {
@@ -59,11 +58,7 @@ main() {
     assertType(st.type, 'StackTrace');
 
     var node = findNode.catchClause('catch');
-    expect(node.exceptionParameter.staticElement, e);
-    expect(node.stackTraceParameter.staticElement, st);
+    expect(node.exceptionParameter!.staticElement, e);
+    expect(node.stackTraceParameter!.staticElement, st);
   }
 }
-
-@reflectiveTest
-class TryStatementWithNullSafetyTest extends TryStatementTest
-    with WithNullSafetyMixin {}

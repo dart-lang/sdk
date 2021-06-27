@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class M0 {
   factory M0(a, b, c) => null;
   factory M0.named() => null;
@@ -97,16 +99,18 @@ main() {
   new D6();
 
   new C0(1,2,3);
-  //    ^^^^^^^
+  //     ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //    ^^^^^^^
   // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   new C0.named();
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
   // [cfe] Method not found: 'C0.named'.
   new D0(1,2,3);
-  //    ^^^^^^^
+  //     ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //    ^^^^^^^
   // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   new D0.named();
   //     ^^^^^

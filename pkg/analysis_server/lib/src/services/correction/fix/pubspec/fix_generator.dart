@@ -6,10 +6,7 @@ import 'dart:math' as math;
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
-import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
@@ -33,7 +30,7 @@ class PubspecFixGenerator {
 
   final List<Fix> fixes = <Fix>[];
 
-  List<YamlNode> coveringNodePath;
+  // List<YamlNode> coveringNodePath;
 
   PubspecFixGenerator(this.error, this.content, this.options)
       : errorOffset = error.offset,
@@ -46,12 +43,12 @@ class PubspecFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    var locator =
-        YamlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
-    coveringNodePath = locator.searchWithin(options);
-    if (coveringNodePath.isEmpty) {
-      return fixes;
-    }
+    // var locator =
+    //     YamlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
+    // coveringNodePath = locator.searchWithin(options);
+    // if (coveringNodePath.isEmpty) {
+    //   return fixes;
+    // }
 
     var errorCode = error.errorCode;
     if (errorCode == PubspecWarningCode.ASSET_DOES_NOT_EXIST) {
@@ -70,7 +67,7 @@ class PubspecFixGenerator {
   /// [kind]. If [args] are provided, they will be used to fill in the message
   /// for the fix.
   // ignore: unused_element
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List args}) {
+  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List? args}) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
@@ -89,9 +86,9 @@ class PubspecFixGenerator {
 
   // ignore: unused_element
   SourceRange _lines(int start, int end) {
-    CharacterLocation startLocation = lineInfo.getLocation(start);
+    var startLocation = lineInfo.getLocation(start);
     var startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
-    CharacterLocation endLocation = lineInfo.getLocation(end);
+    var endLocation = lineInfo.getLocation(end);
     var endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
     return SourceRange(startOffset, endOffset - startOffset);

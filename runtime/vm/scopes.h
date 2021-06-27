@@ -259,7 +259,7 @@ class LocalVarDescriptorsBuilder : public ValueObject {
  public:
   struct VarDesc {
     const String* name;
-    LocalVarDescriptorsLayout::VarInfo info;
+    UntaggedLocalVarDescriptors::VarInfo info;
   };
 
   LocalVarDescriptorsBuilder() : vars_(8) {}

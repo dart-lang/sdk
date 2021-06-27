@@ -22,7 +22,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   final AnalysisSession session;
   final PropertyAccessorElement element;
 
-  SourceChange change;
+  late SourceChange change;
 
   ConvertGetterToMethodRefactoringImpl(
       this.searchEngine, this.session, this.element);
@@ -51,13 +51,13 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       await _updateElementReferences(element);
     }
     // method
-    if (element.enclosingElement is ClassElement) {
-      FieldElement field = element.variable;
+    var field = element.variable;
+    if (field is FieldElement && field.enclosingElement is ClassElement) {
       var elements = await getHierarchyMembers(searchEngine, field);
       await Future.forEach(elements, (ClassMemberElement member) async {
         if (member is FieldElement) {
           var getter = member.getter;
-          if (!getter.isSynthetic) {
+          if (getter != null && !getter.isSynthetic) {
             await _updateElementDeclaration(getter);
             return _updateElementReferences(getter);
           }
@@ -79,11 +79,11 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   Future<void> _updateElementDeclaration(
       PropertyAccessorElement element) async {
     // prepare "get" keyword
-    Token getKeyword;
+    Token? getKeyword;
     {
       var sessionHelper = AnalysisSessionHelper(session);
       var result = await sessionHelper.getElementDeclaration(element);
-      var declaration = result.node;
+      var declaration = result?.node;
       if (declaration is MethodDeclaration) {
         getKeyword = declaration.propertyKeyword;
       } else if (declaration is FunctionDeclaration) {

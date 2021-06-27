@@ -12,7 +12,6 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:args/command_runner.dart';
-import 'package:meta/meta.dart';
 
 import 'package:vm_snapshot_analysis/ascii_table.dart';
 import 'package:vm_snapshot_analysis/precompiler_trace.dart';
@@ -95,21 +94,23 @@ precisely based on their source position (which is included in their name).
 
   @override
   Future<void> run() async {
-    if (argResults.rest.length != 1) {
+    final args = argResults!;
+
+    if (args.rest.length != 1) {
       usageException('Need to specify input JSON.');
     }
 
-    final input = File(argResults.rest[0]);
+    final input = File(args.rest[0]);
     if (!input.existsSync()) {
       usageException('Input file ${input.path} does not exist!');
     }
 
-    final granularity = _parseHistogramType(argResults['by']);
+    final granularity = _parseHistogramType(args['by']);
 
-    final traceJson = argResults['precompiler-trace'];
+    final traceJson = args['precompiler-trace'];
     if (traceJson != null) {
       if (!File(traceJson).existsSync()) {
-        usageException('Trace ${traceJson} does not exist!');
+        usageException('Trace $traceJson does not exist!');
       }
 
       if (granularity != HistogramType.byPackage &&
@@ -119,38 +120,37 @@ precisely based on their source position (which is included in their name).
       }
     }
 
-    final columnWidth = argResults['column-width'];
+    final columnWidth = args['column-width'];
     final maxWidth = int.tryParse(columnWidth);
     if (maxWidth == null) {
-      usageException(
-          'Specified column width (${columnWidth}) is not an integer');
+      usageException('Specified column width ($columnWidth) is not an integer');
     }
 
-    final depsStartDepthStr = argResults['deps-start-depth'];
+    final depsStartDepthStr = args['deps-start-depth'];
     final depsStartDepth = int.tryParse(depsStartDepthStr);
     if (depsStartDepth == null) {
-      usageException('Specified depsStartDepth (${depsStartDepthStr})'
+      usageException('Specified depsStartDepth ($depsStartDepthStr)'
           ' is not an integer');
     }
 
-    final depsDisplayDepthStr = argResults['deps-display-depth'];
+    final depsDisplayDepthStr = args['deps-display-depth'];
     final depsDisplayDepth = int.tryParse(depsDisplayDepthStr);
     if (depsDisplayDepth == null) {
-      usageException('Specified depsDisplayDepth (${depsStartDepthStr})'
+      usageException('Specified depsDisplayDepth ($depsStartDepthStr)'
           ' is not an integer');
     }
 
     await outputSummary(input,
         maxWidth: maxWidth,
         granularity: granularity,
-        collapseAnonymousClosures: argResults['collapse-anonymous-closures'],
-        filter: argResults['where'],
+        collapseAnonymousClosures: args['collapse-anonymous-closures'],
+        filter: args['where'],
         traceJson: traceJson != null ? File(traceJson) : null,
         depsStartDepth: depsStartDepth,
         depsDisplayDepth: depsDisplayDepth);
   }
 
-  static HistogramType _parseHistogramType(String value) {
+  HistogramType _parseHistogramType(String value) {
     switch (value) {
       case 'method':
         return HistogramType.bySymbol;
@@ -160,17 +160,18 @@ precisely based on their source position (which is included in their name).
         return HistogramType.byLibrary;
       case 'package':
         return HistogramType.byPackage;
+      default:
+        usageException('Unrecognized histogram type $value');
     }
-    return null;
   }
 }
 
-void outputSummary(File input,
+Future<void> outputSummary(File input,
     {int maxWidth = 0,
     bool collapseAnonymousClosures = false,
     HistogramType granularity = HistogramType.bySymbol,
-    String filter,
-    File traceJson,
+    String? filter,
+    File? traceJson,
     int depsStartDepth = 2,
     int depsDisplayDepth = 4,
     int topToReport = 30}) async {
@@ -182,7 +183,7 @@ void outputSummary(File input,
 
   // If precompiler trace is provided, collapse entries based on the dependency
   // graph (dominator tree) extracted from the trace.
-  void Function() printDependencyTrees;
+  void Function()? printDependencyTrees;
   if (traceJson != null &&
       (granularity == HistogramType.byLibrary ||
           granularity == HistogramType.byPackage)) {
@@ -235,8 +236,8 @@ void outputSummary(File input,
       var totalCount = 1;
       for (var n in node.dominated) {
         computeTotalsRecursively(n);
-        totalSize += totalSizes[n.data.name];
-        totalCount += totalCounts[n.data.name];
+        totalSize += totalSizes[n.data.name]!;
+        totalCount += totalCounts[n.data.name]!;
       }
       totalSizes[node.data.name] = totalSize;
       totalCounts[node.data.name] = totalCount;
@@ -255,7 +256,7 @@ void outputSummary(File input,
       final collapsedEntries = histogram.bySize
           .take(topToReport)
           .map((k) => collapsed[k])
-          .where((n) => n != null);
+          .whereType<CallGraphNode>();
       if (collapsedEntries.isNotEmpty) {
         print('\bDependency trees:');
         for (var n in collapsedEntries) {
@@ -302,9 +303,9 @@ void outputSummary(File input,
 void _printDominatedNodes(CallGraphNode node,
     {int displayDepth = 4,
     int maxChildrenToPrint = 10,
-    List<bool> isLastPerLevel,
-    @required Map<String, int> totalSizes,
-    @required Map<String, int> totalCounts}) {
+    List<bool>? isLastPerLevel,
+    required Map<String, int> totalSizes,
+    required Map<String, int> totalCounts}) {
   isLastPerLevel ??= [];
 
   // Subtract one to account for the parent node that is printed before the
@@ -315,8 +316,8 @@ void _printDominatedNodes(CallGraphNode node,
 
   final sizes = node.dominated.map((n) => totalSizes[n.data.name]).toList();
   final order = List.generate(node.dominated.length, (i) => i)
-    ..sort((a, b) => sizes[b] - sizes[a]);
-  final lastIndex = order.lastIndexWhere((i) => sizes[i] > 0);
+    ..sort((a, b) => sizes[b]! - sizes[a]!);
+  final lastIndex = order.lastIndexWhere((i) => sizes[i]! > 0);
 
   for (var j = 0, n = math.min(maxChildrenToPrint - 1, lastIndex);
       j <= n;
@@ -327,7 +328,7 @@ void _printDominatedNodes(CallGraphNode node,
     final size = sizes[i];
     isLastPerLevel.add(isLast);
     print(
-        '${_treeLines(isLastPerLevel)}${n.data.qualifiedName} (total ${size} bytes)');
+        '${_treeLines(isLastPerLevel)}${n.data.qualifiedName} (total $size bytes)');
     _printDominatedNodes(n,
         displayDepth: displayDepth,
         isLastPerLevel: isLastPerLevel,
@@ -339,7 +340,7 @@ void _printDominatedNodes(CallGraphNode node,
   if (maxChildrenToPrint < lastIndex) {
     isLastPerLevel.add(true);
     print(
-        '${_treeLines(isLastPerLevel)} ... (+${totalCounts[node.data.name] - 1} deps)');
+        '${_treeLines(isLastPerLevel)} ... (+${totalCounts[node.data.name]! - 1} deps)');
     isLastPerLevel.removeLast();
   }
 }

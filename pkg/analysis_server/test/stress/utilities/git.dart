@@ -39,9 +39,9 @@ class BlobDiff {
   void _parseLine(String line) {
     var currentHunk = hunks.isEmpty ? null : hunks.last;
     if (line.startsWith('@@')) {
-      var match = hunkHeaderRegExp.matchAsPrefix(line);
-      var srcLine = int.parse(match.group(1));
-      var dstLine = int.parse(match.group(2));
+      var match = hunkHeaderRegExp.matchAsPrefix(line)!;
+      var srcLine = int.parse(match.group(1)!);
+      var dstLine = int.parse(match.group(2)!);
       hunks.add(DiffHunk(srcLine, dstLine));
     } else if (currentHunk != null && line.startsWith('+')) {
       currentHunk.addLines.add(line.substring(1));
@@ -88,7 +88,7 @@ class CommitDelta {
   Iterable<String> filesMatching(String fileName) {
     return diffRecords
         .where((DiffRecord record) => record.isFor(fileName))
-        .map((DiffRecord record) => record.srcPath);
+        .map((DiffRecord record) => record.srcPath!);
   }
 
   /// Remove any diffs for files that are either (a) outside the given
@@ -96,7 +96,7 @@ class CommitDelta {
   /// [globPatterns].
   void filterDiffs(List<String> inclusionPaths, List<Glob> globPatterns) {
     diffRecords.retainWhere((DiffRecord record) {
-      var filePath = record.srcPath ?? record.dstPath;
+      var filePath = (record.srcPath ?? record.dstPath)!;
       for (var inclusionPath in inclusionPaths) {
         if (path.isWithin(inclusionPath, filePath)) {
           for (var glob in globPatterns) {
@@ -175,7 +175,7 @@ class CommitDelta {
     var srcPath = _makeAbsolute(input.substring(startIndex, endIndex));
     startIndex = endIndex + 1;
     // Parse field 14
-    String dstPath;
+    String? dstPath;
     if (status.startsWith('C') || status.startsWith('R')) {
       endIndex = _findEnd(input, startIndex);
       dstPath = _makeAbsolute(input.substring(startIndex, endIndex));
@@ -254,10 +254,10 @@ class DiffRecord {
   final String status;
 
   /// The path of the src.
-  final String srcPath;
+  final String? srcPath;
 
   /// The path of the dst if this was either a copy or a rename operation.
-  final String dstPath;
+  final String? dstPath;
 
   /// Initialize a newly created diff record.
   DiffRecord(this.repository, this.srcBlob, this.dstBlob, this.status,
@@ -286,12 +286,15 @@ class DiffRecord {
   BlobDiff getBlobDiff() => repository.getBlobDiff(srcBlob, dstBlob);
 
   /// Return `true` if this diff applies to a file with the given name.
-  bool isFor(String fileName) =>
-      (srcPath != null && fileName == path.basename(srcPath)) ||
-      (dstPath != null && fileName == path.basename(dstPath));
+  bool isFor(String fileName) {
+    final srcPath = this.srcPath;
+    final dstPath = this.dstPath;
+    return (srcPath != null && fileName == path.basename(srcPath)) ||
+        (dstPath != null && fileName == path.basename(dstPath));
+  }
 
   @override
-  String toString() => srcPath ?? dstPath;
+  String toString() => srcPath ?? dstPath ?? '<unknown>';
 }
 
 /// A representation of a git repository.
@@ -301,7 +304,7 @@ class GitRepository {
 
   /// The logger to which git commands should be written, or `null` if the
   /// commands should not be written.
-  final Logger logger;
+  final Logger? logger;
 
   /// Initialize a newly created repository to represent the git repository at
   /// the given [path].
@@ -385,7 +388,7 @@ class LinearCommitHistoryIterator {
   final LinearCommitHistory history;
 
   /// The index of the current commit in the list of [commitIds].
-  int currentCommit;
+  late int currentCommit;
 
   /// Initialize a newly created iterator to iterate over the commits with the
   /// given [commitIds];

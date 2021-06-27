@@ -37,18 +37,19 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   void expectSuggestion(DartFixSuggestion suggestion, String partialText,
-      [int offset, int length]) {
+      [int? offset, int? length]) {
     expect(suggestion.description, contains(partialText));
     if (offset == null) {
       expect(suggestion.location, isNull);
     } else {
-      expect(suggestion.location.offset, offset);
-      expect(suggestion.location.length, length);
+      var location = suggestion.location!;
+      expect(location.offset, offset);
+      expect(location.length, length);
     }
   }
 
   Future<EditDartfixResult> performFix(
-      {List<String> includedFixes, bool pedantic}) async {
+      {List<String>? includedFixes, bool? pedantic}) async {
     var response =
         await performFixRaw(includedFixes: includedFixes, pedantic: pedantic);
     expect(response.error, isNull);
@@ -56,9 +57,9 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<Response> performFixRaw(
-      {List<String> includedFixes,
-      List<String> excludedFixes,
-      bool pedantic}) async {
+      {List<String>? includedFixes,
+      List<String>? excludedFixes,
+      bool? pedantic}) async {
     final id = nextRequestId;
     final params = EditDartfixParams([projectPath]);
     params.includedFixes = includedFixes;
@@ -109,7 +110,7 @@ const double myDouble = 42.0;
 
   Future<void> test_excludedSource() async {
     // Add analysis options to exclude the lib directory then reanalyze
-    newFile('/project/analysis_options.yaml', content: '''
+    newAnalysisOptionsYamlFile('/project', content: '''
 analyzer:
   exclude:
     - lib/**

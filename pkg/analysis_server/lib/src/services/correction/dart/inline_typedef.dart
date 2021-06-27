@@ -12,7 +12,13 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class InlineTypedef extends CorrectionProducer {
-  String _name;
+  String _name = '';
+
+  @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
 
   @override
   List<Object> get fixArguments => [_name];
@@ -21,14 +27,21 @@ class InlineTypedef extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.INLINE_TYPEDEF;
 
   @override
+  FixKind get multiFixKind => DartFixKind.INLINE_TYPEDEF_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
+    var parent = node.parent;
+    if (parent == null) {
+      return;
+    }
+
     //
     // Extract the information needed to build the edit.
     //
-    TypeAnnotation returnType;
-    TypeParameterList typeParameters;
+    TypeAnnotation? returnType;
+    TypeParameterList? typeParameters;
     List<FormalParameter> parameters;
-    var parent = node.parent;
     if (parent is FunctionTypeAlias) {
       returnType = parent.returnType;
       _name = parent.name.name;
@@ -39,6 +52,9 @@ class InlineTypedef extends CorrectionProducer {
         return;
       }
       var functionType = parent.functionType;
+      if (functionType == null) {
+        return;
+      }
       returnType = functionType.returnType;
       _name = parent.name.name;
       typeParameters = functionType.typeParameters;
@@ -48,8 +64,9 @@ class InlineTypedef extends CorrectionProducer {
     }
     // TODO(brianwilkerson) Handle parts.
     var finder = _ReferenceFinder(_name);
-    resolvedResult.unit.accept(finder);
-    if (finder.count != 1) {
+    unit.accept(finder);
+    var reference = finder.reference;
+    if (reference == null || finder.count != 1) {
       return;
     }
     //
@@ -57,7 +74,7 @@ class InlineTypedef extends CorrectionProducer {
     //
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(utils.getLinesRange(range.node(parent)));
-      builder.addReplacement(range.node(finder.reference), (builder) {
+      builder.addReplacement(range.node(reference), (builder) {
         if (returnType != null) {
           builder.write(utils.getNodeText(returnType));
           builder.write(' ');
@@ -66,7 +83,7 @@ class InlineTypedef extends CorrectionProducer {
         if (typeParameters != null) {
           builder.write(utils.getNodeText(typeParameters));
         }
-        String groupEnd;
+        String? groupEnd;
         builder.write('(');
         for (var i = 0; i < parameters.length; i++) {
           var parameter = parameters[i];
@@ -85,7 +102,7 @@ class InlineTypedef extends CorrectionProducer {
                 builder.write('[');
               }
             }
-            parameter = (parameter as DefaultFormalParameter).parameter;
+            parameter = parameter.parameter;
           }
           if (parameter is FunctionTypedFormalParameter) {
             builder.write(utils.getNodeText(parameter));
@@ -104,14 +121,18 @@ class InlineTypedef extends CorrectionProducer {
             if (keyword != null && keyword.type != Keyword.VAR) {
               builder.write(keyword.lexeme);
             }
-            if (parameter.type == null) {
+            var typeAnnotation = parameter.type;
+            if (typeAnnotation == null) {
               builder.write('dynamic');
             } else {
-              builder.write(utils.getNodeText(parameter.type));
+              builder.write(utils.getNodeText(typeAnnotation));
             }
             if (parameter.isNamed) {
-              builder.write(' ');
-              builder.write(parameter.identifier.name);
+              var identifier = parameter.identifier;
+              if (identifier != null) {
+                builder.write(' ');
+                builder.write(identifier.name);
+              }
             }
           }
         }
@@ -130,7 +151,7 @@ class InlineTypedef extends CorrectionProducer {
 class _ReferenceFinder extends RecursiveAstVisitor {
   final String typeName;
 
-  TypeName reference;
+  TypeName? reference;
 
   int count = 0;
 

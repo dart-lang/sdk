@@ -26,14 +26,7 @@ class TypeMemberContributor implements CompletionContributor {
   @override
   Future<void> computeSuggestions(
       DartCompletionRequest request, CompletionCollector collector) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var containingLibrary = request.result.libraryElement;
-    // Gracefully degrade if the library element is not resolved
-    // e.g. detached part file or source change
-    if (containingLibrary == null) {
-      return;
-    }
 
     // Recompute the target since resolution may have changed it
     var expression = _computeDotTarget(request, null);
@@ -46,14 +39,7 @@ class TypeMemberContributor implements CompletionContributor {
   /// Clients should not overload this function.
   Future<void> computeSuggestionsWithEntryPoint(DartCompletionRequest request,
       CompletionCollector collector, AstNode entryPoint) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var containingLibrary = request.result.libraryElement;
-    // Gracefully degrade if the library element is not resolved
-    // e.g. detached part file or source change
-    if (containingLibrary == null) {
-      return;
-    }
 
     // Recompute the target since resolution may have changed it
     var expression = _computeDotTarget(request, entryPoint);
@@ -64,16 +50,20 @@ class TypeMemberContributor implements CompletionContributor {
   }
 
   /// Update the completion [target] and [dotTarget] based on the given [unit].
-  Expression _computeDotTarget(
-      DartCompletionRequest request, AstNode entryPoint) {
-    var target = CompletionTarget.forOffset(request.result.unit, request.offset,
+  Expression? _computeDotTarget(
+      DartCompletionRequest request, AstNode? entryPoint) {
+    var target = CompletionTarget.forOffset(
+        request.result.unit!, request.offset,
         entryPoint: entryPoint);
     var node = target.containingNode;
     if (node is MethodInvocation) {
       if (identical(node.methodName, target.entity)) {
         return node.realTarget;
-      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
-        return node.realTarget;
+      } else if (node.isCascaded) {
+        var operator = node.operator;
+        if (operator != null && operator.offset + 1 == target.offset) {
+          return node.realTarget;
+        }
       }
     }
     if (node is PropertyAccess) {
@@ -133,19 +123,17 @@ class TypeMemberContributor implements CompletionContributor {
         }
       }
     }
-    String containingMethodName;
+    String? containingMethodName;
     if (expression is SuperExpression && type is InterfaceType) {
       // Suggest members from superclass if target is "super"
-      type = (type as InterfaceType).superclass;
+      type = type.superclass;
       // Determine the name of the containing method because
       // the most likely completion is a super expression with same name
       var containingMethod =
           expression.thisOrAncestorOfType<MethodDeclaration>();
-      if (containingMethod != null) {
-        var id = containingMethod.name;
-        if (id != null) {
-          containingMethodName = id.name;
-        }
+      var id = containingMethod?.name;
+      if (id != null) {
+        containingMethodName = id.name;
       }
     }
     if (type == null || type.isDynamic) {
@@ -170,7 +158,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   /// The best type for the found declaration,
   /// or `null` if no declaration found or failed to determine a type.
-  DartType typeFound;
+  DartType? typeFound;
 
   /// Construct a new instance to search for a declaration
   _LocalBestTypeVisitor(this.targetName, int offset) : super(offset);
@@ -244,7 +232,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
+  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
     if (name.name == targetName) {
       var element = name.staticElement as VariableElement;
       typeFound = element.type;
@@ -264,7 +252,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation type) {
+  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {
     if (name.name == targetName) {
       // Type provided by the element in computeFull above
       finished();
@@ -334,7 +322,7 @@ class _SuggestionBuilder {
   /// Create completion suggestions for 'dot' completions on the given [type].
   /// If the 'dot' completion is a super expression, then [containingMethodName]
   /// is the name of the method in which the completion is requested.
-  void buildSuggestions(InterfaceType type, String containingMethodName) {
+  void buildSuggestions(InterfaceType type, String? containingMethodName) {
     // Visit all of the types in the class hierarchy, collecting possible
     // completions. If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
@@ -372,7 +360,7 @@ class _SuggestionBuilder {
 
   /// Add a suggestion based upon the given element, provided that it is not
   /// shadowed by a previously added suggestion.
-  void _addSuggestion(Element element, {int relevance}) {
+  void _addSuggestion(Element element, {int? relevance}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
         // Do not suggest private members for imported libraries
@@ -384,7 +372,7 @@ class _SuggestionBuilder {
     if (relevance == null) {
       // Decrease relevance of suggestions starting with $
       // https://github.com/dart-lang/sdk/issues/27303
-      if (identifier != null && identifier.startsWith(r'$')) {
+      if (identifier.startsWith(r'$')) {
         relevance = DART_RELEVANCE_LOW;
       } else {
         relevance = DART_RELEVANCE_DEFAULT;
@@ -406,13 +394,15 @@ class _SuggestionBuilder {
         if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
           return;
         }
-        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_GETTER;
+        _completionTypesGenerated[identifier] =
+            _completionTypesGenerated[identifier]! | _COMPLETION_TYPE_GETTER;
       } else {
         // Setters, fields, and methods shadow a setter.
         if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
           return;
         }
-        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_SETTER;
+        _completionTypesGenerated[identifier] =
+            _completionTypesGenerated[identifier]! | _COMPLETION_TYPE_SETTER;
       }
     } else if (element is FieldElement) {
       // Fields and methods shadow a field. A getter/setter pair shadows a
@@ -461,7 +451,7 @@ class _SuggestionBuilder {
       // in the reverse order.
       typesToVisit.addAll(nextType.interfaces);
       if (nextType.superclass != null) {
-        typesToVisit.add(nextType.superclass);
+        typesToVisit.add(nextType.superclass!);
       }
       typesToVisit.addAll(nextType.mixins);
     }

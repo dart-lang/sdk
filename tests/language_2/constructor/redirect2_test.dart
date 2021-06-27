@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Redirection constructors must not have a function body.
 
+// @dart = 2.9
+
 class A {
   var x;
   A(this.x) {}
@@ -32,8 +34,9 @@ class A {
   //                          ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.SUPER_IN_REDIRECTING_CONSTRUCTOR
   // [cfe] A redirecting constructor can't have other initializers.
-  //                               ^^^
+  //                                ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //                               ^^^
   // [cfe] Too many positional arguments: 0 allowed, but 1 found.
 }
 

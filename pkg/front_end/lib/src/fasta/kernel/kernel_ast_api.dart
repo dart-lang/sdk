@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// This library exports all API from Kernel's ast.dart that can be used
 /// throughout fasta.
 library fasta.kernel_ast_api;
@@ -13,7 +15,6 @@ export 'package:kernel/ast.dart'
         AssertStatement,
         AsyncMarker,
         Block,
-        BottomType,
         BreakStatement,
         Catch,
         CheckLibraryIsLoaded,
@@ -46,7 +47,7 @@ export 'package:kernel/ast.dart'
         ListLiteral,
         LocalInitializer,
         Location,
-        MapEntry,
+        MapLiteralEntry,
         MapLiteral,
         Member,
         MethodInvocation,

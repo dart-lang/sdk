@@ -622,7 +622,7 @@ void _writeFailureReproductionCommands(
   if (Platform.isFuchsia) {
     arguments = [Platform.executable, Platform.script.path];
   } else {
-    arguments = ['python', 'tools/test.py'];
+    arguments = ['python3', 'tools/test.py'];
   }
   arguments.addAll(test.configuration.reproducingArguments);
   arguments.add(test.displayName);
@@ -656,7 +656,7 @@ class ResultWriter extends EventListener {
     var testName = name.substring(index + 1);
     var time =
         test.commandOutputs.values.fold(Duration.zero, (d, o) => d + o.time);
-
+    var experiments = test.experiments;
     var record = {
       "name": name,
       "configuration": test.configuration.configuration.name,
@@ -665,7 +665,8 @@ class ResultWriter extends EventListener {
       "time_ms": time.inMilliseconds,
       "result": test.realResult.toString(),
       "expected": test.realExpected.toString(),
-      "matches": test.realResult.canBeOutcomeOf(test.realExpected)
+      "matches": test.realResult.canBeOutcomeOf(test.realExpected),
+      if (experiments.isNotEmpty) "experiments": experiments,
     };
     _results.add(record);
     if (test.configuration.writeLogs && record['matches'] != true) {

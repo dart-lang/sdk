@@ -1,0 +1,15 @@
+// @dart = 2.9
+abstract class Class extends SuperClass {
+  void set setter(Object o);
+}
+
+class SubClass extends Class {
+  void set setter(Object o) {}
+}
+
+class SuperClass {
+  void set setter(int o) {}
+}
+
+main() {}
+test() {}

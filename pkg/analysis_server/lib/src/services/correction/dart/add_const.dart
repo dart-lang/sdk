@@ -10,38 +10,55 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddConst extends CorrectionProducer {
   @override
+  bool canBeAppliedInBulk;
+
+  @override
+  bool canBeAppliedToFile;
+
+  AddConst(this.canBeAppliedInBulk, this.canBeAppliedToFile);
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_CONST;
 
   @override
+  FixKind get multiFixKind => DartFixKind.ADD_CONST_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is SimpleIdentifier) {
-      node = node.parent;
+    AstNode? targetNode = node;
+    if (targetNode is SimpleIdentifier) {
+      targetNode = targetNode.parent;
     }
-    if (node is ConstructorDeclaration) {
+    if (targetNode is ConstructorDeclaration) {
+      var node_final = targetNode;
       await builder.addDartFileEdit(file, (builder) {
-        final offset = (node as ConstructorDeclaration)
-            .firstTokenAfterCommentAndMetadata
-            .offset;
+        final offset = node_final.firstTokenAfterCommentAndMetadata.offset;
         builder.addSimpleInsertion(offset, 'const ');
       });
       return;
     }
-    if (node is TypeName) {
-      node = node.parent;
+    if (targetNode is TypeName) {
+      targetNode = targetNode.parent;
     }
-    if (node is ConstructorName) {
-      node = node.parent;
+    if (targetNode is ConstructorName) {
+      targetNode = targetNode.parent;
     }
-    if (node is InstanceCreationExpression) {
-      if ((node as InstanceCreationExpression).keyword == null) {
+    if (targetNode is InstanceCreationExpression) {
+      if (targetNode.keyword == null) {
+        var node_final = targetNode;
         await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleInsertion(node.offset, 'const ');
+          builder.addSimpleInsertion(node_final.offset, 'const ');
         });
       }
     }
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddConst newInstance() => AddConst();
+  static AddConst toDeclaration() => AddConst(true, true);
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  // TODO(brianwilkerson) This fix can produce changes that are inconsistent
+  //  with the `unnecessary_const` lint. Fix it and then enable it for both
+  //  uses.
+  static AddConst toInvocation() => AddConst(false, false);
 }

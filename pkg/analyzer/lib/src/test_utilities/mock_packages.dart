@@ -36,11 +36,20 @@ const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 const _Protected protected = const _Protected();
 const Required required = const Required();
 const _Sealed sealed = const _Sealed();
+const UseResult useResult = UseResult();
+const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
 const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
 
 class _AlwaysThrows {
   const _AlwaysThrows();
 }
+@Target({
+  TargetKind.field,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.topLevelVariable,
+})
 class _DoNotStore {
   const _DoNotStore();
 }
@@ -76,6 +85,13 @@ class Required {
 class _Sealed {
   const _Sealed();
 }
+class UseResult {
+  final String reason;
+  const UseResult([this.reason = '']);
+}
+class _VisibleForOverriding {
+  const _VisibleForOverriding();
+}
 class _VisibleForTesting {
   const _VisibleForTesting();
 }
@@ -99,6 +115,7 @@ enum TargetKind {
   mixinType,
   parameter,
   setter,
+  topLevelVariable,
   type,
   typedefType,
 }

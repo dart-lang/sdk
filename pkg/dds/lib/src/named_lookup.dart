@@ -4,7 +4,7 @@
 
 // Originally pulled from dart:_vmservice.
 
-part of dds;
+import 'dart:collection';
 
 /// [Set]-like containers which automatically generate [String] IDs for its
 /// items.
@@ -23,13 +23,14 @@ class NamedLookup<E> with IterableMixin<E> {
   }
 
   void remove(E e) {
-    final id = _ids.remove(e);
+    final id = _ids.remove(e)!;
     _elements.remove(id);
     _generator.release(id);
   }
 
-  E operator [](String id) => _elements[id];
-  String keyOf(E e) => _ids[e];
+  E? operator [](String id) => _elements[id];
+
+  String? keyOf(E e) => _ids[e];
 
   Iterator<E> get iterator => _ids.keys.iterator;
 }

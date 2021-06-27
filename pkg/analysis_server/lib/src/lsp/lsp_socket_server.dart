@@ -26,7 +26,7 @@ class LspSocketServer implements AbstractSocketServer {
   /// The analysis server that was created when a client established a
   /// connection, or `null` if no such connection has yet been established.
   @override
-  LspAnalysisServer analysisServer;
+  LspAnalysisServer? analysisServer;
 
   /// The function used to create a new SDK using the default SDK.
   final DartSdkManager sdkManager;
@@ -68,12 +68,14 @@ class LspSocketServer implements AbstractSocketServer {
         stateLocation: analysisServerOptions.cacheFolder);
 
     analysisServer = LspAnalysisServer(
-        serverChannel,
-        resourceProvider,
-        analysisServerOptions,
-        sdkManager,
-        CrashReportingAttachmentsBuilder.empty,
-        instrumentationService,
-        diagnosticServer: diagnosticServer);
+      serverChannel,
+      resourceProvider,
+      analysisServerOptions,
+      sdkManager,
+      CrashReportingAttachmentsBuilder.empty,
+      instrumentationService,
+      diagnosticServer: diagnosticServer,
+      enableBazelWatcher: true,
+    );
   }
 }

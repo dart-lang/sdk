@@ -7,34 +7,43 @@
 //
 // SharedObjects=ffi_test_functions
 
-import 'dart:ffi';
+// @dart = 2.9
 
-import 'dylib_utils.dart';
+import 'dart:ffi';
 
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
 import 'coordinate.dart';
+import 'dylib_utils.dart';
 import 'very_large_struct.dart';
 
 typedef NativeCoordinateOp = Pointer<Coordinate> Function(Pointer<Coordinate>);
 
 void main() {
-  testFunctionWithStruct();
-  testFunctionWithStructArray();
-  testFunctionWithVeryLargeStruct();
+  for (final isLeaf in [false, true]) {
+    testFunctionWithStruct(isLeaf: isLeaf);
+    testFunctionWithStructArray(isLeaf: isLeaf);
+    testFunctionWithVeryLargeStruct(isLeaf: isLeaf);
+  }
 }
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 /// pass a struct to a c function and get a struct as return value
-void testFunctionWithStruct() {
+void testFunctionWithStruct({bool isLeaf: false}) {
   Pointer<NativeFunction<NativeCoordinateOp>> p1 =
       ffiTestFunctions.lookup("TransposeCoordinate");
-  NativeCoordinateOp f1 = p1.asFunction();
+  NativeCoordinateOp f1 =
+      (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
 
-  Pointer<Coordinate> c1 = Coordinate.allocate(10.0, 20.0, nullptr).addressOf;
-  Pointer<Coordinate> c2 = Coordinate.allocate(42.0, 84.0, c1).addressOf;
+  final c1 = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 20.0;
+  final c2 = calloc<Coordinate>()
+    ..ref.x = 42.0
+    ..ref.y = 84.0
+    ..ref.next = c1;
   c1.ref.next = c2;
 
   Coordinate result = f1(c1).ref;
@@ -45,46 +54,50 @@ void testFunctionWithStruct() {
   Expect.approxEquals(42.0, result.x);
   Expect.approxEquals(84.0, result.y);
 
-  free(c1);
-  free(c2);
+  calloc.free(c1);
+  calloc.free(c2);
 }
 
 /// pass an array of structs to a c funtion
-void testFunctionWithStructArray() {
+void testFunctionWithStructArray({bool isLeaf: false}) {
   Pointer<NativeFunction<NativeCoordinateOp>> p1 =
       ffiTestFunctions.lookup("CoordinateElemAt1");
-  NativeCoordinateOp f1 = p1.asFunction();
+  NativeCoordinateOp f1 =
+      (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
 
-  Coordinate c1 = allocate<Coordinate>(count: 3).ref;
-  Coordinate c2 = c1.addressOf[1];
-  Coordinate c3 = c1.addressOf[2];
+  final coordinateArray = calloc<Coordinate>(3);
+  Coordinate c1 = coordinateArray[0];
+  Coordinate c2 = coordinateArray[1];
+  Coordinate c3 = coordinateArray[2];
   c1.x = 10.0;
   c1.y = 10.0;
-  c1.next = c3.addressOf;
+  c1.next = coordinateArray.elementAt(2);
   c2.x = 20.0;
   c2.y = 20.0;
-  c2.next = c1.addressOf;
+  c2.next = coordinateArray.elementAt(0);
   c3.x = 30.0;
   c3.y = 30.0;
-  c3.next = c2.addressOf;
+  c3.next = coordinateArray.elementAt(1);
 
-  Coordinate result = f1(c1.addressOf).ref;
+  Coordinate result = f1(coordinateArray.elementAt(0)).ref;
   Expect.approxEquals(20.0, result.x);
   Expect.approxEquals(20.0, result.y);
 
-  free(c1.addressOf);
+  calloc.free(coordinateArray);
 }
 
 typedef VeryLargeStructSum = int Function(Pointer<VeryLargeStruct>);
 typedef NativeVeryLargeStructSum = Int64 Function(Pointer<VeryLargeStruct>);
 
-void testFunctionWithVeryLargeStruct() {
+void testFunctionWithVeryLargeStruct({bool isLeaf: false}) {
   Pointer<NativeFunction<NativeVeryLargeStructSum>> p1 =
       ffiTestFunctions.lookup("SumVeryLargeStruct");
-  VeryLargeStructSum f = p1.asFunction();
+  VeryLargeStructSum f =
+      (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
 
-  VeryLargeStruct vls1 = allocate<VeryLargeStruct>(count: 2).ref;
-  VeryLargeStruct vls2 = vls1.addressOf[1];
+  final vlsArray = calloc<VeryLargeStruct>(2);
+  VeryLargeStruct vls1 = vlsArray[0];
+  VeryLargeStruct vls2 = vlsArray[1];
   List<VeryLargeStruct> structs = [vls1, vls2];
   for (VeryLargeStruct struct in structs) {
     struct.a = 1;
@@ -100,19 +113,19 @@ void testFunctionWithVeryLargeStruct() {
     struct.k = 1024;
     struct.smallLastField = 1;
   }
-  vls1.parent = vls2.addressOf;
+  vls1.parent = vlsArray.elementAt(1);
   vls1.numChildren = 2;
-  vls1.children = vls1.addressOf;
-  vls2.parent = vls2.addressOf;
+  vls1.children = vlsArray.elementAt(0);
+  vls2.parent = vlsArray.elementAt(1);
   vls2.parent = nullptr;
   vls2.numChildren = 0;
   vls2.children = nullptr;
 
-  int result = f(vls1.addressOf);
+  int result = f(vlsArray.elementAt(0));
   Expect.equals(2051, result);
 
-  result = f(vls2.addressOf);
+  result = f(vlsArray.elementAt(1));
   Expect.equals(2048, result);
 
-  free(vls1.addressOf);
+  calloc.free(vlsArray);
 }

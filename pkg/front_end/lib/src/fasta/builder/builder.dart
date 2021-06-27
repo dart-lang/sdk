@@ -10,11 +10,11 @@ abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
   /// parent. Only used for top-level and class-member declarations, not for
   /// block scopes.
-  Builder next;
+  Builder? next;
 
-  Builder get parent;
+  Builder? get parent;
 
-  Uri get fileUri;
+  Uri? get fileUri;
 
   int get charOffset;
 
@@ -209,7 +209,7 @@ abstract class Builder {
 
 abstract class BuilderImpl implements Builder {
   @override
-  Builder next;
+  Builder? next;
 
   BuilderImpl();
 
@@ -296,7 +296,6 @@ abstract class BuilderImpl implements Builder {
   int finishPatch() {
     if (!isPatch) return 0;
     unsupported("${runtimeType}.finishPatch", charOffset, fileUri);
-    return 0;
   }
 
   @override

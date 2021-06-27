@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=nonfunction-type-aliases
 
 import 'dart:async';
 
@@ -45,12 +44,6 @@ class C1 implements C {
 }
 
 class D {}
-mixin M {}
-
-abstract class D1<X> extends T<D> {}
-abstract class D2 extends C with T<M> {}
-abstract class D3<X, Y> implements T<T<D>> {}
-abstract class D4 = C with T<D>;
 
 extension E on T<dynamic> {
   T<dynamic> foo(T<dynamic> t) => t;

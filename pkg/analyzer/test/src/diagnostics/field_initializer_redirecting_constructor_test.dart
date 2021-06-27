@@ -19,12 +19,12 @@ class FieldInitializerRedirectingConstructorTest
   test_afterRedirection() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int x = 0;
   A.named() {}
   A() : this.named(), x = 42;
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 56,
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 60,
           6),
     ]);
   }
@@ -32,12 +32,12 @@ class A {
   test_beforeRedirection() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int x = 0;
   A.named() {}
   A() : x = 42, this.named();
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 42,
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 46,
           6),
     ]);
   }
@@ -45,12 +45,12 @@ class A {
   test_redirectionOnly() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int x = 0;
   A.named() {}
   A(this.x) : this.named();
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 38,
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 42,
           6),
     ]);
   }

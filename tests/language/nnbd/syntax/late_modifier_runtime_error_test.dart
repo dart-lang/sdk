@@ -32,13 +32,8 @@ class A {
   }
 }
 
-bool isValidError(error, String message) {
-  if (error is LateInitializationError) {
-    Expect.equals('LateInitializationError: $message', error.toString());
-    return true;
-  }
-  return false;
-}
+bool isValidError(error, String message) =>
+    (error is Error && 'LateInitializationError: $message' == error.toString());
 
 main() {
   // Static fields.

@@ -7,10 +7,8 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,7 +23,7 @@ void main() {
 @reflectiveTest
 class BulkFixesTest extends AbstractAnalysisTest {
   void assertContains(List<BulkFix> details,
-      {@required String path, @required String code, @required int count}) {
+      {required String path, required String code, required int count}) {
     for (var detail in details) {
       if (detail.path == path) {
         for (var fix in detail.fixes) {
@@ -62,7 +60,7 @@ class BulkFixesTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_annotateOverrides_excludedFile() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   exclude:
     - test/**
@@ -85,7 +83,7 @@ class B extends A {
 
   Future<void> test_annotateOverrides_excludedSubProject() async {
     // Root project.
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   exclude:
     - test/data/**
@@ -93,14 +91,13 @@ analyzer:
 
     // Sub-project.
     var subprojectRoot = '$projectPath/test/data/subproject';
-    newFile('$subprojectRoot/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-        content: '''
+    newAnalysisOptionsYamlFile(subprojectRoot, content: '''
 linter:
   rules:
     - annotate_overrides
 ''');
 
-    newFile('$subprojectRoot/${AnalysisEngine.PUBSPEC_YAML_FILE}', content: '''
+    newPubspecYamlFile(subprojectRoot, '''
 name: subproject
 ''');
 
@@ -118,14 +115,13 @@ class B extends A {
 
   Future<void> test_annotateOverrides_subProject() async {
     var subprojectRoot = '$projectPath/test/data/subproject';
-    newFile('$subprojectRoot/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-        content: '''
+    newAnalysisOptionsYamlFile(subprojectRoot, content: '''
 linter:
   rules:
     - annotate_overrides
 ''');
 
-    newFile('$subprojectRoot/${AnalysisEngine.PUBSPEC_YAML_FILE}', content: '''
+    newPubspecYamlFile(subprojectRoot, '''
 name: subproject
 ''');
 
@@ -151,7 +147,7 @@ class B extends A {
   }
 
   Future<void> test_details() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - annotate_overrides
@@ -185,7 +181,7 @@ A f() => new A();
   }
 
   Future<void> test_unnecessaryNew() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - unnecessary_new
@@ -209,7 +205,7 @@ A f() => A();
     if (Platform.isWindows) {
       fail('Should not be passing on Windows, but it does');
     }
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - prefer_collection_literals
@@ -232,7 +228,7 @@ class A {
   }
 
   Future<void> test_unnecessaryNew_ignoredInOptions() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   errors:
     unnecessary_new: ignore
@@ -248,7 +244,7 @@ A f() => new A();
   }
 
   Future<void> test_unnecessaryNew_ignoredInSource() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - unnecessary_new

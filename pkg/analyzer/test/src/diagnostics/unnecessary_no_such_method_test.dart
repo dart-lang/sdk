@@ -27,7 +27,7 @@ class B extends A {
   }
 }
 ''', [
-      error(HintCode.UNNECESSARY_NO_SUCH_METHOD, 87, 55),
+      error(HintCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12),
     ]);
   }
 
@@ -70,7 +70,7 @@ class B extends A {
   noSuchMethod(y) => super.noSuchMethod(y);
 }
 ''', [
-      error(HintCode.UNNECESSARY_NO_SUCH_METHOD, 87, 41),
+      error(HintCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12),
     ]);
   }
 

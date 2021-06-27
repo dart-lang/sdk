@@ -20,7 +20,7 @@
 #include <unistd.h>
 #endif
 
-#if defined(HOST_OS_IOS)
+#if defined(HOST_OS_MACOS) || defined(HOST_OS_IOS)
 #include <libkern/OSCacheControl.h>
 #endif
 
@@ -42,7 +42,7 @@ void CPU::FlushICache(uword start, uword size) {
 // On iOS we use sys_icache_invalidate from Darwin. See:
 //
 // https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/sys_icache_invalidate.3.html
-#if defined(HOST_OS_IOS)
+#if defined(HOST_OS_MACOS) || defined(HOST_OS_IOS)
   sys_icache_invalidate(reinterpret_cast<void*>(start), size);
 #elif defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
   extern void __clear_cache(char*, char*);
@@ -54,7 +54,7 @@ void CPU::FlushICache(uword start, uword size) {
                                       size, ZX_CACHE_FLUSH_INSN);
   ASSERT(result == ZX_OK);
 #else
-#error FlushICache only tested/supported on Android, Fuchsia, Linux and iOS
+#error FlushICache not implemented for this OS
 #endif
 
 #endif

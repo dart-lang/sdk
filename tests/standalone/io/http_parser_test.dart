@@ -19,6 +19,7 @@ import "../../../sdk/lib/internal/internal.dart"
     show Since, valueOfNonNullableParamWithDefault, HttpStatus;
 
 part "../../../sdk/lib/_http/crypto.dart";
+part "../../../sdk/lib/_http/embedder_config.dart";
 part "../../../sdk/lib/_http/http_impl.dart";
 part "../../../sdk/lib/_http/http_date.dart";
 part "../../../sdk/lib/_http/http_parser.dart";
@@ -26,14 +27,25 @@ part "../../../sdk/lib/_http/http_headers.dart";
 part "../../../sdk/lib/_http/http_session.dart";
 
 class HttpParserTest {
+  final String Function(String) transform;
+  HttpParserTest(this.transform);
+
   static void runAllTests() {
-    testParseRequest();
-    testParseResponse();
-    testParseInvalidRequest();
-    testParseInvalidResponse();
+    final testCRLF = HttpParserTest((String s) => s);
+    testCRLF.testParseRequest();
+    testCRLF.testParseResponse();
+    testCRLF.testParseInvalidRequest();
+    testCRLF.testParseInvalidResponse();
+
+    // Ensure http parser is CR?LF tolerant.
+    final testLF = HttpParserTest((String s) => s.replaceAll('\r', ''));
+    testLF.testParseRequest();
+    testLF.testParseResponse();
+    testLF.testParseInvalidRequest();
+    testLF.testParseInvalidResponse();
   }
 
-  static void _testParseRequest(
+  void _testParseRequest(
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
@@ -118,13 +130,14 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> requestData = new Uint8List.fromList(request.codeUnits);
+    List<int> requestData =
+        new Uint8List.fromList(transform(request).codeUnits);
     testWrite(requestData);
     testWrite(requestData, 10);
     testWrite(requestData, 1);
   }
 
-  static void _testParseRequestLean(
+  void _testParseRequestLean(
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
@@ -155,7 +168,7 @@ class HttpParserTest {
         expectedVersion: expectedVersion);
   }
 
-  static void _testParseInvalidRequest(String request) {
+  void _testParseInvalidRequest(String request) {
     _HttpParser httpParser;
     bool errorCalled = false;
     late StreamController<Uint8List> controller;
@@ -192,13 +205,14 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> requestData = new Uint8List.fromList(request.codeUnits);
+    List<int> requestData =
+        new Uint8List.fromList(transform(request).codeUnits);
     testWrite(requestData);
     testWrite(requestData, 10);
     testWrite(requestData, 1);
   }
 
-  static void _testParseResponse(
+  void _testParseResponse(
       String response, int expectedStatusCode, String expectedReasonPhrase,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
@@ -286,13 +300,14 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> responseData = new Uint8List.fromList(response.codeUnits);
+    List<int> responseData =
+        new Uint8List.fromList(transform(response).codeUnits);
     testWrite(responseData);
     testWrite(responseData, 10);
     testWrite(responseData, 1);
   }
 
-  static void _testParseInvalidResponse(String response, [bool close = false]) {
+  void _testParseInvalidResponse(String response, [bool close = false]) {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       _HttpParser httpParser = new _HttpParser.responseParser();
       StreamController<Uint8List> controller = new StreamController(sync: true);
@@ -329,13 +344,14 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> responseData = new Uint8List.fromList(response.codeUnits);
+    List<int> responseData =
+        new Uint8List.fromList(transform(response).codeUnits);
     testWrite(responseData);
     testWrite(responseData, 10);
     testWrite(responseData, 1);
   }
 
-  static void testParseRequest() {
+  void testParseRequest() {
     String request;
     Map<String, String> headers;
     var methods = [
@@ -461,36 +477,6 @@ Transfer-Encoding: chunked\r
     _testParseRequest(request, "POST", "/test",
         expectedTransferLength: -1, expectedBytesReceived: 10, chunked: true);
 
-    // Test mixing chunked encoding and content length (content length
-    // is ignored).
-    request = """
-POST /test HTTP/1.1\r
-Content-Length: 7\r
-Transfer-Encoding: chunked\r
-\r
-5\r
-01234\r
-5\r
-56789\r
-0\r\n\r\n""";
-    _testParseRequest(request, "POST", "/test",
-        expectedTransferLength: -1, expectedBytesReceived: 10, chunked: true);
-
-    // Test mixing chunked encoding and content length (content length
-    // is ignored).
-    request = """
-POST /test HTTP/1.1\r
-Transfer-Encoding: chunked\r
-Content-Length: 3\r
-\r
-5\r
-01234\r
-5\r
-56789\r
-0\r\n\r\n""";
-    _testParseRequest(request, "POST", "/test",
-        expectedTransferLength: -1, expectedBytesReceived: 10, chunked: true);
-
     // Test upper and lower case hex digits in chunked encoding.
     request = """
 POST /test HTTP/1.1\r
@@ -582,7 +568,7 @@ Sec-WebSocket-Version: 13\r
         expectedHeaders: headers, upgrade: true, unparsedLength: 7);
   }
 
-  static void testParseResponse() {
+  void testParseResponse() {
     String response;
     Map<String, String> headers;
     response = "HTTP/1.1 100 Continue\r\nContent-Length: 0\r\n\r\n";
@@ -744,7 +730,7 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
         expectedHeaders: headers, upgrade: true, unparsedLength: 4);
   }
 
-  static void testParseInvalidRequest() {
+  void testParseInvalidRequest() {
     String request;
     request = "GET /\r\n\r\n";
     _testParseInvalidRequest(request);
@@ -772,9 +758,35 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
 
     request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
     _testParseInvalidRequest(request);
+
+    // Content-Length and "Transfer-Encoding: chunked" are specified (error
+    // per RFC-7320).
+    request = """
+POST /test HTTP/1.1\r
+Content-Length: 7\r
+Transfer-Encoding: chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseInvalidRequest(request);
+
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked\r
+Content-Length: 7\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseInvalidRequest(request);
   }
 
-  static void testParseInvalidResponse() {
+  void testParseInvalidResponse() {
     String response;
 
     response = "HTTP/1.1\r\nContent-Length: 0\r\n\r\n";

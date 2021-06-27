@@ -46,38 +46,36 @@ testeeDo() {
 }
 
 Future testAsync(VmService service, IsolateRef isolateRef) async {
-  final isolate = await service.getIsolate(isolateRef.id);
-  final Library lib = await service.getObject(isolate.id, isolate.rootLib.id);
-  final script = lib.scripts[0];
+  final isolateId = isolateRef.id!;
+  final isolate = await service.getIsolate(isolateId);
+  final Library lib =
+      (await service.getObject(isolateId, isolate.rootLib!.id!)) as Library;
+  final script = lib.scripts![0];
+  final scriptId = script.id!;
 
-  final bp1 = await service.addBreakpoint(isolate.id, script.id, 11);
+  final bp1 = await service.addBreakpoint(isolateId, scriptId, 11);
   expect(bp1, isNotNull);
-  expect(bp1 is Breakpoint, isTrue);
 
-  final bp2 = await service.addBreakpoint(isolate.id, script.id, 16);
+  final bp2 = await service.addBreakpoint(isolateId, scriptId, 16);
   expect(bp2, isNotNull);
-  expect(bp2 is Breakpoint, isTrue);
 
-  final bp3 = await service.addBreakpoint(isolate.id, script.id, 21);
+  final bp3 = await service.addBreakpoint(isolateId, scriptId, 21);
   expect(bp3, isNotNull);
-  expect(bp3 is Breakpoint, isTrue);
 
-  final bp4 = await service.addBreakpoint(isolate.id, script.id, 25);
+  final bp4 = await service.addBreakpoint(isolateId, scriptId, 25);
   expect(bp4, isNotNull);
-  expect(bp4 is Breakpoint, isTrue);
 
-  final bp5 = await service.addBreakpoint(isolate.id, script.id, 42);
+  final bp5 = await service.addBreakpoint(isolateId, scriptId, 42);
   expect(bp5, isNotNull);
-  expect(bp5 is Breakpoint, isTrue);
 
   final hits = <Breakpoint>[];
   await service.streamListen(EventStreams.kDebug);
 
   // ignore: unawaited_futures
   service
-      .evaluate(isolate.id, lib.id, 'testerReady = true')
+      .evaluate(isolateId, lib.id!, 'testerReady = true')
       .then((Response result) async {
-    Obj res = await service.getObject(isolate.id, (result as InstanceRef).id);
+    Obj res = await service.getObject(isolateId, (result as InstanceRef).id!);
     print(res);
     expect((res as Instance).valueAsString, equals('true'));
   });
@@ -85,10 +83,10 @@ Future testAsync(VmService service, IsolateRef isolateRef) async {
   final stream = service.onDebugEvent;
   await for (Event event in stream) {
     if (event.kind == EventKind.kPauseBreakpoint) {
-      assert(event.pauseBreakpoints.isNotEmpty);
-      final bp = event.pauseBreakpoints.first;
+      assert(event.pauseBreakpoints!.isNotEmpty);
+      final bp = event.pauseBreakpoints!.first;
       hits.add(bp);
-      await service.resume(isolate.id);
+      await service.resume(isolateId);
 
       if (hits.length == 5) break;
     }
@@ -99,5 +97,9 @@ Future testAsync(VmService service, IsolateRef isolateRef) async {
 
 final tests = <IsolateTest>[testAsync];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testeeDo);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'async_generator_breakpoint_test.dart',
+      testeeConcurrent: testeeDo,
+    );

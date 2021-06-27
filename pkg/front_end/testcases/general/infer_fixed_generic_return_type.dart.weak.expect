@@ -1,0 +1,127 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Base extends core::Object {
+  synthetic constructor •() → self::Base*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class MixinA<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::MixinA<self::MixinA::T*>*
+    : super core::Object::•()
+    ;
+  abstract method method(core::Object* t) → self::MixinA::T*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _Class&Base&MixinA = self::Base with self::MixinA<dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Base&MixinA*
+    : super self::Base::•()
+    ;
+  abstract mixin-stub method method(core::Object* t) → dynamic; -> self::MixinA::method
+}
+abstract class Class extends self::_Class&Base&MixinA {
+  synthetic constructor •() → self::Class*
+    : super self::_Class&Base&MixinA::•()
+    ;
+  method method(core::Object* t) → dynamic {}
+}
+abstract class YamlNode extends core::Object {
+  synthetic constructor •() → self::YamlNode*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class Map<K extends core::Object* = dynamic, V extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Map<self::Map::K*, self::Map::V*>*
+    : super core::Object::•()
+    ;
+  abstract operator [](core::Object* key) → self::Map::V*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class MapMixin<K extends core::Object* = dynamic, V extends core::Object* = dynamic> extends core::Object implements self::Map<self::MapMixin::K*, self::MapMixin::V*> {
+  synthetic constructor •() → self::MapMixin<self::MapMixin::K*, self::MapMixin::V*>*
+    : super core::Object::•()
+    ;
+  abstract operator [](core::Object* key) → self::MapMixin::V*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class UnmodifiableMapMixin<K extends core::Object* = dynamic, V extends core::Object* = dynamic> extends core::Object implements self::Map<self::UnmodifiableMapMixin::K*, self::UnmodifiableMapMixin::V*> {
+  synthetic constructor •() → self::UnmodifiableMapMixin<self::UnmodifiableMapMixin::K*, self::UnmodifiableMapMixin::V*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _YamlMap&YamlNode&MapMixin = self::YamlNode with self::MapMixin<dynamic, dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_YamlMap&YamlNode&MapMixin*
+    : super self::YamlNode::•()
+    ;
+  abstract mixin-stub operator [](core::Object* key) → dynamic; -> self::MapMixin::[]
+}
+abstract class _YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin = self::_YamlMap&YamlNode&MapMixin with self::UnmodifiableMapMixin<dynamic, dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin*
+    : super self::_YamlMap&YamlNode&MapMixin::•()
+    ;
+}
+class YamlMap extends self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin {
+  synthetic constructor •() → self::YamlMap*
+    : super self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin::•()
+    ;
+  operator [](core::Object* key) → dynamic {}
+}
+static method main() → dynamic {}

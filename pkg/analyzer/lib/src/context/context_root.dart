@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// Information about the root directory associated with an analysis context.
@@ -24,11 +23,10 @@ class ContextRoot {
   /// An informative value for the file path that the analysis options were read
   /// from. This value can be `null` if there is no analysis options file or if
   /// the location of the file has not yet been discovered.
-  String optionsFilePath;
+  String? optionsFilePath;
 
   /// Initialize a newly created context root.
-  ContextRoot(this.root, this.exclude, {@required path.Context pathContext})
-      : pathContext = pathContext ?? path.context;
+  ContextRoot(this.root, this.exclude, {required this.pathContext});
 
   @override
   int get hashCode {
@@ -66,7 +64,7 @@ class ContextRoot {
   /// Compare the lists [listA] and [listB], using [itemEqual] to compare list
   /// elements.
   bool _listEqual<T>(
-      List<T> listA, List<T> listB, bool Function(T a, T b) itemEqual) {
+      List<T>? listA, List<T>? listB, bool Function(T a, T b) itemEqual) {
     if (listA == null) {
       return listB == null;
     }

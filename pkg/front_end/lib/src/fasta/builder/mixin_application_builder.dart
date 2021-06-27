@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.mixin_application_builder;
 
 import 'package:kernel/ast.dart' show InterfaceType, Supertype, TypedefType;
 
 import '../problems.dart' show unsupported;
+import '../source/source_library_builder.dart';
 
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -73,7 +76,10 @@ class MixinApplicationBuilder extends TypeBuilder {
     return unsupported("withNullabilityBuilder", -1, null);
   }
 
-  MixinApplicationBuilder clone(List<TypeBuilder> newTypes) {
+  MixinApplicationBuilder clone(
+      List<TypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
     int charOffset = -1; // TODO(dmitryas): Provide these.
     Uri fileUri = null; // TODO(dmitryas): Provide these.
     return unsupported("clone", charOffset, fileUri);

@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/visitor.dart';
 
 /// Return the [Element] that is either [root], or one of its direct or
 /// indirect children, and has the given [nameOffset].
-Element findElementByNameOffset(Element root, int nameOffset) {
+Element? findElementByNameOffset(Element? root, int nameOffset) {
   if (root == null) {
     return null;
   }

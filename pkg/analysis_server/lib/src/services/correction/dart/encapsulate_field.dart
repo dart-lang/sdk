@@ -41,7 +41,7 @@ class EncapsulateField extends CorrectionProducer {
     }
     var field = fields.first;
     var nameNode = field.name;
-    FieldElement fieldElement = nameNode.staticElement;
+    var fieldElement = field.declaredElement as FieldElement;
     // should have a public name
     var name = nameNode.name;
     if (Identifier.isPrivateName(name)) {
@@ -65,10 +65,11 @@ class EncapsulateField extends CorrectionProducer {
       for (var member in classDeclaration.members) {
         if (member is ConstructorDeclaration) {
           for (var parameter in member.parameters.parameters) {
+            var identifier = parameter.identifier;
             var parameterElement = parameter.declaredElement;
-            if (parameterElement is FieldFormalParameterElement &&
+            if (identifier != null &&
+                parameterElement is FieldFormalParameterElement &&
                 parameterElement.field == fieldElement) {
-              var identifier = parameter.identifier;
               builder.addSimpleReplacement(range.node(identifier), '_$name');
             }
           }
@@ -77,14 +78,16 @@ class EncapsulateField extends CorrectionProducer {
 
       // Write getter and setter.
       builder.addInsertion(fieldDeclaration.end, (builder) {
-        String docCode;
-        if (fieldDeclaration.documentationComment != null) {
-          docCode = utils.getNodeText(fieldDeclaration.documentationComment);
+        String? docCode;
+        var documentationComment = fieldDeclaration.documentationComment;
+        if (documentationComment != null) {
+          docCode = utils.getNodeText(documentationComment);
         }
 
         var typeCode = '';
-        if (variableList.type != null) {
-          typeCode = utils.getNodeText(variableList.type) + ' ';
+        var typeAnnotation = variableList.type;
+        if (typeAnnotation != null) {
+          typeCode = utils.getNodeText(typeAnnotation) + ' ';
         }
 
         // Write getter.

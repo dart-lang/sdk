@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldInitializerNotAssignableTest);
+    defineReflectiveTests(FieldInitializerNotAssignableWithNoImplicitCastsTest);
   });
 }
 
@@ -24,5 +25,19 @@ class A {
 ''', [
       error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 31, 2),
     ]);
+  }
+}
+
+@reflectiveTest
+class FieldInitializerNotAssignableWithNoImplicitCastsTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
+  test_constructorInitializer() async {
+    await assertErrorsWithNoImplicitCasts(
+      'class A { int i; A(num n) : i = n; }',
+      [
+        error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 32, 1),
+      ],
+    );
   }
 }

@@ -34,12 +34,25 @@ abstract class SimpleEditCommandHandler
     // If there are no edits to apply, just complete the command without going
     // back to the client.
     if (edits.isEmpty) {
-      return success();
+      return success(null);
+    }
+
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
+    final lineInfo = unit.lineInfo;
+    if (lineInfo == null) {
+      return error(ErrorCodes.InternalError,
+          'Unable to produce edits for $docIdentifier as no LineInfo was found');
     }
 
     final workspaceEdit = toWorkspaceEdit(
-      server.clientCapabilities?.workspace,
-      [FileEditInformation(docIdentifier, unit.lineInfo, edits)],
+      clientCapabilities,
+      [FileEditInformation(docIdentifier, lineInfo, edits)],
     );
 
     return sendWorkspaceEditToClient(workspaceEdit);
@@ -68,7 +81,7 @@ abstract class SimpleEditCommandHandler
     final editResponseResult =
         ApplyWorkspaceEditResponse.fromJson(editResponse.result);
     if (editResponseResult.applied) {
-      return success();
+      return success(null);
     } else {
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,

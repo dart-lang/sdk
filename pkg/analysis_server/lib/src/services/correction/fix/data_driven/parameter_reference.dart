@@ -14,7 +14,7 @@ class NamedParameterReference extends ParameterReference {
   NamedParameterReference(this.name) : assert(name.isNotEmpty);
 
   @override
-  Expression argumentFrom(ArgumentList argumentList) {
+  Expression? argumentFrom(ArgumentList argumentList) {
     for (var argument in argumentList.arguments) {
       if (argument is NamedExpression && argument.name.label.name == name) {
         return argument.expression;
@@ -22,6 +22,9 @@ class NamedParameterReference extends ParameterReference {
     }
     return null;
   }
+
+  @override
+  String toString() => name;
 }
 
 /// A reference to a formal parameter.
@@ -30,7 +33,7 @@ abstract class ParameterReference {
   /// parameter, or `null` if there is no argument corresponding to the
   /// parameter. Note that for named parameters this will be an expression whose
   /// parent is a named expression.
-  Expression argumentFrom(ArgumentList argumentList);
+  Expression? argumentFrom(ArgumentList argumentList);
 }
 
 /// A reference to a positional parameter.
@@ -43,7 +46,7 @@ class PositionalParameterReference extends ParameterReference {
   PositionalParameterReference(this.index) : assert(index >= 0);
 
   @override
-  Expression argumentFrom(ArgumentList argumentList) {
+  Expression? argumentFrom(ArgumentList argumentList) {
     var arguments = argumentList.arguments;
     if (index >= arguments.length) {
       return null;
@@ -54,4 +57,7 @@ class PositionalParameterReference extends ParameterReference {
     }
     return argument;
   }
+
+  @override
+  String toString() => '$index';
 }

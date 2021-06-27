@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Runs several similar regexps in a loop to see if an internal cache works (at
 // least in easy conditions).
 

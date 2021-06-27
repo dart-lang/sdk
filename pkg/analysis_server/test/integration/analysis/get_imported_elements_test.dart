@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/domain_analysis_flags.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,10 +20,10 @@ void main() {
 class AnalysisGetImportedElementsIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   /// Pathname of the file containing Dart code.
-  String pathname;
+  late String pathname;
 
   /// Dart code under test.
-  String text;
+  late String text;
 
   /// Check that an analysis.getImportedElements request on the region starting
   /// with the first character that matches [target] and having the given

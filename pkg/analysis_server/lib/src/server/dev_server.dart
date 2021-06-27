@@ -24,7 +24,7 @@ class DevAnalysisServer {
   final SocketServer socketServer;
 
   int _nextId = 0;
-  DevChannel _channel;
+  late DevChannel _channel;
 
   /// Initialize a newly created stdio server.
   DevAnalysisServer(this.socketServer);
@@ -51,9 +51,10 @@ class DevAnalysisServer {
     var exitCode = 0;
 
     void handleStatusNotification(Notification notification) {
-      Map<String, dynamic> params = notification.params;
-      if (params.containsKey('analysis')) {
-        bool isAnalyzing = params['analysis']['isAnalyzing'];
+      var params = notification.params;
+      if (params != null && params.containsKey('analysis')) {
+        var isAnalyzing =
+            (params['analysis'] as Map<String, Object>)['isAnalyzing'] as bool;
         if (!isAnalyzing) {
           timer.stop();
           var seconds = timer.elapsedMilliseconds / 1000.0;
@@ -64,8 +65,9 @@ class DevAnalysisServer {
     }
 
     void handleErrorsNotification(Notification notification) {
-      String filePath = notification.params['file'];
-      List<Map> errors = notification.params['errors'];
+      var params = notification.params!;
+      var filePath = params['file'] as String;
+      var errors = params['errors'] as List<Map>;
 
       if (errors.isEmpty) {
         return;
@@ -99,9 +101,9 @@ class DevAnalysisServer {
     }
 
     void handleServerError(Notification notification) {
-      Map<String, dynamic> params = notification.params;
-      String message = params['message'];
-      String stackTrace = params['stackTrace'];
+      var params = notification.params!;
+      var message = params['message'] as String;
+      var stackTrace = params['stackTrace'] as String?;
 
       print(message);
       if (stackTrace != null) {
@@ -170,8 +172,8 @@ class DevChannel implements ServerCommunicationChannel {
   @override
   void listen(
     void Function(Request request) onRequest, {
-    Function onError,
-    void Function() onDone,
+    Function? onError,
+    void Function()? onDone,
   }) {
     _requestController.stream.listen(
       onRequest,

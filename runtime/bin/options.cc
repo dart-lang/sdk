@@ -41,22 +41,35 @@ bool OptionProcessor::TryProcess(const char* option,
   return false;
 }
 
+static bool IsPrefix(const char* prefix, size_t prefix_len, const char* str) {
+  ASSERT(prefix != nullptr);
+  ASSERT(str != nullptr);
+  const size_t str_len = strlen(str);
+  if (str_len < prefix_len) {
+    return false;
+  }
+  return strncmp(prefix, str, prefix_len) == 0;
+}
+
 bool OptionProcessor::ProcessEnvironmentOption(
     const char* arg,
     CommandLineOptions* vm_options,
     dart::SimpleHashMap** environment) {
   ASSERT(arg != NULL);
   ASSERT(environment != NULL);
-  if (*arg == '\0') {
+  const char* kShortPrefix = "-D";
+  const char* kLongPrefix = "--define=";
+  const int kShortPrefixLen = strlen(kShortPrefix);
+  const int kLongPrefixLen = strlen(kLongPrefix);
+  const bool is_short_form = IsPrefix(kShortPrefix, kShortPrefixLen, arg);
+  const bool is_long_form = IsPrefix(kLongPrefix, kLongPrefixLen, arg);
+  if (is_short_form) {
+    arg = arg + kShortPrefixLen;
+  } else if (is_long_form) {
+    arg = arg + kLongPrefixLen;
+  } else {
     return false;
   }
-  if (*arg != '-') {
-    return false;
-  }
-  if (*(arg + 1) != 'D') {
-    return false;
-  }
-  arg = arg + 2;
   if (*arg == '\0') {
     return true;
   }
@@ -69,12 +82,20 @@ bool OptionProcessor::ProcessEnvironmentOption(
   const char* equals_pos = strchr(arg, '=');
   if (equals_pos == NULL) {
     // No equal sign (name without value) currently not supported.
-    Syslog::PrintErr("No value given to -D option\n");
+    if (is_short_form) {
+      Syslog::PrintErr("No value given to -D option\n");
+    } else {
+      Syslog::PrintErr("No value given to --define option\n");
+    }
     return true;
   }
   int name_len = equals_pos - arg;
   if (name_len == 0) {
-    Syslog::PrintErr("No name given to -D option\n");
+    if (is_short_form) {
+      Syslog::PrintErr("No name given to -D option\n");
+    } else {
+      Syslog::PrintErr("No name given to --define option\n");
+    }
     return true;
   }
   // Split name=value into name and value.

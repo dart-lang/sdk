@@ -13,10 +13,10 @@ import '../../../../../utils/test_support.dart';
 /// Utilities shared between tests of the [TransformSetParser].
 abstract class AbstractTransformSetParserTest {
   /// The listener to which errors will be reported.
-  GatheringErrorListener errorListener;
+  GatheringErrorListener errorListener = GatheringErrorListener();
 
   /// The result of parsing the test file's content.
-  TransformSet result;
+  TransformSet? result;
 
   void assertErrors(String code, List<ExpectedError> expectedErrors) {
     parse(code);
@@ -29,8 +29,8 @@ abstract class AbstractTransformSetParserTest {
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
-          {String text,
-          Pattern messageContains,
+          {String? text,
+          Pattern? messageContains,
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,
@@ -39,8 +39,8 @@ abstract class AbstractTransformSetParserTest {
           expectedContextMessages: contextMessages);
 
   void parse(String content) {
-    errorListener = GatheringErrorListener();
-    var errorReporter = ErrorReporter(errorListener, MockSource('data.yaml'));
+    var errorReporter =
+        ErrorReporter(errorListener, MockSource(fullName: 'data.yaml'));
     var parser = TransformSetParser(errorReporter, 'myPackage');
     result = parser.parse(content);
   }

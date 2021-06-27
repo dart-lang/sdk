@@ -15,7 +15,7 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._drivers);
 
   @override
-  Future<Set<String>> membersOfSubtypes(ClassElement type) async {
+  Future<Set<String>?> membersOfSubtypes(ClassElement type) async {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
 
@@ -24,7 +24,7 @@ class SearchEngineImpl implements SearchEngine {
     var visitedIds = <String>{};
     var members = <String>{};
 
-    Future<void> addMembers(ClassElement type, SubtypeResult subtype) async {
+    Future<void> addMembers(ClassElement? type, SubtypeResult? subtype) async {
       if (subtype != null && !visitedIds.add(subtype.id)) {
         return;
       }
@@ -71,8 +71,9 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
     var allDeclarations = <SearchMatch>[];
     var drivers = _drivers.toList();
+    var searchedFiles = _createSearchedFiles(drivers);
     for (var driver in drivers) {
-      var elements = await driver.search.classMembers(name);
+      var elements = await driver.search.classMembers(name, searchedFiles);
       allDeclarations.addAll(elements.map(SearchMatchImpl.forElement));
     }
     return allDeclarations;
@@ -126,7 +127,7 @@ class SearchEngineImpl implements SearchEngine {
   SearchedFiles _createSearchedFiles(List<AnalysisDriver> drivers) {
     var searchedFiles = SearchedFiles();
     for (var driver in drivers) {
-      searchedFiles.ownAdded(driver.search);
+      searchedFiles.ownAnalyzed(driver.search);
     }
     return searchedFiles;
   }
@@ -203,10 +204,10 @@ class SearchMatchImpl implements SearchMatch {
 
   static SearchMatchImpl forElement(Element element) {
     return SearchMatchImpl(
-        element.source.fullName,
-        element.librarySource,
-        element.source,
-        element.library,
+        element.source!.fullName,
+        element.librarySource!,
+        element.source!,
+        element.library!,
         element,
         true,
         true,
@@ -217,10 +218,10 @@ class SearchMatchImpl implements SearchMatch {
   static SearchMatchImpl forSearchResult(SearchResult result) {
     var enclosingElement = result.enclosingElement;
     return SearchMatchImpl(
-        enclosingElement.source.fullName,
-        enclosingElement.librarySource,
-        enclosingElement.source,
-        enclosingElement.library,
+        enclosingElement.source!.fullName,
+        enclosingElement.librarySource!,
+        enclosingElement.source!,
+        enclosingElement.library!,
         enclosingElement,
         result.isResolved,
         result.isQualified,

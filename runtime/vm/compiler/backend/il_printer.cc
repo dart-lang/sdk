@@ -14,8 +14,7 @@
 
 namespace dart {
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-
+#if defined(INCLUDE_IL_PRINTER)
 DEFINE_FLAG(bool,
             display_sorted_ic_data,
             false,
@@ -56,8 +55,7 @@ void FlowGraphPrinter::PrintBlocks() {
               Function::KindToCString(function_.kind()));
     // Output saved arguments descriptor information for dispatchers that
     // have it, so it's easy to see which dispatcher this graph represents.
-    if (function_.IsInvokeFieldDispatcher() ||
-        function_.IsNoSuchMethodDispatcher()) {
+    if (function_.HasSavedArgumentsDescriptor()) {
       const auto& args_desc_array = Array::Handle(function_.saved_args_desc());
       const ArgumentsDescriptor args_desc(args_desc_array);
       THR_Print(", %s", args_desc.ToCString());
@@ -127,13 +125,13 @@ static void PrintTargetsHelper(BaseTextBuffer* f,
     const CidRange& range = targets[i];
     const auto target_info = targets.TargetAt(i);
     const intptr_t count = target_info->count;
-    target = target_info->target->raw();
+    target = target_info->target->ptr();
     if (i > 0) {
       f->AddString(" | ");
     }
     if (range.IsSingleCid()) {
-      const Class& cls =
-          Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
+      const Class& cls = Class::Handle(
+          IsolateGroup::Current()->class_table()->At(range.cid_start));
       f->Printf("%s", String::Handle(cls.Name()).ToCString());
       f->Printf(" cid %" Pd " cnt:%" Pd " trgt:'%s'", range.cid_start, count,
                 target.ToQualifiedCString());
@@ -168,8 +166,8 @@ static void PrintCidsHelper(BaseTextBuffer* f,
     if (i > 0) {
       f->AddString(" | ");
     }
-    const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
+    const Class& cls = Class::Handle(
+        IsolateGroup::Current()->class_table()->At(range.cid_start));
     f->Printf("%s etc. ", String::Handle(cls.Name()).ToCString());
     if (range.IsSingleCid()) {
       f->Printf(" cid %" Pd, range.cid_start);
@@ -209,8 +207,8 @@ static void PrintICDataHelper(BaseTextBuffer* f,
       if (k > 0) {
         f->AddString(", ");
       }
-      const Class& cls =
-          Class::Handle(Isolate::Current()->class_table()->At(class_ids[k]));
+      const Class& cls = Class::Handle(
+          IsolateGroup::Current()->class_table()->At(class_ids[k]));
       f->Printf("%s", String::Handle(cls.Name()).ToCString());
     }
     f->Printf(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
@@ -233,7 +231,7 @@ static void PrintICDataSortedHelper(BaseTextBuffer* f,
     const intptr_t count = ic_data.GetCountAt(i);
     const intptr_t cid = ic_data.GetReceiverClassIdAt(i);
     const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(cid));
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
     f->Printf("%s : %" Pd ", ", String::Handle(cls.Name()).ToCString(), count);
   }
   f->AddString("]");
@@ -351,6 +349,13 @@ void ReachabilityFenceInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
+const char* Value::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+}
+
 void Value::PrintTo(BaseTextBuffer* f) const {
   PrintUse(f, *definition());
 
@@ -371,6 +376,10 @@ void ConstantInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     strncpy(buffer, cstr, pos);
     buffer[pos] = '\0';
     f->Printf("#%s\\n...", buffer);
+  }
+
+  if (representation() != kNoRepresentation && representation() != kTagged) {
+    f->Printf(" %s", RepresentationToCString(representation()));
   }
 }
 
@@ -466,15 +475,16 @@ void AssertBooleanInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void ClosureCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->AddString(" function=");
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    f->AddString(" closure=");
+  } else {
+    f->AddString(" function=");
+  }
   InputAt(InputCount() - 1)->PrintTo(f);
   f->Printf("<%" Pd ">", type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->AddString(", ");
     ArgumentValueAt(i)->PrintTo(f);
-  }
-  if (entry_kind() == Code::EntryKind::kUnchecked) {
-    f->AddString(" using unchecked entrypoint");
   }
 }
 
@@ -645,15 +655,22 @@ void RelationalOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   right()->PrintTo(f);
 }
 
-void AllocateObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", String::Handle(cls().ScrubbedName()).ToCString());
-  for (intptr_t i = 0; i < InputCount(); ++i) {
-    f->AddString(", ");
-    InputAt(i)->PrintTo(f);
-  }
+void AllocationInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  Definition::PrintOperandsTo(f);
   if (Identity().IsNotAliased()) {
-    f->AddString(" <not-aliased>");
+    if (InputCount() > 0) {
+      f->AddString(", ");
+    }
+    f->AddString("<not-aliased>");
   }
+}
+
+void AllocateObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf("cls=%s", String::Handle(cls().ScrubbedName()).ToCString());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
+  }
+  AllocationInstr::PrintOperandsTo(f);
 }
 
 void MaterializeObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -701,16 +718,20 @@ void InstantiateTypeArgumentsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void AllocateContextInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%" Pd "", num_context_variables());
+  f->Printf("num_variables=%" Pd "", num_context_variables());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
+  }
+  TemplateAllocation::PrintOperandsTo(f);
 }
 
 void AllocateUninitializedContextInstr::PrintOperandsTo(
     BaseTextBuffer* f) const {
-  f->Printf("%" Pd "", num_context_variables());
-
-  if (Identity().IsNotAliased()) {
-    f->AddString(" <not-aliased>");
+  f->Printf("num_variables=%" Pd "", num_context_variables());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
   }
+  TemplateAllocation::PrintOperandsTo(f);
 }
 
 void MathUnaryInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -730,22 +751,6 @@ void ExtractNthOutputInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void UnaryIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);
-}
-
-void CheckedSmiOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", Token::Str(op_kind()));
-  f->AddString(", ");
-  left()->PrintTo(f);
-  f->AddString(", ");
-  right()->PrintTo(f);
-}
-
-void CheckedSmiComparisonInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", Token::Str(kind()));
-  f->AddString(", ");
-  left()->PrintTo(f);
-  f->AddString(", ");
-  right()->PrintTo(f);
 }
 
 void BinaryIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -782,7 +787,7 @@ void DoubleTestOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
-static const char* simd_op_kind_string[] = {
+static const char* const simd_op_kind_string[] = {
 #define CASE(Arity, Mask, Name, ...) #Name,
     SIMD_OP_LIST(CASE, CASE)
 #undef CASE
@@ -814,14 +819,14 @@ void LoadClassIdInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void CheckClassIdInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 
-  const Class& cls =
-      Class::Handle(Isolate::Current()->class_table()->At(cids().cid_start));
+  const Class& cls = Class::Handle(
+      IsolateGroup::Current()->class_table()->At(cids().cid_start));
   const String& name = String::Handle(cls.ScrubbedName());
   if (cids().IsSingleCid()) {
     f->Printf(", %s", name.ToCString());
   } else {
-    const Class& cls2 =
-        Class::Handle(Isolate::Current()->class_table()->At(cids().cid_end));
+    const Class& cls2 = Class::Handle(
+        IsolateGroup::Current()->class_table()->At(cids().cid_end));
     const String& name2 = String::Handle(cls2.ScrubbedName());
     f->Printf(", cid %" Pd "-%" Pd " %s-%s", cids().cid_start, cids().cid_end,
               name.ToCString(), name2.ToCString());
@@ -852,6 +857,8 @@ void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
     f->AddString(" {");
     for (intptr_t i = 0; i < defns.length(); ++i) {
       Definition* def = defns[i];
+      // Skip constants which are not used in the graph.
+      if (def->IsConstant() && !def->HasUses()) continue;
       f->AddString("\n      ");
       def->PrintTo(f);
     }
@@ -929,6 +936,8 @@ const char* RepresentationToCString(Representation rep) {
       return "float";
     case kUnboxedUint8:
       return "uint8";
+    case kUnboxedUint16:
+      return "uint16";
     case kUnboxedInt32:
       return "int32";
     case kUnboxedUint32:
@@ -981,6 +990,11 @@ void PhiInstr::PrintTo(BaseTextBuffer* f) const {
 void UnboxIntegerInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   if (is_truncating()) {
     f->AddString("[tr], ");
+  }
+  if (SpeculativeModeOfInputs() == kGuardInputs) {
+    f->AddString("[guard-inputs], ");
+  } else {
+    f->AddString("[non-speculative], ");
   }
   Definition::PrintOperandsTo(f);
 }
@@ -1059,7 +1073,7 @@ void NativeEntryInstr::PrintTo(BaseTextBuffer* f) const {
 
 void ReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Instruction::PrintOperandsTo(f);
-  if (yield_index() != PcDescriptorsLayout::kInvalidYieldIndex) {
+  if (yield_index() != UntaggedPcDescriptors::kInvalidYieldIndex) {
     f->Printf(", yield_index = %" Pd "", yield_index());
   }
 }
@@ -1152,7 +1166,7 @@ void TailCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   } else {
     const Object& owner = Object::Handle(code_.owner());
     if (owner.IsFunction()) {
-      name = Function::Handle(Function::RawCast(owner.raw()))
+      name = Function::Handle(Function::RawCast(owner.ptr()))
                  .ToFullyQualifiedCString();
     }
   }
@@ -1238,7 +1252,7 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-#else  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#else  // defined(INCLUDE_IL_PRINTER)
 
 const char* Instruction::ToCString() const {
   return DebugName();
@@ -1276,6 +1290,6 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return false;
 }
 
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#endif  // defined(INCLUDE_IL_PRINTER)
 
 }  // namespace dart

@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+
+import 'client.dart';
+import 'constants.dart';
+import 'dds_impl.dart';
 
 /// This file contains functionality used to track the running state of
 /// all isolates in a given Dart process.
@@ -12,13 +16,13 @@ part of dds;
 /// clients used to synchronize isolate resuming across multiple clients are
 /// tracked in this class.
 ///
-/// The [_IsolateManager] keeps track of all the isolates in the
+/// The [IsolateManager] keeps track of all the isolates in the
 /// target process and handles isolate lifecycle events including:
 ///   - Startup
 ///   - Shutdown
 ///   - Pauses
 ///
-/// The [_IsolateManager] also handles the `resume` RPC, which checks the
+/// The [IsolateManager] also handles the `resume` RPC, which checks the
 /// resume approvals in the target [_RunningIsolate] to determine if the
 /// isolate should be resumed or wait for additional approvals to be granted.
 
@@ -35,23 +39,28 @@ class _RunningIsolate {
 
   // State setters.
   void pausedOnExit() => _state = _IsolateState.pauseExit;
+
   void pausedOnStart() => _state = _IsolateState.pauseStart;
+
   void pausedPostRequest() => _state = _IsolateState.pausePostRequest;
+
   void resumed() => running();
+
   void running() => _state = _IsolateState.running;
+
   void started() => _state = _IsolateState.start;
 
   /// Resumes the isolate if all clients which need to approve a resume have
   /// done so. Called when the last client of a given name disconnects or
   /// changes name to ensure we don't deadlock waiting for approval to resume
   /// from a disconnected client.
-  Future<void> maybeResumeAfterClientChange(String clientName) async {
+  Future<void> maybeResumeAfterClientChange(String? clientName) async {
     // Remove approvals from the disconnected client.
     _resumeApprovalsByName.remove(clientName);
 
     if (shouldResume()) {
       clearResumeApprovals();
-      await isolateManager.dds._vmServiceClient.sendRequest('resume', {
+      await isolateManager.dds.vmServiceClient.sendRequest('resume', {
         'isolateId': id,
       });
     }
@@ -64,7 +73,7 @@ class _RunningIsolate {
   /// which have provided approval to resume this isolate. If not provided,
   /// the existing approvals state will be examined to see if the isolate
   /// should resume due to a client disconnect or name change.
-  bool shouldResume({_DartDevelopmentServiceClient resumingClient}) {
+  bool shouldResume({DartDevelopmentServiceClient? resumingClient}) {
     if (resumingClient != null) {
       // Mark approval by the client.
       _resumeApprovalsByName.add(resumingClient.name);
@@ -74,9 +83,9 @@ class _RunningIsolate {
         isolateManager.dds.clientManager.clientResumePermissions;
 
     // Determine which clients require approval for this pause type.
-    permissions.forEach((name, clientNamePermissions) {
+    permissions.forEach((clientName, clientNamePermissions) {
       if (clientNamePermissions.permissionsMask & _isolateStateMask != 0) {
-        requiredClientApprovals.add(name);
+        requiredClientApprovals.add(clientName!);
       }
     });
 
@@ -97,20 +106,20 @@ class _RunningIsolate {
   int get _isolateStateMask => isolateStateToMaskMapping[_state] ?? 0;
 
   static const isolateStateToMaskMapping = {
-    _IsolateState.pauseStart: _PauseTypeMasks.pauseOnStartMask,
-    _IsolateState.pausePostRequest: _PauseTypeMasks.pauseOnReloadMask,
-    _IsolateState.pauseExit: _PauseTypeMasks.pauseOnExitMask,
+    _IsolateState.pauseStart: PauseTypeMasks.pauseOnStartMask,
+    _IsolateState.pausePostRequest: PauseTypeMasks.pauseOnReloadMask,
+    _IsolateState.pauseExit: PauseTypeMasks.pauseOnExitMask,
   };
 
-  final _IsolateManager isolateManager;
+  final IsolateManager isolateManager;
   final String name;
   final String id;
-  final Set<String> _resumeApprovalsByName = {};
-  _IsolateState _state;
+  final Set<String?> _resumeApprovalsByName = {};
+  _IsolateState? _state;
 }
 
-class _IsolateManager {
-  _IsolateManager(this.dds);
+class IsolateManager {
+  IsolateManager(this.dds);
 
   /// Handles state changes for isolates.
   void handleIsolateEvent(json_rpc.Parameters parameters) {
@@ -119,7 +128,7 @@ class _IsolateManager {
 
     // There's no interesting information about isolate state associated with
     // and IsolateSpawn event.
-    if (eventKind == _ServiceEvents.isolateSpawn) {
+    if (eventKind == ServiceEvents.isolateSpawn) {
       return;
     }
 
@@ -131,26 +140,26 @@ class _IsolateManager {
 
   void _updateIsolateState(String id, String name, String eventKind) {
     switch (eventKind) {
-      case _ServiceEvents.isolateStart:
+      case ServiceEvents.isolateStart:
         isolateStarted(id, name);
         break;
-      case _ServiceEvents.isolateExit:
+      case ServiceEvents.isolateExit:
         isolateExited(id);
         break;
       default:
         final isolate = isolates[id];
         switch (eventKind) {
-          case _ServiceEvents.pauseExit:
-            isolate.pausedOnExit();
+          case ServiceEvents.pauseExit:
+            isolate!.pausedOnExit();
             break;
-          case _ServiceEvents.pausePostRequest:
-            isolate.pausedPostRequest();
+          case ServiceEvents.pausePostRequest:
+            isolate!.pausedPostRequest();
             break;
-          case _ServiceEvents.pauseStart:
-            isolate.pausedOnStart();
+          case ServiceEvents.pauseStart:
+            isolate!.pausedOnStart();
             break;
-          case _ServiceEvents.resume:
-            isolate.resumed();
+          case ServiceEvents.resume:
+            isolate!.resumed();
             break;
           default:
             break;
@@ -163,13 +172,13 @@ class _IsolateManager {
     if (_initialized) {
       return;
     }
-    final vm = await dds._vmServiceClient.sendRequest('getVM');
+    final vm = await dds.vmServiceClient.sendRequest('getVM');
     final List<Map> isolateRefs = vm['isolates'].cast<Map<String, dynamic>>();
     // Check the pause event for each isolate to determine whether or not the
     // isolate is already paused.
     for (final isolateRef in isolateRefs) {
       final id = isolateRef['id'];
-      final isolate = await dds._vmServiceClient.sendRequest('getIsolate', {
+      final isolate = await dds.vmServiceClient.sendRequest('getIsolate', {
         'isolateId': id,
       });
       final name = isolate['name'];
@@ -206,19 +215,19 @@ class _IsolateManager {
   ///
   /// Returns a collected sentinel if the isolate no longer exists.
   Future<Map<String, dynamic>> resumeIsolate(
-    _DartDevelopmentServiceClient client,
+    DartDevelopmentServiceClient client,
     json_rpc.Parameters parameters,
   ) async {
     final isolateId = parameters['isolateId'].asString;
     final isolate = isolates[isolateId];
     if (isolate == null) {
-      return _RPCResponses.collectedSentinel;
+      return RPCResponses.collectedSentinel;
     }
     if (isolate.shouldResume(resumingClient: client)) {
       isolate.clearResumeApprovals();
       return await _sendResumeRequest(isolateId, parameters);
     }
-    return _RPCResponses.success;
+    return RPCResponses.success;
   }
 
   /// Forwards a `resume` request to the VM service.
@@ -226,17 +235,18 @@ class _IsolateManager {
     String isolateId,
     json_rpc.Parameters parameters,
   ) async {
-    final step = parameters['step'].asStringOr(null);
-    final frameIndex = parameters['frameIndex'].asIntOr(null);
-    final resumeResult = await dds._vmServiceClient.sendRequest('resume', {
+    const invalidFrameIndex = -1;
+    final step = parameters['step'].asStringOr('');
+    final frameIndex = parameters['frameIndex'].asIntOr(invalidFrameIndex);
+    final resumeResult = await dds.vmServiceClient.sendRequest('resume', {
       'isolateId': isolateId,
-      if (step != null) 'step': step,
-      if (frameIndex != null) 'frameIndex': frameIndex,
+      if (step.isNotEmpty) 'step': step,
+      if (frameIndex != invalidFrameIndex) 'frameIndex': frameIndex,
     });
     return resumeResult;
   }
 
   bool _initialized = false;
-  final _DartDevelopmentService dds;
+  final DartDevelopmentServiceImpl dds;
   final Map<String, _RunningIsolate> isolates = {};
 }

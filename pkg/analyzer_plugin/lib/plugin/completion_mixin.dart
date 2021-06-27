@@ -29,14 +29,12 @@ mixin CompletionMixin implements ServerPlugin {
   @override
   Future<CompletionGetSuggestionsResult> handleCompletionGetSuggestions(
       CompletionGetSuggestionsParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var path = parameters.file;
     var request = await getCompletionRequest(parameters);
     var generator = CompletionGenerator(getCompletionContributors(path));
     var result = await generator.generateCompletionResponse(request);
     result.sendNotifications(channel);
-    return result.result;
+    return result.result!;
   }
 }
 
@@ -52,8 +50,6 @@ abstract class DartCompletionMixin implements CompletionMixin {
   @override
   Future<CompletionRequest> getCompletionRequest(
       CompletionGetSuggestionsParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = await getResolvedUnitResult(parameters.file);
     return DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);

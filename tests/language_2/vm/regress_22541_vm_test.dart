@@ -4,6 +4,8 @@
 // Test range inference for multiplication of two negative values.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 test(a) {

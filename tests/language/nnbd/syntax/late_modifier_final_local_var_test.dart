@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=non-nullable
 // VMOptions=--optimization_counter_threshold=10
 import 'package:expect/expect.dart';
 
@@ -22,21 +21,13 @@ main() {
     Expect.equals(1, initCalls);
 
     late final int fieldWithNoInit;
-    Expect.throws(
-      () => fieldWithNoInit,
-      (error) => error is LateInitializationError,
-    );
+    Expect.throws<Error>(() => fieldWithNoInit);
     // Confuse the definite assignment analysis.
     if (1 > 0) {
       fieldWithNoInit = 123;
     }
     Expect.equals(123, fieldWithNoInit);
-    Expect.throws(
-      () {
-        fieldWithNoInit = 456;
-      },
-      (error) => error is LateInitializationError,
-    );
+    Expect.throws<Error>(() => fieldWithNoInit = 456);
     Expect.equals(123, fieldWithNoInit);
     initCalls = 0;
   }

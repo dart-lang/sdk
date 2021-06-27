@@ -4,6 +4,8 @@
 // VMOptions=
 // VMOptions=--compile_all
 
+// @dart = 2.9
+
 // Exercises language constructs that require compile time constants
 
 // Initialize with different literal types

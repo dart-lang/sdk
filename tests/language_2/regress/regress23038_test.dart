@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class C<T> {
   const
     factory
@@ -10,7 +12,7 @@ class C<T> {
 // [cfe] Cyclic definition of factory 'C'.
     = C<C<T>>
     //^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_FACTORY_REDIRECT
+    // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
     // [cfe] The constructor function type 'C<C<T>> Function()' isn't a subtype of 'C<T> Function()'.
   ;
 }

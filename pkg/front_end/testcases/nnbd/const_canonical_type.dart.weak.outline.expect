@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef F1 = () → self::A<FutureOr<dynamic>>;
+typedef F2 = () → self::A<dynamic>;
+typedef F3 = () → self::A<FutureOr<FutureOr<dynamic>?>>;
+typedef F4 = () → self::A<dynamic>;
+class Check extends core::Object /*hasConstConstructor*/  {
+  final field dynamic _ignored;
+  const constructor •(dynamic x, dynamic y) → self::Check
+    : assert(core::identical(x, y)), self::Check::_ignored = core::identical(x, y) ?{core::int} 42 : 1.{core::num::~/}(0){(core::num) → core::int}, super core::Object::•()
+    ;
+}
+class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+}
+static method expectEqual(dynamic x, dynamic y) → void
+  ;
+static method test1() → dynamic
+  ;
+static method main() → dynamic
+  ;

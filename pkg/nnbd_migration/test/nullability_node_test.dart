@@ -20,9 +20,9 @@ class NullabilityNodeTest {
   final graph = NullabilityGraphForTesting();
 
   /// A list of all edges that couldn't be satisfied.  May contain duplicates.
-  List<NullabilityEdge> unsatisfiedEdges;
+  late List<NullabilityEdge> unsatisfiedEdges;
 
-  List<NullabilityNodeForSubstitution> unsatisfiedSubstitutions;
+  List<NullabilityNodeForSubstitution>? unsatisfiedSubstitutions;
 
   NullabilityNode get always => graph.always;
 
@@ -48,12 +48,12 @@ class NullabilityNodeTest {
       NullabilityNode.forTypeAnnotation(NullabilityNodeTarget.text('node $id'));
 
   void propagate() {
-    var propagationResult = graph.propagate(null);
+    var propagationResult = graph.propagate();
     unsatisfiedEdges = propagationResult.unsatisfiedEdges;
     unsatisfiedSubstitutions = propagationResult.unsatisfiedSubstitutions;
   }
 
-  NullabilityNode subst(NullabilityNode inner, NullabilityNode outer) {
+  NullabilityNode subst(NullabilityNode? inner, NullabilityNode? outer) {
     return NullabilityNode.forSubstitution(inner, outer);
   }
 
@@ -747,22 +747,22 @@ class NullabilityNodeTest {
     graph.union(x, y, _TestEdgeOrigin());
   }
 
-  NullabilityNode _downstreamCauseNode(NullabilityNode node) =>
+  NullabilityNode? _downstreamCauseNode(NullabilityNode node) =>
       (node.whyNullable as SimpleDownstreamPropagationStep).edge.sourceNode;
 
   NullabilityNode _upstreamCauseNode(NullabilityNode node) =>
-      node.whyNotNullable.principalCause.node;
+      node.whyNotNullable!.principalCause!.node;
 }
 
 class _TestEdgeOrigin implements EdgeOrigin {
   @override
-  CodeReference get codeReference => null;
+  CodeReference? get codeReference => null;
 
   @override
   String get description => 'Test edge';
 
   @override
-  EdgeOriginKind get kind => null;
+  EdgeOriginKind? get kind => null;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

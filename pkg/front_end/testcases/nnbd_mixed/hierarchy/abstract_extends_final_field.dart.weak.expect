@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class AbstractSuper extends core::Object {
+  final field core::int extendedConcreteField = 0;
+  final field core::int declaredConcreteExtendsConcreteField = 0;
+  final field core::int declaredAbstractExtendsConcreteField = 0;
+  synthetic constructor •() → self::AbstractSuper
+    : super core::Object::•()
+    ;
+  abstract get extendedAbstractField() → core::int;
+  abstract get declaredConcreteExtendsAbstractField() → core::int;
+  abstract get declaredAbstractExtendsAbstractField() → core::int;
+}
+abstract class AbstractClass extends self::AbstractSuper {
+  final field core::int declaredConcreteField = 0;
+  final field core::int declaredConcreteExtendsConcreteField = 0;
+  final field core::int declaredConcreteExtendsAbstractField = 0;
+  synthetic constructor •() → self::AbstractClass
+    : super self::AbstractSuper::•()
+    ;
+  abstract get declaredAbstractField() → core::int;
+  abstract get declaredAbstractExtendsConcreteField() → core::int;
+  abstract get declaredAbstractExtendsAbstractField() → core::int;
+}
+static method main() → dynamic {}

@@ -22,8 +22,7 @@ class LibraryPrefixContributorTest extends DartCompletionContributorTest {
     for (var prefix in expectedPrefixes) {
       var cs =
           assertSuggest(prefix, csKind: CompletionSuggestionKind.IDENTIFIER);
-      var element = cs.element;
-      expect(element, isNotNull);
+      var element = cs.element!;
       expect(element.kind, equals(ElementKind.LIBRARY));
       expect(element.parameters, isNull);
       expect(element.returnType, isNull);

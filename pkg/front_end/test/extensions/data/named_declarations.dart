@@ -4,7 +4,12 @@
 
 // @dart = 2.9
 
-/*library: scope=[A2,B2,B3,B4]*/
+/*library: scope=[
+  A2,
+  B2,
+  B3,
+  B4,
+  async.dart.FutureExtensions]*/
 
 class A1 {}
 

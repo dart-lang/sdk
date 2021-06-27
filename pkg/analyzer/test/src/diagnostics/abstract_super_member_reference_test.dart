@@ -378,6 +378,34 @@ abstract class B extends A {
     }
   }
 
+  test_propertyAccess_setter_mixin_implements() async {
+    await assertErrorsInCode(r'''
+class A {
+  set foo(int _) {}
+}
+
+mixin M implements A {
+  void bar() {
+    super.foo = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3),
+    ]);
+
+    assertSuperExpression(findNode.super_('super.foo'));
+
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+  }
+
   test_propertyAccess_setter_mixinHasNoSuchMethod() async {
     await assertErrorsInCode('''
 class A {

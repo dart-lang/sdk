@@ -1,0 +1,92 @@
+abstract class Class extends Super
+    with Mixin
+    implements Interface1, Interface2 {
+  String get declaredGetterDeclaredSetter => '';
+  String get extendedSetterDeclaredGetter => '';
+  String get implementedSetterDeclaredGetter => '';
+  String get mixedInSetterDeclaredGetter => '';
+  final String declaredFieldDeclaredSetter = '';
+  final String extendedSetterDeclaredField = '';
+  final String implementedSetterDeclaredField = '';
+  final String mixedInSetterDeclaredField = '';
+  int extendedGetterDeclaredField = 0;
+  int implementedGetterDeclaredField = 0;
+  int mixedInGetterDeclaredField = 0;
+  void set declaredFieldDeclaredSetter(int value) {}
+  void set declaredGetterDeclaredSetter(int value) {}
+  void set extendedFieldDeclaredSetter(int value) {}
+  void set extendedGetterDeclaredSetter(int value) {}
+  void set implementedFieldDeclaredSetter(int value) {}
+  void set implementedGetterDeclaredSetter(int value) {}
+  void set mixedInFieldDeclaredSetter(int value) {}
+  void set mixedInGetterDeclaredSetter(int value) {}
+}
+
+abstract class Interface1 {
+  String get extendedSetterImplementedGetter => '';
+  String get implementedGetterDeclaredField => '';
+  String get implementedGetterDeclaredSetter => '';
+  String get implementedGetterImplementedField => '';
+  String get implementedGetterImplementedSetter => '';
+  String get mixedInSetterImplementedGetter => '';
+  final String extendedSetterImplementedField = '';
+  final String implementedFieldDeclaredSetter = '';
+  final String implementedFieldImplementedSetter = '';
+  final String mixedInSetterImplementedField = '';
+  int extendedGetterImplementedField = 0;
+  int mixedInGetterImplementedField = 0;
+  void set extendedFieldImplementedSetter(int value) {}
+  void set extendedGetterImplementedSetter(int value) {}
+  void set implementedSetterDeclaredField(int value) {}
+  void set implementedSetterDeclaredGetter(int value) {}
+  void set implementedSetterImplementedField(int value) {}
+  void set implementedSetterImplementedGetter(int value) {}
+  void set mixedInFieldImplementedSetter(int value) {}
+  void set mixedInGetterImplementedSetter(int value) {}
+}
+
+abstract class Interface2 {
+  String get implementedSetterImplementedGetter => '';
+  final String implementedSetterImplementedField = '';
+  int implementedGetterImplementedField = 0;
+  void set implementedFieldImplementedSetter(int value) {}
+  void set implementedGetterImplementedSetter(int value) {}
+}
+
+abstract class Mixin {
+  String get extendedSetterMixedInGetter => '';
+  String get mixedInGetterDeclaredField => '';
+  String get mixedInGetterDeclaredSetter => '';
+  String get mixedInGetterImplementedField => '';
+  String get mixedInGetterImplementedSetter => '';
+  final String extendedSetterMixedInField = '';
+  final String mixedInFieldDeclaredSetter = '';
+  final String mixedInFieldImplementedSetter = '';
+  int extendedGetterMixedInField = 0;
+  void set extendedFieldMixedInSetter(int value) {}
+  void set extendedGetterMixedInSetter(int value) {}
+  void set mixedInSetterDeclaredField(int value) {}
+  void set mixedInSetterDeclaredGetter(int value) {}
+  void set mixedInSetterImplementedField(int value) {}
+  void set mixedInSetterImplementedGetter(int value) {}
+}
+
+abstract class Super {
+  String get extendedGetterDeclaredField => '';
+  String get extendedGetterDeclaredSetter => '';
+  String get extendedGetterImplementedField => '';
+  String get extendedGetterImplementedSetter => '';
+  String get extendedGetterMixedInField => '';
+  String get extendedGetterMixedInSetter => '';
+  final String extendedFieldDeclaredSetter = '';
+  final String extendedFieldImplementedSetter = '';
+  final String extendedFieldMixedInSetter = '';
+  void set extendedSetterDeclaredField(int value) {}
+  void set extendedSetterDeclaredGetter(int value) {}
+  void set extendedSetterImplementedField(int value) {}
+  void set extendedSetterImplementedGetter(int value) {}
+  void set extendedSetterMixedInField(int value) {}
+  void set extendedSetterMixedInGetter(int value) {}
+}
+
+main() {}

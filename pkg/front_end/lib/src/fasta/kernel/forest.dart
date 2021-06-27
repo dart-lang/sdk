@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.fangorn;
+// @dart = 2.9
 
-import 'dart:core' hide MapEntry;
+library fasta.fangorn;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
@@ -28,9 +28,18 @@ class Forest {
   const Forest();
 
   Arguments createArguments(int fileOffset, List<Expression> positional,
-      {List<DartType> types, List<NamedExpression> named}) {
-    return new ArgumentsImpl(positional, types: types, named: named)
-      ..fileOffset = fileOffset ?? TreeNode.noOffset;
+      {List<DartType> types,
+      List<NamedExpression> named,
+      bool hasExplicitTypeArguments = true}) {
+    if (!hasExplicitTypeArguments) {
+      ArgumentsImpl arguments =
+          new ArgumentsImpl(positional, types: <DartType>[], named: named);
+      arguments.types.addAll(types);
+      return arguments;
+    } else {
+      return new ArgumentsImpl(positional, types: types, named: named)
+        ..fileOffset = fileOffset ?? TreeNode.noOffset;
+    }
   }
 
   Arguments createArgumentsForExtensionMethod(
@@ -145,7 +154,7 @@ class Forest {
   /// if the second type argument cannot be resolved. The list of [entries] is a
   /// list of the representations of the map entries.
   MapLiteral createMapLiteral(int fileOffset, DartType keyType,
-      DartType valueType, List<MapEntry> entries,
+      DartType valueType, List<MapLiteralEntry> entries,
       {bool isConst}) {
     assert(fileOffset != null);
     assert(isConst != null);
@@ -184,9 +193,10 @@ class Forest {
   /// [fileOffset]. The [key] is the representation of the expression used to
   /// compute the key. The [value] is the representation of the expression used
   /// to compute the value.
-  MapEntry createMapEntry(int fileOffset, Expression key, Expression value) {
+  MapLiteralEntry createMapEntry(
+      int fileOffset, Expression key, Expression value) {
     assert(fileOffset != null);
-    return new MapEntry(key, value)..fileOffset = fileOffset;
+    return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
   }
 
   Expression createLoadLibrary(
@@ -215,7 +225,8 @@ class Forest {
       {bool isNullAware}) {
     assert(fileOffset != null);
     assert(isNullAware != null);
-    return new SpreadElement(expression, isNullAware)..fileOffset = fileOffset;
+    return new SpreadElement(expression, isNullAware: isNullAware)
+      ..fileOffset = fileOffset;
   }
 
   Expression createIfElement(
@@ -225,8 +236,9 @@ class Forest {
     return new IfElement(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
-  MapEntry createIfMapEntry(int fileOffset, Expression condition, MapEntry then,
-      [MapEntry otherwise]) {
+  MapLiteralEntry createIfMapEntry(
+      int fileOffset, Expression condition, MapLiteralEntry then,
+      [MapLiteralEntry otherwise]) {
     assert(fileOffset != null);
     return new IfMapEntry(condition, then, otherwise)..fileOffset = fileOffset;
   }
@@ -242,12 +254,12 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  MapEntry createForMapEntry(
+  MapLiteralEntry createForMapEntry(
       int fileOffset,
       List<VariableDeclaration> variables,
       Expression condition,
       List<Expression> updates,
-      MapEntry body) {
+      MapLiteralEntry body) {
     assert(fileOffset != null);
     return new ForMapEntry(variables, condition, updates, body)
       ..fileOffset = fileOffset;
@@ -269,13 +281,13 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  MapEntry createForInMapEntry(
+  MapLiteralEntry createForInMapEntry(
       int fileOffset,
       VariableDeclaration variable,
       Expression iterable,
       Expression synthesizedAssignment,
       Statement expressionEffects,
-      MapEntry body,
+      MapLiteralEntry body,
       Expression problem,
       {bool isAsync: false}) {
     assert(fileOffset != null);
@@ -764,6 +776,10 @@ class _VariablesDeclaration extends Statement {
 
   transformChildren(v) {
     throw unsupported("transformChildren", fileOffset, uri);
+  }
+
+  transformOrRemoveChildren(v) {
+    throw unsupported("transformOrRemoveChildren", fileOffset, uri);
   }
 
   @override

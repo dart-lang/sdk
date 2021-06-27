@@ -25,73 +25,6 @@ DECLARE_FLAG(bool, profile_vm);
 
 #ifndef PRODUCT
 
-class DeoptimizedCodeSet : public ZoneAllocated {
- public:
-  explicit DeoptimizedCodeSet(Isolate* isolate)
-      : previous_(
-            GrowableObjectArray::ZoneHandle(isolate->deoptimized_code_array())),
-        current_(GrowableObjectArray::ZoneHandle(
-            previous_.IsNull() ? GrowableObjectArray::null()
-                               : GrowableObjectArray::New())) {}
-
-  void Add(const Code& code) {
-    if (current_.IsNull()) {
-      return;
-    }
-    if (!Contained(code, previous_) || Contained(code, current_)) {
-      return;
-    }
-    current_.Add(code);
-  }
-
-  void UpdateIsolate(Isolate* isolate) {
-    intptr_t size_before = SizeOf(previous_);
-    intptr_t size_after = SizeOf(current_);
-    if ((size_before > 0) && FLAG_trace_profiler) {
-      intptr_t length_before = previous_.Length();
-      intptr_t length_after = current_.Length();
-      OS::PrintErr(
-          "Updating isolate deoptimized code array: "
-          "%" Pd " -> %" Pd " [%" Pd " -> %" Pd "]\n",
-          size_before, size_after, length_before, length_after);
-    }
-    isolate->set_deoptimized_code_array(current_);
-  }
-
- private:
-  bool Contained(const Code& code, const GrowableObjectArray& array) {
-    if (array.IsNull() || code.IsNull()) {
-      return false;
-    }
-    NoSafepointScope no_safepoint_scope;
-    for (intptr_t i = 0; i < array.Length(); i++) {
-      if (code.raw() == array.At(i)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  intptr_t SizeOf(const GrowableObjectArray& array) {
-    if (array.IsNull()) {
-      return 0;
-    }
-    Code& code = Code::ZoneHandle();
-    intptr_t size = 0;
-    for (intptr_t i = 0; i < array.Length(); i++) {
-      code ^= array.At(i);
-      ASSERT(!code.IsNull());
-      size += code.Size();
-    }
-    return size;
-  }
-
-  // Array holding code that is being kept around only for the profiler.
-  const GrowableObjectArray& previous_;
-  // Array holding code that should continue to be kept around for the profiler.
-  const GrowableObjectArray& current_;
-};
-
 ProfileFunctionSourcePosition::ProfileFunctionSourcePosition(
     TokenPosition token_pos)
     : token_pos_(token_pos), exclusive_ticks_(0), inclusive_ticks_(0) {}
@@ -110,7 +43,7 @@ ProfileFunction::ProfileFunction(Kind kind,
                                  const intptr_t table_index)
     : kind_(kind),
       name_(name),
-      function_(Function::ZoneHandle(function.raw())),
+      function_(Function::ZoneHandle(function.ptr())),
       table_index_(table_index),
       profile_codes_(0),
       source_position_ticks_(0),
@@ -137,6 +70,9 @@ const char* ProfileFunction::ResolvedScriptUrl() const {
     return NULL;
   }
   const Script& script = Script::Handle(function_.script());
+  if (script.IsNull()) {
+    return NULL;
+  }
   const String& uri = String::Handle(script.resolved_url());
   if (uri.IsNull()) {
     return NULL;
@@ -604,10 +540,10 @@ class ProfileFunctionTable : public ZoneAllocated {
 
     static Value ValueOf(Pair kv) { return kv; }
 
-    static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+    static inline uword Hash(Key key) { return key->Hash(); }
 
     static inline bool IsKeyEqual(Pair kv, Key key) {
-      return kv->function()->raw() == key->raw();
+      return kv->function()->ptr() == key->ptr();
     }
   };
 
@@ -990,7 +926,6 @@ class ProfileBuilder : public ValueObject {
         filter_(filter),
         sample_buffer_(sample_buffer),
         profile_(profile),
-        deoptimized_code_(new DeoptimizedCodeSet(thread->isolate())),
         null_code_(Code::null()),
         null_function_(Function::ZoneHandle()),
         inclusive_tree_(false),
@@ -1207,7 +1142,7 @@ class ProfileBuilder : public ValueObject {
     TokenPosition token_position = TokenPosition::kNoSource;
     Code& code = Code::ZoneHandle();
     if (profile_code->code().IsCode()) {
-      code ^= profile_code->code().raw();
+      code ^= profile_code->code().ptr();
       inlined_functions_cache_->Get(pc, code, sample, frame_index,
                                     &inlined_functions,
                                     &inlined_token_positions, &token_position);
@@ -1406,8 +1341,8 @@ class ProfileBuilder : public ValueObject {
   }
 
   bool IsPCInDartHeap(uword pc) {
-    return vm_isolate_->heap()->CodeContains(pc) ||
-           thread_->isolate()->heap()->CodeContains(pc);
+    return vm_isolate_->group()->heap()->CodeContains(pc) ||
+           thread_->isolate()->group()->heap()->CodeContains(pc);
   }
 
   ProfileCode* FindOrRegisterNativeProfileCode(uword pc) {
@@ -1506,7 +1441,6 @@ class ProfileBuilder : public ValueObject {
   SampleFilter* filter_;
   SampleBuffer* sample_buffer_;
   Profile* profile_;
-  DeoptimizedCodeSet* deoptimized_code_;
   const AbstractCode null_code_;
   const Function& null_function_;
   bool inclusive_tree_;
@@ -1612,7 +1546,9 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
   obj->AddProperty("maxStackDepth",
                    static_cast<intptr_t>(FLAG_max_profile_depth));
   obj->AddProperty("sampleCount", sample_count());
-  obj->AddProperty("timespan", MicrosecondsToSeconds(GetTimeSpan()));
+  // TODO(bkonyi): remove timeSpan after next major revision.
+  ASSERT(SERVICE_PROTOCOL_MAJOR_VERSION == 3);
+  obj->AddProperty64("timeSpan", -1);
   obj->AddPropertyTimeMicros("timeOriginMicros", min_time());
   obj->AddPropertyTimeMicros("timeExtentMicros", GetTimeSpan());
   obj->AddProperty64("pid", pid);
@@ -1662,7 +1598,7 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
   Code& code = Code::ZoneHandle();
 
   if (profile_code->code().IsCode()) {
-    code ^= profile_code->code().raw();
+    code ^= profile_code->code().ptr();
     cache_->Get(pc, code, sample, frame_index, &inlined_functions,
                 &inlined_token_positions, &token_position);
     if (FLAG_trace_profiler_verbose && (inlined_functions != NULL)) {
@@ -1773,6 +1709,11 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
         PrintCodeFrameIndexJSON(&stack, sample, frame_index);
       }
     }
+    if (sample->IsAllocationSample()) {
+      sample_obj.AddProperty64("classId", sample->allocation_cid());
+      sample_obj.AddProperty64("identityHashCode",
+                               sample->allocation_identity_hash());
+    }
   }
 }
 
@@ -1858,6 +1799,30 @@ void ProfilerService::PrintJSON(JSONStream* stream,
                 include_code_samples);
 }
 
+class AllocationSampleFilter : public SampleFilter {
+ public:
+  AllocationSampleFilter(Dart_Port port,
+                         intptr_t thread_task_mask,
+                         int64_t time_origin_micros,
+                         int64_t time_extent_micros)
+      : SampleFilter(port,
+                     thread_task_mask,
+                     time_origin_micros,
+                     time_extent_micros) {}
+
+  bool FilterSample(Sample* sample) { return sample->is_allocation_sample(); }
+};
+
+void ProfilerService::PrintAllocationJSON(JSONStream* stream,
+                                          int64_t time_origin_micros,
+                                          int64_t time_extent_micros) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  AllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
+                                time_origin_micros, time_extent_micros);
+  PrintJSONImpl(thread, stream, &filter, Profiler::sample_buffer(), true);
+}
+
 class ClassAllocationSampleFilter : public SampleFilter {
  public:
   ClassAllocationSampleFilter(Dart_Port port,
@@ -1869,7 +1834,7 @@ class ClassAllocationSampleFilter : public SampleFilter {
                      thread_task_mask,
                      time_origin_micros,
                      time_extent_micros),
-        cls_(Class::Handle(cls.raw())) {
+        cls_(Class::Handle(cls.ptr())) {
     ASSERT(!cls_.IsNull());
   }
 

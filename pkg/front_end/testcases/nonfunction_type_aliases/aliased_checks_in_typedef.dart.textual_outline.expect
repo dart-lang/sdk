@@ -1,0 +1,5 @@
+foo() {}
+typedef A<X extends int> = B<String>;
+typedef B<X extends int> = C<String>;
+typedef C<X extends int> = X;
+main() {}

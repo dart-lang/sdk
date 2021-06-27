@@ -5,12 +5,15 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
+import 'package:analysis_server/src/computer/computer_type_arguments_signature.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 class SignatureHelpHandler
-    extends MessageHandler<SignatureHelpParams, SignatureHelp> {
+    extends MessageHandler<SignatureHelpParams, SignatureHelp?> {
   SignatureHelpHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_signatureHelp;
@@ -20,10 +23,17 @@ class SignatureHelpHandler
       SignatureHelpParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SignatureHelp>> handle(
+  Future<ErrorOr<SignatureHelp?>> handle(
       SignatureHelpParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
+    }
+
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
     }
 
     // If triggered automatically by pressing the trigger character, we will
@@ -45,31 +55,73 @@ class SignatureHelpHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) {
-      final computer = DartUnitSignatureComputer(
-          server.getDartdocDirectiveInfoFor(unit.result),
-          unit.result.unit,
-          offset);
+      final formats = clientCapabilities.signatureHelpDocumentationFormats;
+      final dartDocInfo = server.getDartdocDirectiveInfoFor(unit.result);
+
+      // First check if we're in a type args list and if so build some
+      // signature help for that.
+      final typeArgsSignature = _tryGetTypeArgsSignatureHelp(
+        dartDocInfo,
+        unit.result.unit!,
+        offset,
+        autoTriggered,
+        formats,
+      );
+      if (typeArgsSignature != null) {
+        return success(typeArgsSignature);
+      }
+
+      final computer =
+          DartUnitSignatureComputer(dartDocInfo, unit.result.unit!, offset);
       if (!computer.offsetIsValid) {
-        return success(); // No error, just no valid hover.
+        return success(null); // No error, just no valid hover.
       }
       final signature = computer.compute();
       if (signature == null) {
-        return success(); // No error, just no valid hover.
+        return success(null); // No error, just no valid hover.
       }
 
       // Skip results if this was an auto-trigger but not from the start of the
       // argument list.
       // The ArgumentList's offset is before the paren, but the request offset
       // will be after.
-      if (autoTriggered &&
-          computer.argumentList != null &&
-          offset != computer.argumentList.offset + 1) {
-        return success();
+      if (autoTriggered && offset != computer.argumentList.offset + 1) {
+        return success(null);
       }
 
-      final formats = server?.clientCapabilities?.textDocument?.signatureHelp
-          ?.signatureInformation?.documentationFormat;
       return success(toSignatureHelp(formats, signature));
     });
+  }
+
+  /// Tries to create signature information for a surrounding [TypeArgumentList].
+  ///
+  /// Returns `null` if [offset] is in an invalid location, not inside a type
+  /// argument list or was auto-triggered in a location that was not the start
+  /// of a type argument list.
+  SignatureHelp? _tryGetTypeArgsSignatureHelp(
+    DartdocDirectiveInfo dartDocInfo,
+    CompilationUnit unit,
+    int offset,
+    bool autoTriggered,
+    Set<MarkupKind>? formats,
+  ) {
+    final typeArgsComputer =
+        DartTypeArgumentsSignatureComputer(dartDocInfo, unit, offset, formats);
+    if (!typeArgsComputer.offsetIsValid) {
+      return null;
+    }
+
+    final typeSignature = typeArgsComputer.compute();
+    if (typeSignature == null) {
+      return null;
+    }
+
+    // If auto-triggered from typing a `<`, only show if that `<` was at
+    // the start of the arg list (to avoid triggering on other `<`s).
+    if (autoTriggered && offset != typeArgsComputer.argumentList.offset + 1) {
+      return null;
+    }
+
+    return typeSignature;
   }
 }

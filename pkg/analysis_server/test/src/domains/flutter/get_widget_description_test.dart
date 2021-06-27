@@ -32,7 +32,7 @@ void main() {
     expect(property.expression, "'aaa'");
     expect(property.isRequired, isTrue);
     expect(property.editor, isNotNull);
-    expect(property.value.stringValue, 'aaa');
+    expect(property.value!.stringValue, 'aaa');
   }
 
   Future<void> test_notInstanceCreation() async {
@@ -44,7 +44,7 @@ void main() {
 
     var response = await getWidgetDescriptionResponse('42');
     expect(
-      response.error.code,
+      response.error!.code,
       RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
     );
   }
@@ -58,7 +58,7 @@ void main() {
 
     var response = await getWidgetDescriptionResponse('new Foo');
     expect(
-      response.error.code,
+      response.error!.code,
       RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
     );
   }

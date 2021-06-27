@@ -62,9 +62,6 @@ enum Feature {
   /// super method.
   SUPER_NO_SUCH_METHOD,
 
-  /// A redirection to the `Symbol` constructor.
-  SYMBOL_CONSTRUCTOR,
-
   /// An synchronous for in statement, like `for (var e in i) {}`.
   SYNC_FOR_IN,
 
@@ -237,7 +234,7 @@ class GenericInstantiation {
   static const String tag = 'generic-instantiation';
 
   /// The static type of the instantiated expression.
-  final DartType functionType;
+  final FunctionType functionType;
 
   /// The type arguments of the instantiation.
   final List<DartType> typeArguments;

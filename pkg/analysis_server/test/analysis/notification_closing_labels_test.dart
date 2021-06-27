@@ -36,9 +36,9 @@ Widget build(BuildContext context) {
     ClosingLabel(79, 57, '<Widget>[]')
   ];
 
-  List<ClosingLabel> lastLabels;
+  List<ClosingLabel>? lastLabels;
 
-  Completer _labelsReceived;
+  late Completer _labelsReceived;
 
   @override
   void processNotification(Notification notification) {

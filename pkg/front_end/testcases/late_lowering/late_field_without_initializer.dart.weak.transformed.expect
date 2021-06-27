@@ -33,24 +33,24 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     self::expect(42, self::Class::lateStaticField2);
   }
   get lateInstanceField() → core::int
-    return this.{self::Class::_#Class#lateInstanceField#isSet} ?{core::int} let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField} in #t5{core::int} : throw new _in::LateError::fieldNI("lateInstanceField");
+    return this.{self::Class::_#Class#lateInstanceField#isSet}{core::bool} ?{core::int} let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField}{core::int?} in #t5{core::int} : throw new _in::LateError::fieldNI("lateInstanceField");
   set lateInstanceField(core::int #t6) → void {
     this.{self::Class::_#Class#lateInstanceField#isSet} = true;
     this.{self::Class::_#Class#lateInstanceField} = #t6;
   }
   get lateGenericInstanceField() → self::Class::T%
-    return this.{self::Class::_#Class#lateGenericInstanceField#isSet} ?{self::Class::T%} let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericInstanceField} in #t7{self::Class::T%} : throw new _in::LateError::fieldNI("lateGenericInstanceField");
+    return this.{self::Class::_#Class#lateGenericInstanceField#isSet}{core::bool} ?{self::Class::T%} let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericInstanceField}{self::Class::T?} in #t7{self::Class::T%} : throw new _in::LateError::fieldNI("lateGenericInstanceField");
   set lateGenericInstanceField(generic-covariant-impl self::Class::T% #t8) → void {
     this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     this.{self::Class::_#Class#lateGenericInstanceField} = #t8;
   }
   method instanceMethod(generic-covariant-impl self::Class::T% value) → dynamic {
-    self::throws(() → core::int => this.{self::Class::lateInstanceField}, "Read value from uninitialized Class.lateInstanceField");
+    self::throws(() → core::int => this.{self::Class::lateInstanceField}{core::int}, "Read value from uninitialized Class.lateInstanceField");
     this.{self::Class::lateInstanceField} = 16;
-    self::expect(16, this.{self::Class::lateInstanceField});
-    self::throws(() → self::Class::T% => this.{self::Class::lateGenericInstanceField}, "Read value from uninitialized Class.lateGenericInstanceField");
+    self::expect(16, this.{self::Class::lateInstanceField}{core::int});
+    self::throws(() → self::Class::T% => this.{self::Class::lateGenericInstanceField}{self::Class::T%}, "Read value from uninitialized Class.lateGenericInstanceField");
     this.{self::Class::lateGenericInstanceField} = value;
-    self::expect(value, this.{self::Class::lateGenericInstanceField});
+    self::expect(value, this.{self::Class::lateGenericInstanceField}{self::Class::T%});
   }
 }
 extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
@@ -101,29 +101,29 @@ static method main() → dynamic {
   self::Class::lateStaticField1 = 87;
   self::expect(87, self::Class::lateStaticField1);
   self::Class::staticMethod();
-  new self::Class::•<core::int>().{self::Class::instanceMethod}(0);
+  new self::Class::•<core::int>().{self::Class::instanceMethod}(0){(core::int) → dynamic};
   self::Class<core::int> c = new self::Class::•<core::int>();
-  self::throws(() → core::int => c.{self::Class::lateInstanceField}, "Read value from uninitialized Class.lateInstanceField");
+  self::throws(() → core::int => c.{self::Class::lateInstanceField}{core::int}, "Read value from uninitialized Class.lateInstanceField");
   c.{self::Class::lateInstanceField} = 16;
-  self::expect(16, c.{self::Class::lateInstanceField});
-  self::throws(() → core::int => c.{self::Class::lateGenericInstanceField}, "Read value from uninitialized Class.lateGenericInstanceField");
+  self::expect(16, c.{self::Class::lateInstanceField}{core::int});
+  self::throws(() → core::int => c.{self::Class::lateGenericInstanceField}{core::int}, "Read value from uninitialized Class.lateGenericInstanceField");
   c.{self::Class::lateGenericInstanceField} = 0;
-  self::expect(0, c.{self::Class::lateGenericInstanceField});
+  self::expect(0, c.{self::Class::lateGenericInstanceField}{core::int});
   self::throws(() → core::int => self::Extension|lateExtensionField1, "Read value from uninitialized Extension.lateExtensionField1");
   self::Extension|lateExtensionField1 = 87;
   self::expect(87, self::Extension|lateExtensionField1);
   self::Extension|staticMethod();
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → dynamic f, core::String message) → dynamic {
   dynamic value;
   try {
-    value = f.call();
+    value = f(){() → dynamic};
   }
-  on core::LateInitializationError catch(final core::LateInitializationError e) {
+  on core::Error catch(final core::Error e) {
     core::print(e);
     return;
   }

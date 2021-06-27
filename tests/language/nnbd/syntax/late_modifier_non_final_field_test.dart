@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=non-nullable
 // VMOptions=--optimization_counter_threshold=10
 import 'package:expect/expect.dart';
 
@@ -33,20 +32,16 @@ main() {
     Expect.equals(123, a.fieldWithInit);
     Expect.equals(123, a.fieldWithTrivialInit);
     Expect.equals(null, a.fieldWithNullInit);
-    Expect.throws(
-        () => a.fieldWithNoInit, (error) => error is LateInitializationError);
-    Expect.throws(() => a.nullableFieldWithNoInit,
-        (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => a.fieldWithNoInit);
+    Expect.throws<Error>(() => a.nullableFieldWithNoInit);
     Expect.equals(null, a.fieldWithOnlyCtorInit);
     Expect.equals(null, a.fieldWithOnlyBothInitAndCtorInit);
     Expect.equals(1, initCalls);
     Expect.equals(123, a.fieldWithInit);
     Expect.equals(123, a.fieldWithTrivialInit);
     Expect.equals(null, a.fieldWithNullInit);
-    Expect.throws(
-        () => a.fieldWithNoInit, (error) => error is LateInitializationError);
-    Expect.throws(() => a.nullableFieldWithNoInit,
-        (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => a.fieldWithNoInit);
+    Expect.throws<Error>(() => a.nullableFieldWithNoInit);
     Expect.equals(null, a.fieldWithOnlyCtorInit);
     Expect.equals(null, a.fieldWithOnlyBothInitAndCtorInit);
     Expect.equals(1, initCalls);

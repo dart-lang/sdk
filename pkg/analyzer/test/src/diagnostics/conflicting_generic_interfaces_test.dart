@@ -10,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConflictingGenericInterfacesTest);
-    defineReflectiveTests(ConflictingGenericInterfacesWithNullSafetyTest);
   });
 }
 
@@ -23,56 +22,10 @@ class A implements I<int> {}
 class B implements I<String> {}
 class C extends A implements B {}
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 33),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1),
     ]);
   }
 
-  test_class_extends_with() async {
-    await assertErrorsInCode('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 27),
-    ]);
-  }
-
-  test_classTypeAlias_extends_with() async {
-    await assertErrorsInCode('''
-class I<T> {}
-class A implements I<int> {}
-mixin M implements I<String> {}
-class C = A with M;
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 19),
-    ]);
-  }
-
-  test_mixin_on_implements() async {
-    await assertErrorsInCode('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-mixin M on A implements B {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 28),
-    ]);
-  }
-
-  test_noConflict() async {
-    await assertNoErrorsInCode('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<int> {}
-class C extends A implements B {}
-''');
-  }
-}
-
-@reflectiveTest
-class ConflictingGenericInterfacesWithNullSafetyTest
-    extends ConflictingGenericInterfacesTest with WithNullSafetyMixin {
   test_class_extends_implements_never() async {
     await assertNoErrorsInCode('''
 class I<T> {}
@@ -89,7 +42,7 @@ class A implements I<int> {}
 class B implements I<int?> {}
 class C extends A implements B {}
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 73, 33),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 79, 1),
     ]);
   }
 
@@ -119,6 +72,17 @@ import 'a.dart';
 
 class C extends B implements A<int> {}
 ''');
+  }
+
+  test_class_extends_with() async {
+    await assertErrorsInCode('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+class C extends A with B {}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1),
+    ]);
   }
 
   test_class_mixed_viaLegacy() async {
@@ -179,5 +143,56 @@ class C extends B implements A<int> {}
 ''', [
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 24, 8),
     ]);
+  }
+
+  test_classTypeAlias_extends_nonFunctionTypedef_with() async {
+    await assertErrorsInCode('''
+class I<T> {}
+typedef A = I<int>;
+mixin M implements I<String> {}
+class C = A with M;
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 72, 1),
+    ]);
+  }
+
+  test_classTypeAlias_extends_nonFunctionTypedef_with_ok() async {
+    await assertNoErrorsInCode('''
+class I<T> {}
+typedef A = I<String>;
+mixin M implements I<String> {}
+class C = A with M;
+''');
+  }
+
+  test_classTypeAlias_extends_with() async {
+    await assertErrorsInCode('''
+class I<T> {}
+class A implements I<int> {}
+mixin M implements I<String> {}
+class C = A with M;
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1),
+    ]);
+  }
+
+  test_mixin_on_implements() async {
+    await assertErrorsInCode('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+mixin M on A implements B {}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1),
+    ]);
+  }
+
+  test_noConflict() async {
+    await assertNoErrorsInCode('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<int> {}
+class C extends A implements B {}
+''');
   }
 }

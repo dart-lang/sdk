@@ -25,7 +25,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_getDiagnostics() async {
-    newFile('/project/pubspec.yaml', content: 'name: project');
+    newPubspecYamlFile('/project', 'name: project');
     newFile('/project/bin/test.dart', content: 'main() {}');
 
     server.setAnalysisRoots('0', [convertPath('/project')], []);
@@ -33,7 +33,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     await server.onAnalysisComplete;
 
     var request = DiagnosticGetDiagnosticsParams().toRequest('0');
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request)!;
     var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
 
     expect(result.contexts, hasLength(1));
@@ -49,7 +49,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
 
   Future<void> test_getDiagnostics_noRoot() async {
     var request = DiagnosticGetDiagnosticsParams().toRequest('0');
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request)!;
     var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
   }

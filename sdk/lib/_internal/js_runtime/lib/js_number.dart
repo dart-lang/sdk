@@ -4,13 +4,29 @@
 
 part of _interceptors;
 
-/// The super interceptor class for [JSInt] and [JSDouble]. The compiler
-/// recognizes this class as an interceptor, and changes references to
-/// [:this:] to actually use the receiver of the method, which is
-/// generated as an extra argument added to each member.
+/// Interceptor class for all Dart [num] implementations.
 ///
-/// Note that none of the methods here delegate to a method defined on JSInt or
-/// JSDouble.  This is exploited in [tryComputeConstantInterceptor].
+/// JavaScript numbers (doubles) are used to represent both Dart [int] and Dart
+/// [double] values. Some values, e.g. `3.0` are both Dart [int] values and Dart
+/// [double] values. Other values are just [double] values, e.g. `3.1`.
+///
+/// There are two disjoint subclasses of [JSNumber]: [JSInt] and [JSNumNotInt].
+///
+/// Most methods are on [JSNumber]. Since some values can 'be' (i.e. implement)
+/// both [int] and [double], the int and double operations have to be the same.
+/// Consider the JavaScript value `0`. This is both Dart int 0, and Dart double
+/// 0.0. From the dynamic type we can't tell the intention, so the
+/// `0.0.toString()` on the web returns `0`, and not `0.0` like on the Dart VM
+/// implementation. For `toString` we prefer the `int` version. For negation, we
+/// prefer the `double` version (returning `-0.0`, not `0`). This is usually
+/// hidden because the JavaScript `-0.0` value is also considered to implement
+/// [int].
+///
+/// Note that none of the methods in [JSNumber] delegate to a method defined on
+/// JSInt (or JSNumNotInt).  This is exploited in
+/// [tryComputeConstantInterceptor] to avoid most interceptor lookups on
+/// numbers.
+
 class JSNumber extends Interceptor implements double {
   const JSNumber();
 
@@ -66,7 +82,11 @@ class JSNumber extends Interceptor implements double {
       r'Math.abs(#)',
       this);
 
-  JSNumber get sign => (this > 0 ? 1 : this < 0 ? -1 : this) as JSNumber;
+  JSNumber get sign => (this > 0
+      ? 1
+      : this < 0
+          ? -1
+          : this) as JSNumber;
 
   static const int _MIN_INT32 = -0x80000000;
   static const int _MAX_INT32 = 0x7FFFFFFF;
@@ -309,7 +329,7 @@ class JSNumber extends Interceptor implements double {
     JSNumber result = JS<JSNumber>('JSNumber', r'# % #', this, other);
     if (result == 0) return JS('num', '0'); // Make sure we don't return -0.0.
     if (result > 0) return result;
-    if (JS('num', '#', other) < 0) {
+    if (other < 0) {
       return JS<JSNumber>('JSNumber', '# - #', result, other);
     } else {
       return JS<JSNumber>('JSNumber', '# + #', result, other);
@@ -337,7 +357,7 @@ class JSNumber extends Interceptor implements double {
   }
 
   int _tdivSlow(num other) {
-    var quotient = JS('num', r'# / #', this, other);
+    num quotient = JS('num', r'# / #', this, other);
     if (quotient >= _MIN_INT32 && quotient <= _MAX_INT32) {
       // This path includes -0.0 and +0.0.
       return JS('int', '# | 0', quotient);
@@ -365,7 +385,7 @@ class JSNumber extends Interceptor implements double {
 
   num operator <<(num other) {
     if (other is! num) throw argumentErrorValue(other);
-    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
+    if (other < 0) throw argumentErrorValue(other);
     return _shlPositive(other);
   }
 
@@ -378,14 +398,14 @@ class JSNumber extends Interceptor implements double {
   }
 
   num operator >>(num other) {
-    if (false) _shrReceiverPositive(other);
     if (other is! num) throw argumentErrorValue(other);
-    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
+    if (other < 0) throw argumentErrorValue(other);
+    if (false) _shrReceiverPositive(other);
     return _shrOtherPositive(other);
   }
 
   num _shrOtherPositive(num other) {
-    return JS('num', '#', this) > 0
+    return this > 0
         ? _shrBothPositive(other)
         // For negative numbers we just clamp the shift-by amount.
         // `this` could be negative but not have its 31st bit set.
@@ -395,7 +415,7 @@ class JSNumber extends Interceptor implements double {
   }
 
   num _shrReceiverPositive(num other) {
-    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
+    if (0 > other) throw argumentErrorValue(other);
     return _shrBothPositive(other);
   }
 
@@ -409,6 +429,17 @@ class JSNumber extends Interceptor implements double {
         // number that has the 31st bit set would be treated as negative and
         // shift in ones.
         : JS('JSUInt32', r'# >>> #', this, other);
+  }
+
+  num operator >>>(num other) {
+    if (other is! num) throw argumentErrorValue(other);
+    if (other < 0) throw argumentErrorValue(other);
+    return _shruOtherPositive(other);
+  }
+
+  num _shruOtherPositive(num other) {
+    if (other > 31) return 0;
+    return JS('JSUInt32', r'# >>> #', this, other);
   }
 
   num operator &(num other) {
@@ -467,7 +498,11 @@ class JSInt extends JSNumber implements int {
       this);
 
   @override
-  JSInt get sign => (this > 0 ? 1 : this < 0 ? -1 : this) as JSInt;
+  JSInt get sign => (this > 0
+      ? 1
+      : this < 0
+          ? -1
+          : this) as JSInt;
 
   @override
   JSInt operator -() => JS('int', r'-#', this);
@@ -695,8 +730,9 @@ class JSInt extends JSNumber implements int {
   int operator ~() => JS('JSUInt32', r'(~#) >>> 0', this);
 }
 
-class JSDouble extends JSNumber implements double {
-  const JSDouble();
+/// Interceptor for JavaScript values that are not a subclass of [JSInt].
+class JSNumNotInt extends JSNumber implements double {
+  const JSNumNotInt();
   Type get runtimeType => double;
 }
 

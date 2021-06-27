@@ -83,9 +83,19 @@ class ObjectCounter : public ObjectPointerVisitor {
   explicit ObjectCounter(IsolateGroup* isolate_group, const Object* obj)
       : ObjectPointerVisitor(isolate_group), obj_(obj), count_(0) {}
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* current = first; current <= last; ++current) {
-      if (*current == obj_->raw()) {
+      if (*current == obj_->ptr()) {
+        ++count_;
+      }
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    for (CompressedObjectPtr* current = first; current <= last; ++current) {
+      if (current->Decompress(heap_base) == obj_->ptr()) {
         ++count_;
       }
     }
@@ -295,7 +305,7 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   intptr_t done_count = 0;
   bool wait = true;
 
-  EXPECT(isolate->heap()->GrowthControlState());
+  EXPECT(isolate->group()->heap()->GrowthControlState());
 
   NoHeapGrowthControlScope no_heap_growth_scope;
 
@@ -431,9 +441,10 @@ static Function* CreateFunction(const char* name) {
       Class::New(lib, class_name, script, TokenPosition::kNoSource));
   const String& function_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, owner_class, TokenPosition::kNoSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, owner_class, TokenPosition::kNoSource));
   return &function;
 }
 
@@ -543,7 +554,7 @@ class SafepointTestTask : public ThreadPool::Task {
           EXPECT_EQ(*expected_count_, counter.count());
         }
         UserTag& tag = UserTag::Handle(zone, isolate_->current_tag());
-        if (tag.raw() != isolate_->default_tag()) {
+        if (tag.ptr() != isolate_->default_tag()) {
           String& label = String::Handle(zone, tag.label());
           EXPECT(label.Equals("foo"));
           MonitorLocker ml(monitor_);
@@ -664,13 +675,13 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM) {
 ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest1) {
   intptr_t count = 0;
   {
-    SafepointOperationScope safepoint_scope(thread);
+    GcSafepointOperationScope safepoint_scope(thread);
     count += 1;
     {
-      SafepointOperationScope safepoint_scope(thread);
+      GcSafepointOperationScope safepoint_scope(thread);
       count += 1;
       {
-        SafepointOperationScope safepoint_scope(thread);
+        GcSafepointOperationScope safepoint_scope(thread);
         count += 1;
       }
     }
@@ -774,7 +785,7 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM2) {
   }
   bool all_helpers = false;
   do {
-    SafepointOperationScope safepoint_scope(thread);
+    GcSafepointOperationScope safepoint_scope(thread);
     {
       MonitorLocker ml(&monitor);
       if (expected_count == SafepointTestTask::kTaskCount) {
@@ -805,9 +816,9 @@ ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
   }
   bool all_helpers = false;
   do {
-    SafepointOperationScope safepoint_scope(thread);
+    GcSafepointOperationScope safepoint_scope(thread);
     {
-      SafepointOperationScope safepoint_scope(thread);
+      GcSafepointOperationScope safepoint_scope(thread);
       MonitorLocker ml(&monitor);
       if (expected_count == SafepointTestTask::kTaskCount) {
         all_helpers = true;
@@ -819,9 +830,9 @@ ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
   isolate->set_current_tag(tag);
   bool all_exited = false;
   do {
-    SafepointOperationScope safepoint_scope(thread);
+    GcSafepointOperationScope safepoint_scope(thread);
     {
-      SafepointOperationScope safepoint_scope(thread);
+      GcSafepointOperationScope safepoint_scope(thread);
       MonitorLocker ml(&monitor);
       if (exited == SafepointTestTask::kTaskCount) {
         all_exited = true;
@@ -843,7 +854,7 @@ class AllocAndGCTask : public ThreadPool::Task {
       Zone* zone = stack_zone.GetZone();
       HANDLESCOPE(thread);
       String& old_str = String::Handle(zone, String::New("old", Heap::kOld));
-      isolate_->heap()->CollectAllGarbage();
+      isolate_->group()->heap()->CollectAllGarbage();
       EXPECT(old_str.Equals("old"));
     }
     Thread::ExitIsolateAsHelper();
@@ -1001,8 +1012,8 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteToReadLock) {
 template <typename LockType, typename LockerType>
 static void RunLockerWithLongJumpTest() {
   const intptr_t kNumIterations = 5;
-  intptr_t execution_count = 0;
-  intptr_t thrown_count = 0;
+  volatile intptr_t execution_count = 0;
+  volatile intptr_t thrown_count = 0;
   LockType lock;
   for (intptr_t i = 0; i < kNumIterations; ++i) {
     LongJumpScope jump;
@@ -1089,6 +1100,25 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockExclusiveNestedWriter_Regress44000) {
 
   // Ensure the reader thread had to wait for around 1 second.
   EXPECT(state.elapsed_us > 2 * 500 * 1000);
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointMonitorUnlockScope) {
+  // This test uses ASSERT instead of EXPECT because IsOwnedByCurrentThread is
+  // only available in debug mode. Since our vm/cc tests run in DEBUG mode that
+  // is sufficent for this test.
+  Monitor monitor;
+  {
+    SafepointMonitorLocker ml(&monitor);
+    ASSERT(monitor.IsOwnedByCurrentThread());
+    {
+      SafepointMonitorUnlockScope ml_unlocker(&ml);
+      ASSERT(!monitor.IsOwnedByCurrentThread());
+      {
+        SafepointMonitorLocker inner_ml(&monitor);
+        ASSERT(monitor.IsOwnedByCurrentThread());
+      }
+    }
+  }
 }
 
 }  // namespace dart

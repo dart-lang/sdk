@@ -196,6 +196,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
+  Fragment IndirectGoto(intptr_t target_count);
   Fragment StoreLateField(const Field& field,
                           LocalVariable* instance,
                           LocalVariable* setter_value);
@@ -203,7 +204,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment Return(
       TokenPosition position,
       bool omit_result_type_check = false,
-      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
+      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,
@@ -293,44 +294,46 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       intptr_t arg_index);
 
   // We pass in `variable` instead of on top of the stack so that we can have
-  // multiple consecutive calls that keep only struct parts on the stack with
-  // no struct parts in between.
-  Fragment FfiCallConvertStructArgumentToNative(
+  // multiple consecutive calls that keep only compound parts on the stack with
+  // no compound parts in between.
+  Fragment FfiCallConvertCompoundArgumentToNative(
       LocalVariable* variable,
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index);
 
-  Fragment FfiCallConvertStructReturnToDart(
+  Fragment FfiCallConvertCompoundReturnToDart(
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index);
 
   // We pass in multiple `definitions`, which are also expected to be the top
-  // of the stack. This eases storing each definition in the resulting struct.
-  Fragment FfiCallbackConvertStructArgumentToDart(
+  // of the stack. This eases storing each definition in the resulting struct
+  // or union.
+  Fragment FfiCallbackConvertCompoundArgumentToDart(
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index,
       ZoneGrowableArray<LocalVariable*>* definitions);
 
-  Fragment FfiCallbackConvertStructReturnToNative(
+  Fragment FfiCallbackConvertCompoundReturnToNative(
       const compiler::ffi::CallbackMarshaller& marshaller,
       intptr_t arg_index);
 
-  // Wraps a TypedDataBase from the stack and wraps it in a subclass of Struct.
-  Fragment WrapTypedDataBaseInStruct(const AbstractType& struct_type);
+  // Wraps a TypedDataBase from the stack and wraps it in a subclass of
+  // _Compound.
+  Fragment WrapTypedDataBaseInCompound(const AbstractType& compound_type);
 
-  // Loads the addressOf field from a subclass of Struct.
-  Fragment LoadTypedDataBaseFromStruct();
+  // Loads the _typedDataBase field from a subclass of _Compound.
+  Fragment LoadTypedDataBaseFromCompound();
 
-  // Breaks up a subclass of Struct in multiple definitions and puts them on
+  // Breaks up a subclass of _Compound in multiple definitions and puts them on
   // the stack.
   //
-  // Takes in the Struct as a local `variable` so that can be anywhere on the
-  // stack and this function can be called multiple times to leave only the
-  // results of this function on the stack without any Structs in between.
+  // Takes in the _Compound as a local `variable` so that can be anywhere on
+  // the stack and this function can be called multiple times to leave only the
+  // results of this function on the stack without any _Compounds in between.
   //
-  // The struct contents are heterogeneous, so pass in `representations` to
-  // know what representation to load.
-  Fragment CopyFromStructToStack(
+  // The compound contents are heterogeneous, so pass in
+  // `representations` to know what representation to load.
+  Fragment CopyFromCompoundToStack(
       LocalVariable* variable,
       const GrowableArray<Representation>& representations);
 
@@ -340,7 +343,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //
   // Leaves TypedData on stack.
   //
-  // The struct contents are heterogeneous, so pass in `representations` to
+  // The compound contents are heterogeneous, so pass in `representations` to
   // know what representation to load.
   Fragment PopFromStackToTypedDataBase(
       ZoneGrowableArray<LocalVariable*>* definitions,

@@ -4,8 +4,8 @@
 html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - investigate)
 wasm/*: Skip # dart:wasm is currently behind a Dart SDK build flag.
 
-[ $arch == simarm64 ]
-convert/utf85_test: Skip # Pass, Slow Issue 20111.
+[ $arch == simarm ]
+convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $mode == product ]
 developer/timeline_test: Skip # Not supported
@@ -34,16 +34,19 @@ isolate/spawn_uri__package_uri__test: SkipByDesign # This test uses Isolate.spaw
 html/xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $csp ]
+html/js_interop_constructor_name/*: SkipByDesign # Issue 42085.
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/async_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/jsify_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/promise_reject_null_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
+js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
 
 [ $compiler != dart2js && $compiler != dartdevk ]
 web/*: SkipByDesign
-
-[ $runtime == chrome && $system == linux ]
-mirrors/native_class_test: Slow, Pass
 
 [ $runtime == chrome && $system == macos ]
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
@@ -58,14 +61,11 @@ html/transition_event_test: Skip # Times out. Issue 22167
 [ $runtime != dart_precompiled && ($runtime != vm || $compiler != dartk && $compiler != none) ]
 isolate/vm_rehash_test: SkipByDesign
 
-[ $arch == simarm || $arch == simarmv6 ]
-convert/utf85_test: Skip # Pass, Slow Issue 12644.
+[ $arch == simarm64 || $arch == simarm64c ]
+convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
 [ $arch != x64 || $runtime != vm ]
 isolate/int32_length_overflow_test: SkipSlow
-
-[ $mode == product || $runtime != vm ]
-isolate/checked_test: Skip # Unsupported.
 
 [ $runtime == chrome || $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -78,7 +78,7 @@ isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be 
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 isolate/count_test: Skip # Isolate.spawnUri
 isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri

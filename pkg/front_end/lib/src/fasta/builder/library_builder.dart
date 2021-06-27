@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.library_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Library, Nullability, Version;
+import 'package:kernel/ast.dart' show Library, Nullability;
 
 import '../combinator.dart' show Combinator;
 
@@ -51,24 +53,9 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   LibraryBuilder partOfLibrary;
 
-  bool mayImplementRestrictedTypes;
+  LibraryBuilder get nameOriginBuilder;
 
-  /// Set the language version to a specific non-null [version].
-  ///
-  /// If the language version has previously been explicitly set set (i.e. with
-  /// [explicit] set to true), any subsequent call (explicit or not) should be
-  /// ignored.
-  /// Multiple calls with [explicit] set to false should be allowed though.
-  ///
-  /// The main idea is that the .packages file specifies a default language
-  /// version, but that the library can have source code that specifies another
-  /// one which should be supported, but specifying several in code should not
-  /// change anything.
-  ///
-  /// [offset] and [length] refers to the offset and length of the source code
-  /// specifying the language version.
-  void setLanguageVersion(Version version,
-      {int offset: 0, int length, bool explicit});
+  bool mayImplementRestrictedTypes;
 
   bool get isPart;
 
@@ -221,27 +208,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   bool get isSynthetic => false;
-
-  /// Set the language version to a specific non-null major and minor version.
-  ///
-  /// If [version] is null (and no other version has been explicitly set) a
-  /// problem is issued.
-  ///
-  /// If the language version has previously been explicitly set set (i.e. with
-  /// [explicit] set to true), any subsequent call (explicit or not) should be
-  /// ignored.
-  /// Multiple calls with [explicit] set to false should be allowed though.
-  ///
-  /// The main idea is that the .packages file specifies a default language
-  /// version, but that the library can have source code that specifies another
-  /// one which should be supported, but specifying several in code should not
-  /// change anything.
-  ///
-  /// [offset] and [length] refers to the offset and length of the source code
-  /// specifying the language version.
-  @override
-  void setLanguageVersion(Version version,
-      {int offset: 0, int length, bool explicit});
 
   @override
   Builder get parent => null;

@@ -4,7 +4,10 @@
 
 // @dart = 2.9
 
-/*library: scope=[ClashingExtension,UniqueExtension1]*/
+/*library: scope=[
+  ClashingExtension,
+  UniqueExtension1,
+  async.dart.FutureExtensions]*/
 
 /*class: ClashingExtension:
  builder-name=ClashingExtension,

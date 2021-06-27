@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'dart:convert' show utf8;
 
 import 'dart:io' show File;
@@ -226,11 +228,14 @@ class ValidatingInstrumentation implements Instrumentation {
 
   String _formatProblem(
       Uri uri, int offset, String desc, StackTrace stackTrace) {
-    return CompilerContext.current.format(
-        templateUnspecified
-            .withArguments('$desc${stackTrace == null ? '' : '\n$stackTrace'}')
-            .withLocation(uri, offset, noLength),
-        Severity.internalProblem);
+    return CompilerContext.current
+        .format(
+            templateUnspecified
+                .withArguments(
+                    '$desc${stackTrace == null ? '' : '\n$stackTrace'}')
+                .withLocation(uri, offset, noLength),
+            Severity.internalProblem)
+        .plain;
   }
 
   String _makeExpectationComment(String property, InstrumentationValue value) {

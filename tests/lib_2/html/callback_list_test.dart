@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 library callback_list_test;
 
 import 'dart:html';

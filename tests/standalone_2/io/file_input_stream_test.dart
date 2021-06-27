@@ -7,6 +7,8 @@
 // OtherResources=readline_test1.dat
 // OtherResources=readline_test2.dat
 
+// @dart = 2.9
+
 import "dart:convert";
 import "dart:io";
 

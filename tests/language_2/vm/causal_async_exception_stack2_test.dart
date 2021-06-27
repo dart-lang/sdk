@@ -4,6 +4,8 @@
 //
 // VMOptions=--lazy-async-stacks
 
+// @dart = 2.9
+
 import 'package:async_helper/async_minitest.dart';
 
 import 'causal_async_exception_stack_helper.dart' as h;

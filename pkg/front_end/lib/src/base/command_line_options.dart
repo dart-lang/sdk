@@ -38,7 +38,10 @@ class Flags {
   static const String singleRootBase = "--single-root-base";
   static const String singleRootScheme = "--single-root-scheme";
   static const String verbose = "--verbose";
+  static const String verbosity = "--verbosity";
   static const String verify = "--verify";
-  static const String verifySkipPlatform = "--verify-skip-platform";
+  static const String skipPlatformVerification = "--skip-platform-verification";
   static const String warnOnReachabilityCheck = "--warn-on-reachability-check";
+
+  static const String invocationModes = "--invocation-modes";
 }

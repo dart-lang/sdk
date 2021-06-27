@@ -6,14 +6,17 @@ import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
@@ -28,7 +31,7 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
         super(workspace.provider);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;
     }
@@ -37,9 +40,9 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
     if (resource is! File) {
       return null;
     }
-    File file = workspace.findFile(filePath);
+    var file = workspace.findFile(filePath);
     if (file != null) {
-      return file.createSource(actualUri ?? uri);
+      return file.createSource(uri);
     }
     return null;
   }
@@ -57,16 +60,15 @@ class PackageBuildPackageUriResolver extends UriResolver {
       : _workspace = workspace,
         _context = workspace.provider.pathContext;
 
-  Map<String, List<Folder>> get packageMap => _workspace._packageMap;
+  Map<String, List<Folder>> get packageMap => _workspace.packageMap;
 
   @override
-  Source resolveAbsolute(Uri _ignore, [Uri uri]) {
-    uri ??= _ignore;
+  Source? resolveAbsolute(Uri uri) {
     if (uri.scheme != 'package') {
       return null;
     }
 
-    Source basicResolverSource = _normalUriResolver.resolveAbsolute(uri);
+    var basicResolverSource = _normalUriResolver.resolveAbsolute(uri);
     if (basicResolverSource != null && basicResolverSource.exists()) {
       return basicResolverSource;
     }
@@ -83,7 +85,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
     String fileUriPart = uriPath.substring(slash + 1);
     String filePath = fileUriPart.replaceAll('/', _context.separator);
 
-    File file = _workspace.builtFile(
+    var file = _workspace.builtFile(
         _workspace.builtPackageSourcePath(filePath), packageName);
     if (file != null && file.exists) {
       return file.createSource(uri);
@@ -92,11 +94,11 @@ class PackageBuildPackageUriResolver extends UriResolver {
   }
 
   @override
-  Uri restoreAbsolute(Source source) {
+  Uri? restoreAbsolute(Source source) {
     String filePath = source.fullName;
 
     if (_context.isWithin(_workspace.root, filePath)) {
-      List<String> uriParts = _restoreUriParts(filePath);
+      var uriParts = _restoreUriParts(filePath);
       if (uriParts != null) {
         return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
@@ -105,7 +107,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
     return _normalUriResolver.restoreAbsolute(source);
   }
 
-  List<String> _restoreUriParts(String filePath) {
+  List<String>? _restoreUriParts(String filePath) {
     String relative = _context.relative(filePath, from: _workspace.root);
     List<String> components = _context.split(relative);
     if (components.length > 5 &&
@@ -122,7 +124,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
 }
 
 /// Information about a package:build workspace.
-class PackageBuildWorkspace extends Workspace {
+class PackageBuildWorkspace extends Workspace implements PubWorkspace {
   /// The name of the directory that identifies the root of the workspace. Note,
   /// the presence of this file does not show package:build is used. For that,
   /// the subdirectory [_dartToolBuildName] must exist. A `pub` subdirectory
@@ -133,21 +135,30 @@ class PackageBuildWorkspace extends Workspace {
   /// projects built with package:build.
   static const String _dartToolBuildName = 'build';
 
-  /// We use pubspec.yaml to get the package name to be consistent with how
-  /// package:build does it.
-  static const String _pubspecName = 'pubspec.yaml';
-
   static const List<String> _generatedPathParts = [
     '.dart_tool',
     'build',
     'generated'
   ];
 
-  /// The resource provider used to access the file system.
-  final ResourceProvider provider;
+  /// We use pubspec.yaml to get the package name to be consistent with how
+  /// package:build does it.
+  static const String _pubspecName = 'pubspec.yaml';
+
+  /// The associated pubspec file.
+  final File _pubspecFile;
+
+  /// The content of the `pubspec.yaml` file.
+  /// We read it once, so that all usages return consistent results.
+  final String? _pubspecContent;
 
   /// The map from a package name to the list of its `lib/` folders.
-  final Map<String, List<Folder>> _packageMap;
+  @override
+  final Map<String, List<Folder>> packageMap;
+
+  /// The resource provider used to access the file system.
+  @override
+  final ResourceProvider provider;
 
   /// The absolute workspace root path (the directory containing the
   /// `.dart_tool` directory).
@@ -167,20 +178,29 @@ class PackageBuildWorkspace extends Workspace {
   /// The singular package in this workspace.
   ///
   /// Each "package:build" workspace is itself one package.
-  PackageBuildWorkspacePackage _theOnlyPackage;
+  late final PackageBuildWorkspacePackage _theOnlyPackage;
 
   PackageBuildWorkspace._(
     this.provider,
-    this._packageMap,
+    this.packageMap,
     this.root,
     this.projectPackageName,
     this.generatedRootPath,
     this.generatedThisPath,
-  );
+    File pubspecFile,
+  )   : _pubspecFile = pubspecFile,
+        _pubspecContent = _fileContentOrNull(pubspecFile) {
+    _theOnlyPackage = PackageBuildWorkspacePackage(root, this);
+  }
+
+  @override
+  bool get isConsistentWithFileSystem {
+    return _fileContentOrNull(_pubspecFile) == _pubspecContent;
+  }
 
   @override
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
-      this, PackageMapUriResolver(provider, _packageMap));
+      this, PackageMapUriResolver(provider, packageMap));
 
   /// For some package file, which may or may not be a package source (it could
   /// be in `bin/`, `web/`, etc), find where its built counterpart will exist if
@@ -189,8 +209,8 @@ class PackageBuildWorkspace extends Workspace {
   /// To get a [builtPath] for a package source file to use in this method,
   /// use [builtPackageSourcePath]. For `bin/`, `web/`, etc, it must be relative
   /// to the project root.
-  File builtFile(String builtPath, String packageName) {
-    if (!_packageMap.containsKey(packageName)) {
+  File? builtFile(String builtPath, String packageName) {
+    if (!packageMap.containsKey(packageName)) {
       return null;
     }
     path.Context context = provider.pathContext;
@@ -210,8 +230,17 @@ class PackageBuildWorkspace extends Workspace {
     return context.join('lib', filePath);
   }
 
+  @internal
   @override
-  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
+  void contributeToResolutionSalt(ApiSignature buffer) {
+    buffer.addString(_pubspecContent ?? '');
+  }
+
+  @override
+  SourceFactory createSourceFactory(
+    DartSdk? sdk,
+    SummaryDataStore? summaryData,
+  ) {
     if (summaryData != null) {
       throw UnsupportedError(
           'Summary files are not supported in a package:build workspace.');
@@ -231,14 +260,14 @@ class PackageBuildWorkspace extends Workspace {
   ///
   /// The file in the workspace [root] is returned even if it does not exist.
   /// Return `null` if the given [filePath] is not in the workspace root.
-  File findFile(String filePath) {
+  File? findFile(String filePath) {
     path.Context context = provider.pathContext;
     assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
     try {
       final String relativePath = context.relative(filePath, from: root);
-      final File file = builtFile(relativePath, projectPackageName);
+      final file = builtFile(relativePath, projectPackageName);
 
-      if (file.exists) {
+      if (file!.exists) {
         return file;
       }
 
@@ -249,7 +278,7 @@ class PackageBuildWorkspace extends Workspace {
   }
 
   @override
-  WorkspacePackage findPackageFor(String path) {
+  PackageBuildWorkspacePackage? findPackageFor(String path) {
     var pathContext = provider.pathContext;
 
     // Must be in this workspace.
@@ -264,21 +293,16 @@ class PackageBuildWorkspace extends Workspace {
       }
     }
 
-    return _theOnlyPackage ??= PackageBuildWorkspacePackage(root, this);
+    return _theOnlyPackage;
   }
 
   /// Find the package:build workspace that contains the given [filePath].
   ///
   /// Return `null` if the filePath is not in a package:build workspace.
-  static PackageBuildWorkspace find(ResourceProvider provider,
+  static PackageBuildWorkspace? find(ResourceProvider provider,
       Map<String, List<Folder>> packageMap, String filePath) {
-    Folder folder = provider.getFolder(filePath);
-    while (true) {
-      Folder parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
-
+    var startFolder = provider.getFolder(filePath);
+    for (var folder in startFolder.withAncestors) {
       final File pubspec = folder.getChildAssumingFile(_pubspecName);
       final Folder dartToolDir =
           folder.getChildAssumingFolder(_dartToolRootName);
@@ -289,14 +313,14 @@ class PackageBuildWorkspace extends Workspace {
       // pubspec, to know the package name that package:build will assume.
       if (dartToolBuildDir.exists && pubspec.exists) {
         try {
-          final yaml = loadYaml(pubspec.readAsStringSync());
+          final yaml = loadYaml(pubspec.readAsStringSync()) as YamlMap;
           final packageName = yaml['name'] as String;
           final generatedRootPath = provider.pathContext
               .joinAll([folder.path, ..._generatedPathParts]);
           final generatedThisPath =
               provider.pathContext.join(generatedRootPath, packageName);
           return PackageBuildWorkspace._(provider, packageMap, folder.path,
-              packageName, generatedRootPath, generatedThisPath);
+              packageName, generatedRootPath, generatedThisPath, pubspec);
         } catch (_) {
           return null;
         }
@@ -308,10 +332,14 @@ class PackageBuildWorkspace extends Workspace {
       if (pubspec.exists) {
         return null;
       }
-
-      // Go up the folder.
-      folder = parent;
     }
+  }
+
+  /// Return the content of the [file], `null` if cannot be read.
+  static String? _fileContentOrNull(File file) {
+    try {
+      return file.readAsStringSync();
+    } catch (_) {}
   }
 }
 
@@ -320,7 +348,16 @@ class PackageBuildWorkspace extends Workspace {
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a PackageBuildWorkspace.
-class PackageBuildWorkspacePackage extends WorkspacePackage {
+class PackageBuildWorkspacePackage extends WorkspacePackage
+    implements PubWorkspacePackage {
+  @override
+  late final Pubspec? pubspec = () {
+    final content = workspace._pubspecContent;
+    if (content != null) {
+      return Pubspec.parse(content);
+    }
+  }();
+
   @override
   final String root;
 
@@ -348,7 +385,7 @@ class PackageBuildWorkspacePackage extends WorkspacePackage {
 
   @override
   Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
-      workspace._packageMap;
+      workspace.packageMap;
 
   @override
   bool sourceIsInPublicApi(Source source) {

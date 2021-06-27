@@ -23,17 +23,24 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   CompletionSuggestionKind kind;
 
-  final String prefix;
+  final String? prefix;
 
   /// The set of libraries that have been, or are currently being, visited.
   final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
 
-  LibraryElementSuggestionBuilder(this.request, this.builder, [this.prefix])
-      : opType = request.opType {
-    kind = request.target.isFunctionalArgument()
+  factory LibraryElementSuggestionBuilder(
+      DartCompletionRequest request, SuggestionBuilder builder,
+      [String? prefix]) {
+    var opType = request.opType;
+    var kind = request.target.isFunctionalArgument()
         ? CompletionSuggestionKind.IDENTIFIER
         : opType.suggestKind;
+    return LibraryElementSuggestionBuilder._(
+        request, builder, opType, kind, prefix);
   }
+
+  LibraryElementSuggestionBuilder._(
+      this.request, this.builder, this.opType, this.kind, this.prefix);
 
   @override
   void visitClassElement(ClassElement element) {
@@ -82,7 +89,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       return;
     }
     var returnType = element.returnType;
-    if (returnType != null && returnType.isVoid) {
+    if (returnType.isVoid) {
       if (opType.includeVoidReturnSuggestions) {
         builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
       }
@@ -90,13 +97,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       if (opType.includeReturnValueSuggestions) {
         builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
       }
-    }
-  }
-
-  @override
-  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    if (opType.includeTypeNameSuggestions) {
-      builder.suggestFunctionTypeAlias(element, prefix: prefix);
     }
   }
 
@@ -112,7 +112,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
     if (opType.includeReturnValueSuggestions) {
       var parent = element.enclosingElement;
       if (parent is ClassElement || parent is ExtensionElement) {
-        builder.suggestAccessor(element, inheritanceDistance: -1.0);
+        builder.suggestAccessor(element, inheritanceDistance: 0.0);
       } else {
         builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);
       }
@@ -123,6 +123,13 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
       builder.suggestTopLevelVariable(element, prefix: prefix);
+    }
+  }
+
+  @override
+  void visitTypeAliasElement(TypeAliasElement element) {
+    if (opType.includeTypeNameSuggestions) {
+      builder.suggestTypeAlias(element, prefix: prefix);
     }
   }
 
@@ -151,14 +158,14 @@ class LocalLibraryContributor extends DartCompletionContributor {
       return;
     }
 
-    var libraryUnits = request.result.unit.declaredElement.library.units;
+    var libraryUnits = request.result.unit?.declaredElement?.library.units;
     if (libraryUnits == null) {
       return;
     }
 
     var visitor = LibraryElementSuggestionBuilder(request, builder);
     for (var unit in libraryUnits) {
-      if (unit != null && unit.source != request.source) {
+      if (unit.source != request.source) {
         unit.accept(visitor);
       }
     }

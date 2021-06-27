@@ -1,0 +1,79 @@
+main = main::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  import "dart:ffi";
+
+  @#C7
+  class Coordinate extends dart.ffi::Struct {
+    constructor #fromTypedDataBase(dart.core::Object #typedDataBase) → lib::Coordinate
+      : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
+      ;
+    static factory allocate(dart.core::double* x, dart.core::double* y, dart.ffi::Pointer<lib::Coordinate*>* next) → lib::Coordinate* {
+      return null;
+    }
+    abstract member-signature get _typedDataBase() → dart.core::Object*; -> dart.ffi::_Compound::_typedDataBase
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    @#C8
+    get x() → dart.core::double*
+      return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, (#C10).{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
+    set x(dart.core::double* #v) → void
+      return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, (#C10).{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #v);
+    @#C8
+    get y() → dart.core::double*
+      return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
+    set y(dart.core::double* #v) → void
+      return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #v);
+    get next() → dart.ffi::Pointer<lib::Coordinate*>*
+      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, (#C14).{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+    set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
+      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, (#C14).{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #v.{dart.ffi::Pointer::address}{dart.core::int});
+    @#C16
+    static get /*isNonNullableByDefault*/ #sizeOf() → dart.core::int*
+      return (#C19).{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  static method main() → dynamic {
+    lib::Coordinate* coordinate = lib::Coordinate::allocate(42.0, 42.0, null);
+    dart.core::print(coordinate.{lib::Coordinate::x}{dart.core::double*});
+    dart.core::print(coordinate.{lib::Coordinate::y}{dart.core::double*});
+    dart.core::print(coordinate.{lib::Coordinate::next}{dart.ffi::Pointer<lib::Coordinate*>*});
+    main::done();
+  }
+  static method done() → dynamic {
+    dart.core::print("Done!");
+  }
+}
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(dart.ffi::Double)
+  #C3 = TypeLiteralConstant(dart.ffi::Pointer<dart.ffi::NativeType>)
+  #C4 = <dart.core::Type>[#C2, #C2, #C3]
+  #C5 = null
+  #C6 = dart.ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
+  #C7 = dart.core::pragma {name:#C1, options:#C6}
+  #C8 = dart.ffi::Double {}
+  #C9 = 0
+  #C10 = <dart.core::int*>[#C9, #C9, #C9]
+  #C11 = 8
+  #C12 = <dart.core::int*>[#C11, #C11, #C11]
+  #C13 = 16
+  #C14 = <dart.core::int*>[#C13, #C13, #C13]
+  #C15 = "vm:prefer-inline"
+  #C16 = dart.core::pragma {name:#C15, options:#C5}
+  #C17 = 24
+  #C18 = 20
+  #C19 = <dart.core::int*>[#C17, #C18, #C17]
+}

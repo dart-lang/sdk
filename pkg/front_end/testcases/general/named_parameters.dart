@@ -4,7 +4,7 @@
 class Superclass {
   foo({alpha, beta}) {}
   bar({beta, alpha}) {}
-
+// @dart=2.9
   namedCallback(callback({String alpha, int beta})) {
     callback(alpha: 'one', beta: 2);
     callback(beta: 1, alpha: 'two');

@@ -29,9 +29,13 @@ class HttpFileSystemEntity implements FileSystemEntity {
     return connectAndRun((io.HttpClient httpClient) async {
       io.HttpClientRequest request = await httpClient.headUrl(uri);
       io.HttpClientResponse response = await request.close();
+      await response.drain();
       return response.statusCode == io.HttpStatus.ok;
     });
   }
+
+  @override
+  Future<bool> existsAsyncIfPossible() => exists();
 
   @override
   Future<List<int>> readAsBytes() async {
@@ -39,6 +43,7 @@ class HttpFileSystemEntity implements FileSystemEntity {
       io.HttpClientRequest request = await httpClient.getUrl(uri);
       io.HttpClientResponse response = await request.close();
       if (response.statusCode != io.HttpStatus.ok) {
+        await response.drain();
         throw new FileSystemException(uri, response.toString());
       }
       List<List<int>> list = await response.toList();
@@ -47,17 +52,20 @@ class HttpFileSystemEntity implements FileSystemEntity {
   }
 
   @override
+  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
+
+  @override
   Future<String> readAsString() async {
     return String.fromCharCodes(await readAsBytes());
   }
 
-  T connectAndRun<T>(T body(io.HttpClient httpClient)) {
+  Future<T> connectAndRun<T>(Future<T> body(io.HttpClient httpClient)) async {
     io.HttpClient httpClient;
     try {
       httpClient = new io.HttpClient();
       // Set timeout to be shorter than anticipated OS default
       httpClient.connectionTimeout = const Duration(seconds: 5);
-      return body(httpClient);
+      return await body(httpClient);
     } on Exception catch (e) {
       throw new FileSystemException(uri, e.toString());
     } finally {

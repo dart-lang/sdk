@@ -5,7 +5,6 @@
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/interceptor_data.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
@@ -22,15 +21,19 @@ bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
 }
 
 /// Replaces some instructions with specialized versions to make codegen easier.
-/// Caches codegen information on nodes.
+///
+/// - Caches codegen information on nodes.
+///
+/// - Remove NullChecks where the next instruction would fail on the operand.
+///
+/// - Combine read/modify/write sequences into HReadModifyWrite instructions to
+///   simplify codegen of expressions like `a.x += y`.
 class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   final JClosedWorld _closedWorld;
-  final InterceptorData _interceptorData;
   final CompilerOptions _options;
   HGraph graph;
 
-  SsaInstructionSelection(
-      this._options, this._closedWorld, this._interceptorData);
+  SsaInstructionSelection(this._options, this._closedWorld);
 
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
@@ -52,12 +55,9 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
 
         // If the replacement instruction does not know its source element, use
         // the source element of the instruction.
-        if (replacement.sourceElement == null) {
-          replacement.sourceElement = instruction.sourceElement;
-        }
-        if (replacement.sourceInformation == null) {
-          replacement.sourceInformation = instruction.sourceInformation;
-        }
+        replacement.sourceElement ??= instruction.sourceElement;
+        replacement.sourceInformation ??= instruction.sourceInformation;
+
         if (!replacement.isInBasicBlock()) {
           // The constant folding can return an instruction that is already
           // part of the graph (like an input), so we only add the replacement
@@ -219,83 +219,6 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   bool _intercepted(AbstractValue type) => _abstractValueDomain
       .isInterceptor(_abstractValueDomain.excludeNull(type))
       .isPotentiallyTrue;
-
-  @override
-  HInstruction visitInvokeDynamic(HInvokeDynamic node) {
-    tryReplaceExplicitReceiverWithDummy(
-        node, node.selector, node.element, node.receiverType);
-    return node;
-  }
-
-  @override
-  HInstruction visitInvokeSuper(HInvokeSuper node) {
-    tryReplaceExplicitReceiverWithDummy(
-        node, node.selector, node.element, null);
-    return node;
-  }
-
-  @override
-  HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
-    // The receiver parameter should never be replaced with a dummy constant.
-    return node;
-  }
-
-  void tryReplaceExplicitReceiverWithDummy(HInvoke node, Selector selector,
-      MemberEntity target, AbstractValue mask) {
-    // Calls of the form
-    //
-    //     a.foo$1(a, x)
-    //
-    // where the interceptor calling convention is used come from recognizing
-    // that 'a' is a 'self-interceptor'.  If the selector matches only methods
-    // that ignore the explicit receiver parameter, replace occurrences of the
-    // receiver argument with a dummy receiver '0':
-    //
-    //     a.foo$1(a, x)   --->   a.foo$1(0, x)
-    //
-    // This often reduces the number of references to 'a' to one, allowing 'a'
-    // to be generated at use to avoid a temporary, e.g.
-    //
-    //     t1 = b.get$thing();
-    //     t1.foo$1(t1, x)
-    // --->
-    //     b.get$thing().foo$1(0, x)
-    //
-    assert(target != null || mask != null);
-
-    if (!node.isInterceptedCall) return;
-
-    // TODO(15933): Make automatically generated property extraction closures
-    // work with the dummy receiver optimization.
-    if (selector.isGetter) return;
-
-    // This assignment of inputs is uniform for HInvokeDynamic and HInvokeSuper.
-    HInstruction interceptor = node.inputs[0];
-    HInstruction receiverArgument = node.inputs[1];
-
-    // A 'self-interceptor'?
-    if (interceptor.nonCheck() != receiverArgument.nonCheck()) return;
-
-    // TODO(sra): Should this be an assert?
-    if (!_interceptorData.isInterceptedSelector(selector)) return;
-
-    if (target != null) {
-      // A call that resolves to a single instance method (element) requires the
-      // calling convention consistent with the method.
-      ClassEntity cls = target.enclosingClass;
-      assert(_interceptorData.isInterceptedMethod(target));
-      if (_interceptorData.isInterceptedClass(cls)) return;
-    } else if (_interceptorData.isInterceptedMixinSelector(
-        selector, mask, _closedWorld)) {
-      return;
-    }
-
-    ConstantValue constant = DummyInterceptorConstantValue();
-    HConstant dummy = graph.addConstant(constant, _closedWorld);
-    receiverArgument.usedBy.remove(node);
-    node.inputs[1] = dummy;
-    dummy.usedBy.add(node);
-  }
 
   @override
   HInstruction visitFieldSet(HFieldSet setter) {

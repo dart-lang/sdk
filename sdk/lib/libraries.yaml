@@ -5,7 +5,7 @@
 # Note: if you edit this file, you must also generate libraries.json in this
 # directory:
 #
-#     python ./tools/yaml2json.py sdk/lib/libraries.yaml sdk/lib/libraries.json
+#     python3 ./tools/yaml2json.py sdk/lib/libraries.yaml sdk/lib/libraries.json
 #
 # We currently have several different files that needs to be updated when
 # changing libraries, sources, and patch files.  See
@@ -91,6 +91,7 @@ vm:
       uri: "ffi/ffi.dart"
       patches:
         - "_internal/vm/lib/ffi_patch.dart"
+        - "_internal/vm/lib/ffi_allocation_patch.dart"
         - "_internal/vm/lib/ffi_dynamic_library_patch.dart"
         - "_internal/vm/lib/ffi_native_type_patch.dart"
         - "_internal/vm/lib/ffi_struct_patch.dart"
@@ -239,6 +240,9 @@ dart2js:
     _js_helper:
       uri: "_internal/js_runtime/lib/js_helper.dart"
 
+    _late_helper:
+      uri: "_internal/js_runtime/lib/late_helper.dart"
+
     _rti:
       uri: "_internal/js_runtime/lib/rti.dart"
 
@@ -332,6 +336,9 @@ dart2js_server:
 
     _js_helper:
       uri: "_internal/js_runtime/lib/js_helper.dart"
+
+    _late_helper:
+      uri: "_internal/js_runtime/lib/late_helper.dart"
 
     _rti:
       uri: "_internal/js_runtime/lib/rti.dart"

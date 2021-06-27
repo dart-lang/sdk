@@ -1,11 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2016 The Dart project authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 import time
@@ -64,13 +63,15 @@ def ToCommandLine(gn_args):
             return '%s=%d' % (key, value)
         return '%s="%s"' % (key, value)
 
-    return [merge(x, y) for x, y in gn_args.iteritems()]
+    return [merge(x, y) for x, y in gn_args.items()]
 
 
 def HostCpuForArch(arch):
     if arch in ['ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64']:
         return 'x86'
-    if arch in ['x64', 'arm64', 'simarm64', 'arm_x64']:
+    if arch in [
+            'x64', 'arm64', 'simarm64', 'arm_x64', 'x64c', 'arm64c', 'simarm64c'
+    ]:
         return 'x64'
 
 
@@ -78,10 +79,12 @@ def HostCpuForArch(arch):
 def TargetCpuForArch(arch, target_os):
     if arch in ['ia32', 'simarm', 'simarmv6']:
         return 'x86'
-    if arch in ['x64', 'simarm64', 'simarm_x64']:
+    if arch in ['x64', 'simarm64', 'simarm_x64', 'x64c', 'simarm64c']:
         return 'x64'
     if arch == 'arm_x64':
         return 'arm'
+    if arch == 'arm64c':
+        return 'arm64'
     return arch
 
 
@@ -89,15 +92,19 @@ def TargetCpuForArch(arch, target_os):
 def DartTargetCpuForArch(arch):
     if arch in ['ia32']:
         return 'ia32'
-    if arch in ['x64']:
+    if arch in ['x64', 'x64c']:
         return 'x64'
     if arch in ['arm', 'simarm', 'simarm_x64', 'arm_x64']:
         return 'arm'
     if arch in ['armv6', 'simarmv6']:
         return 'armv6'
-    if arch in ['arm64', 'simarm64']:
+    if arch in ['arm64', 'simarm64', 'arm64c', 'simarm64c']:
         return 'arm64'
     return arch
+
+
+def IsCompressedPointerArch(arch):
+    return arch in ['x64c', 'arm64c', 'simarm64c']
 
 
 def HostOsForGn(host_os):
@@ -147,6 +154,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     gn_args['host_cpu'] = HostCpuForArch(arch)
     gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
     gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
+    gn_args['dart_use_compressed_pointers'] = IsCompressedPointerArch(arch)
 
     # Configure Crashpad library if it is used.
     gn_args['dart_use_crashpad'] = (args.use_crashpad or
@@ -155,7 +163,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         # Tell Crashpad's BUILD files which checkout layout to use.
         gn_args['crashpad_dependencies'] = 'dart'
 
-    if arch != HostCpuForArch(arch):
+    if DartTargetCpuForArch(arch) != HostCpuForArch(arch):
         # Training an app-jit snapshot under a simulator is slow. Use script
         # snapshots instead.
         gn_args['dart_snapshot_kind'] = 'kernel'
@@ -166,6 +174,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     # Linux and Windows.
     if gn_args['target_os'] in ['linux', 'win']:
         gn_args['dart_use_fallback_root_certificates'] = True
+
+    gn_args['bssl_use_clang_integrated_as'] = True
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
@@ -212,7 +222,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     gn_args['is_ubsan'] = sanitizer == 'ubsan'
     gn_args['is_qemu'] = args.use_qemu
 
-    if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
+    if not args.platform_sdk:
         gn_args['dart_platform_sdk'] = args.platform_sdk
 
     # We don't support stripping on Windows
@@ -285,7 +295,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
     if args.arch == 'all':
-        args.arch = 'ia32,x64,simarm,simarm64'
+        args.arch = 'ia32,x64,simarm,simarm64,x64c,simarm64c'
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
@@ -322,7 +332,10 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))
                 return False
-            if not arch in ['ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64']:
+            if not arch in [
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64', 'x64c',
+                    'arm64c'
+            ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
@@ -333,7 +346,7 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))
                 return False
-            if arch != 'x64' and arch != 'arm64':
+            if not arch in ['x64', 'arm64', 'x64c', 'arm64c']:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
@@ -434,6 +447,10 @@ def AddCommonGnOptionArgs(parser):
                         help='Generate an IDE file.',
                         default=os_has_ide(HOST_OS),
                         action='store_true')
+    parser.add_argument('--export-compile-commands',
+                        help='Export compile_commands.json database file.',
+                        default=False,
+                        action='store_true')
     parser.add_argument(
         '--target-sysroot',
         '-s',
@@ -513,6 +530,8 @@ def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
     gn_args += GetGNArgs(args)
     if args.ide:
         command.append(ide_switch(HOST_OS))
+    if args.export_compile_commands:
+        command.append('--export-compile-commands')
     command.append('--args=%s' % ' '.join(gn_args))
 
     return command
@@ -560,13 +579,17 @@ def RunGnOnConfiguredConfigurations(args):
 
 def Main(argv):
     starttime = time.time()
+
     args = parse_args(argv)
+    if args is None:
+        return 1
 
     result = RunGnOnConfiguredConfigurations(args)
 
-    endtime = time.time()
     if args.verbose:
+        endtime = time.time()
         print("GN Time: %.3f seconds" % (endtime - starttime))
+
     return result
 
 

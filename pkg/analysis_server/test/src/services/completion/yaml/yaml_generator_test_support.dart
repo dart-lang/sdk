@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 
 abstract class YamlGeneratorTest with ResourceProviderMixin {
   /// The completion results produced by [getCompletions].
-  /* late */ List<CompletionSuggestion> results;
+  late List<CompletionSuggestion> results;
 
   /// Return the name of the file being tested.
   String get fileName;

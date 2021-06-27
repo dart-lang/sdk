@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:convert';
 
 import 'package:analysis_server/src/status/tree_writer.dart';
@@ -12,11 +11,12 @@ import 'package:analyzer/src/dart/element/element.dart';
 
 /// A visitor that will produce an HTML representation of an element structure.
 class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
+  @override
+  final StringBuffer buffer;
+
   /// Initialize a newly created element writer to write the HTML representation
   /// of visited elements on the given [buffer].
-  ElementWriter(StringBuffer buffer) {
-    this.buffer = buffer;
-  }
+  ElementWriter(this.buffer);
 
   @override
   void visitElement(Element element) {
@@ -32,8 +32,8 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
 
   /// Write a representation of the properties of the given [node] to the
   /// buffer.
-  Map<String, Object> _computeProperties(Element element) {
-    Map<String, Object> properties = HashMap<String, Object>();
+  Map<String, Object?> _computeProperties(Element element) {
+    var properties = <String, Object?>{};
 
     properties['metadata'] = element.metadata;
     properties['nameOffset'] = element.nameOffset;
@@ -53,7 +53,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isStatic'] = element.isStatic;
     }
     if (element is CompilationUnitElement) {
-      properties['hasLoadLibraryFunction'] = element.hasLoadLibraryFunction;
       properties['source'] = element.source;
     }
     if (element is ConstFieldElementImpl) {
@@ -109,7 +108,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['definingCompilationUnit'] = element.definingCompilationUnit;
       properties['entryPoint'] = element.entryPoint;
       properties['hasExtUri'] = element.hasExtUri;
-      properties['hasLoadLibraryFunction'] = element.hasLoadLibraryFunction;
       properties['isBrowserApplication'] = element.isBrowserApplication;
       properties['isDartAsync'] = element.isDartAsync;
       properties['isDartCore'] = element.isDartCore;

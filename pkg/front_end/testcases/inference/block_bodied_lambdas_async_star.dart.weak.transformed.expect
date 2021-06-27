@@ -1,0 +1,50 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method test() → dynamic {
+  () →* asy::Stream<core::num*>* f = () → asy::Stream<core::num*>* /* originally async* */ {
+    asy::_AsyncStarStreamController<core::num*>* :controller;
+    dynamic :controller_stream;
+    (dynamic) →* dynamic :async_op_then;
+    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    dynamic :saved_try_context_var1;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try
+        try {
+          #L1:
+          {
+            if(:controller.{asy::_AsyncStarStreamController::add}(1){(core::num*) → core::bool})
+              return null;
+            else
+              [yield] null;
+            asy::Stream<core::double*>* s;
+            if(:controller.{asy::_AsyncStarStreamController::addStream}(s){(asy::Stream<core::num*>) → core::bool})
+              return null;
+            else
+              [yield] null;
+          }
+          return;
+        }
+        on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+          :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace){(core::Object, core::StackTrace) → void};
+        }
+      finally {
+        :controller.{asy::_AsyncStarStreamController::close}(){() → dynamic};
+      }
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :controller = new asy::_AsyncStarStreamController::•<core::num*>(:async_op);
+    :controller_stream = :controller.{asy::_AsyncStarStreamController::stream}{asy::Stream<core::num*>};
+    return :controller_stream;
+  };
+  asy::Stream<core::num*>* g = f(){() →* asy::Stream<core::num*>*};
+  asy::Stream<core::int*>* h = f(){() →* asy::Stream<core::num*>*} as{TypeError} asy::Stream<core::int*>*;
+}
+static method main() → dynamic {}

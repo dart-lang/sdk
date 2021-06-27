@@ -1,0 +1,19 @@
+class ConcreteClass implements Interface {
+  abstract int declaredAbstractField;
+  abstract int declaredAbstractImplementsAbstractField;
+  abstract int declaredAbstractImplementsConcreteField;
+  int declaredConcreteField = 0;
+  int declaredConcreteImplementsAbstractField = 0;
+  int declaredConcreteImplementsConcreteField = 0;
+}
+
+class Interface {
+  abstract int declaredAbstractImplementsAbstractField;
+  abstract int declaredConcreteImplementsAbstractField;
+  abstract int implementedAbstractField;
+  int declaredAbstractImplementsConcreteField = 0;
+  int declaredConcreteImplementsConcreteField = 0;
+  int implementedConcreteField = 0;
+}
+
+main() {}

@@ -1,0 +1,23 @@
+foo(int a, int b){
+  if (a == null or b == null){
+    return null;
+  }
+}
+
+foo2(int a, int b, int c){
+  if (a == null or b == null or c == null){
+    return null;
+  }
+}
+
+bar(int a, int b){
+  if (a == null and b == null){
+    return null;
+  }
+}
+
+bar2(int a, int b, int c){
+  if (a == null and b == null and c == null){
+    return null;
+  }
+}

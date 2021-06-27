@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -9,32 +10,24 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_promotion_manager.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [BinaryExpression]s.
 class BinaryExpressionResolver {
   final ResolverVisitor _resolver;
-  final TypePromotionManager _promoteManager;
-  final FlowAnalysisHelper _flowAnalysis;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
 
   BinaryExpressionResolver({
-    @required ResolverVisitor resolver,
-    @required TypePromotionManager promoteManager,
-    @required FlowAnalysisHelper flowAnalysis,
+    required ResolverVisitor resolver,
   })  : _resolver = resolver,
-        _promoteManager = promoteManager,
-        _flowAnalysis = flowAnalysis,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper;
 
@@ -69,9 +62,15 @@ class BinaryExpressionResolver {
       return;
     }
 
-    if (operator.isUserDefinableOperator) {
+    if (operator.isUserDefinableOperator && operator.isBinaryOperator) {
       _resolveUserDefinable(node);
       return;
+    }
+
+    // Report an error if not already reported by the parser.
+    if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_BINARY_OPERATOR, node, [operator.lexeme]);
     }
 
     _resolveUnsupportedOperator(node);
@@ -82,47 +81,42 @@ class BinaryExpressionResolver {
   ///
   /// TODO(scheglov) this is duplicate
   void _analyzeLeastUpperBoundTypes(
-      Expression node, DartType staticType1, DartType staticType2) {
-    // TODO(brianwilkerson) Determine whether this can still happen.
-    staticType1 ??= DynamicTypeImpl.instance;
-
-    // TODO(brianwilkerson) Determine whether this can still happen.
-    staticType2 ??= DynamicTypeImpl.instance;
-
-    DartType staticType =
-        _typeSystem.getLeastUpperBound(staticType1, staticType2) ??
-            DynamicTypeImpl.instance;
+      ExpressionImpl node, DartType staticType1, DartType staticType2) {
+    var staticType = _typeSystem.getLeastUpperBound(staticType1, staticType2);
 
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 
     _inferenceHelper.recordStaticType(node, staticType);
   }
 
-  void _checkNonBoolOperand(Expression operand, String operator) {
+  void _checkNonBoolOperand(Expression operand, String operator,
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
       errorCode: CompileTimeErrorCode.NON_BOOL_OPERAND,
       arguments: [operator],
+      whyNotPromoted: whyNotPromoted,
     );
   }
 
-  void _resolveEqual(BinaryExpressionImpl node, {@required bool notEqual}) {
+  void _resolveEqual(BinaryExpressionImpl node, {required bool notEqual}) {
     var left = node.leftOperand;
     left.accept(_resolver);
     left = node.leftOperand;
 
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      flow?.equalityOp_rightBegin(left, left.staticType);
+      flow?.equalityOp_rightBegin(left, left.typeOrThrow);
     }
 
     var right = node.rightOperand;
     right.accept(_resolver);
     right = node.rightOperand;
+    var whyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
-      flow?.equalityOp_end(node, right, right.staticType, notEqual: notEqual);
+      flow?.equalityOp_end(node, right, right.typeOrThrow, notEqual: notEqual);
     }
 
     _resolveUserDefinableElement(
@@ -131,12 +125,14 @@ class BinaryExpressionResolver {
       promoteLeftTypeToNonNull: true,
     );
     _resolveUserDefinableType(node);
+    _resolver.checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
+        promoteParameterToNullable: true, whyNotPromoted: whyNotPromoted);
   }
 
   void _resolveIfNull(BinaryExpressionImpl node) {
     var left = node.leftOperand;
     var right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
 
     var leftContextType = InferenceContext.getContext(node);
     if (leftContextType != null && _isNonNullableByDefault) {
@@ -146,7 +142,7 @@ class BinaryExpressionResolver {
 
     left.accept(_resolver);
     left = node.leftOperand;
-    var leftType = left.staticType;
+    var leftType = left.typeOrThrow;
 
     var rightContextType = InferenceContext.getContext(node);
     if (rightContextType == null || rightContextType.isDynamic) {
@@ -159,19 +155,20 @@ class BinaryExpressionResolver {
     right = node.rightOperand;
     flow?.ifNullExpression_end();
 
-    var rightType = right.staticType;
+    var rightType = right.typeOrThrow;
     if (_isNonNullableByDefault) {
       var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
       _analyzeLeastUpperBoundTypes(node, promotedLeftType, rightType);
     } else {
       _analyzeLeastUpperBoundTypes(node, leftType, rightType);
     }
+    _resolver.checkForArgumentTypeNotAssignableForArgument(right);
   }
 
   void _resolveLogicalAnd(BinaryExpressionImpl node) {
     var left = node.leftOperand;
     var right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
 
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);
@@ -179,29 +176,21 @@ class BinaryExpressionResolver {
     flow?.logicalBinaryOp_begin();
     left.accept(_resolver);
     left = node.leftOperand;
+    var leftWhyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(left);
 
-    if (_flowAnalysis != null) {
-      flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
-      _resolver.checkUnreachableNode(right);
+    flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
+    _resolver.checkUnreachableNode(right);
 
-      right.accept(_resolver);
-      right = node.rightOperand;
+    right.accept(_resolver);
+    right = node.rightOperand;
+    var rightWhyNotPromoted =
+        _resolver.flowAnalysis!.flow?.whyNotPromoted(right);
 
-      _resolver.nullSafetyDeadCodeVerifier?.flowEnd(right);
-      flow?.logicalBinaryOp_end(node, right, isAnd: true);
-    } else {
-      _promoteManager.visitBinaryExpression_and_rhs(
-        left,
-        right,
-        () {
-          right.accept(_resolver);
-          right = node.rightOperand;
-        },
-      );
-    }
+    _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
+    flow?.logicalBinaryOp_end(node, right, isAnd: true);
 
-    _checkNonBoolOperand(left, '&&');
-    _checkNonBoolOperand(right, '&&');
+    _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
+    _checkNonBoolOperand(right, '&&', whyNotPromoted: rightWhyNotPromoted);
 
     _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
   }
@@ -209,7 +198,7 @@ class BinaryExpressionResolver {
   void _resolveLogicalOr(BinaryExpressionImpl node) {
     var left = node.leftOperand;
     var right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
 
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);
@@ -217,18 +206,21 @@ class BinaryExpressionResolver {
     flow?.logicalBinaryOp_begin();
     left.accept(_resolver);
     left = node.leftOperand;
+    var leftWhyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(left);
 
-    flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
+    flow?.logicalBinaryOp_rightBegin(left, node, isAnd: false);
     _resolver.checkUnreachableNode(right);
 
     right.accept(_resolver);
     right = node.rightOperand;
+    var rightWhyNotPromoted =
+        _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
 
-    _resolver.nullSafetyDeadCodeVerifier?.flowEnd(right);
+    _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
     flow?.logicalBinaryOp_end(node, right, isAnd: false);
 
-    _checkNonBoolOperand(left, '||');
-    _checkNonBoolOperand(right, '||');
+    _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);
+    _checkNonBoolOperand(right, '||', whyNotPromoted: rightWhyNotPromoted);
 
     _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
   }
@@ -238,7 +230,7 @@ class BinaryExpressionResolver {
   ///
   /// TODO(scheglov) this is duplicate
   DartType _resolveTypeParameter(DartType type) =>
-      type?.resolveToBound(_typeProvider.objectType);
+      type.resolveToBound(_typeProvider.objectType);
 
   void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
     node.leftOperand.accept(_resolver);
@@ -271,20 +263,25 @@ class BinaryExpressionResolver {
     }
 
     right.accept(_resolver);
+    right = node.rightOperand;
+    var whyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
 
     _resolveUserDefinableType(node);
+    _resolver.checkForArgumentTypeNotAssignableForArgument(right,
+        whyNotPromoted: whyNotPromoted);
   }
 
   void _resolveUserDefinableElement(
-    BinaryExpression node,
+    BinaryExpressionImpl node,
     String methodName, {
     bool promoteLeftTypeToNonNull = false,
   }) {
     Expression leftOperand = node.leftOperand;
 
     if (leftOperand is ExtensionOverride) {
-      ExtensionElement extension = leftOperand.extensionName.staticElement;
-      MethodElement member = extension.getMethod(methodName);
+      var extension =
+          leftOperand.extensionName.staticElement as ExtensionElement;
+      var member = extension.getMethod(methodName);
       if (member == null) {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
@@ -293,10 +290,11 @@ class BinaryExpressionResolver {
         );
       }
       node.staticElement = member;
+      node.staticInvokeType = member?.type;
       return;
     }
 
-    var leftType = leftOperand.staticType;
+    var leftType = leftOperand.typeOrThrow;
     leftType = _resolveTypeParameter(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
@@ -315,11 +313,11 @@ class BinaryExpressionResolver {
       receiver: leftOperand,
       receiverType: leftType,
       name: methodName,
-      receiverErrorNode: leftOperand,
+      propertyErrorEntity: node.operator,
       nameErrorEntity: node,
     );
 
-    node.staticElement = result.getter;
+    node.staticElement = result.getter as MethodElement?;
     node.staticInvokeType = result.getter?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
@@ -341,8 +339,13 @@ class BinaryExpressionResolver {
   void _resolveUserDefinableType(BinaryExpressionImpl node) {
     var leftOperand = node.leftOperand;
 
-    var leftType = leftOperand.staticType;
-    leftType = _resolveTypeParameter(leftType);
+    DartType leftType;
+    if (leftOperand is ExtensionOverrideImpl) {
+      leftType = leftOperand.extendedType!;
+    } else {
+      leftType = leftOperand.typeOrThrow;
+      leftType = _resolveTypeParameter(leftType);
+    }
 
     if (identical(leftType, NeverTypeImpl.instance)) {
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
@@ -355,7 +358,7 @@ class BinaryExpressionResolver {
       staticType = _typeSystem.refineBinaryExpressionType(
         leftType,
         node.operator.type,
-        node.rightOperand.staticType,
+        node.rightOperand.typeOrThrow,
         staticType,
         node.staticElement,
       );

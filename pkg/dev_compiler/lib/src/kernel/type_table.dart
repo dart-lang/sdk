@@ -9,7 +9,8 @@ import 'dart:collection';
 import 'package:kernel/kernel.dart';
 
 import '../compiler/js_names.dart' as js_ast;
-import '../compiler/module_containers.dart' show ModuleItemContainer;
+import '../compiler/module_containers.dart'
+    show ModuleItemContainer, ModuleItemData;
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import 'kernel_helpers.dart';
@@ -42,7 +43,7 @@ Set<TypeParameter> freeTypeParameters(DartType t) {
 
 /// A name for a type made of JS identifier safe characters.
 ///
-/// 'L' and 'N' are prepended to a type name to represent a legacy or nullable
+/// 'L' and 'N' are appended to a type name to represent a legacy or nullable
 /// flavor of a type.
 String _typeString(DartType type, {bool flat = false}) {
   var nullability = type.declaredNullability == Nullability.legacy
@@ -89,7 +90,6 @@ String _typeString(DartType type, {bool flat = false}) {
   if (type is DynamicType) return 'dynamic';
   if (type is VoidType) return 'void';
   if (type is NeverType) return 'Never$nullability';
-  if (type is BottomType) return 'bottom';
   if (type is NullType) return 'Null';
   return 'invalid';
 }
@@ -120,17 +120,26 @@ class TypeTable {
   bool _isNamed(DartType type) =>
       typeContainer.contains(type) || _unboundTypeIds.containsKey(type);
 
+  Set<Library> incrementalLibraries() {
+    var libraries = <Library>{};
+    for (var t in typeContainer.incrementalModuleItems) {
+      if (t is InterfaceType) {
+        libraries.add(t.classNode.enclosingLibrary);
+      }
+    }
+    return libraries;
+  }
+
   /// Emit the initializer statements for the type container, which contains
   /// all named types with fully bound type parameters.
-  ///
-  /// [incremental] is only used for expression evaluation.
-  List<js_ast.Statement> dischargeBoundTypes({bool incremental = false}) {
-    for (var t in typeContainer.keys) {
-      typeContainer[t] = js.call('() => ((# = #.constFn(#))())',
-          [typeContainer.access(t), _runtimeModule, typeContainer[t]]);
+  List<js_ast.Statement> dischargeBoundTypes() {
+    js_ast.Expression emitValue(DartType t, ModuleItemData data) {
+      var access = js.call('#.#', [data.id, data.jsKey]);
+      return js.call('() => ((# = #.constFn(#))())',
+          [access, _runtimeModule, data.jsValue]);
     }
-    var boundTypes =
-        incremental ? typeContainer.emitIncremental() : typeContainer.emit();
+
+    var boundTypes = typeContainer.emit(emitValue: emitValue);
     // Bound types should only be emitted once (even across multiple evals).
     for (var t in typeContainer.keys) {
       typeContainer.setNoEmit(t);
@@ -174,6 +183,7 @@ class TypeTable {
     if (!typeContainer.contains(type)) {
       typeContainer[type] = typeRep;
     }
+    typeContainer.setEmitIfIncremental(type);
     return _unboundTypeIds[type] ?? typeContainer.access(type);
   }
 
@@ -203,8 +213,10 @@ class TypeTable {
     // resulting in some duplicated runtime code. We may get some performance
     // wins if we just locally hoist everything.
     if (freeVariables.isNotEmpty) {
+      // TODO(40273) Remove prepended text when we have a better way to hide
+      // these names from debug tools.
       _unboundTypeIds[type] =
-          js_ast.TemporaryId(escapeIdentifier(_typeString(type)));
+          js_ast.TemporaryId(escapeIdentifier('__t\$${_typeString(type)}'));
     }
 
     for (var free in freeVariables) {

@@ -1,0 +1,56 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:3:7: Error: 'Object' doesn't implement 'A<dynamic>' so it can't be used with 'M<dynamic>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'org-dartlang-test:///main.dart'.
+//  - 'M' is from 'org-dartlang-test:///main.dart'.
+// class C extends Object with M {}
+//       ^
+//
+// org-dartlang-test:///main.dart:3:7: Error: Type parameters couldn't be inferred for the mixin 'M' because 'Object' does not implement the mixin's supertype constraint 'A<T>'.
+//  - 'A' is from 'org-dartlang-test:///main.dart'.
+// class C extends Object with M {}
+//       ^
+//
+
+  abstract class A<T extends dart.core::Object* = dynamic> extends dart.core::Object {
+    synthetic constructor •() → main::A<main::A::T*>*
+      : super dart.core::Object::•()
+      ;
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+  abstract class M<T extends dart.core::Object* = dynamic> extends main::A<main::M::T*> /*isMixinDeclaration*/  {
+  }
+  abstract class _C&Object&M extends dart.core::Object implements main::M<dynamic> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+    const synthetic constructor •() → main::_C&Object&M*
+      : super dart.core::Object::•()
+      ;
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+  }
+  class C extends main::_C&Object&M {
+    synthetic constructor •() → main::C*
+      : super main::_C&Object&M::•()
+      ;
+  }
+}

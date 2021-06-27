@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+  operator +(self::B* b) → self::A*
+    return new self::C::•();
+}
+class C extends self::A {
+  synthetic constructor •() → self::C*
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {
+  core::Map<core::int*, self::B*>* map = <core::int*, self::B*>{0: new self::B::•()};
+  try {
+    let final core::Map<core::int*, self::B*>* #t1 = map in let final core::int* #t2 = 0 in #t1.{core::Map::[]=}(#t2, #t1.{core::Map::[]}(#t2){(core::Object*) →* self::B*}.{self::B::+}(new self::B::•()){(self::B*) →* self::A*} as{TypeError} self::B*){(core::int*, self::B*) →* void};
+    throw "Expected type error";
+  }
+  on dynamic catch(final dynamic _) {
+  }
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///compound_binary_implicit_as.dart:16:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///compound_binary_implicit_as.dart:16:9 -> IntConstant(0)
+Extra constant evaluation: evaluated: 16, effectively constant: 2

@@ -125,8 +125,7 @@ class ClassIndex {
  public:
   // |class_offset| is the offset of class' kernel data in |buffer| of
   // size |size|. The size of the class' kernel data is |class_size|.
-  ClassIndex(const uint8_t* buffer,
-             intptr_t buffer_size,
+  ClassIndex(const ProgramBinary& binary,
              intptr_t class_offset,
              intptr_t class_size);
 
@@ -169,7 +168,7 @@ struct UriToSourceTableTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->uri->Hash(); }
+  static inline uword Hash(Key key) { return key->uri->Hash(); }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
     // Only compare uri.
@@ -204,7 +203,7 @@ class KernelLoader : public ValueObject {
   // not nullptr, then they are populated with number of classes and top-level
   // procedures in [program].
   static void FindModifiedLibraries(Program* program,
-                                    Isolate* isolate,
+                                    IsolateGroup* isolate_group,
                                     BitVector* modified_libs,
                                     bool force_reload,
                                     bool* is_empty_program,
@@ -215,24 +214,15 @@ class KernelLoader : public ValueObject {
                                        intptr_t kernel_buffer_length,
                                        const String& url);
 
-  void FinishTopLevelClassLoading(const Class& toplevel_class,
-                                  const Library& library,
-                                  const LibraryIndex& library_index);
-
   static void FinishLoading(const Class& klass);
 
   void ReadObfuscationProhibitions();
   void ReadLoadingUnits();
 
  private:
-  // Check for the presence of a (possibly const) constructor for the
-  // 'ExternalName' class. If found, returns the name parameter to the
-  // constructor.
-  StringPtr DetectExternalNameCtor();
-
-  // Check for the presence of a (possibly const) constructor for the 'pragma'
-  // class. Returns whether it was found (no details about the type of pragma).
-  bool DetectPragmaCtor();
+  void FinishTopLevelClassLoading(const Class& toplevel_class,
+                                  const Library& library,
+                                  const LibraryIndex& library_index);
 
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
@@ -264,16 +254,14 @@ class KernelLoader : public ValueObject {
   }
 
   intptr_t library_offset(intptr_t index) {
-    kernel::Reader reader(program_->kernel_data(),
-                          program_->kernel_data_size());
+    kernel::Reader reader(program_->binary());
     return reader.ReadFromIndexNoReset(reader.size(),
                                        LibraryCountFieldCountFromEnd + 1,
                                        program_->library_count() + 1, index);
   }
 
   NameIndex library_canonical_name(intptr_t index) {
-    kernel::Reader reader(program_->kernel_data(),
-                          program_->kernel_data_size());
+    kernel::Reader reader(program_->binary());
     reader.set_offset(library_offset(index));
 
     // Start reading library.
@@ -332,9 +320,9 @@ class KernelLoader : public ValueObject {
   }
 
   // Returns the initial field value for a static function (if applicable).
-  InstancePtr GenerateFieldAccessors(const Class& klass,
-                                     const Field& field,
-                                     FieldHelper* field_helper);
+  ObjectPtr GenerateFieldAccessors(const Class& klass,
+                                   const Field& field,
+                                   FieldHelper* field_helper);
   bool FieldNeedsSetter(FieldHelper* field_helper);
 
   void LoadLibraryImportsAndExports(Library* library,
@@ -345,7 +333,7 @@ class KernelLoader : public ValueObject {
   LibraryPtr LookupLibraryFromClass(NameIndex klass);
   ClassPtr LookupClass(const Library& library, NameIndex klass);
 
-  FunctionLayout::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
+  UntaggedFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
   void EnsureExternalClassIsLookedUp() {
     if (external_name_class_.IsNull()) {
@@ -415,7 +403,7 @@ class KernelLoader : public ValueObject {
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_pragma_functions_;
-  Instance& static_field_value_;
+  Object& static_field_value_;
 
   Class& pragma_class_;
 

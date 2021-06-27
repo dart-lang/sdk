@@ -6,10 +6,9 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/fletcher16.dart';
 import 'package:path/path.dart';
-
-import 'byte_store.dart';
-import 'fletcher16.dart';
 
 /// The request that is sent from the main isolate to the clean-up isolate.
 class CacheCleanUpRequest {
@@ -27,7 +26,7 @@ class CacheCleanUpRequest {
 /// [FileByteStore] instead and let the main process to perform eviction.
 class EvictingFileByteStore implements ByteStore {
   static bool _cleanUpSendPortShouldBePrepared = true;
-  static SendPort _cleanUpSendPort;
+  static SendPort? _cleanUpSendPort;
 
   final String _cachePath;
   final int _maxSizeBytes;
@@ -42,7 +41,7 @@ class EvictingFileByteStore implements ByteStore {
   }
 
   @override
-  List<int> get(String key) => _fileByteStore.get(key);
+  List<int>? get(String key) => _fileByteStore.get(key);
 
   @override
   void put(String key, List<int> bytes) {
@@ -71,7 +70,7 @@ class EvictingFileByteStore implements ByteStore {
       _evictionIsolateIsRunning = true;
       try {
         ReceivePort response = ReceivePort();
-        _cleanUpSendPort.send(
+        _cleanUpSendPort!.send(
             CacheCleanUpRequest(_cachePath, _maxSizeBytes, response.sendPort));
         await response.first;
       } finally {
@@ -84,7 +83,7 @@ class EvictingFileByteStore implements ByteStore {
   /// This function is started in a new isolate, receives cache folder clean up
   /// requests and evicts older files from the folder.
   static void _cacheCleanUpFunction(Object message) {
-    SendPort initialReplyTo = message;
+    var initialReplyTo = message as SendPort;
     ReceivePort port = ReceivePort();
     initialReplyTo.send(port.sendPort);
     port.listen((request) {
@@ -123,8 +122,8 @@ class EvictingFileByteStore implements ByteStore {
       }
     }
     files.sort((a, b) {
-      return fileStatMap[a].accessed.millisecondsSinceEpoch -
-          fileStatMap[b].accessed.millisecondsSinceEpoch;
+      return fileStatMap[a]!.accessed.millisecondsSinceEpoch -
+          fileStatMap[b]!.accessed.millisecondsSinceEpoch;
     });
 
     // Delete files until the current size is less than the max.
@@ -135,7 +134,7 @@ class EvictingFileByteStore implements ByteStore {
       try {
         file.deleteSync();
       } catch (_) {}
-      currentSizeBytes -= fileStatMap[file].size;
+      currentSizeBytes -= fileStatMap[file]!.size;
     }
   }
 }
@@ -157,10 +156,10 @@ class FileByteStore implements ByteStore {
             '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
 
   @override
-  List<int> get(String key) {
+  List<int>? get(String key) {
     if (!_canShard(key)) return null;
 
-    List<int> bytes = _writeInProgress[key];
+    var bytes = _writeInProgress[key];
     if (bytes != null) {
       return bytes;
     }
@@ -185,22 +184,21 @@ class FileByteStore implements ByteStore {
     final List<int> wrappedBytes = _validator.wrapData(bytes);
 
     // We don't wait for the write and rename to complete.
-    _pool.execute(() {
+    _pool.execute(() async {
       var tempPath = join(_cachePath, '$key$_tempSuffix');
       var tempFile = File(tempPath);
-      return tempFile.writeAsBytes(wrappedBytes).then((_) {
+      try {
+        await tempFile.writeAsBytes(wrappedBytes);
         var shardPath = _getShardPath(key);
-        return Directory(shardPath).create(recursive: true).then((_) {
-          var path = join(shardPath, key);
-          return tempFile.rename(path);
-        });
-      }).catchError((_) {
-        // ignore exceptions
-      }).whenComplete(() {
+        await Directory(shardPath).create(recursive: true);
+        var path = join(shardPath, key);
+        await tempFile.rename(path);
         if (_writeInProgress[key] == bytes) {
           _writeInProgress.remove(key);
         }
-      });
+      } catch (_) {
+        // ignore exceptions
+      }
     });
   }
 
@@ -227,7 +225,7 @@ class FileByteStoreValidator {
 
   /// If the [rawBytes] have the valid version and checksum, extract and
   /// return the data from it. Otherwise return `null`.
-  List<int> getData(List<int> rawBytes) {
+  List<int>? getData(List<int> rawBytes) {
     // There must be at least the version and the checksum in the raw bytes.
     if (rawBytes.length < 4) {
       return null;

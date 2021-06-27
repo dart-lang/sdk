@@ -18,8 +18,8 @@ class D extends core::Object {
 }
 static method test(self::C x) → void {
   let final self::C #t1 = x in block {
-    #t1.{self::C::f}()!.{self::D::g}();
-    #t1.{self::C::h}();
+    #t1.{self::C::f}(){() → self::D?}!.{self::D::g}(){() → void};
+    #t1.{self::C::h}(){() → void};
   } =>#t1;
 }
 static method main() → dynamic {

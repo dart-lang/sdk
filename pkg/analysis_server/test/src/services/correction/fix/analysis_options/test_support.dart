@@ -10,7 +10,6 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
-import 'package:yaml/src/yaml_node.dart';
 import 'package:yaml/yaml.dart';
 
 /// A base class providing utility methods for tests of fixes associated with
@@ -37,7 +36,11 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     var optionsFile = getFile('/analysis_options.yaml');
     var sourceFactory = SourceFactory([]);
     var errors = analyzeAnalysisOptions(
-        optionsFile.createSource(), content, sourceFactory);
+      optionsFile.createSource(),
+      content,
+      sourceFactory,
+      '/',
+    );
     expect(errors, hasLength(1));
     var error = errors[0];
     var options = _parseYaml(content);
@@ -46,17 +49,10 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
   }
 
   YamlMap _parseYaml(String content) {
-    if (content == null) {
-      return YamlMap();
+    var doc = loadYamlNode(content);
+    if (doc is YamlMap) {
+      return doc;
     }
-    try {
-      var doc = loadYamlNode(content);
-      if (doc is YamlMap) {
-        return doc;
-      }
-      return YamlMap();
-    } catch (exception) {
-      return null;
-    }
+    return YamlMap();
   }
 }

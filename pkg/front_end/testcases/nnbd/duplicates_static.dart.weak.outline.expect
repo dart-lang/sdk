@@ -1,0 +1,150 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:9:14: Error: 'staticMethod' is already declared in this scope.
+//   static int staticMethod() => 2;
+//              ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:8:14: Context: Previous declaration of 'staticMethod'.
+//   static int staticMethod() => 1;
+//              ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:12:18: Error: 'staticGetter' is already declared in this scope.
+//   static int get staticGetter => 2;
+//                  ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:11:18: Context: Previous declaration of 'staticGetter'.
+//   static int get staticGetter => 1;
+//                  ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:18:19: Error: 'staticSetter' is already declared in this scope.
+//   static void set staticSetter(value) {
+//                   ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:14:19: Context: Previous declaration of 'staticSetter'.
+//   static void set staticSetter(value) {
+//                   ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:23:14: Error: 'staticField' is already declared in this scope.
+//   static int staticField = 2;
+//              ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:22:14: Context: Previous declaration of 'staticField'.
+//   static int staticField = 1;
+//              ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:48:20: Error: 'staticDuplicateFieldAndSetter' is already declared in this scope.
+//   static final int staticDuplicateFieldAndSetter = 2;
+//                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:47:20: Context: Previous declaration of 'staticDuplicateFieldAndSetter'.
+//   static final int staticDuplicateFieldAndSetter = 1;
+//                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:58:19: Error: 'staticFieldAndDuplicateSetter' is already declared in this scope.
+//   static void set staticFieldAndDuplicateSetter(int value) {
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:54:19: Context: Previous declaration of 'staticFieldAndDuplicateSetter'.
+//   static void set staticFieldAndDuplicateSetter(int value) {
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:63:20: Error: 'staticDuplicateFieldAndDuplicateSetter' is already declared in this scope.
+//   static final int staticDuplicateFieldAndDuplicateSetter = 2;
+//                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:62:20: Context: Previous declaration of 'staticDuplicateFieldAndDuplicateSetter'.
+//   static final int staticDuplicateFieldAndDuplicateSetter = 1;
+//                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:68:19: Error: 'staticDuplicateFieldAndDuplicateSetter' is already declared in this scope.
+//   static void set staticDuplicateFieldAndDuplicateSetter(int value) {
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:64:19: Context: Previous declaration of 'staticDuplicateFieldAndDuplicateSetter'.
+//   static void set staticDuplicateFieldAndDuplicateSetter(int value) {
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:26:19: Error: Conflicts with the implicit setter of the field 'staticFieldAndSetter1'.
+//   static void set staticFieldAndSetter1(int value) {
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:25:14: Error: Conflicts with setter 'staticFieldAndSetter1'.
+//   static int staticFieldAndSetter1 = 1;
+//              ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:30:19: Error: Conflicts with the implicit setter of the field 'staticFieldAndSetter2'.
+//   static void set staticFieldAndSetter2(int value) {
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:34:14: Error: Conflicts with setter 'staticFieldAndSetter2'.
+//   static int staticFieldAndSetter2 = 1;
+//              ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:37:19: Error: Conflicts with the implicit setter of the field 'staticLateFinalFieldAndSetter1'.
+//   static void set staticLateFinalFieldAndSetter1(int value) {
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:36:25: Error: Conflicts with setter 'staticLateFinalFieldAndSetter1'.
+//   static late final int staticLateFinalFieldAndSetter1;
+//                         ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:41:19: Error: Conflicts with the implicit setter of the field 'staticLateFinalFieldAndSetter2'.
+//   static void set staticLateFinalFieldAndSetter2(int value) {
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:45:25: Error: Conflicts with setter 'staticLateFinalFieldAndSetter2'.
+//   static late final int staticLateFinalFieldAndSetter2;
+//                         ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:73:19: Error: 'staticMethodAndSetter1' is already declared in this scope.
+//   static void set staticMethodAndSetter1(int value) {
+//                   ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:72:14: Context: Previous declaration of 'staticMethodAndSetter1'.
+//   static int staticMethodAndSetter1() => 1;
+//              ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:81:14: Error: 'staticMethodAndSetter2' is already declared in this scope.
+//   static int staticMethodAndSetter2() => 1;
+//              ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_static.dart:77:19: Context: Previous declaration of 'staticMethodAndSetter2'.
+//   static void set staticMethodAndSetter2(int value) {
+//                   ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static field core::int staticField;
+  static field core::int staticFieldAndSetter1;
+  static field core::int staticFieldAndSetter2;
+  late static final [setter] field core::int staticLateFinalFieldAndSetter1;
+  late static final [setter] field core::int staticLateFinalFieldAndSetter2;
+  static final field core::int staticDuplicateFieldAndSetter;
+  static final field core::int staticFieldAndDuplicateSetter;
+  static final field core::int staticDuplicateFieldAndDuplicateSetter;
+  synthetic constructor •() → self::Class
+    ;
+  static method staticMethod() → core::int
+    ;
+  static get staticGetter() → core::int
+    ;
+  static set staticSetter(dynamic value) → void
+    ;
+  static set staticDuplicateFieldAndSetter(core::int value) → void
+    ;
+  static set staticFieldAndDuplicateSetter(core::int value) → void
+    ;
+  static set staticDuplicateFieldAndDuplicateSetter(core::int value) → void
+    ;
+  static method staticMethodAndSetter1() → core::int
+    ;
+  static set staticMethodAndSetter1(core::int value) → void
+    ;
+  static set staticMethodAndSetter2(core::int value) → void
+    ;
+  static method staticMethodAndSetter2() → core::int
+    ;
+}
+static field dynamic result;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → dynamic f) → dynamic
+  ;

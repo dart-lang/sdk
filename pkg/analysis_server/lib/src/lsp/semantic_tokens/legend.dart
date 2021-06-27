@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart';
 import 'package:meta/meta.dart';
 
@@ -14,24 +15,28 @@ final semanticTokenLegend = SemanticTokenLegendLookup();
 /// [SemanticTokenModifiers].
 class SemanticTokenLegendLookup {
   /// An LSP [SemanticTokensLegend] describing all supported tokens and modifiers.
-  SemanticTokensLegend lspLegend;
+  late SemanticTokensLegend lspLegend;
 
   /// All [SemanticTokenModifiers] the server may generate. The order of these
   /// items is important as the indexes will be used in communication between
   /// server and client.
-  List<SemanticTokenModifiers> _usedTokenModifiers;
+  late List<SemanticTokenModifiers> _usedTokenModifiers;
 
   /// All [SemanticTokenTypes] the server may generate. The order of these
   /// items is important as the indexes will be used in communication betewen
   /// server and client.
-  List<SemanticTokenTypes> _usedTokenTypes;
+  late List<SemanticTokenTypes> _usedTokenTypes;
 
   SemanticTokenLegendLookup() {
-    // Build lists of all tokens and modifiers that exist in our mappings. These will
-    // be used to determine the indexes used for communication.
-    _usedTokenTypes = Set.of(highlightRegionTokenTypes.values).toList();
-    _usedTokenModifiers =
-        Set.of(highlightRegionTokenModifiers.values.expand((v) => v)).toList();
+    // Build lists of all tokens and modifiers that exist in our mappings or that
+    // we have added as custom types. These will be used to determine the indexes used for communication.
+    _usedTokenTypes = Set.of(highlightRegionTokenTypes.values
+            .followedBy(CustomSemanticTokenTypes.values))
+        .toList();
+    _usedTokenModifiers = Set.of(highlightRegionTokenModifiers.values
+            .expand((v) => v)
+            .followedBy(CustomSemanticTokenModifiers.values))
+        .toList();
 
     // Build the LSP Legend which tells the client all of the tokens and modifiers
     // we will use in the order they should be accessed by index/bit.
@@ -44,13 +49,14 @@ class SemanticTokenLegendLookup {
     );
   }
 
-  int bitmaskForModifiers(Set<SemanticTokenModifiers> modifiers) {
+  int bitmaskForModifiers(Set<SemanticTokenModifiers>? modifiers) {
     // Modifiers use a bit mask where each bit represents the index of a modifier.
     // 001001 would indicate the 1st and 4th modifiers are applied.
     return modifiers
             ?.map(_usedTokenModifiers.indexOf)
-            ?.map((index) => math.pow(2, index))
-            ?.reduce((a, b) => a + b) ??
+            .map((index) => math.pow(2, index))
+            .reduce((a, b) => a + b)
+            .toInt() ??
         0;
   }
 

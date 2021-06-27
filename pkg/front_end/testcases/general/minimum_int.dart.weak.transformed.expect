@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic
+  return core::print(-9223372036854775808.{core::int::unary-}(){() →* core::int*});
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///minimum_int.dart:2:17 -> IntConstant(-9223372036854775808)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

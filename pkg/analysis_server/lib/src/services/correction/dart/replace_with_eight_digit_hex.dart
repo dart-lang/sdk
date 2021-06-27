@@ -11,13 +11,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithEightDigitHex extends CorrectionProducer {
   /// The replacement text, used as an argument to the fix message.
-  String _replacement;
+  String _replacement = '';
 
   @override
   List<Object> get fixArguments => [_replacement];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -28,6 +31,9 @@ class ReplaceWithEightDigitHex extends CorrectionProducer {
       return;
     }
     var value = (node as IntegerLiteral).value;
+    if (value == null) {
+      return;
+    }
     _replacement = '0x' + value.toRadixString(16).padLeft(8, '0');
     //
     // Build the edit.

@@ -22,8 +22,8 @@ import 'dart:io';
 ///
 /// The default test directory layout is documented in "test_suite.dart", above
 /// `factory StandardTestSuite.forDirectory`.
-import "package:test_runner/src/options.dart";
 import "package:test_runner/src/build_configurations.dart";
+import "package:test_runner/src/options.dart";
 import "package:test_runner/src/test_configurations.dart";
 
 /// Runs all of the tests specified by the given command line [arguments].
@@ -37,6 +37,7 @@ void main(List<String> arguments) async {
     print(exception.message);
     exit(1);
   }
+
   if (configurations.isEmpty) return;
   await buildConfigurations(configurations);
   // Run all of the configured tests.

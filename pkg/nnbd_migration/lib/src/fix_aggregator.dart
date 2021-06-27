@@ -18,12 +18,34 @@ import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
+/// Base class representing a change that might need to be made to an
+/// expression.
+abstract class ExpressionChange {
+  /// The type of the expression after the change is applied.
+  final DartType resultType;
+
+  ExpressionChange(this.resultType);
+
+  /// Description of the change.
+  NullabilityFixDescription get description;
+
+  /// Creates a [NodeProducingEditPlan] that applies the change to [innerPlan].
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+      NodeProducingEditPlan innerPlan, AtomicEditInfo? info);
+
+  /// Creates a string that applies the change to the [inner] text string.
+  String applyText(FixAggregator aggregator, String inner);
+
+  /// Describes the change, for use in debugging.
+  String describe();
+}
+
 /// Visitor that combines together the changes produced by [FixBuilder] into a
 /// concrete set of source code edits using the infrastructure of [EditPlan].
 class FixAggregator extends UnifyingAstVisitor<void> {
   /// Map from the [AstNode]s that need to have changes made, to the changes
   /// that need to be applied to them.
-  final Map<AstNode, NodeChange> _changes;
+  final Map<AstNode?, NodeChange> _changes;
 
   /// The set of [EditPlan]s being accumulated.
   List<EditPlan> _plans = [];
@@ -32,9 +54,9 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
   /// Map from library to the prefix we should use when inserting code that
   /// refers to it.
-  final Map<LibraryElement, String> _importPrefixes = {};
+  final Map<LibraryElement?, String?> _importPrefixes = {};
 
-  final bool _warnOnWeakCode;
+  final bool? _warnOnWeakCode;
 
   FixAggregator._(this.planner, this._changes, this._warnOnWeakCode,
       CompilationUnitElement compilationUnitElement) {
@@ -51,7 +73,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   ///
   /// TODO(paulberry): if the element is not currently imported, we should
   /// update or add an import statement as necessary.
-  String elementToCode(Element element) {
+  String? elementToCode(Element element) {
     var name = element.name;
     var library = element.library;
     var prefix = _importPrefixes[library];
@@ -84,12 +106,12 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
   /// Gathers all the changes to [node] and its descendants into a single
   /// [EditPlan].
-  EditPlan planForNode(AstNode node) {
+  EditPlan planForNode(AstNode? node) {
     var change = _changes[node];
     if (change != null) {
-      return change._apply(node, this);
+      return change._apply(node!, this);
     } else {
-      return planner.passThrough(node, innerPlans: innerPlansForNode(node));
+      return planner.passThrough(node, innerPlans: innerPlansForNode(node!));
     }
   }
 
@@ -167,22 +189,20 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     var change = _changes[node];
     if (change != null) {
       var innerPlan = change._apply(node, this);
-      if (innerPlan != null) {
-        _plans.add(innerPlan);
-      }
+      _plans.add(innerPlan);
     } else {
       node.visitChildren(this);
     }
   }
 
   /// Runs the [FixAggregator] on a [unit] and returns the resulting edits.
-  static Map<int, List<AtomicEdit>> run(
-      CompilationUnit unit, String sourceText, Map<AstNode, NodeChange> changes,
-      {bool removeViaComments = false, bool warnOnWeakCode = false}) {
+  static Map<int?, List<AtomicEdit>>? run(CompilationUnit unit,
+      String? sourceText, Map<AstNode?, NodeChange> changes,
+      {bool? removeViaComments = false, bool? warnOnWeakCode = false}) {
     var planner = EditPlanner(unit.lineInfo, sourceText,
         removeViaComments: removeViaComments);
-    var aggregator =
-        FixAggregator._(planner, changes, warnOnWeakCode, unit.declaredElement);
+    var aggregator = FixAggregator._(
+        planner, changes, warnOnWeakCode, unit.declaredElement!);
     unit.accept(aggregator);
     if (aggregator._plans.isEmpty) return {};
     EditPlan plan;
@@ -193,6 +213,64 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     }
     return planner.finalize(plan);
   }
+}
+
+/// [ExpressionChange] describing the addition of an `as` cast to an expression.
+class IntroduceAsChange extends ExpressionChange {
+  /// The type being cast to.
+  final DartType type;
+
+  /// Indicates whether this is a downcast.
+  final bool isDowncast;
+
+  IntroduceAsChange(this.type, {required this.isDowncast}) : super(type);
+
+  @override
+  NullabilityFixDescription get description => isDowncast
+      ? NullabilityFixDescription.downcastExpression
+      : NullabilityFixDescription.otherCastExpression;
+
+  @override
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+          NodeProducingEditPlan innerPlan, AtomicEditInfo? info) =>
+      aggregator.planner.addBinaryPostfix(
+          innerPlan, TokenType.AS, aggregator.typeToCode(type),
+          info: info);
+
+  @override
+  String applyText(FixAggregator aggregator, String inner) =>
+      '$inner as ${aggregator.typeToCode(type)}';
+
+  @override
+  String describe() => 'IntroduceAsChange($type)';
+}
+
+/// [ExpressionChange] describing the addition of an `as` cast to an expression
+/// having a Future type.
+class IntroduceThenChange extends ExpressionChange {
+  /// The change that should be made to the value the future completes with.
+  final ExpressionChange innerChange;
+
+  IntroduceThenChange(DartType resultType, this.innerChange)
+      : super(resultType);
+
+  @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.addThen;
+
+  @override
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+          NodeProducingEditPlan innerPlan, AtomicEditInfo? info) =>
+      aggregator.planner.addPostfix(innerPlan,
+          '.then((value) => ${innerChange.applyText(aggregator, 'value')})',
+          info: info);
+
+  @override
+  String applyText(FixAggregator aggregator, String inner) =>
+      '$inner.then((value) => ${innerChange.applyText(aggregator, 'value')})';
+
+  @override
+  String describe() => 'IntroduceThenChange($innerChange)';
 }
 
 /// Reasons that a variable declaration is to be made late.
@@ -235,7 +313,7 @@ abstract class NodeChange<N extends AstNode> {
 
   /// Creates the appropriate specialized kind of [NodeChange] appropriate for
   /// the given [node].
-  static NodeChange<AstNode> create(AstNode node) =>
+  static NodeChange<AstNode>? create(AstNode node) =>
       node.accept(_NodeChangeVisitor._instance);
 }
 
@@ -247,7 +325,7 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
 
   /// If [changeToRequiredKeyword] is `true`, the information that should be
   /// contained in the edit.
-  AtomicEditInfo changeToRequiredKeywordInfo;
+  AtomicEditInfo? changeToRequiredKeywordInfo;
 
   NodeChangeForAnnotation() : super._();
 
@@ -262,11 +340,10 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
-      name = (name as PrefixedIdentifier).identifier;
+      name = name.identifier;
     }
-    if (name != null &&
-        aggregator.planner.sourceText.substring(name.offset, name.end) ==
-            'required') {
+    if (aggregator.planner.sourceText!.substring(name.offset, name.end) ==
+        'required') {
       // The text `required` already exists in the annotation; we can just
       // extract it.
       return aggregator.planner.extract(
@@ -284,7 +361,7 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
 class NodeChangeForArgumentList extends NodeChange<ArgumentList> {
   /// Map whose keys are the arguments that should be dropped from this argument
   /// list, if any.  Values are info about why the arguments are being dropped.
-  final Map<Expression, AtomicEditInfo> _argumentsToDrop = {};
+  final Map<Expression, AtomicEditInfo?> _argumentsToDrop = {};
 
   NodeChangeForArgumentList() : super._();
 
@@ -292,7 +369,7 @@ class NodeChangeForArgumentList extends NodeChange<ArgumentList> {
   /// this argument list, if any.  Values are info about why the arguments are
   /// being dropped.
   @visibleForTesting
-  Map<Expression, AtomicEditInfo> get argumentsToDrop => _argumentsToDrop;
+  Map<Expression, AtomicEditInfo?> get argumentsToDrop => _argumentsToDrop;
 
   @override
   Iterable<String> get _toStringParts =>
@@ -300,7 +377,7 @@ class NodeChangeForArgumentList extends NodeChange<ArgumentList> {
 
   /// Updates `this` so that the given [argument] will be dropped, using [info]
   /// to annotate the reason why it is being dropped.
-  void dropArgument(Expression argument, AtomicEditInfo info) {
+  void dropArgument(Expression argument, AtomicEditInfo? info) {
     assert(!_argumentsToDrop.containsKey(argument));
     _argumentsToDrop[argument] = info;
   }
@@ -362,7 +439,7 @@ class NodeChangeForAssignment
   NodeProducingEditPlan _apply(
       AssignmentExpression node, FixAggregator aggregator) {
     var lhsPlan = aggregator.planForNode(node.leftHandSide);
-    if (isWeakNullAware && !aggregator._warnOnWeakCode) {
+    if (isWeakNullAware && !aggregator._warnOnWeakCode!) {
       // Just keep the LHS
       return aggregator.planner.extract(node, lhsPlan as NodeProducingEditPlan,
           infoAfter: AtomicEditInfo(
@@ -379,12 +456,12 @@ class NodeChangeForAssignment
         aggregator.planner.passThrough(node, innerPlans: innerPlans));
   }
 
-  EditPlan _makeOperatorPlan(
+  EditPlan? _makeOperatorPlan(
       FixAggregator aggregator, AssignmentExpression node, Token operator) {
     var operatorPlan = super._makeOperatorPlan(aggregator, node, operator);
     if (operatorPlan != null) return operatorPlan;
     if (isWeakNullAware) {
-      assert(aggregator._warnOnWeakCode);
+      assert(aggregator._warnOnWeakCode!);
       return aggregator.planner.informativeMessageForToken(node, operator,
           info: AtomicEditInfo(
               NullabilityFixDescription
@@ -416,7 +493,8 @@ mixin NodeChangeForAssignmentLike<N extends Expression>
         if (hasNullableSource) 'hasNullableSource'
       ];
 
-  EditPlan _makeOperatorPlan(FixAggregator aggregator, N node, Token operator) {
+  EditPlan? _makeOperatorPlan(
+      FixAggregator aggregator, N node, Token operator) {
     if (hasNullableSource) {
       return aggregator.planner.informativeMessageForToken(node, operator,
           info: AtomicEditInfo(
@@ -470,8 +548,7 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
   EditPlan _apply(CompilationUnit node, FixAggregator aggregator) {
     List<EditPlan> innerPlans = [];
     if (removeLanguageVersionComment) {
-      final comment = (node as CompilationUnitImpl).languageVersionToken;
-      assert(comment != null);
+      final comment = (node as CompilationUnitImpl).languageVersionToken!;
       innerPlans.add(aggregator.planner.replaceToken(node, comment, '',
           info: AtomicEditInfo(
               NullabilityFixDescription.removeLanguageVersionComment,
@@ -508,7 +585,7 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
     if (node.directives.every((d) => d is LibraryDirective)) {
       while (importsToAdd.isNotEmpty) {
         insertImport(
-            node.declarations.beginToken.offset, importsToAdd.removeAt(0),
+            node.declarations.beginToken!.offset, importsToAdd.removeAt(0),
             suffix: importsToAdd.isEmpty ? '\n\n' : '\n');
       }
     } else {
@@ -530,7 +607,7 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
   /// an existing [directive].
   bool _shouldImportGoBefore(String newImportUri, Directive directive) {
     if (directive is ImportDirective) {
-      return newImportUri.compareTo(directive.uriContent) < 0;
+      return newImportUri.compareTo(directive.uriContent!) < 0;
     } else if (directive is LibraryDirective) {
       // Library directives must come before imports.
       return false;
@@ -548,11 +625,11 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
   /// If not `null`, indicates that the condition expression is known to
   /// evaluate to either `true` or `false`, so the other branch of the
   /// conditional is dead code and should be eliminated.
-  bool conditionValue;
+  bool? conditionValue;
 
   /// If [conditionValue] is not `null`, the reason that should be included in
   /// the [AtomicEditInfo] for the edit that removes the dead code.
-  FixReasonInfo conditionReason;
+  FixReasonInfo? conditionReason;
 
   @override
   Iterable<String> get _toStringParts =>
@@ -561,13 +638,13 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
   /// If dead code removal is warranted for [node], returns an [EditPlan] that
   /// removes the dead code (and performs appropriate updates within any
   /// descendant AST nodes that remain).  Otherwise returns `null`.
-  EditPlan _applyConditional(N node, FixAggregator aggregator,
-      AstNode conditionNode, AstNode thenNode, AstNode elseNode) {
+  EditPlan? _applyConditional(N node, FixAggregator aggregator,
+      AstNode conditionNode, AstNode thenNode, AstNode? elseNode) {
     if (conditionValue == null) return null;
-    if (aggregator._warnOnWeakCode) {
+    if (aggregator._warnOnWeakCode!) {
       var conditionPlan = aggregator.innerPlanForNode(conditionNode);
       var info = AtomicEditInfo(
-          conditionValue
+          conditionValue!
               ? NullabilityFixDescription.conditionTrueInStrongMode
               : NullabilityFixDescription.conditionFalseInStrongMode,
           {FixReasonTarget.root: conditionReason});
@@ -580,9 +657,9 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
         if (elseNode != null) aggregator.planForNode(elseNode)
       ]);
     }
-    AstNode nodeToKeep;
+    AstNode? nodeToKeep;
     NullabilityFixDescription descriptionBefore, descriptionAfter;
-    if (conditionValue) {
+    if (conditionValue!) {
       nodeToKeep = thenNode;
       descriptionBefore = NullabilityFixDescription.discardCondition;
       if (elseNode == null) {
@@ -628,7 +705,7 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
     var infoAfter = AtomicEditInfo(
         descriptionAfter, {FixReasonTarget.root: conditionReason});
     if (nodeToKeep is Block && nodeToKeep.statements.length == 1) {
-      var singleStatement = (nodeToKeep as Block).statements[0];
+      var singleStatement = nodeToKeep.statements[0];
       if (singleStatement is VariableDeclarationStatement) {
         // It's not safe to eliminate the {} because it increases the scope of
         // the variable declarations
@@ -664,15 +741,19 @@ class NodeChangeForDefaultFormalParameter
 
   /// If [addRequiredKeyword] is `true`, the information that should be
   /// contained in the edit.
-  AtomicEditInfo addRequiredKeywordInfo;
+  AtomicEditInfo? addRequiredKeywordInfo;
+
+  /// If [addRequiredKeyword] is `true`, and there is a `/*required*/` hint,
+  /// the hint comment that should be converted into a simple `required` string.
+  HintComment? requiredHint;
 
   /// If non-null, indicates a `@required` annotation which should be removed
   /// from this node.
-  Annotation annotationToRemove;
+  Annotation? annotationToRemove;
 
   /// If [annotationToRemove] is non-null, the information that should be
   /// contained in the edit.
-  AtomicEditInfo removeAnnotationInfo;
+  AtomicEditInfo? removeAnnotationInfo;
 
   NodeChangeForDefaultFormalParameter() : super._();
 
@@ -682,17 +763,22 @@ class NodeChangeForDefaultFormalParameter
 
   @override
   EditPlan _apply(DefaultFormalParameter node, FixAggregator aggregator) {
-    var innerPlan = aggregator.innerPlanForNode(node);
-    if (!addRequiredKeyword) return innerPlan;
+    if (!addRequiredKeyword) return aggregator.innerPlanForNode(node);
 
-    var offset = node.firstTokenAfterCommentAndMetadata.offset;
+    if (requiredHint != null) {
+      var innerPlan = aggregator.innerPlanForNode(node);
+      return aggregator.planner.acceptPrefixHint(innerPlan, requiredHint!,
+          info: addRequiredKeywordInfo);
+    }
+
+    var offset = node.firstTokenAfterCommentAndMetadata!.offset;
     return aggregator.planner.passThrough(node, innerPlans: [
       aggregator.planner.insertText(node, offset, [
         AtomicEdit.insert('required ', info: addRequiredKeywordInfo),
       ]),
       if (annotationToRemove != null)
         aggregator.planner
-            .removeNode(annotationToRemove, info: removeAnnotationInfo),
+            .removeNode(annotationToRemove!, info: removeAnnotationInfo),
       ...aggregator.innerPlansForNode(node),
     ]);
   }
@@ -701,69 +787,25 @@ class NodeChangeForDefaultFormalParameter
 /// Implementation of [NodeChange] specialized for operating on [Expression]
 /// nodes.
 class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
-  bool _addsNoValidMigration = false;
+  /// The list of [ExpressionChange] objects that should be applied to the
+  /// expression, in the order they should be applied.
+  final List<ExpressionChange> expressionChanges = [];
 
-  AtomicEditInfo _addNoValidMigrationInfo;
-
-  bool _addsNullCheck = false;
-
-  AtomicEditInfo _addNullCheckInfo;
-
-  HintComment _addNullCheckHint;
-
-  DartType _introducesAsType;
-
-  AtomicEditInfo _introduceAsInfo;
+  /// The list of [AtomicEditInfo] objects corresponding to each change in
+  /// [expressionChanges].
+  final List<AtomicEditInfo?> expressionChangeInfos = [];
 
   NodeChangeForExpression() : super._();
 
-  /// Gets the info for any added "no valid migration" comment.
-  AtomicEditInfo get addNoValidMigrationInfo => _addNoValidMigrationInfo;
-
-  /// Gets the info for any added null check.
-  AtomicEditInfo get addNullCheckInfo => _addNullCheckInfo;
-
-  /// Indicates whether [addNoValidMigration] has been called.
-  bool get addsNoValidMigration => _addsNoValidMigration;
-
-  /// Indicates whether [addNullCheck] has been called.
-  bool get addsNullCheck => _addsNullCheck;
-
-  /// Gets the info for any introduced "as" cast
-  AtomicEditInfo get introducesAsInfo => _introduceAsInfo;
-
-  /// Gets the type for any introduced "as" cast, or `null` if no "as" cast is
-  /// being introduced.
-  DartType get introducesAsType => _introducesAsType;
-
   @override
   Iterable<String> get _toStringParts => [
-        if (_addsNoValidMigration) 'addsNoValidMigration',
-        if (_addsNullCheck) 'addsNullCheck',
-        if (_introducesAsType != null) 'introducesAsType'
+        for (var expressionChange in expressionChanges)
+          expressionChange.describe()
       ];
 
-  void addNoValidMigration(AtomicEditInfo info) {
-    assert(!_addsNoValidMigration);
-    _addsNoValidMigration = true;
-    _addNoValidMigrationInfo = info;
-  }
-
-  /// Causes a null check to be added to this expression, with the given [info].
-  void addNullCheck(AtomicEditInfo info, {HintComment hint}) {
-    assert(!_addsNullCheck);
-    _addsNullCheck = true;
-    _addNullCheckInfo = info;
-    _addNullCheckHint = hint;
-  }
-
-  /// Causes a cast to the given [type] to be added to this expression, with
-  /// the given [info].
-  void introduceAs(DartType type, AtomicEditInfo info) {
-    assert(_introducesAsType == null);
-    assert(type != null);
-    _introducesAsType = type;
-    _introduceAsInfo = info;
+  void addExpressionChange(ExpressionChange change, AtomicEditInfo? info) {
+    expressionChanges.add(change);
+    expressionChangeInfos.add(info);
   }
 
   @override
@@ -778,25 +820,9 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   NodeProducingEditPlan _applyExpression(
       FixAggregator aggregator, NodeProducingEditPlan innerPlan) {
     var plan = innerPlan;
-    if (_addsNullCheck) {
-      var hint = _addNullCheckHint;
-      if (hint != null) {
-        plan = aggregator.planner.acceptNullabilityOrNullCheckHint(plan, hint,
-            info: _addNullCheckInfo);
-      } else {
-        plan = aggregator.planner
-            .addUnaryPostfix(plan, TokenType.BANG, info: _addNullCheckInfo);
-      }
-    }
-    if (_addsNoValidMigration) {
-      plan = aggregator.planner.addCommentPostfix(
-          plan, '/* no valid migration */',
-          info: _addNoValidMigrationInfo, isInformative: true);
-    }
-    if (_introducesAsType != null) {
-      plan = aggregator.planner.addBinaryPostfix(
-          plan, TokenType.AS, aggregator.typeToCode(_introducesAsType),
-          info: _introduceAsInfo);
+    for (int i = 0; i < expressionChanges.length; i++) {
+      plan = expressionChanges[i]
+          .applyExpression(aggregator, plan, expressionChangeInfos[i]);
     }
     return plan;
   }
@@ -808,7 +834,7 @@ class NodeChangeForFieldFormalParameter
     extends NodeChangeForType<FieldFormalParameter> {
   /// If not `null`, an explicit type annotation that should be added to the
   /// parameter.
-  DartType addExplicitType;
+  DartType? addExplicitType;
 
   NodeChangeForFieldFormalParameter() : super._();
 
@@ -819,7 +845,7 @@ class NodeChangeForFieldFormalParameter
   @override
   EditPlan _apply(FieldFormalParameter node, FixAggregator aggregator) {
     if (addExplicitType != null) {
-      var typeText = aggregator.typeToCode(addExplicitType);
+      var typeText = aggregator.typeToCode(addExplicitType!);
       // Even a field formal parameter can use `var`, `final`.
       if (node.keyword?.keyword == Keyword.VAR) {
         // TODO(srawlins): Test instrumentation info.
@@ -827,7 +853,7 @@ class NodeChangeForFieldFormalParameter
             AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
         return aggregator.planner.passThrough(node, innerPlans: [
           aggregator.planner
-              .replaceToken(node, node.keyword, typeText, info: info),
+              .replaceToken(node, node.keyword!, typeText, info: info),
           ...aggregator.innerPlansForNode(node),
         ]);
       } else {
@@ -903,9 +929,9 @@ class NodeChangeForMethodInvocation
     var innerPlans = [
       if (targetPlan != null) targetPlan,
       if (nullAwarePlan != null) nullAwarePlan,
-      if (methodNamePlan != null) methodNamePlan,
+      methodNamePlan,
       if (typeArgumentsPlan != null) typeArgumentsPlan,
-      if (argumentListPlan != null) argumentListPlan
+      argumentListPlan
     ];
     return _applyExpression(aggregator,
         aggregator.planner.passThrough(node, innerPlans: innerPlans));
@@ -917,21 +943,21 @@ class NodeChangeForMethodInvocation
 class NodeChangeForMethodName extends NodeChange<SimpleIdentifier> {
   /// The name the method name should be changed to, or `null` if no change
   /// should be made.
-  String _replacement;
+  String? _replacement;
 
   /// Info object associated with the replacement.
-  AtomicEditInfo _replacementInfo;
+  AtomicEditInfo? _replacementInfo;
 
   NodeChangeForMethodName() : super._();
 
   /// Queries the name the method name should be changed to, or `null` if no
   /// change should be made.
   @visibleForTesting
-  String get replacement => _replacement;
+  String? get replacement => _replacement;
 
   /// Queries the info object associated with the replacement.
   @visibleForTesting
-  AtomicEditInfo get replacementInfo => _replacementInfo;
+  AtomicEditInfo? get replacementInfo => _replacementInfo;
 
   @override
   Iterable<String> get _toStringParts =>
@@ -939,7 +965,7 @@ class NodeChangeForMethodName extends NodeChange<SimpleIdentifier> {
 
   /// Updates `this` so that the method name will be changed to [replacement],
   /// using [info] to annotate the reason for the change.
-  void replaceWith(String replacement, AtomicEditInfo info) {
+  void replaceWith(String replacement, AtomicEditInfo? info) {
     assert(_replacement == null);
     _replacement = replacement;
     _replacementInfo = info;
@@ -949,7 +975,7 @@ class NodeChangeForMethodName extends NodeChange<SimpleIdentifier> {
   EditPlan _apply(SimpleIdentifier node, FixAggregator aggregator) {
     if (replacement != null) {
       return aggregator.planner.replace(
-          node, [AtomicEdit.insert(replacement, info: replacementInfo)],
+          node, [AtomicEdit.insert(replacement!, info: replacementInfo)],
           info: replacementInfo);
     } else {
       return aggregator.innerPlanForNode(node);
@@ -969,14 +995,14 @@ mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
 
   /// Returns an [EditPlan] that removes null awareness, if appropriate.
   /// Otherwise returns `null`.
-  EditPlan _applyNullAware(N node, FixAggregator aggregator) {
+  EditPlan? _applyNullAware(N node, FixAggregator aggregator) {
     if (!removeNullAwareness) return null;
-    var description = aggregator._warnOnWeakCode
+    var description = aggregator._warnOnWeakCode!
         ? NullabilityFixDescription.nullAwarenessUnnecessaryInStrongMode
         : NullabilityFixDescription.removeNullAwareness;
     return aggregator.planner.removeNullAwareness(node,
         info: AtomicEditInfo(description, const {}),
-        isInformative: aggregator._warnOnWeakCode);
+        isInformative: aggregator._warnOnWeakCode!);
   }
 }
 
@@ -1032,7 +1058,7 @@ class NodeChangeForPropertyAccess
     var innerPlans = [
       if (targetPlan != null) targetPlan,
       if (nullAwarePlan != null) nullAwarePlan,
-      if (propertyNamePlan != null) propertyNamePlan
+      propertyNamePlan
     ];
     return _applyExpression(aggregator,
         aggregator.planner.passThrough(node, innerPlans: innerPlans));
@@ -1099,7 +1125,7 @@ class NodeChangeForSimpleFormalParameter
     extends NodeChange<SimpleFormalParameter> {
   /// If not `null`, an explicit type annotation that should be added to the
   /// parameter.
-  DartType addExplicitType;
+  DartType? addExplicitType;
 
   NodeChangeForSimpleFormalParameter() : super._();
 
@@ -1111,14 +1137,14 @@ class NodeChangeForSimpleFormalParameter
   EditPlan _apply(SimpleFormalParameter node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (addExplicitType == null) return innerPlan;
-    var typeText = aggregator.typeToCode(addExplicitType);
+    var typeText = aggregator.typeToCode(addExplicitType!);
     if (node.keyword?.keyword == Keyword.VAR) {
       // TODO(srawlins): Test instrumentation info.
       var info =
           AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
       return aggregator.planner.passThrough(node, innerPlans: [
         aggregator.planner
-            .replaceToken(node, node.keyword, typeText, info: info),
+            .replaceToken(node, node.keyword!, typeText, info: info),
         ...aggregator.innerPlansForNode(node),
       ]);
     } else {
@@ -1127,7 +1153,7 @@ class NodeChangeForSimpleFormalParameter
           AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
       // Skip past the offset of any metadata, a potential `final` keyword, and
       // a potential `covariant` keyword.
-      var offset = node.type?.offset ?? node.identifier.offset;
+      var offset = node.type?.offset ?? node.identifier!.offset;
       return aggregator.planner.passThrough(node, innerPlans: [
         aggregator.planner.insertText(node, offset,
             [AtomicEdit.insert(typeText, info: info), AtomicEdit.insert(' ')]),
@@ -1142,14 +1168,14 @@ class NodeChangeForSimpleFormalParameter
 abstract class NodeChangeForType<N extends AstNode> extends NodeChange<N> {
   bool _makeNullable = false;
 
-  HintComment _nullabilityHint;
+  HintComment? _nullabilityHint;
 
   /// The decorated type of the type annotation, or `null` if there is no
   /// decorated type info of interest.  If [makeNullable] is `true`, the node
   /// from this type will be attached to the edit that adds the `?`. If
   /// [_makeNullable] is `false`, the node from this type will be attached to
   /// the information about why the node wasn't made nullable.
-  DecoratedType _decoratedType;
+  DecoratedType? _decoratedType;
 
   NodeChangeForType._() : super._();
 
@@ -1161,7 +1187,7 @@ abstract class NodeChangeForType<N extends AstNode> extends NodeChange<N> {
 
   /// If we are making the type nullable due to a hint, the comment that caused
   /// it.
-  HintComment get nullabilityHint => _nullabilityHint;
+  HintComment? get nullabilityHint => _nullabilityHint;
 
   @override
   Iterable<String> get _toStringParts => [
@@ -1170,7 +1196,7 @@ abstract class NodeChangeForType<N extends AstNode> extends NodeChange<N> {
       ];
 
   void recordNullability(DecoratedType decoratedType, bool makeNullable,
-      {HintComment nullabilityHint}) {
+      {HintComment? nullabilityHint}) {
     _decoratedType = decoratedType;
     _makeNullable = makeNullable;
     _nullabilityHint = nullabilityHint;
@@ -1180,13 +1206,13 @@ abstract class NodeChangeForType<N extends AstNode> extends NodeChange<N> {
   EditPlan _apply(N node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (_decoratedType == null) return innerPlan;
-    var typeName = _decoratedType.type.getDisplayString(withNullability: false);
-    var fixReasons = {FixReasonTarget.root: _decoratedType.node};
+    var typeName =
+        _decoratedType!.type!.getDisplayString(withNullability: false);
+    var fixReasons = {FixReasonTarget.root: _decoratedType!.node};
     if (_makeNullable) {
       var hint = _nullabilityHint;
       if (hint != null) {
-        return aggregator.planner.acceptNullabilityOrNullCheckHint(
-            innerPlan, hint,
+        return aggregator.planner.acceptSuffixHint(innerPlan, hint,
             info: AtomicEditInfo(
                 NullabilityFixDescription.makeTypeNullableDueToHint(typeName),
                 fixReasons,
@@ -1228,15 +1254,15 @@ class NodeChangeForVariableDeclarationList
     extends NodeChange<VariableDeclarationList> {
   /// If an explicit type should be added to this variable declaration, the type
   /// that should be added.  Otherwise `null`.
-  DartType addExplicitType;
+  DartType? addExplicitType;
 
   /// Indicates whether a "late" annotation should be added to this variable
   /// declaration, caused by inference.
-  LateAdditionReason lateAdditionReason;
+  LateAdditionReason? lateAdditionReason;
 
   /// If a "late" annotation should be added to this variable declaration, and
   /// the cause is a "late" hint, the hint that caused it.  Otherwise `null`.
-  HintComment lateHint;
+  HintComment? lateHint;
 
   NodeChangeForVariableDeclarationList() : super._();
 
@@ -1261,12 +1287,12 @@ class NodeChangeForVariableDeclarationList
           [AtomicEdit.insert('late', info: info), AtomicEdit.insert(' ')]));
     }
     if (addExplicitType != null) {
-      var typeText = aggregator.typeToCode(addExplicitType);
+      var typeText = aggregator.typeToCode(addExplicitType!);
       if (node.keyword?.keyword == Keyword.VAR) {
         var info =
             AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
         innerPlans.add(aggregator.planner
-            .replaceToken(node, node.keyword, typeText, info: info));
+            .replaceToken(node, node.keyword!, typeText, info: info));
       } else {
         var info =
             AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
@@ -1279,14 +1305,67 @@ class NodeChangeForVariableDeclarationList
     innerPlans.addAll(aggregator.innerPlansForNode(node));
     var plan = aggregator.planner.passThrough(node, innerPlans: innerPlans);
     if (lateHint != null) {
-      var description = lateHint.kind == HintCommentKind.late_
+      var description = lateHint!.kind == HintCommentKind.late_
           ? NullabilityFixDescription.addLateDueToHint
           : NullabilityFixDescription.addLateFinalDueToHint;
-      plan = aggregator.planner.acceptLateHint(plan, lateHint,
+      plan = aggregator.planner.acceptPrefixHint(plan, lateHint!,
           info: AtomicEditInfo(description, {}, hintComment: lateHint));
     }
     return plan;
   }
+}
+
+/// [ExpressionChange] describing the addition of a comment explaining that a
+/// literal `null` could not be migrated.
+class NoValidMigrationChange extends ExpressionChange {
+  NoValidMigrationChange(DartType resultType) : super(resultType);
+
+  @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.noValidMigrationForNull;
+
+  @override
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+          NodeProducingEditPlan innerPlan, AtomicEditInfo? info) =>
+      aggregator.planner.addCommentPostfix(
+          innerPlan, '/* no valid migration */',
+          info: info, isInformative: true);
+
+  @override
+  String applyText(FixAggregator aggregator, String inner) =>
+      '$inner /* no valid migration */';
+
+  @override
+  String describe() => 'NoValidMigrationChange';
+}
+
+/// [ExpressionChange] describing the addition of an `!` after an expression.
+class NullCheckChange extends ExpressionChange {
+  /// The hint that is causing this `!` to be added, if any.
+  final HintComment? hint;
+
+  NullCheckChange(DartType resultType, {this.hint}) : super(resultType);
+
+  @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.checkExpression;
+
+  @override
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+      NodeProducingEditPlan innerPlan, AtomicEditInfo? info) {
+    if (hint != null) {
+      return aggregator.planner.acceptSuffixHint(innerPlan, hint!, info: info);
+    } else {
+      return aggregator.planner
+          .addUnaryPostfix(innerPlan, TokenType.BANG, info: info);
+    }
+  }
+
+  @override
+  String applyText(FixAggregator aggregator, String inner) => '$inner!';
+
+  @override
+  String describe() => 'NullCheckChange';
 }
 
 /// Visitor that creates an appropriate [NodeChange] object for the node being
@@ -1372,7 +1451,7 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
       NodeChangeForSimpleFormalParameter();
 
   @override
-  NodeChange visitSimpleIdentifier(SimpleIdentifier node) {
+  NodeChange? visitSimpleIdentifier(SimpleIdentifier node) {
     var parent = node.parent;
     if (parent is MethodInvocation && identical(node, parent.methodName)) {
       return NodeChangeForMethodName();

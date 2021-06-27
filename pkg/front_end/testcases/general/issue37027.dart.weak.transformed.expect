@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class C extends core::Object {
+  final field core::Set<core::int> s;
+  constructor •(core::List<core::int> ell) → self::C
+    : self::C::s = block {
+      final core::Set<core::int> #t1 = new col::_CompactLinkedHashSet::•<core::int>();
+      {
+        core::Iterator<core::int> :sync-for-iterator = ell.{core::Iterable::iterator}{core::Iterator<core::int>};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+          core::int e = :sync-for-iterator.{core::Iterator::current}{core::int};
+          if(e.{core::int::isOdd}{core::bool})
+            #t1.{core::Set::add}{Invariant}(2.{core::num::*}(e){(core::num) → core::int}){(core::int) → core::bool};
+        }
+      }
+    } =>#t1, super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

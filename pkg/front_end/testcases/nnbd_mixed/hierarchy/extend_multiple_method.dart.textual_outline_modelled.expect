@@ -1,0 +1,28 @@
+abstract class AbstractClass extends Super implements Interface1, Interface2 {}
+
+abstract class Super {
+  void extendedAbstractImplementedMethod();
+  void extendedAbstractImplementedMultipleMethod();
+  void extendedAbstractMethod();
+  void extendedConcreteImplementedMethod() {}
+  void extendedConcreteImplementedMultipleMethod() {}
+  void extendedConcreteMethod() {}
+}
+
+class ConcreteClass extends Super implements Interface1, Interface2 {}
+
+class ConcreteSub extends AbstractClass {}
+
+class Interface1 {
+  void extendedAbstractImplementedMethod() {}
+  void extendedAbstractImplementedMultipleMethod() {}
+  void extendedConcreteImplementedMethod() {}
+  void extendedConcreteImplementedMultipleMethod() {}
+}
+
+class Interface2 {
+  void extendedAbstractImplementedMultipleMethod() {}
+  void extendedConcreteImplementedMultipleMethod() {}
+}
+
+main() {}

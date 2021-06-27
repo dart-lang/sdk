@@ -29,7 +29,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class GenericNever<T extends Never = Never> extends core::Object {
+class GenericNever<T extends Never> extends core::Object {
   synthetic constructor •() → self::GenericNever<self::GenericNever::T>
     : super core::Object::•()
     ;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// A helper library to connect to an existing VM and trigger a hot-reload via
 /// its service protocol.
 ///

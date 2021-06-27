@@ -7,15 +7,15 @@ class X extends core::Object {
     : super core::Object::•()
     ;
 }
-[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(1) ?{core::bool*} true : false;
-[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(2) ?{core::bool*} true : false;
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("1") =={core::num::==}{(core::Object*) →* core::bool*} 1 ?{core::bool*} true : false;
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kFalse = [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("1") =={core::num::==}{(core::Object*) →* core::bool*} 2 ?{core::bool*} true : false;
 static field dynamic usedObject;
 [@vm.unboxing-info.metadata=()->i]static get mint() → core::int*
   return -6144092014192636707;
 [@vm.unboxing-info.metadata=()->i]static get smiOrMint() → core::int*
   return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : [@vm.inferred-type.metadata=int] self::mint;
 static method use(dynamic object) → void {
-  [@vm.inferred-type.metadata=!? (receiver not int)] self::usedObject.{core::Object::==}(null) ?{dynamic} self::usedObject = object : null;
+  self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }
 static method takePositional(core::int* unboxedSmi, dynamic unboxedInt, dynamic unboxedDouble, dynamic boxedNullableInt, dynamic boxedNullableDouble, dynamic boxedIntOrDouble, dynamic boxedNullableIntOrDouble, dynamic boxedNullableX, dynamic boxedX) → void {
   self::use(unboxedInt);
@@ -90,4 +90,19 @@ static method main() → dynamic {
   self::use(#C11);
   self::use(#C12);
   self::use(#C13);
+}
+constants  {
+  #C1 = null
+  #C2 = tearoff self::takePositional
+  #C3 = tearoff self::takeOptional
+  #C4 = tearoff self::takeNamed
+  #C5 = tearoff self::returnUnboxedSmi
+  #C6 = tearoff self::returnUnboxedInt
+  #C7 = tearoff self::returnUnboxedDouble
+  #C8 = tearoff self::returnBoxedNullableInt
+  #C9 = tearoff self::returnBoxedNullableDouble
+  #C10 = tearoff self::returnBoxedIntOrDouble
+  #C11 = tearoff self::returnBoxedNullableIntOrDouble
+  #C12 = tearoff self::returnBoxedNullableX
+  #C13 = tearoff self::returnBoxedX
 }

@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertAddAllToSpread extends CorrectionProducer {
   /// The arguments used to compose the message.
-  List<String> _args;
+  List<String> _args = [];
 
   /// A flag indicating whether the change that was built is one that inlines
   /// the elements of another list into the target list.
@@ -29,6 +29,12 @@ class ConvertAddAllToSpread extends CorrectionProducer {
       : DartAssistKind.CONVERT_TO_SPREAD;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   List<Object> get fixArguments => _args;
 
   @override
@@ -37,23 +43,37 @@ class ConvertAddAllToSpread extends CorrectionProducer {
       : DartFixKind.CONVERT_TO_SPREAD;
 
   @override
+  FixKind get multiFixKind => _isInlineInvocation
+      ? DartFixKind.INLINE_INVOCATION_MULTI
+      : DartFixKind.CONVERT_TO_SPREAD_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+    var name = node;
+    if (name is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier name = node;
-    MethodInvocation invocation = node.parent;
+
+    var invocation = name.parent;
+    if (invocation is! MethodInvocation) {
+      return;
+    }
+
     if (name != invocation.methodName ||
         name.name != 'addAll' ||
         !invocation.isCascaded ||
         invocation.argumentList.arguments.length != 1) {
       return;
     }
+
     var cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    if (cascade == null) {
+      return;
+    }
+
     var sections = cascade.cascadeSections;
-    var target = cascade.target;
-    if (target is! ListLiteral || sections[0] != invocation) {
+    var targetList = cascade.target;
+    if (targetList is! ListLiteral || sections[0] != invocation) {
       // TODO(brianwilkerson) Consider extending this to handle set literals.
       return;
     }
@@ -61,9 +81,8 @@ class ConvertAddAllToSpread extends CorrectionProducer {
     bool isEmptyListLiteral(Expression expression) =>
         expression is ListLiteral && expression.elements.isEmpty;
 
-    ListLiteral list = target;
     var argument = invocation.argumentList.arguments[0];
-    String elementText;
+    String? elementText;
     if (argument is BinaryExpression &&
         argument.operator.type == TokenType.QUESTION_QUESTION) {
       var right = argument.rightOperand;
@@ -98,13 +117,20 @@ class ConvertAddAllToSpread extends CorrectionProducer {
     }
     elementText ??= '...${utils.getNodeText(argument)}';
 
+    final elementText_final = elementText;
     await builder.addDartFileEdit(file, (builder) {
-      if (list.elements.isNotEmpty) {
+      if (targetList.elements.isNotEmpty) {
         // ['a']..addAll(['b', 'c']);
-        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+        builder.addSimpleInsertion(
+          targetList.elements.last.end,
+          ', $elementText_final',
+        );
       } else {
         // []..addAll(['b', 'c']);
-        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+        builder.addSimpleInsertion(
+          targetList.leftBracket.end,
+          elementText_final,
+        );
       }
       builder.addDeletion(range.node(invocation));
     });

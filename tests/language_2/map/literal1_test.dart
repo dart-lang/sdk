@@ -4,6 +4,8 @@
 //
 // A type mismatch in a constant map literal is a compile-time error.
 
+// @dart = 2.9
+
 main() {
   var m = const
       <String, String>

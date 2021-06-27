@@ -118,18 +118,26 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
     ir.Expression body = node.body;
     if (node.variable.name == null &&
         node.variable.isFinal &&
-        body is ir.ConditionalExpression &&
-        body.condition is ir.MethodInvocation &&
-        isNullLiteral(body.then)) {
-      ir.MethodInvocation invocation = body.condition;
-      ir.Expression receiver = invocation.receiver;
-      if (invocation.name.text == '==' &&
-          receiver is ir.VariableGet &&
-          receiver.variable == node.variable &&
-          isNullLiteral(invocation.arguments.positional.single)) {
-        // We have
-        //   let #t1 = e0 in #t1 == null ? null : e1
-        return new NullAwareExpression(node.variable, body.otherwise);
+        body is ir.ConditionalExpression) {
+      if (body.condition is ir.MethodInvocation && isNullLiteral(body.then)) {
+        ir.MethodInvocation invocation = body.condition;
+        ir.Expression receiver = invocation.receiver;
+        if (invocation.name.text == '==' &&
+            receiver is ir.VariableGet &&
+            receiver.variable == node.variable &&
+            isNullLiteral(invocation.arguments.positional.single)) {
+          // We have
+          //   let #t1 = e0 in #t1 == null ? null : e1
+          return new NullAwareExpression(node.variable, body.otherwise);
+        }
+      } else if (body.condition is ir.EqualsNull) {
+        ir.EqualsNull equalsNull = body.condition;
+        ir.Expression receiver = equalsNull.expression;
+        if (receiver is ir.VariableGet && receiver.variable == node.variable) {
+          // We have
+          //   let #t1 = e0 in #t1 == null ? null : e1
+          return new NullAwareExpression(node.variable, body.otherwise);
+        }
       }
     }
   }
@@ -153,7 +161,16 @@ ir.LibraryDependency getDeferredImport(ir.TreeNode node) {
   //
   //   (let _ = check(prefix) in prefix::field).property
   if (node is ir.StaticGet || node is ir.ConstantExpression) {
-    while (parent is ir.PropertyGet || parent is ir.MethodInvocation) {
+    while (parent is ir.PropertyGet ||
+        parent is ir.InstanceGet ||
+        parent is ir.DynamicGet ||
+        parent is ir.InstanceTearOff ||
+        parent is ir.FunctionTearOff ||
+        parent is ir.MethodInvocation ||
+        parent is ir.InstanceInvocation ||
+        parent is ir.InstanceGetterInvocation ||
+        parent is ir.DynamicInvocation ||
+        parent is ir.FunctionInvocation) {
       parent = parent.parent;
     }
   }
@@ -208,12 +225,14 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitFutureOrType(ir.FutureOrType node) {
-    return visit(node.typeArgument);
+  bool visitExtensionType(ir.ExtensionType node) {
+    return visitList(node.typeArguments);
   }
 
   @override
-  bool visitBottomType(ir.BottomType node) => false;
+  bool visitFutureOrType(ir.FutureOrType node) {
+    return visit(node.typeArgument);
+  }
 
   @override
   bool visitNeverType(ir.NeverType node) => false;
@@ -267,4 +286,21 @@ bool memberEntityIsInWebLibrary(MemberEntity entity) {
   var importUri = entity?.library?.canonicalUri;
   if (importUri == null) return false;
   return _isWebLibrary(importUri);
+}
+
+/// Returns the effective target of a super access of [target].
+///
+/// If [target] is a concrete mixin stub then the stub target is returned
+/// instead of the concrete mixin stub. This is done to avoid unnecessary
+/// indirections in super accesses.
+///
+/// See [ir.ProcedureStubKind.ConcreteMixinStub] for why concrete mixin stubs
+/// are inserted in the first place.
+ir.Member getEffectiveSuperTarget(ir.Member target) {
+  if (target is ir.Procedure) {
+    if (target.stubKind == ir.ProcedureStubKind.ConcreteMixinStub) {
+      return getEffectiveSuperTarget(target.stubTarget);
+    }
+  }
+  return target;
 }

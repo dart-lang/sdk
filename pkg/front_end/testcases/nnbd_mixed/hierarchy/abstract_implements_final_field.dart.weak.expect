@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  final field core::int implementedConcreteField = 0;
+  final field core::int declaredConcreteImplementsConcreteField = 0;
+  final field core::int declaredAbstractImplementsConcreteField = 0;
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  abstract get implementedAbstractField() → core::int;
+  abstract get declaredConcreteImplementsAbstractField() → core::int;
+  abstract get declaredAbstractImplementsAbstractField() → core::int;
+}
+abstract class AbstractClass extends core::Object implements self::Interface {
+  final field core::int declaredConcreteField = 0;
+  final field core::int declaredConcreteImplementsConcreteField = 0;
+  final field core::int declaredConcreteImplementsAbstractField = 0;
+  synthetic constructor •() → self::AbstractClass
+    : super core::Object::•()
+    ;
+  abstract get declaredAbstractField() → core::int;
+  abstract get declaredAbstractImplementsConcreteField() → core::int;
+  abstract get declaredAbstractImplementsAbstractField() → core::int;
+}
+static method main() → dynamic {}

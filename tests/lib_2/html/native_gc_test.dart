@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 library NativeGCTest;
 
 import 'dart:async';

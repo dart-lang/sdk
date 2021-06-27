@@ -1,0 +1,163 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:5:7: Error: The non-abstract class 'Super' is missing implementations for these members:
+//  - Super.extendedAbstractMethod
+//  - Super.extendedAbstractMixedInAbstractMethod
+//  - Super.extendedAbstractMixedInConcreteMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Super {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
+//   void extendedAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:16:8: Context: 'Super.extendedAbstractMixedInAbstractMethod' is defined here.
+//   void extendedAbstractMixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:12:8: Context: 'Super.extendedAbstractMixedInConcreteMethod' is defined here.
+//   void extendedAbstractMixedInConcreteMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:19:7: Error: The non-abstract class 'Mixin' is missing implementations for these members:
+//  - Mixin.extendedAbstractMixedInAbstractMethod
+//  - Mixin.extendedConcreteMixedInAbstractMethod
+//  - Mixin.mixedInAbstractMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Mixin {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:30:8: Context: 'Mixin.extendedAbstractMixedInAbstractMethod' is defined here.
+//   void extendedAbstractMixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:28:8: Context: 'Mixin.extendedConcreteMixedInAbstractMethod' is defined here.
+//   void extendedConcreteMixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:22:8: Context: 'Mixin.mixedInAbstractMethod' is defined here.
+//   void mixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:33:7: Error: The non-abstract class 'ClassMixin' is missing implementations for these members:
+//  - Mixin.extendedAbstractMixedInAbstractMethod
+//  - Mixin.mixedInAbstractMethod
+//  - Super.extendedAbstractMethod
+//  - Super.extendedAbstractMixedInAbstractMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ClassMixin extends Super with Mixin {}
+//       ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:30:8: Context: 'Mixin.extendedAbstractMixedInAbstractMethod' is defined here.
+//   void extendedAbstractMixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:22:8: Context: 'Mixin.mixedInAbstractMethod' is defined here.
+//   void mixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
+//   void extendedAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:16:8: Context: 'Super.extendedAbstractMixedInAbstractMethod' is defined here.
+//   void extendedAbstractMixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:35:7: Error: The non-abstract class 'NamedMixin' is missing implementations for these members:
+//  - Mixin.extendedAbstractMixedInAbstractMethod
+//  - Mixin.mixedInAbstractMethod
+//  - Super.extendedAbstractMethod
+//  - Super.extendedAbstractMixedInAbstractMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class NamedMixin = Super with Mixin;
+//       ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:30:8: Context: 'Mixin.extendedAbstractMixedInAbstractMethod' is defined here.
+//   void extendedAbstractMixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:22:8: Context: 'Mixin.mixedInAbstractMethod' is defined here.
+//   void mixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
+//   void extendedAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_method.dart:16:8: Context: 'Super.extendedAbstractMixedInAbstractMethod' is defined here.
+//   void extendedAbstractMixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  method extendedConcreteMethod() → void
+    ;
+  abstract method extendedAbstractMethod() → void;
+  method extendedConcreteMixedInConcreteMethod() → void
+    ;
+  abstract method extendedAbstractMixedInConcreteMethod() → void;
+  method extendedConcreteMixedInAbstractMethod() → void
+    ;
+  abstract method extendedAbstractMixedInAbstractMethod() → void;
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    ;
+  method mixedInConcreteMethod() → void
+    ;
+  abstract method mixedInAbstractMethod() → void;
+  method extendedConcreteMixedInConcreteMethod() → void
+    ;
+  method extendedAbstractMixedInConcreteMethod() → void
+    ;
+  abstract method extendedConcreteMixedInAbstractMethod() → void;
+  abstract method extendedAbstractMixedInAbstractMethod() → void;
+}
+abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_ClassMixin&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInConcreteMethod() → void
+    return super.{self::Mixin::mixedInConcreteMethod}();
+  mixin-super-stub method extendedConcreteMixedInConcreteMethod() → void
+    return super.{self::Mixin::extendedConcreteMixedInConcreteMethod}();
+  mixin-super-stub method extendedAbstractMixedInConcreteMethod() → void
+    return super.{self::Mixin::extendedAbstractMixedInConcreteMethod}();
+  abstract mixin-stub method extendedConcreteMixedInAbstractMethod() → void; -> self::Mixin::extendedConcreteMixedInAbstractMethod
+  abstract mixin-stub method mixedInAbstractMethod() → void; -> self::Mixin::mixedInAbstractMethod
+  abstract mixin-stub method extendedAbstractMixedInAbstractMethod() → void; -> self::Mixin::extendedAbstractMixedInAbstractMethod
+}
+class ClassMixin extends self::_ClassMixin&Super&Mixin {
+  synthetic constructor •() → self::ClassMixin
+    ;
+}
+class NamedMixin = self::Super with self::Mixin {
+  synthetic constructor •() → self::NamedMixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInConcreteMethod() → void
+    return super.{self::Mixin::mixedInConcreteMethod}();
+  mixin-super-stub method extendedConcreteMixedInConcreteMethod() → void
+    return super.{self::Mixin::extendedConcreteMixedInConcreteMethod}();
+  mixin-super-stub method extendedAbstractMixedInConcreteMethod() → void
+    return super.{self::Mixin::extendedAbstractMixedInConcreteMethod}();
+  abstract mixin-stub method extendedConcreteMixedInAbstractMethod() → void; -> self::Mixin::extendedConcreteMixedInAbstractMethod
+  abstract mixin-stub method mixedInAbstractMethod() → void; -> self::Mixin::mixedInAbstractMethod
+  abstract mixin-stub method extendedAbstractMixedInAbstractMethod() → void; -> self::Mixin::extendedAbstractMixedInAbstractMethod
+}
+static method main() → dynamic
+  ;

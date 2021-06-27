@@ -8,7 +8,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show CompletionSuggestion, CompletionSuggestionKind, ElementKind;
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,11 +23,11 @@ void main() {
 class CiderCompletionComputerTest extends CiderServiceTest {
   final CiderCompletionCache _completionCache = CiderCompletionCache();
 
-  CiderCompletionComputer _computer;
-  void Function(ResolvedUnitResult) _testResolvedUnit;
+  late CiderCompletionComputer _computer;
+  void Function(ResolvedUnitResult)? _testResolvedUnit;
 
-  CiderCompletionResult _completionResult;
-  List<CompletionSuggestion> _suggestions;
+  late CiderCompletionResult _completionResult;
+  late List<CompletionSuggestion> _suggestions;
 
   Future<void> test_compute() async {
     await _compute(r'''
@@ -488,7 +487,23 @@ part 'a.dart';
     _assertHasClass(text: 'A');
   }
 
-  Future<void> test_limitedResolution_inPart() async {
+  Future<void> test_limitedResolution_inPart_partOfName() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+library my_lib;
+part 'test.dart';
+class A {}
+''');
+
+    await _compute(r'''
+part of my_lib;
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
+  }
+
+  Future<void> test_limitedResolution_inPart_partOfUri() async {
     newFile('/workspace/dart/test/lib/a.dart', content: r'''
 part 'test.dart';
 class A {}
@@ -496,6 +511,17 @@ class A {}
 
     await _compute(r'''
 part of 'a.dart';
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
+  }
+
+  Future<void> test_limitedResolution_inPart_partOfUri_doesNotExist() async {
+    await _compute(r'''
+part of 'a.dart';
+class A {}
 ^
 ''');
 
@@ -528,6 +554,17 @@ mixin M {
 
     _assertHasGetter(text: 'hashCode');
     _assertHasMethod(text: 'foo');
+  }
+
+  Future<void> test_limitedResolution_path_hasSpace() async {
+    testPath = convertPath('/workspace/dart/test name/lib/a.dart');
+    await _compute(r'''
+class A {}
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
   }
 
   Future<void> test_limitedResolution_unit_function_body() async {
@@ -601,7 +638,7 @@ import 'a.dart';
     );
   }
 
-  CompletionSuggestion _assertHasClass({@required String text}) {
+  CompletionSuggestion _assertHasClass({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.CLASS,
@@ -610,12 +647,12 @@ import 'a.dart';
     return matching.single;
   }
 
-  void _assertHasCompletion({@required String text}) {
+  void _assertHasCompletion({required String text}) {
     var matching = _matchingCompletions(text: text);
     expect(matching, hasLength(1), reason: 'Expected exactly one completion');
   }
 
-  CompletionSuggestion _assertHasConstructor({@required String text}) {
+  CompletionSuggestion _assertHasConstructor({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.CONSTRUCTOR,
@@ -624,7 +661,7 @@ import 'a.dart';
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasEnumConstant({@required String text}) {
+  CompletionSuggestion _assertHasEnumConstant({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.ENUM_CONSTANT,
@@ -633,7 +670,7 @@ import 'a.dart';
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasFunction({@required String text}) {
+  CompletionSuggestion _assertHasFunction({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.FUNCTION,
@@ -642,7 +679,7 @@ import 'a.dart';
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasGetter({@required String text}) {
+  CompletionSuggestion _assertHasGetter({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.GETTER,
@@ -651,13 +688,13 @@ import 'a.dart';
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasKeyword({@required String text}) {
+  CompletionSuggestion _assertHasKeyword({required String text}) {
     var matching = _matchingKeywordCompletions(text: text);
     expect(matching, hasLength(1), reason: 'Expected exactly one completion');
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasLocalVariable({@required String text}) {
+  CompletionSuggestion _assertHasLocalVariable({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.LOCAL_VARIABLE,
@@ -670,7 +707,7 @@ import 'a.dart';
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasMethod({@required String text}) {
+  CompletionSuggestion _assertHasMethod({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.METHOD,
@@ -679,7 +716,7 @@ import 'a.dart';
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasNamedArgument({@required String name}) {
+  CompletionSuggestion _assertHasNamedArgument({required String name}) {
     var matching = _matchingNamedArgumentSuggestions(name: name);
     expect(matching, hasLength(1), reason: 'Expected exactly one completion');
     return matching.single;
@@ -690,11 +727,11 @@ import 'a.dart';
     for (var name in path) {
       var child = current.getChild(name);
       expect(child, isNotNull, reason: "No '$name' in $current");
-      current = child;
+      current = child!;
     }
   }
 
-  CompletionSuggestion _assertHasParameter({@required String text}) {
+  CompletionSuggestion _assertHasParameter({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.PARAMETER,
@@ -703,7 +740,7 @@ import 'a.dart';
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasTopLevelVariable({@required String text}) {
+  CompletionSuggestion _assertHasTopLevelVariable({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.TOP_LEVEL_VARIABLE,
@@ -716,7 +753,7 @@ import 'a.dart';
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasTypeParameter({@required String text}) {
+  CompletionSuggestion _assertHasTypeParameter({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.TYPE_PARAMETER,
@@ -725,7 +762,7 @@ import 'a.dart';
     return matching.single;
   }
 
-  void _assertNoClass({@required String text}) {
+  void _assertNoClass({required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.CLASS,
@@ -733,12 +770,12 @@ import 'a.dart';
     expect(matching, isEmpty, reason: 'Expected zero completions');
   }
 
-  void _assertNoKeyword({@required String text}) {
+  void _assertNoKeyword({required String text}) {
     var matching = _matchingKeywordCompletions(text: text);
     expect(matching, isEmpty, reason: 'Expected zero completions');
   }
 
-  void _assertNoNamedArgument({@required String name}) {
+  void _assertNoNamedArgument({required String name}) {
     var matching = _matchingNamedArgumentSuggestions(name: name);
     expect(matching, isEmpty, reason: 'Expected zero completions');
   }
@@ -767,9 +804,9 @@ import 'a.dart';
 
   /// Configure the [CiderCompletionComputer] to check that when resolving
   /// for completion we don't resolve unnecessary node.
-  void _configureToCheckNotResolved({Set<String> identifiers}) {
+  void _configureToCheckNotResolved({required Set<String> identifiers}) {
     _testResolvedUnit = (resolvedUnitResult) {
-      var unit = resolvedUnitResult.unit;
+      var unit = resolvedUnitResult.unit!;
       unit.accept(
         FunctionAstVisitor(
           simpleIdentifier: (node) {
@@ -788,15 +825,15 @@ import 'a.dart';
   }
 
   List<CompletionSuggestion> _matchingCompletions({
-    @required String text,
-    ElementKind elementKind,
+    required String text,
+    ElementKind? elementKind,
   }) {
     return _suggestions.where((e) {
       if (e.completion != text) {
         return false;
       }
 
-      if (elementKind != null && e.element.kind != elementKind) {
+      if (elementKind != null && e.element!.kind != elementKind) {
         return false;
       }
 
@@ -805,7 +842,7 @@ import 'a.dart';
   }
 
   List<CompletionSuggestion> _matchingKeywordCompletions({
-    @required String text,
+    required String text,
   }) {
     return _suggestions.where((e) {
       if (e.completion != text) {
@@ -816,7 +853,7 @@ import 'a.dart';
   }
 
   List<CompletionSuggestion> _matchingNamedArgumentSuggestions({
-    @required String name,
+    required String name,
   }) {
     return _suggestions.where((e) {
       if (e.kind != CompletionSuggestionKind.NAMED_ARGUMENT) {

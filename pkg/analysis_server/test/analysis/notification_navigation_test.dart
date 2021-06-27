@@ -20,14 +20,14 @@ void main() {
 }
 
 class AbstractNavigationTest extends AbstractAnalysisTest {
-  List<NavigationRegion> regions;
-  List<NavigationTarget> targets;
-  List<String> targetFiles;
+  late List<NavigationRegion> regions;
+  late List<NavigationTarget> targets;
+  late List<String> targetFiles;
 
-  NavigationRegion testRegion;
-  List<int> testTargetIndexes;
-  List<NavigationTarget> testTargets;
-  NavigationTarget testTarget;
+  late NavigationRegion testRegion;
+  late List<int> testTargetIndexes;
+  late List<NavigationTarget> testTargets;
+  late NavigationTarget testTarget;
 
   /// Validates that there is a target in [testTargetIndexes] with [file],
   /// at [offset] and with the given [length].
@@ -196,6 +196,53 @@ AAA aaa;
     assertHasRegionTarget('AAA aaa;', 'AAA {}');
   }
 
+  Future<void> test_annotation_generic_typeArguments_class() async {
+    addTestFile('''
+class A<T> {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''');
+    await prepareNavigation();
+    assertHasRegion('int>()');
+  }
+
+  Future<void> test_annotationConstructor_generic_named() async {
+    addTestFile('''
+class A<T> {
+  const A.named(_);
+}
+
+@A<int>.named(0)
+void f() {}
+''');
+    await prepareNavigation();
+    {
+      assertHasRegion('A<int>.named(0)');
+      assertHasTarget('named(_);');
+    }
+    {
+      assertHasRegion('named(0)');
+      assertHasTarget('named(_);');
+    }
+  }
+
+  Future<void> test_annotationConstructor_generic_unnamed() async {
+    addTestFile('''
+class A<T> {
+  const A(_);
+}
+
+@A<int>(0)
+void f() {}
+''');
+    await prepareNavigation();
+    assertHasRegionString('A<int>(0)', 'A'.length);
+    assertHasTarget('A(_);', 0);
+  }
+
   Future<void> test_annotationConstructor_implicit() async {
     addTestFile('''
 class A {
@@ -342,6 +389,42 @@ class BBB {}
     assertHasTarget('A(BBB', 0);
     // validate that we don't forget to resolve parameters
     assertHasRegionTarget('BBB p', 'BBB {}');
+  }
+
+  Future<void> test_enum_constant() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('a;');
+    assertHasTarget('a,');
+  }
+
+  Future<void> test_enum_index() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a.index;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('index');
+    assertHasTarget('E {');
+  }
+
+  Future<void> test_enum_values() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.values;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('values');
+    assertHasTarget('E');
   }
 
   Future<void> test_extension_on() async {
@@ -954,6 +1037,28 @@ main() {
     await prepareNavigation();
     assertHasRegionTarget('AAA aaa', 'AAA {}');
     expect(testTarget.kind, ElementKind.CLASS);
+  }
+
+  Future<void> test_targetElement_typedef_functionType() async {
+    addTestFile('''
+typedef A = void Function();
+
+void f(A a) {}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A a', 'A =');
+    expect(testTarget.kind, ElementKind.TYPE_ALIAS);
+  }
+
+  Future<void> test_targetElement_typedef_interfaceType() async {
+    addTestFile('''
+typedef A = List<int>;
+
+void f(A a) {}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A a', 'A =');
+    expect(testTarget.kind, ElementKind.TYPE_ALIAS);
   }
 
   Future<void> test_type_dynamic() async {

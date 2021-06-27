@@ -399,6 +399,8 @@ class ProcessStarter {
   }
 
  private:
+  static constexpr int kErrorBufferSize = 1024;
+
   int CreatePipes() {
     int result;
     result = TEMP_FAILURE_RETRY(pipe2(exec_control_, O_CLOEXEC));
@@ -705,9 +707,8 @@ class ProcessStarter {
   }
 
   void SetChildOsErrorMessage() {
-    const int kBufferSize = 1024;
-    char* error_message = DartUtils::ScopedCString(kBufferSize);
-    Utils::StrError(errno, error_message, kBufferSize);
+    char* error_message = DartUtils::ScopedCString(kErrorBufferSize);
+    Utils::StrError(errno, error_message, kErrorBufferSize);
     *os_error_message_ = error_message;
   }
 
@@ -715,9 +716,9 @@ class ProcessStarter {
     // In the case of failure in the child process write the errno and
     // the OS error message to the exec control pipe and exit.
     int child_errno = errno;
-    const int kBufferSize = 1024;
-    char error_buf[kBufferSize];
-    char* os_error_message = Utils::StrError(errno, error_buf, kBufferSize);
+    char error_buf[kErrorBufferSize];
+    char* os_error_message =
+        Utils::StrError(errno, error_buf, kErrorBufferSize);
     int bytes_written = FDUtils::WriteToBlocking(exec_control_[1], &child_errno,
                                                  sizeof(child_errno));
     if (bytes_written == sizeof(child_errno)) {
@@ -741,11 +742,10 @@ class ProcessStarter {
   }
 
   void ReadChildError() {
-    const int kMaxMessageSize = 256;
-    char* message = DartUtils::ScopedCString(kMaxMessageSize);
+    char* message = DartUtils::ScopedCString(kErrorBufferSize);
     if (message != NULL) {
-      FDUtils::ReadFromBlocking(exec_control_[0], message, kMaxMessageSize);
-      message[kMaxMessageSize - 1] = '\0';
+      FDUtils::ReadFromBlocking(exec_control_[0], message, kErrorBufferSize);
+      message[kErrorBufferSize - 1] = '\0';
       *os_error_message_ = message;
     } else {
       // Could not get error message. It will be NULL.
@@ -1003,8 +1003,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
   bool listen = true;
+  sa_handler_t oldact_handler = nullptr;
   while (handler != NULL) {
     if (handler->signal() == signal) {
+      oldact_handler = handler->oldact();
       listen = false;
       break;
     }
@@ -1017,7 +1019,8 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     for (int i = 0; i < kSignalsCount; i++) {
       sigaddset(&act.sa_mask, kSignals[i]);
     }
-    int status = NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
+    struct sigaction oldact = {};
+    int status = NO_RETRY_EXPECTED(sigaction(signal, &act, &oldact));
     if (status < 0) {
       int err = errno;
       close(fds[0]);
@@ -1025,8 +1028,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
       errno = err;
       return -1;
     }
+    oldact_handler = oldact.sa_handler;
   }
-  signal_handlers = new SignalInfo(fds[1], signal, signal_handlers);
+  signal_handlers =
+      new SignalInfo(fds[1], signal, oldact_handler, signal_handlers);
   return fds[0];
 }
 
@@ -1034,7 +1039,9 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
-  bool unlisten = true;
+  sa_handler_t oldact_handler = SIG_DFL;
+  bool any_removed = false;
+  bool any_remaining = false;
   while (handler != NULL) {
     bool remove = false;
     if (handler->signal() == signal) {
@@ -1044,8 +1051,10 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
         }
         handler->Unlink();
         remove = true;
+        oldact_handler = handler->oldact();
+        any_removed = true;
       } else {
-        unlisten = false;
+        any_remaining = true;
       }
     }
     SignalInfo* next = handler->next();
@@ -1054,9 +1063,9 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
     }
     handler = next;
   }
-  if (unlisten) {
+  if (any_removed && !any_remaining) {
     struct sigaction act = {};
-    act.sa_handler = SIG_DFL;
+    act.sa_handler = oldact_handler;
     VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }
 }
@@ -1065,7 +1074,8 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
-  bool unlisten = true;
+  sa_handler_t oldact_handler = SIG_DFL;
+  bool any_remaining = false;
   intptr_t signal = -1;
   while (handler != NULL) {
     bool remove = false;
@@ -1078,7 +1088,7 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
         remove = true;
         signal = handler->signal();
       } else {
-        unlisten = false;
+        any_remaining = true;
       }
     }
     SignalInfo* next = handler->next();
@@ -1087,9 +1097,9 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
     }
     handler = next;
   }
-  if (unlisten && (signal != -1)) {
+  if ((signal != -1) && !any_remaining) {
     struct sigaction act = {};
-    act.sa_handler = SIG_DFL;
+    act.sa_handler = oldact_handler;
     VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }
 }

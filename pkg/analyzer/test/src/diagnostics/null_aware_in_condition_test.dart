@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class NullAwareInConditionTest extends PubPackageResolutionTest {
+class NullAwareInConditionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_assert() async {
     await assertErrorsInCode(r'''
 m(x) {

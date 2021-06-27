@@ -5,6 +5,7 @@
 library dart2js.js_emitter.code_emitter_task;
 
 import '../common.dart';
+import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
@@ -20,7 +21,7 @@ import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
-import 'startup_emitter/fragment_merger.dart' as fragment_merger;
+import 'startup_emitter/fragment_merger.dart';
 
 import 'metadata_collector.dart' show MetadataCollector;
 import 'model.dart';
@@ -49,6 +50,9 @@ class CodeEmitterTask extends CompilerTask {
   // The field is set after the program has been emitted.
   /// Contains a list of all classes that are emitted.
   Set<ClassEntity> neededClasses;
+
+  @override
+  final _EmitterMetrics metrics = _EmitterMetrics();
 
   CodeEmitterTask(this._compiler, this._generateSourceMap)
       : super(_compiler.measurer);
@@ -99,11 +103,7 @@ class CodeEmitterTask extends CompilerTask {
           this,
           _generateSourceMap);
       metadataCollector = new MetadataCollector(
-          _compiler.options,
-          _compiler.reporter,
-          _emitter,
-          codegen.rtiRecipeEncoder,
-          closedWorld.elementEnvironment);
+          _compiler.reporter, _emitter, codegen.rtiRecipeEncoder);
       typeTestRegistry = new TypeTestRegistry(
           _compiler.options, closedWorld.elementEnvironment);
     });
@@ -121,7 +121,6 @@ class CodeEmitterTask extends CompilerTask {
       });
       ProgramBuilder programBuilder = ProgramBuilder(
           _compiler.options,
-          _compiler.reporter,
           closedWorld.elementEnvironment,
           closedWorld.commonElements,
           closedWorld.outputUnitData,
@@ -160,7 +159,7 @@ class CodeEmitterTask extends CompilerTask {
 /// the closed world computed by the codegen enqueuer.
 abstract class ModularEmitter {
   /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassEntity e, {bool hasBeenInstantiated});
+  jsAst.Expression prototypeAccess(ClassEntity e);
 
   /// Returns the JS function representing the given function.
   ///
@@ -181,11 +180,8 @@ abstract class ModularEmitter {
   /// The returned expression must only be used in a JS `new` expression.
   jsAst.Expression constructorAccess(ClassEntity e);
 
-  /// Returns the JS expression representing the type [e].
-  jsAst.Expression typeAccess(Entity e);
-
   /// Returns the JS name representing the type [e].
-  jsAst.Name typeAccessNewRti(Entity e);
+  jsAst.Name typeAccessNewRti(ClassEntity e);
 
   /// Returns the JS name representing the type variable [e].
   jsAst.Name typeVariableAccessNewRti(TypeVariableEntity e);
@@ -207,7 +203,16 @@ abstract class ModularEmitter {
 abstract class Emitter implements ModularEmitter {
   Program get programForTesting;
 
-  List<fragment_merger.PreFragment> get preDeferredFragmentsForTesting;
+  List<PreFragment> get preDeferredFragmentsForTesting;
+
+  /// The set of omitted [OutputUnits].
+  Set<OutputUnit> get omittedOutputUnits;
+
+  /// A map of loadId to list of [FinalizedFragments].
+  Map<String, List<FinalizedFragment>> get finalizedFragmentsToLoad;
+
+  /// The [FragmentMerger] itself.
+  FragmentMerger get fragmentMerger;
 
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.
@@ -227,4 +232,17 @@ abstract class Emitter implements ModularEmitter {
 
   /// Returns the size of the code generated for a given output [unit].
   int generatedSize(OutputUnit unit);
+}
+
+class _EmitterMetrics implements Metrics {
+  @override
+  String get namespace => 'emitter';
+
+  CountMetric hunkListElements = CountMetric('hunkListElements');
+
+  @override
+  Iterable<Metric> get primary => [];
+
+  @override
+  Iterable<Metric> get secondary => [hunkListElements];
 }

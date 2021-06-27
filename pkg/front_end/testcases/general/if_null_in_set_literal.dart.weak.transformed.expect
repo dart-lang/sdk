@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  core::Object* a;
+  core::Object* b;
+  return block {
+    final core::Set<core::Object*>* #t1 = new col::_CompactLinkedHashSet::•<core::Object*>();
+    #t1.{core::Set::add}{Invariant}(let final core::Object* #t2 = a in #t2 == null ?{core::Object*} b : #t2){(core::Object*) →* core::bool*};
+  } =>#t1;
+}

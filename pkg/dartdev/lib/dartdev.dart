@@ -10,7 +10,8 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
-import 'package:nnbd_migration/migration_cli.dart';
+import 'package:dartdev/src/commands/migrate.dart';
+import 'package:meta/meta.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub/pub.dart';
 import 'package:usage/usage.dart';
@@ -20,6 +21,7 @@ import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
 import 'src/commands/fix.dart';
+import 'src/commands/language_server.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
@@ -38,7 +40,8 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     args = args
         .where(
           (element) => !(element.contains('--observe') ||
-              element.contains('--enable-vm-service')),
+              element.contains('--enable-vm-service') ||
+              element.contains('--devtools')),
         )
         .toList();
   }
@@ -60,26 +63,30 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
 }
 
 class DartdevRunner extends CommandRunner<int> {
+  static const String dartdevDescription =
+      'A command-line utility for Dart development';
+
   @override
   final ArgParser argParser = ArgParser(
     usageLineLength: dartdevUsageLineLength,
     allowTrailingOptions: false,
   );
 
-  static const String dartdevDescription =
-      'A command-line utility for Dart development';
+  final bool verbose;
 
-  DartdevRunner(List<String> args) : super('dart', '$dartdevDescription.') {
-    final bool verbose = args.contains('-v') || args.contains('--verbose');
+  Analytics _analytics;
 
+  DartdevRunner(List<String> args)
+      : verbose = args.contains('-v') || args.contains('--verbose'),
+        super('dart', '$dartdevDescription.') {
     argParser.addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show additional command output.');
     argParser.addFlag('version',
         negatable: false, help: 'Print the Dart SDK version.');
     argParser.addFlag('enable-analytics',
-        negatable: false, help: 'Enable anonymous analytics.');
+        negatable: false, help: 'Enable analytics.');
     argParser.addFlag('disable-analytics',
-        negatable: false, help: 'Disable anonymous analytics.');
+        negatable: false, help: 'Disable analytics.');
 
     argParser.addFlag('diagnostics',
         negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);
@@ -87,7 +94,7 @@ class DartdevRunner extends CommandRunner<int> {
     argParser.addFlag(
       'analytics',
       negatable: true,
-      help: 'Disable anonymous analytics for this `dart *` run',
+      help: 'Disable analytics for this `dart *` run',
       hide: true,
     );
 
@@ -96,36 +103,43 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(CompileCommand(verbose: verbose));
     addCommand(FixCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
+    addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(MigrateCommand(verbose: verbose));
     addCommand(pubCommand());
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
   }
 
-  @override
-  String get usageFooter =>
-      'See https://dart.dev/tools/dart-tool for detailed documentation.';
+  @visibleForTesting
+  Analytics get analytics => _analytics;
 
   @override
   String get invocation =>
-      'dart [<vm-flags>] <command|dart-file> [<arguments>]';
+      'dart ${verbose ? '[vm-options] ' : ''}<command|dart-file> [arguments]';
+  @override
+  String get usageFooter =>
+      'See https://dart.dev/tools/dart-tool for detailed documentation.';
 
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     final stopwatch = Stopwatch()..start();
     // The Analytics instance used to report information back to Google Analytics;
     // see lib/src/analytics.dart.
-    final analytics = createAnalyticsInstance(!topLevelResults['analytics']);
+    _analytics = createAnalyticsInstance(
+      topLevelResults.wasParsed('analytics')
+          ? !topLevelResults['analytics']
+          : false,
+    );
 
     // If we have not printed the analyticsNoticeOnFirstRunMessage to stdout,
     // the user is on a terminal, and the machine is not a bot, then print the
     // disclosure and set analytics.disclosureShownOnTerminal to true.
     if (analytics is DartdevAnalytics &&
-        !analytics.disclosureShownOnTerminal &&
+        !(analytics as DartdevAnalytics).disclosureShownOnTerminal &&
         io.stdout.hasTerminal &&
         !isBot()) {
       print(analyticsNoticeOnFirstRunMessage);
-      analytics.disclosureShownOnTerminal = true;
+      (analytics as DartdevAnalytics).disclosureShownOnTerminal = true;
     }
 
     // When `--disable-analytics` or `--enable-analytics` are called we perform
@@ -141,7 +155,7 @@ class DartdevRunner extends CommandRunner<int> {
     } else if (topLevelResults['enable-analytics']) {
       analytics.enabled = true;
 
-      // Alert the user again that anonymous data will be collected.
+      // Alert the user again that data will be collected.
       print(analyticsNoticeOnFirstRunMessage);
       return 0;
     }
@@ -217,6 +231,7 @@ class DartdevRunner extends CommandRunner<int> {
       exitCode = 1;
     } finally {
       stopwatch.stop();
+
       if (analytics.enabled) {
         unawaited(
           analytics.sendTiming(
@@ -226,6 +241,7 @@ class DartdevRunner extends CommandRunner<int> {
           ),
         );
       }
+
       // Set the exitCode, if it wasn't set in the catch block above.
       exitCode ??= 0;
 
@@ -251,7 +267,8 @@ class DartdevRunner extends CommandRunner<int> {
         analytics.enabled = true;
       }
       analytics.close();
-      return exitCode;
     }
+
+    return exitCode;
   }
 }

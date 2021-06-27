@@ -712,17 +712,19 @@ class CallPosition {
       // ^     ^
       return new CallPosition(
           node, CodePositionKind.START, SourcePositionKind.START);
-    } else if (access is js.Fun ||
+    } else if (access is js.FunctionExpression ||
         access is js.New ||
         access is js.NamedFunction ||
         (access is js.Parentheses &&
-            (access.enclosed is js.Fun ||
+            (access.enclosed is js.FunctionExpression ||
                 access.enclosed is js.New ||
                 access.enclosed is js.NamedFunction))) {
       // function(){}()     new Function("...")()     function foo(){}()
       //             ^                         ^                      ^
       // (function(){})()   (new Function("..."))()   (function foo(){})()
       //               ^                         ^                      ^
+      // (()=>{})()
+      //         ^
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else if (access is js.Binary || access is js.Call) {
@@ -973,7 +975,7 @@ class JavaScriptTracer extends js.BaseVisitor {
   }
 
   @override
-  visitFun(js.Fun node) {
+  visitFunctionExpression(js.FunctionExpression node) {
     _handleFunction(node, node.body);
   }
 

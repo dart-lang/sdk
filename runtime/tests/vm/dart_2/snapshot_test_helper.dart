@@ -39,7 +39,10 @@ ${result.processResult.stderr}''');
 
 void expectOutput(String what, Result result) {
   if (result.output != what) {
-    reportError(result, 'Expected test to print \'${what}\' to stdout');
+    reportError(
+        result,
+        'Expected test to print \'${what}\' to stdout. '
+        'Actual: ${result.output}');
   }
 }
 
@@ -55,11 +58,14 @@ final String genKernel = p.join("pkg", "vm", "bin", "gen_kernel.dart");
 final String checkedInDartVM =
     p.join("tools", "sdks", "dart-sdk", "bin", "dart${executableSuffix}");
 
-Future<Result> runDart(String prefix, List<String> arguments) {
+Future<Result> runDart(String prefix, List<String> arguments,
+    {bool printOut: true}) {
   final augmentedArguments = <String>[]
     ..addAll(Platform.executableArguments)
+    ..add('--verbosity=warning')
     ..addAll(arguments);
-  return runBinary(prefix, Platform.executable, augmentedArguments);
+  return runBinary(prefix, Platform.executable, augmentedArguments,
+      printOut: printOut);
 }
 
 Future<Result> runGenKernel(String prefix, List<String> arguments) {
@@ -85,21 +91,23 @@ Future<Result> runGenSnapshot(String prefix, List<String> arguments) {
 }
 
 Future<Result> runBinary(String prefix, String binary, List<String> arguments,
-    {Map<String, String> environment, bool runInShell: false}) async {
+    {Map<String, String> environment,
+    bool runInShell: false,
+    bool printOut: true}) async {
   print("+ $binary " + arguments.join(" "));
   final processResult = await Process.run(binary, arguments,
       environment: environment, runInShell: runInShell);
   final result =
       new Result('[$prefix] ${binary} ${arguments.join(' ')}', processResult);
 
-  if (processResult.stdout.isNotEmpty) {
+  if (printOut && processResult.stdout.isNotEmpty) {
     print('''
 
 Command stdout:
 ${processResult.stdout}''');
   }
 
-  if (processResult.stderr.isNotEmpty) {
+  if (printOut && processResult.stderr.isNotEmpty) {
     print('''
 
 Command stderr:
@@ -135,6 +143,7 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
       '--trace_type_finalization',
       '--trace_compiler',
       '--verbose_gc',
+      '--verbosity=warning',
       '--snapshot=$snapshot1Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),
@@ -148,6 +157,7 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
       '--trace_type_finalization',
       '--trace_compiler',
       '--verbose_gc',
+      '--verbosity=warning',
       '--snapshot=$snapshot2Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),
@@ -180,6 +190,7 @@ runAppJitTest(Uri testScriptUri,
     final trainingResult = await runDart('TRAINING RUN', [
       '--snapshot=$snapshotPath',
       '--snapshot-kind=app-jit',
+      '--verbosity=warning',
       testPath,
       '--train'
     ]);

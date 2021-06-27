@@ -5,12 +5,14 @@
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import 'plugin/plugin_manager_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -36,8 +38,8 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
 
   Future<void> test_waitForResponses_nonEmpty_noTimeout_immediate() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
-    PluginInfo plugin1 = DiscoveredPluginInfo('p1', '', '', null, null);
-    PluginInfo plugin2 = DiscoveredPluginInfo('p2', '', '', null, null);
+    var plugin1 = _pluginInfo('p1');
+    var plugin2 = _pluginInfo('p2');
     var response1 = plugin.Response('1', 1);
     var response2 = plugin.Response('2', 2);
     var futures = <PluginInfo, Future<plugin.Response>>{
@@ -50,8 +52,8 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
 
   Future<void> test_waitForResponses_nonEmpty_noTimeout_withError() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
-    PluginInfo plugin1 = DiscoveredPluginInfo('p1', '', '', null, null);
-    PluginInfo plugin2 = DiscoveredPluginInfo('p2', '', '', null, null);
+    var plugin1 = _pluginInfo('p1');
+    var plugin2 = _pluginInfo('p2');
     var response1 = plugin.Response('1', 1);
     var response2 = plugin.Response('2', 2,
         error: plugin.RequestError(
@@ -66,9 +68,9 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
 
   Future<void> test_waitForResponses_nonEmpty_timeout_someDelayed() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
-    PluginInfo plugin1 = DiscoveredPluginInfo('p1', '', '', null, null);
-    PluginInfo plugin2 = DiscoveredPluginInfo('p2', '', '', null, null);
-    PluginInfo plugin3 = DiscoveredPluginInfo('p3', '', '', null, null);
+    var plugin1 = _pluginInfo('p1');
+    var plugin2 = _pluginInfo('p2');
+    var plugin3 = _pluginInfo('p3');
     var response1 = plugin.Response('1', 1);
     var response2 = plugin.Response('2', 2);
     var response3 = plugin.Response('3', 3);
@@ -79,6 +81,11 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
     };
     var responses = await handler.waitForResponses(futures, timeout: 50);
     expect(responses, unorderedEquals([response2]));
+  }
+
+  PluginInfo _pluginInfo(String path) {
+    return DiscoveredPluginInfo(path, '', '', TestNotificationManager(),
+        InstrumentationService.NULL_SERVICE);
   }
 }
 

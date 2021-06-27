@@ -119,6 +119,8 @@ final Matcher isChangeContentOverlay = LazyMatcher(() => MatchesJsonObject(
 ///   "relevance": int
 ///   "completion": String
 ///   "displayText": optional String
+///   "replacementOffset": optional int
+///   "replacementLength": optional int
 ///   "selectionOffset": int
 ///   "selectionLength": int
 ///   "isDeprecated": bool
@@ -148,6 +150,8 @@ final Matcher isCompletionSuggestion =
           'isPotential': isBool
         }, optionalFields: {
           'displayText': isString,
+          'replacementOffset': isInt,
+          'replacementLength': isInt,
           'docSummary': isString,
           'docComplete': isString,
           'declaringType': isString,
@@ -221,6 +225,7 @@ final Matcher isDiagnosticMessage = LazyMatcher(() => MatchesJsonObject(
 ///   "parameters": optional String
 ///   "returnType": optional String
 ///   "typeParameters": optional String
+///   "aliasedType": optional String
 /// }
 final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
       'kind': isElementKind,
@@ -230,7 +235,8 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
       'location': isLocation,
       'parameters': isString,
       'returnType': isString,
-      'typeParameters': isString
+      'typeParameters': isString,
+      'aliasedType': isString
     }));
 
 /// ElementKind
@@ -259,6 +265,7 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
 ///   PREFIX
 ///   SETTER
 ///   TOP_LEVEL_VARIABLE
+///   TYPE_ALIAS
 ///   TYPE_PARAMETER
 ///   UNIT_TEST_GROUP
 ///   UNIT_TEST_TEST
@@ -288,6 +295,7 @@ final Matcher isElementKind = MatchesEnum('ElementKind', [
   'PREFIX',
   'SETTER',
   'TOP_LEVEL_VARIABLE',
+  'TYPE_ALIAS',
   'TYPE_PARAMETER',
   'UNIT_TEST_GROUP',
   'UNIT_TEST_TEST',
@@ -305,23 +313,27 @@ final Matcher isFilePath = isString;
 ///   ANNOTATIONS
 ///   BLOCK
 ///   CLASS_BODY
+///   COMMENT
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
 ///   FILE_HEADER
 ///   FUNCTION_BODY
 ///   INVOCATION
 ///   LITERAL
+///   PARAMETERS
 /// }
 final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'ANNOTATIONS',
   'BLOCK',
   'CLASS_BODY',
+  'COMMENT',
   'DIRECTIVES',
   'DOCUMENTATION_COMMENT',
   'FILE_HEADER',
   'FUNCTION_BODY',
   'INVOCATION',
-  'LITERAL'
+  'LITERAL',
+  'PARAMETERS'
 ]);
 
 /// FoldingRegion
@@ -418,6 +430,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   TOP_LEVEL_SETTER_DECLARATION
 ///   TOP_LEVEL_SETTER_REFERENCE
 ///   TOP_LEVEL_VARIABLE_DECLARATION
+///   TYPE_ALIAS
 ///   TYPE_NAME_DYNAMIC
 ///   TYPE_PARAMETER
 ///   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
@@ -493,6 +506,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'TOP_LEVEL_SETTER_DECLARATION',
   'TOP_LEVEL_SETTER_REFERENCE',
   'TOP_LEVEL_VARIABLE_DECLARATION',
+  'TYPE_ALIAS',
   'TYPE_NAME_DYNAMIC',
   'TYPE_PARAMETER',
   'UNRESOLVED_INSTANCE_MEMBER_REFERENCE',
@@ -577,13 +591,17 @@ final Matcher isLinkedEditSuggestionKind = MatchesEnum(
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
+///   "endLine": int
+///   "endColumn": int
 /// }
 final Matcher isLocation = LazyMatcher(() => MatchesJsonObject('Location', {
       'file': isFilePath,
       'offset': isInt,
       'length': isInt,
       'startLine': isInt,
-      'startColumn': isInt
+      'startColumn': isInt,
+      'endLine': isInt,
+      'endColumn': isInt
     }));
 
 /// NavigationRegion

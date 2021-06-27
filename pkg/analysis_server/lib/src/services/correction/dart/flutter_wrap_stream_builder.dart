@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -18,7 +19,7 @@ class FlutterWrapStreamBuilder extends CorrectionProducer {
     if (widgetExpr == null) {
       return;
     }
-    if (flutter.isExactWidgetTypeStreamBuilder(widgetExpr.staticType)) {
+    if (flutter.isExactWidgetTypeStreamBuilder(widgetExpr.typeOrThrow)) {
       return;
     }
     var widgetSrc = utils.getNodeText(widgetExpr);

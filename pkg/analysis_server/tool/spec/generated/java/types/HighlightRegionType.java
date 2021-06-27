@@ -195,6 +195,8 @@ public class HighlightRegionType {
 
   public static final String TOP_LEVEL_VARIABLE_DECLARATION = "TOP_LEVEL_VARIABLE_DECLARATION";
 
+  public static final String TYPE_ALIAS = "TYPE_ALIAS";
+
   public static final String TYPE_NAME_DYNAMIC = "TYPE_NAME_DYNAMIC";
 
   public static final String TYPE_PARAMETER = "TYPE_PARAMETER";

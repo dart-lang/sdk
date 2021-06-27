@@ -4,8 +4,10 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
+import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analysis_server/src/utilities/extensions/yaml.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
 /// A completion generator that can produce completion suggestions for files
@@ -15,9 +17,13 @@ abstract class YamlCompletionGenerator {
   /// completion was requested.
   final ResourceProvider resourceProvider;
 
+  /// A service used for collecting Pub package information. May be `null` for
+  /// generators that do not use Pub packages.
+  final PubPackageService? pubPackageService;
+
   /// Initialize a newly created generator to use the [resourceProvider] to
   /// access the content of the file in which completion was requested.
-  YamlCompletionGenerator(this.resourceProvider);
+  YamlCompletionGenerator(this.resourceProvider, this.pubPackageService);
 
   /// Return the producer used to produce suggestions at the top-level of the
   /// file.
@@ -56,7 +62,8 @@ abstract class YamlCompletionGenerator {
     var request = YamlCompletionRequest(
         filePath: filePath,
         precedingText: precedingText,
-        resourceProvider: resourceProvider);
+        resourceProvider: resourceProvider,
+        pubPackageService: pubPackageService);
     return getSuggestionsForPath(request, nodePath, offset);
   }
 
@@ -77,17 +84,23 @@ abstract class YamlCompletionGenerator {
       }
     }
     final node = nodePath.isNotEmpty ? nodePath.last : null;
-    final replaceNode = node is YamlScalar && node.containsOffset(offset);
-    final replacementOffset = replaceNode ? node.span.start.offset : offset;
-    final replacementLength = replaceNode ? node.span.length : 0;
+    int replacementOffset;
+    int replacementLength;
+    if (node is YamlScalar && node.containsOffset(offset)) {
+      replacementOffset = node.span.start.offset;
+      replacementLength = node.span.length;
+    } else {
+      replacementOffset = offset;
+      replacementLength = 0;
+    }
     return YamlCompletionResults(
         suggestions, replacementOffset, replacementLength);
   }
 
   /// Return the result of parsing the file [content] into a YAML node.
-  YamlNode _parseYaml(String content) {
+  YamlNode? _parseYaml(String content) {
     try {
-      return loadYamlNode(content);
+      return loadYamlNode(content, recover: true);
     } on YamlException {
       // If the file can't be parsed, then fall through to return `null`.
     }
@@ -99,7 +112,7 @@ abstract class YamlCompletionGenerator {
   /// and the node containing the offset is the last element in the list.
   List<YamlNode> _pathToOffset(YamlNode root, int offset) {
     var path = <YamlNode>[];
-    var node = root;
+    YamlNode? node = root;
     while (node != null) {
       path.add(node);
       node = node.childContainingOffset(offset);
@@ -109,19 +122,25 @@ abstract class YamlCompletionGenerator {
 
   /// Return the producer that should be used to produce completion suggestions
   /// for the last node in the node [path].
-  Producer _producerForPath(List<YamlNode> path) {
-    var producer = topLevelProducer;
+  Producer? _producerForPath(List<YamlNode> path) {
+    Producer? producer = topLevelProducer;
     for (var i = 0; i < path.length - 1; i++) {
       var node = path[i];
       if (node is YamlMap && producer is KeyValueProducer) {
+        // Value producers are based on keys, so try to locate the key for the
+        // value that was next in the path.
         var key = node.keyAtValue(path[i + 1]);
         if (key is YamlScalar) {
-          producer = (producer as KeyValueProducer).producerForKey(key.value);
+          producer = producer.producerForKey(key.value);
+          // Otherwise, if the item next in the path was a key itself, use the
+          // current producer to provide completion for the key.
+        } else if (node.nodes.containsKey(path[i + 1])) {
+          return producer;
         } else {
           return null;
         }
       } else if (node is YamlList && producer is ListProducer) {
-        producer = (producer as ListProducer).element;
+        producer = producer.element;
       } else {
         return producer;
       }
@@ -132,7 +151,7 @@ abstract class YamlCompletionGenerator {
   /// Return a list of the suggestions that should not be suggested because they
   /// are already in the structure.
   List<String> _siblingsOnPath(List<YamlNode> path) {
-    List<String> siblingsInList(YamlList list, YamlNode currentElement) {
+    List<String> siblingsInList(YamlList list, YamlNode? currentElement) {
       var siblings = <String>[];
       for (var element in list.nodes) {
         if (element != currentElement &&
@@ -144,7 +163,7 @@ abstract class YamlCompletionGenerator {
       return siblings;
     }
 
-    List<String> siblingsInMap(YamlMap map, YamlNode currentKey) {
+    List<String> siblingsInMap(YamlMap map, YamlNode? currentKey) {
       var siblings = <String>[];
       for (var key in map.nodes.keys) {
         if (key != currentKey && key is YamlScalar && key.value is String) {

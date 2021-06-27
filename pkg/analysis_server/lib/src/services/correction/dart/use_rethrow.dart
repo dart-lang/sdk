@@ -11,10 +11,20 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class UseRethrow extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.USE_RETHROW;
 
   @override
+  FixKind get multiFixKind => DartFixKind.USE_RETHROW_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
+    final coveredNode = this.coveredNode;
     if (coveredNode is ThrowExpression) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(coveredNode), 'rethrow');

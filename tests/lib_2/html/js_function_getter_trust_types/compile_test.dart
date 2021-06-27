@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // SharedOptions=--trust-type-annotations
 @JS()
 library js_function_getter_trust_types_test;
@@ -47,6 +49,6 @@ main() {
   foo.bar.add(4, 5, 10);
   //         ^
   // [cfe] Error: Too many positional arguments: 2 allowed, but 3 found.
-  //         ^^^^^^^^^^
+  //                ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
 }

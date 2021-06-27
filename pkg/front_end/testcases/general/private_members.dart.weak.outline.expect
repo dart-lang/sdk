@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+part private_members_part.dart;
+abstract class _AbstractClass extends core::Object { // from org-dartlang-testcase:///private_members_part.dart
+  synthetic constructor •() → self::_AbstractClass
+    ;
+  abstract get _privateAbstractField() → core::int;
+  abstract set _privateAbstractField(core::int #externalFieldValue) → void;
+}
+class _Class extends core::Object { // from org-dartlang-testcase:///private_members_part.dart
+  field core::int _privateField;
+  field core::int _privateFinalField;
+  static final field dynamic _redirecting# = <dynamic>[self::_Class::_privateRedirectingFactory]/*isLegacy*/;
+  constructor _privateConstructor() → self::_Class
+    ;
+  static factory _privateRedirectingFactory() → self::_Class
+    let dynamic #redirecting_factory = self::_Class::_privateConstructor in invalid-expression;
+  method _privateMethod() → void
+    ;
+  get _privateGetter() → core::int
+    ;
+  set _privateSetter(core::int value) → void
+    ;
+}
+extension _Extension on core::int { // from org-dartlang-testcase:///private_members_part.dart
+  method _privateMethod = self::_Extension|_privateMethod;
+  tearoff _privateMethod = self::_Extension|get#_privateMethod;
+  get _privateGetter = self::_Extension|get#_privateGetter;
+  static field _privateField = self::_Extension|_privateField;
+  static field _privateFinalField = self::_Extension|_privateFinalField;
+  set _privateSetter = self::_Extension|set#_privateSetter;
+}
+static field core::int _Extension|_privateField /* from org-dartlang-testcase:///private_members_part.dart */;
+static field core::int _Extension|_privateFinalField /* from org-dartlang-testcase:///private_members_part.dart */;
+static method test(self::_AbstractClass c) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateMethod(lowered final core::int #this) → void
+  ;
+static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateMethod(lowered final core::int #this) → () → void
+  return () → void => self::_Extension|_privateMethod(#this);
+static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateGetter(lowered final core::int #this) → core::int
+  ;
+static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|set#_privateSetter(lowered final core::int #this, core::int value) → void
+  ;

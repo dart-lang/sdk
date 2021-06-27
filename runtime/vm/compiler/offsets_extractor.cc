@@ -18,15 +18,21 @@
 #include "vm/timeline.h"
 
 #if defined(TARGET_ARCH_ARM)
-#define ARCH_DEF "defined(TARGET_ARCH_ARM)"
+#define ARCH_DEF_CPU "defined(TARGET_ARCH_ARM)"
 #elif defined(TARGET_ARCH_X64)
-#define ARCH_DEF "defined(TARGET_ARCH_X64)"
+#define ARCH_DEF_CPU "defined(TARGET_ARCH_X64)"
 #elif defined(TARGET_ARCH_IA32)
-#define ARCH_DEF "defined(TARGET_ARCH_IA32)"
+#define ARCH_DEF_CPU "defined(TARGET_ARCH_IA32)"
 #elif defined(TARGET_ARCH_ARM64)
-#define ARCH_DEF "defined(TARGET_ARCH_ARM64)"
+#define ARCH_DEF_CPU "defined(TARGET_ARCH_ARM64)"
 #else
 #error Unknown architecture
+#endif
+
+#if defined(DART_COMPRESSED_POINTERS)
+#define ARCH_DEF ARCH_DEF_CPU " && defined(DART_COMPRESSED_POINTERS)"
+#else
+#define ARCH_DEF ARCH_DEF_CPU " && !defined(DART_COMPRESSED_POINTERS)"
 #endif
 
 namespace dart {
@@ -45,7 +51,9 @@ class OffsetsExtractor : public AllStatic {
 //
 // TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
 
-// This doesn't use any special constants, just method calls, so no output.
+// These macros don't use any special constants, just method calls, so no
+// output.
+#define PRINT_ARRAY_SIZEOF(Class, Name, ElementOffset)
 #define PRINT_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -88,6 +96,10 @@ class OffsetsExtractor : public AllStatic {
                "_" #Name " = "                                                 \
             << Class::Name << ";\n";
 
+    AOT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
+                     PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
+                     PRINT_CONSTANT)
+
 #else  // defined(DART_PRECOMPILED_RUNTIME)
 
 #define PRINT_FIELD_OFFSET(Class, Name)                                        \
@@ -129,18 +141,21 @@ class OffsetsExtractor : public AllStatic {
             << Class::Name << ";\n";
 
     JIT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
-                     PRINT_PAYLOAD_SIZEOF, PRINT_RANGE, PRINT_CONSTANT)
+                     PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
+                     PRINT_CONSTANT)
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
     COMMON_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
-                        PRINT_PAYLOAD_SIZEOF, PRINT_RANGE, PRINT_CONSTANT)
+                        PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
+                        PRINT_CONSTANT)
 
 #undef PRINT_FIELD_OFFSET
 #undef PRINT_ARRAY_LAYOUT
 #undef PRINT_SIZEOF
 #undef PRINT_RANGE
 #undef PRINT_CONSTANT
+#undef PRINT_ARRAY_SIZEOF
 #undef PRINT_PAYLOAD_SIZEOF
   }
 };

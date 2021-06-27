@@ -29,11 +29,11 @@ class FoldingHandler
 
     return path.mapResult((path) async {
       final partialResults = <List<FoldingRegion>>[];
-      LineInfo lineInfo;
+      LineInfo? lineInfo;
 
       final unit = server.getParsedUnit(path);
       if (unit?.state == ResultState.VALID) {
-        lineInfo = unit.lineInfo;
+        lineInfo = unit!.lineInfo;
 
         final regions = DartUnitFoldingComputer(lineInfo, unit.unit).compute();
         partialResults.insert(0, regions);
@@ -57,7 +57,7 @@ class FoldingHandler
           notificationManager.merger.mergeFoldingRegions(partialResults);
 
       return success(
-        regions.map((region) => toFoldingRange(lineInfo, region)).toList(),
+        regions.map((region) => toFoldingRange(lineInfo!, region)).toList(),
       );
     });
   }

@@ -17,14 +17,20 @@ class ConvertPartOfToUri extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var directive = node.thisOrAncestorOfType<PartOfDirective>();
-    if (directive == null || directive.libraryName == null) {
+    if (directive == null) {
       return;
     }
+
+    var libraryName = directive.libraryName;
+    if (libraryName == null) {
+      return;
+    }
+
     var libraryPath = resolvedResult.libraryElement.source.fullName;
-    var partPath = resolvedResult.path;
+    var partPath = resolvedResult.path!;
     var relativePath = relative(libraryPath, from: dirname(partPath));
     var uri = Uri.file(relativePath).toString();
-    var replacementRange = range.node(directive.libraryName);
+    var replacementRange = range.node(libraryName);
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(replacementRange, "'$uri'");
     });

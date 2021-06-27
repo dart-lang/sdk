@@ -15,7 +15,7 @@ import 'package:analyzer/src/workspace/package_build.dart';
 
 /// Return `true` if the given [source] refers to a file that is assumed to be
 /// generated.
-bool isGeneratedSource(Source source) {
+bool isGeneratedSource(Source? source) {
   if (source == null) {
     return false;
   }
@@ -51,21 +51,20 @@ class SourceFactoryImpl implements SourceFactory {
   SourceFactoryImpl(this.resolvers);
 
   @override
-  DartSdk get dartSdk {
-    List<UriResolver> resolvers = this.resolvers;
+  DartSdk? get dartSdk {
+    final resolvers = this.resolvers;
     int length = resolvers.length;
     for (int i = 0; i < length; i++) {
-      UriResolver resolver = resolvers[i];
+      var resolver = resolvers[i];
       if (resolver is DartUriResolver) {
-        DartUriResolver dartUriResolver = resolver;
-        return dartUriResolver.dartSdk;
+        return resolver.dartSdk;
       }
     }
     return null;
   }
 
   @override
-  Map<String, List<Folder>> get packageMap {
+  Map<String, List<Folder>>? get packageMap {
     for (var resolver in resolvers) {
       if (resolver is PackageMapUriResolver) {
         return resolver.packageMap;
@@ -86,7 +85,7 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
-  Source forUri(String absoluteUri) {
+  Source? forUri(String absoluteUri) {
     try {
       Uri uri;
       try {
@@ -109,7 +108,7 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
-  Source forUri2(Uri absoluteUri) {
+  Source? forUri2(Uri absoluteUri) {
     if (absoluteUri.isAbsolute) {
       try {
         return _internalResolveUri(null, absoluteUri);
@@ -124,7 +123,7 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
-  Source resolveUri(Source containingSource, String containedUri) {
+  Source? resolveUri(Source? containingSource, String? containedUri) {
     if (containedUri == null) {
       return null;
     }
@@ -151,10 +150,10 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
-  Uri restoreUri(Source source) {
+  Uri? restoreUri(Source source) {
     for (UriResolver resolver in resolvers) {
       // First see if a resolver can restore the URI.
-      Uri uri = resolver.restoreAbsolute(source);
+      Uri? uri = resolver.restoreAbsolute(source);
 
       if (uri != null) {
         return uri;
@@ -175,7 +174,7 @@ class SourceFactoryImpl implements SourceFactory {
   /// @return the source representing the contained URI
   /// @throws AnalysisException if either the contained URI is invalid or if it
   ///         cannot be resolved against the source object's URI
-  Source _internalResolveUri(Source containingSource, Uri containedUri) {
+  Source? _internalResolveUri(Source? containingSource, Uri containedUri) {
     if (!containedUri.isAbsolute) {
       if (containingSource == null) {
         throw AnalysisException(
@@ -186,16 +185,16 @@ class SourceFactoryImpl implements SourceFactory {
           utils.resolveRelativeUri(containingSource.uri, containedUri);
     }
 
-    Uri actualUri = containedUri;
-
-    return _absoluteUriToSourceCache.putIfAbsent(actualUri, () {
+    var result = _absoluteUriToSourceCache[containedUri];
+    if (result == null) {
       for (UriResolver resolver in resolvers) {
-        Source result = resolver.resolveAbsolute(containedUri, actualUri);
+        result = resolver.resolveAbsolute(containedUri);
         if (result != null) {
-          return result;
+          _absoluteUriToSourceCache[containedUri] = result;
+          break;
         }
       }
-      return null;
-    });
+    }
+    return result;
   }
 }

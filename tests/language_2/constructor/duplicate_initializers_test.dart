@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that initializers are not duplicated
 
+// @dart = 2.9
+
  class Class {
    Class(var v) : field_ = v
    // Test against duplicate final field initialization in initializing list.
@@ -25,7 +27,7 @@
    Class.two_fields(this.field_
     , this.field_
     //     ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_MULTIPLE_TIMES
+    // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_FIELD_FORMAL_PARAMETER
     // [cfe] 'field_' was already initialized by this constructor.
     //     ^
     // [cfe] Duplicated parameter name 'field_'.

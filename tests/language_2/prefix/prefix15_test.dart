@@ -4,6 +4,8 @@
 //
 // Use qualified symbols with generics at various places.
 
+// @dart = 2.9
+
 library Prefix15Test.dart;
 
 import "package:expect/expect.dart";

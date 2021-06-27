@@ -15,13 +15,17 @@
 #define FALL_THROUGH ((void)0)
 #endif
 
+#if !defined(NDEBUG) && !defined(DEBUG)
 #if defined(GOOGLE3)
 // google3 builds use NDEBUG to indicate non-debug builds which is different
 // from the way the Dart project expects it: DEBUG indicating a debug build.
-#if !defined(NDEBUG) && !defined(DEBUG)
 #define DEBUG
-#endif  // !NDEBUG && !DEBUG
+#else
+// Since <cassert> uses NDEBUG to signify that assert() macros should be turned
+// off, we'll define it when DEBUG is _not_ set.
+#define NDEBUG
 #endif  // GOOGLE3
+#endif  // !NDEBUG && !DEBUG
 
 // __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
 // enable platform independent printf format specifiers.
@@ -85,6 +89,8 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <cassert>  // For assert() in constant expressions.
+
 #if defined(_WIN32)
 #include "platform/floating_point_win.h"
 #endif  // defined(_WIN32)
@@ -134,12 +140,6 @@
 #define DEBUG_ONLY(code) code
 #else  // defined(DEBUG)
 #define DEBUG_ONLY(code)
-#endif  // defined(DEBUG)
-
-#if defined(DEBUG)
-#define UNLESS_DEBUG(code)
-#else  // defined(DEBUG)
-#define UNLESS_DEBUG(code) code
 #endif  // defined(DEBUG)
 
 namespace dart {
@@ -711,6 +711,16 @@ inline D bit_copy(const S& source) {
 
 // Undefine math.h definition which clashes with our condition names.
 #undef OVERFLOW
+
+// Include IL printer functionality into non-PRODUCT builds or in all AOT
+// compiler builds or when forced.
+#if !defined(PRODUCT) || defined(DART_PRECOMPILER) ||                          \
+    defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(PRODUCT)
+#error Requested to include IL printer into PRODUCT AOT runtime
+#endif
+#define INCLUDE_IL_PRINTER 1
+#endif
 
 }  // namespace dart
 

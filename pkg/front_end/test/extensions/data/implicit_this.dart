@@ -4,7 +4,9 @@
 
 // @dart = 2.9
 
-/*library: scope=[A2]*/
+/*library: scope=[
+  A2,
+  async.dart.FutureExtensions]*/
 
 class A1 {
   Object field;

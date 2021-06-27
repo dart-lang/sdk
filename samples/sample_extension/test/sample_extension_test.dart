@@ -4,8 +4,6 @@
 //
 // Dart test program for testing native extensions.
 
-// @dart = 2.9
-
 import 'sample_extension_test_helper.dart';
 
 void main() {

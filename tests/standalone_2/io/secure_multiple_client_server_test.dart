@@ -10,6 +10,8 @@
 // OtherResources=certificates/server_key.pem
 // OtherResources=certificates/trusted_certs.pem
 
+// @dart = 2.9
+
 import "dart:async";
 import "dart:io";
 

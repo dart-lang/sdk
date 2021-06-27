@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -18,8 +19,8 @@ NavigationCollector computeDartNavigation(
     ResourceProvider resourceProvider,
     NavigationCollector collector,
     CompilationUnit unit,
-    int offset,
-    int length) {
+    int? offset,
+    int? length) {
   var dartCollector = _DartNavigationCollector(collector, offset, length);
   var visitor = _DartNavigationComputerVisitor(resourceProvider, dartCollector);
   if (offset == null || length == null) {
@@ -31,7 +32,7 @@ NavigationCollector computeDartNavigation(
   return collector;
 }
 
-AstNode _getNodeForRange(CompilationUnit unit, int offset, int length) {
+AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
   var node = NodeLocator(offset, offset + length).searchWithin(unit);
   for (var n = node; n != null; n = n.parent) {
     if (n is Directive) {
@@ -44,15 +45,16 @@ AstNode _getNodeForRange(CompilationUnit unit, int offset, int length) {
 /// A Dart specific wrapper around [NavigationCollector].
 class _DartNavigationCollector {
   final NavigationCollector collector;
-  final int requestedOffset;
-  final int requestedLength;
+  final int? requestedOffset;
+  final int? requestedLength;
 
   _DartNavigationCollector(
       this.collector, this.requestedOffset, this.requestedLength);
 
-  void _addRegion(int offset, int length, Element element) {
+  void _addRegion(int offset, int length, Element? element) {
+    element = element?.nonSynthetic;
     if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+      element = element.field;
     }
     if (element == null || element == DynamicElementImpl.instance) {
       return;
@@ -61,9 +63,7 @@ class _DartNavigationCollector {
       return;
     }
     // Discard elements that don't span the offset/range given (if provided).
-    if (requestedOffset != null &&
-        (offset > requestedOffset + (requestedLength ?? 0) ||
-            offset + length < requestedOffset)) {
+    if (!_isWithinRequestedRange(offset, length)) {
       return;
     }
     var converter = AnalyzerConverter();
@@ -81,13 +81,13 @@ class _DartNavigationCollector {
         targetCodeLocation: codeLocation);
   }
 
-  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
+  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element? element) {
     var offset = a.offset;
     var length = b.end - offset;
     _addRegion(offset, length, element);
   }
 
-  void _addRegionForNode(AstNode node, Element element) {
+  void _addRegionForNode(AstNode? node, Element? element) {
     if (node == null) {
       return;
     }
@@ -96,20 +96,20 @@ class _DartNavigationCollector {
     _addRegion(offset, length, element);
   }
 
-  void _addRegionForToken(Token token, Element element) {
+  void _addRegionForToken(Token token, Element? element) {
     var offset = token.offset;
     var length = token.length;
     _addRegion(offset, length, element);
   }
 
   /// Get the location of the code (excluding leading doc comments) for this element.
-  protocol.Location _getCodeLocation(Element element,
+  protocol.Location? _getCodeLocation(Element element,
       protocol.Location location, AnalyzerConverter converter) {
     var codeElement = element;
     // For synthetic getters created for fields, we need to access the associated
     // variable to get the codeOffset/codeLength.
     if (codeElement.isSynthetic && codeElement is PropertyAccessorElementImpl) {
-      final variable = (codeElement as PropertyAccessorElementImpl).variable;
+      final variable = codeElement.variable;
       if (variable is ElementImpl) {
         codeElement = variable as ElementImpl;
       }
@@ -117,7 +117,7 @@ class _DartNavigationCollector {
 
     // Read the main codeOffset from the element. This may include doc comments
     // but will give the correct end position.
-    int codeOffset, codeLength;
+    int? codeOffset, codeLength;
     if (codeElement is ElementImpl) {
       codeOffset = codeElement.codeOffset;
       codeLength = codeElement.codeLength;
@@ -130,11 +130,7 @@ class _DartNavigationCollector {
     // Read the declaration so we can get the offset after the doc comments.
     // TODO(dantup): Skip this for parts (getParsedLibrary will throw), but find
     // a better solution.
-    final declaration = !codeElement.session.getFile(location.file).isPart
-        ? codeElement.session
-            .getParsedLibrary(location.file)
-            .getElementDeclaration(codeElement)
-        : null;
+    final declaration = _parsedDeclaration(codeElement);
     var node = declaration?.node;
     if (node is VariableDeclaration) {
       node = node.parent;
@@ -147,12 +143,47 @@ class _DartNavigationCollector {
       codeOffset = offsetAfterDocs;
     }
 
-    if (codeOffset == null || codeLength == null) {
+    return converter.locationFromElement(element,
+        offset: codeOffset, length: codeLength);
+  }
+
+  /// Checks if offset/length intersect with the range the user requested
+  /// navigation regions for.
+  ///
+  /// If the request did not specify a range, always returns true.
+  bool _isWithinRequestedRange(int offset, int length) {
+    final requestedOffset = this.requestedOffset;
+    if (requestedOffset == null) {
+      return true;
+    }
+    if (offset > requestedOffset + (requestedLength ?? 0)) {
+      // Starts after the requested range.
+      return false;
+    }
+    if (offset + length < requestedOffset) {
+      // Ends before the requested range.
+      return false;
+    }
+    return true;
+  }
+
+  static ElementDeclarationResult? _parsedDeclaration(Element element) {
+    var session = element.session;
+    if (session == null) {
       return null;
     }
 
-    return converter.locationFromElement(element,
-        offset: codeOffset, length: codeLength);
+    var libraryPath = element.library?.source.fullName;
+    if (libraryPath == null) {
+      return null;
+    }
+
+    var parsedLibrary = session.getParsedLibrary2(libraryPath);
+    if (parsedLibrary is! ParsedLibraryResult) {
+      return null;
+    }
+
+    return parsedLibrary.getElementDeclaration(element);
   }
 }
 
@@ -182,22 +213,24 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       computer._addRegionForNode(name, element);
     }
     computer._addRegionForNode(node.constructorName, element);
+    // type arguments
+    node.typeArguments?.accept(this);
     // arguments
     node.arguments?.accept(this);
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    node.leftHandSide?.accept(this);
+    node.leftHandSide.accept(this);
     computer._addRegionForToken(node.operator, node.staticElement);
-    node.rightHandSide?.accept(this);
+    node.rightHandSide.accept(this);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    node.leftOperand?.accept(this);
+    node.leftOperand.accept(this);
     computer._addRegionForToken(node.operator, node.staticElement);
-    node.rightOperand?.accept(this);
+    node.rightOperand.accept(this);
   }
 
   @override
@@ -223,11 +256,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
         // TODO(brianwilkerson) If the analyzer ever resolves the URI to a
         //  library, use that library element to create the region.
         var uriNode = node.uri;
-        computer.collector.addRegion(
-            uriNode.offset,
-            uriNode.length,
-            protocol.ElementKind.LIBRARY,
-            protocol.Location(source.fullName, 0, 0, 0, 0));
+        if (computer._isWithinRequestedRange(uriNode.offset, uriNode.length)) {
+          computer.collector.addRegion(
+              uriNode.offset,
+              uriNode.length,
+              protocol.ElementKind.LIBRARY,
+              protocol.Location(source.fullName, 0, 0, 0, 0, 0, 0));
+        }
       }
     }
     super.visitConfiguration(node);
@@ -238,12 +273,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     // associate constructor with "T" or "T.name"
     {
       AstNode firstNode = node.returnType;
-      AstNode lastNode = node.name;
+      AstNode? lastNode = node.name;
       lastNode ??= firstNode;
-      if (firstNode != null && lastNode != null) {
-        computer._addRegion_nodeStart_nodeEnd(
-            firstNode, lastNode, node.declaredElement);
-      }
+      computer._addRegion_nodeStart_nodeEnd(
+          firstNode, lastNode, node.declaredElement);
     }
     super.visitConstructorDeclaration(node);
   }
@@ -264,7 +297,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     if (node.type == null) {
       var token = node.keyword;
-      if (token?.keyword == Keyword.VAR) {
+      if (token != null && token.keyword == Keyword.VAR) {
         var inferredType = node.declaredElement?.type;
         var element = inferredType?.element;
         if (element != null) {
@@ -279,7 +312,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     var exportElement = node.element;
     if (exportElement != null) {
-      Element libraryElement = exportElement.exportedLibrary;
+      Element? libraryElement = exportElement.exportedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
     }
     super.visitExportDirective(node);
@@ -289,7 +322,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     var importElement = node.element;
     if (importElement != null) {
-      Element libraryElement = importElement.importedLibrary;
+      Element? libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
     }
     super.visitImportDirective(node);
@@ -335,7 +368,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    Element element = node.staticElement;
+    Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
       element = element.enclosingElement;
     }
@@ -343,7 +376,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegionForToken(node.thisKeyword, element);
     computer._addRegionForNode(node.constructorName, element);
     // process arguments
-    node.argumentList?.accept(this);
+    node.argumentList.accept(this);
   }
 
   @override
@@ -357,7 +390,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    Element element = node.staticElement;
+    Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
       element = element.enclosingElement;
     }
@@ -365,7 +398,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegionForToken(node.superKeyword, element);
     computer._addRegionForNode(node.constructorName, element);
     // process arguments
-    node.argumentList?.accept(this);
+    node.argumentList.accept(this);
   }
 
   @override
@@ -373,13 +406,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     /// Return the element for the type inferred for each of the variables in
     /// the given list of [variables], or `null` if not all variable have the
     /// same inferred type.
-    Element getCommonElement(List<VariableDeclaration> variables) {
-      var firstElement = variables[0].declaredElement.type?.element;
+    Element? getCommonElement(List<VariableDeclaration> variables) {
+      var firstElement = variables[0].declaredElement?.type.element;
       if (firstElement == null) {
         return null;
       }
       for (var i = 1; i < variables.length; i++) {
-        var element = variables[1].declaredElement.type?.element;
+        var element = variables[1].declaredElement?.type.element;
         if (element != firstElement) {
           return null;
         }
@@ -392,7 +425,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       if (token?.keyword == Keyword.VAR) {
         var element = getCommonElement(node.variables);
         if (element != null) {
-          computer._addRegionForToken(token, element);
+          computer._addRegionForToken(token!, element);
         }
       }
     }
@@ -400,13 +433,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addConstructorName(AstNode parent, ConstructorName node) {
-    Element element = node.staticElement;
+    Element? element = node.staticElement;
     if (element == null) {
       return;
-    }
-    // if a synthetic constructor, navigate to the class
-    if (element.isSynthetic) {
-      element = element.enclosingElement;
     }
     // add regions
     var typeName = node.type;
@@ -433,7 +462,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   /// If the source of the given [element] (referenced by the [node]) exists,
   /// then add the navigation region from the [node] to the [element].
-  void _addUriDirectiveRegion(UriBasedDirective node, Element element) {
+  void _addUriDirectiveRegion(UriBasedDirective node, Element? element) {
     var source = element?.source;
     if (source != null) {
       if (resourceProvider.getResource(source.fullName).exists) {

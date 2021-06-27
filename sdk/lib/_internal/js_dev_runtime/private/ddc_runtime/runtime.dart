@@ -18,6 +18,7 @@ import 'dart:_js_helper'
         BooleanConversionAssertionError,
         CastErrorImpl,
         DartIterator,
+        DeferredNotLoadedError,
         TypeErrorImpl,
         JsLinkedHashMap,
         ImmutableMap,
@@ -204,6 +205,7 @@ void hotRestart() {
   _cacheMaps.clear();
   JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constantMaps);
+  JS('', '#.clear()', deferredImports);
 }
 
 /// Marks enqueuing an async operation.

@@ -1,0 +1,160 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:32:9: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     new A();
+//         ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:34:7: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'call'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     f1(() => captureTypeArgument());
+//       ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:35:7: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'call'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     f2(() => captureTypeArgument());
+//       ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:36:11: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'local1'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     local1(() => captureTypeArgument());
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:37:11: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'local2'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     local2(() => captureTypeArgument());
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:38:5: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'topLevel1'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     topLevel1(() => captureTypeArgument());
+//     ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:16:16: Context: This is the type variable whose bound isn't conformed to.
+// void topLevel1<X extends A<X>>(A<X> Function() g) => g();
+//                ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:39:5: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'topLevel2'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     topLevel2(() => captureTypeArgument());
+//     ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:18:16: Context: This is the type variable whose bound isn't conformed to.
+// void topLevel2<X extends C<X>>(C<X> Function() g) => g();
+//                ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:40:5: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Class.instance1'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     instance1(() => captureTypeArgument());
+//     ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:41:5: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Class.instance2'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     instance2(() => captureTypeArgument());
+//     ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:33:9: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'C'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     new C();
+//         ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:14:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef C<X extends A<X>> = A<X>;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:47:11: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Subclass.instance1'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Subclass' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     super.instance1(() => captureTypeArgument());
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:48:11: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Subclass.instance2'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Subclass' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     super.instance2(() => captureTypeArgument());
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef C<X extends self::A<X> = self::A<dynamic>> = self::A<X>;
+class A<X extends self::A<self::A::X> = self::A<dynamic>> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+}
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method instance1<X extends self::A<self::Class::instance1::X> = self::A<dynamic>>(() → self::A<self::Class::instance1::X> g) → void
+    return g(){() → self::A<self::Class::instance1::X>};
+  method instance2<X extends self::A<self::Class::instance2::X> = self::A<dynamic>>(() → self::A<self::Class::instance2::X> g) → void
+    return g(){() → self::A<self::Class::instance2::X>};
+  method test() → void {
+    function local1<X extends self::A<X> = self::A<dynamic>>(() → self::A<X> g) → void
+      return g(){() → self::A<X>};
+    function local2<X extends self::A<X> = self::A<dynamic>>(() → self::A<X> g) → void
+      return g(){() → self::A<X>};
+    <X extends self::A<X> = self::A<dynamic>>(() → self::A<X>) → void f1 = local1;
+    <X extends self::A<X> = self::A<dynamic>>(() → self::A<X>) → void f2 = local2;
+    new self::A::•<self::A<core::Object?>>();
+    new self::A::•<self::A<core::Object?>>();
+    f1<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    f2<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    local1<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    local2<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    self::topLevel1<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
+    self::topLevel2<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
+    this.{self::Class::instance1}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    this.{self::Class::instance2}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+  }
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass
+    : super self::Class::•()
+    ;
+  method test() → void {
+    super.{self::Class::instance1}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
+    super.{self::Class::instance2}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
+  }
+}
+static field core::Type? _capturedTypeArgument;
+static method captureTypeArgument<X extends core::Object? = dynamic>() → self::captureTypeArgument::X% {
+  self::_capturedTypeArgument = self::captureTypeArgument::X%;
+  core::print("X: ${self::captureTypeArgument::X%}");
+  throw "Error";
+}
+static method topLevel1<X extends self::A<self::topLevel1::X> = self::A<dynamic>>(() → self::A<self::topLevel1::X> g) → void
+  return g(){() → self::A<self::topLevel1::X>};
+static method topLevel2<X extends self::A<self::topLevel2::X> = self::A<dynamic>>(() → self::A<self::topLevel2::X> g) → void
+  return g(){() → self::A<self::topLevel2::X>};
+static method main() → dynamic {}

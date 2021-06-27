@@ -32,7 +32,9 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
   /// Assert that there is a suggestion with the given parameter [name] that has
   /// the given [completion], [selectionOffset] and [selectionLength].
   void assertSuggestArgumentAndCompletion(String name,
-      {String completion, int selectionOffset, int selectionLength = 0}) {
+      {required String completion,
+      required int selectionOffset,
+      int selectionLength = 0}) {
     var suggestion = suggestions.firstWhere((s) => s.parameterName == name);
     expect(suggestion, isNotNull);
     expect(suggestion.completion, completion);
@@ -43,8 +45,8 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
   void assertSuggestArgumentList_params(
       List<String> expectedNames,
       List<String> expectedTypes,
-      List<String> actualNames,
-      List<String> actualTypes) {
+      List<String>? actualNames,
+      List<String>? actualTypes) {
     if (actualNames != null &&
         actualNames.length == expectedNames.length &&
         actualTypes != null &&
@@ -73,7 +75,7 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
   /// Assert that the specified named argument suggestions with their types are
   /// the only suggestions.
   void assertSuggestArgumentsAndTypes(
-      {Map<String, String> namedArgumentsWithTypes,
+      {required Map<String, String> namedArgumentsWithTypes,
       List<int> requiredParamIndices = const <int>[],
       bool includeColon = true,
       bool includeComma = false}) {
@@ -715,8 +717,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", ^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     });
   }
 
@@ -725,8 +727,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", r^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     });
   }
 
@@ -735,7 +737,7 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", radix: 7, ^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'onError': 'int Function(String)'});
+        namedArgumentsWithTypes: {'onError': 'int Function(String)?'});
   }
 
   Future<void> test_ArgumentList_imported_function_named_param2a() async {
@@ -750,8 +752,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", r^: 16);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     }, includeColon: false);
   }
 
@@ -767,8 +769,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", ^: 16);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     });
   }
 
@@ -795,11 +797,10 @@ main() {
     expect(suggestion.docSummary, 'aaa');
     expect(suggestion.docComplete, 'aaa\n\nbbb\nccc');
 
-    var element = suggestion.element;
-    expect(element, isNotNull);
+    var element = suggestion.element!;
     expect(element.kind, ElementKind.PARAMETER);
     expect(element.name, 'fff');
-    expect(element.location.offset, content.indexOf('fff})'));
+    expect(element.location!.offset, content.indexOf('fff})'));
   }
 
   Future<void>
@@ -821,11 +822,10 @@ main() {
     expect(suggestion.docSummary, isNull);
     expect(suggestion.docComplete, isNull);
 
-    var element = suggestion.element;
-    expect(element, isNotNull);
+    var element = suggestion.element!;
     expect(element.kind, ElementKind.PARAMETER);
     expect(element.name, 'fff');
-    expect(element.location.offset, content.indexOf('fff})'));
+    expect(element.location!.offset, content.indexOf('fff})'));
   }
 
   Future<void> test_ArgumentList_local_constructor_named_param() async {
@@ -1065,6 +1065,18 @@ f(v,{int radix, int onError(String s)}){}
 main() { f("16", radix: ^);}''');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+
+  Future<void> test_ArgumentList_local_functionExpression_params() async {
+    // https://github.com/dart-lang/sdk/issues/42064
+    addTestSource('''
+    void main2() {
+      final add1 = ({int a}) => a + 1;
+      add1(^);
+    }
+    ''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'a': 'int'});
   }
 
   Future<void> test_ArgumentList_local_method_0() async {

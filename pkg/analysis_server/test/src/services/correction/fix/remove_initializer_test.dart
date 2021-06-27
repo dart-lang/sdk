@@ -26,12 +26,12 @@ class RemoveInitializerTest extends FixProcessorLintTest {
   Future<void> test_field() async {
     await resolveTestCode('''
 class Test {
-  int x = null;
+  int? x = null;
 }
 ''');
     await assertHasFix('''
 class Test {
-  int x;
+  int? x;
 }
 ''');
   }
@@ -53,28 +53,28 @@ void f() {
 
   Future<void> test_listOfVariableDeclarations() async {
     await resolveTestCode('''
-String a = 'a', b = null, c = 'c';
+String? a = 'a', b = null, c = 'c';
 ''');
     await assertHasFix('''
-String a = 'a', b, c = 'c';
+String? a = 'a', b, c = 'c';
 ''');
   }
 
   Future<void> test_parameter_optionalNamed() async {
     await resolveTestCode('''
-void f({String s = null}) {}
+void f({String? s = null}) {}
 ''');
     await assertHasFix('''
-void f({String s}) {}
+void f({String? s}) {}
 ''');
   }
 
   Future<void> test_parameter_optionalPositional() async {
     await resolveTestCode('''
-void f([String s = null]) {}
+void f([String? s = null]) {}
 ''');
     await assertHasFix('''
-void f([String s]) {}
+void f([String? s]) {}
 ''');
   }
 

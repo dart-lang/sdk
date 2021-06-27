@@ -1,0 +1,30 @@
+abstract class AbstractClass extends Super implements Interface1, Interface2 {}
+
+abstract class Super {
+  void extendedAbstractCovariantImplementedMethod(covariant int i);
+  void extendedAbstractCovariantMethod(covariant int i);
+  void extendedAbstractImplementedCovariantMethod(int i);
+  void extendedConcreteCovariantImplementedMethod(covariant int i) {}
+  void extendedConcreteCovariantMethod(covariant int i) {}
+  void extendedConcreteImplementedCovariantMethod(int i) {}
+}
+
+class ConcreteClass extends Super implements Interface1, Interface2 {}
+
+class ConcreteSub extends AbstractClass {}
+
+class Interface1 {
+  void extendedAbstractCovariantImplementedMethod(int i) {}
+  void extendedAbstractImplementedCovariantMethod(covariant int i) {}
+  void extendedConcreteCovariantImplementedMethod(int i) {}
+  void extendedConcreteImplementedCovariantMethod(covariant int i) {}
+  void implementsMultipleCovariantMethod1(covariant int i) {}
+  void implementsMultipleCovariantMethod2(int i) {}
+}
+
+class Interface2 {
+  void implementsMultipleCovariantMethod1(int i) {}
+  void implementsMultipleCovariantMethod2(covariant int i) {}
+}
+
+main() {}

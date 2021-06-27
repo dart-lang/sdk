@@ -48,6 +48,7 @@ declare_args() {
 # ........dart2js.dart.snapshot
 # ........dart2native.dart.snapshot (if not on ia32)
 # ........dartanalyzer.dart.snapshot
+# ........dartdev.dart.snapshot
 # ........dartdev.dill
 # ........dartdevc.dart.snapshot
 # ........dartdoc.dart.snapshot
@@ -114,8 +115,16 @@ _scripts = [ "dartdoc" ]
 # Snapshots that go under bin/snapshots
 _platform_sdk_snapshots = [
   [
+    "analysis_server",
+    "../utils/analysis_server",
+  ],
+  [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
+  ],
+  [
+    "dartdev",
+    "../utils/dartdev:dartdev",
   ],
   [
     "dartdoc",
@@ -128,87 +137,43 @@ _platform_sdk_snapshots = [
   [
     "dds",
     "../utils/dds:dds",
-  ],
-  [
-    "pub",
-    "../utils/pub",
-  ],
-]
-if (dart_target_arch != "ia32") {
-  _platform_sdk_snapshots += [ [
-        "dart2native",
-        "../utils/dart2native:generate_dart2native_snapshot",
-      ] ]
-}
-if (create_kernel_service_snapshot) {
-  _platform_sdk_snapshots += [ [
-        "kernel-service",
-        "../utils/kernel-service:kernel-service_snapshot",
-      ] ]
-}
-if (dart_target_arch != "arm") {
-  _platform_sdk_snapshots += [ [
-        "analysis_server",
-        "../utils/analysis_server",
-      ] ]
-}
-
-_full_sdk_snapshots = [
-  [
-    "dart2js",
-    "../utils/compiler:dart2js",
-  ],
-  [
-    "dartanalyzer",
-    "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
-  ],
-  [
-    "dartdevc",
-    "../utils/dartdevc",
-  ],
-  [
-    "dartdoc",
-    "../utils/dartdoc",
-  ],
-  [
-    "dartfmt",
-    "../utils/dartfmt",
-  ],
-  [
-    "dds",
-    "../utils/dds:dds",
-  ],
-  [
-    "kernel_worker",
-    "../utils/bazel:kernel_worker",
-  ],
-  [
-    "pub",
-    "../utils/pub",
   ],
   [
     "frontend_server",
     "../utils/kernel-service:frontend_server",
   ],
+  [
+    "pub",
+    "../utils/pub",
+  ],
 ]
 if (dart_target_arch != "ia32") {
-  _full_sdk_snapshots += [ [
+  _platform_sdk_snapshots += [ [
         "dart2native",
         "../utils/dart2native:generate_dart2native_snapshot",
       ] ]
 }
 if (create_kernel_service_snapshot) {
-  _full_sdk_snapshots += [ [
+  _platform_sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
       ] ]
 }
-if (dart_target_arch != "arm") {
-  _full_sdk_snapshots += [ [
-        "analysis_server",
-        "../utils/analysis_server",
-      ] ]
-}
+
+_full_sdk_snapshots = _platform_sdk_snapshots + [
+                        [
+                          "dart2js",
+                          "../utils/compiler:dart2js",
+                        ],
+                        [
+                          "dartdevc",
+                          "../utils/dartdevc",
+                        ],
+                        [
+                          "kernel_worker",
+                          "../utils/bazel:kernel_worker",
+                        ],
+                      ]
 
 # Libraries that go under lib/
 _full_sdk_libraries = [
@@ -287,6 +252,18 @@ copy_tree_specs += [
   },
 ]
 
+# This rule copies the pre-built DevTools application to
+# bin/resources/devtools/
+copy_tree_specs += [
+  {
+    target = "copy_prebuilt_devtools"
+    visibility = [ ":create_common_sdk" ]
+    source = "../third_party/devtools/web"
+    dest = "$root_out_dir/dart-sdk/bin/resources/devtools"
+    ignore_patterns = "{}"
+  },
+]
+
 # This loop generates rules to copy libraries to lib/
 foreach(library, _full_sdk_libraries) {
   copy_tree_specs += [
@@ -299,19 +276,6 @@ foreach(library, _full_sdk_libraries) {
       source = "lib/$library"
       dest = "$root_out_dir/dart-sdk/lib/$library"
       ignore_patterns = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
-    },
-  ]
-}
-
-if (is_win) {
-  copy_tree_specs += [
-    {
-      target = "copy_7zip"
-      visibility = [ ":create_common_sdk" ]
-      deps = [ ":copy_libraries" ]
-      source = "../third_party/7zip"
-      dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
-      ignore_patterns = ".svn"
     },
   ]
 }
@@ -542,29 +506,6 @@ copy("copy_analysis_summaries") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-copy("copy_wasmer") {
-  visibility = [ ":create_common_sdk" ]
-  deps = [
-    ":copy_libraries",
-    "../third_party/wasmer:wasmer_wrap",
-  ]
-  if (is_win) {
-    prefix = ""
-    suffix = "dll"
-  } else if (is_mac) {
-    prefix = "lib"
-    suffix = "dylib"
-  } else {
-    # TODO(dartbug.com/37882): Support Fuchsia.
-    prefix = "lib"
-    suffix = "so"
-  }
-  sources = [ "$root_out_dir/${prefix}wasmer_wrap.$suffix" ]
-  outputs = [
-    "$root_out_dir/dart-sdk/bin/third_party/wasmer/${prefix}wasmer.$suffix",
-  ]
-}
-
 # This rule copies dill files to lib/_internal.
 copy("copy_vm_dill_files") {
   visibility = [ ":create_common_sdk" ]
@@ -717,20 +658,10 @@ group("copy_dev_compiler_sdk") {
 }
 
 # This rule copies header files to include/
-copy("copy_headers") {
+group("copy_headers") {
   visibility = [ ":create_common_sdk" ]
-  sources = [
-    "../runtime/include/dart_api.h",
-    "../runtime/include/dart_api_dl.c",
-    "../runtime/include/dart_api_dl.h",
-    "../runtime/include/dart_native_api.h",
-    "../runtime/include/dart_tools_api.h",
-    "../runtime/include/dart_version.h",
-    "../runtime/include/internal/dart_api_dl_impl.h",
-  ]
 
-  # Some magic to recover the folder structure inside the include folder.
-  outputs = [ "$root_out_dir/dart-sdk/include/{{source_root_relative_dir}}/../../{{source_file_part}}" ]
+  deps = [ "../runtime/include:copy_headers" ]
 }
 
 # This rule copies libraries.json files to lib/
@@ -869,6 +800,7 @@ group("create_common_sdk") {
     ":copy_libraries_dart",
     ":copy_libraries_specification",
     ":copy_license",
+    ":copy_prebuilt_devtools",
     ":copy_readme",
     ":copy_vm_dill_files",
     ":write_dartdoc_options",
@@ -880,18 +812,6 @@ group("create_common_sdk") {
   # dart2native script (since there is no AOT compiler/runtime available)
   if (dart_target_arch != "ia32") {
     public_deps += [ ":copy_dart2native" ]
-  }
-
-  if (is_win) {
-    public_deps += [ ":copy_7zip" ]
-  }
-
-  # CIPD only has versions of the Rust compiler for linux and mac x64 hosts.
-  # We also disallow cross-compialtion (it may be possible in future, but it
-  # isn't ready yet).
-  if (host_cpu == "x64" && (host_os == "linux" || host_os == "mac") &&
-      host_cpu == current_cpu && host_os == current_os && dart_enable_wasm) {
-    public_deps += [ ":copy_wasmer" ]
   }
 }
 

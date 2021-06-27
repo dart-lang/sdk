@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Test mismatch in argument counts.
 class Niesen {
   static int goodCall(int a, int b, int c) {
@@ -13,7 +15,8 @@ main() {
   Niesen.goodCall(1, 2, 3);
 
   Niesen.goodCall(1, 2, 3, 4);
-  //             ^^^^^^^^^^^^
+  //                       ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //             ^^^^^^^^^^^^
   // [cfe] Too many positional arguments: 3 allowed, but 4 found.
 }

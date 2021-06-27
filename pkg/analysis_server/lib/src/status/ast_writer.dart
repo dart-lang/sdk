@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/status/tree_writer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -11,11 +9,12 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// A visitor that will produce an HTML representation of an AST structure.
 class AstWriter extends UnifyingAstVisitor with TreeWriter {
+  @override
+  final StringBuffer buffer;
+
   /// Initialize a newly created element writer to write the HTML representation
   /// of visited nodes on the given [buffer].
-  AstWriter(StringBuffer buffer) {
-    this.buffer = buffer;
-  }
+  AstWriter(this.buffer);
 
   @override
   void visitNode(AstNode node) {
@@ -31,8 +30,8 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
 
   /// Write a representation of the properties of the given [node] to the
   /// buffer.
-  Map<String, Object> _computeProperties(AstNode node) {
-    Map<String, Object> properties = HashMap<String, Object>();
+  Map<String, Object?> _computeProperties(AstNode node) {
+    var properties = <String, Object?>{};
 
     properties['name'] = _getName(node);
     if (node is ArgumentListImpl) {
@@ -148,26 +147,24 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
 
   /// Return the name of the given [node], or `null` if the given node is not a
   /// declaration.
-  String _getName(AstNode node) {
+  String? _getName(AstNode node) {
     if (node is ClassTypeAlias) {
       return node.name.name;
     } else if (node is ClassDeclaration) {
       return node.name.name;
     } else if (node is ConstructorDeclaration) {
-      if (node.name == null) {
+      var name = node.name;
+      if (name == null) {
         return node.returnType.name;
       } else {
-        return node.returnType.name + '.' + node.name.name;
+        return node.returnType.name + '.' + name.name;
       }
     } else if (node is ConstructorName) {
       return node.toSource();
     } else if (node is FieldDeclaration) {
       return _getNames(node.fields);
     } else if (node is FunctionDeclaration) {
-      var nameNode = node.name;
-      if (nameNode != null) {
-        return nameNode.name;
-      }
+      return node.name.name;
     } else if (node is FunctionTypeAlias) {
       return node.name.name;
     } else if (node is Identifier) {

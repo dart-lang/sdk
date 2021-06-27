@@ -15,6 +15,8 @@
 // VMOptions=--write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
@@ -40,17 +42,17 @@ void main() {
 
 void testPointerStoreNull() {
   int i = null;
-  Pointer<Int8> p = allocate();
+  Pointer<Int8> p = calloc();
   Expect.throws(() => p.value = i);
-  free(p);
+  calloc.free(p);
   double d = null;
-  Pointer<Float> p2 = allocate();
+  Pointer<Float> p2 = calloc();
   Expect.throws(() => p2.value = d);
-  free(p2);
+  calloc.free(p2);
   Pointer<Void> x = null;
-  Pointer<Pointer<Void>> p3 = allocate();
+  Pointer<Pointer<Void>> p3 = calloc();
   Expect.throws(() => p3.value = x);
-  free(p3);
+  calloc.free(p3);
 }
 
 void testEquality() {
@@ -61,7 +63,7 @@ void testEquality() {
 
 /// With extension methods, the receiver position can be null.
 testNullReceivers() {
-  Pointer<Int8> p = allocate();
+  Pointer<Int8> p = calloc();
 
   Pointer<Int8> p4 = null;
   Expect.throws(() => Expect.equals(10, p4.value));
@@ -74,11 +76,11 @@ testNullReceivers() {
   Pointer<Foo> p6 = null;
   Expect.throws(() => Expect.equals(10, p6.ref));
 
-  free(p);
+  calloc.free(p);
 }
 
 testNullIndices() {
-  Pointer<Int8> p = allocate();
+  Pointer<Int8> p = calloc();
 
   Expect.throws(() => Expect.equals(10, p[null]));
   Expect.throws(() => p[null] = 10);
@@ -90,13 +92,13 @@ testNullIndices() {
   Pointer<Foo> p6 = p.cast();
   Expect.throws(() => Expect.equals(10, p6[null]));
 
-  free(p);
+  calloc.free(p);
 }
 
 testNullArguments() {
-  Pointer<Int8> p = allocate();
+  Pointer<Int8> p = calloc();
   Expect.throws(() => p.value = null);
-  free(p);
+  calloc.free(p);
 }
 
 class Foo extends Struct {

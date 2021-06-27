@@ -4,6 +4,8 @@
 //
 // Dart test program for testing optional named parameters in type tests.
 
+// @dart = 2.9
+
 main() {
   Function anyFunction;
   void acceptFunNumOptBool(void funNumOptBool(num n, {bool b})) {}

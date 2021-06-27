@@ -7,6 +7,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -80,34 +82,28 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// The element for the library containing the compilation unit being visited.
   final LibraryElement _definingLibrary;
 
-  /// Whether constant evaluation errors should be reported during resolution.
-  @Deprecated('This field is no longer used')
-  final bool reportConstEvaluationErrors;
-
   /// Helper for resolving properties on types.
   final TypePropertyResolver _typePropertyResolver;
 
-  MethodInvocationResolver _methodInvocationResolver;
+  final MethodInvocationResolver _methodInvocationResolver;
 
   /// Initialize a newly created visitor to work for the given [_resolver] to
   /// resolve the nodes in a compilation unit.
   ElementResolver(this._resolver,
-      {this.reportConstEvaluationErrors = true,
-      MigratableAstInfoProvider migratableAstInfoProvider =
+      {MigratableAstInfoProvider migratableAstInfoProvider =
           const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
-        _typePropertyResolver = _resolver.typePropertyResolver {
-    _methodInvocationResolver = MethodInvocationResolver(
-      _resolver,
-      migratableAstInfoProvider,
-      inferenceHelper: _resolver.inferenceHelper,
-    );
-  }
+        _typePropertyResolver = _resolver.typePropertyResolver,
+        _methodInvocationResolver = MethodInvocationResolver(
+          _resolver,
+          migratableAstInfoProvider,
+          inferenceHelper: _resolver.inferenceHelper,
+        );
 
   /// Return `true` iff the current enclosing function is a constant constructor
   /// declaration.
   bool get isInConstConstructor {
-    ExecutableElement function = _resolver.enclosingFunction;
+    var function = _resolver.enclosingFunction;
     if (function is ConstructorElement) {
       return function.isConst;
     }
@@ -119,7 +115,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   @override
-  void visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(covariant BreakStatementImpl node) {
     node.target = _lookupBreakOrContinueTarget(node, node.label, false);
   }
 
@@ -134,10 +130,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitCommentReference(CommentReference node) {
-    Identifier identifier = node.identifier;
-    if (identifier is SimpleIdentifier) {
-      Element element = _resolveSimpleIdentifier(identifier);
+  void visitCommentReference(covariant CommentReferenceImpl node) {
+    var identifier = node.identifier;
+    if (identifier is SimpleIdentifierImpl) {
+      var element = _resolveSimpleIdentifier(identifier);
       if (element == null) {
         // TODO(brianwilkerson) Report this error?
         //        resolver.reportError(
@@ -151,7 +147,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         identifier.staticElement = element;
         if (node.newKeyword != null) {
           if (element is ClassElement) {
-            ConstructorElement constructor = element.unnamedConstructor;
+            var constructor = element.unnamedConstructor;
             if (constructor == null) {
               // TODO(brianwilkerson) Report this error.
             } else {
@@ -162,12 +158,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
           }
         }
       }
-    } else if (identifier is PrefixedIdentifier) {
-      SimpleIdentifier prefix = identifier.prefix;
-      Element prefixElement = _resolveSimpleIdentifier(prefix);
+    } else if (identifier is PrefixedIdentifierImpl) {
+      var prefix = identifier.prefix;
+      var prefixElement = _resolveSimpleIdentifier(prefix);
       prefix.staticElement = prefixElement;
 
-      SimpleIdentifier name = identifier.identifier;
+      var name = identifier.identifier;
 
       if (prefixElement == null) {
 //        resolver.reportError(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
@@ -183,7 +179,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         return;
       }
 
-      LibraryElement library = prefixElement.library;
+      var library = prefixElement.library;
       if (library != _definingLibrary) {
         // TODO(brianwilkerson) Report this error.
       }
@@ -194,6 +190,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
               prefixElement.getGetter(name.name) ??
               prefixElement.getSetter(name.name) ??
               prefixElement.getNamedConstructor(name.name);
+        } else if (prefixElement is ExtensionElement) {
+          name.staticElement = prefixElement.getMethod(name.name) ??
+              prefixElement.getGetter(name.name) ??
+              prefixElement.getSetter(name.name);
         } else {
           // TODO(brianwilkerson) Report this error.
         }
@@ -213,18 +213,18 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
-    ConstructorElement element = node.declaredElement;
+    ConstructorElement element = node.declaredElement!;
     if (element is ConstructorElementImpl) {
-      ConstructorName redirectedNode = node.redirectedConstructor;
+      var redirectedNode = node.redirectedConstructor;
       if (redirectedNode != null) {
         // set redirected factory constructor
-        ConstructorElement redirectedElement = redirectedNode.staticElement;
+        var redirectedElement = redirectedNode.staticElement;
         element.redirectedConstructor = redirectedElement;
       } else {
         // set redirected generative constructor
         for (ConstructorInitializer initializer in node.initializers) {
           if (initializer is RedirectingConstructorInvocation) {
-            ConstructorElement redirectedElement = initializer.staticElement;
+            var redirectedElement = initializer.staticElement;
             element.redirectedConstructor = redirectedElement;
           }
         }
@@ -234,22 +234,23 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    SimpleIdentifier fieldName = node.fieldName;
-    ClassElement enclosingClass = _resolver.enclosingClass;
-    FieldElement fieldElement = enclosingClass.getField(fieldName.name);
+  void visitConstructorFieldInitializer(
+      covariant ConstructorFieldInitializerImpl node) {
+    var fieldName = node.fieldName;
+    ClassElement enclosingClass = _resolver.enclosingClass!;
+    var fieldElement = enclosingClass.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    DartType type = node.type.type;
-    if (type != null && type.isDynamic) {
+  void visitConstructorName(covariant ConstructorNameImpl node) {
+    DartType type = node.type.typeOrThrow;
+    if (type.isDynamic) {
       // Nothing to do.
     } else if (type is InterfaceType) {
       // look up ConstructorElement
-      ConstructorElement constructor;
-      SimpleIdentifier name = node.name;
+      ConstructorElement? constructor;
+      var name = node.name;
       if (name == null) {
         constructor = type.lookUpConstructor(null, _definingLibrary);
         constructor = _resolver.toLegacyElement(constructor);
@@ -275,7 +276,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitContinueStatement(ContinueStatement node) {
+  void visitContinueStatement(covariant ContinueStatementImpl node) {
     node.target = _lookupBreakOrContinueTarget(node, node.label, true);
   }
 
@@ -296,7 +297,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    ExportElement exportElement = node.element;
+    var exportElement = node.element;
     if (exportElement != null) {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson) Figure out whether the element can ever be
@@ -343,8 +344,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {
-    SimpleIdentifier prefixNode = node.prefix;
+  void visitImportDirective(covariant ImportDirectiveImpl node) {
+    var prefixNode = node.prefix;
     if (prefixNode != null) {
       String prefixName = prefixNode.name;
       List<PrefixElement> prefixes = _definingLibrary.prefixes;
@@ -357,10 +358,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
         }
       }
     }
-    ImportElement importElement = node.element;
+    var importElement = node.element;
     if (importElement != null) {
       // The element is null when the URI is invalid
-      LibraryElement library = importElement.importedLibrary;
+      var library = importElement.importedLibrary;
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }
@@ -369,10 +370,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorElement invokedConstructor = node.constructorName.staticElement;
-    ArgumentList argumentList = node.argumentList;
-    List<ParameterElement> parameters =
+  void visitInstanceCreationExpression(
+      covariant InstanceCreationExpressionImpl node) {
+    var invokedConstructor = node.constructorName.staticElement;
+    var argumentList = node.argumentList;
+    var parameters =
         _resolveArgumentsToFunction(argumentList, invokedConstructor);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
@@ -390,8 +392,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _methodInvocationResolver.resolve(node);
+  void visitMethodInvocation(MethodInvocation node,
+      {List<WhyNotPromotedGetter>? whyNotPromotedList}) {
+    whyNotPromotedList ??= [];
+    _methodInvocationResolver.resolve(
+        node as MethodInvocationImpl, whyNotPromotedList);
   }
 
   @override
@@ -405,15 +410,20 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitPartOfDirective(PartOfDirective node) {
+    _resolveAnnotations(node.metadata);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    ClassElement enclosingClass = _resolver.enclosingClass;
+      covariant RedirectingConstructorInvocationImpl node) {
+    var enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
-    SimpleIdentifier name = node.constructorName;
-    ConstructorElement element;
+    ConstructorElement? element;
+    var name = node.constructorName;
     if (name == null) {
       element = enclosingClass.unnamedConstructor;
     } else {
@@ -428,9 +438,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       name.staticElement = element;
     }
     node.staticElement = element;
-    ArgumentList argumentList = node.argumentList;
-    List<ParameterElement> parameters =
-        _resolveArgumentsToFunction(argumentList, element);
+    var argumentList = node.argumentList;
+    var parameters = _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
@@ -442,21 +451,21 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(
+      covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
-    InterfaceType superType = enclosingClass.supertype;
+    var superType = enclosingClass.supertype;
     if (superType == null) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
-    SimpleIdentifier name = node.constructorName;
-    String superName = name?.name;
-    ConstructorElement element =
-        superType.lookUpConstructor(superName, _definingLibrary);
+    var name = node.constructorName;
+    var superName = name?.name;
+    var element = superType.lookUpConstructor(superName, _definingLibrary);
     element = _resolver.toLegacyElement(element);
     if (element == null || !element.isAccessibleIn(_definingLibrary)) {
       if (name != null) {
@@ -486,16 +495,14 @@ class ElementResolver extends SimpleAstVisitor<void> {
     node.staticElement = element;
     // TODO(brianwilkerson) Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
-    ClassDeclaration declaration =
-        node.thisOrAncestorOfType<ClassDeclaration>();
-    Identifier superclassName = declaration?.extendsClause?.superclass?.name;
+    var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
+    var superclassName = declaration?.extendsClause?.superclass.name;
     if (superclassName != null &&
         _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {
       return;
     }
-    ArgumentList argumentList = node.argumentList;
-    List<ParameterElement> parameters =
-        _resolveArgumentsToFunction(argumentList, element);
+    var argumentList = node.argumentList;
+    var parameters = _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
@@ -534,12 +541,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// break or continue statement. The [labelNode] is the label contained in
   /// that statement (if any). The flag [isContinue] is `true` if the node being
   /// visited is a continue statement.
-  AstNode _lookupBreakOrContinueTarget(
-      AstNode parentNode, SimpleIdentifier labelNode, bool isContinue) {
+  AstNode? _lookupBreakOrContinueTarget(
+      AstNode parentNode, SimpleIdentifierImpl? labelNode, bool isContinue) {
     if (labelNode == null) {
       return _resolver.implicitLabelScope.getTarget(isContinue);
     } else {
-      LabelScope labelScope = _resolver.labelScope;
+      var labelScope = _resolver.labelScope;
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
@@ -547,7 +554,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, [labelNode.name]);
         return null;
       }
-      LabelScope definingScope = labelScope.lookup(labelNode.name);
+      var definingScope = labelScope.lookup(labelNode.name);
       if (definingScope == null) {
         // No definition of the given label name could be found in any
         // enclosing scope.
@@ -557,7 +564,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       // The target has been found.
       labelNode.staticElement = definingScope.element;
-      ExecutableElement labelContainer =
+      ExecutableElement? labelContainer =
           definingScope.element.thisOrAncestorOfType();
       if (!identical(labelContainer, _resolver.enclosingFunction)) {
         _errorReporter.reportErrorForNode(
@@ -574,8 +581,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// the list of arguments. An error will be reported if any of the arguments
   /// cannot be matched to a parameter. Return the parameters that correspond to
   /// the arguments, or `null` if no correspondence could be computed.
-  List<ParameterElement> _resolveArgumentsToFunction(
-      ArgumentList argumentList, ExecutableElement executableElement) {
+  List<ParameterElement?>? _resolveArgumentsToFunction(
+      ArgumentList argumentList, ExecutableElement? executableElement) {
     if (executableElement == null) {
       return null;
     }
@@ -588,7 +595,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// correspond to the list of arguments. An error will be reported if any of
   /// the arguments cannot be matched to a parameter. Return the parameters that
   /// correspond to the arguments.
-  List<ParameterElement> _resolveArgumentsToParameters(
+  List<ParameterElement?> _resolveArgumentsToParameters(
       ArgumentList argumentList, List<ParameterElement> parameters) {
     return ResolverVisitor.resolveArgumentsToParameters(
         argumentList, parameters, _errorReporter.reportErrorForNode);
@@ -597,7 +604,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// Resolve the names in the given [combinators] in the scope of the given
   /// [library].
   void _resolveCombinators(
-      LibraryElement library, NodeList<Combinator> combinators) {
+      LibraryElement? library, NodeList<Combinator> combinators) {
     if (library == null) {
       //
       // The library will be null if the directive containing the combinators
@@ -614,9 +621,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       } else {
         names = (combinator as ShowCombinator).shownNames;
       }
-      for (SimpleIdentifier name in names) {
+      for (var name in names) {
+        name as SimpleIdentifierImpl;
         String nameStr = name.name;
-        Element element = namespace.get(nameStr) ?? namespace.get("$nameStr=");
+        var element = namespace.get(nameStr) ?? namespace.get("$nameStr=");
         if (element != null) {
           // Ensure that the name always resolves to a top-level variable
           // rather than a getter or setter
@@ -639,10 +647,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// Resolve the given simple [identifier] if possible. Return the element to
   /// which it could be resolved, or `null` if it could not be resolved. This
   /// does not record the results of the resolution.
-  Element _resolveSimpleIdentifier(SimpleIdentifier identifier) {
+  Element? _resolveSimpleIdentifier(SimpleIdentifier identifier) {
     var lookupResult = _resolver.nameScope.lookup(identifier.name);
 
-    Element element = lookupResult.getter;
+    var element = lookupResult.getter;
     element = _resolver.toLegacyElement(element);
 
     if (element is PropertyAccessorElement && identifier.inSetterContext()) {
@@ -652,13 +660,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
         // Check to see whether there might be a locally defined getter and
         // an inherited setter.
         //
-        ClassElement enclosingClass = _resolver.enclosingClass;
+        var enclosingClass = _resolver.enclosingClass;
         if (enclosingClass != null) {
           var result = _typePropertyResolver.resolve(
             receiver: null,
             receiverType: enclosingClass.thisType,
             name: identifier.name,
-            receiverErrorNode: identifier,
+            propertyErrorEntity: identifier,
             nameErrorEntity: identifier,
           );
           setter = result.setter;
@@ -676,7 +684,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
     if (element == null) {
       InterfaceType enclosingType;
-      ClassElement enclosingClass = _resolver.enclosingClass;
+      var enclosingClass = _resolver.enclosingClass;
       if (enclosingClass == null) {
         var enclosingExtension = _resolver.enclosingExtension;
         if (enclosingExtension == null) {
@@ -694,12 +702,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
       } else {
         enclosingType = enclosingClass.thisType;
       }
-      if (element == null && enclosingType != null) {
+      if (element == null) {
         var result = _typePropertyResolver.resolve(
           receiver: null,
           receiverType: enclosingType,
           name: identifier.name,
-          receiverErrorNode: identifier,
+          propertyErrorEntity: identifier,
           nameErrorEntity: identifier,
         );
         if (identifier.inSetterContext() ||
@@ -716,12 +724,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// should be used when looking up members. Otherwise, return the original
   /// type.
   DartType _resolveTypeParameter(DartType type) =>
-      type?.resolveToBound(_typeProvider.objectType);
+      type.resolveToBound(_typeProvider.objectType);
 
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is
   /// returned.
-  static ClassElement getTypeReference(Expression expression) {
+  static ClassElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
       var element = expression.staticElement;
       if (element is ClassElement) {
@@ -740,8 +748,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
   static void _resolveAnnotations(NodeList<Annotation> annotations) {
     for (Annotation annotation in annotations) {
       var elementAnnotation =
-          annotation.elementAnnotation as ElementAnnotationImpl;
-      elementAnnotation.element = annotation.element;
+          annotation.elementAnnotation as ElementAnnotationImpl?;
+      if (elementAnnotation != null) {
+        elementAnnotation.element = annotation.element;
+      }
     }
   }
 }

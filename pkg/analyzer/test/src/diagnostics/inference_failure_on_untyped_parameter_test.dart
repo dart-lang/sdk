@@ -52,7 +52,7 @@ void fn(String cb(var x)) => print(cb(7));
 
   test_namedParameter_withType() async {
     await assertNoErrorsInCode(r'''
-void fn({int a}) => print(a);
+void fn({int a = 0}) => print(a);
 ''');
   }
 
@@ -208,22 +208,20 @@ class C {
   }
 
   test_parameter_inOverridingMethod() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   void fn(int a) => print(a);
 }
 
 class D extends C {
   @override
-  void fn(var a) => print(a);
+  void fn(a) => print(a);
 }
-''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 85, 5),
-    ]);
+''');
   }
 
   test_parameter_inOverridingMethod_withDefault() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   void fn([int a = 7]) => print(a);
 }
@@ -232,9 +230,7 @@ class D extends C {
   @override
   void fn([var a = 7]) => print(a);
 }
-''', [
-      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 92, 5),
-    ]);
+''');
   }
 
   test_parameter_inOverridingMethod_withDefaultAndType() async {
@@ -259,6 +255,19 @@ class C {
 class D extends C {
   @override
   void fn(num a) => print(a);
+}
+''');
+  }
+
+  test_parameter_inOverridingMethod_withVar() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  void fn(int a) => print(a);
+}
+
+class D extends C {
+  @override
+  void fn(var a) => print(a);
 }
 ''');
   }

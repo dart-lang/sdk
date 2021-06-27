@@ -15,9 +15,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
-DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
-DECLARE_FLAG(bool, use_slow_path);
 
 namespace compiler {
 
@@ -131,7 +129,7 @@ void Assembler::setcc(Condition condition, ByteRegister dst) {
   EmitUint8(0xC0 + (dst & 0x07));
 }
 
-void Assembler::EnterSafepoint() {
+void Assembler::EnterFullSafepoint() {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, to simplify GenerateJitCallbackTrampolines.
   Label done, slow_path;
@@ -139,15 +137,15 @@ void Assembler::EnterSafepoint() {
     jmp(&slow_path);
   }
 
-  // Compare and swap the value at Thread::safepoint_state from unacquired to
-  // acquired. If the CAS fails, go to a slow-path stub.
+  // Compare and swap the value at Thread::safepoint_state from
+  // unacquired to acquired. If the CAS fails, go to a slow-path stub.
   pushq(RAX);
-  movq(RAX, Immediate(target::Thread::safepoint_state_unacquired()));
-  movq(TMP, Immediate(target::Thread::safepoint_state_acquired()));
+  movq(RAX, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  movq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
   LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
   movq(TMP, RAX);
   popq(RAX);
-  cmpq(TMP, Immediate(target::Thread::safepoint_state_unacquired()));
+  cmpq(TMP, Immediate(target::Thread::full_safepoint_state_unacquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -182,28 +180,29 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
        Immediate(target::Thread::native_execution_state()));
 
   if (enter_safepoint) {
-    EnterSafepoint();
+    EnterFullSafepoint();
   }
 }
 
-void Assembler::LeaveSafepoint() {
+void Assembler::ExitFullSafepoint() {
   // We generate the same number of instructions whether or not the slow-path is
-  // forced, for consistency with EnterSafepoint.
+  // forced, for consistency with EnterFullSafepoint.
   Label done, slow_path;
   if (FLAG_use_slow_path) {
     jmp(&slow_path);
   }
 
-  // Compare and swap the value at Thread::safepoint_state from acquired to
-  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  // Compare and swap the value at Thread::safepoint_state from
+  // acquired to unacquired. On success, jump to 'success'; otherwise,
+  // fallthrough.
 
   pushq(RAX);
-  movq(RAX, Immediate(target::Thread::safepoint_state_acquired()));
-  movq(TMP, Immediate(target::Thread::safepoint_state_unacquired()));
+  movq(RAX, Immediate(target::Thread::full_safepoint_state_acquired()));
+  movq(TMP, Immediate(target::Thread::full_safepoint_state_unacquired()));
   LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
   movq(TMP, RAX);
   popq(RAX);
-  cmpq(TMP, Immediate(target::Thread::safepoint_state_acquired()));
+  cmpq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -223,12 +222,12 @@ void Assembler::LeaveSafepoint() {
 
 void Assembler::TransitionNativeToGenerated(bool leave_safepoint) {
   if (leave_safepoint) {
-    LeaveSafepoint();
+    ExitFullSafepoint();
   } else {
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movq(TMP, Address(THR, target::Thread::safepoint_state_offset()));
-    andq(TMP, Immediate((1 << target::Thread::safepoint_state_inside_bit())));
+    andq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
     Label ok;
     j(ZERO, &ok);
     Breakpoint();
@@ -533,22 +532,36 @@ void Assembler::ffree(intptr_t value) {
   EmitSimple(0xDD, 0xC0 + value);
 }
 
-void Assembler::CompareImmediate(Register reg, const Immediate& imm) {
-  if (imm.is_int32()) {
-    cmpq(reg, imm);
+void Assembler::CompareImmediate(Register reg,
+                                 const Immediate& imm,
+                                 OperandSize width) {
+  if (width == kEightBytes) {
+    if (imm.is_int32()) {
+      cmpq(reg, imm);
+    } else {
+      ASSERT(reg != TMP);
+      LoadImmediate(TMP, imm);
+      cmpq(reg, TMP);
+    }
   } else {
-    ASSERT(reg != TMP);
-    LoadImmediate(TMP, imm);
-    cmpq(reg, TMP);
+    ASSERT(width == kFourBytes);
+    cmpl(reg, imm);
   }
 }
 
-void Assembler::CompareImmediate(const Address& address, const Immediate& imm) {
-  if (imm.is_int32()) {
-    cmpq(address, imm);
+void Assembler::CompareImmediate(const Address& address,
+                                 const Immediate& imm,
+                                 OperandSize width) {
+  if (width == kEightBytes) {
+    if (imm.is_int32()) {
+      cmpq(address, imm);
+    } else {
+      LoadImmediate(TMP, imm);
+      cmpq(address, TMP);
+    }
   } else {
-    LoadImmediate(TMP, imm);
-    cmpq(address, TMP);
+    ASSERT(width == kFourBytes);
+    cmpl(address, imm);
   }
 }
 
@@ -607,13 +620,20 @@ void Assembler::testq(Register reg, const Immediate& imm) {
   }
 }
 
-void Assembler::TestImmediate(Register dst, const Immediate& imm) {
-  if (imm.is_int32() || imm.is_uint32()) {
-    testq(dst, imm);
+void Assembler::TestImmediate(Register dst,
+                              const Immediate& imm,
+                              OperandSize width) {
+  if (width == kEightBytes) {
+    if (imm.is_int32() || imm.is_uint32()) {
+      testq(dst, imm);
+    } else {
+      ASSERT(dst != TMP);
+      LoadImmediate(TMP, imm);
+      testq(dst, TMP);
+    }
   } else {
-    ASSERT(dst != TMP);
-    LoadImmediate(TMP, imm);
-    testq(dst, TMP);
+    ASSERT(width == kFourBytes);
+    testl(dst, imm);
   }
 }
 
@@ -1062,9 +1082,26 @@ void Assembler::CompareToStack(Register src, intptr_t depth) {
   cmpq(Address(SPREG, depth * target::kWordSize), src);
 }
 
-void Assembler::MoveRegister(Register to, Register from) {
-  if (to != from) {
-    movq(to, from);
+void Assembler::ExtendValue(Register to, Register from, OperandSize sz) {
+  switch (sz) {
+    case kEightBytes:
+      if (to == from) return;  // No operation needed.
+      return movq(to, from);
+    case kUnsignedFourBytes:
+      return movl(to, from);
+    case kFourBytes:
+      return movsxd(to, from);
+    case kUnsignedTwoBytes:
+      return movzxw(to, from);
+    case kTwoBytes:
+      return movsxw(to, from);
+    case kUnsignedByte:
+      return movzxb(to, from);
+    case kByte:
+      return movsxb(to, from);
+    default:
+      UNIMPLEMENTED();
+      break;
   }
 }
 
@@ -1228,6 +1265,10 @@ void Assembler::LoadIsolate(Register dst) {
   movq(dst, Address(THR, target::Thread::isolate_offset()));
 }
 
+void Assembler::LoadIsolateGroup(Register dst) {
+  movq(dst, Address(THR, target::Thread::isolate_group_offset()));
+}
+
 void Assembler::LoadDispatchTable(Register dst) {
   movq(dst, Address(THR, target::Thread::dispatch_table_array_offset()));
 }
@@ -1299,15 +1340,15 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 
   intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
-    cmpq(reg, Address(THR, offset_from_thread));
+    OBJ(cmp)(reg, Address(THR, offset_from_thread));
   } else if (CanLoadFromObjectPool(object)) {
     const intptr_t idx = object_pool_builder().FindObject(
         object, ObjectPoolBuilderEntry::kNotPatchable);
     const int32_t offset = target::ObjectPool::element_offset(idx);
-    cmpq(reg, Address(PP, offset - kHeapObjectTag));
+    OBJ(cmp)(reg, Address(PP, offset - kHeapObjectTag));
   } else {
     ASSERT(target::IsSmi(object));
-    CompareImmediate(reg, Immediate(target::ToRawSmi(object)));
+    CompareImmediate(reg, Immediate(target::ToRawSmi(object)), kObjectBytes);
   }
 }
 
@@ -1333,6 +1374,29 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
     LoadImmediate(TMP, imm);
     movq(dst, TMP);
   }
+}
+
+void Assembler::LoadCompressed(Register dest, const Address& slot) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  movq(dest, slot);
+#else
+  movl(dest, slot);  // Zero-extension.
+  addq(dest, Address(THR, target::Thread::heap_base_offset()));
+#endif
+}
+
+void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  movq(dest, slot);
+#else
+  movl(dest, slot);  // Zero-extension.
+#endif
+#if defined(DEBUG)
+  Label done;
+  BranchIfSmi(dest, &done);
+  Stop("Expected Smi");
+  Bind(&done);
+#endif
 }
 
 // Destroys the value register.
@@ -1377,12 +1441,25 @@ void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 CanBeSmi can_be_smi) {
+  movq(dest, value);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreCompressedIntoObject(Register object,
+                                          const Address& dest,
+                                          Register value,
+                                          CanBeSmi can_be_smi) {
+  OBJ(mov)(dest, value);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreBarrier(Register object,
+                             Register value,
+                             CanBeSmi can_be_smi) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
   ASSERT(object != TMP);
   ASSERT(value != TMP);
-
-  movq(dest, value);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1390,14 +1467,14 @@ void Assembler::StoreIntoObject(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare ObjectLayout::StorePointer.
+  // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
   movb(TMP, FieldAddress(object, target::Object::tags_offset()));
-  shrl(TMP, Immediate(target::ObjectLayout::kBarrierOverlapShift));
+  shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
   j(ZERO, &done, kNearJump);
@@ -1430,11 +1507,25 @@ void Assembler::StoreIntoArray(Register object,
                                Register slot,
                                Register value,
                                CanBeSmi can_be_smi) {
+  movq(Address(slot, 0), value);
+  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
+}
+
+void Assembler::StoreCompressedIntoArray(Register object,
+                                         Register slot,
+                                         Register value,
+                                         CanBeSmi can_be_smi) {
+  OBJ(mov)(Address(slot, 0), value);
+  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
+}
+
+void Assembler::StoreIntoArrayBarrier(Register object,
+                                      Register slot,
+                                      Register value,
+                                      CanBeSmi can_be_smi) {
   ASSERT(object != TMP);
   ASSERT(value != TMP);
   ASSERT(slot != TMP);
-
-  movq(Address(slot, 0), value);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1442,14 +1533,14 @@ void Assembler::StoreIntoArray(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare ObjectLayout::StorePointer.
+  // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     testq(value, Immediate(kSmiTagMask));
     j(ZERO, &done, kNearJump);
   }
   movb(TMP, FieldAddress(object, target::Object::tags_offset()));
-  shrl(TMP, Immediate(target::ObjectLayout::kBarrierOverlapShift));
+  shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
   andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
   testb(FieldAddress(value, target::Object::tags_offset()), TMP);
   j(ZERO, &done, kNearJump);
@@ -1477,7 +1568,27 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
   testb(FieldAddress(object, target::Object::tags_offset()),
-        Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+        Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  j(ZERO, &done, Assembler::kNearJump);
+
+  Stop("Store buffer update is required");
+  Bind(&done);
+  popq(value);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   Register value) {
+  OBJ(mov)(dest, value);
+#if defined(DEBUG)
+  Label done;
+  pushq(value);
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
+
+  testb(FieldAddress(object, target::Object::tags_offset()),
+        Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
 
   Stop("Store buffer update is required");
@@ -1491,6 +1602,13 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
   StoreObject(dest, value);
+}
+
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   const Object& value) {
+  LoadObject(TMP, value);
+  StoreCompressedIntoObjectNoBarrier(object, dest, TMP);
 }
 
 void Assembler::StoreInternalPointer(Register object,
@@ -1515,11 +1633,17 @@ void Assembler::ZeroInitSmiField(const Address& dest) {
   movq(dest, zero);
 }
 
-void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
+void Assembler::ZeroInitCompressedSmiField(const Address& dest) {
+  Immediate zero(target::ToRawSmi(0));
+  OBJ(mov)(dest, zero);
+}
+
+void Assembler::IncrementCompressedSmiField(const Address& dest,
+                                            int64_t increment) {
   // Note: FlowGraphCompiler::EdgeCounterIncrementSizeInBytes depends on
   // the length of this instruction sequence.
   Immediate inc_imm(target::ToRawSmi(increment));
-  addq(dest, inc_imm);
+  OBJ(add)(dest, inc_imm);
 }
 
 void Assembler::Bind(Label* label) {
@@ -1553,9 +1677,32 @@ void Assembler::LoadFromOffset(Register reg,
     case kUnsignedTwoBytes:
       return movzxw(reg, address);
     case kFourBytes:
+      return movsxd(reg, address);
+    case kUnsignedFourBytes:
       return movl(reg, address);
     case kEightBytes:
       return movq(reg, address);
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+void Assembler::StoreToOffset(Register reg,
+                              const Address& address,
+                              OperandSize sz) {
+  switch (sz) {
+    case kByte:
+    case kUnsignedByte:
+      return movb(address, reg);
+    case kTwoBytes:
+    case kUnsignedTwoBytes:
+      return movw(address, reg);
+    case kFourBytes:
+    case kUnsignedFourBytes:
+      return movl(address, reg);
+    case kEightBytes:
+      return movq(address, reg);
     default:
       UNREACHABLE();
       break;
@@ -1860,11 +2007,13 @@ void Assembler::MonomorphicCheckedEntryJIT() {
 
   LoadTaggedClassIdMayBeSmi(RAX, RDX);
 
-  cmpq(RAX, FieldAddress(RBX, cid_offset));
+  OBJ(cmp)(RAX, FieldAddress(RBX, cid_offset));
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
-  addl(FieldAddress(RBX, count_offset), Immediate(target::ToRawSmi(1)));
+  OBJ(add)(FieldAddress(RBX, count_offset), Immediate(target::ToRawSmi(1)));
   xorq(R10, R10);  // GC-safe for OptimizeInvokedFunction.
-  nop(1);
+#if defined(DART_COMPRESSED_POINTERS)
+  nop(3);
+#endif
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,
@@ -1897,7 +2046,11 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
   // Ensure the unchecked entry is 2-byte aligned (so GC can see them if we
   // store them in ICData / MegamorphicCache arrays).
+#if !defined(DART_COMPRESSED_POINTERS)
   nop(1);
+#else
+  nop(2);
+#endif
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,
@@ -1922,13 +2075,13 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
   const intptr_t shared_table_offset =
-      target::Isolate::shared_class_table_offset();
+      target::IsolateGroup::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
   Register temp_reg = TMP;
-  LoadIsolate(temp_reg);
+  LoadIsolateGroup(temp_reg);
   movq(temp_reg, Address(temp_reg, shared_table_offset));
   movq(temp_reg, Address(temp_reg, table_offset));
   cmpb(Address(temp_reg, class_offset), Immediate(0));
@@ -1938,16 +2091,18 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 }
 #endif  // !PRODUCT
 
-void Assembler::TryAllocate(const Class& cls,
-                            Label* failure,
-                            JumpDistance distance,
-                            Register instance_reg,
-                            Register temp) {
+void Assembler::TryAllocateObject(intptr_t cid,
+                                  intptr_t instance_size,
+                                  Label* failure,
+                                  JumpDistance distance,
+                                  Register instance_reg,
+                                  Register temp_reg) {
   ASSERT(failure != NULL);
-  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
+  ASSERT(instance_size != 0);
+  ASSERT(Utils::IsAligned(instance_size,
+                          target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
-    const classid_t cid = target::Class::GetId(cls);
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
@@ -2160,38 +2315,38 @@ void Assembler::EmitGenericShift(bool wide,
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
-  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
   movl(result, tags);
-  shrl(result, Immediate(target::ObjectLayout::kClassIdTagPos));
+  shrl(result, Immediate(target::UntaggedObject::kClassIdTagPos));
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
-  ASSERT(target::ObjectLayout::kSizeTagPos == 8);
-  ASSERT(target::ObjectLayout::kSizeTagSize == 8);
+  ASSERT(target::UntaggedObject::kSizeTagPos == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
   movzxw(result, tags);
-  shrl(result, Immediate(target::ObjectLayout::kSizeTagPos -
+  shrl(result, Immediate(target::UntaggedObject::kSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2));
   AndImmediate(result,
-               Immediate(Utils::NBitMask(target::ObjectLayout::kSizeTagSize)
+               Immediate(Utils::NBitMask(target::UntaggedObject::kSizeTagSize)
                          << target::ObjectAlignment::kObjectAlignmentLog2));
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
-  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
+      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
   const intptr_t table_offset =
-      target::Isolate::cached_class_table_table_offset();
+      target::IsolateGroup::cached_class_table_table_offset();
 
-  LoadIsolate(result);
+  LoadIsolateGroup(result);
   movq(result, Address(result, table_offset));
   movq(result, Address(result, class_id, TIMES_8, 0));
 }
@@ -2206,12 +2361,13 @@ void Assembler::CompareClassId(Register object,
 void Assembler::SmiUntagOrCheckClass(Register object,
                                      intptr_t class_id,
                                      Label* is_smi) {
+#if !defined(DART_COMPRESSED_POINTERS)
   ASSERT(kSmiTagShift == 1);
-  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
-  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
+      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
 
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
@@ -2220,6 +2376,11 @@ void Assembler::SmiUntagOrCheckClass(Register object,
   // factor in the addressing mode to compensate for this.
   movzxw(TMP, Address(object, TIMES_2, class_id_offset));
   cmpl(TMP, Immediate(class_id));
+#else
+  // Cannot speculatively untag compressed Smis because it erases upper address
+  // bits.
+  UNREACHABLE();
+#endif
 }
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
@@ -2272,6 +2433,25 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 
     Bind(&smi);
   }
+}
+
+void Assembler::EnsureHasClassIdInDEBUG(intptr_t cid,
+                                        Register src,
+                                        Register scratch,
+                                        bool can_be_null) {
+#if defined(DEBUG)
+  Comment("Check that object in register has cid %" Pd "", cid);
+  Label matches;
+  LoadClassIdMayBeSmi(scratch, src);
+  CompareImmediate(scratch, cid);
+  BranchIf(EQUAL, &matches, Assembler::kNearJump);
+  if (can_be_null) {
+    CompareImmediate(scratch, kNullCid);
+    BranchIf(EQUAL, &matches, Assembler::kNearJump);
+  }
+  Breakpoint();
+  Bind(&matches);
+#endif
 }
 
 Address Assembler::VMTagAddress() {

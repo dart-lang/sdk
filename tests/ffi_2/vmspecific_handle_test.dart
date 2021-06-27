@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // SharedObjects=ffi_test_functions
-// VMOptions=--enable-testing-pragmas
+
+// @dart = 2.9
 
 import 'dart:ffi';
 

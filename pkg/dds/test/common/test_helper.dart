@@ -2,12 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-Uri remoteVmServiceUri;
+import 'package:vm_service/vm_service.dart';
 
-Future<Process> spawnDartProcess(String script) async {
+late Uri remoteVmServiceUri;
+
+Future<Process> spawnDartProcess(
+  String script, {
+  bool pauseOnStart = true,
+}) async {
   final executable = Platform.executable;
   final tmpDir = await Directory.systemTemp.createTemp('dart_service');
   final serviceInfoUri = tmpDir.uri.resolve('service_info.json');
@@ -16,7 +22,7 @@ Future<Process> spawnDartProcess(String script) async {
   final arguments = [
     '--disable-dart-dev',
     '--observe=0',
-    '--pause-isolates-on-start',
+    if (pauseOnStart) '--pause-isolates-on-start',
     '--write-service-info=$serviceInfoUri',
     ...Platform.executableArguments,
     Platform.script.resolve(script).toString(),
@@ -35,4 +41,21 @@ Future<Process> spawnDartProcess(String script) async {
   final infoJson = json.decode(content);
   remoteVmServiceUri = Uri.parse(infoJson['uri']);
   return process;
+}
+
+Future<void> executeUntilNextPause(VmService service) async {
+  final vm = await service.getVM();
+  final isolate = await service.getIsolate(vm.isolates!.first.id!);
+
+  final completer = Completer<void>();
+  late StreamSubscription sub;
+  sub = service.onDebugEvent.listen((event) async {
+    if (event.kind == EventKind.kPauseBreakpoint) {
+      completer.complete();
+      await sub.cancel();
+    }
+  });
+  await service.streamListen(EventStreams.kDebug);
+  await service.resume(isolate.id!);
+  await completer.future;
 }

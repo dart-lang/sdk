@@ -45,7 +45,7 @@ class CrashReportSender {
   final String crashProductId;
   final EnablementCallback shouldSend;
   final http.Client _httpClient;
-  final Stopwatch _processStopwatch = new Stopwatch()..start();
+  final Stopwatch _processStopwatch = Stopwatch()..start();
 
   final ThrottlingBucket _throttle = ThrottlingBucket(10, Duration(minutes: 1));
   int _reportsSent = 0;
@@ -54,17 +54,17 @@ class CrashReportSender {
   CrashReportSender._(
     this.crashProductId,
     this.shouldSend, {
-    http.Client httpClient,
+    http.Client? httpClient,
     String endpointPath = _crashEndpointPathStaging,
-  })  : _httpClient = httpClient ?? new http.Client(),
-        _baseUri = new Uri(
+  })  : _httpClient = httpClient ?? http.Client(),
+        _baseUri = Uri(
             scheme: 'https', host: _crashServerHost, path: endpointPath);
 
   /// Create a new [CrashReportSender] connected to the staging endpoint.
   CrashReportSender.staging(
     String crashProductId,
     EnablementCallback shouldSend, {
-    http.Client httpClient,
+    http.Client? httpClient,
   }) : this._(crashProductId, shouldSend,
             httpClient: httpClient, endpointPath: _crashEndpointPathStaging);
 
@@ -72,7 +72,7 @@ class CrashReportSender {
   CrashReportSender.prod(
     String crashProductId,
     EnablementCallback shouldSend, {
-    http.Client httpClient,
+    http.Client? httpClient,
   }) : this._(crashProductId, shouldSend,
             httpClient: httpClient, endpointPath: _crashEndpointPathProd);
 
@@ -86,7 +86,7 @@ class CrashReportSender {
     dynamic error,
     StackTrace stackTrace, {
     List<CrashReportAttachment> attachments = const [],
-    String comment,
+    String? comment,
   }) async {
     if (!shouldSend()) {
       return;
@@ -120,7 +120,7 @@ class CrashReportSender {
         },
       );
 
-      final http.MultipartRequest req = new http.MultipartRequest('POST', uri);
+      final http.MultipartRequest req = http.MultipartRequest('POST', uri);
 
       Map<String, String> fields = req.fields;
       fields['product'] = crashProductId;
@@ -144,9 +144,9 @@ class CrashReportSender {
         fields['weight'] = weight.toString();
       }
 
-      final Chain chain = new Chain.forTrace(stackTrace);
+      final Chain chain = Chain.forTrace(stackTrace);
       req.files.add(
-        new http.MultipartFile.fromString(
+        http.MultipartFile.fromString(
           _stackTraceFileField,
           chain.terse.toString(),
           filename: _stackTraceFilename,
@@ -155,7 +155,7 @@ class CrashReportSender {
 
       for (var attachment in attachments) {
         req.files.add(
-          new http.MultipartFile.fromString(
+          http.MultipartFile.fromString(
             attachment._field,
             attachment._value,
             filename: attachment._field,
@@ -192,12 +192,12 @@ class CrashReportAttachment {
   final String _value;
 
   CrashReportAttachment.string({
-    @required String field,
-    @required String value,
-  })  : _field = field,
+    required String field,
+    required String value,
+  })   : _field = field,
         _value = value;
 }
 
 /// A typedef to allow crash reporting to query as to whether it should send a
 /// crash report.
-typedef bool EnablementCallback();
+typedef EnablementCallback = bool Function();

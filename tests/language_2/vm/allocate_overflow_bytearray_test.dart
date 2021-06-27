@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
@@ -19,26 +21,31 @@ const interestingLengths = <int>[
 
 main() {
   for (int interestingLength in interestingLengths) {
+    bool exceptionCheck(e) {
+      // Allow RangeError as the range check may happen before the allocation.
+      return e is RangeError || e is OutOfMemoryError;
+    }
+
     print(interestingLength);
 
     Expect.throws(() {
       var bytearray = new Uint8List(interestingLength);
       print(bytearray.first);
-    }, (e) => e is OutOfMemoryError);
+    }, exceptionCheck);
 
     Expect.throws(() {
       var bytearray = new Uint8ClampedList(interestingLength);
       print(bytearray.first);
-    }, (e) => e is OutOfMemoryError);
+    }, exceptionCheck);
 
     Expect.throws(() {
       var bytearray = new Int8List(interestingLength);
       print(bytearray.first);
-    }, (e) => e is OutOfMemoryError);
+    }, exceptionCheck);
 
     Expect.throws(() {
       var bytearray = new ByteData(interestingLength);
       print(bytearray.getUint8(0));
-    }, (e) => e is OutOfMemoryError);
+    }, exceptionCheck);
   }
 }

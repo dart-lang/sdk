@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class Implement1 {
   void method(covariant int a, int b, int c, int d, int e) {}
 }

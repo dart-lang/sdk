@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=non-nullable
 // VMOptions=--optimization_counter_threshold=10
 import 'package:expect/expect.dart';
 
@@ -22,14 +21,12 @@ main() {
     Expect.equals(123, varWithInit);
     Expect.equals(123, varWithTrivialInit);
     Expect.equals(null, varWithNullInit);
-    Expect.throws(
-        () => varWithNoInit, (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => varWithNoInit);
     Expect.equals(1, initCalls);
     Expect.equals(123, varWithInit);
     Expect.equals(123, varWithTrivialInit);
     Expect.equals(null, varWithNullInit);
-    Expect.throws(
-        () => varWithNoInit, (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => varWithNoInit);
     Expect.equals(1, initCalls);
     varWithInit = 456;
     varWithTrivialInit = 456;

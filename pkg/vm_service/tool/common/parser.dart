@@ -7,21 +7,21 @@ library parser;
 class Token {
   static final RegExp _alpha = RegExp(r'^[0-9a-zA-Z_\-@]+$');
 
-  final String text;
-  Token next;
+  final String? text;
+  Token? next;
 
   Token(this.text);
 
   bool get eof => text == null;
 
   bool get isName {
-    if (text == null || text.isEmpty) return false;
-    return _alpha.hasMatch(text);
+    if (text == null || text!.isEmpty) return false;
+    return _alpha.hasMatch(text!);
   }
 
-  bool get isComment => text != null && text.startsWith('//');
+  bool get isComment => text != null && text!.startsWith('//');
 
-  String toString() => text == null ? 'EOF' : text;
+  String toString() => text == null ? 'EOF' : text!;
 }
 
 class Tokenizer {
@@ -30,12 +30,12 @@ class Tokenizer {
   static final whitespace = ' \n\t\r';
 
   String text;
-  Token _head;
-  Token _last;
+  Token? _head;
+  Token? _last;
 
   Tokenizer(this.text);
 
-  Token tokenize() {
+  Token? tokenize() {
     _emit(null);
 
     for (int i = 0; i < text.length; i++) {
@@ -63,15 +63,15 @@ class Tokenizer {
 
     _emit(null);
 
-    _head = _head.next;
+    _head = _head!.next;
 
     return _head;
   }
 
-  void _emit(String value) {
+  void _emit(String? value) {
     Token token = Token(value);
     if (_head == null) _head = token;
-    if (_last != null) _last.next = token;
+    if (_last != null) _last!.next = token;
     _last = token;
   }
 
@@ -83,12 +83,12 @@ class Tokenizer {
   String toString() {
     StringBuffer buf = StringBuffer();
 
-    Token t = _head;
+    Token t = _head!;
 
     buf.write('[${t}]\n');
 
     while (!t.eof) {
-      t = t.next;
+      t = t.next!;
       buf.write('[${t}]\n');
     }
 
@@ -97,20 +97,20 @@ class Tokenizer {
 }
 
 abstract class Parser {
-  final Token startToken;
+  final Token? startToken;
 
-  Token current;
+  Token? current;
 
   Parser(this.startToken);
 
   Token expect(String text) {
-    Token t = advance();
+    Token t = advance()!;
     if (text != t.text) fail('expected ${text}, got ${t}');
     return t;
   }
 
   bool consume(String text) {
-    if (peek().text == text) {
+    if (peek()!.text == text) {
       advance();
       return true;
     } else {
@@ -118,31 +118,34 @@ abstract class Parser {
     }
   }
 
-  Token peek() =>
-      current == null ? startToken : current.eof ? current : current.next;
+  Token? peek() => current == null
+      ? startToken
+      : current!.eof
+          ? current
+          : current!.next;
 
   Token expectName() {
-    Token t = advance();
+    Token t = advance()!;
     if (!t.isName) fail('expected name token, got ${t}');
     return t;
   }
 
-  Token advance() {
+  Token? advance() {
     if (current == null) {
       current = startToken;
-    } else if (!current.eof) {
-      current = current.next;
+    } else if (!current!.eof) {
+      current = current!.next;
     }
 
     return current;
   }
 
-  String collectComments() {
+  String? collectComments() {
     StringBuffer buf = StringBuffer();
 
-    while (peek().isComment) {
-      Token t = advance();
-      String str = t.text.substring(2);
+    while (peek()!.isComment) {
+      Token t = advance()!;
+      String str = t.text!.substring(2);
 
       if (str.startsWith(' ')) str = str.substring(1);
 

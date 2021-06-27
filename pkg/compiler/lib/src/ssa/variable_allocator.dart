@@ -168,14 +168,22 @@ class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
   int instructionId = 0;
 
   /// The liveIns of basic blocks.
-  final Map<HBasicBlock, LiveEnvironment> liveInstructions;
+  final Map<HBasicBlock, LiveEnvironment> liveInstructions = {};
 
   /// The live intervals of instructions.
-  final Map<HInstruction, LiveInterval> liveIntervals;
+  final Map<HInstruction, LiveInterval> liveIntervals = {};
 
-  SsaLiveIntervalBuilder(this.generateAtUseSite, this.controlFlowOperators)
-      : liveInstructions = new Map<HBasicBlock, LiveEnvironment>(),
-        liveIntervals = new Map<HInstruction, LiveInterval>();
+  /// Controlling conditions for control-flow operators. Control-flow operators,
+  /// e.g. `c ? a : b`, have a condition input `c` from the HIf node
+  /// at the top of the control flow diamond as well as the HPhi inputs for `a`
+  /// and `b` at the bottom of the diamond.
+  final Map<HInstruction, HInstruction> _phiToCondition = {};
+
+  SsaLiveIntervalBuilder(this.generateAtUseSite, this.controlFlowOperators) {
+    for (HIf ifNode in controlFlowOperators) {
+      _phiToCondition[ifNode.joinBlock.phis.first] = ifNode.condition;
+    }
+  }
 
   @override
   void visitGraph(HGraph graph) {
@@ -187,6 +195,12 @@ class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
 
   void markInputsAsLiveInEnvironment(
       HInstruction instruction, LiveEnvironment environment) {
+    if (instruction is HPhi) {
+      HInstruction condition = _phiToCondition[instruction];
+      if (condition != null) {
+        markAsLiveInEnvironment(condition, environment);
+      }
+    }
     for (int i = 0, len = instruction.inputs.length; i < len; i++) {
       markAsLiveInEnvironment(instruction.inputs[i], environment);
     }
@@ -257,21 +271,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    LiveEnvironment environment =
-        new LiveEnvironment(liveIntervals, instructionId);
-
-    // If the control flow instruction in this block will actually be
-    // inlined in the codegen in the join block, we need to make
-    // whatever is used by that control flow instruction as live in
-    // the join block.
-    if (controlFlowOperators.contains(block.last)) {
-      HIf ifInstruction = block.last;
-      HBasicBlock joinBlock = ifInstruction.joinBlock;
-      if (generateAtUseSite.contains(joinBlock.phis.first)) {
-        markInputsAsLiveInEnvironment(
-            ifInstruction, liveInstructions[joinBlock]);
-      }
-    }
+    LiveEnvironment environment = LiveEnvironment(liveIntervals, instructionId);
 
     // Add to the environment the liveIn of its successor, as well as
     // the inputs of the phis of the successor that flow from this block.

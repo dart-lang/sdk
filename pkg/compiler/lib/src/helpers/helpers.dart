@@ -10,7 +10,6 @@ library dart2js.helpers;
 import '../common.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../util/util.dart';
-import 'trace.dart';
 
 export 'debug_collection.dart';
 export 'expensive_map.dart';
@@ -90,8 +89,8 @@ ReportHere get reportHere {
 
 /// Implementation of [reportHere]
 _reportHere(DiagnosticReporter reporter, Spannable node, String debugMessage) {
-  reporter
-      .reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
+  reporter.reportInfoMessage(
+      node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
 }
 
 /// Set of tracked objects used by [track] and [ifTracked].

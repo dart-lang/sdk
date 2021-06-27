@@ -23,34 +23,24 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   final SearchEngine searchEngine;
   final ResolvedUnitResult resolveResult;
   final int offset;
-  CorrectionUtils utils;
+  final CorrectionUtils utils;
 
-  Element _variableElement;
-  VariableDeclaration _variableNode;
-  List<SearchMatch> _references;
+  _InitialState? _initialState;
 
-  InlineLocalRefactoringImpl(
-      this.searchEngine, this.resolveResult, this.offset) {
-    utils = CorrectionUtils(resolveResult);
-  }
+  InlineLocalRefactoringImpl(this.searchEngine, this.resolveResult, this.offset)
+      : utils = CorrectionUtils(resolveResult);
 
   @override
   String get refactoringName => 'Inline Local Variable';
 
   @override
   int get referenceCount {
-    if (_references == null) {
-      return 0;
-    }
-    return _references.length;
+    return _initialState?.references.length ?? 0;
   }
 
   @override
-  String get variableName {
-    if (_variableElement == null) {
-      return null;
-    }
-    return _variableElement.name;
+  String? get variableName {
+    return _initialState?.element.name;
   }
 
   @override
@@ -61,78 +51,93 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    var result = RefactoringStatus();
     // prepare variable
-    {
-      var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
-      if (offsetNode is SimpleIdentifier) {
-        var element = offsetNode.staticElement;
-        if (element is LocalVariableElement) {
-          _variableElement = element;
-          var declarationResult =
-              await AnalysisSessionHelper(resolveResult.session)
-                  .getElementDeclaration(element);
-          _variableNode = declarationResult.node;
-        }
-      }
+    var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    if (offsetNode is! SimpleIdentifier) {
+      return _noLocalVariableStatus();
+    }
+
+    var element = offsetNode.staticElement;
+    if (element is! LocalVariableElement) {
+      return _noLocalVariableStatus();
+    }
+
+    var helper = AnalysisSessionHelper(resolveResult.session);
+    var declarationResult = await helper.getElementDeclaration(element);
+    var node = declarationResult?.node;
+    if (node is! VariableDeclaration) {
+      return _noLocalVariableStatus();
     }
     // validate node declaration
-    if (!_isVariableDeclaredInStatement()) {
-      result = RefactoringStatus.fatal(
-          'Local variable declaration or reference must be selected '
-          'to activate this refactoring.');
-      return Future<RefactoringStatus>.value(result);
+    var declarationStatement = _declarationStatement(node);
+    if (declarationStatement == null) {
+      return _noLocalVariableStatus();
     }
     // should have initializer at declaration
-    if (_variableNode.initializer == null) {
+    var initializer = node.initializer;
+    if (initializer == null) {
       var message = format(
-          "Local variable '{0}' is not initialized at declaration.",
-          _variableElement.displayName);
-      result =
-          RefactoringStatus.fatal(message, newLocation_fromNode(_variableNode));
-      return Future<RefactoringStatus>.value(result);
+        "Local variable '{0}' is not initialized at declaration.",
+        element.displayName,
+      );
+      return RefactoringStatus.fatal(
+        message,
+        newLocation_fromNode(node),
+      );
     }
     // prepare references
-    _references = await searchEngine.searchReferences(_variableElement);
+    var references = await searchEngine.searchReferences(element);
     // should not have assignments
-    for (var reference in _references) {
+    for (var reference in references) {
       if (reference.kind != MatchKind.READ) {
-        var message = format("Local variable '{0}' is assigned more than once.",
-            [_variableElement.displayName]);
+        var message = format(
+          "Local variable '{0}' is assigned more than once.",
+          [element.displayName],
+        );
         return RefactoringStatus.fatal(
-            message, newLocation_fromMatch(reference));
+          message,
+          newLocation_fromMatch(reference),
+        );
       }
     }
     // done
-    return result;
+    _initialState = _InitialState(
+      element: element,
+      node: node,
+      initializer: initializer,
+      declarationStatement: declarationStatement,
+      references: references,
+    );
+    return RefactoringStatus();
   }
 
   @override
   Future<SourceChange> createChange() {
     var change = SourceChange(refactoringName);
+    var unitElement = resolveResult.unit!.declaredElement!;
+    var state = _initialState!;
     // remove declaration
     {
-      Statement declarationStatement =
-          _variableNode.thisOrAncestorOfType<VariableDeclarationStatement>();
-      var range = utils.getLinesRangeStatements([declarationStatement]);
-      doSourceChange_addElementEdit(change, resolveResult.unit.declaredElement,
-          newSourceEdit_range(range, ''));
+      var range = utils.getLinesRangeStatements([(state.declarationStatement)]);
+      doSourceChange_addElementEdit(
+          change, unitElement, newSourceEdit_range(range, ''));
     }
     // prepare initializer
-    var initializer = _variableNode.initializer;
+    var initializer = state.initializer;
     var initializerCode = utils.getNodeText(initializer);
     // replace references
-    for (var reference in _references) {
+    for (var reference in state.references) {
       var editRange = reference.sourceRange;
       // prepare context
       var offset = editRange.offset;
-      var node = utils.findNode(offset);
+      var node = utils.findNode(offset)!;
       var parent = node.parent;
       // prepare code
       String codeForReference;
       if (parent is InterpolationExpression) {
-        StringInterpolation target = parent.parent;
-        if (initializer is SingleStringLiteral &&
+        var target = parent.parent;
+        if (target is StringInterpolation &&
+            initializer is SingleStringLiteral &&
             !initializer.isRaw &&
             initializer.isSingleQuoted == target.isSingleQuoted &&
             (!initializer.isMultiline || target.isMultiline)) {
@@ -152,26 +157,54 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
         codeForReference = initializerCode;
       }
       // do replace
-      doSourceChange_addElementEdit(change, resolveResult.unit.declaredElement,
+      doSourceChange_addElementEdit(change, unitElement,
           newSourceEdit_range(editRange, codeForReference));
     }
     // done
     return Future.value(change);
   }
 
-  bool _isVariableDeclaredInStatement() {
-    if (_variableNode == null) {
-      return false;
+  @override
+  bool isAvailable() {
+    return !_checkOffset().hasFatalError;
+  }
+
+  /// Checks if [offset] is a variable that can be inlined.
+  RefactoringStatus _checkOffset() {
+    var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    if (offsetNode is! SimpleIdentifier) {
+      return _noLocalVariableStatus();
     }
-    var parent = _variableNode.parent;
-    if (parent is VariableDeclarationList) {
-      parent = parent.parent;
-      if (parent is VariableDeclarationStatement) {
-        parent = parent.parent;
-        return parent is Block || parent is SwitchCase;
+
+    var element = offsetNode.staticElement;
+    if (element is! LocalVariableElement) {
+      return _noLocalVariableStatus();
+    }
+
+    return RefactoringStatus();
+  }
+
+  RefactoringStatus _noLocalVariableStatus() {
+    return RefactoringStatus.fatal(
+      'Local variable declaration or reference must be selected '
+      'to activate this refactoring.',
+    );
+  }
+
+  static VariableDeclarationStatement? _declarationStatement(
+    VariableDeclaration declaration,
+  ) {
+    var declarationList = declaration.parent;
+    if (declarationList is VariableDeclarationList) {
+      var statement = declarationList.parent;
+      if (statement is VariableDeclarationStatement) {
+        var parent = statement.parent;
+        if (parent is Block || parent is SwitchCase) {
+          return statement;
+        }
       }
     }
-    return false;
+    return null;
   }
 
   static bool _shouldBeExpressionInterpolation(
@@ -201,4 +234,20 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     // no () is needed
     return false;
   }
+}
+
+class _InitialState {
+  final LocalVariableElement element;
+  final VariableDeclaration node;
+  final Expression initializer;
+  final VariableDeclarationStatement declarationStatement;
+  final List<SearchMatch> references;
+
+  _InitialState({
+    required this.element,
+    required this.node,
+    required this.initializer,
+    required this.declarationStatement,
+    required this.references,
+  });
 }

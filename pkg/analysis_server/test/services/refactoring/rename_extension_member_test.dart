@@ -137,12 +137,12 @@ extension E on int {
 }
 ''');
     createRenameRefactoringAtString('test =>');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: 'Field name must not be null.',
+      expectedMessage: 'Field name must not be empty.',
     );
 
     // OK
@@ -157,14 +157,6 @@ extension E on int {
 }
 ''');
     createRenameRefactoringAtString('test() {}');
-
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-      refactoring.checkNewName(),
-      RefactoringProblemSeverity.FATAL,
-      expectedMessage: 'Method name must not be null.',
-    );
 
     // empty
     refactoring.newName = '';
@@ -236,7 +228,7 @@ extension E on int {
 main() {
   0.test;
   0.test = 2;
-  
+
   E(0).test;
   E(0).test = 3;
 }
@@ -259,7 +251,7 @@ extension E on int {
 main() {
   0.newName;
   0.newName = 2;
-  
+
   E(0).newName;
   E(0).newName = 3;
 }
@@ -279,7 +271,7 @@ extension E on int {
 main() {
   0.test;
   0.test = 2;
-  
+
   E(0).test;
   E(0).test = 3;
 }
@@ -302,7 +294,7 @@ extension E on int {
 main() {
   0.newName;
   0.newName = 2;
-  
+
   E(0).newName;
   E(0).newName = 3;
 }
@@ -312,9 +304,9 @@ main() {
   Future<void> test_createChange_named_TypeParameterElement() async {
     await indexTestUnit('''
 extension E<Test> on int {
-  Test get g1 => null;
-  List<Test> get g2 => null;
-  Test m(Test p) => null;
+  Test get g1 => throw 0;
+  List<Test> get g2 => throw 0;
+  Test m(Test p) => throw 0;
 }
 ''');
     // configure refactoring
@@ -326,9 +318,9 @@ extension E<Test> on int {
     // validate change
     return assertSuccessfulRefactoring('''
 extension E<NewName> on int {
-  NewName get g1 => null;
-  List<NewName> get g2 => null;
-  NewName m(NewName p) => null;
+  NewName get g1 => throw 0;
+  List<NewName> get g2 => throw 0;
+  NewName m(NewName p) => throw 0;
 }
 ''');
   }

@@ -36,18 +36,12 @@ main() {
   Symbol t(ClassMirror cm) =>
       (cm.declarations[#t] as MethodMirror).returnType.simpleName;
 
-  Expect.equals(#T, r(genericDecl.superclass!));
   Expect.equals(#int, s(genericDecl.superclass!));
-  Expect.equals(#T, t(genericDecl));
 
   Expect.equals(#String, r(genericOfString.superclass!));
   Expect.equals(#int, s(genericOfString.superclass!));
   Expect.equals(#String, t(genericOfString));
 
-  Expect.equals(#R, r(superGenericDecl));
-  Expect.equals(#S, s(superGenericDecl));
-
-  Expect.equals(#T, r(superOfTAndInt));
   Expect.equals(#int, s(superOfTAndInt));
 
   Expect.equals(#String, r(superOfStringAndInt));

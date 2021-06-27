@@ -101,7 +101,6 @@ class TranslationHelper {
   bool IsLibrary(NameIndex name);
   bool IsClass(NameIndex name);
   bool IsMember(NameIndex name);
-  bool IsField(NameIndex name);
   bool IsConstructor(NameIndex name);
   bool IsProcedure(NameIndex name);
   bool IsMethod(NameIndex name);
@@ -164,8 +163,10 @@ class TranslationHelper {
   virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
   virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
 
-  FieldPtr LookupFieldByKernelField(NameIndex field);
-  FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure);
+  FieldPtr LookupFieldByKernelGetterOrSetter(NameIndex field,
+                                             bool required = true);
+  FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure,
+                                                  bool required = true);
   FunctionPtr LookupConstructorByKernelConstructor(NameIndex constructor);
   FunctionPtr LookupConstructorByKernelConstructor(const Class& owner,
                                                    NameIndex constructor);
@@ -196,7 +197,7 @@ class TranslationHelper {
 
   void SetExpressionEvaluationFunction(const Function& function) {
     ASSERT(expression_evaluation_function_ == nullptr);
-    expression_evaluation_function_ = &Function::Handle(zone_, function.raw());
+    expression_evaluation_function_ = &Function::Handle(zone_, function.ptr());
   }
   const Function& GetExpressionEvaluationFunction() {
     if (expression_evaluation_function_ == nullptr) {
@@ -207,11 +208,11 @@ class TranslationHelper {
   void SetExpressionEvaluationRealClass(const Class& real_class) {
     ASSERT(expression_evaluation_real_class_ == nullptr);
     ASSERT(!real_class.IsNull());
-    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.raw());
+    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.ptr());
   }
   ClassPtr GetExpressionEvaluationRealClass() {
     ASSERT(expression_evaluation_real_class_ != nullptr);
-    return expression_evaluation_real_class_->raw();
+    return expression_evaluation_real_class_->ptr();
   }
 
  private:
@@ -270,6 +271,7 @@ class FunctionNodeHelper {
     kPositionalParameters,
     kNamedParameters,
     kReturnType,
+    kFutureValueType,
     kBody,
     kEnd,
   };
@@ -456,10 +458,10 @@ class FieldHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kStatic = 1 << 2,
-    kIsCovariant = 1 << 5,
-    kIsGenericCovariantImpl = 1 << 6,
-    kIsLate = 1 << 7,
-    kExtensionMember = 1 << 8,
+    kIsCovariant = 1 << 3,
+    kIsGenericCovariantImpl = 1 << 4,
+    kIsLate = 1 << 5,
+    kExtensionMember = 1 << 6,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -537,12 +539,12 @@ class ProcedureHelper {
 
   enum StubKind {
     kRegularStubKind,
-    kForwardingStubKind,
-    kForwardingSuperStubKind,
+    kAbstractForwardingStubKind,
+    kConcreteForwardingStubKind,
     kNoSuchMethodForwarderStubKind,
     kMemberSignatureStubKind,
-    kMixinStubKind,
-    kMixinSuperStubKind,
+    kAbstractMixinStubKind,
+    kConcreteMixinStubKind,
   };
 
   enum Flag {
@@ -574,8 +576,8 @@ class ProcedureHelper {
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsConst() const { return (flags_ & kConst) != 0; }
   bool IsForwardingStub() const {
-    return stub_kind_ == kForwardingStubKind ||
-           stub_kind_ == kForwardingSuperStubKind;
+    return stub_kind_ == kAbstractForwardingStubKind ||
+           stub_kind_ == kConcreteForwardingStubKind;
   }
   bool IsRedirectingFactoryConstructor() const {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
@@ -599,7 +601,7 @@ class ProcedureHelper {
   StubKind stub_kind_;
 
   // Only valid if the 'isForwardingStub' flag is set.
-  NameIndex forwarding_stub_super_target_;
+  NameIndex concrete_forwarding_stub_target_;
 
  private:
   KernelReaderHelper* helper_;
@@ -974,9 +976,10 @@ struct InferredTypeMetadata {
       return CompileType::FromAbstractType(
           Type::ZoneHandle(
               zone, (IsNullable() ? Type::NullableIntType() : Type::IntType())),
-          IsNullable());
+          IsNullable(), CompileType::kCannotBeSentinel);
     } else {
-      return CompileType::CreateNullable(IsNullable(), cid);
+      return CompileType(IsNullable(), CompileType::kCannotBeSentinel, cid,
+                         nullptr);
     }
   }
 };
@@ -1167,12 +1170,11 @@ class KernelReaderHelper {
 
   KernelReaderHelper(Zone* zone,
                      TranslationHelper* translation_helper,
-                     const uint8_t* data_buffer,
-                     intptr_t buffer_length,
+                     const ProgramBinary& binary,
                      intptr_t data_program_offset)
       : zone_(zone),
         translation_helper_(*translation_helper),
-        reader_(data_buffer, buffer_length),
+        reader_(binary),
         script_(Script::Handle(zone_)),
         data_program_offset_(data_program_offset) {}
 
@@ -1203,6 +1205,7 @@ class KernelReaderHelper {
   }
 
   intptr_t ReaderOffset() const;
+  intptr_t ReaderSize() const;
   void SkipBytes(intptr_t skip);
   bool ReadBool();
   uint8_t ReadByte();
@@ -1251,7 +1254,6 @@ class KernelReaderHelper {
   Nullability ReadNullability();
   Variance ReadVariance();
 
-  intptr_t SourceTableFieldCountFromFirstLibraryOffset();
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
   String& SourceTableUriFor(intptr_t index);
@@ -1316,12 +1318,12 @@ class ActiveClass {
 
   bool MemberIsProcedure() {
     ASSERT(member != NULL);
-    FunctionLayout::Kind function_kind = member->kind();
-    return function_kind == FunctionLayout::kRegularFunction ||
-           function_kind == FunctionLayout::kGetterFunction ||
-           function_kind == FunctionLayout::kSetterFunction ||
-           function_kind == FunctionLayout::kMethodExtractor ||
-           function_kind == FunctionLayout::kDynamicInvocationForwarder ||
+    UntaggedFunction::Kind function_kind = member->kind();
+    return function_kind == UntaggedFunction::kRegularFunction ||
+           function_kind == UntaggedFunction::kGetterFunction ||
+           function_kind == UntaggedFunction::kSetterFunction ||
+           function_kind == UntaggedFunction::kMethodExtractor ||
+           function_kind == UntaggedFunction::kDynamicInvocationForwarder ||
            member->IsFactory();
   }
 
@@ -1330,7 +1332,7 @@ class ActiveClass {
     return member->IsFactory();
   }
 
-  bool RequireLegacyErasure(bool null_safety) const {
+  bool RequireConstCanonicalTypeErasure(bool null_safety) const {
     return klass != nullptr && !null_safety &&
            Library::Handle(klass->library()).nnbd_compiled_mode() ==
                NNBDCompiledMode::kAgnostic;
@@ -1343,11 +1345,8 @@ class ActiveClass {
     return klass->NumTypeArguments();
   }
 
-  void RecordDerivedTypeParameter(Zone* zone,
-                                  const TypeParameter& original,
-                                  const TypeParameter& derived) {
-    if (original.raw() != derived.raw() &&
-        original.bound() == AbstractType::null()) {
+  void RecordDerivedTypeParameter(Zone* zone, const TypeParameter& derived) {
+    if (derived.bound() == AbstractType::null()) {
       if (derived_type_parameters == nullptr) {
         derived_type_parameters = &GrowableObjectArray::Handle(
             zone, GrowableObjectArray::New(Heap::kOld));
@@ -1365,9 +1364,9 @@ class ActiveClass {
 
   const Function* member;
 
-  // The innermost enclosing function. This is used for building types, as a
+  // The innermost enclosing signature. This is used for building types, as a
   // parent for function types.
-  const Function* enclosing;
+  const FunctionType* enclosing;
 
   const TypeArguments* local_type_parameters;
 
@@ -1410,9 +1409,9 @@ class ActiveMemberScope {
 class ActiveEnclosingFunctionScope {
  public:
   ActiveEnclosingFunctionScope(ActiveClass* active_class,
-                               const Function* enclosing)
+                               const FunctionType* enclosing_signature)
       : active_class_(active_class), saved_(*active_class) {
-    active_class_->enclosing = enclosing;
+    active_class_->enclosing = enclosing_signature;
   }
 
   ~ActiveEnclosingFunctionScope() { *active_class_ = saved_; }
@@ -1430,24 +1429,25 @@ class ActiveTypeParametersScope {
   // parameters defined by 'innermost' and any enclosing *closures* (but not
   // enclosing methods/top-level functions/classes).
   //
-  // Also, the enclosing function is set to 'innermost'.
+  // Also, the enclosing signature is set to innermost's signature.
   ActiveTypeParametersScope(ActiveClass* active_class,
                             const Function& innermost,
+                            const FunctionType* innermost_signature,
                             Zone* Z);
 
   // Append the list of the local type parameters to the list in ActiveClass.
   //
-  // Also, the enclosing function is set to 'function'.
+  // Also, the enclosing signature is set to 'signature'.
   ActiveTypeParametersScope(ActiveClass* active_class,
-                            const Function* function,
-                            const TypeArguments& new_params,
+                            const FunctionType* innermost_signature,
                             Zone* Z);
 
-  ~ActiveTypeParametersScope() { *active_class_ = saved_; }
+  ~ActiveTypeParametersScope();
 
  private:
   ActiveClass* active_class_;
   ActiveClass saved_;
+  Zone* zone_;
 
   DISALLOW_COPY_AND_ASSIGN(ActiveTypeParametersScope);
 };
@@ -1458,7 +1458,8 @@ class TypeTranslator {
                  ConstantReader* constant_reader,
                  ActiveClass* active_class,
                  bool finalize = false,
-                 bool apply_legacy_erasure = false);
+                 bool apply_canonical_type_erasure = false,
+                 bool in_constant_context = false);
 
   AbstractType& BuildType();
   AbstractType& BuildTypeWithoutFinalization();
@@ -1470,9 +1471,16 @@ class TypeTranslator {
       intptr_t length);
 
   void LoadAndSetupTypeParameters(ActiveClass* active_class,
-                                  const Object& set_on,
-                                  intptr_t type_parameter_count,
-                                  const Function& parameterized_function);
+                                  const Function& function,
+                                  const Class& parameterized_class,
+                                  const FunctionType& parameterized_signature,
+                                  intptr_t type_parameter_count);
+
+  void LoadAndSetupBounds(ActiveClass* active_class,
+                          const Function& function,
+                          const Class& parameterized_class,
+                          const FunctionType& parameterized_signature,
+                          intptr_t type_parameter_count);
 
   const Type& ReceiverType(const Class& klass);
 
@@ -1530,7 +1538,9 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
-  const bool apply_legacy_erasure_;
+  bool refers_to_derived_type_param_;
+  const bool apply_canonical_type_erasure_;
+  const bool in_constant_context_;
 
   friend class ScopeBuilder;
   friend class KernelLoader;

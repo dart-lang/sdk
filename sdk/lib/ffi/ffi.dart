@@ -5,25 +5,28 @@
 /**
  * Foreign Function Interface for interoperability with the C programming language.
  *
- * **NOTE**: Dart:FFI is in beta, and breaking API changes might still happen.
- *
  * For further details, please see: https://dart.dev/server/c-interop
  *
  * {@category VM}
  */
 library dart.ffi;
 
+import 'dart:_internal' show Since;
 import 'dart:isolate';
 import 'dart:typed_data';
 
 part "native_type.dart";
+part "allocation.dart";
 part "annotations.dart";
 part "dynamic_library.dart";
 part "struct.dart";
+part "union.dart";
 
 /// Number of bytes used by native type T.
 ///
 /// Includes padding and alignment of structs.
+///
+/// This function must be invoked with a compile-time constant [T].
 external int sizeOf<T extends NativeType>();
 
 /// Represents a pointer into the native C memory corresponding to "NULL", e.g.
@@ -61,6 +64,11 @@ class Pointer<T extends NativeType> extends NativeType {
   external int get address;
 
   /// Pointer arithmetic (takes element size into account).
+  ///
+  /// This method must be invoked with a compile-time constant [T].
+  ///
+  /// Does not accept dynamic invocations -- where the type of the receiver is
+  /// [dynamic].
   external Pointer<T> elementAt(int index);
 
   /// Cast Pointer<T> to a Pointer<V>.
@@ -79,12 +87,71 @@ class Pointer<T extends NativeType> extends NativeType {
   }
 }
 
+/// A fixed-sized array of [T]s.
+class Array<T extends NativeType> extends NativeType {
+  /// Const constructor to specify [Array] dimensions in [Struct]s.
+  ///
+  /// ```dart
+  /// class MyStruct extends Struct {
+  ///   @Array(8)
+  ///   external Array<Uint8> inlineArray;
+  ///
+  ///   @Array(2, 2, 2)
+  ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
+  /// }
+  /// ```
+  ///
+  /// Do not invoke in normal code.
+  const factory Array(int dimension1,
+      [int dimension2,
+      int dimension3,
+      int dimension4,
+      int dimension5]) = _ArraySize<T>;
+
+  /// Const constructor to specify [Array] dimensions in [Struct]s.
+  ///
+  /// ```dart
+  /// class MyStruct extends Struct {
+  ///   @Array.multi([2, 2, 2])
+  ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
+  ///
+  ///   @Array.multi([2, 2, 2, 2, 2, 2, 2, 2])
+  ///   external Array<Array<Array<Array<Array<Array<Array<Array<Uint8>>>>>>>> eightDimensionalInlineArray;
+  /// }
+  /// ```
+  ///
+  /// Do not invoke in normal code.
+  const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
+}
+
+class _ArraySize<T extends NativeType> implements Array<T> {
+  final int? dimension1;
+  final int? dimension2;
+  final int? dimension3;
+  final int? dimension4;
+  final int? dimension5;
+
+  final List<int>? dimensions;
+
+  const _ArraySize(this.dimension1,
+      [this.dimension2, this.dimension3, this.dimension4, this.dimension5])
+      : dimensions = null;
+
+  const _ArraySize.multi(this.dimensions)
+      : dimension1 = null,
+        dimension2 = null,
+        dimension3 = null,
+        dimension4 = null,
+        dimension5 = null;
+}
+
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   /// Convert to Dart function, automatically marshalling the arguments
   /// and return value.
-  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>();
+  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>(
+      {bool isLeaf: false});
 }
 
 //
@@ -494,6 +561,83 @@ extension DoublePointer on Pointer<Double> {
   external Float64List asTypedList(int length);
 }
 
+/// Bounds checking indexing methods on [Array]s of [Int8].
+extension Int8Array on Array<Int8> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Int16].
+extension Int16Array on Array<Int16> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Int32].
+extension Int32Array on Array<Int32> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Int64].
+extension Int64Array on Array<Int64> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint8].
+extension Uint8Array on Array<Uint8> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint16].
+extension Uint16Array on Array<Uint16> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint32].
+extension Uint32Array on Array<Uint32> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint64].
+extension Uint64Array on Array<Uint64> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [IntPtr].
+extension IntPtrArray on Array<IntPtr> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Float].
+extension FloatArray on Array<Float> {
+  external double operator [](int index);
+
+  external void operator []=(int index, double value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Double].
+extension DoubleArray on Array<Double> {
+  external double operator [](int index);
+
+  external void operator []=(int index, double value);
+}
+
 //
 // End of generated code.
 //
@@ -537,6 +681,8 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   ///
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
+  ///
+  /// This extension method must be invoked with a compile-time constant [T].
   external T get ref;
 
   /// Creates a reference to access the fields of this struct backed by native
@@ -544,7 +690,56 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   ///
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
+  ///
+  /// This extension method must be invoked with a compile-time constant [T].
   external T operator [](int index);
+}
+
+/// Extension on [Pointer] specialized for the type argument [Union].
+extension UnionPointer<T extends Union> on Pointer<T> {
+  /// Creates a reference to access the fields of this union backed by native
+  /// memory at [address].
+  ///
+  /// The [address] must be aligned according to the union alignment rules of
+  /// the platform.
+  ///
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T get ref;
+
+  /// Creates a reference to access the fields of this union backed by native
+  /// memory at `address + sizeOf<T>() * index`.
+  ///
+  /// The [address] must be aligned according to the union alignment rules of
+  /// the platform.
+  ///
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T operator [](int index);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Pointer].
+extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
+  external Pointer<T> operator [](int index);
+
+  external void operator []=(int index, Pointer<T> value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Struct].
+extension StructArray<T extends Struct> on Array<T> {
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T operator [](int index);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Union].
+extension UnionArray<T extends Union> on Array<T> {
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T operator [](int index);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Array].
+extension ArrayArray<T extends NativeType> on Array<Array<T>> {
+  external Array<T> operator [](int index);
+
+  external void operator []=(int index, Array<T> value);
 }
 
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].
@@ -558,7 +753,7 @@ extension NativePort on SendPort {
 }
 
 /// Opaque, not exposing it's members.
-class Dart_CObject extends Struct {}
+class Dart_CObject extends Opaque {}
 
 typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
 
@@ -583,7 +778,7 @@ abstract class NativeApi {
       get postCObject;
 
   /// A function pointer to
-  /// ```
+  /// ```c
   /// Dart_Port Dart_NewNativePort(const char* name,
   ///                              Dart_NativeMessageHandler handler,
   ///                              bool handle_concurrently)
@@ -606,3 +801,33 @@ abstract class NativeApi {
   /// symbols in `dart_api_dl.h`.
   external static Pointer<Void> get initializeApiDLData;
 }
+
+/// Annotation to be used for marking an external function as FFI native.
+///
+/// Example:
+///```dart
+/// @FfiNative<Int64 Function(Int64, Int64)>("FfiNative_Sum")
+/// external int sum(int a, int b);
+///```
+/// Calling such functions will throw an exception if no resolver
+/// was set on the library or the resolver failed to resolve the name.
+///
+/// See `Dart_SetFfiNativeResolver` in `dart_api.h`
+///
+/// NOTE: This is an experimental feature and may change in the future.
+class FfiNative<T> {
+  final String nativeName;
+  const FfiNative(this.nativeName);
+}
+
+// Bootstrapping native for getting the FFI native C function pointer to look
+// up the FFI resolver.
+Pointer<NativeFunction<IntPtr Function(Handle, Handle)>>
+    _get_ffi_native_resolver<
+        T extends NativeFunction>() native "Ffi_GetFfiNativeResolver";
+
+// Resolver for FFI Native C function pointers.
+@pragma('vm:entry-point')
+final _ffi_resolver =
+    _get_ffi_native_resolver<NativeFunction<IntPtr Function(Handle, Handle)>>()
+        .asFunction<int Function(Object, Object)>();

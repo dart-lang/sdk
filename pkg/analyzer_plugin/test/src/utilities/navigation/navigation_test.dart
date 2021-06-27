@@ -24,14 +24,14 @@ class NavigationCollectorImplTest {
     var targetStartColumnA1 = 4;
     var targetKindA1 = ElementKind.CLASS;
     var targetLocationA1 = Location(fileA, targetOffsetA1, targetLengthA1,
-        targetStartLineA1, targetStartColumnA1);
+        targetStartLineA1, targetStartColumnA1, 0, 0);
     var targetOffsetA2 = 5;
     var targetLengthA2 = 6;
     var targetStartLineA2 = 7;
     var targetStartColumnA2 = 8;
     var targetKindA2 = ElementKind.FUNCTION;
     var targetLocationA2 = Location(fileA, targetOffsetA2, targetLengthA2,
-        targetStartLineA2, targetStartColumnA2);
+        targetStartLineA2, targetStartColumnA2, 0, 0);
 
     var fileB = 'b.dart';
     var targetOffsetB1 = 9;
@@ -40,14 +40,14 @@ class NavigationCollectorImplTest {
     var targetStartColumnB1 = 12;
     var targetKindB1 = ElementKind.ENUM;
     var targetLocationB1 = Location(fileB, targetOffsetB1, targetLengthB1,
-        targetStartLineB1, targetStartColumnB1);
+        targetStartLineB1, targetStartColumnB1, 0, 0);
     var targetOffsetB2 = 13;
     var targetLengthB2 = 14;
     var targetStartLineB2 = 15;
     var targetStartColumnB2 = 16;
     var targetKindB2 = ElementKind.METHOD;
     var targetLocationB2 = Location(fileB, targetOffsetB2, targetLengthB2,
-        targetStartLineB2, targetStartColumnB2);
+        targetStartLineB2, targetStartColumnB2, 0, 0);
 
     // Six regions targeting a1, b1, a2, b1, a1, b2
     var regionOffsets = <int>[17, 18, 19, 20, 21, 22];
@@ -112,7 +112,7 @@ class NavigationCollectorImplTest {
     var targetStartLine = 5;
     var targetStartColumn = 1;
     var targetLocation = Location(targetFile, targetOffset, targetLength,
-        targetStartLine, targetStartColumn);
+        targetStartLine, targetStartColumn, 0, 0);
     collector.addRegion(regionOffset, regionLength, targetKind, targetLocation);
     collector.createRegions();
     expect(collector.files, [targetFile]);

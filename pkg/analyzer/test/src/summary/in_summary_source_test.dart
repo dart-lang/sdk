@@ -27,15 +27,17 @@ class InSummarySourceTest {
           }))
     ]);
 
-    InSummarySource source = sourceFactory.forUri('package:foo/foo.dart');
+    var source =
+        sourceFactory.forUri('package:foo/foo.dart') as InSummarySource;
     expect(source, isNotNull);
     expect(source.summaryPath, 'foo.sum');
 
-    source = sourceFactory.forUri('package:foo/src/foo_impl.dart');
+    source = sourceFactory.forUri('package:foo/src/foo_impl.dart')
+        as InSummarySource;
     expect(source, isNotNull);
     expect(source.summaryPath, 'foo.sum');
 
-    source = sourceFactory.forUri('package:bar/baz.dart');
+    source = sourceFactory.forUri('package:bar/baz.dart') as InSummarySource;
     expect(source, isNotNull);
     expect(source.summaryPath, 'bar.sum');
   }

@@ -132,6 +132,7 @@ class ObjectPointerVisitor;
   RW(Class, weak_property_class)                                               \
   RW(Array, symbol_table)                                                      \
   RW(Array, canonical_types)                                                   \
+  RW(Array, canonical_function_types)                                          \
   RW(Array, canonical_type_parameters)                                         \
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
@@ -157,6 +158,9 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
+  RW(Function, _object_equals_function)                                        \
+  RW(Function, _object_hash_code_function)                                     \
+  RW(Function, _object_to_string_function)                                     \
   RW(Function, lookup_port_handler)                                            \
   RW(Function, lookup_open_ports)                                              \
   RW(Function, handle_message_function)                                        \
@@ -168,9 +172,6 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Function, complete_on_async_error)                                        \
   RW(Class, async_star_stream_controller)                                      \
-  RW(GrowableObjectArray, llvm_constant_pool)                                  \
-  RW(GrowableObjectArray, llvm_function_pool)                                  \
-  RW(Array, llvm_constant_hash_table)                                          \
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
   RW(ObjectPool, global_object_pool)                                           \
   RW(Array, unique_dynamic_targets)                                            \
@@ -192,6 +193,11 @@ class ObjectPointerVisitor;
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
   RW(Code, allocate_array_stub)                                                \
+  RW(Code, allocate_mint_stub)                                                 \
+  RW(Code, allocate_double_stub)                                               \
+  RW(Code, allocate_float32x4_stub)                                            \
+  RW(Code, allocate_float64x2_stub)                                            \
+  RW(Code, allocate_int32x4_stub)                                              \
   RW(Code, allocate_int8_array_stub)                                           \
   RW(Code, allocate_uint8_array_stub)                                          \
   RW(Code, allocate_uint8_clamped_array_stub)                                  \
@@ -206,6 +212,7 @@ class ObjectPointerVisitor;
   RW(Code, allocate_float32x4_array_stub)                                      \
   RW(Code, allocate_int32x4_array_stub)                                        \
   RW(Code, allocate_float64x2_array_stub)                                      \
+  RW(Code, allocate_closure_stub)                                              \
   RW(Code, allocate_context_stub)                                              \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
@@ -230,12 +237,11 @@ class ObjectPointerVisitor;
   RW(Code, unreachable_tts_stub)                                               \
   RW(Code, slow_tts_stub)                                                      \
   RW(Array, dispatch_table_code_entries)                                       \
-  RW(GrowableObjectArray, code_order_tables)                                   \
+  RW(GrowableObjectArray, instructions_tables)                                 \
   RW(Array, obfuscation_map)                                                   \
   RW(GrowableObjectArray, ffi_callback_functions)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
-  RW(Class, ffi_struct_class)                                                  \
   RW(Object, ffi_as_function_internal)                                         \
   // Please remember the last entry must be referred in the 'to' function below.
 
@@ -261,6 +267,11 @@ class ObjectPointerVisitor;
   DO(stack_overflow_stub_without_fpu_regs_stub,                                \
      StackOverflowSharedWithoutFPURegs)                                        \
   DO(allocate_array_stub, AllocateArray)                                       \
+  DO(allocate_mint_stub, AllocateMint)                                         \
+  DO(allocate_double_stub, AllocateDouble)                                     \
+  DO(allocate_float32x4_stub, AllocateFloat32x4)                               \
+  DO(allocate_float64x2_stub, AllocateFloat64x2)                               \
+  DO(allocate_int32x4_stub, AllocateInt32x4)                                   \
   DO(allocate_int8_array_stub, AllocateInt8Array)                              \
   DO(allocate_uint8_array_stub, AllocateUint8Array)                            \
   DO(allocate_uint8_clamped_array_stub, AllocateUint8ClampedArray)             \
@@ -275,6 +286,7 @@ class ObjectPointerVisitor;
   DO(allocate_float32x4_array_stub, AllocateFloat32x4Array)                    \
   DO(allocate_int32x4_array_stub, AllocateInt32x4Array)                        \
   DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
+  DO(allocate_closure_stub, AllocateClosure)                                   \
   DO(allocate_context_stub, AllocateContext)                                   \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
@@ -311,8 +323,8 @@ class ObjectPointerVisitor;
 
 class IsolateObjectStore {
  public:
-  explicit IsolateObjectStore(ObjectStore* object_store);
-  ~IsolateObjectStore();
+  IsolateObjectStore() {}
+  ~IsolateObjectStore() {}
 
 #define DECLARE_GETTER(Type, name)                                             \
   Type##Ptr name() const { return name##_; }                                   \
@@ -322,7 +334,7 @@ class IsolateObjectStore {
 
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
-  void set_##name(const Type& value) { name##_ = value.raw(); }
+  void set_##name(const Type& value) { name##_ = value.ptr(); }
   ISOLATE_OBJECT_STORE_FIELD_LIST(DECLARE_GETTER, DECLARE_GETTER_AND_SETTER)
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
@@ -333,20 +345,10 @@ class IsolateObjectStore {
   // Called to initialize objects required by the vm but which invoke
   // dart code.  If an error occurs the error object is returned otherwise
   // a null object is returned.
-  ErrorPtr PreallocateObjects();
+  ErrorPtr PreallocateObjects(const Object& out_of_memory);
 
   void Init();
   void PostLoad();
-
-  ObjectStore* object_store() const { return object_store_; }
-  void set_object_store(ObjectStore* object_store) {
-    ASSERT(object_store_ == nullptr);
-    object_store_ = object_store;
-  }
-
-  static intptr_t object_store_offset() {
-    return OFFSET_OF(IsolateObjectStore, object_store_);
-  }
 
 #ifndef PRODUCT
   void PrintToJSONObject(JSONObject* jsobj);
@@ -364,8 +366,6 @@ class IsolateObjectStore {
                                   DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
   ObjectPtr* to() { return reinterpret_cast<ObjectPtr*>(&error_listeners_); }
-
-  ObjectStore* object_store_;
 
   friend class Serializer;
   friend class Deserializer;
@@ -392,7 +392,7 @@ class ObjectStore {
   static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
-  void set_##name(const Type& value) { name##_ = value.raw(); }
+  void set_##name(const Type& value) { name##_ = value.ptr(); }
 #define DECLARE_LAZY_INIT_GETTER(Type, name, init)                             \
   Type##Ptr name() {                                                           \
     if (name##_ == Type::null()) {                                             \
@@ -403,10 +403,10 @@ class ObjectStore {
   static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
 #define DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER(Type, name)                   \
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitCoreTypes)                      \
-  void set_##name(const Type& value) { name##_ = value.raw(); }
+  void set_##name(const Type& value) { name##_ = value.ptr(); }
 #define DECLARE_LAZY_INIT_FUTURE_GETTER_AND_SETTER(Type, name)                 \
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitFutureTypes)                    \
-  void set_##name(const Type& value) { name##_ = value.raw(); }
+  void set_##name(const Type& value) { name##_ = value.ptr(); }
   OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
                           DECLARE_GETTER_AND_SETTER,
                           DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER,
@@ -436,7 +436,7 @@ class ObjectStore {
     switch (index) {
 #define MAKE_CASE(CamelName, name)                                             \
   case k##CamelName:                                                           \
-    name##_library_ = value.raw();                                             \
+    name##_library_ = value.ptr();                                             \
     break;
 
       FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_CASE)

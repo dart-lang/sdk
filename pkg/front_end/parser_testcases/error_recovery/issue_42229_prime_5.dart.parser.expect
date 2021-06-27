@@ -1,0 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
+hello;
+
+hello[StringToken];[SyntheticToken][SimpleToken]

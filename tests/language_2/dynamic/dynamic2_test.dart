@@ -4,6 +4,8 @@
 //
 // Test the prohibited use of 'dynamic' in extending and implementing classes.
 
+// @dart = 2.9
+
 class A
 //    ^
 // [cfe] The type 'dynamic' can't be used as supertype.

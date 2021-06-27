@@ -7,18 +7,48 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
+
+bool _parseOptions(List<String> args) {
+  const usage = "Usage: dart generate_package_config.dart [flags...]";
+
+  var parser = ArgParser();
+
+  parser.addFlag("help", abbr: "h");
+
+  parser.addFlag("check",
+      abbr: "c",
+      help: "Return with a non-zero exit code if not up-to-date",
+      negatable: false);
+
+  var results = parser.parse(args);
+
+  if (results["help"] as bool) {
+    print("Regenerate the .dart_tool/package_config.json file.");
+    print("");
+    print(usage);
+    print("");
+    print(parser.usage);
+    exit(0);
+  }
+
+  return results["check"] as bool;
+}
 
 final repoRoot = p.dirname(p.dirname(p.fromUri(Platform.script)));
 final configFilePath = p.join(repoRoot, '.dart_tool/package_config.json');
 
 void main(List<String> args) {
+  bool checkOnly = _parseOptions(args);
+
   var packageDirs = [
     ...listSubdirectories('pkg'),
     ...listSubdirectories('third_party/pkg'),
     ...listSubdirectories('third_party/pkg_tested'),
+    ...listSubdirectories('third_party/pkg/file/packages'),
     ...listSubdirectories('third_party/pkg/test/pkgs'),
     packageDirectory('runtime/observatory'),
     packageDirectory(
@@ -27,8 +57,9 @@ void main(List<String> args) {
     packageDirectory(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
-    packageDirectory('sdk/lib/_internal/js_runtime'),
+    packageDirectory('third_party/devtools/devtools_shared'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
+    packageDirectory('third_party/pkg/webdev/frontend_server_client'),
     packageDirectory('tools/package_deps'),
   ];
 
@@ -48,6 +79,8 @@ void main(List<String> args) {
         'pkg/_fe_analyzer_shared/test/flow_analysis/reachability/'),
     packageDirectory(
         'pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/why_not_promoted//'),
     packageDirectory('pkg/_fe_analyzer_shared/test/inheritance/'),
   ];
 
@@ -57,6 +90,25 @@ void main(List<String> args) {
     ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs)
   ];
   packages.sort((a, b) => a["name"].compareTo(b["name"]));
+
+  var configFile = File(p.join(repoRoot, '.dart_tool', 'package_config.json'));
+
+  // Validate the packages entry only, to avoid spurious failures from changes
+  // in the dates embedded in the other entries.
+  if (checkOnly) {
+    var json =
+        jsonDecode(configFile.readAsStringSync()) as Map<dynamic, dynamic>;
+    var oldPackages = json['packages'] as List<dynamic>;
+    if (jsonEncode(packages) == jsonEncode(oldPackages)) {
+      print("Package config up to date");
+      exit(0);
+    } else {
+      print("Package config out of date");
+      print("Run `gclient sync -D && dart tools/generate_package_config.dart` "
+          "to update.");
+      exit(1);
+    }
+  }
 
   var year = DateTime.now().year;
   var config = <String, dynamic>{
@@ -79,8 +131,7 @@ void main(List<String> args) {
 
   // TODO(rnystrom): Consider using package_config_v2 to generate this instead.
   var json = JsonEncoder.withIndent('  ').convert(config);
-  File(p.join(repoRoot, '.dart_tool', 'package_config.json'))
-      .writeAsStringSync(json);
+  configFile.writeAsStringSync('$json\n');
   print('Generated .dart_tool/package_config.dart containing '
       '${packages.length} packages.');
 }

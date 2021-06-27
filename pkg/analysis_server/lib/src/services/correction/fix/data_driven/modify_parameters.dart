@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/paramete
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:meta/meta.dart';
 
 /// The addition of a new parameter.
 class AddParameter extends ParameterModification {
@@ -31,15 +30,14 @@ class AddParameter extends ParameterModification {
   /// argument needs to be added. The only time an argument needs to be added
   /// for an optional parameter is if the parameter is positional and there are
   /// pre-existing optional positional parameters after the ones being added.
-  final CodeTemplate argumentValue;
+  final CodeTemplate? argumentValue;
 
   /// Initialize a newly created parameter modification to represent the
   /// addition of a parameter. If provided, the [argumentValue] will be used as
   /// the value of the new argument in invocations of the function.
   AddParameter(this.index, this.name, this.isRequired, this.isPositional,
       this.argumentValue)
-      : assert(index >= 0),
-        assert(name != null);
+      : assert(index >= 0);
 }
 
 /// The data related to an executable element whose parameters have been
@@ -50,17 +48,21 @@ class ModifyParameters extends Change<_Data> {
 
   /// Initialize a newly created transform to modifications to the parameter
   /// list of a function.
-  ModifyParameters({@required this.modifications})
-      : assert(modifications != null),
-        assert(modifications.isNotEmpty);
+  ModifyParameters({required this.modifications})
+      : assert(modifications.isNotEmpty);
 
   @override
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     var argumentList = data.argumentList;
+    var invocation = argumentList.parent;
+    if (invocation == null) {
+      // This should only happen if `validate` didn't check this case.
+      return;
+    }
     var arguments = argumentList.arguments;
     var argumentCount = arguments.length;
-    var templateContext = TemplateContext(argumentList.parent, fix.utils);
-    var newNamed = <AddParameter>[];
+    var templateContext = TemplateContext(invocation, fix.utils);
+
     var indexToNewArgumentMap = <int, AddParameter>{};
     var argumentsToInsert = <int>[];
     var argumentsToDelete = <int>[];
@@ -69,16 +71,14 @@ class ModifyParameters extends Change<_Data> {
       if (modification is AddParameter) {
         var index = modification.index;
         indexToNewArgumentMap[index] = modification;
-        if (modification.isPositional) {
+        if (modification.isPositional || modification.isRequired) {
           argumentsToInsert.add(index);
-        } else if (modification.isRequired) {
-          newNamed.add(modification);
         } else {
           var requiredIfCondition =
               modification.argumentValue?.requiredIfCondition;
           if (requiredIfCondition != null &&
-              requiredIfCondition.evaluateIn(templateContext)) {
-            newNamed.add(modification);
+              requiredIfCondition.evaluateIn(templateContext) == true) {
+            argumentsToInsert.add(index);
           }
         }
       } else if (modification is RemoveParameter) {
@@ -94,16 +94,19 @@ class ModifyParameters extends Change<_Data> {
       }
     }
     argumentsToInsert.sort();
-    newNamed.sort((first, second) => first.name.compareTo(second.name));
+    argumentsToDelete.sort();
 
     /// Write to the [builder] the argument associated with a single
     /// [parameter].
     void writeArgument(DartEditBuilder builder, AddParameter parameter) {
-      if (!parameter.isPositional) {
-        builder.write(parameter.name);
-        builder.write(': ');
+      var argumentValue = parameter.argumentValue;
+      if (argumentValue != null) {
+        if (!parameter.isPositional) {
+          builder.write(parameter.name);
+          builder.write(': ');
+        }
+        argumentValue.writeOn(builder, templateContext);
       }
-      parameter.argumentValue.writeOn(builder, templateContext);
     }
 
     var insertionRanges = argumentsToInsert.contiguousSubRanges.toList();
@@ -124,7 +127,9 @@ class ModifyParameters extends Change<_Data> {
             needsComma = true;
           }
           var parameter = indexToNewArgumentMap[argumentIndex];
-          writeArgument(builder, parameter);
+          if (parameter != null) {
+            writeArgument(builder, parameter);
+          }
         }
       }
 
@@ -180,71 +185,77 @@ class ModifyParameters extends Change<_Data> {
       }
       // The remaining insertion ranges might include new required arguments
       // that need to be inserted after the last argument.
-      var offset = arguments[arguments.length - 1].end;
+      var offset = arguments.isEmpty
+          ? argumentList.leftParenthesis.end
+          : arguments[arguments.length - 1].end;
       while (nextInsertionRange < insertionRanges.length) {
         var insertionRange = insertionRanges[nextInsertionRange];
         var lower = insertionRange.lower;
         var upper = insertionRange.upper;
-        while (upper >= lower && !indexToNewArgumentMap[upper].isRequired) {
+        var parameter = indexToNewArgumentMap[upper]!;
+        while (upper >= lower &&
+            (parameter.isPositional && !parameter.isRequired)) {
           upper--;
         }
         if (upper >= lower) {
           builder.addInsertion(offset, (builder) {
-            writeInsertionRange(builder, _IndexRange(lower, upper), true);
+            writeInsertionRange(builder, _IndexRange(lower, upper),
+                nextRemaining > 0 || insertionCount > 0);
           });
         }
         nextInsertionRange++;
       }
     }
     //
-    // Insert arguments for required named parameters.
-    //
-    if (newNamed.isNotEmpty) {
-      int offset;
-      var needsInitialComma = false;
-      if (remainingArguments.isEmpty && argumentsToInsert.isEmpty) {
-        offset = argumentList.rightParenthesis.offset;
-      } else {
-        offset = arguments[arguments.length - 1].end;
-        needsInitialComma = true;
-      }
-      builder.addInsertion(offset, (builder) {
-        for (var i = 0; i < newNamed.length; i++) {
-          if (i > 0 || needsInitialComma) {
-            builder.write(', ');
-          }
-          writeArgument(builder, newNamed[i]);
-        }
-      });
-    }
-    //
     // The remaining deletion ranges are now ready to be removed.
     //
     for (var subRange in deletionRanges) {
-      builder.addDeletion(range.argumentRange(
-          argumentList, subRange.lower, subRange.upper, true));
+      var lower = subRange.lower;
+      var upper = subRange.upper;
+      if (lower == 0 &&
+          upper == arguments.length - 1 &&
+          insertionRanges.isNotEmpty) {
+        // We're removing all of the existing arguments but we've already
+        // inserted new arguments between the parentheses. We need to handle
+        // this case specially because the default code would cause a
+        // `ConflictingEditException`.
+        builder.addDeletion(range.startEnd(arguments[lower], arguments[upper]));
+      } else {
+        builder
+            .addDeletion(range.argumentRange(argumentList, lower, upper, true));
+      }
     }
   }
 
   @override
-  _Data validate(DataDrivenFix fix) {
+  _Data? validate(DataDrivenFix fix) {
     var node = fix.node;
     var parent = node.parent;
+    var grandParent = parent?.parent;
+    var greatGrandParent = grandParent?.parent;
     if (parent is InvocationExpression) {
       var argumentList = parent.argumentList;
       return _Data(argumentList);
     } else if (parent is Label) {
-      var argumentList = parent.parent.parent;
+      var argumentList = grandParent?.parent;
       if (argumentList is ArgumentList) {
         return _Data(argumentList);
       }
+    } else if (grandParent is InvocationExpression) {
+      var argumentList = grandParent.argumentList;
+      return _Data(argumentList);
+    } else if (parent is TypeName &&
+        grandParent is ConstructorName &&
+        greatGrandParent is InstanceCreationExpression) {
+      var argumentList = greatGrandParent.argumentList;
+      return _Data(argumentList);
     }
     return null;
   }
 
   /// Return the range from the list of [ranges] that contains the given
   /// [index], or `null` if there is no such range.
-  _IndexRange _rangeContaining(List<_IndexRange> ranges, int index) {
+  _IndexRange? _rangeContaining(List<_IndexRange> ranges, int index) {
     for (var range in ranges) {
       if (index >= range.lower && index <= range.upper) {
         return range;
@@ -256,8 +267,10 @@ class ModifyParameters extends Change<_Data> {
   /// Return the element of the argument list whose value is the given
   /// [argument]. If the argument is the child of a named expression, then that
   /// will be the named expression, otherwise it will be the argument itself.
-  Expression _realArgument(Expression argument) =>
-      argument.parent is NamedExpression ? argument.parent : argument;
+  Expression _realArgument(Expression argument) {
+    var parent = argument.parent;
+    return parent is NamedExpression ? parent : argument;
+  }
 }
 
 /// A modification related to a parameter.
@@ -270,7 +283,7 @@ class RemoveParameter extends ParameterModification {
 
   /// Initialize a newly created parameter modification to represent the removal
   /// of an existing [parameter].
-  RemoveParameter(this.parameter) : assert(parameter != null);
+  RemoveParameter(this.parameter);
 }
 
 /// The data returned when updating an invocation site.

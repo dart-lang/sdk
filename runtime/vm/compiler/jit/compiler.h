@@ -79,8 +79,8 @@ class Compiler : public AllStatic {
   // Generates code for given function without optimization and sets its code
   // field.
   //
-  // Returns the raw code object if compilation succeeds.  Otherwise returns a
-  // RawError.  Also installs the generated code on the function.
+  // Returns the raw code object if compilation succeeds.  Otherwise returns an
+  // ErrorPtr.  Also installs the generated code on the function.
   static ObjectPtr CompileFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.
@@ -119,64 +119,35 @@ class Compiler : public AllStatic {
 // No OSR compilation in the background compiler.
 class BackgroundCompiler {
  public:
-  explicit BackgroundCompiler(Isolate* isolate, bool optimizing);
+  explicit BackgroundCompiler(IsolateGroup* isolate_group);
   virtual ~BackgroundCompiler();
 
-  static void Start(Isolate* isolate) {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->optimizing_background_compiler() != NULL) {
-      isolate->optimizing_background_compiler()->Start();
-    }
-  }
-  static void Stop(Isolate* isolate) {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->optimizing_background_compiler() != NULL) {
-      isolate->optimizing_background_compiler()->Stop();
-    }
-  }
-  static void Enable(Isolate* isolate) {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->optimizing_background_compiler() != NULL) {
-      isolate->optimizing_background_compiler()->Enable();
-    }
-  }
-  static void Disable(Isolate* isolate) {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->optimizing_background_compiler() != NULL) {
-      isolate->optimizing_background_compiler()->Disable();
-    }
-  }
-  static bool IsDisabled(Isolate* isolate, bool optimizing_compiler) {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    if (optimizing_compiler) {
-      if (isolate->optimizing_background_compiler() != NULL) {
-        return isolate->optimizing_background_compiler()->IsDisabled();
-      }
-    }
-    return false;
+  static void Stop(IsolateGroup* isolate_group) {
+    isolate_group->background_compiler()->Stop();
   }
 
-  // Call to compile (unoptimized or optimized) a function in the background,
-  // enters the function in the compilation queue.
-  void Compile(const Function& function);
+  // Enqueues a function to be compiled in the background.
+  //
+  // Return `true` if successful.
+  bool EnqueueCompilation(const Function& function);
 
   void VisitPointers(ObjectPointerVisitor* visitor);
 
   BackgroundCompilationQueue* function_queue() const { return function_queue_; }
   bool is_running() const { return running_; }
-  bool is_optimizing() const { return optimizing_; }
 
   void Run();
 
  private:
-  void Start();
+  friend class NoBackgroundCompilerScope;
+
   void Stop();
+  void StopLocked(Thread* thread, SafepointMonitorLocker* done_locker);
   void Enable();
   void Disable();
-  bool IsDisabled();
   bool IsRunning() { return !done_; }
 
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 
   Monitor queue_monitor_;  // Controls access to the queue.
   BackgroundCompilationQueue* function_queue_;
@@ -184,11 +155,24 @@ class BackgroundCompiler {
   Monitor done_monitor_;    // Notify/wait that the thread is done.
   bool running_;            // While true, will try to read queue and compile.
   bool done_;               // True if the thread is done.
-  bool optimizing_;
 
   int16_t disabled_depth_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);
+};
+
+class NoBackgroundCompilerScope : public StackResource {
+ public:
+  explicit NoBackgroundCompilerScope(Thread* thread)
+      : StackResource(thread), isolate_group_(thread->isolate_group()) {
+    isolate_group_->background_compiler()->Disable();
+  }
+  ~NoBackgroundCompilerScope() {
+    isolate_group_->background_compiler()->Enable();
+  }
+
+ private:
+  IsolateGroup* isolate_group_;
 };
 
 }  // namespace dart

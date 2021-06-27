@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,7 +21,7 @@ void main() {
 @reflectiveTest
 class ExtractLocalTest extends RefactoringTest {
   @override
-  ExtractLocalRefactoringImpl refactoring;
+  late ExtractLocalRefactoringImpl refactoring;
 
   Future<void> test_checkFinalConditions_sameVariable_after() async {
     await indexTestUnit('''
@@ -194,11 +193,6 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     expect(refactoring.refactoringName, 'Extract Local Variable');
-    // null
-    refactoring.name = null;
-    assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Variable name must not be null.');
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
@@ -245,7 +239,7 @@ main() {
     await indexTestUnit('''
 main() {
   int a = 1 + 2;
-  Res b = null;
+  Res? b = null;
 }
 
 class Res {}
@@ -698,7 +692,7 @@ main() {
   Future<void> test_guessNames_singleExpression() async {
     await indexTestUnit('''
 class TreeItem {}
-TreeItem getSelectedItem() => null;
+TreeItem? getSelectedItem() => null;
 process(my) {}
 main() {
   process(getSelectedItem()); // marker
@@ -760,21 +754,21 @@ main() {
 
   Future<void> test_occurrences_differentName_samePrefix() async {
     await indexTestUnit('''
-void main(A a) {
+void f(A a) {
   if (a.foo != 1) {
   } else if (a.foo2 != 2) {
   }
 }
 
 class A {
-  int foo;
-  int foo2;
+  int? foo;
+  int? foo2;
 }
 ''');
     _createRefactoringWithSuffix('a.foo', ' != 1');
     // apply refactoring
     await _assertSuccessfulRefactoring('''
-void main(A a) {
+void f(A a) {
   var res = a.foo;
   if (res != 1) {
   } else if (a.foo2 != 2) {
@@ -782,8 +776,8 @@ void main(A a) {
 }
 
 class A {
-  int foo;
-  int foo2;
+  int? foo;
+  int? foo2;
 }
 ''');
   }
@@ -1068,7 +1062,7 @@ main() {
   Future<void> test_singleExpression_inExpressionBody_ofFunction() async {
     await indexTestUnit('''
 foo(Point p) => p.x * p.x + p.y * p.y;
-class Point {int x; int y;}
+class Point {int x = 0; int y = 0;}
 ''');
     _createRefactoringForString('p.x');
     // apply refactoring
@@ -1077,7 +1071,7 @@ foo(Point p) {
   var res = p.x;
   return res * res + p.y * p.y;
 }
-class Point {int x; int y;}
+class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
         length: 3, offsets: [21, 41, 47], names: ['x', 'i']);
@@ -1088,7 +1082,7 @@ class Point {int x; int y;}
 class A {
   foo(Point p) => p.x * p.x + p.y * p.y;
 }
-class Point {int x; int y;}
+class Point {int x = 0; int y = 0;}
 ''');
     _createRefactoringForString('p.x');
     // apply refactoring
@@ -1099,7 +1093,7 @@ class A {
     return res * res + p.y * p.y;
   }
 }
-class Point {int x; int y;}
+class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
         length: 3, offsets: [35, 57, 63], names: ['x', 'i']);
@@ -1107,7 +1101,7 @@ class Point {int x; int y;}
 
   Future<void> test_singleExpression_inIfElseIf() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
   if (p == 1) {
     print(1);
   } else if (p == 2) {
@@ -1118,7 +1112,7 @@ main(int p) {
     _createRefactoringForString('2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(int p) {
+void f(int p) {
   var res = 2;
   if (p == 1) {
     print(1);
@@ -1363,8 +1357,11 @@ main() {
             'Expression must be selected to activate this refactoring.');
   }
 
-  void _assertSingleLinkedEditGroup(
-      {int length, List<int> offsets, List<String> names}) {
+  void _assertSingleLinkedEditGroup({
+    required int length,
+    required List<int> offsets,
+    required List<String> names,
+  }) {
     var positions =
         offsets.map((offset) => {'file': testFile, 'offset': offset});
     var suggestions = names.map((name) => {'value': name, 'kind': 'VARIABLE'});
@@ -1392,7 +1389,8 @@ main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = ExtractLocalRefactoring(testAnalysisResult, offset, length);
+    refactoring =
+        ExtractLocalRefactoringImpl(testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }
 

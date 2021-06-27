@@ -24,7 +24,7 @@ CodePtr CodeBreakpoint::OrigStubAddress() const {
 }
 
 void CodeBreakpoint::PatchCode() {
-  ASSERT(!is_enabled_);
+  ASSERT(!IsEnabled());
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const Code& code = Code::Handle(zone, code_);
@@ -33,17 +33,17 @@ void CodeBreakpoint::PatchCode() {
   thread->isolate_group()->RunWithStoppedMutators([&]() {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     switch (breakpoint_kind_) {
-      case PcDescriptorsLayout::kIcCall: {
-        stub_target = StubCode::ICCallBreakpoint().raw();
+      case UntaggedPcDescriptors::kIcCall: {
+        stub_target = StubCode::ICCallBreakpoint().ptr();
         break;
       }
-      case PcDescriptorsLayout::kUnoptStaticCall: {
-        stub_target = StubCode::UnoptStaticCallBreakpoint().raw();
+      case UntaggedPcDescriptors::kUnoptStaticCall: {
+        stub_target = StubCode::UnoptStaticCallBreakpoint().ptr();
         break;
       }
-      case PcDescriptorsLayout::kRuntimeCall: {
+      case UntaggedPcDescriptors::kRuntimeCall: {
         saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-        stub_target = StubCode::RuntimeCallBreakpoint().raw();
+        stub_target = StubCode::RuntimeCallBreakpoint().ptr();
         break;
       }
       default:
@@ -52,11 +52,10 @@ void CodeBreakpoint::PatchCode() {
     saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
     CodePatcher::PatchStaticCallAt(pc_, code, stub_target);
   });
-  is_enabled_ = true;
 }
 
 void CodeBreakpoint::RestoreCode() {
-  ASSERT(is_enabled_);
+  ASSERT(IsEnabled());
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const Code& code = Code::Handle(zone, code_);
@@ -64,9 +63,9 @@ void CodeBreakpoint::RestoreCode() {
   thread->isolate_group()->RunWithStoppedMutators([&]() {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     switch (breakpoint_kind_) {
-      case PcDescriptorsLayout::kIcCall:
-      case PcDescriptorsLayout::kUnoptStaticCall:
-      case PcDescriptorsLayout::kRuntimeCall: {
+      case UntaggedPcDescriptors::kIcCall:
+      case UntaggedPcDescriptors::kUnoptStaticCall:
+      case UntaggedPcDescriptors::kRuntimeCall: {
         CodePatcher::PatchStaticCallAt(pc_, code, Code::Handle(saved_value_));
         break;
       }
@@ -74,7 +73,6 @@ void CodeBreakpoint::RestoreCode() {
         UNREACHABLE();
     }
   });
-  is_enabled_ = false;
 }
 
 #endif  // !PRODUCT

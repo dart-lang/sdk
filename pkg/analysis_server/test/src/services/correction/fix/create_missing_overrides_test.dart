@@ -202,9 +202,9 @@ class B extends A {
   Future<void> test_mergeToField_getterSetter() async {
     await resolveTestCode('''
 class A {
-  int ma;
+  int ma = 0;
   void mb() {}
-  double mc;
+  double mc = 0.0;
 }
 
 class B implements A {
@@ -212,9 +212,9 @@ class B implements A {
 ''');
     await assertHasFix('''
 class A {
-  int ma;
+  int ma = 0;
   void mb() {}
-  double mc;
+  double mc = 0.0;
 }
 
 class B implements A {
@@ -296,8 +296,7 @@ class B extends A {
     await assertHasFix(expectedCode);
     {
       // end position should be on "m1", not on "m2", "m3", etc.
-      var endPosition = change.selection;
-      expect(endPosition, isNotNull);
+      var endPosition = change.selection!;
       expect(endPosition.file, testFile);
       var endOffset = endPosition.offset;
       var endString = expectedCode.substring(endOffset, endOffset + 25);
@@ -390,11 +389,11 @@ class B<K, V> implements A<K, V> {
   Future<void> test_method_genericClass2() async {
     await resolveTestCode('''
 class A<R> {
-  R foo(int a) => null;
+  R? foo(int a) => null;
 }
 
 class B<R> extends A<R> {
-  R bar(double b) => null;
+  R? bar(double b) => null;
 }
 
 class X implements B<bool> {
@@ -402,22 +401,22 @@ class X implements B<bool> {
 ''');
     await assertHasFix('''
 class A<R> {
-  R foo(int a) => null;
+  R? foo(int a) => null;
 }
 
 class B<R> extends A<R> {
-  R bar(double b) => null;
+  R? bar(double b) => null;
 }
 
 class X implements B<bool> {
   @override
-  bool bar(double b) {
+  bool? bar(double b) {
     // TODO: implement bar
     throw UnimplementedError();
   }
 
   @override
-  bool foo(int a) {
+  bool? foo(int a) {
     // TODO: implement foo
     throw UnimplementedError();
   }

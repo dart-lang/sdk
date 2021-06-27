@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected ';' after this.
+// type T = Map<A, B>
+//                  ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: Type 'type' not found.
+// type T = Map<A, B>
+// ^^^^
+//
+import self as self;
+
+static field invalid-type T;
+static method main() → dynamic
+  ;

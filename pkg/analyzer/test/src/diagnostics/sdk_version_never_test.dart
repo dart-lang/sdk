@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class SdkVersionNeverTest extends SdkConstraintVerifierTest {
+class SdkVersionNeverTest extends SdkConstraintVerifierTest
+    with WithoutNullSafetyMixin {
   test_languageVersionBeforeNullSafety() async {
     await verifyVersion('2.7.0', r'''
 Never foo;

@@ -24,9 +24,9 @@ bool isH1(Node node) => node is Element && node.tag == 'h1';
 bool isH3(Node node) => node is Element && node.tag == 'h3';
 bool isHeader(Node node) => node is Element && node.tag.startsWith('h');
 String textForElement(Node node) =>
-    (((node as Element).children.first) as Text).text;
+    (((node as Element).children!.first) as Text).text;
 String textForCode(Node node) =>
-    textForElement((node as Element).children.first);
+    textForElement((node as Element).children!.first);
 
 /// foo ==> Foo
 String titleCase(String str) =>
@@ -36,7 +36,7 @@ String titleCase(String str) =>
 String lowerTitleCase(String str) =>
     str.substring(0, 1).toLowerCase() + str.substring(1);
 
-String joinLast(Iterable<String> strs, String join, [String last]) {
+String joinLast(Iterable<String> strs, String join, [String? last]) {
   if (strs.isEmpty) return '';
   List list = strs.toList();
   if (list.length == 1) return list.first;

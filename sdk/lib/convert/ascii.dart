@@ -77,10 +77,6 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
   Uint8List convert(String string, [int start = 0, int? end]) {
     var stringLength = string.length;
     end = RangeError.checkValidRange(start, end, stringLength);
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (end == null) {
-      throw RangeError("Invalid range");
-    }
     var length = end - start;
     var result = Uint8List(length);
     for (var i = 0; i < length; i++) {
@@ -167,10 +163,6 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
   /// `start` to `end` (`end` not inclusive) is used as input to the conversion.
   String convert(List<int> bytes, [int start = 0, int? end]) {
     end = RangeError.checkValidRange(start, end, bytes.length);
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (end == null) {
-      throw RangeError("Invalid range");
-    }
     for (var i = start; i < end; i++) {
       var byte = bytes[i];
       if ((byte & ~_subsetMask) != 0) {

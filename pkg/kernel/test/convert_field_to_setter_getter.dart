@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+// @dart = 2.9
 
-import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'binary/utils.dart';
 
 main() {
-  final Library lib1 = new Library(Uri.parse('org-dartlang:///lib.dart'));
-  final Field field = new Field(new Name("f"));
+  final Uri lib1Uri = Uri.parse('org-dartlang:///lib.dart');
+  final Library lib1 = new Library(lib1Uri, fileUri: lib1Uri);
+  final Field field = new Field.mutable(new Name("f"), fileUri: lib1Uri);
   lib1.addField(field);
   final Block libProcedureBody = new Block([
     new ExpressionStatement(new StaticSet(field, new IntLiteral(42))),
@@ -19,10 +20,12 @@ main() {
   final Procedure libProcedure = new Procedure(
       new Name("method"),
       ProcedureKind.Method,
-      new FunctionNode(libProcedureBody, returnType: new DynamicType()));
+      new FunctionNode(libProcedureBody, returnType: new DynamicType()),
+      fileUri: lib1Uri);
   lib1.addProcedure(libProcedure);
 
-  final Library lib2 = new Library(Uri.parse('org-dartlang:///lib2.dart'));
+  final Uri lib2Uri = Uri.parse('org-dartlang:///lib2.dart');
+  final Library lib2 = new Library(lib2Uri, fileUri: lib2Uri);
   final Block lib2ProcedureBody = new Block([
     new ExpressionStatement(new StaticSet(field, new IntLiteral(43))),
     new ReturnStatement(new StaticGet(field)),
@@ -30,20 +33,23 @@ main() {
   final Procedure lib2Procedure = new Procedure(
       new Name("method"),
       ProcedureKind.Method,
-      new FunctionNode(lib2ProcedureBody, returnType: new DynamicType()));
+      new FunctionNode(lib2ProcedureBody, returnType: new DynamicType()),
+      fileUri: lib2Uri);
   lib2.addProcedure(lib2Procedure);
 
   verifyTargets(libProcedure, lib2Procedure, field, field);
   List<int> writtenBytesFieldOriginal = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
-  if (field.getterCanonicalName.parent.name != "@fields") {
-    throw "Expected @fields parent, but had "
-        "${field.getterCanonicalName.parent.name}";
+  String getterCanonicalName = '${field.getterReference.canonicalName}';
+  if (field.getterReference.canonicalName.parent.name != "@getters") {
+    throw "Expected @getters parent, but had "
+        "${field.getterReference.canonicalName.parent.name}";
   }
-  if (field.setterCanonicalName.parent.name != "@=fields") {
-    throw "Expected @=fields parent, but had "
-        "${field.setterCanonicalName.parent.name}";
+  String setterCanonicalName = '${field.setterReference.canonicalName}';
+  if (field.setterReference.canonicalName.parent.name != "@setters") {
+    throw "Expected @setters parent, but had "
+        "${field.setterReference.canonicalName.parent.name}";
   }
 
   // Replace the field with a setter/getter pair.
@@ -51,7 +57,7 @@ main() {
   FunctionNode getterFunction = new FunctionNode(new Block([]));
   Procedure getter = new Procedure(
       new Name("f"), ProcedureKind.Getter, getterFunction,
-      reference: field.getterReference);
+      reference: field.getterReference, fileUri: lib1Uri);
   // Important: Unbind any old canonical name
   // (nulling out the canonical name is not enough because it leaves the old
   // canonical name (which always stays alive) with a pointer to the reference,
@@ -66,7 +72,7 @@ main() {
       positionalParameters: [new VariableDeclaration("foo")]);
   Procedure setter = new Procedure(
       new Name("f"), ProcedureKind.Setter, setterFunction,
-      reference: field.setterReference);
+      reference: field.setterReference, fileUri: lib1Uri);
   // Important: Unbind any old canonical name
   // (nulling out the canonical name is not enough, see above).
   field.setterReference?.canonicalName?.unbind();
@@ -76,20 +82,32 @@ main() {
   List<int> writtenBytesGetterSetter = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the getter/setter is marked as
   // such, canonical-name-wise.
-  if (getter.canonicalName.parent.name != "@getters") {
+  if (getter.reference.canonicalName.parent.name != "@getters") {
     throw "Expected @getters parent, but had "
-        "${getter.canonicalName.parent.name}";
+        "${getter.reference.canonicalName.parent.name}";
   }
-  if (setter.canonicalName.parent.name != "@setters") {
+  if ('${getter.reference.canonicalName}' != getterCanonicalName) {
+    throw "Unexpected getter canonical name. "
+        "Expected $getterCanonicalName, "
+        "actual ${getter.reference.canonicalName}.";
+  }
+  if (setter.reference.canonicalName.parent.name != "@setters") {
     throw "Expected @setters parent, but had "
-        "${setter.canonicalName.parent.name}";
+        "${setter.reference.canonicalName.parent.name}";
+  }
+  if ('${setter.reference.canonicalName}' != setterCanonicalName) {
+    throw "Unexpected setter canonical name. "
+        "Expected $setterCanonicalName, "
+        "actual ${setter.reference.canonicalName}.";
   }
 
   // Replace getter/setter with field.
   lib1.procedures.remove(getter);
   lib1.procedures.remove(setter);
-  final Field fieldReplacement = new Field(new Name("f"),
-      getterReference: getter.reference, setterReference: setter.reference);
+  final Field fieldReplacement = new Field.mutable(new Name("f"),
+      getterReference: getter.reference,
+      setterReference: setter.reference,
+      fileUri: lib1Uri);
   // Important: Unbind any old canonical name
   // (nulling out the canonical name is not enough, see above).
   fieldReplacement.getterReference?.canonicalName?.unbind();
@@ -101,13 +119,15 @@ main() {
   List<int> writtenBytesFieldNew = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
-  if (fieldReplacement.getterCanonicalName.parent.name != "@fields") {
-    throw "Expected @fields parent, but had "
-        "${fieldReplacement.getterCanonicalName.parent.name}";
+  if (fieldReplacement.getterReference.canonicalName.parent.name !=
+      "@getters") {
+    throw "Expected @getters parent, but had "
+        "${fieldReplacement.getterReference.canonicalName.parent.name}";
   }
-  if (fieldReplacement.setterCanonicalName.parent.name != "@=fields") {
-    throw "Expected @=fields parent, but had "
-        "${fieldReplacement.setterCanonicalName.parent.name}";
+  if (fieldReplacement.setterReference.canonicalName.parent.name !=
+      "@setters") {
+    throw "Expected @setters parent, but had "
+        "${fieldReplacement.setterReference.canonicalName.parent.name}";
   }
 
   // Load the written stuff and ensure it is as expected.
@@ -179,15 +199,4 @@ Member getGetTarget(Procedure p) {
   ReturnStatement setterStatement = block.statements[1];
   StaticGet staticGet = setterStatement.expression;
   return staticGet.target;
-}
-
-/// A [Sink] that directly writes data into a byte builder.
-class ByteSink implements Sink<List<int>> {
-  final BytesBuilder builder = new BytesBuilder();
-
-  void add(List<int> data) {
-    builder.add(data);
-  }
-
-  void close() {}
 }

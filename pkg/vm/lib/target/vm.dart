@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library vm.target.vm;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -21,8 +19,12 @@ import 'package:kernel/vm/constants_native_effects.dart'
     show VmConstantsBackend;
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
-import '../transformations/lowering.dart' as lowering show transformLibraries;
+import '../transformations/lowering.dart' as lowering
+    show transformLibraries, transformProcedure;
+import '../transformations/ffi.dart' as ffiHelper show importsFfi;
 import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
+    show transformLibraries;
+import '../transformations/ffi_native.dart' as transformFfiNative
     show transformLibraries;
 import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
     show transformLibraries;
@@ -63,7 +65,7 @@ class VmTarget extends Target {
       !flags.forceNoExplicitGetterCallsForTesting;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => false;
+  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   String get name => 'vm';
@@ -154,17 +156,27 @@ class VmTarget extends Target {
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
 
-    final ffiTransformerData = transformFfiDefinitions.transformLibraries(
-        component,
-        coreTypes,
-        hierarchy,
-        libraries,
-        diagnosticReporter,
-        referenceFromIndex,
-        changedStructureNotifier);
-    transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-        libraries, diagnosticReporter, ffiTransformerData, referenceFromIndex);
-    logger?.call("Transformed ffi annotations");
+    if (!ffiHelper.importsFfi(component, libraries)) {
+      logger?.call("Skipped ffi transformation");
+    } else {
+      // Transform @FfiNative(..) functions into ffi native call functions.
+      transformFfiNative.transformLibraries(
+          component, libraries, referenceFromIndex);
+      logger?.call("Transformed ffi natives");
+      // TODO(jensj/dacoharkes): We can probably limit the transformations to
+      // libraries that transitivley depend on dart:ffi.
+      transformFfiDefinitions.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          libraries,
+          diagnosticReporter,
+          referenceFromIndex,
+          changedStructureNotifier);
+      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
+          libraries, diagnosticReporter, referenceFromIndex);
+      logger?.call("Transformed ffi annotations");
+    }
 
     // TODO(kmillikin): Make this run on a per-method basis.
     bool productMode = environmentDefines["dart.vm.product"] == "true";
@@ -184,11 +196,20 @@ class VmTarget extends Target {
 
   @override
   void performTransformationsOnProcedure(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      Procedure procedure,
+      Map<String, String> environmentDefines,
       {void logger(String msg)}) {
+    bool productMode = environmentDefines["dart.vm.product"] == "true";
     transformAsync.transformProcedure(
-        new TypeEnvironment(coreTypes, hierarchy), procedure);
+        new TypeEnvironment(coreTypes, hierarchy), procedure,
+        productMode: productMode);
     logger?.call("Transformed async functions");
+
+    lowering.transformProcedure(
+        procedure, coreTypes, hierarchy, flags.enableNullSafety);
+    logger?.call("Lowering transformations performed");
   }
 
   Expression _instantiateInvocationMirrorWithType(
@@ -213,9 +234,9 @@ class VmTarget extends Target {
           new StaticInvocation(
               coreTypes.mapUnmodifiable,
               new Arguments([
-                new MapLiteral(new List<MapEntry>.from(
+                new MapLiteral(new List<MapLiteralEntry>.from(
                     arguments.named.map((NamedExpression arg) {
-                  return new MapEntry(
+                  return new MapLiteralEntry(
                       new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
                       arg.value)
                     ..fileOffset = arg.fileOffset;

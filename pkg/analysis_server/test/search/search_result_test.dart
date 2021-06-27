@@ -28,7 +28,6 @@ class SearchResultKindTest {
         SearchResultKind.REFERENCE);
     expect(newSearchResultKind_fromEngine(MatchKind.INVOCATION),
         SearchResultKind.INVOCATION);
-    expect(newSearchResultKind_fromEngine(null), SearchResultKind.UNKNOWN);
   }
 
   void test_fromName() {

@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class DeadCodeTest extends PubPackageResolutionTest {
+class DeadCodeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   void setUp() {
     super.setUp();
@@ -875,6 +876,45 @@ main() {
 }
 ''', [
       error(HintCode.DEAD_CODE, 57, 2),
+    ]);
+  }
+
+  test_invokeNever_functionExpressionInvocation_getter_propertyAccess() async {
+    await assertErrorsInCode(r'''
+class A {
+  Never get f => throw 0;
+}
+void g(A a) {
+  a.f(0);
+  print(1);
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 54, 3),
+      error(HintCode.DEAD_CODE, 57, 16),
+    ]);
+  }
+
+  test_invokeNever_functionExpressionInvocation_parenthesizedExpression() async {
+    await assertErrorsInCode(r'''
+void g(Never f) {
+  (f)(0);
+  print(1);
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 3),
+      error(HintCode.DEAD_CODE, 23, 16),
+    ]);
+  }
+
+  test_invokeNever_functionExpressionInvocation_simpleIdentifier() async {
+    await assertErrorsInCode(r'''
+void g(Never f) {
+  f(0);
+  print(1);
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 21, 16),
     ]);
   }
 

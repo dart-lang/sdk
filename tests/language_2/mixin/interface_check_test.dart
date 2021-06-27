@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class Thing {}
 
 class SubThing extends Thing {
@@ -19,7 +21,7 @@ abstract class B implements A {
 
 class C extends A //
 //    ^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [analyzer] COMPILE_TIME_ERROR.INVALID_IMPLEMENTATION_OVERRIDE
 // [cfe] The implementation of 'thing' in the non-abstract class 'C' does not conform to its interface.
     with
         B

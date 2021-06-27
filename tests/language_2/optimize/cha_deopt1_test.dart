@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=100 --no-background-compilation
 
+// @dart = 2.9
+
 // Test lazy deoptimization at field guards with deferred loading.
 
 import "package:expect/expect.dart";

@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/expressi
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,7 +23,7 @@ void main() {
 }
 
 abstract class AbstractCodeFragmentParserTest {
-  List<Accessor> assertErrors(
+  List<Accessor>? assertErrors(
       String content, List<ExpectedError> expectedErrors) {
     var errorListener = GatheringErrorListener();
     var accessors = _parser(errorListener).parseAccessors(content, 0);
@@ -35,31 +34,31 @@ abstract class AbstractCodeFragmentParserTest {
   Expression assertErrorsInCondition(String content, List<String> variables,
       List<ExpectedError> expectedErrors) {
     var errorListener = GatheringErrorListener();
-    var expression =
-        _parser(errorListener, variables: variables).parseCondition(content, 0);
+    var expression = _parser(errorListener, variables: variables)
+        .parseCondition(content, 0)!;
     errorListener.assertErrors(expectedErrors);
     return expression;
   }
 
   List<Accessor> assertNoErrors(String content) {
     var errorListener = GatheringErrorListener();
-    var accessors = _parser(errorListener).parseAccessors(content, 0);
+    var accessors = _parser(errorListener).parseAccessors(content, 0)!;
     errorListener.assertNoErrors();
     return accessors;
   }
 
   Expression assertNoErrorsInCondition(String content,
-      {List<String> variables}) {
+      {List<String>? variables}) {
     var errorListener = GatheringErrorListener();
-    var expression =
-        _parser(errorListener, variables: variables).parseCondition(content, 0);
+    var expression = _parser(errorListener, variables: variables)
+        .parseCondition(content, 0)!;
     errorListener.assertNoErrors();
     return expression;
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
-          {String message,
-          Pattern messageContains,
+          {String? message,
+          Pattern? messageContains,
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,
@@ -68,7 +67,7 @@ abstract class AbstractCodeFragmentParserTest {
           expectedContextMessages: contextMessages);
 
   CodeFragmentParser _parser(GatheringErrorListener listener,
-      {List<String> variables}) {
+      {List<String>? variables}) {
     var errorReporter = ErrorReporter(listener, MockSource());
     var map = <String, ValueGenerator>{};
     if (variables != null) {

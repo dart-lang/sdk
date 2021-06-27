@@ -8,21 +8,15 @@ fragmentation_typed_data_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
 [ $builder_tag == tsan ]
-fragmentation_data_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 fragmentation_typed_data_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
-io/http_ban_http_allowed_cases_test: Skip # Depends on grabbing local hostname which isn't supported.
-io/network_policy_configuration_test: Skip # Can't pass -D params containing quotes to adb.
-io/network_policy_invalid_domain_test: Skip # Can't pass -D params containing quotes to adb.
-io/network_policy_tie_breaker_test: Skip # Can't pass -D params containing quotes to adb.
+io/http_ban_http_embedder_test: Skip # Requires http server bound to non-loopback; not provided by system.
+io/http_ban_http_normal_test: Skip # Requires http server bound to non-loopback; not provided by system.
 
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout
-
-[ $arch == simarm64 && $compiler == dartk ]
-io/http_bind_test: Slow, Pass
 
 [ $builder_tag == optimization_counter_threshold && $compiler == dartk ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
@@ -30,7 +24,6 @@ map_insert_remove_oom_test: Skip # Heap limit too low.
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
 io/file_lock_test: Slow, Pass
 io/raw_socket_test: Crash
-io/socket_exception_test: Crash
 io/socket_finalizer_test: Crash
 io/socket_info_ipv4_test: Crash
 io/socket_info_ipv6_test: Crash
@@ -59,10 +52,13 @@ io/echo_server_stream_test: Slow, Pass
 # Enabling of dartk for sim{arm,arm64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 io/file_blocking_lock_test: Crash # Please triage.
 io/file_lock_test: Slow, Pass
 map_insert_remove_oom_test: Skip # Heap limit too low.
+
+[ $compiler == dartk && ($arch == simarm64 || $arch == simarm64c) ]
+io/http_bind_test: Slow, Pass
 
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
 io/addlatexhash_test: Skip # Timeout
@@ -79,7 +75,6 @@ io/web_socket_test: Skip # Timeout
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
 io/raw_socket_test: Crash
-io/socket_exception_test: Crash
 io/socket_finalizer_test: Crash
 io/socket_info_ipv4_test: Crash
 io/socket_info_ipv6_test: Crash

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.class_builder;
 
 import 'package:kernel/ast.dart'
@@ -33,6 +35,8 @@ import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
+import 'package:kernel/src/legacy_erasure.dart';
+
 import 'package:kernel/src/types.dart' show Types;
 
 import '../dill/dill_member_builder.dart';
@@ -56,6 +60,8 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart';
 
 import '../type_inference/type_schema.dart' show UnknownType;
+
+import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
 import 'constructor_builder.dart';
@@ -118,7 +124,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   List<ConstructorReferenceBuilder> get constructorReferences;
 
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers);
 
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
@@ -177,12 +184,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   void checkSupertypes(CoreTypes coreTypes);
 
-  void handleSeenCovariant(
-      Types types,
-      Member declaredMember,
-      Member interfaceMember,
-      bool isSetter,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter));
+  void handleSeenCovariant(Types types, Member interfaceMember, bool isSetter,
+      callback(Member interfaceMember, bool isSetter));
 
   bool hasUserDefinedNoSuchMethod(
       Class klass, ClassHierarchy hierarchy, Class objectClass);
@@ -349,14 +352,23 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration;
-      member.buildOutlineExpressions(library, coreTypes);
+      member.buildOutlineExpressions(
+          library, coreTypes, delayedActionPerformers);
     }
 
     MetadataBuilder.buildAnnotations(
-        isPatch ? origin.cls : cls, metadata, library, this, null);
+        isPatch ? origin.cls : cls, metadata, library, this, null, fileUri);
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables.length; i++) {
+        typeVariables[i].buildOutlineExpressions(
+            library, this, null, coreTypes, delayedActionPerformers);
+      }
+    }
+
     constructors.forEach(build);
     scope.forEach(build);
   }
@@ -382,7 +394,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Builder findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
-    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+    if (accessingLibrary.nameOriginBuilder.origin !=
+            library.nameOriginBuilder.origin &&
+        name.startsWith("_")) {
       return null;
     }
     Builder declaration = isSetter
@@ -399,7 +413,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   MemberBuilder findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
-    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+    if (accessingLibrary.nameOriginBuilder.origin !=
+            library.nameOriginBuilder.origin &&
+        name.startsWith("_")) {
       return null;
     }
     MemberBuilder declaration = constructors.lookup(name, charOffset, uri);
@@ -588,7 +604,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           null);
     }
 
-    // arguments.length == typeVariables.length
+    assert(arguments.length == typeVariablesCount);
     List<DartType> result =
         new List<DartType>.filled(arguments.length, null, growable: true);
     for (int i = 0; i < result.length; ++i) {
@@ -611,7 +627,13 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Supertype buildSupertype(
       LibraryBuilder library, List<TypeBuilder> arguments) {
     Class cls = isPatch ? origin.cls : this.cls;
-    return new Supertype(cls, buildTypeArguments(library, arguments));
+    List<DartType> typeArguments = buildTypeArguments(library, arguments);
+    if (!library.isNonNullableByDefault) {
+      for (int i = 0; i < typeArguments.length; ++i) {
+        typeArguments[i] = legacyErasure(typeArguments[i]);
+      }
+    }
+    return new Supertype(cls, typeArguments);
   }
 
   @override
@@ -664,7 +686,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       TypeAliasBuilder aliasBuilder; // Non-null if a type alias is use.
       if (decl is TypeAliasBuilder) {
         aliasBuilder = decl;
-        decl = aliasBuilder.unaliasDeclaration(superClassType.arguments);
+        decl = aliasBuilder.unaliasDeclaration(superClassType.arguments,
+            isUsedAsClass: true,
+            usedAsClassCharOffset: supertypeBuilder.charOffset,
+            usedAsClassFileUri: superClassType.fileUri);
       }
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
@@ -684,13 +709,16 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Set<ClassBuilder> implemented = new Set<ClassBuilder>();
     for (TypeBuilder type in interfaceBuilders) {
       if (type is NamedTypeBuilder) {
-        int charOffset = -1; // TODO(ahe): Get offset from type.
+        int charOffset = type.charOffset;
         TypeDeclarationBuilder typeDeclaration = type.declaration;
         TypeDeclarationBuilder decl;
         TypeAliasBuilder aliasBuilder; // Non-null if a type alias is used.
         if (typeDeclaration is TypeAliasBuilder) {
           aliasBuilder = typeDeclaration;
-          decl = aliasBuilder.unaliasDeclaration(type.arguments);
+          decl = aliasBuilder.unaliasDeclaration(type.arguments,
+              isUsedAsClass: true,
+              usedAsClassCharOffset: type.charOffset,
+              usedAsClassFileUri: type.fileUri);
         } else {
           decl = typeDeclaration;
         }
@@ -738,12 +766,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void handleSeenCovariant(
-      Types types,
-      Member declaredMember,
-      Member interfaceMember,
-      bool isSetter,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
+  void handleSeenCovariant(Types types, Member interfaceMember, bool isSetter,
+      callback(Member interfaceMember, bool isSetter)) {
     // When a parameter is covariant we have to check that we also
     // override the same member in all parents.
     for (Supertype supertype in interfaceMember.enclosingClass.supers) {
@@ -751,7 +775,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           supertype.classNode, interfaceMember.name,
           setter: isSetter);
       if (m != null) {
-        callback(declaredMember, m, isSetter);
+        callback(m, isSetter);
       }
     }
   }
@@ -1135,7 +1159,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           if (builder is ClassBuilder) return builder;
           if (builder is TypeAliasBuilder) {
             TypeDeclarationBuilder declarationBuilder =
-                builder.unaliasDeclaration(supertype.arguments);
+                builder.unaliasDeclaration(supertype.arguments,
+                    isUsedAsClass: true,
+                    usedAsClassCharOffset: supertype.charOffset,
+                    usedAsClassFileUri: supertype.fileUri);
             if (declarationBuilder is ClassBuilder) return declarationBuilder;
           }
         }

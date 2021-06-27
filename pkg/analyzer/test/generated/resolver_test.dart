@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -22,6 +22,7 @@ main() {
     defineReflectiveTests(ErrorResolverTest);
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(StrictModeTest);
+    defineReflectiveTests(StrictModeWithoutNullSafetyTest);
     defineReflectiveTests(TypePropagationTest);
   });
 }
@@ -100,7 +101,7 @@ class PrefixedNamespaceTest extends PubPackageResolutionTest {
   Map<String, Element> _toMap(List<Element> elements) {
     Map<String, Element> map = HashMap<String, Element>();
     for (Element element in elements) {
-      map[element.name] = element;
+      map[element.name!] = element;
     }
     return map;
   }
@@ -180,7 +181,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   @override
   void visitExpression(Expression node) {
     node.visitChildren(this);
-    DartType staticType = node.staticType;
+    var staticType = node.staticType;
     if (staticType == null) {
       _unresolvedExpressions.add(node);
     } else {
@@ -201,7 +202,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic,
     // we don't want to assert that the node will have a type.
-    if (node.staticType == null && node.prefix.staticType.isDynamic) {
+    if (node.staticType == null && node.prefix.typeOrThrow.isDynamic) {
       return;
     }
     super.visitPrefixedIdentifier(node);
@@ -211,7 +212,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // In cases where identifiers are being used for something other than an
     // expressions, then they can be ignored.
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent is MethodInvocation && identical(node, parent.methodName)) {
       return;
     } else if (parent is RedirectingConstructorInvocation &&
@@ -255,7 +256,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
     }
   }
 
-  String _getFileName(AstNode node) {
+  String _getFileName(AstNode? node) {
     // TODO (jwren) there are two copies of this method, one here and one in
     // ResolutionVerifier, they should be resolved into a single method
     if (node != null) {
@@ -263,7 +264,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.declaredElement != null) {
-          return rootCU.declaredElement.source.fullName;
+          return rootCU.declaredElement!.source.fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
@@ -278,7 +279,60 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
 /// The class `StrictModeTest` contains tests to ensure that the correct errors
 /// and warnings are reported when the analysis engine is run in strict mode.
 @reflectiveTest
-class StrictModeTest extends PubPackageResolutionTest {
+class StrictModeTest extends PubPackageResolutionTest with StrictModeTestCases {
+  test_conditional_isNot() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  return (n is! int) ? 0 : n & 0x0F;
+}
+''');
+  }
+
+  test_conditional_or_is() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  return (n is! int || n < 0) ? 0 : n & 0x0F;
+}
+''');
+  }
+
+  test_if_isNot() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  if (n is! int) {
+    return 0;
+  } else {
+    return n & 0x0F;
+  }
+}
+''');
+  }
+
+  test_if_isNot_abrupt() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  if (n is! int) {
+    return 0;
+  }
+  return n & 0x0F;
+}
+''');
+  }
+
+  test_if_or_is() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  if (n is! int || n < 0) {
+    return 0;
+  } else {
+    return n & 0x0F;
+  }
+}
+''');
+  }
+}
+
+mixin StrictModeTestCases on PubPackageResolutionTest {
   test_assert_is() async {
     await assertErrorsInCode(r'''
 int f(num n) {
@@ -303,48 +357,27 @@ int f(num n) {
 }''');
   }
 
-  test_conditional_isNot() async {
-    await assertErrorsInCode(r'''
-int f(num n) {
-  return (n is! int) ? 0 : n & 0x0F;
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 44, 1),
-    ]);
-  }
-
-  test_conditional_or_is() async {
-    await assertErrorsInCode(r'''
-int f(num n) {
-  return (n is! int || n < 0) ? 0 : n & 0x0F;
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 53, 1),
-    ]);
-  }
-
   test_for() async {
-    await assertErrorsInCode(r'''
-int f(List<int> list) {
-  num sum = 0;
-  for (num i = 0; i < list.length; i++) {
+    await assertNoErrorsInCode(r'''
+void f(List<int> list) {
+  num sum = 0; // ignore: unused_local_variable
+  for (int i = 0; i < list.length; i++) {
     sum += list[i];
   }
-}''', [
-      error(HintCode.MISSING_RETURN, 4, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
-    ]);
+}
+''');
   }
 
   test_forEach() async {
     await assertErrorsInCode(r'''
-int f(List<int> list) {
-  num sum = 0;
+void f(List<int> list) {
+  num sum = 0; // ignore: unused_local_variable
   for (num n in list) {
     sum += n & 0x0F;
   }
-}''', [
-      error(HintCode.MISSING_RETURN, 4, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 76, 1),
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 110, 1),
     ]);
   }
 
@@ -368,6 +401,42 @@ int f(num n) {
 }''');
   }
 
+  test_localVar() async {
+    await assertErrorsInCode(r'''
+int f() {
+  num n = 1234;
+  return n & 0x0F;
+}''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1),
+    ]);
+  }
+}
+
+/// The class `StrictModeTest` contains tests to ensure that the correct errors
+/// and warnings are reported when the analysis engine is run in strict mode.
+@reflectiveTest
+class StrictModeWithoutNullSafetyTest extends PubPackageResolutionTest
+    with StrictModeTestCases, WithoutNullSafetyMixin {
+  test_conditional_isNot() async {
+    await assertErrorsInCode(r'''
+int f(num n) {
+  return (n is! int) ? 0 : n & 0x0F;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 44, 1),
+    ]);
+  }
+
+  test_conditional_or_is() async {
+    await assertErrorsInCode(r'''
+int f(num n) {
+  return (n is! int || n < 0) ? 0 : n & 0x0F;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 53, 1),
+    ]);
+  }
+
   test_if_isNot() async {
     await assertErrorsInCode(r'''
 int f(num n) {
@@ -376,7 +445,8 @@ int f(num n) {
   } else {
     return n & 0x0F;
   }
-}''', [
+}
+''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 72, 1),
     ]);
   }
@@ -388,7 +458,8 @@ int f(num n) {
     return 0;
   }
   return n & 0x0F;
-}''', [
+}
+''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 63, 1),
     ]);
   }
@@ -401,18 +472,9 @@ int f(num n) {
   } else {
     return n & 0x0F;
   }
-}''', [
+}
+''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 81, 1),
-    ]);
-  }
-
-  test_localVar() async {
-    await assertErrorsInCode(r'''
-int f() {
-  num n = 1234;
-  return n & 0x0F;
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1),
     ]);
   }
 }
@@ -509,22 +571,23 @@ class Derived extends Base {
 }
 
 class C {
-  void f() {
-    Base x = null;
+  void f(Base x) {
+    x = Base();
     if (x is Derived) {
       print(x.y); // BAD
     }
-    x = null;
+    x = Base();
   }
 }
 
-void g() {
-  Base x = null;
+void g(Base x) {
+  x = Base();
   if (x is Derived) {
     print(x.y); // GOOD
   }
-  x = null;
-}''');
+  x = Base();
+}
+''');
   }
 
   test_objectAccessInference_disabled_for_library_prefix() async {

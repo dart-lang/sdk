@@ -31,7 +31,7 @@ main() {
     await analysisFinished;
 
     expect(currentAnalysisErrors[filePath], isList);
-    var errors = currentAnalysisErrors[filePath];
+    var errors = existingErrorsForFile(filePath);
     expect(errors, hasLength(1));
     expect(errors[0].location.file, equals(filePath));
   }
@@ -45,7 +45,7 @@ main() {
     standardAnalysisSetup();
     return analysisFinished.then((_) {
       expect(currentAnalysisErrors[pathname], isList);
-      var errors = currentAnalysisErrors[pathname];
+      var errors = existingErrorsForFile(pathname);
       expect(errors, hasLength(1));
       expect(errors[0].location.file, equals(pathname));
     });

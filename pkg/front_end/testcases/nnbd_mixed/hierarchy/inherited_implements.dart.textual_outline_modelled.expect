@@ -1,0 +1,54 @@
+abstract class Interface1 {
+  int extendedMethod();
+  int mixedInMethod();
+}
+
+abstract class Interface2 extends Super with Mixin {
+  int extendedMethod();
+  int mixedInMethod();
+}
+
+class ClassDeclaresExtends extends Super with Mixin {
+  int extendedMethod();
+  int mixedInMethod();
+}
+
+class ClassDeclaresExtendsWithNoSuchMethod extends Super with Mixin {
+  int extendedMethod();
+  int mixedInMethod();
+  @override
+  noSuchMethod(Invocation invocation) {}
+}
+
+class ClassDeclaresImplementsWithNoSuchMethod implements Super, Mixin {
+  int extendedMethod();
+  int mixedInMethod();
+  @override
+  noSuchMethod(Invocation invocation) {}
+}
+
+class ClassExtends extends Super with Mixin implements Interface1 {}
+
+class ClassExtendsWithNoSuchMethod extends Super
+    with Mixin
+    implements Interface1 {
+  @override
+  noSuchMethod(Invocation invocation) {}
+}
+
+class ClassImplements implements Interface2 {}
+
+class ClassImplementsWithNoSuchMethod implements Interface2 {
+  @override
+  noSuchMethod(Invocation invocation) {}
+}
+
+class Mixin {
+  num mixedInMethod() => 0;
+}
+
+class Super {
+  num extendedMethod() => 0;
+}
+
+main() {}

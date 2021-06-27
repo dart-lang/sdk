@@ -2,21 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.type_variable_builder;
 
 import 'package:kernel/ast.dart'
     show DartType, Nullability, TypeParameter, TypeParameterType;
+import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart'
     show
-        templateCycleInTypeVariables,
         templateInternalProblemUnfinishedTypeVariable,
         templateTypeArgumentsOnTypeVariable;
 
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart';
+import '../util/helpers.dart';
 
 import 'class_builder.dart';
+import 'declaration_builder.dart';
 import 'library_builder.dart';
+import 'member_builder.dart';
+import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
@@ -33,13 +39,16 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   final bool isExtensionTypeParameter;
 
-  TypeVariableBuilder(
-      String name, SourceLibraryBuilder compilationUnit, int charOffset,
-      {this.bound, this.isExtensionTypeParameter: false, int variableVariance})
+  TypeVariableBuilder(String name, SourceLibraryBuilder compilationUnit,
+      int charOffset, Uri fileUri,
+      {this.bound,
+      this.isExtensionTypeParameter: false,
+      int variableVariance,
+      List<MetadataBuilder> metadata})
       : actualParameter = new TypeParameter(name, null)
           ..fileOffset = charOffset
           ..variance = variableVariance,
-        super(null, 0, name, compilationUnit, charOffset);
+        super(metadata, 0, name, compilationUnit, charOffset, fileUri);
 
   TypeVariableBuilder.fromKernel(
       TypeParameter parameter, LibraryBuilder compilationUnit)
@@ -92,7 +101,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     bool needsPostUpdate = false;
     Nullability nullability;
     if (nullabilityBuilder.isOmitted) {
-      if (parameter.bound != null) {
+      if (!identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
         nullability = library.isNonNullableByDefault
             ? TypeParameterType.computeNullabilityFromBound(parameter)
             : Nullability.legacy;
@@ -106,12 +115,12 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     DartType type = buildTypesWithBuiltArguments(library, nullability, null);
     if (needsPostUpdate) {
       if (library is SourceLibraryBuilder) {
-        library.pendingNullabilities.add(type);
+        library.registerPendingNullability(fileUri, charOffset, type);
       } else {
         library.addProblem(
             templateInternalProblemUnfinishedTypeVariable.withArguments(
                 name, library?.importUri),
-            parameter.fileOffset,
+            charOffset,
             name.length,
             fileUri);
       }
@@ -145,82 +154,19 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     // TODO(jensj): Provide correct notInstanceContext.
     DartType objectType =
         object.buildType(library, library.nullableBuilder, null, null);
-    parameter.bound ??= bound?.build(library) ?? objectType;
+    if (identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
+      parameter.bound = bound?.build(library) ?? objectType;
+    }
     // If defaultType is not set, initialize it to dynamic, unless the bound is
     // explicitly specified as Object, in which case defaultType should also be
     // Object. This makes sure instantiation of generic function types with an
     // explicit Object bound results in Object as the instantiated type.
-    parameter.defaultType ??= defaultType?.build(library) ??
-        (bound != null && parameter.bound == objectType
-            ? objectType
-            : dynamicType.build(library));
-  }
-
-  /// Assigns nullabilities to types in [pendingNullabilities].
-  ///
-  /// It's a helper function to assign the nullabilities to type-parameter types
-  /// after the corresponding type parameters have their bounds set or changed.
-  /// The function takes into account that some of the types in the input list
-  /// may be bounds to some of the type parameters of other types from the input
-  /// list.
-  static void finishNullabilities(LibraryBuilder libraryBuilder,
-      List<TypeParameterType> pendingNullabilities) {
-    // The bounds of type parameters may be type-parameter types of other
-    // parameters from the same declaration.  In this case we need to set the
-    // nullability for them first.  To preserve the ordering, we implement a
-    // depth-first search over the types.  We use the fact that a nullability
-    // of a type parameter type can't ever be 'nullable' if computed from the
-    // bound. It allows us to use 'nullable' nullability as the marker in the
-    // DFS implementation.
-    Nullability marker = Nullability.nullable;
-    List<TypeParameterType> stack =
-        new List<TypeParameterType>.filled(pendingNullabilities.length, null);
-    int stackTop = 0;
-    for (TypeParameterType type in pendingNullabilities) {
-      type.declaredNullability = null;
-    }
-    for (TypeParameterType type in pendingNullabilities) {
-      if (type.declaredNullability != null) {
-        // Nullability for [type] was already computed on one of the branches
-        // of the depth-first search.  Continue to the next one.
-        continue;
-      }
-      if (type.parameter.bound is TypeParameterType) {
-        TypeParameterType current = type;
-        TypeParameterType next = current.parameter.bound;
-        while (next != null && next.declaredNullability == null) {
-          stack[stackTop++] = current;
-          current.declaredNullability = marker;
-
-          current = next;
-          if (current.parameter.bound is TypeParameterType) {
-            next = current.parameter.bound;
-            if (next.declaredNullability == marker) {
-              next.declaredNullability = Nullability.undetermined;
-              libraryBuilder.addProblem(
-                  templateCycleInTypeVariables.withArguments(
-                      next.parameter.name, current.parameter.name),
-                  next.parameter.fileOffset,
-                  next.parameter.name.length,
-                  next.parameter.location.file);
-              next = null;
-            }
-          } else {
-            next = null;
-          }
-        }
-        current.declaredNullability =
-            TypeParameterType.computeNullabilityFromBound(current.parameter);
-        while (stackTop != 0) {
-          --stackTop;
-          current = stack[stackTop];
-          current.declaredNullability =
-              TypeParameterType.computeNullabilityFromBound(current.parameter);
-        }
-      } else {
-        type.declaredNullability =
-            TypeParameterType.computeNullabilityFromBound(type.parameter);
-      }
+    if (identical(
+        parameter.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
+      parameter.defaultType = defaultType?.build(library) ??
+          (bound != null && parameter.bound == objectType
+              ? objectType
+              : dynamicType.build(library));
     }
   }
 
@@ -228,12 +174,26 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     patch.actualOrigin = this;
   }
 
-  TypeVariableBuilder clone(List<TypeBuilder> newTypes) {
+  TypeVariableBuilder clone(
+      List<TypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
     // TODO(dmitryas): Figure out if using [charOffset] here is a good idea.
     // An alternative is to use the offset of the node the cloned type variable
     // is declared on.
-    return new TypeVariableBuilder(name, parent, charOffset,
-        bound: bound.clone(newTypes), variableVariance: variance);
+    return new TypeVariableBuilder(name, parent, charOffset, fileUri,
+        bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
+        variableVariance: variance);
+  }
+
+  void buildOutlineExpressions(
+      LibraryBuilder libraryBuilder,
+      DeclarationBuilder classOrExtensionBuilder,
+      MemberBuilder memberBuilder,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    MetadataBuilder.buildAnnotations(parameter, metadata, libraryBuilder,
+        classOrExtensionBuilder, memberBuilder, fileUri);
   }
 
   @override

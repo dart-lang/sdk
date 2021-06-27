@@ -18,10 +18,10 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(Timeline_isDartStreamEnabled, 0, 0) {
 #if defined(SUPPORT_TIMELINE)
   if (Timeline::GetDartStream()->enabled()) {
-    return Bool::True().raw();
+    return Bool::True().ptr();
   }
 #endif
-  return Bool::False().raw();
+  return Bool::False().ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0, 0) {

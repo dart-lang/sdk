@@ -19,9 +19,9 @@ class ApiParseUtil {
     final RegExp regex = RegExp(r'[\d.]+');
 
     // Extract version from header: `# Dart VM Service Protocol 2.0`.
-    Element node = nodes.firstWhere((n) => isH1(n));
-    Text text = node.children[0];
-    Match match = regex.firstMatch(text.text);
+    Element node = nodes.firstWhere((n) => isH1(n)) as Element;
+    Text text = node.children![0] as Text;
+    Match? match = regex.firstMatch(text.text);
     if (match == null) throw 'Unable to locate service protocol version';
 
     // Append a `.0`.

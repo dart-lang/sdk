@@ -26,7 +26,6 @@ class ElementReferencesComputer {
     if (withPotential && _isMemberElement(element)) {
       var name = element.displayName;
       var matches = await searchEngine.searchMemberReferences(name);
-      matches = SearchMatch.withNotNullElement(matches);
       results.addAll(matches.where((match) => !match.isResolved).map(toResult));
     }
 
@@ -49,7 +48,6 @@ class ElementReferencesComputer {
   Future<List<SearchResult>> _findSingleElementReferences(
       Element element) async {
     var matches = await searchEngine.searchReferences(element);
-    matches = SearchMatch.withNotNullElement(matches);
     return matches.map(toResult).toList();
   }
 

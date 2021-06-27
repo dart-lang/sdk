@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// [AbortCompletion] is thrown when the current completion request
 /// should be aborted because either
@@ -13,15 +12,22 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// a new completion request was received.
 class AbortCompletion {}
 
-/// An object used to produce completions at a specific location within a file.
+/// Indicates a preference for completion text.
 ///
-/// Clients may implement this class when implementing plugins.
-abstract class CompletionContributor {
-  /// Return a [Future] that completes with a list of suggestions
-  /// for the given completion [request]. This will
-  /// throw [AbortCompletion] if the completion request has been aborted.
-  Future<List<CompletionSuggestion>> computeSuggestions(
-      CompletionRequest request);
+/// When preference is [insert], completion text may be tailored on the basis
+/// of being more likely to be inserted than replaced.
+///
+/// For example, completing at ^ in the code below will produce named arg labels
+/// with a trailing `: ,` if the preference is for [insert], but without for
+/// [replace].
+///
+///     @A(^two: '2')
+///
+/// This value should generally be provided based on the default behaviour of
+/// a given client/protocol (or could take user preferences into account).
+enum CompletionPreference {
+  insert,
+  replace,
 }
 
 /// The information about a requested list of completions.
@@ -44,7 +50,7 @@ abstract class CompletionRequest {
 
   /// Return the content of the [source] in which the completion is being
   /// requested, or `null` if the content could not be accessed.
-  String get sourceContents;
+  String? get sourceContents;
 
   /// Throw [AbortCompletion] if the completion request has been aborted.
   void checkAborted();

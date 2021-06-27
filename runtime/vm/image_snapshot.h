@@ -27,6 +27,7 @@ namespace dart {
 // Forward declarations.
 class Code;
 class Dwarf;
+class Elf;
 class Instructions;
 class Object;
 
@@ -126,13 +127,13 @@ class Image : ValueObject {
 
   // We don't use a handle or the tagged pointer because this object cannot be
   // moved in memory by the GC.
-  static const InstructionsSectionLayout* ExtraInfo(const uword raw_memory,
-                                                    const uword size);
+  static const UntaggedInstructionsSection* ExtraInfo(const uword raw_memory,
+                                                      const uword size);
 
   // Most internal uses would cast this to uword, so just store it as such.
   const uword raw_memory_;
   const intptr_t snapshot_size_;
-  const InstructionsSectionLayout* const extra_info_;
+  const UntaggedInstructionsSection* const extra_info_;
 
   // For access to private constants.
   friend class AssemblyImageWriter;
@@ -178,7 +179,7 @@ class ObjectOffsetTrait {
 
   static Key KeyOf(Pair kv) { return kv.object; }
   static Value ValueOf(Pair kv) { return kv.offset; }
-  static intptr_t Hashcode(Key key);
+  static uword Hash(Key key);
   static inline bool IsKeyEqual(Pair pair, Key key);
 };
 
@@ -240,9 +241,13 @@ class ImageWriter : public ValueObject {
   // Text sections contain objects (even in bare instructions mode) wrapped
   // in an Image object, and for now we also align them to the same page
   // size assumed by Elf objects.
+  static constexpr intptr_t kTextAlignment = 16 * KB;
+#if defined(DART_PRECOMPILER)
+  static_assert(kTextAlignment == Elf::kPageSize,
+                "Page alignment must be consistent with max object alignment");
   static_assert(Elf::kPageSize >= kMaxObjectAlignment,
                 "Page alignment must be consistent with max object alignment");
-  static constexpr intptr_t kTextAlignment = Elf::kPageSize;
+#endif
 
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
@@ -269,10 +274,10 @@ class ImageWriter : public ValueObject {
   void PrepareForSerialization(GrowableArray<ImageWriterCommand>* commands);
 
   bool IsROSpace() const {
-    return offset_space_ == V8SnapshotProfileWriter::kVmData ||
-           offset_space_ == V8SnapshotProfileWriter::kVmText ||
-           offset_space_ == V8SnapshotProfileWriter::kIsolateData ||
-           offset_space_ == V8SnapshotProfileWriter::kIsolateText;
+    return offset_space_ == IdSpace::kVmData ||
+           offset_space_ == IdSpace::kVmText ||
+           offset_space_ == IdSpace::kIsolateData ||
+           offset_space_ == IdSpace::kIsolateText;
   }
   int32_t GetTextOffsetFor(InstructionsPtr instructions, CodePtr code);
   uint32_t GetDataOffsetFor(ObjectPtr raw_object);
@@ -295,7 +300,7 @@ class ImageWriter : public ValueObject {
 
   static intptr_t SizeInSnapshot(ObjectPtr object);
   static intptr_t SizeInSnapshot(const Object& object) {
-    return SizeInSnapshot(object.raw());
+    return SizeInSnapshot(object.ptr());
   }
 
   // Returns nullptr if there is no profile writer.
@@ -430,14 +435,13 @@ class ImageWriter : public ValueObject {
   // instruction for the target architecture is used.
   intptr_t AlignWithBreakInstructions(intptr_t alignment, intptr_t offset);
 
-  Heap* heap_;  // Used for mapping RawInstructiosn to object ids.
+  Heap* heap_;  // Used for mapping InstructionsPtr to object ids.
   intptr_t next_data_offset_;
   intptr_t next_text_offset_;
   GrowableArray<ObjectData> objects_;
   GrowableArray<InstructionsData> instructions_;
 
-  V8SnapshotProfileWriter::IdSpace offset_space_ =
-      V8SnapshotProfileWriter::kSnapshot;
+  IdSpace offset_space_ = IdSpace::kSnapshot;
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
   const char* const image_type_;
   const char* const instructions_section_type_;
@@ -472,13 +476,14 @@ class TraceImageObjectScope : ValueObject {
         stream_(ASSERT_NOTNULL(stream)),
         section_offset_(section_offset),
         start_offset_(stream_->Position() - section_offset),
-        object_type_(writer->ObjectTypeForProfile(object)) {}
+        object_type_(writer->ObjectTypeForProfile(object)),
+        object_name_(object.IsString() ? object.ToCString() : nullptr) {}
 
   ~TraceImageObjectScope() {
     if (writer_->profile_writer_ == nullptr) return;
     ASSERT(writer_->IsROSpace());
     writer_->profile_writer_->SetObjectTypeAndName(
-        {writer_->offset_space_, start_offset_}, object_type_, nullptr);
+        {writer_->offset_space_, start_offset_}, object_type_, object_name_);
     writer_->profile_writer_->AttributeBytesTo(
         {writer_->offset_space_, start_offset_},
         stream_->Position() - section_offset_ - start_offset_);
@@ -490,6 +495,7 @@ class TraceImageObjectScope : ValueObject {
   const intptr_t section_offset_;
   const intptr_t start_offset_;
   const char* const object_type_;
+  const char* const object_name_;
 
   DISALLOW_COPY_AND_ASSIGN(TraceImageObjectScope);
 };
@@ -501,7 +507,7 @@ class SnapshotTextObjectNamer : ValueObject {
         owner_(Object::Handle(zone)),
         string_(String::Handle(zone)),
         insns_(Instructions::Handle(zone)),
-        store_(Isolate::Current()->object_store()) {}
+        store_(IsolateGroup::Current()->object_store()) {}
 
   const char* StubNameForType(const AbstractType& type) const;
 

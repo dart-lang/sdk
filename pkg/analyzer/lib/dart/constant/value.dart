@@ -62,7 +62,7 @@ abstract class DartObject {
   ///
   /// This method can return a representation of the type, even if this object
   /// would return `false` from [hasKnownValue].
-  ParameterizedType get type;
+  ParameterizedType? get type;
 
   /// Return a representation of the value of the field with the given [name].
   ///
@@ -72,14 +72,14 @@ abstract class DartObject {
   ///
   /// Note that, unlike the mirrors API, this method does *not* invoke a getter;
   /// it simply returns a representation of the known state of a field.
-  DartObject getField(String name);
+  DartObject? getField(String name);
 
   /// Return a boolean corresponding to the value of the object being
   /// represented, or `null` if
   /// * this object is not of type 'bool',
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
-  bool toBoolValue();
+  bool? toBoolValue();
 
   /// Return a double corresponding to the value of the object being represented,
   /// or `null`
@@ -87,7 +87,7 @@ abstract class DartObject {
   /// * this object is not of type 'double',
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
-  double toDoubleValue();
+  double? toDoubleValue();
 
   /// Return an element corresponding to the value of the object being
   /// represented, or `null`
@@ -95,50 +95,50 @@ abstract class DartObject {
   /// * this object is not of a function type,
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
-  ExecutableElement toFunctionValue();
+  ExecutableElement? toFunctionValue();
 
   /// Return an integer corresponding to the value of the object being
   /// represented, or `null` if
   /// * this object is not of type 'int',
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
-  int toIntValue();
+  int? toIntValue();
 
   /// Return a list corresponding to the value of the object being represented,
   /// or `null` if
   /// * this object is not of type 'List', or
   /// * the value of the object being represented is `null`.
-  List<DartObject> toListValue();
+  List<DartObject>? toListValue();
 
   /// Return a map corresponding to the value of the object being represented, or
   /// `null` if
   /// * this object is not of type 'Map', or
   /// * the value of the object being represented is `null`.
-  Map<DartObject, DartObject> toMapValue();
+  Map<DartObject?, DartObject?>? toMapValue();
 
   /// Return a set corresponding to the value of the object being represented,
   /// or `null` if
   /// * this object is not of type 'Set', or
   /// * the value of the object being represented is `null`.
-  Set<DartObject> toSetValue();
+  Set<DartObject>? toSetValue();
 
   /// Return a string corresponding to the value of the object being represented,
   /// or `null` if
   /// * this object is not of type 'String',
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
-  String toStringValue();
+  String? toStringValue();
 
   /// Return a string corresponding to the value of the object being represented,
   /// or `null` if
   /// * this object is not of type 'Symbol', or
   /// * the value of the object being represented is `null`.
   /// (We return the string
-  String toSymbolValue();
+  String? toSymbolValue();
 
   /// Return the representation of the type corresponding to the value of the
   /// object being represented, or `null` if
   /// * this object is not of type 'Type', or
   /// * the value of the object being represented is `null`.
-  DartType toTypeValue();
+  DartType? toTypeValue();
 }

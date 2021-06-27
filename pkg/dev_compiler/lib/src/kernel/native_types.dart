@@ -9,6 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'constants.dart';
 import 'kernel_helpers.dart';
+import 'target.dart' show allowedNativeTest;
 
 /// Contains information about native JS types (those types provided by the
 /// implementation) that are also provided by the Dart SDK.
@@ -39,7 +40,7 @@ class NativeTypeSet {
   final _nativeTypes = HashSet<Class>.identity();
   final _pendingLibraries = HashSet<Library>.identity();
 
-  NativeTypeSet(this.coreTypes, this.constants) {
+  NativeTypeSet(this.coreTypes, this.constants, Component component) {
     // First, core types:
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
@@ -48,6 +49,8 @@ class NativeTypeSet {
     _addExtensionType(coreTypes.doubleClass, true);
     _addExtensionType(coreTypes.boolClass, true);
     _addExtensionType(coreTypes.stringClass, true);
+    // Allow `Function.==` to be recognized as a symbolized member.
+    _addExtensionType(coreTypes.functionClass, false);
 
     var sdk = coreTypes.index;
     _addExtensionTypes(sdk.getLibrary('dart:_interceptors'));
@@ -69,6 +72,14 @@ class NativeTypeSet {
     _addPendingExtensionTypes(sdk.getLibrary('dart:web_audio'));
     _addPendingExtensionTypes(sdk.getLibrary('dart:web_gl'));
     _addPendingExtensionTypes(sdk.getLibrary('dart:web_sql'));
+
+    // For testing purposes only, we add extension types outside the Dart SDK.
+    // These are only allowed for native tests (see allowedNativeTest).
+    for (var library in component.libraries) {
+      if (allowedNativeTest(library.importUri)) {
+        _addExtensionTypes(library);
+      }
+    }
   }
 
   void _addExtensionType(Class c, [bool mustBeNative = false]) {

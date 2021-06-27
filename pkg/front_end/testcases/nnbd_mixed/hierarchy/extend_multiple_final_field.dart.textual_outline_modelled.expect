@@ -1,0 +1,28 @@
+abstract class AbstractClass extends Super implements Interface1, Interface2 {}
+
+abstract class Super {
+  abstract final int extendedAbstractField;
+  abstract final int extendedAbstractImplementedField;
+  abstract final int extendedAbstractImplementedMultipleField;
+  final int extendedConcreteField = 0;
+  final int extendedConcreteImplementedField = 0;
+  final int extendedConcreteImplementedMultipleField = 0;
+}
+
+class ConcreteClass extends Super implements Interface1, Interface2 {}
+
+class ConcreteSub extends AbstractClass {}
+
+class Interface1 {
+  final int extendedAbstractImplementedField = 0;
+  final int extendedAbstractImplementedMultipleField = 0;
+  final int extendedConcreteImplementedField = 0;
+  final int extendedConcreteImplementedMultipleField = 0;
+}
+
+class Interface2 {
+  final int extendedAbstractImplementedMultipleField = 0;
+  final int extendedConcreteImplementedMultipleField = 0;
+}
+
+main() {}

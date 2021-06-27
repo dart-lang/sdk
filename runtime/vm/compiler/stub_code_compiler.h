@@ -53,10 +53,12 @@ class StubCodeCompiler : public AllStatic {
 #if !defined(TARGET_ARCH_IA32)
   static void GenerateBuildMethodExtractorStub(
       Assembler* assembler,
-      const Object& closure_allocation_stub,
-      const Object& context_allocation_stub);
+      const Code& closure_allocation_stub,
+      const Code& context_allocation_stub);
 #endif
 
+  static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                      bool preserve_registers = true);
   static ArrayPtr BuildStaticCallsTable(
       Zone* zone,
       compiler::UnresolvedPcRelativeCalls* unresolved_calls);

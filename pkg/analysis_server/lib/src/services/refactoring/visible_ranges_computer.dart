@@ -24,7 +24,9 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     var element = node.declaredElement;
     if (element is ParameterElement) {
       var body = _getFunctionBody(node);
-      if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
+      if (body is BlockFunctionBody) {
+        _map[element] = range.node(body);
+      } else if (body is ExpressionFunctionBody) {
         _map[element] = range.node(body);
       }
     }
@@ -33,9 +35,11 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     var loop = node.parent;
-    for (var variable in node.variables.variables) {
-      _addLocalVariable(loop, variable.declaredElement);
-      variable.initializer?.accept(this);
+    if (loop != null) {
+      for (var variable in node.variables.variables) {
+        _addLocalVariable(loop, variable.declaredElement);
+        variable.initializer?.accept(this);
+      }
     }
   }
 
@@ -53,13 +57,15 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     var block = node.parent;
-    for (var variable in node.variables.variables) {
-      _addLocalVariable(block, variable.declaredElement);
-      variable.initializer?.accept(this);
+    if (block != null) {
+      for (var variable in node.variables.variables) {
+        _addLocalVariable(block, variable.declaredElement);
+        variable.initializer?.accept(this);
+      }
     }
   }
 
-  void _addLocalVariable(AstNode scopeNode, Element element) {
+  void _addLocalVariable(AstNode scopeNode, Element? element) {
     if (element is LocalVariableElement) {
       _map[element] = range.node(scopeNode);
     }
@@ -73,8 +79,8 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
 
   /// Return the body of the function that contains the given [parameter], or
   /// `null` if no function body could be found.
-  static FunctionBody _getFunctionBody(FormalParameter parameter) {
-    var parent = parameter?.parent?.parent;
+  static FunctionBody? _getFunctionBody(FormalParameter parameter) {
+    var parent = parameter.parent?.parent;
     if (parent is ConstructorDeclaration) {
       return parent.body;
     } else if (parent is FunctionExpression) {

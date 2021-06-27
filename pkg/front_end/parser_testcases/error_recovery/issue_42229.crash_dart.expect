@@ -1,40 +1,52 @@
 Problems reported:
 
-parser/error_recovery/issue_42229.crash:1:8: Expected '>' after this.
-Stream<List<>>
-       ^^^^
+parser/error_recovery/issue_42229.crash:1:34: Expected an identifier, but got ''.
+Stream<List<>> /* nothing here */
+                                 ^...
 
-parser/error_recovery/issue_42229.crash:1:1: A function declaration needs an explicit list of parameters.
-Stream<List<>>
-^^^^^^
+WARNING: Reporting at eof --- see below for details.
 
-parser/error_recovery/issue_42229.crash:1:15: Expected a function body, but got ''.
-Stream<List<>>
-              ^...
+parser/error_recovery/issue_42229.crash:1:13: Expected a type, but got '>>'.
+Stream<List<>> /* nothing here */
+            ^^
+
+parser/error_recovery/issue_42229.crash:1:34: Expected an identifier, but got ''.
+Stream<List<>> /* nothing here */
+                                 ^...
+
+WARNING: Reporting at eof --- see below for details.
+
+parser/error_recovery/issue_42229.crash:1:34: Expected ';' after this.
+Stream<List<>> /* nothing here */
+                                 ^...
+
+WARNING: Reporting at eof --- see below for details.
 
 beginCompilationUnit(Stream)
   beginMetadataStar(Stream)
   endMetadataStar(0)
   beginTopLevelMember(Stream)
-    beginTopLevelMethod(, null)
-      handleNoType()
-      handleIdentifier(Stream, topLevelFunctionDeclaration)
-      beginTypeVariables(<)
-        beginMetadataStar(List)
-        endMetadataStar(0)
-        handleIdentifier(List, typeVariableDeclaration)
-        beginTypeVariable(List)
-          handleTypeVariablesDefined(List, 1)
-          handleNoType(List)
-        endTypeVariable(<, 0, null, null)
-        handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], List, List)
-      endTypeVariables(<, )
-      handleRecoverableError(MissingFunctionParameters, Stream, Stream)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got ''., null, {token: }], , )
-      handleInvalidFunctionBody({)
-    endTopLevelMethod(Stream, null, })
+    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+    // WARNING: Reporting at eof for .
+    beginFields()
+      handleIdentifier(Stream, typeReference)
+      beginTypeArguments(<)
+        handleIdentifier(List, typeReference)
+        beginTypeArguments(<)
+          handleRecoverableError(Message[ExpectedType, Expected a type, but got '>>'., null, {lexeme: >>}], >>, >>)
+          handleIdentifier(, typeReference)
+          handleNoTypeArguments(>>)
+          handleType(, null)
+        endTypeArguments(1, <, >)
+        handleType(List, null)
+      endTypeArguments(1, <, >)
+      handleType(Stream, null)
+      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+      // WARNING: Reporting at eof for .
+      handleIdentifier(, topLevelVariableDeclaration)
+      handleNoFieldInitializer()
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
+      // WARNING: Reporting at eof for .
+    endTopLevelFields(null, null, null, null, null, 1, Stream, ;)
   endTopLevelDeclaration()
 endCompilationUnit(1, )

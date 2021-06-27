@@ -13,18 +13,16 @@ import 'common/test_helper.dart';
 
 void main() {
   group('DDS', () {
-    Process process;
-    DartDevelopmentService dds;
+    late Process process;
+    late DartDevelopmentService dds;
 
     setUp(() async {
       process = await spawnDartProcess('smoke.dart');
     });
 
     tearDown(() async {
-      await dds?.shutdown();
-      process?.kill();
-      dds = null;
-      process = null;
+      await dds.shutdown();
+      process.kill();
     });
 
     test('Bad Auth Code', () async {
@@ -36,8 +34,8 @@ void main() {
       // Ensure basic websocket requests are forwarded correctly to the VM service.
       final service = await vmServiceConnectUri(dds.wsUri.toString());
       final version = await service.getVersion();
-      expect(version.major > 0, true);
-      expect(version.minor >= 0, true);
+      expect(version.major! > 0, true);
+      expect(version.minor! >= 0, true);
 
       // Ensure we can still make requests of the VM service via HTTP.
       HttpClient client = HttpClient();

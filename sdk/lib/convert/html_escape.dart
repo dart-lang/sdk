@@ -185,11 +185,6 @@ class HtmlEscape extends Converter<String, String> {
       }
       if (replacement != null) {
         result ??= StringBuffer();
-        // TODO(38725): Remove workaround when assignment promotion is
-        // implemented
-        if (result == null) {
-          throw "unreachable";
-        }
         if (i > start) result.write(text.substring(start, i));
         result.write(replacement);
         start = i + 1;

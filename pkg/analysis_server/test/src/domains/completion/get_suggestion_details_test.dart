@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,7 +36,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'MyEnum.aaa');
-    _assertTestFileChange(result.change, r'''
+    _assertTestFileChange(result.change!, r'''
 import 'package:test/a.dart';
 
 main() {} // ref
@@ -62,7 +60,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'sin');
-    _assertEmptyChange(result.change);
+    _assertEmptyChange(result.change!);
   }
 
   Future<void> test_existingImport_prefixed() async {
@@ -82,7 +80,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'math.sin');
-    _assertEmptyChange(result.change);
+    _assertEmptyChange(result.change!);
   }
 
   Future<void> test_invalid_library() async {
@@ -91,7 +89,7 @@ main() {} // ref
     var response = await waitResponse(
       _buildRequest(id: -1, label: 'foo', offset: 0),
     );
-    expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
+    expect(response.error!.code, RequestErrorCode.INVALID_PARAMETER);
   }
 
   Future<void> test_newImport() async {
@@ -109,8 +107,106 @@ main() {} // ref
     );
 
     expect(result.completion, 'sin');
-    _assertTestFileChange(result.change, r'''
+    _assertTestFileChange(result.change!, r'''
 import 'dart:math';
+
+main() {} // ref
+''');
+  }
+
+  Future<void> test_newImport_afterLibraryBeforeFirstImportsAnnotation() async {
+    // Annotations are only treated as being for the file if they are on the first
+    // directive of the file.
+    addTestFile(r'''
+library foo;
+
+@myAnnotation
+import 'package:zzz';
+
+main() {} // ref
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+    var result = await _getSuggestionDetails(
+      _buildRequest(
+        id: mathSet.id,
+        label: 'sin',
+        offset: testCode.indexOf('} // ref'),
+      ),
+    );
+
+    expect(result.completion, 'sin');
+    _assertTestFileChange(result.change!, r'''
+library foo;
+
+import 'dart:math';
+
+@myAnnotation
+import 'package:zzz';
+
+main() {} // ref
+''');
+  }
+
+  Future<void> test_newImport_betweenAnnotationAndFirstImport() async {
+    // Annotations attached to the first import in a file are considered
+    // to be for the file, so if an import is inserted in the top position, it
+    // should go after the annotation.
+    addTestFile(r'''
+@myAnnotation
+
+import 'package:zzz';
+
+main() {} // ref
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+    var result = await _getSuggestionDetails(
+      _buildRequest(
+        id: mathSet.id,
+        label: 'sin',
+        offset: testCode.indexOf('} // ref'),
+      ),
+    );
+
+    expect(result.completion, 'sin');
+    _assertTestFileChange(result.change!, r'''
+@myAnnotation
+
+import 'dart:math';
+
+import 'package:zzz';
+
+main() {} // ref
+''');
+  }
+
+  Future<void> test_newImport_notBetweenAnnotationAndNonFirstImport() async {
+    // Annotations on non-first directives should not be kept above the newly
+    // imported imports (opposite of test_newImport_betweenAnnotationAndFirstImport).
+    addTestFile(r'''
+import 'dart:async';
+@myAnnotation
+import 'package:zzz';
+
+main() {} // ref
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+    var result = await _getSuggestionDetails(
+      _buildRequest(
+        id: mathSet.id,
+        label: 'sin',
+        offset: testCode.indexOf('} // ref'),
+      ),
+    );
+
+    expect(result.completion, 'sin');
+    _assertTestFileChange(result.change!, r'''
+import 'dart:async';
+import 'dart:math';
+@myAnnotation
+import 'package:zzz';
 
 main() {} // ref
 ''');
@@ -138,7 +234,7 @@ part 'a.dart';
     );
 
     expect(result.completion, 'sin');
-    _assertTestFileChange(result.change, r'''
+    _assertTestFileChange(result.change!, r'''
 import 'dart:math';
 
 part 'a.dart';
@@ -161,10 +257,10 @@ part 'a.dart';
   }
 
   Request _buildRequest({
-    String file,
-    @required int id,
-    @required String label,
-    @required int offset,
+    String? file,
+    required int id,
+    required String label,
+    required int offset,
   }) {
     return CompletionGetSuggestionDetailsParams(
       file ?? testFile,

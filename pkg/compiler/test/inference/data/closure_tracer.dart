@@ -154,13 +154,13 @@ testStaticClosure1() {
   return topLevel1;
 }
 
-/*member: topLevel2:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
+/*member: topLevel2:Union(null, [exact=JSNumNotInt], [exact=JSUInt31])*/
 var topLevel2;
 
-/*member: bar:Union([exact=JSDouble], [exact=JSUInt31])*/
-bar(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) => topLevel2 = a;
+/*member: bar:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
+bar(/*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ a) => topLevel2 = a;
 
-/*member: testStaticClosure2:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
+/*member: testStaticClosure2:Union(null, [exact=JSNumNotInt], [exact=JSUInt31])*/
 testStaticClosure2() {
   var a = bar;
   a(42);
@@ -178,14 +178,14 @@ var topLevel3;
   return topLevel3;
 }
 
-/*member: topLevel4:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
+/*member: topLevel4:Union(null, [exact=JSNumNotInt], [exact=JSUInt31])*/
 var topLevel4;
 
-/*member: testStaticClosure4Helper:Union([exact=JSDouble], [exact=JSUInt31])*/
-testStaticClosure4Helper(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) =>
+/*member: testStaticClosure4Helper:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
+testStaticClosure4Helper(/*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ a) =>
     topLevel4 = a;
 
-/*member: testStaticClosure4:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
+/*member: testStaticClosure4:Union(null, [exact=JSNumNotInt], [exact=JSUInt31])*/
 testStaticClosure4() {
   var a = testStaticClosure4Helper;
   // Test calling the static after tearing it off.

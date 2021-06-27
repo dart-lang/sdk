@@ -22,6 +22,10 @@
 // ARRAY(Class, Name) Offset of the first element and the size of the elements
 //     in an array of this class.
 // SIZEOF(Class, Name, What) Class::Name() is defined as sizeof(What).
+// ARRAY_SIZEOF(Class, Name, ElementOffset) Instance size for an array object.
+//     Defines Class::Name(intptr_t length) and uses
+//     Class::ElementOffset(length) to calculate size of the instance. Also
+//     defines Class::Name() (with no length argument) to be 0.
 // PAYLOAD_SIZEOF(Class, Name, HeaderSize) Instance size for a payload object.
 //     Defines Class::Name(word payload_size) and uses Class::HeaderSize(),
 //     which should give the size of the header before the payload. Also
@@ -33,14 +37,35 @@
 //
 // COMMON_OFFSETS_LIST is for declarations that are valid in all contexts.
 // JIT_OFFSETS_LIST is for declarations that are only valid in JIT mode.
+// AOT_OFFSETS_LIST is for declarations that are only valid in AOT mode.
 // A declaration that is not valid in product mode can be wrapped with
 // NOT_IN_PRODUCT().
 //
 // TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
 
-#define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, PAYLOAD_SIZEOF, RANGE,       \
-                            CONSTANT)                                          \
+#define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF,                \
+                            PAYLOAD_SIZEOF, RANGE, CONSTANT)                   \
+  ARRAY(Array, element_offset)                                                 \
+  NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \
+  ARRAY(Code, element_offset)                                                  \
+  ARRAY(Context, variable_offset)                                              \
+  ARRAY(ContextScope, element_offset)                                          \
+  ARRAY(ExceptionHandlers, element_offset)                                     \
+  ARRAY(InstructionsTable, element_offset)                                     \
   ARRAY(ObjectPool, element_offset)                                            \
+  ARRAY(OneByteString, element_offset)                                         \
+  ARRAY(TypeArguments, type_at_offset)                                         \
+  ARRAY(TwoByteString, element_offset)                                         \
+  ARRAY_SIZEOF(Array, InstanceSize, element_offset)                            \
+  ARRAY_SIZEOF(Code, InstanceSize, element_offset)                             \
+  ARRAY_SIZEOF(Context, InstanceSize, variable_offset)                         \
+  ARRAY_SIZEOF(ContextScope, InstanceSize, element_offset)                     \
+  ARRAY_SIZEOF(ExceptionHandlers, InstanceSize, element_offset)                \
+  ARRAY_SIZEOF(InstructionsTable, InstanceSize, element_offset)                \
+  ARRAY_SIZEOF(ObjectPool, InstanceSize, element_offset)                       \
+  ARRAY_SIZEOF(OneByteString, InstanceSize, element_offset)                    \
+  ARRAY_SIZEOF(TypeArguments, InstanceSize, type_at_offset)                    \
+  ARRAY_SIZEOF(TwoByteString, InstanceSize, element_offset)                    \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
@@ -53,7 +78,7 @@
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
-  CONSTANT(SubtypeTestCache, kInstanceClassIdOrFunction)                       \
+  CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
   CONSTANT(SubtypeTestCache, kDestinationType)                                 \
   CONSTANT(SubtypeTestCache, kInstanceDelayedFunctionTypeArguments)            \
   CONSTANT(SubtypeTestCache, kInstanceParentFunctionTypeArguments)             \
@@ -86,8 +111,7 @@
   FIELD(Closure, function_type_arguments_offset)                               \
   FIELD(Closure, hash_offset)                                                  \
   FIELD(Closure, instantiator_type_arguments_offset)                           \
-  FIELD(ClosureData, default_type_arguments_offset)                            \
-  FIELD(ClosureData, default_type_arguments_info_offset)                       \
+  FIELD(ClosureData, default_type_arguments_kind_offset)                       \
   FIELD(Code, object_pool_offset)                                              \
   FIELD(Code, saved_instructions_offset)                                       \
   FIELD(Code, owner_offset)                                                    \
@@ -111,9 +135,7 @@
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
   FIELD(Function, kind_tag_offset)                                             \
   FIELD(Function, packed_fields_offset)                                        \
-  FIELD(Function, parameter_names_offset)                                      \
-  FIELD(Function, parameter_types_offset)                                      \
-  FIELD(Function, type_parameters_offset)                                      \
+  FIELD(Function, signature_offset)                                            \
   FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
@@ -126,12 +148,12 @@
   FIELD(ICData, owner_offset)                                                  \
   FIELD(ICData, state_bits_offset)                                             \
   FIELD(Int32x4, value_offset)                                                 \
-  FIELD(Isolate, shared_class_table_offset)                                    \
-  FIELD(Isolate, cached_class_table_table_offset)                              \
   FIELD(Isolate, current_tag_offset)                                           \
   FIELD(Isolate, default_tag_offset)                                           \
   FIELD(Isolate, ic_miss_code_offset)                                          \
-  FIELD(Isolate, cached_object_store_offset)                                   \
+  FIELD(IsolateGroup, object_store_offset)                                     \
+  FIELD(IsolateGroup, shared_class_table_offset)                               \
+  FIELD(IsolateGroup, cached_class_table_table_offset)                         \
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \
   FIELD(LinkedHashMap, data_offset)                                            \
@@ -140,7 +162,7 @@
   FIELD(LinkedHashMap, index_offset)                                           \
   FIELD(LinkedHashMap, type_arguments_offset)                                  \
   FIELD(LinkedHashMap, used_data_offset)                                       \
-  FIELD(LocalHandle, raw_offset)                                               \
+  FIELD(LocalHandle, ptr_offset)                                               \
   FIELD(MarkingStackBlock, pointers_offset)                                    \
   FIELD(MarkingStackBlock, top_offset)                                         \
   FIELD(MegamorphicCache, buckets_offset)                                      \
@@ -153,6 +175,7 @@
   FIELD(ObjectStore, double_type_offset)                                       \
   FIELD(ObjectStore, int_type_offset)                                          \
   FIELD(ObjectStore, string_type_offset)                                       \
+  FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(OneByteString, data_offset)                                            \
   FIELD(PointerBase, data_field_offset)                                        \
   FIELD(Pointer, type_arguments_offset)                                        \
@@ -211,6 +234,7 @@
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, exit_through_ffi_offset)                                       \
   FIELD(Thread, isolate_offset)                                                \
+  FIELD(Thread, isolate_group_offset)                                          \
   FIELD(Thread, field_table_values_offset)                                     \
   FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
   FIELD(Thread, lazy_deopt_from_throw_stub_offset)                             \
@@ -255,16 +279,21 @@
   FIELD(Thread, write_barrier_code_offset)                                     \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
+  FIELD(Thread, heap_base_offset)                                              \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(Thread, callback_stack_return_offset)                                  \
   FIELD(TimelineStream, enabled_offset)                                        \
   FIELD(TwoByteString, data_offset)                                            \
   FIELD(Type, arguments_offset)                                                \
   FIELD(Type, hash_offset)                                                     \
-  FIELD(Type, signature_offset)                                                \
   FIELD(Type, type_class_id_offset)                                            \
   FIELD(Type, type_state_offset)                                               \
   FIELD(Type, nullability_offset)                                              \
+  FIELD(FunctionType, hash_offset)                                             \
+  FIELD(FunctionType, packed_fields_offset)                                    \
+  FIELD(FunctionType, parameter_types_offset)                                  \
+  FIELD(FunctionType, parameter_names_offset)                                  \
+  FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
   FIELD(TypeParameter, nullability_offset)                                     \
@@ -272,9 +301,12 @@
   FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \
   FIELD(TypeArguments, types_offset)                                           \
+  FIELD(TypeParameters, names_offset)                                          \
+  FIELD(TypeParameters, flags_offset)                                          \
+  FIELD(TypeParameters, bounds_offset)                                         \
+  FIELD(TypeParameters, defaults_offset)                                       \
   FIELD(TypeParameter, bound_offset)                                           \
   FIELD(TypeParameter, flags_offset)                                           \
-  FIELD(TypeParameter, name_offset)                                            \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, data_offset)                                            \
@@ -288,9 +320,6 @@
   FIELD(MonomorphicSmiableCall, target_offset)                                 \
   FIELD(WeakProperty, key_offset)                                              \
   FIELD(WeakProperty, value_offset)                                            \
-  ARRAY(Array, element_offset)                                                 \
-  ARRAY(TypeArguments, type_at_offset)                                         \
-  NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \
@@ -299,93 +328,91 @@
       kNumberOfCpuRegisters - 1,                                               \
       [](Register reg) { return (kDartAvailableCpuRegs & (1 << reg)) != 0; })) \
                                                                                \
-  SIZEOF(ApiError, InstanceSize, ApiErrorLayout)                               \
-  SIZEOF(Array, InstanceSize, ArrayLayout)                                     \
-  SIZEOF(Array, header_size, ArrayLayout)                                      \
-  SIZEOF(Bool, InstanceSize, BoolLayout)                                       \
-  SIZEOF(Capability, InstanceSize, CapabilityLayout)                           \
-  SIZEOF(Class, InstanceSize, ClassLayout)                                     \
-  SIZEOF(Closure, InstanceSize, ClosureLayout)                                 \
-  SIZEOF(ClosureData, InstanceSize, ClosureDataLayout)                         \
-  SIZEOF(Code, InstanceSize, CodeLayout)                                       \
-  SIZEOF(CodeSourceMap, HeaderSize, CodeSourceMapLayout)                       \
-  SIZEOF(CompressedStackMaps, HeaderSize, CompressedStackMapsLayout)           \
-  SIZEOF(Context, InstanceSize, ContextLayout)                                 \
-  SIZEOF(Context, header_size, ContextLayout)                                  \
-  SIZEOF(ContextScope, InstanceSize, ContextScopeLayout)                       \
-  SIZEOF(Double, InstanceSize, DoubleLayout)                                   \
-  SIZEOF(DynamicLibrary, InstanceSize, DynamicLibraryLayout)                   \
-  SIZEOF(ExceptionHandlers, InstanceSize, ExceptionHandlersLayout)             \
-  SIZEOF(ExternalOneByteString, InstanceSize, ExternalOneByteStringLayout)     \
-  SIZEOF(ExternalTwoByteString, InstanceSize, ExternalTwoByteStringLayout)     \
-  SIZEOF(ExternalTypedData, InstanceSize, ExternalTypedDataLayout)             \
-  SIZEOF(FfiTrampolineData, InstanceSize, FfiTrampolineDataLayout)             \
-  SIZEOF(Field, InstanceSize, FieldLayout)                                     \
-  SIZEOF(Float32x4, InstanceSize, Float32x4Layout)                             \
-  SIZEOF(Float64x2, InstanceSize, Float64x2Layout)                             \
-  SIZEOF(Function, InstanceSize, FunctionLayout)                               \
-  SIZEOF(FutureOr, InstanceSize, FutureOrLayout)                               \
-  SIZEOF(GrowableObjectArray, InstanceSize, GrowableObjectArrayLayout)         \
-  SIZEOF(ICData, InstanceSize, ICDataLayout)                                   \
-  SIZEOF(Instance, InstanceSize, InstanceLayout)                               \
-  SIZEOF(Instructions, UnalignedHeaderSize, InstructionsLayout)                \
-  SIZEOF(InstructionsSection, UnalignedHeaderSize, InstructionsSectionLayout)  \
-  SIZEOF(Int32x4, InstanceSize, Int32x4Layout)                                 \
-  SIZEOF(Integer, InstanceSize, IntegerLayout)                                 \
-  SIZEOF(KernelProgramInfo, InstanceSize, KernelProgramInfoLayout)             \
-  SIZEOF(LanguageError, InstanceSize, LanguageErrorLayout)                     \
-  SIZEOF(Library, InstanceSize, LibraryLayout)                                 \
-  SIZEOF(LibraryPrefix, InstanceSize, LibraryPrefixLayout)                     \
-  SIZEOF(LinkedHashMap, InstanceSize, LinkedHashMapLayout)                     \
-  SIZEOF(LocalVarDescriptors, InstanceSize, LocalVarDescriptorsLayout)         \
-  SIZEOF(MegamorphicCache, InstanceSize, MegamorphicCacheLayout)               \
-  SIZEOF(Mint, InstanceSize, MintLayout)                                       \
-  SIZEOF(MirrorReference, InstanceSize, MirrorReferenceLayout)                 \
-  SIZEOF(MonomorphicSmiableCall, InstanceSize, MonomorphicSmiableCallLayout)   \
-  SIZEOF(Namespace, InstanceSize, NamespaceLayout)                             \
+  SIZEOF(AbstractType, InstanceSize, UntaggedAbstractType)                     \
+  SIZEOF(ApiError, InstanceSize, UntaggedApiError)                             \
+  SIZEOF(Array, header_size, UntaggedArray)                                    \
+  SIZEOF(Bool, InstanceSize, UntaggedBool)                                     \
+  SIZEOF(Capability, InstanceSize, UntaggedCapability)                         \
+  SIZEOF(Class, InstanceSize, UntaggedClass)                                   \
+  SIZEOF(Closure, InstanceSize, UntaggedClosure)                               \
+  SIZEOF(ClosureData, InstanceSize, UntaggedClosureData)                       \
+  SIZEOF(CodeSourceMap, HeaderSize, UntaggedCodeSourceMap)                     \
+  SIZEOF(CompressedStackMaps, HeaderSize, UntaggedCompressedStackMaps)         \
+  SIZEOF(Context, header_size, UntaggedContext)                                \
+  SIZEOF(Double, InstanceSize, UntaggedDouble)                                 \
+  SIZEOF(DynamicLibrary, InstanceSize, UntaggedDynamicLibrary)                 \
+  SIZEOF(ExternalOneByteString, InstanceSize, UntaggedExternalOneByteString)   \
+  SIZEOF(ExternalTwoByteString, InstanceSize, UntaggedExternalTwoByteString)   \
+  SIZEOF(ExternalTypedData, InstanceSize, UntaggedExternalTypedData)           \
+  SIZEOF(FfiTrampolineData, InstanceSize, UntaggedFfiTrampolineData)           \
+  SIZEOF(Field, InstanceSize, UntaggedField)                                   \
+  SIZEOF(Float32x4, InstanceSize, UntaggedFloat32x4)                           \
+  SIZEOF(Float64x2, InstanceSize, UntaggedFloat64x2)                           \
+  SIZEOF(Function, InstanceSize, UntaggedFunction)                             \
+  SIZEOF(FunctionType, InstanceSize, UntaggedFunctionType)                     \
+  SIZEOF(FutureOr, InstanceSize, UntaggedFutureOr)                             \
+  SIZEOF(GrowableObjectArray, InstanceSize, UntaggedGrowableObjectArray)       \
+  SIZEOF(ICData, InstanceSize, UntaggedICData)                                 \
+  SIZEOF(Instance, InstanceSize, UntaggedInstance)                             \
+  SIZEOF(Instructions, UnalignedHeaderSize, UntaggedInstructions)              \
+  SIZEOF(InstructionsSection, UnalignedHeaderSize,                             \
+         UntaggedInstructionsSection)                                          \
+  SIZEOF(Int32x4, InstanceSize, UntaggedInt32x4)                               \
+  SIZEOF(Integer, InstanceSize, UntaggedInteger)                               \
+  SIZEOF(KernelProgramInfo, InstanceSize, UntaggedKernelProgramInfo)           \
+  SIZEOF(LanguageError, InstanceSize, UntaggedLanguageError)                   \
+  SIZEOF(Library, InstanceSize, UntaggedLibrary)                               \
+  SIZEOF(LibraryPrefix, InstanceSize, UntaggedLibraryPrefix)                   \
+  SIZEOF(LinkedHashMap, InstanceSize, UntaggedLinkedHashMap)                   \
+  SIZEOF(MegamorphicCache, InstanceSize, UntaggedMegamorphicCache)             \
+  SIZEOF(Mint, InstanceSize, UntaggedMint)                                     \
+  SIZEOF(MirrorReference, InstanceSize, UntaggedMirrorReference)               \
+  SIZEOF(MonomorphicSmiableCall, InstanceSize, UntaggedMonomorphicSmiableCall) \
+  SIZEOF(Namespace, InstanceSize, UntaggedNamespace)                           \
   SIZEOF(NativeArguments, StructSize, NativeArguments)                         \
-  SIZEOF(Number, InstanceSize, NumberLayout)                                   \
-  SIZEOF(Object, InstanceSize, ObjectLayout)                                   \
-  SIZEOF(ObjectPool, InstanceSize, ObjectPoolLayout)                           \
-  SIZEOF(OneByteString, InstanceSize, OneByteStringLayout)                     \
-  SIZEOF(PatchClass, InstanceSize, PatchClassLayout)                           \
-  SIZEOF(PcDescriptors, HeaderSize, PcDescriptorsLayout)                       \
-  SIZEOF(Pointer, InstanceSize, PointerLayout)                                 \
-  SIZEOF(ReceivePort, InstanceSize, ReceivePortLayout)                         \
-  SIZEOF(RegExp, InstanceSize, RegExpLayout)                                   \
-  SIZEOF(Script, InstanceSize, ScriptLayout)                                   \
-  SIZEOF(SendPort, InstanceSize, SendPortLayout)                               \
-  SIZEOF(SignatureData, InstanceSize, SignatureDataLayout)                     \
-  SIZEOF(SingleTargetCache, InstanceSize, SingleTargetCacheLayout)             \
-  SIZEOF(Smi, InstanceSize, SmiLayout)                                         \
-  SIZEOF(StackTrace, InstanceSize, StackTraceLayout)                           \
-  SIZEOF(String, InstanceSize, StringLayout)                                   \
-  SIZEOF(SubtypeTestCache, InstanceSize, SubtypeTestCacheLayout)               \
-  SIZEOF(LoadingUnit, InstanceSize, LoadingUnitLayout)                         \
-  SIZEOF(TransferableTypedData, InstanceSize, TransferableTypedDataLayout)     \
-  SIZEOF(TwoByteString, InstanceSize, TwoByteStringLayout)                     \
-  SIZEOF(Type, InstanceSize, TypeLayout)                                       \
-  SIZEOF(TypeArguments, InstanceSize, TypeArgumentsLayout)                     \
-  SIZEOF(TypeParameter, InstanceSize, TypeParameterLayout)                     \
-  SIZEOF(TypeRef, InstanceSize, TypeRefLayout)                                 \
-  SIZEOF(TypedData, InstanceSize, TypedDataLayout)                             \
-  SIZEOF(TypedDataBase, InstanceSize, TypedDataBaseLayout)                     \
-  SIZEOF(TypedDataView, InstanceSize, TypedDataViewLayout)                     \
-  SIZEOF(UnhandledException, InstanceSize, UnhandledExceptionLayout)           \
-  SIZEOF(UnlinkedCall, InstanceSize, UnlinkedCallLayout)                       \
-  SIZEOF(UnwindError, InstanceSize, UnwindErrorLayout)                         \
-  SIZEOF(UserTag, InstanceSize, UserTagLayout)                                 \
-  SIZEOF(WeakProperty, InstanceSize, WeakPropertyLayout)                       \
+  SIZEOF(Number, InstanceSize, UntaggedNumber)                                 \
+  SIZEOF(Object, InstanceSize, UntaggedObject)                                 \
+  SIZEOF(PatchClass, InstanceSize, UntaggedPatchClass)                         \
+  SIZEOF(PcDescriptors, HeaderSize, UntaggedPcDescriptors)                     \
+  SIZEOF(Pointer, InstanceSize, UntaggedPointer)                               \
+  SIZEOF(ReceivePort, InstanceSize, UntaggedReceivePort)                       \
+  SIZEOF(RegExp, InstanceSize, UntaggedRegExp)                                 \
+  SIZEOF(Script, InstanceSize, UntaggedScript)                                 \
+  SIZEOF(SendPort, InstanceSize, UntaggedSendPort)                             \
+  SIZEOF(Sentinel, InstanceSize, UntaggedSentinel)                             \
+  SIZEOF(SingleTargetCache, InstanceSize, UntaggedSingleTargetCache)           \
+  SIZEOF(StackTrace, InstanceSize, UntaggedStackTrace)                         \
+  SIZEOF(String, InstanceSize, UntaggedString)                                 \
+  SIZEOF(SubtypeTestCache, InstanceSize, UntaggedSubtypeTestCache)             \
+  SIZEOF(LoadingUnit, InstanceSize, UntaggedLoadingUnit)                       \
+  SIZEOF(TransferableTypedData, InstanceSize, UntaggedTransferableTypedData)   \
+  SIZEOF(Type, InstanceSize, UntaggedType)                                     \
+  SIZEOF(TypeParameter, InstanceSize, UntaggedTypeParameter)                   \
+  SIZEOF(TypeParameters, InstanceSize, UntaggedTypeParameters)                 \
+  SIZEOF(TypeRef, InstanceSize, UntaggedTypeRef)                               \
+  SIZEOF(TypedData, HeaderSize, UntaggedTypedData)                             \
+  SIZEOF(TypedDataBase, InstanceSize, UntaggedTypedDataBase)                   \
+  SIZEOF(TypedDataView, InstanceSize, UntaggedTypedDataView)                   \
+  SIZEOF(UnhandledException, InstanceSize, UntaggedUnhandledException)         \
+  SIZEOF(UnlinkedCall, InstanceSize, UntaggedUnlinkedCall)                     \
+  SIZEOF(UnwindError, InstanceSize, UntaggedUnwindError)                       \
+  SIZEOF(UserTag, InstanceSize, UntaggedUserTag)                               \
+  SIZEOF(WeakProperty, InstanceSize, UntaggedWeakProperty)                     \
   SIZEOF(WeakSerializationReference, InstanceSize,                             \
-         WeakSerializationReferenceLayout)                                     \
+         UntaggedWeakSerializationReference)                                   \
   PAYLOAD_SIZEOF(CodeSourceMap, InstanceSize, HeaderSize)                      \
   PAYLOAD_SIZEOF(CompressedStackMaps, InstanceSize, HeaderSize)                \
   PAYLOAD_SIZEOF(InstructionsSection, InstanceSize, HeaderSize)                \
-  PAYLOAD_SIZEOF(PcDescriptors, InstanceSize, HeaderSize)
+  PAYLOAD_SIZEOF(PcDescriptors, InstanceSize, HeaderSize)                      \
+  PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)
 
-#define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, PAYLOAD_SIZEOF, RANGE,          \
-                         CONSTANT)                                             \
+#define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
+                         RANGE, CONSTANT)                                      \
   FIELD(Function, usage_counter_offset)                                        \
   FIELD(ICData, receivers_static_type_offset)
+
+#define AOT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
+                         RANGE, CONSTANT)                                      \
+  FIELD(Closure, entry_point_offset)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_

@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class DuplicateFieldFormalParameterTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class DuplicateFieldFormalParameterTest extends PubPackageResolutionTest {
   test_optional_named() async {
     await assertErrorsInCode(r'''
 class A {
@@ -38,6 +37,17 @@ class A {
     ]);
   }
 
+  test_optional_positional_final() async {
+    await assertErrorsInCode(r'''
+class A {
+  final x;
+  A([this.x = 1, this.x = 2]) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 43, 1),
+    ]);
+  }
+
   test_required_named() async {
     await assertErrorsInCode(r'''
 class A {
@@ -57,6 +67,17 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 36, 1),
+    ]);
+  }
+
+  test_required_positional_final() async {
+    await assertErrorsInCode(r'''
+class A {
+  final x;
+  A(this.x, this.x) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 38, 1),
     ]);
   }
 }

@@ -13,6 +13,8 @@ class LintNames {
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';
+  static const String avoid_function_literals_in_foreach_calls =
+      'avoid_function_literals_in_foreach_calls';
   static const String avoid_init_to_null = 'avoid_init_to_null';
   static const String avoid_private_typedef_functions =
       'avoid_private_typedef_functions';
@@ -23,6 +25,8 @@ class LintNames {
       'avoid_return_types_on_setters';
   static const String avoid_returning_null_for_future =
       'avoid_returning_null_for_future';
+  static const String avoid_returning_null_for_void =
+      'avoid_returning_null_for_void';
   static const String avoid_single_cascade_in_expression_statements =
       'avoid_single_cascade_in_expression_statements';
   static const String avoid_types_as_parameter_names =
@@ -40,6 +44,7 @@ class LintNames {
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
+  static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String non_constant_identifier_names =
@@ -76,25 +81,35 @@ class LintNames {
       'prefer_interpolation_to_compose_strings';
   static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
+  static const String prefer_is_not_operator = 'prefer_is_not_operator';
   static const String prefer_iterable_whereType = 'prefer_iterable_whereType';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';
   static const String prefer_relative_imports = 'prefer_relative_imports';
   static const String prefer_single_quotes = 'prefer_single_quotes';
   static const String prefer_spread_collections = 'prefer_spread_collections';
+  static const String prefer_typing_uninitialized_variables =
+      'prefer_typing_uninitialized_variables';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';
+  static const String sort_constructors_first = 'sort_constructors_first';
   static const String type_annotate_public_apis = 'type_annotate_public_apis';
   static const String type_init_formals = 'type_init_formals';
   static const String unawaited_futures = 'unawaited_futures';
   static const String unnecessary_brace_in_string_interps =
       'unnecessary_brace_in_string_interps';
   static const String unnecessary_const = 'unnecessary_const';
+  static const String unnecessary_final = 'unnecessary_final';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_in_if_null_operators =
       'unnecessary_null_in_if_null_operators';
+  static const String unnecessary_nullable_for_final_variable_declarations =
+      'unnecessary_nullable_for_final_variable_declarations';
   static const String unnecessary_overrides = 'unnecessary_overrides';
+  static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
+  static const String unnecessary_string_interpolations =
+      'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
   static const String use_full_hex_values_for_flutter_colors =
       'use_full_hex_values_for_flutter_colors';

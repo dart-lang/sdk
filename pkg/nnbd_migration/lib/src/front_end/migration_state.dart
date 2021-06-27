@@ -18,43 +18,51 @@ class MigrationState {
   bool _hasBeenApplied = false;
 
   /// The migration associated with the state.
-  final NullabilityMigration migration;
+  final NullabilityMigration? migration;
 
   /// The root directory that contains all of the files that were migrated.
-  final String includedRoot;
+  final String? includedRoot;
 
   /// The mapper user to give nodes ids.
   final NodeMapper nodeMapper = SimpleNodeMapper();
 
   /// The listener used to collect fixes.
-  final DartFixListener listener;
+  final DartFixListener? listener;
 
   /// The listener that collected information during the migration.
-  final InstrumentationListener instrumentationListener;
+  final InstrumentationListener? instrumentationListener;
 
   /// The information that was built from the rest of the migration state.
-  MigrationInfo migrationInfo;
+  MigrationInfo? migrationInfo;
 
   /// The object used to map paths.
-  PathMapper pathMapper;
+  PathMapper? pathMapper;
 
   /// If there have been changes to disk so the migration needs to be rerun.
   bool needsRerun = false;
 
-  final AnalysisResult analysisResult;
+  final AnalysisResult? analysisResult;
 
-  /*late*/ List<String> previewUrls;
+  late List<String>? previewUrls;
 
   /// Map of additional package dependencies that will be required by the
   /// migrated code.  Keys are package names; values indicate the minimum
   /// required version of each package.
   final Map<String, Version> neededPackages;
 
+  /// A function which returns whether a file at a given path should be
+  /// migrated.
+  final bool Function(String?) shouldBeMigratedFunction;
+
   /// Initialize a newly created migration state with the given values.
-  MigrationState(this.migration, this.includedRoot, this.listener,
-      this.instrumentationListener, this.neededPackages,
-      [this.analysisResult])
-      : assert(neededPackages != null);
+  MigrationState(
+      this.migration,
+      this.includedRoot,
+      this.listener,
+      this.instrumentationListener,
+      this.neededPackages,
+      this.shouldBeMigratedFunction,
+      [this.analysisResult]);
 
   /// If the migration has been applied to disk.
   bool get hasBeenApplied => _hasBeenApplied;
@@ -68,11 +76,19 @@ class MigrationState {
   }
 
   /// Refresh the state of the migration after the migration has been updated.
-  Future<void> refresh(Logger logger) async {
+  Future<void> refresh(Logger logger, Iterable<String>? pathsToProcess) async {
     assert(!hasBeenApplied);
-    var provider = listener.server.resourceProvider;
-    var infoBuilder = InfoBuilder(provider, includedRoot,
-        instrumentationListener.data, listener, migration, nodeMapper, logger);
+    var provider = listener!.server!.resourceProvider;
+    var infoBuilder = InfoBuilder(
+        provider,
+        includedRoot,
+        instrumentationListener!.data,
+        listener,
+        migration,
+        nodeMapper,
+        logger,
+        shouldBeMigratedFunction,
+        pathsToProcess);
     var unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     migrationInfo = MigrationInfo(

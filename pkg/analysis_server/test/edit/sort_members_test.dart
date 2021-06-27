@@ -19,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class SortMembersTest extends AbstractAnalysisTest {
-  SourceFileEdit fileEdit;
+  late SourceFileEdit fileEdit;
 
   @override
   void setUp() {
@@ -195,7 +195,7 @@ class MyAnnotation {
   }
 
   Future<void> test_OK_genericFunctionType() async {
-    newFile('$projectPath/analysis_options.yaml', content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   strong-mode: true
 ''');

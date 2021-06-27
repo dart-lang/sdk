@@ -160,12 +160,11 @@ abstract class ComputeValueMixin {
             features.addElement(Tags.selectors, selector);
           }
         });
-        rtiNeedBuilder.instantiationsNeedingTypeArgumentsForTesting?.forEach(
-            (GenericInstantiation instantiation, Set<Entity> targets) {
-          if (targets.contains(entity)) {
-            features.addElement(
-                Tags.instantiationsNeedTypeArguments, instantiation.shortText);
-          }
+        rtiNeedBuilder
+            .instantiatedEntitiesNeedingTypeArgumentsForTesting[entity]
+            ?.forEach((GenericInstantiation instantiation) {
+          features.addElement(
+              Tags.instantiationsNeedTypeArguments, instantiation.shortText);
         });
       }
 

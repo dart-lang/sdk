@@ -4,6 +4,8 @@
 //
 // VMOptions=--verify-entry-points=true
 
+// @dart = 2.9
+
 import 'dart:io';
 import 'dart:convert';
 import 'dart:math';

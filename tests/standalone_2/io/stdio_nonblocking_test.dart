@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // OtherResources=stdio_nonblocking_script.dart
 
 import "dart:convert";
@@ -16,6 +18,7 @@ void main() {
           Platform.executable,
           []
             ..addAll(Platform.executableArguments)
+            ..add('--verbosity=warning')
             ..add(script),
           stdoutEncoding: ascii,
           stderrEncoding: ascii)

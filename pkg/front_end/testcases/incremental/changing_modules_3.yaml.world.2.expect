@@ -1,0 +1,15 @@
+main = main::main;
+library from "package:foo/foo.dart" as foo {
+
+  static field dart.core::bool* foo2 = true;
+  final field dynamic unique_SimulateTransformer;
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:foo/foo.dart";
+
+  final field dynamic unique_SimulateTransformer;
+  static method main() → dynamic {
+    dart.core::print(foo::foo2);
+  }
+}

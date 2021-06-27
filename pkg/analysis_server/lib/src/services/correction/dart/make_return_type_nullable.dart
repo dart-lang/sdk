@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -18,27 +19,27 @@ class MakeReturnTypeNullable extends CorrectionProducer {
     if (!unit.featureSet.isEnabled(Feature.non_nullable)) {
       return;
     }
+
+    final node = this.node;
     if (node is! Expression) {
       return;
     }
+
     var body = node.thisOrAncestorOfType<FunctionBody>();
-    TypeAnnotation returnType;
-    var function = body.parent;
-    if (function is FunctionExpression) {
-      function = function.parent;
-    }
-    if (function is MethodDeclaration) {
-      returnType = function.returnType;
-    } else if (function is FunctionDeclaration) {
-      returnType = function.returnType;
-    } else {
+    if (body == null) {
       return;
     }
+
+    var returnType = _getReturnTypeNode(body);
+    if (returnType == null) {
+      return;
+    }
+
     if (body.isAsynchronous || body.isGenerator) {
       if (returnType is! NamedType) {
         return null;
       }
-      var typeArguments = (returnType as NamedType).typeArguments;
+      var typeArguments = returnType.typeArguments;
       if (typeArguments == null) {
         return null;
       }
@@ -48,16 +49,32 @@ class MakeReturnTypeNullable extends CorrectionProducer {
       }
       returnType = arguments[0];
     }
+
     if (node is! NullLiteral &&
-        !typeSystem.isAssignableTo(returnType.type,
-            typeSystem.promoteToNonNull((node as Expression).staticType))) {
+        !typeSystem.isAssignableTo(returnType.typeOrThrow,
+            typeSystem.promoteToNonNull(node.typeOrThrow))) {
       return;
     }
+
+    final returnType_final = returnType;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(returnType.end, '?');
+      builder.addSimpleInsertion(returnType_final.end, '?');
     });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static MakeReturnTypeNullable newInstance() => MakeReturnTypeNullable();
+
+  static TypeAnnotation? _getReturnTypeNode(FunctionBody body) {
+    var function = body.parent;
+    if (function is FunctionExpression) {
+      function = function.parent;
+    }
+    if (function is MethodDeclaration) {
+      return function.returnType;
+    } else if (function is FunctionDeclaration) {
+      return function.returnType;
+    }
+    return null;
+  }
 }

@@ -40,23 +40,6 @@ DEFINE_FLAG(bool,
             false,
             "Explicitly disable heap verification.");
 
-// We ensure that the GC does not use the current isolate.
-class NoActiveIsolateScope {
- public:
-  NoActiveIsolateScope() : thread_(Thread::Current()) {
-    saved_isolate_ = thread_->isolate_;
-    thread_->isolate_ = nullptr;
-  }
-  ~NoActiveIsolateScope() {
-    ASSERT(thread_->isolate_ == nullptr);
-    thread_->isolate_ = saved_isolate_;
-  }
-
- private:
-  Thread* thread_;
-  Isolate* saved_isolate_;
-};
-
 Heap::Heap(IsolateGroup* isolate_group,
            bool is_vm_isolate,
            intptr_t max_new_gen_semi_words,
@@ -180,6 +163,9 @@ void Heap::AllocatedExternal(intptr_t size, Space space) {
   }
 
   if (old_space_.ReachedHardThreshold()) {
+    if (last_gc_was_old_space_) {
+      CollectNewSpaceGarbage(Thread::Current(), kFull);
+    }
     CollectGarbage(kMarkSweep, kExternal);
   } else {
     CheckStartConcurrentMarking(Thread::Current(), kExternal);
@@ -236,10 +222,11 @@ void Heap::VisitObjectsImagePages(ObjectVisitor* visitor) const {
 
 HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
     : ThreadStackResource(thread),
-      heap_(isolate()->heap()),
+      heap_(isolate_group()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
-  isolate()->safepoint_handler()->SafepointThreads(thread);
+  isolate_group()->safepoint_handler()->SafepointThreads(thread,
+                                                         SafepointLevel::kGC);
 
   {
     // It's not safe to iterate over old space when concurrent marking or
@@ -290,7 +277,8 @@ HeapIterationScope::~HeapIterationScope() {
     ml.NotifyAll();
   }
 
-  isolate()->safepoint_handler()->ResumeThreads(thread());
+  isolate_group()->safepoint_handler()->ResumeThreads(thread(),
+                                                      SafepointLevel::kGC);
 }
 
 void HeapIterationScope::IterateObjects(ObjectVisitor* visitor) const {
@@ -313,7 +301,7 @@ void HeapIterationScope::IterateOldObjectsNoImagePages(
 }
 
 void HeapIterationScope::IterateVMIsolateObjects(ObjectVisitor* visitor) const {
-  Dart::vm_isolate()->heap()->VisitObjects(visitor);
+  Dart::vm_isolate_group()->heap()->VisitObjects(visitor);
 }
 
 void HeapIterationScope::IterateObjectPointers(
@@ -370,7 +358,7 @@ void Heap::HintFreed(intptr_t size) {
 
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
-  SafepointOperationScope safepoint_operation(thread);
+  GcSafepointOperationScope safepoint_operation(thread);
 
   // Check if we want to collect new-space first, because if we want to collect
   // both new-space and old-space, the new-space collection should run first
@@ -429,7 +417,7 @@ void Heap::NotifyLowMemory() {
 
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
-  if (thread->isolate_group() == Dart::vm_isolate()->group()) {
+  if (thread->isolate_group() == Dart::vm_isolate_group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
     // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
     // trigger a nice out-of-memory message instead of a crash in the middle of
@@ -437,7 +425,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     return;
   }
   {
-    SafepointOperationScope safepoint_operation(thread);
+    GcSafepointOperationScope safepoint_operation(thread);
     RecordBeforeGC(kScavenge, reason);
     VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
                                                 : VMTag::kGCNewSpaceTagId);
@@ -453,7 +441,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
   NoActiveIsolateScope no_active_isolate_scope;
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
-  if (thread->isolate_group() == Dart::vm_isolate()->group()) {
+  if (thread->isolate_group() == Dart::vm_isolate_group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
     // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
     // trigger a nice out-of-memory message instead of a crash in the middle of
@@ -461,7 +449,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
     return;
   }
   {
-    SafepointOperationScope safepoint_operation(thread);
+    GcSafepointOperationScope safepoint_operation(thread);
     RecordBeforeGC(kScavenge, reason);
     {
       VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
@@ -493,7 +481,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   if (FLAG_use_compactor) {
     type = kMarkCompact;
   }
-  if (thread->isolate_group() == Dart::vm_isolate()->group()) {
+  if (thread->isolate_group() == Dart::vm_isolate_group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
     // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
     // trigger a nice out-of-memory message instead of a crash in the middle of
@@ -501,7 +489,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     return;
   }
   {
-    SafepointOperationScope safepoint_operation(thread);
+    GcSafepointOperationScope safepoint_operation(thread);
     thread->isolate_group()->ForEachIsolate(
         [&](Isolate* isolate) {
           // Discard regexp backtracking stacks to further reduce memory usage.
@@ -740,7 +728,7 @@ ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
 
   this->AddRegionsToObjectSet(allocated_set);
   Isolate* vm_isolate = Dart::vm_isolate();
-  vm_isolate->heap()->AddRegionsToObjectSet(allocated_set);
+  vm_isolate->group()->heap()->AddRegionsToObjectSet(allocated_set);
 
   {
     VerifyObjectVisitor object_visitor(isolate_group(), allocated_set,
@@ -756,7 +744,7 @@ ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
     // VM isolate heap is premarked.
     VerifyObjectVisitor vm_object_visitor(isolate_group(), allocated_set,
                                           kRequireMarked);
-    vm_isolate->heap()->VisitObjects(&vm_object_visitor);
+    vm_isolate->group()->heap()->VisitObjects(&vm_object_visitor);
   }
 
   return allocated_set;
@@ -905,6 +893,17 @@ void Heap::SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val) {
   }
 }
 
+intptr_t Heap::SetWeakEntryIfNonExistent(ObjectPtr raw_obj,
+                                         WeakSelector sel,
+                                         intptr_t val) {
+  if (!raw_obj->IsSmiOrOldObject()) {
+    return new_weak_tables_[sel]->SetValueIfNonExistent(raw_obj, val);
+  } else {
+    ASSERT(raw_obj->IsSmiOrOldObject());
+    return old_weak_tables_[sel]->SetValueIfNonExistent(raw_obj, val);
+  }
+}
+
 void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
   const auto before_space =
       !before_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;
@@ -1007,64 +1006,70 @@ void Heap::RecordAfterGC(GCType type) {
 #ifndef PRODUCT
   // For now we'll emit the same GC events on all isolates.
   if (Service::gc_stream.enabled()) {
-    isolate_group_->ForEachIsolate([&](Isolate* isolate) {
-      if (!Isolate::IsSystemIsolate(isolate)) {
-        ServiceEvent event(isolate, ServiceEvent::kGC);
-        event.set_gc_stats(&stats_);
-        Service::HandleEvent(&event);
-      }
-    });
+    isolate_group_->ForEachIsolate(
+        [&](Isolate* isolate) {
+          if (!Isolate::IsSystemIsolate(isolate)) {
+            ServiceEvent event(isolate, ServiceEvent::kGC);
+            event.set_gc_stats(&stats_);
+            Service::HandleEvent(&event);
+          }
+        },
+        /*at_safepoint=*/true);
   }
 #endif  // !PRODUCT
   if (Dart::gc_event_callback() != nullptr) {
-    isolate_group_->ForEachIsolate([&](Isolate* isolate) {
-      if (!Isolate::IsSystemIsolate(isolate)) {
-        Dart_GCEvent event;
-        auto isolate_id = Utils::CStringUniquePtr(
-            OS::SCreate(nullptr, ISOLATE_SERVICE_ID_FORMAT_STRING,
-                        isolate->main_port()),
-            std::free);
-        int64_t isolate_uptime_micros = isolate->UptimeMicros();
+    isolate_group_->ForEachIsolate(
+        [&](Isolate* isolate) {
+          if (!Isolate::IsSystemIsolate(isolate)) {
+            Dart_GCEvent event;
+            auto isolate_id = Utils::CStringUniquePtr(
+                OS::SCreate(nullptr, ISOLATE_SERVICE_ID_FORMAT_STRING,
+                            isolate->main_port()),
+                std::free);
+            int64_t isolate_uptime_micros = isolate->UptimeMicros();
 
-        event.isolate_id = isolate_id.get();
-        event.type = GCTypeToString(stats_.type_);
-        event.reason = GCReasonToString(stats_.reason_);
+            event.isolate_id = isolate_id.get();
+            event.type = GCTypeToString(stats_.type_);
+            event.reason = GCReasonToString(stats_.reason_);
 
-        // New space - Scavenger.
-        {
-          intptr_t new_space_collections = new_space_.collections();
+            // New space - Scavenger.
+            {
+              intptr_t new_space_collections = new_space_.collections();
 
-          event.new_space.collections = new_space_collections;
-          event.new_space.used = stats_.after_.new_.used_in_words * kWordSize;
-          event.new_space.capacity =
-              stats_.after_.new_.capacity_in_words * kWordSize;
-          event.new_space.external =
-              stats_.after_.new_.external_in_words * kWordSize;
-          event.new_space.time =
-              MicrosecondsToSeconds(new_space_.gc_time_micros());
-          event.new_space.avg_collection_period =
-              AvgCollectionPeriod(isolate_uptime_micros, new_space_collections);
-        }
+              event.new_space.collections = new_space_collections;
+              event.new_space.used =
+                  stats_.after_.new_.used_in_words * kWordSize;
+              event.new_space.capacity =
+                  stats_.after_.new_.capacity_in_words * kWordSize;
+              event.new_space.external =
+                  stats_.after_.new_.external_in_words * kWordSize;
+              event.new_space.time =
+                  MicrosecondsToSeconds(new_space_.gc_time_micros());
+              event.new_space.avg_collection_period = AvgCollectionPeriod(
+                  isolate_uptime_micros, new_space_collections);
+            }
 
-        // Old space - Page.
-        {
-          intptr_t old_space_collections = old_space_.collections();
+            // Old space - Page.
+            {
+              intptr_t old_space_collections = old_space_.collections();
 
-          event.old_space.collections = old_space_collections;
-          event.old_space.used = stats_.after_.old_.used_in_words * kWordSize;
-          event.old_space.capacity =
-              stats_.after_.old_.capacity_in_words * kWordSize;
-          event.old_space.external =
-              stats_.after_.old_.external_in_words * kWordSize;
-          event.old_space.time =
-              MicrosecondsToSeconds(old_space_.gc_time_micros());
-          event.old_space.avg_collection_period =
-              AvgCollectionPeriod(isolate_uptime_micros, old_space_collections);
-        }
+              event.old_space.collections = old_space_collections;
+              event.old_space.used =
+                  stats_.after_.old_.used_in_words * kWordSize;
+              event.old_space.capacity =
+                  stats_.after_.old_.capacity_in_words * kWordSize;
+              event.old_space.external =
+                  stats_.after_.old_.external_in_words * kWordSize;
+              event.old_space.time =
+                  MicrosecondsToSeconds(old_space_.gc_time_micros());
+              event.old_space.avg_collection_period = AvgCollectionPeriod(
+                  isolate_uptime_micros, old_space_collections);
+            }
 
-        (*Dart::gc_event_callback())(&event);
-      }
-    });
+            (*Dart::gc_event_callback())(&event);
+          }
+        },
+        /*at_safepoint=*/true);
   }
 }
 
@@ -1186,37 +1191,38 @@ Heap::Space Heap::SpaceForExternal(intptr_t size) const {
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
     : ThreadStackResource(Thread::Current()) {
-  Heap* heap = isolate()->heap();
+  Heap* heap = isolate_group()->heap();
   current_growth_controller_state_ = heap->GrowthControlState();
   heap->DisableGrowthControl();
 }
 
 NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
-  Heap* heap = isolate()->heap();
+  Heap* heap = isolate_group()->heap();
   heap->SetGrowthControlState(current_growth_controller_state_);
 }
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
     : ThreadStackResource(thread) {
   if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
-    Dart::vm_isolate()->heap()->WriteProtect(false);
+    Dart::vm_isolate_group()->heap()->WriteProtect(false);
   }
 }
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
-  ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
+  ASSERT(Dart::vm_isolate_group()->heap()->UsedInWords(Heap::kNew) == 0);
   if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
-    Dart::vm_isolate()->heap()->WriteProtect(true);
+    Dart::vm_isolate_group()->heap()->WriteProtect(true);
   }
 }
 
-WritableCodePages::WritableCodePages(Thread* thread, Isolate* isolate)
-    : StackResource(thread), isolate_(isolate) {
-  isolate_->heap()->WriteProtectCode(false);
+WritableCodePages::WritableCodePages(Thread* thread,
+                                     IsolateGroup* isolate_group)
+    : StackResource(thread), isolate_group_(isolate_group) {
+  isolate_group_->heap()->WriteProtectCode(false);
 }
 
 WritableCodePages::~WritableCodePages() {
-  isolate_->heap()->WriteProtectCode(true);
+  isolate_group_->heap()->WriteProtectCode(true);
 }
 
 }  // namespace dart

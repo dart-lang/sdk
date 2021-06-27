@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=non-nullable
 
 // Test that the trailing "!" is accepted after a sampling of expression
 // syntaxes.  Verify that the compiler understands the resulting type to be

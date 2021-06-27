@@ -29,7 +29,8 @@ intptr_t MethodRecognizer::ResultCidFromPragma(
   auto Z = T->zone();
   auto& option = Object::Handle(Z);
   if (Library::FindPragma(T, /*only_core=*/true, function_or_field,
-                          Symbols::vm_exact_result_type(), &option)) {
+                          Symbols::vm_exact_result_type(),
+                          /*multiple=*/false, &option)) {
     if (option.IsType()) {
       return Type::Cast(option).type_class_id();
     } else if (option.IsString()) {
@@ -82,7 +83,8 @@ bool MethodRecognizer::HasNonNullableResultTypeFromPragma(
   auto Z = T->zone();
   auto& option = Object::Handle(Z);
   if (Library::FindPragma(T, /*only_core=*/true, function_or_field,
-                          Symbols::vm_non_nullable_result_type(), &option)) {
+                          Symbols::vm_non_nullable_result_type(),
+                          /*multiple=*/false, &option)) {
     return true;
   }
 
@@ -203,9 +205,9 @@ bool MethodRecognizer::IsMarkedAsRecognized(const Function& function,
           ? &Function::Handle(function.ForwardingTarget())
           : &function;
   Object& options = Object::Handle();
-  bool is_recognized =
-      Library::FindPragma(Thread::Current(), /*only_core=*/true, *functionp,
-                          Symbols::vm_recognized(), &options);
+  bool is_recognized = Library::FindPragma(
+      Thread::Current(), /*only_core=*/true, *functionp,
+      Symbols::vm_recognized(), /*multiple=*/false, &options);
   if (!is_recognized) return false;
   if (kind == nullptr) return true;
 
@@ -291,43 +293,45 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
 }
 
 static Token::Kind RecognizeTokenKindHelper(const String& name) {
-  if (name.raw() == Symbols::Plus().raw()) {
+  if (name.ptr() == Symbols::Plus().ptr()) {
     return Token::kADD;
-  } else if (name.raw() == Symbols::Minus().raw()) {
+  } else if (name.ptr() == Symbols::Minus().ptr()) {
     return Token::kSUB;
-  } else if (name.raw() == Symbols::Star().raw()) {
+  } else if (name.ptr() == Symbols::Star().ptr()) {
     return Token::kMUL;
-  } else if (name.raw() == Symbols::Slash().raw()) {
+  } else if (name.ptr() == Symbols::Slash().ptr()) {
     return Token::kDIV;
-  } else if (name.raw() == Symbols::TruncDivOperator().raw()) {
+  } else if (name.ptr() == Symbols::TruncDivOperator().ptr()) {
     return Token::kTRUNCDIV;
-  } else if (name.raw() == Symbols::Percent().raw()) {
+  } else if (name.ptr() == Symbols::Percent().ptr()) {
     return Token::kMOD;
-  } else if (name.raw() == Symbols::BitOr().raw()) {
+  } else if (name.ptr() == Symbols::BitOr().ptr()) {
     return Token::kBIT_OR;
-  } else if (name.raw() == Symbols::Ampersand().raw()) {
+  } else if (name.ptr() == Symbols::Ampersand().ptr()) {
     return Token::kBIT_AND;
-  } else if (name.raw() == Symbols::Caret().raw()) {
+  } else if (name.ptr() == Symbols::Caret().ptr()) {
     return Token::kBIT_XOR;
-  } else if (name.raw() == Symbols::LeftShiftOperator().raw()) {
+  } else if (name.ptr() == Symbols::LeftShiftOperator().ptr()) {
     return Token::kSHL;
-  } else if (name.raw() == Symbols::RightShiftOperator().raw()) {
+  } else if (name.ptr() == Symbols::RightShiftOperator().ptr()) {
     return Token::kSHR;
-  } else if (name.raw() == Symbols::Tilde().raw()) {
+  } else if (name.ptr() == Symbols::UnsignedRightShiftOperator().ptr()) {
+    return Token::kUSHR;
+  } else if (name.ptr() == Symbols::Tilde().ptr()) {
     return Token::kBIT_NOT;
-  } else if (name.raw() == Symbols::UnaryMinus().raw()) {
+  } else if (name.ptr() == Symbols::UnaryMinus().ptr()) {
     return Token::kNEGATE;
-  } else if (name.raw() == Symbols::EqualOperator().raw()) {
+  } else if (name.ptr() == Symbols::EqualOperator().ptr()) {
     return Token::kEQ;
-  } else if (name.raw() == Symbols::Token(Token::kNE).raw()) {
+  } else if (name.ptr() == Symbols::Token(Token::kNE).ptr()) {
     return Token::kNE;
-  } else if (name.raw() == Symbols::LAngleBracket().raw()) {
+  } else if (name.ptr() == Symbols::LAngleBracket().ptr()) {
     return Token::kLT;
-  } else if (name.raw() == Symbols::RAngleBracket().raw()) {
+  } else if (name.ptr() == Symbols::RAngleBracket().ptr()) {
     return Token::kGT;
-  } else if (name.raw() == Symbols::LessEqualOperator().raw()) {
+  } else if (name.ptr() == Symbols::LessEqualOperator().ptr()) {
     return Token::kLTE;
-  } else if (name.raw() == Symbols::GreaterEqualOperator().raw()) {
+  } else if (name.ptr() == Symbols::GreaterEqualOperator().ptr()) {
     return Token::kGTE;
   } else if (Field::IsGetterName(name)) {
     return Token::kGET;
@@ -352,7 +356,7 @@ Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name) {
 #define RECOGNIZE_FACTORY(symbol, class_name, constructor_name, cid, fp)       \
   {Symbols::k##symbol##Id, cid, fp, #symbol ", " #cid},  // NOLINT
 
-static struct {
+static const struct {
   const intptr_t symbol_id;
   const intptr_t cid;
   const uint32_t finger_print;
@@ -366,8 +370,8 @@ intptr_t FactoryRecognizer::ResultCid(const Function& factory) {
   ASSERT(factory.IsFactory());
   const Class& function_class = Class::Handle(factory.Owner());
   const Library& lib = Library::Handle(function_class.library());
-  ASSERT((lib.raw() == Library::CoreLibrary()) ||
-         (lib.raw() == Library::TypedDataLibrary()));
+  ASSERT((lib.ptr() == Library::CoreLibrary()) ||
+         (lib.ptr() == Library::TypedDataLibrary()));
   const String& factory_name = String::Handle(factory.name());
   for (intptr_t i = 0;
        factory_recognizer_list[i].symbol_id != Symbols::kIllegal; i++) {
@@ -393,11 +397,11 @@ intptr_t FactoryRecognizer::GetResultCidOfListFactory(Zone* zone,
     return kDynamicCid;
   }
 
-  if (owner.Name() == Symbols::List().raw()) {
-    if (function.name() == Symbols::ListFactory().raw()) {
+  if (owner.Name() == Symbols::List().ptr()) {
+    if (function.name() == Symbols::ListFactory().ptr()) {
       ASSERT(argument_count == 1 || argument_count == 2);
       return (argument_count == 1) ? kGrowableObjectArrayCid : kArrayCid;
-    } else if (function.name() == Symbols::ListFilledFactory().raw()) {
+    } else if (function.name() == Symbols::ListFilledFactory().ptr()) {
       ASSERT(argument_count == 3 || argument_count == 4);
       return (argument_count == 3) ? kArrayCid : kDynamicCid;
     }

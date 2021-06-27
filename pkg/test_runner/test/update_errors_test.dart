@@ -53,31 +53,15 @@ int third = "boo";
 
 int last = "oops";
 """, errors: [
-    makeError(
-        line: 1,
-        column: 9,
-        length: 5,
-        analyzerError: "some.error",
-        cfeError: "Bad."),
-    makeError(
-        line: 3,
-        column: 15,
-        length: 7,
-        cfeError: "Another bad.",
-        webError: "Web.\nError."),
-    makeError(
-        line: 5,
-        column: 13,
-        length: 5,
-        analyzerError: "third.error",
-        webError: "Web error."),
-    makeError(
-        line: 7,
-        column: 12,
-        length: 6,
-        analyzerError: "last.error",
-        cfeError: "Final.\nError.",
-        webError: "Web error."),
+    makeError(line: 1, column: 9, length: 5, analyzerError: "some.error"),
+    makeError(line: 1, column: 9, length: 5, cfeError: "Bad."),
+    makeError(line: 3, column: 15, length: 7, cfeError: "Another bad."),
+    makeError(line: 3, column: 15, length: 7, webError: "Web.\nError."),
+    makeError(line: 5, column: 13, length: 5, analyzerError: "third.error"),
+    makeError(line: 5, column: 13, length: 5, webError: "Web error."),
+    makeError(line: 7, column: 12, length: 6, analyzerError: "last.error"),
+    makeError(line: 7, column: 12, length: 6, cfeError: "Final.\nError."),
+    makeError(line: 7, column: 12, length: 6, webError: "Web error."),
   ], expected: """
 int i = "bad";
 /\/      ^^^^^
@@ -215,12 +199,9 @@ int i = "bad";
     /\/    ^^
     /\/ [analyzer] previous.error
 """, errors: [
+    makeError(line: 1, column: 9, length: 5, analyzerError: "updated.error"),
     makeError(
-        line: 1,
-        column: 9,
-        length: 5,
-        analyzerError: "updated.error",
-        cfeError: "Long.\nError.\nMessage."),
+        line: 1, column: 9, length: 5, cfeError: "Long.\nError.\nMessage."),
   ], expected: """
 int i = "bad";
     /\/  ^^^^^
@@ -287,12 +268,12 @@ int j =
   ], expected: """
 int i =
 "bad";
-/\/ [error line 2, column 1, length 5]
+/\/ [error column 1, length 5]
 /\/ [analyzer] updated.error
 
 int j =
 "bad";
-/\/ [error line 7, column 1, length 5]
+/\/ [error column 1, length 5]
 /\/ [cfe] Error.
 """);
 
@@ -312,7 +293,7 @@ int i =
 """, errors: [makeError(line: 2, column: 1, cfeError: "Error.")], expected: """
 int i =
 "bad";
-/\/ [error line 2, column 1]
+/\/ [error column 1]
 /\/ [cfe] Error.
 """);
 
@@ -333,9 +314,9 @@ Error here;
 main() {
 }
 Error here;
-/\/ [error line 3, column 1, length 5]
+/\/ [error column 1, length 5]
 /\/ [analyzer] NEW.ERROR
-/\/ [error line 3, column 2, length 3]
+/\/ [error column 2, length 3]
 /\/ [cfe] Error.
 """);
 
@@ -389,6 +370,28 @@ someBadCode();
 /\/ [cfe] Wrong 1.
 """);
 
+  // Shared locations between errors with and without length.
+  expectUpdate("""
+someBadCode(arg);
+
+moreBadCode(arg);
+""", errors: [
+    makeError(line: 1, column: 13, length: 3, analyzerError: "Error.CODE"),
+    makeError(line: 1, column: 13, cfeError: "Wrong 1."),
+    makeError(line: 3, column: 13, cfeError: "Wrong 2."),
+    makeError(line: 3, column: 13, length: 3, webError: "Web error."),
+  ], expected: """
+someBadCode(arg);
+/\/          ^^^
+/\/ [analyzer] Error.CODE
+/\/ [cfe] Wrong 1.
+
+moreBadCode(arg);
+/\/          ^^^
+/\/ [web] Web error.
+/\/ [cfe] Wrong 2.
+""");
+
   // Doesn't crash with RangeError.
   expectUpdate("""
 x
@@ -397,10 +400,193 @@ x
     makeError(line: 1, column: 1, length: 0, cfeError: "Foo"),
   ], expected: """
 x
-// [error line 1, column 1, length 0]
+// [error column 1, length 0]
 // [cfe] Foo""");
 
+  contextMessages();
   regression();
+}
+
+void contextMessages() {
+  // Inserts context messages.
+  expectUpdate(
+      """
+int i = "bad";
+
+int another = "wrong";
+
+int third = "boo";
+""",
+      errors: [
+        makeError(
+            line: 3,
+            column: 15,
+            length: 7,
+            analyzerError: "some.error",
+            context: [
+              makeError(
+                  line: 1,
+                  column: 9,
+                  length: 5,
+                  contextError: "Analyzer context."),
+              makeError(
+                  line: 5,
+                  column: 13,
+                  length: 5,
+                  contextError: "More context."),
+            ]),
+        makeError(
+            line: 3,
+            column: 15,
+            length: 7,
+            cfeError: "CFE error.",
+            context: [
+              makeError(
+                  line: 1, column: 9, length: 5, contextError: "CFE context."),
+            ]),
+      ],
+      remove: {ErrorSource.analyzer},
+      includeContext: true,
+      expected: """
+int i = "bad";
+/\/      ^^^^^
+/\/ [context 1] Analyzer context.
+/\/ [context 2] CFE context.
+
+int another = "wrong";
+/\/            ^^^^^^^
+/\/ [analyzer 1] some.error
+/\/ [cfe 2] CFE error.
+
+int third = "boo";
+/\/          ^^^^^
+/\/ [context 1] More context.
+""");
+
+  // Removes context messages for removed errors.
+  expectUpdate(
+      """
+int i = "bad";
+/\/      ^^^^^
+/\/ [context 1] Analyzer context.
+/\/ [context 2] CFE context.
+
+int another = "wrong";
+/\/            ^^^^^^^
+/\/ [analyzer 1] some.error
+/\/ [cfe 2] CFE error.
+
+int third = "boo";
+/\/          ^^^^^
+/\/ [context 1] More context.
+""",
+      remove: {ErrorSource.analyzer},
+      includeContext: true,
+      expected: """
+int i = "bad";
+/\/      ^^^^^
+/\/ [context 1] CFE context.
+
+int another = "wrong";
+/\/            ^^^^^^^
+/\/ [cfe 1] CFE error.
+
+int third = "boo";
+""");
+
+  // Discards context messages when not told to include them.
+  expectUpdate(
+      """
+int i = "bad";
+
+int another = "wrong";
+
+int third = "boo";
+""",
+      errors: [
+        makeError(
+            line: 3,
+            column: 15,
+            length: 7,
+            analyzerError: "some.error",
+            context: [
+              makeError(
+                  line: 1,
+                  column: 9,
+                  length: 5,
+                  contextError: "Analyzer context."),
+              makeError(
+                  line: 5,
+                  column: 13,
+                  length: 5,
+                  contextError: "More context."),
+            ]),
+        makeError(
+            line: 3,
+            column: 15,
+            length: 7,
+            cfeError: "CFE error.",
+            context: [
+              makeError(
+                  line: 1, column: 9, length: 5, contextError: "CFE context."),
+            ]),
+      ],
+      includeContext: false,
+      expected: """
+int i = "bad";
+
+int another = "wrong";
+/\/            ^^^^^^^
+/\/ [analyzer] some.error
+/\/ [cfe] CFE error.
+
+int third = "boo";
+""");
+
+  // Discards existing context messages when not told to include them.
+  expectUpdate(
+      """
+int i = "bad";
+/\/      ^^^^^
+/\/ [context 1] CFE context.
+
+int another = "wrong";
+/\/            ^^^^^^^
+/\/ [cfe 1] CFE error.
+
+int third = "boo";
+""",
+      errors: [
+        makeError(
+            line: 5,
+            column: 15,
+            length: 7,
+            analyzerError: "some.error",
+            context: [
+              makeError(
+                  line: 1,
+                  column: 9,
+                  length: 5,
+                  contextError: "Analyzer context."),
+              makeError(
+                  line: 7,
+                  column: 13,
+                  length: 5,
+                  contextError: "More context."),
+            ]),
+      ],
+      remove: {ErrorSource.analyzer},
+      includeContext: false,
+      expected: """
+int i = "bad";
+
+int another = "wrong";
+/\/            ^^^^^^^
+/\/ [analyzer] some.error
+/\/ [cfe] CFE error.
+
+int third = "boo";
+""");
 }
 
 void regression() {
@@ -459,11 +645,16 @@ class A {
 }
 
 void expectUpdate(String original,
-    {List<StaticError> errors, Set<ErrorSource> remove, String expected}) {
+    {List<StaticError> errors,
+    Set<ErrorSource> remove,
+    bool includeContext,
+    String expected}) {
   errors ??= const [];
   remove ??= ErrorSource.all.toSet();
+  includeContext ??= false;
 
-  var actual = updateErrorExpectations(original, errors, remove: remove);
+  var actual = updateErrorExpectations(original, errors,
+      remove: remove, includeContext: includeContext);
   if (actual != expected) {
     // Not using Expect.equals() because the diffs it shows aren't helpful for
     // strings this large.

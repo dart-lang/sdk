@@ -2,9 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.dill_typedef_builder;
 
+import 'package:front_end/src/fasta/util/helpers.dart';
 import 'package:kernel/ast.dart' show DartType, InvalidType, NullType, Typedef;
+import 'package:kernel/core_types.dart';
 
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -90,4 +94,10 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   bool get isNullAlias => typedef.type is NullType;
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    // TODO(johnniwinther): Remove the need for this.
+  }
 }

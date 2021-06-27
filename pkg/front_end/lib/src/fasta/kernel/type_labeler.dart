@@ -4,45 +4,7 @@
 
 import 'dart:convert' show json;
 
-import 'package:kernel/ast.dart'
-    show
-        BoolConstant,
-        BottomType,
-        Class,
-        Constant,
-        ConstantMapEntry,
-        DartType,
-        DoubleConstant,
-        DynamicType,
-        Field,
-        FunctionType,
-        FutureOrType,
-        InvalidType,
-        InstanceConstant,
-        IntConstant,
-        InterfaceType,
-        Library,
-        ListConstant,
-        MapConstant,
-        NeverType,
-        NullConstant,
-        NullType,
-        Nullability,
-        PartialInstantiationConstant,
-        Procedure,
-        SetConstant,
-        StringConstant,
-        SymbolConstant,
-        TearOffConstant,
-        TreeNode,
-        TypedefType,
-        TypeLiteralConstant,
-        TypeParameter,
-        TypeParameterType,
-        UnevaluatedConstant,
-        VoidType;
-
-import 'package:kernel/visitor.dart' show ConstantVisitor, DartTypeVisitor;
+import 'package:kernel/ast.dart';
 
 import '../denylisted_classes.dart' show denylistedCoreClasses;
 
@@ -60,7 +22,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   final Map<String, List<LabeledNode>> nameMap = <String, List<LabeledNode>>{};
   final bool printNullability;
 
-  List<Object> result;
+  List<Object> result = const [];
 
   TypeLabeler(this.printNullability);
 
@@ -70,6 +32,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   /// representation (with labels on duplicated names) by the `join()` method.
   List<Object> labelType(DartType type) {
     // TODO(askesc): Remove null check when we are completely null clean here.
+    // ignore: unnecessary_null_comparison
     if (type == null) return ["null-type"];
     result = [];
     type.accept(this);
@@ -82,6 +45,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   /// representation (with labels on duplicated names) by the `join()` method.
   List<Object> labelConstant(Constant constant) {
     // TODO(askesc): Remove null check when we are completely null clean here.
+    // ignore: unnecessary_null_comparison
     if (constant == null) return ["null-constant"];
     result = [];
     constant.accept(this);
@@ -109,7 +73,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   LabeledNode nameForEntity(
       TreeNode node, String nodeName, Uri importUri, Uri fileUri) {
-    List<LabeledNode> labelsForName = nameMap[nodeName];
+    List<LabeledNode>? labelsForName = nameMap[nodeName];
     if (labelsForName == null) {
       // First encountered entity with this name
       LabeledNode name =
@@ -142,16 +106,30 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void defaultDartType(DartType type) {}
-  void visitTypedefType(TypedefType node) {}
+
+  void visitTypedefType(TypedefType node) {
+    Typedef typedefNode = node.typedefNode;
+    result.add(nameForEntity(
+        typedefNode,
+        typedefNode.name,
+        typedefNode.enclosingLibrary.importUri,
+        typedefNode.enclosingLibrary.fileUri));
+    if (node.typeArguments.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.typeArguments) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
+    addNullability(node.nullability);
+  }
 
   void visitInvalidType(InvalidType node) {
     // TODO(askesc): Throw internal error if InvalidType appears in diagnostics.
     result.add("invalid-type");
-  }
-
-  void visitBottomType(BottomType node) {
-    // TODO(askesc): Throw internal error if BottomType appears in diagnostics.
-    result.add("bottom-type");
   }
 
   void visitNeverType(NeverType node) {
@@ -172,17 +150,17 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitTypeParameterType(TypeParameterType node) {
-    TreeNode parent = node.parameter;
+    TreeNode? parent = node.parameter;
     while (parent is! Library && parent != null) {
       parent = parent.parent;
     }
     // Note that this can be null if, for instance, the erroneous code is not
     // actually in the tree - then we don't know where it comes from!
-    Library enclosingLibrary = parent;
+    Library? enclosingLibrary = parent as Library?;
 
     result.add(nameForEntity(
         node.parameter,
-        node.parameter.name,
+        node.parameter.name ?? '',
         enclosingLibrary == null ? unknownUri : enclosingLibrary.importUri,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.fileUri));
     addNullability(node.declaredNullability);
@@ -196,7 +174,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       bool first = true;
       for (TypeParameter param in node.typeParameters) {
         if (!first) result.add(", ");
-        result.add(param.name);
+        result.add(param.name ?? '');
         if (isObject(param.bound) && param.defaultType is DynamicType) {
           // Bound was not specified, and therefore should not be printed.
         } else {
@@ -245,11 +223,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   void visitInterfaceType(InterfaceType node) {
     Class classNode = node.classNode;
+    // TODO(johnniwinther): Ensure enclosing libraries on classes earlier
+    // in the compiler to ensure types in error messages have context.
+    Library? enclosingLibrary = classNode.parent as Library?;
     result.add(nameForEntity(
         classNode,
         classNode.name,
-        classNode.enclosingLibrary.importUri,
-        classNode.enclosingLibrary.fileUri));
+        enclosingLibrary?.importUri ?? unknownUri,
+        enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -267,6 +248,28 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add("FutureOr<");
     node.typeArgument.accept(this);
     result.add(">");
+    addNullability(node.declaredNullability);
+  }
+
+  void visitExtensionType(ExtensionType node) {
+    // TODO(johnniwinther): Ensure enclosing libraries on extensions earlier
+    // in the compiler to ensure types in error messages have context.
+    Library? enclosingLibrary = node.extension.parent as Library?;
+    result.add(nameForEntity(
+        node.extension,
+        node.extension.name,
+        enclosingLibrary?.importUri ?? unknownUri,
+        enclosingLibrary?.fileUri ?? unknownUri));
+    if (node.typeArguments.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.typeArguments) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
     addNullability(node.declaredNullability);
   }
 
@@ -290,7 +293,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   void visitSymbolConstant(SymbolConstant node) {
     String text = node.libraryReference != null
-        ? '#${node.libraryReference.asLibrary.importUri}::${node.name}'
+        ? '#${node.libraryReference!.asLibrary.importUri}::${node.name}'
         : '#${node.name}';
     result.add(text);
   }
@@ -308,7 +311,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       if (field.isStatic) continue;
       if (!first) result.add(", ");
       result.add("${field.name}: ");
-      node.fieldValues[field.getterReference].accept(this);
+      node.fieldValues[field.getterReference]!.accept(this);
       first = false;
     }
     result.add("}");
@@ -359,7 +362,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   void visitTearOffConstant(TearOffConstant node) {
     Procedure procedure = node.procedure;
-    Class classNode = procedure.enclosingClass;
+    Class? classNode = procedure.enclosingClass;
     if (classNode != null) {
       result.add(nameForEntity(
           classNode,
@@ -407,7 +410,7 @@ class LabeledNode {
       this.node, this.name, this.importUri, this.fileUri, this.typeLabeler);
 
   String toString() {
-    List<LabeledNode> entityForName = typeLabeler.nameMap[name];
+    List<LabeledNode> entityForName = typeLabeler.nameMap[name]!;
     if (entityForName.length == 1) {
       return name;
     }
@@ -418,7 +421,7 @@ class LabeledNode {
     if (importUri.scheme == 'dart' && importUri.path == 'core') {
       if (node is Class && denylistedCoreClasses.contains(name)) {
         // Denylisted core class. Only print if ambiguous.
-        List<LabeledNode> entityForName = typeLabeler.nameMap[name];
+        List<LabeledNode> entityForName = typeLabeler.nameMap[name]!;
         if (entityForName.length == 1) {
           return "";
         }
@@ -427,7 +430,7 @@ class LabeledNode {
     if (importUri == unknownUri || node is! Class) {
       // We don't know where it comes from and/or it's not a class.
       // Only print if ambiguous.
-      List<LabeledNode> entityForName = typeLabeler.nameMap[name];
+      List<LabeledNode> entityForName = typeLabeler.nameMap[name]!;
       if (entityForName.length == 1) {
         return "";
       }

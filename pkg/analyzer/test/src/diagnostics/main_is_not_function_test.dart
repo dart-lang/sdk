@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class MainIsNotFunctionTest extends PubPackageResolutionTest
-    with MainIsNotFunctionTestCases {}
+    with WithoutNullSafetyMixin, MainIsNotFunctionTestCases {}
 
 mixin MainIsNotFunctionTestCases on PubPackageResolutionTest {
   test_class() async {
@@ -94,4 +94,4 @@ var main = 0;
 
 @reflectiveTest
 class MainIsNotFunctionWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, MainIsNotFunctionTestCases {}
+    with MainIsNotFunctionTestCases {}

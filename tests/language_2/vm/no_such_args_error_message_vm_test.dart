@@ -4,6 +4,8 @@
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation --no-lazy-dispatchers
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Test error message with misusing Functions and Closures: wrong args
@@ -15,10 +17,11 @@ testClosureMessage() {
   try {
     call_with_bar(() {});
   } catch (e) {
-    final expectedStrings = [
-      'Tried calling: testClosureMessage.<anonymous closure>("bar")',
-    ];
-    Expect.stringContainsInOrder(e.toString(), expectedStrings);
+    // The latter may happen if in --dwarf-stack-traces mode.
+    final possibleNames = ['testClosureMessage', '<optimized out>'];
+    Expect.containsOneOf(
+        possibleNames.map((s) => s + '.<anonymous closure>("bar")'),
+        e.toString());
   }
 }
 

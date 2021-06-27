@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:meta/meta.dart';
 
 /// A concrete implementation of a diagnostic message.
 class DiagnosticMessageImpl implements DiagnosticMessage {
@@ -13,18 +12,38 @@ class DiagnosticMessageImpl implements DiagnosticMessage {
   @override
   final int length;
 
-  @override
-  final String message;
+  final String _message;
 
   @override
   final int offset;
+
+  @override
+  final String? url;
 
   /// Initialize a newly created message to represent a [message] reported in
   /// the file at the given [filePath] at the given [offset] and with the given
   /// [length].
   DiagnosticMessageImpl(
-      {@required this.filePath,
-      @required this.length,
-      @required this.message,
-      @required this.offset});
+      {required this.filePath,
+      required this.length,
+      required String message,
+      required this.offset,
+      required this.url})
+      : _message = message;
+
+  @override
+  String get message => messageText(includeUrl: true);
+
+  @override
+  String messageText({required bool includeUrl}) {
+    if (includeUrl && url != null) {
+      var result = StringBuffer(_message);
+      if (!_message.endsWith('.')) {
+        result.write('.');
+      }
+      result.write('  See $url');
+      return result.toString();
+    }
+    return _message;
+  }
 }

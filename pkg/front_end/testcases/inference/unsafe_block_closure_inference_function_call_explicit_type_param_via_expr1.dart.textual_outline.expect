@@ -1,4 +1,5 @@
+// @dart = 2.9
 library test;
 List<T> f<T>(T g()) => <T>[g()];
-var v = (f<int>)( () { return 1; });
+var v = (f<int>) ( () { return 1; });
 main() {}

@@ -10,15 +10,17 @@ import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/dev_compiler.dart'
-    show DevCompilerTarget, ExpressionCompiler;
+    show
+        DevCompilerTarget,
+        ExpressionCompiler,
+        parseModuleFormat,
+        ProgramCompiler;
 
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
 // that would replace api used below. This api was made private in
 // an effort to discourage further use.
 // ignore_for_file: implementation_imports
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:front_end/widget_cache.dart';
 import 'package:kernel/ast.dart' show Library, Procedure, LibraryDependency;
@@ -56,9 +58,6 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
       defaultsTo: true)
-  ..addFlag('protobuf-tree-shaker',
-      help: 'Enable protobuf tree shaker transformation in AOT mode.',
-      defaultsTo: false)
   ..addFlag('protobuf-tree-shaker-v2',
       help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false)
   ..addFlag('minimal-kernel',
@@ -114,7 +113,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       hide: true)
   ..addMultiOption('define',
       abbr: 'D',
-      help: 'The values for the environment constants (e.g. -Dkey=value).')
+      help: 'The values for the environment constants (e.g. -Dkey=value).',
+      splitCommas: false)
   ..addFlag('embed-source-text',
       help: 'Includes sources into generated dill file. Having sources'
           ' allows to effectively use observatory to debug produced'
@@ -139,6 +139,13 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false)
+  ..addMultiOption(
+    'delete-tostring-package-uri',
+    help: 'Replaces implementations of `toString` with `super.toString()` for '
+        'specified package',
+    valueHelp: 'dart:ui',
+    defaultsTo: const <String>[],
+  )
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addFlag('sound-null-safety',
@@ -161,6 +168,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('experimental-emit-debug-metadata',
       help: 'Emit module and library metadata for the debugger',
       defaultsTo: false)
+  ..addFlag('emit-debug-symbols',
+      help: 'Emit debug symbols for the debugger', defaultsTo: false)
   ..addOption('dartdevc-module-format',
       help: 'The module format to use on for the dartdevc compiler',
       defaultsTo: 'amd')
@@ -317,7 +326,8 @@ class FrontendCompiler implements CompilerInterface {
       this.unsafePackageSerialization,
       this.incrementalSerialization: true,
       this.useDebuggerModuleNames: false,
-      this.emitDebugMetadata: false}) {
+      this.emitDebugMetadata: false,
+      this.emitDebugSymbols: false}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
@@ -328,6 +338,7 @@ class FrontendCompiler implements CompilerInterface {
   bool incrementalSerialization;
   bool useDebuggerModuleNames;
   bool emitDebugMetadata;
+  bool emitDebugSymbols;
   bool _printIncrementalDependencies;
 
   CompilerOptions _compilerOptions;
@@ -353,6 +364,8 @@ class FrontendCompiler implements CompilerInterface {
   final List<String> errors = <String>[];
 
   _onDiagnostic(DiagnosticMessage message) {
+    // TODO(https://dartbug.com/44867): The frontend server should take a
+    // verbosity argument and put that in CompilerOptions and use it here.
     bool printMessage;
     switch (message.severity) {
       case Severity.error:
@@ -362,6 +375,9 @@ class FrontendCompiler implements CompilerInterface {
         break;
       case Severity.warning:
         printMessage = true;
+        break;
+      case Severity.info:
+        printMessage = false;
         break;
       case Severity.context:
       case Severity.ignored:
@@ -524,11 +540,11 @@ class FrontendCompiler implements CompilerInterface {
       results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
           includePlatform: options['link-platform'],
+          deleteToStringPackageUris: options['delete-tostring-package-uri'],
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
-          useProtobufTreeShaker: options['protobuf-tree-shaker'],
           useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
           minimalKernel: options['minimal-kernel'],
           treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
@@ -601,6 +617,7 @@ class FrontendCompiler implements CompilerInterface {
       String filename, String fileSystemScheme, String moduleFormat) async {
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
+    var soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
     final Component component = results.component;
     // Compute strongly connected components.
     final strongComponents = StrongComponents(component,
@@ -612,6 +629,7 @@ class FrontendCompiler implements CompilerInterface {
     final File manifestFile = File('$filename.json');
     final File sourceMapsFile = File('$filename.map');
     final File metadataFile = File('$filename.metadata');
+    final File symbolsFile = File('$filename.symbols');
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
@@ -619,25 +637,31 @@ class FrontendCompiler implements CompilerInterface {
         component, strongComponents, fileSystemScheme, packageConfig,
         useDebuggerModuleNames: useDebuggerModuleNames,
         emitDebugMetadata: emitDebugMetadata,
-        moduleFormat: moduleFormat);
+        emitDebugSymbols: emitDebugSymbols,
+        moduleFormat: moduleFormat,
+        soundNullSafety: soundNullSafety);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
     final metadataFileSink =
         emitDebugMetadata ? metadataFile.openWrite() : null;
-    await _bundler.compile(
+    final symbolsFileSink = emitDebugSymbols ? symbolsFile.openWrite() : null;
+    final kernel2JsCompilers = await _bundler.compile(
         results.classHierarchy,
         results.coreTypes,
         results.loadedLibraries,
         sourceFileSink,
         manifestFileSink,
         sourceMapsFileSink,
-        metadataFileSink);
+        metadataFileSink,
+        symbolsFileSink);
+    cachedProgramCompilers.addAll(kernel2JsCompilers);
     await Future.wait([
       sourceFileSink.close(),
       manifestFileSink.close(),
       sourceMapsFileSink.close(),
-      if (metadataFileSink != null) metadataFileSink.close()
+      if (metadataFileSink != null) metadataFileSink.close(),
+      if (symbolsFileSink != null) symbolsFileSink.close(),
     ]);
   }
 
@@ -800,6 +824,12 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
+  /// Program compilers per module.
+  ///
+  /// Produced suring initial compilation of the module to JavaScript,
+  /// cached to be used for expression compilation in [compileExpressionToJs].
+  final Map<String, ProgramCompiler> cachedProgramCompilers = {};
+
   @override
   Future<Null> compileExpressionToJs(
       String libraryUri,
@@ -816,7 +846,7 @@ class FrontendCompiler implements CompilerInterface {
       reportError('JavaScript bundler is null');
       return;
     }
-    if (!_bundler.compilers.containsKey(moduleName)) {
+    if (!cachedProgramCompilers.containsKey(moduleName)) {
       reportError('Cannot find kernel2js compiler for $moduleName.');
       return;
     }
@@ -827,24 +857,25 @@ class FrontendCompiler implements CompilerInterface {
     _processedOptions.ticker
         .logMs('Compiling expression to JavaScript in $moduleName');
 
-    var kernel2jsCompiler = _bundler.compilers[moduleName];
+    final kernel2jsCompiler = cachedProgramCompilers[moduleName];
     Component component = _generator.lastKnownGoodComponent;
     component.computeCanonicalNames();
 
     _processedOptions.ticker.logMs('Computed component');
 
-    var expressionCompiler = new ExpressionCompiler(
+    final expressionCompiler = new ExpressionCompiler(
       _compilerOptions,
+      parseModuleFormat(_options['dartdevc-module-format'] as String),
       errors,
       _generator.generator,
       kernel2jsCompiler,
       component,
     );
 
-    var procedure = await expressionCompiler.compileExpressionToJs(
+    final procedure = await expressionCompiler.compileExpressionToJs(
         libraryUri, line, column, jsFrameValues, expression);
 
-    var result = errors.length > 0 ? errors[0] : procedure;
+    final result = errors.length > 0 ? errors[0] : procedure;
 
     // TODO(annagrin): kernelBinaryFilename is too specific
     // rename to _outputFileName?
@@ -1324,7 +1355,8 @@ Future<int> starter(
       unsafePackageSerialization: options["unsafe-package-serialization"],
       incrementalSerialization: options["incremental-serialization"],
       useDebuggerModuleNames: options['debugger-module-names'],
-      emitDebugMetadata: options['experimental-emit-debug-metadata']);
+      emitDebugMetadata: options['experimental-emit-debug-metadata'],
+      emitDebugSymbols: options['emit-debug-symbols']);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,

@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 // A very simple parser for a subset of DartTypes for use in testing type
 // algebra.
 library kernel.test.type_parser;
@@ -157,7 +160,6 @@ class DartTypeParser {
       case Token.Name:
         scanToken();
         String name = this.tokenText;
-        if (name == '_') return const BottomType();
         if (name == 'void') return const VoidType();
         if (name == 'dynamic') return const DynamicType();
         var target = lookupType(name);
@@ -324,7 +326,8 @@ class LazyTypeEnvironment {
   final Component component = new Component();
 
   LazyTypeEnvironment() {
-    dummyLibrary = new Library(Uri.parse('file://dummy.dart'))
+    Uri uri = Uri.parse('file://dummy.dart');
+    dummyLibrary = new Library(uri, fileUri: uri)
       ..isNonNullableByDefault = true;
     component.libraries.add(dummyLibrary..parent = component);
     dummyLibrary.name = 'lib';
@@ -344,7 +347,7 @@ class LazyTypeEnvironment {
   }
 
   Class makeClass(String name) {
-    var class_ = new Class(name: name);
+    var class_ = new Class(name: name, fileUri: dummyLibrary.fileUri);
     dummyLibrary.addClass(class_);
     return class_;
   }

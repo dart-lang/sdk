@@ -6,8 +6,11 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+// ignore: implementation_imports
 import 'package:usage/src/usage_impl.dart';
+// ignore: implementation_imports
 import 'package:usage/src/usage_impl_io.dart';
+// ignore: implementation_imports
 import 'package:usage/src/usage_impl_io.dart' as usage_io show getDartVersion;
 import 'package:usage/usage.dart';
 import 'package:usage/usage_io.dart';
@@ -15,7 +18,7 @@ import 'package:usage/usage_io.dart';
 export 'package:usage/usage.dart' show Analytics;
 
 // TODO(devoncarew): Don't show the UI until we're ready to ship.
-final bool SHOW_ANALYTICS_UI = false;
+final bool showAnalyticsUI = false;
 
 final String _dartDirectoryName = '.dart';
 final String _settingsFileName = 'analytics.json';
@@ -38,7 +41,7 @@ final String analyticsNotice =
 /// be disabled with --no-analytics).'`
 String createAnalyticsStatusMessage(
   bool enabled, {
-  String command: 'analytics',
+  String command = 'analytics',
 }) {
   String currentState = enabled ? 'enabled' : 'disabled';
   String toggleState = enabled ? 'disabled' : 'enabled';
@@ -59,11 +62,11 @@ Analytics createAnalyticsInstance(
   bool disableForSession = false,
   bool forceEnabled = false,
 }) {
-  Directory dir = getDartStorageDirectory();
+  final dir = getDartStorageDirectory();
   if (dir == null) {
     // Some systems don't support user home directories; for those, fail
     // gracefully by returning a disabled analytics object.
-    return new _DisabledAnalytics(trackingId, applicationName);
+    return _DisabledAnalytics(trackingId, applicationName);
   }
 
   if (!dir.existsSync()) {
@@ -72,12 +75,12 @@ Analytics createAnalyticsInstance(
     } catch (e) {
       // If we can't create the directory for the analytics settings, fail
       // gracefully by returning a disabled analytics object.
-      return new _DisabledAnalytics(trackingId, applicationName);
+      return _DisabledAnalytics(trackingId, applicationName);
     }
   }
 
-  File settingsFile = new File(path.join(dir.path, _settingsFileName));
-  return new _TelemetryAnalytics(
+  File settingsFile = File(path.join(dir.path, _settingsFileName));
+  return _TelemetryAnalytics(
     trackingId,
     applicationName,
     getDartVersion(),
@@ -95,11 +98,11 @@ Analytics createAnalyticsInstance(
 /// This can return null under some conditions, including when the user's home
 /// directory does not exist.
 @visibleForTesting
-Directory getDartStorageDirectory() {
-  Directory homeDirectory = new Directory(userHomeDir());
+Directory? getDartStorageDirectory() {
+  Directory homeDirectory = Directory(userHomeDir());
   if (!homeDirectory.existsSync()) return null;
 
-  return new Directory(path.join(homeDirectory.path, _dartDirectoryName));
+  return Directory(path.join(homeDirectory.path, _dartDirectoryName));
 }
 
 /// Return the version of the Dart SDK.
@@ -114,16 +117,16 @@ class _TelemetryAnalytics extends AnalyticsImpl {
     String applicationName,
     String applicationVersion,
     File settingsFile, {
-    @required this.disableForSession,
-    @required this.forceEnabled,
+    required this.disableForSession,
+    required this.forceEnabled,
   }) : super(
           trackingId,
-          new IOPersistentProperties.fromFile(settingsFile),
-          new IOPostHandler(),
+          IOPersistentProperties.fromFile(settingsFile),
+          IOPostHandler(),
           applicationName: applicationName,
           applicationVersion: applicationVersion,
         ) {
-    final String locale = getPlatformLocale();
+    final locale = getPlatformLocale();
     if (locale != null) {
       setSessionValue('ul', locale);
     }
@@ -141,7 +144,7 @@ class _TelemetryAnalytics extends AnalyticsImpl {
     }
 
     // If there's no explicit setting (enabled or disabled) then we don't send.
-    return (properties['enabled'] as bool) ?? false;
+    return (properties['enabled'] as bool?) ?? false;
   }
 }
 

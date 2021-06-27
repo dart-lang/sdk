@@ -1,0 +1,141 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.7
+
+// Test the command line options of dart2js.
+
+import 'package:expect/expect.dart';
+
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/options.dart' show FeatureOptions, FeatureOption;
+
+class TestFeatureOptions extends FeatureOptions {
+  FeatureOption sf1 = FeatureOption('sf1');
+  FeatureOption sf2 = FeatureOption('sf2');
+  FeatureOption noSf3 = FeatureOption('sf3', isNegativeFlag: true);
+  FeatureOption noSf4 = FeatureOption('sf4', isNegativeFlag: true);
+  FeatureOption cf1 = FeatureOption('cf1');
+  FeatureOption cf2 = FeatureOption('cf2');
+  FeatureOption noCf3 = FeatureOption('cf3', isNegativeFlag: true);
+  FeatureOption noCf4 = FeatureOption('cf4', isNegativeFlag: true);
+
+  @override
+  List<FeatureOption> shipping;
+
+  @override
+  List<FeatureOption> canary;
+
+  // Initialize feature lists.
+  TestFeatureOptions() {
+    shipping = [sf1, sf2, noSf3, noSf4];
+    canary = [cf1, cf2, noCf3, noCf4];
+  }
+}
+
+TestFeatureOptions test(List<String> flags) {
+  var tfo = TestFeatureOptions();
+  tfo.parse(flags);
+  return tfo;
+}
+
+void testShipping() {
+  var tfo = test([]);
+  Expect.isTrue(tfo.sf1.isEnabled);
+  Expect.isTrue(tfo.sf2.isEnabled);
+  Expect.isTrue(tfo.noSf3.isDisabled);
+  Expect.isTrue(tfo.noSf4.isDisabled);
+  Expect.isTrue(tfo.cf1.isDisabled);
+  Expect.isTrue(tfo.cf2.isDisabled);
+  Expect.isTrue(tfo.noCf3.isEnabled);
+  Expect.isTrue(tfo.noCf4.isEnabled);
+}
+
+void testNoShipping() {
+  var tfo = test([Flags.noShipping]);
+  Expect.isTrue(tfo.sf1.isDisabled);
+  Expect.isTrue(tfo.sf2.isDisabled);
+  Expect.isTrue(tfo.noSf3.isEnabled);
+  Expect.isTrue(tfo.noSf4.isEnabled);
+  Expect.isTrue(tfo.cf1.isDisabled);
+  Expect.isTrue(tfo.cf2.isDisabled);
+  Expect.isTrue(tfo.noCf3.isEnabled);
+  Expect.isTrue(tfo.noCf4.isEnabled);
+}
+
+void testCanary() {
+  var tfo = test([Flags.canary]);
+  Expect.isTrue(tfo.sf1.isEnabled);
+  Expect.isTrue(tfo.sf2.isEnabled);
+  Expect.isTrue(tfo.noSf3.isDisabled);
+  Expect.isTrue(tfo.noSf4.isDisabled);
+  Expect.isTrue(tfo.cf1.isEnabled);
+  Expect.isTrue(tfo.cf2.isEnabled);
+  Expect.isTrue(tfo.noCf3.isDisabled);
+  Expect.isTrue(tfo.noCf4.isDisabled);
+}
+
+void testShippingDisabled() {
+  var tfo = test(['--no-sf2', '--sf3']);
+  Expect.isTrue(tfo.sf1.isEnabled);
+  Expect.isTrue(tfo.sf2.isDisabled);
+  Expect.isTrue(tfo.noSf3.isEnabled);
+  Expect.isTrue(tfo.noSf4.isDisabled);
+  Expect.isTrue(tfo.cf1.isDisabled);
+  Expect.isTrue(tfo.cf2.isDisabled);
+  Expect.isTrue(tfo.noCf3.isEnabled);
+  Expect.isTrue(tfo.noCf4.isEnabled);
+}
+
+void testCanaryDisabled() {
+  var tfo = test([Flags.canary, '--no-sf2', '--sf3', '--no-cf1', '--cf3']);
+  Expect.isTrue(tfo.sf1.isEnabled);
+  Expect.isTrue(tfo.sf2.isDisabled);
+  Expect.isTrue(tfo.noSf3.isEnabled);
+  Expect.isTrue(tfo.noSf4.isDisabled);
+  Expect.isTrue(tfo.cf1.isDisabled);
+  Expect.isTrue(tfo.cf2.isEnabled);
+  Expect.isTrue(tfo.noCf3.isEnabled);
+  Expect.isTrue(tfo.noCf4.isDisabled);
+}
+
+void testNoShippingEnabled() {
+  var tfo = test([Flags.noShipping, '--sf1', '--no-sf3', '--cf2', '--no-cf3']);
+  Expect.isTrue(tfo.sf1.isEnabled);
+  Expect.isTrue(tfo.sf2.isDisabled);
+  Expect.isTrue(tfo.noSf3.isDisabled);
+  Expect.isTrue(tfo.noSf4.isEnabled);
+  Expect.isTrue(tfo.cf1.isDisabled);
+  Expect.isTrue(tfo.cf2.isEnabled);
+  Expect.isTrue(tfo.noCf3.isDisabled);
+  Expect.isTrue(tfo.noCf4.isEnabled);
+}
+
+void testNoCanaryEnabled() {
+  var tfo = test(['--cf1', '--no-cf3']);
+  Expect.isTrue(tfo.sf1.isEnabled);
+  Expect.isTrue(tfo.sf2.isEnabled);
+  Expect.isTrue(tfo.noSf3.isDisabled);
+  Expect.isTrue(tfo.noSf4.isDisabled);
+  Expect.isTrue(tfo.cf1.isEnabled);
+  Expect.isTrue(tfo.cf2.isDisabled);
+  Expect.isTrue(tfo.noCf3.isDisabled);
+  Expect.isTrue(tfo.noCf4.isEnabled);
+}
+
+void testFlagCollision() {
+  Expect.throwsArgumentError(() => test(['--cf1', '--no-cf1']));
+}
+
+void main() {
+  testShipping();
+  testNoShipping();
+  testCanary();
+  testShippingDisabled();
+  testCanaryDisabled();
+  testNoShippingEnabled();
+  testNoCanaryEnabled();
+  testNoShippingEnabled();
+  testFlagCollision();
+}

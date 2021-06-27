@@ -60,7 +60,7 @@ class RequestConverterTest extends ProtocolTestUtilities {
   }
 
   void test_convertAnalysisUpdateContentParams() {
-    var serverFiles = <String, dynamic>{
+    var serverFiles = <String, Object>{
       'file1': AddContentOverlay('content1'),
       'file2': AddContentOverlay('content2'),
     };

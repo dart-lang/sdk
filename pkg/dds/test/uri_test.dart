@@ -10,17 +10,15 @@ import 'package:test/test.dart';
 import 'common/test_helper.dart';
 
 void main() {
-  Process process;
-  DartDevelopmentService dds;
+  late Process process;
+  late DartDevelopmentService dds;
   setUp(() async {
     process = await spawnDartProcess('smoke.dart');
   });
 
   tearDown(() async {
-    await dds?.shutdown();
-    process?.kill();
-    dds = null;
-    process = null;
+    await dds.shutdown();
+    process.kill();
   });
 
   Future<int> getAvailablePort() async {
@@ -69,8 +67,8 @@ void main() {
       // just make sure that it's at the right address and port.
       expect(dds.uri.toString().contains(serviceUri.toString()), isTrue);
 
-      expect(dds.uri.pathSegments, isNotEmpty);
-      final authCode = dds.uri.pathSegments.first;
+      expect(dds.uri!.pathSegments, isNotEmpty);
+      final authCode = dds.uri!.pathSegments.first;
       expect(
         dds.sseUri,
         serviceUri.replace(

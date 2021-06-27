@@ -119,6 +119,7 @@ alternatives
 although
 altogether
 always
+ambiguity
 ambiguous
 among
 amongst
@@ -414,6 +415,7 @@ caused
 causes
 causing
 caveats
+cell
 certain
 chain
 chained
@@ -560,6 +562,7 @@ computes
 computing
 concatenated
 concatenation
+concepts
 conclude
 conclusion
 concrete
@@ -586,6 +589,7 @@ conjunction
 connect
 connected
 connection
+connects
 consequence
 consequently
 conservative
@@ -649,6 +653,7 @@ convenience
 convenient
 conventional
 conventions
+conversion
 convert
 converted
 convertible
@@ -792,6 +797,7 @@ dependence
 dependencies
 dependency
 dependent
+dependents
 depending
 depends
 deprecate
@@ -827,6 +833,7 @@ detect
 detected
 detecting
 detection
+detector
 detects
 determination
 determine
@@ -853,6 +860,9 @@ dig
 digit
 digits
 dill
+dimension
+dimensional
+dimensions
 dir
 direct
 direction
@@ -875,6 +885,7 @@ discards
 discover
 discovered
 discovery
+discrepancy
 disk
 dispatch
 dispatches
@@ -994,6 +1005,7 @@ endured
 enforcement
 engine
 engineers
+enhance
 enhancing
 enough
 ensure
@@ -1138,6 +1150,7 @@ face
 facilitate
 fact
 fact's
+facto
 factories
 factory
 facts
@@ -1213,6 +1226,7 @@ flatten
 flattened
 flexibility
 flexible
+flip
 float
 flow
 flow's
@@ -1280,6 +1294,7 @@ gatherer
 gathering
 general
 generalized
+generalizes
 generally
 generate
 generated
@@ -1594,8 +1609,10 @@ invalidating
 invalidation
 invariant
 invariantly
+inversion
 invert
 inverted
+inverter
 investigate
 invisible
 invocation
@@ -1709,6 +1726,7 @@ lightweight
 like
 likely
 limit
+limitation
 limited
 line
 linear
@@ -2014,6 +2032,7 @@ odd
 odds
 of
 off
+offs
 offset
 offsets
 often
@@ -2099,6 +2118,8 @@ owner
 package
 packaged
 packages
+packed
+packing
 pad
 padded
 padding
@@ -2153,6 +2174,8 @@ perfect
 perform
 performance
 performed
+performer
+performers
 performing
 performs
 perhaps
@@ -2429,6 +2452,7 @@ referenced
 references
 referencing
 referred
+referring
 refers
 refine
 refinement
@@ -3025,6 +3049,7 @@ throws
 thumb
 thunk
 thus
+tightly
 time
 timeline
 times
@@ -3042,6 +3067,7 @@ tool
 tools
 top
 topologically
+torn
 tortoise
 total
 totally
@@ -3115,6 +3141,7 @@ two
 type
 typed
 typedef
+typedef's
 typedefs
 types
 typically
@@ -3133,6 +3160,7 @@ unbalanced
 unbind
 uncertain
 unchanged
+unchecked
 unclaimed
 unclear
 undeclared
@@ -3158,6 +3186,7 @@ unimplemented
 uninitialized
 union
 unioned
+unions
 unique
 unit
 unite
@@ -3334,6 +3363,7 @@ working
 worklist
 works
 world
+worry
 worth
 would
 wouldn't

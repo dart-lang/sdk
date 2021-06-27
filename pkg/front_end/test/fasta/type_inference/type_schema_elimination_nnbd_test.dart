@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart'
     as typeSchemaElimination;
@@ -25,12 +27,12 @@ class TypeSchemaEliminationTest {
 
   DartType greatestClosure(DartType schema) {
     return typeSchemaElimination.greatestClosure(
-        schema, const DynamicType(), const NeverType(Nullability.nonNullable));
+        schema, const DynamicType(), const NeverType.nonNullable());
   }
 
   DartType leastClosure(DartType schema) {
     return typeSchemaElimination.leastClosure(
-        schema, const DynamicType(), const NeverType(Nullability.nonNullable));
+        schema, const DynamicType(), const NeverType.nonNullable());
   }
 
   void testGreatest(String type, String expectedClosure) {

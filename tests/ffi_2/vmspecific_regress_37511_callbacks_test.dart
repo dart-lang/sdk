@@ -4,12 +4,14 @@
 //
 // Dart test program for testing dart:ffi struct pointers.
 //
-// VMOptions=--deterministic --enable-testing-pragmas
+// VMOptions=--deterministic
 //
 // SharedObjects=ffi_test_functions
 //
 // TODO(37295): Merge this file with regress_37511_test.dart when callback
 // support lands.
+
+// @dart = 2.9
 
 import 'dart:ffi';
 

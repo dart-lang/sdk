@@ -22,7 +22,6 @@ import 'dart:_js_helper'
         patch,
         Primitives,
         quoteStringForRegExp,
-        stringJoinUnchecked,
         getTraceFromException,
         RuntimeError;
 
@@ -93,55 +92,22 @@ class Function {
 
 // Patch for Expando implementation.
 @patch
-class Expando<T> {
-  static const String _EXPANDO_PROPERTY_NAME = 'expando\$values';
-
-  // Incremented to make unique keys.
-  static int _keyCount = 0;
-
-  // Stores either a JS WeakMap or a "unique" string key.
-  final Object _jsWeakMapOrKey;
+class Expando<T extends Object> {
+  final Object _jsWeakMap = JS('=Object', 'new WeakMap()');
 
   @patch
-  Expando([String? name])
-      : this.name = name,
-        _jsWeakMapOrKey = JS('bool', 'typeof WeakMap == "function"')
-            ? JS('=Object', 'new WeakMap()')
-            : _createKey();
+  Expando([this.name]);
 
   @patch
   T? operator [](Object object) {
-    if (_jsWeakMapOrKey is! String) {
-      _checkType(object); // WeakMap doesn't check on reading, only writing.
-      return JS('', '#.get(#)', _jsWeakMapOrKey, object);
-    }
-    return _getFromObject(_jsWeakMapOrKey as String, object) as T?;
+    _checkType(object); // WeakMap doesn't check on reading, only writing.
+    return JS('', '#.get(#)', _jsWeakMap, object);
   }
 
   @patch
   void operator []=(Object object, T? value) {
-    if (_jsWeakMapOrKey is! String) {
-      JS('void', '#.set(#, #)', _jsWeakMapOrKey, object, value);
-    } else {
-      _setOnObject(_jsWeakMapOrKey as String, object, value);
-    }
+    JS('void', '#.set(#, #)', _jsWeakMap, object, value);
   }
-
-  static Object _getFromObject(String key, Object object) {
-    var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    return (values == null) ? null : Primitives.getProperty(values, key);
-  }
-
-  static void _setOnObject(String key, Object object, Object? value) {
-    var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    if (values == null) {
-      values = new Object();
-      Primitives.setProperty(object, _EXPANDO_PROPERTY_NAME, values);
-    }
-    Primitives.setProperty(values, key, value);
-  }
-
-  static String _createKey() => "expando\$key\$${_keyCount++}";
 
   static _checkType(object) {
     if (object == null || object is bool || object is num || object is String) {
@@ -679,9 +645,10 @@ class NoSuchMethodError {
   final List? _existingArgumentNames;
 
   @patch
-  NoSuchMethodError.withInvocation(Object? receiver, Invocation invocation)
-      : this(receiver, invocation.memberName, invocation.positionalArguments,
-            invocation.namedArguments);
+  factory NoSuchMethodError.withInvocation(
+          Object? receiver, Invocation invocation) =>
+      NoSuchMethodError(receiver, invocation.memberName,
+          invocation.positionalArguments, invocation.namedArguments);
 
   @patch
   NoSuchMethodError(Object? receiver, Symbol memberName,

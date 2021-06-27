@@ -5,6 +5,12 @@
 import 'c_types.dart';
 
 final functions = [
+  ...functionsStructArguments,
+  ...functionsStructReturn,
+  ...functionsReturnArgument,
+];
+
+final functionsStructArguments = [
   FunctionType(List.filled(10, struct1byteInt), int64, """
 Smallest struct with data.
 10 struct arguments will exhaust available registers."""),
@@ -290,6 +296,87 @@ Test alignment and padding of nested struct with 32 byte int."""),
 Test alignment and padding of nested struct with 64 byte int."""),
   FunctionType(List.filled(4, structNestedEvenBigger), double_, """
 Return big irregular struct as smoke test."""),
+  FunctionType(List.filled(4, structInlineArray), int32, """
+Simple struct with inline array."""),
+  FunctionType(List.filled(4, structInlineArrayIrregular), int32, """
+Irregular struct with inline array."""),
+  FunctionType(
+      [structInlineArray100Bytes],
+      int32,
+      """
+Regular larger struct with inline array."""),
+  FunctionType(List.filled(5, struct16bytesFloatInlineNested), float, """
+Arguments in FPU registers on arm hardfp and arm64.
+5 struct arguments will exhaust available registers."""),
+  FunctionType(List.filled(5, struct32bytesDoubleInlineNested), double_, """
+Arguments in FPU registers on arm64.
+5 struct arguments will exhaust available registers."""),
+  FunctionType(List.filled(10, struct16bytesMixedInlineNested), float, """
+On x64, arguments are split over FP and int registers.
+On x64, it will exhaust the integer registers with the 6th argument.
+The rest goes on the stack.
+On arm, arguments are 4 byte aligned."""),
+  FunctionType(
+      [
+        uint8,
+        struct32bytesInlineArrayMultiDimesional,
+        uint8,
+        struct8bytesInlineArrayMultiDimesional,
+        uint8,
+        struct8bytesInlineArrayMultiDimesional,
+        uint8
+      ],
+      uint32,
+      """
+Test multi dimensional inline array struct as argument."""),
+  FunctionType(
+      [uint8, structMultiDimensionalStruct, uint8],
+      uint32,
+      """
+Test struct in multi dimensional inline array."""),
+  FunctionType(List.filled(10, struct3bytesPacked), int64, """
+Small struct with mis-aligned member."""),
+  FunctionType(List.filled(10, struct8bytesPacked), int64, """
+Struct with mis-aligned member."""),
+  FunctionType(
+      [...List.filled(10, struct9bytesPacked), double_, int32, int32],
+      double_,
+      """
+Struct with mis-aligned member.
+Tests backfilling of CPU and FPU registers."""),
+  FunctionType(
+      [struct5bytesPacked],
+      double_,
+      """
+This packed struct happens to have only aligned members."""),
+  FunctionType(
+      [struct6bytesPacked],
+      double_,
+      """
+Check alignment of packed struct in non-packed struct."""),
+  FunctionType(
+      [struct6bytesPacked2],
+      double_,
+      """
+Check alignment of packed struct array in non-packed struct."""),
+  FunctionType(
+      [struct15bytesPacked],
+      double_,
+      """
+Check alignment of packed struct array in non-packed struct."""),
+  FunctionType(List.filled(10, union4bytesMixed), double_, """
+Check placement of mixed integer/float union."""),
+  FunctionType(List.filled(10, union8bytesFloat), double_, """
+Check placement of mixed floats union."""),
+  FunctionType(List.filled(10, union12bytesInt), double_, """
+Mixed-size union argument."""),
+  FunctionType(List.filled(10, union16bytesFloat), double_, """
+Union with homogenous floats."""),
+  FunctionType(List.filled(10, union16bytesFloat2), double_, """
+Union with homogenous floats."""),
+];
+
+final functionsStructReturn = [
   FunctionType(struct1byteInt.memberTypes, struct1byteInt, """
 Smallest struct with data."""),
   FunctionType(struct3bytesInt.memberTypes, struct3bytesInt, """
@@ -345,6 +432,36 @@ Return value in FPU registers on arm64."""),
 Return value too big to go in FPU registers on arm64."""),
   FunctionType(struct1024bytesInt.memberTypes, struct1024bytesInt, """
 Test 1kb struct."""),
+  FunctionType(struct3bytesPacked.memberTypes, struct3bytesPacked, """
+Small struct with mis-aligned member."""),
+  FunctionType(struct8bytesPacked.memberTypes, struct8bytesPacked, """
+Struct with mis-aligned member."""),
+  FunctionType(struct9bytesPacked.memberTypes, struct9bytesPacked, """
+Struct with mis-aligned member.
+Tests backfilling of CPU and FPU registers."""),
+  FunctionType(
+      [union4bytesMixed.memberTypes.first],
+      union4bytesMixed,
+      """
+Returning a mixed integer/float union."""),
+  FunctionType(
+      [union8bytesFloat.memberTypes.first],
+      union8bytesFloat,
+      """
+Returning a floating point only union."""),
+  FunctionType(
+      [union12bytesInt.memberTypes.first],
+      union12bytesInt,
+      """
+Returning a mixed-size union."""),
+  FunctionType(
+      [union16bytesFloat2.memberTypes.first],
+      union16bytesFloat2,
+      """
+Returning union with homogenous floats."""),
+];
+
+final functionsReturnArgument = [
   FunctionType(
       [struct1byteInt],
       struct1byteInt,
@@ -387,6 +504,26 @@ On arm64, both argument and return value are passed in by pointer."""),
       """
 On arm64, both argument and return value are passed in by pointer.
 Ints exhaust registers, so that pointer is passed on stack."""),
+  FunctionType(
+      [structInlineArray],
+      structInlineArray,
+      """
+Test returning struct with inline array."""),
+  FunctionType(
+      [struct16bytesFloatInlineNested],
+      struct16bytesFloatInlineNested,
+      """
+Return value in FPU registers on arm hardfp and arm64."""),
+  FunctionType(
+      [struct32bytesDoubleInlineNested],
+      struct32bytesDoubleInlineNested,
+      """
+Return value in FPU registers on arm64."""),
+  FunctionType(
+      [struct16bytesMixedInlineNested],
+      struct16bytesMixedInlineNested,
+      """
+On x64 Linux, return value is split over FP and int registers."""),
   FunctionType(structAlignmentInt16.memberTypes, structAlignmentInt16, """
 Test alignment and padding of 16 byte int within struct."""),
   FunctionType(structAlignmentInt32.memberTypes, structAlignmentInt32, """
@@ -420,8 +557,7 @@ Test alignment and padding of nested struct with 64 byte int."""),
 Return big irregular struct as smoke test."""),
 ];
 
-final structs = [
-  struct0bytes,
+final compounds = [
   struct1byteInt,
   struct3bytesInt,
   struct3bytesInt2,
@@ -431,6 +567,7 @@ final structs = [
   struct7bytesInt2,
   struct8bytesInt,
   struct8bytesFloat,
+  struct8bytesFloat2,
   struct8BytesMixed,
   struct9bytesInt,
   struct9bytesInt2,
@@ -460,10 +597,31 @@ final structs = [
   structNestedBig,
   structNestedBigger,
   structNestedEvenBigger,
+  structInlineArray,
+  structInlineArrayIrregular,
+  structInlineArray100Bytes,
+  structInlineArrayBig,
+  struct16bytesFloatInlineNested,
+  struct32bytesDoubleInlineNested,
+  struct16bytesMixedInlineNested,
+  struct8bytesInlineArrayMultiDimesional,
+  struct32bytesInlineArrayMultiDimesional,
+  struct64bytesInlineArrayMultiDimesional,
+  structMultiDimensionalStruct,
+  struct3bytesPacked,
+  struct3bytesPackedMembersAligned,
+  struct5bytesPacked,
+  struct6bytesPacked,
+  struct6bytesPacked2,
+  struct8bytesPacked,
+  struct9bytesPacked,
+  struct15bytesPacked,
+  union4bytesMixed,
+  union8bytesFloat,
+  union12bytesInt,
+  union16bytesFloat,
+  union16bytesFloat2,
 ];
-
-/// Using empty structs is undefined behavior in C.
-final struct0bytes = StructType([]);
 
 final struct1byteInt = StructType([int8]);
 final struct3bytesInt = StructType(List.filled(3, uint8));
@@ -475,6 +633,7 @@ final struct7bytesInt2 =
     StructType.disambiguate([int32, int16, int8], "4ByteAligned");
 final struct8bytesInt = StructType([int16, int16, int32]);
 final struct8bytesFloat = StructType([float, float]);
+final struct8bytesFloat2 = StructType([double_]);
 final struct8BytesMixed = StructType([float, int16, int16]);
 final struct9bytesInt = StructType(List.filled(9, uint8));
 final struct9bytesInt2 =
@@ -554,3 +713,98 @@ final structNestedBigger = StructType.override(
 final structNestedEvenBigger = StructType.override(
     [uint64, structNestedBigger, structNestedBigger, double_],
     "NestedIrregularEvenBigger");
+
+final structInlineArray = StructType([FixedLengthArrayType(uint8, 8)]);
+
+final structInlineArrayIrregular = StructType.override(
+    [FixedLengthArrayType(struct3bytesInt2, 2), uint8], "InlineArrayIrregular");
+
+final structInlineArray100Bytes = StructType.override(
+    [FixedLengthArrayType(uint8, 100)], "InlineArray100Bytes");
+
+final structInlineArrayBig = StructType.override(
+    [uint32, uint32, FixedLengthArrayType(uint8, 4000)], "InlineArrayBig");
+
+/// The largest homogenous float that goes into FPU registers on softfp and
+/// arm64. This time with nested structs and inline arrays.
+final struct16bytesFloatInlineNested = StructType.override([
+  StructType([float]),
+  FixedLengthArrayType(StructType([float]), 2),
+  float,
+], "Struct16BytesHomogeneousFloat2");
+
+/// The largest homogenous float that goes into FPU registers on arm64.
+/// This time with nested structs and inline arrays.
+final struct32bytesDoubleInlineNested = StructType.override([
+  StructType([double_]),
+  FixedLengthArrayType(StructType([double_]), 2),
+  double_,
+], "Struct32BytesHomogeneousDouble2");
+
+/// This struct is split over a CPU and FPU register in x64 Linux.
+/// This time with nested structs and inline arrays.
+final struct16bytesMixedInlineNested = StructType.override([
+  StructType([float]),
+  FixedLengthArrayType(StructType([float, int16, int16]), 1),
+  FixedLengthArrayType(int16, 2),
+], "Struct16BytesMixed3");
+
+final struct8bytesInlineArrayMultiDimesional = StructType([
+  FixedLengthArrayType.multi(uint8, [2, 2, 2])
+]);
+
+final struct32bytesInlineArrayMultiDimesional = StructType([
+  FixedLengthArrayType.multi(uint8, [2, 2, 2, 2, 2])
+]);
+
+final struct64bytesInlineArrayMultiDimesional = StructType([
+  FixedLengthArrayType.multi(uint8, [2, 2, 2, 2, 2, 2])
+]);
+
+final structMultiDimensionalStruct = StructType([
+  FixedLengthArrayType.multi(struct1byteInt, [2, 2])
+]);
+
+final struct3bytesPacked = StructType([int8, int16], packing: 1);
+
+final struct3bytesPackedMembersAligned =
+    StructType.disambiguate([int8, int16], "MembersAligned", packing: 1);
+
+final struct5bytesPacked = StructType([float, uint8], packing: 1);
+
+/// The float in the nested struct is not aligned.
+final struct6bytesPacked = StructType([uint8, struct5bytesPacked]);
+
+/// The second element in the array has a nested misaligned int16.
+final struct6bytesPacked2 =
+    StructType([FixedLengthArrayType(struct3bytesPackedMembersAligned, 2)]);
+
+final struct8bytesPacked =
+    StructType([uint8, uint32, uint8, uint8, uint8], packing: 1);
+
+final struct9bytesPacked = StructType([uint8, double_], packing: 1);
+
+/// The float in the nested struct is aligned in the first element in the
+/// inline array, but not in the subsequent ones.
+final struct15bytesPacked =
+    StructType([FixedLengthArrayType(struct5bytesPacked, 3)]);
+
+/// Mixed integer and float. Tests whether calling conventions put this in
+/// integer registers or not.
+final union4bytesMixed = UnionType([uint32, float]);
+
+/// Different types of float. Tests whether calling conventions put this in
+/// FPU registers or not.
+final union8bytesFloat = UnionType([double_, struct8bytesFloat]);
+
+/// This union has a size of 12, because of the 4-byte alignment of the first
+/// member.
+final union12bytesInt = UnionType([struct8bytesInt, struct9bytesInt]);
+
+/// This union has homogenous floats of the same sizes.
+final union16bytesFloat =
+    UnionType([FixedLengthArrayType(float, 4), struct16bytesFloat]);
+
+/// This union has homogenous floats of different sizes.
+final union16bytesFloat2 =
+    UnionType([struct8bytesFloat, struct12bytesFloat, struct16bytesFloat]);

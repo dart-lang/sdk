@@ -649,9 +649,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
-    listener?.endExtensionDeclaration(extensionKeyword, onKeyword, endToken);
+  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
+      Token onKeyword, Token endToken) {
+    listener?.endExtensionDeclaration(
+        extensionKeyword, typeKeyword, onKeyword, endToken);
   }
 
   @override
@@ -778,6 +779,11 @@ class ForwardingListener implements Listener {
   @override
   void endFunctionTypedFormalParameter(Token nameToken, Token? question) {
     listener?.endFunctionTypedFormalParameter(nameToken, question);
+  }
+
+  @override
+  void handleTypeArgumentApplication(Token openAngleBracket) {
+    listener?.handleTypeArgumentApplication(openAngleBracket);
   }
 
   @override
@@ -1174,6 +1180,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleConstFactory(Token constKeyword) {
+    listener?.handleConstFactory(constKeyword);
+  }
+
+  @override
   void handleContinueStatement(
       bool hasTarget, Token continueKeyword, Token endToken) {
     listener?.handleContinueStatement(hasTarget, continueKeyword, endToken);
@@ -1442,6 +1453,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     listener?.handleNativeFunctionBodySkipped(nativeToken, semicolon);
+  }
+
+  @override
+  void handleNewAsIdentifier(Token token) {
+    listener?.handleNewAsIdentifier(token);
   }
 
   @override

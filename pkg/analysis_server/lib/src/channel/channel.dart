@@ -44,10 +44,10 @@ class ChannelChunkSink<S, T> extends ChunkedConversionSink<S> {
 /// receive both [Response]s and [Notification]s.
 abstract class ClientCommunicationChannel {
   /// The stream of notifications from the server.
-  Stream<Notification> notificationStream;
+  Stream<Notification> get notificationStream;
 
   /// The stream of responses from the server.
-  Stream<Response> responseStream;
+  Stream<Response> get responseStream;
 
   /// Close the channel to the server. Once called, all future communication
   /// with the server via [sendRequest] will silently be ignored.
@@ -58,36 +58,40 @@ abstract class ClientCommunicationChannel {
   Future<Response> sendRequest(Request request);
 }
 
-/// Instances of the class [JsonStreamDecoder] convert JSON strings to JSON
-/// maps.
-class JsonStreamDecoder extends Converter<String, Map> {
+/// Instances of the class [JsonStreamDecoder] convert JSON strings to values.
+class JsonStreamDecoder extends Converter<String, Object?> {
   @override
-  Map convert(String text) => json.decode(text);
+  Object? convert(String text) => json.decode(text);
 
   @override
-  ChunkedConversionSink<String> startChunkedConversion(Sink<Map> sink) =>
-      ChannelChunkSink<String, Map>(this, sink);
+  ChunkedConversionSink<String> startChunkedConversion(Sink<Object?> sink) =>
+      ChannelChunkSink<String, Object?>(this, sink);
 }
 
 /// Instances of the class [NotificationConverter] convert JSON maps to
 /// [Notification]s.
-class NotificationConverter extends Converter<Map, Notification> {
+class NotificationConverter
+    extends Converter<Map<String, Object?>, Notification> {
   @override
   Notification convert(Map json) => Notification.fromJson(json);
 
   @override
-  ChunkedConversionSink<Map> startChunkedConversion(Sink<Notification> sink) =>
-      ChannelChunkSink<Map, Notification>(this, sink);
+  ChunkedConversionSink<Map<String, Object?>> startChunkedConversion(
+          Sink<Notification> sink) =>
+      ChannelChunkSink<Map<String, Object?>, Notification>(this, sink);
 }
 
 /// Instances of the class [ResponseConverter] convert JSON maps to [Response]s.
-class ResponseConverter extends Converter<Map, Response> {
+class ResponseConverter extends Converter<Map<String, Object?>, Response?> {
   @override
-  Response convert(Map json) => Response.fromJson(json);
+  Response? convert(Map<String, Object?> json) => Response.fromJson(json);
 
   @override
-  ChunkedConversionSink<Map> startChunkedConversion(Sink<Response> sink) =>
-      ChannelChunkSink<Map, Response>(this, sink);
+  ChunkedConversionSink<Map<String, Object?>> startChunkedConversion(
+    Sink<Response?> sink,
+  ) {
+    return ChannelChunkSink<Map<String, Object?>, Response?>(this, sink);
+  }
 }
 
 /// The abstract class [ServerCommunicationChannel] defines the behavior of

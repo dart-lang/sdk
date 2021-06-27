@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/kernel/collections.dart';
 import 'package:front_end/src/fasta/kernel/forest.dart';
@@ -301,7 +303,7 @@ let final dynamic #0 = 0 in cascade { #0.foo = 1; #0.bar = 2; } => #0''');
 }
 
 void _testDeferredCheck() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
   VariableDeclaration check =
@@ -311,11 +313,12 @@ let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''');
 }
 
 void _testFactoryConstructorInvocationJudgment() {
-  Library library = new Library(dummyUri);
-  Class cls = new Class(name: 'Class');
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Class', fileUri: dummyUri);
   library.addClass(cls);
   Procedure factoryConstructor = new Procedure(
-      new Name(''), ProcedureKind.Factory, new FunctionNode(null));
+      new Name(''), ProcedureKind.Factory, new FunctionNode(null),
+      fileUri: dummyUri);
   cls.addProcedure(factoryConstructor);
 
   testExpression(
@@ -508,22 +511,19 @@ late dynamic foo = 0;''');
 
 void _testVariableGetImpl() {
   VariableDeclaration variable = new VariableDeclaration('foo');
-  testExpression(
-      new VariableGetImpl(variable, null, null, forNullGuardedAccess: false),
-      '''
+  testExpression(new VariableGetImpl(variable, forNullGuardedAccess: false), '''
+foo''');
+  testExpression(new VariableGetImpl(variable, forNullGuardedAccess: true), '''
 foo''');
   testExpression(
-      new VariableGetImpl(variable, null, null, forNullGuardedAccess: true), '''
-foo''');
-  testExpression(
-      new VariableGetImpl(variable, null, null, forNullGuardedAccess: false)
+      new VariableGetImpl(variable, forNullGuardedAccess: false)
         ..promotedType = const VoidType(),
       '''
 foo{void}''');
 }
 
 void _testLoadLibraryImpl() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
   testExpression(new LoadLibraryImpl(dependency, new ArgumentsImpl([])), '''
@@ -535,7 +535,7 @@ pre.loadLibrary(0)''');
 }
 
 void _testLoadLibraryTearOff() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
 
@@ -543,7 +543,8 @@ void _testLoadLibraryTearOff() {
 pre.loadLibrary''');
 
   Procedure procedure = new Procedure(new Name('get#loadLibrary'),
-      ProcedureKind.Getter, new FunctionNode(new Block([])));
+      ProcedureKind.Getter, new FunctionNode(new Block([])),
+      fileUri: dummyUri);
   testExpression(new LoadLibraryTearOff(dependency, procedure), ''' 
 pre.loadLibrary''');
 }
@@ -608,12 +609,15 @@ void _testIndexSet() {}
 void _testSuperIndexSet() {}
 
 void _testExtensionIndexSet() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
-      name: 'Extension', typeParameters: [new TypeParameter('T')]);
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
   library.addExtension(extension);
-  Procedure setter =
-      new Procedure(new Name(''), ProcedureKind.Method, new FunctionNode(null));
+  Procedure setter = new Procedure(
+      new Name(''), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
   library.addProcedure(setter);
 
   testExpression(
@@ -781,9 +785,9 @@ void _testParenthesizedExpression() {
 }
 
 void _testSpreadElement() {
-  testExpression(new SpreadElement(new IntLiteral(0), false), '''
+  testExpression(new SpreadElement(new IntLiteral(0), isNullAware: false), '''
 ...0''');
-  testExpression(new SpreadElement(new IntLiteral(0), true), '''
+  testExpression(new SpreadElement(new IntLiteral(0), isNullAware: true), '''
 ...?0''');
 }
 

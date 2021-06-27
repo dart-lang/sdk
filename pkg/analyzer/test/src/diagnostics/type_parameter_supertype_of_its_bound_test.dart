@@ -15,13 +15,14 @@ main() {
 }
 
 @reflectiveTest
-class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest {
+class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_1of1() async {
     await assertErrorsInCode(r'''
 class A<T extends T> {
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 1),
     ]);
   }
 
@@ -33,7 +34,7 @@ class A<T extends T> {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 1),
     ]);
   }
 
@@ -42,8 +43,8 @@ class A<T extends T> {
 class A<T1 extends T3, T2, T3 extends T1> {
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 13),
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 27, 13),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 2),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 27, 2),
     ]);
   }
 }

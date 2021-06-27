@@ -4,6 +4,8 @@
 // Based on dartbug.com/7681
 // Verify that context chains do not lead to unintended memory being held.
 
+// @dart = 2.9
+
 library closure_cycles_test;
 
 import "dart:async";

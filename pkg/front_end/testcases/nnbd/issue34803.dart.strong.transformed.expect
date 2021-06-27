@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue34803.dart:7:9: Error: Type variables can't have generic function types in their bounds.
+// class A<X extends G<num>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef G<invariant X extends core::Object? = dynamic> = <Y extends X% = dynamic>() → void;
+class A<X extends <Y extends core::num = dynamic>() → void = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

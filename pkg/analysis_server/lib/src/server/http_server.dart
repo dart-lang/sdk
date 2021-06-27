@@ -27,10 +27,10 @@ class HttpAnalysisServer {
   AbstractSocketServer socketServer;
 
   /// An object that can handle GET requests.
-  AbstractGetHandler getHandler;
+  AbstractGetHandler? getHandler;
 
   /// Future that is completed with the HTTP server once it is running.
-  Future<HttpServer> _serverFuture;
+  Future<HttpServer>? _serverFuture;
 
   /// Last PRINT_BUFFER_LENGTH lines printed.
   final List<String> _printBuffer = <String>[];
@@ -39,7 +39,7 @@ class HttpAnalysisServer {
   HttpAnalysisServer(this.socketServer);
 
   /// Return the port this server is bound to.
-  Future<int> get boundPort async {
+  Future<int?> get boundPort async {
     return (await _serverFuture)?.port;
   }
 
@@ -59,7 +59,7 @@ class HttpAnalysisServer {
   }
 
   /// Begin serving HTTP requests over the given port.
-  Future<int> serveHttp([int initialPort]) async {
+  Future<int?> serveHttp([int? initialPort]) async {
     if (_serverFuture != null) {
       return boundPort;
     }
@@ -68,7 +68,7 @@ class HttpAnalysisServer {
       _serverFuture =
           HttpServer.bind(InternetAddress.loopbackIPv4, initialPort ?? 0);
 
-      var server = await _serverFuture;
+      var server = (await _serverFuture)!;
       _handleServer(server);
       return server.port;
     } catch (ignore) {
@@ -85,7 +85,7 @@ class HttpAnalysisServer {
     getHandler ??= DiagnosticsSite(socketServer, _printBuffer);
     // TODO(brianwilkerson) Determine if await is necessary, if so, change the
     // return type of [AbstractGetHandler.handleGetRequest] to `Future<void>`.
-    await (getHandler.handleGetRequest(request) as dynamic);
+    await (getHandler!.handleGetRequest(request) as dynamic);
   }
 
   /// Attach a listener to a newly created HTTP server.

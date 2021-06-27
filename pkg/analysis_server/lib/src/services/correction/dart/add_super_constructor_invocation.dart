@@ -14,14 +14,22 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class AddSuperConstructorInvocation extends MultiCorrectionProducer {
   @override
   Iterable<CorrectionProducer> get producers sync* {
-    if (node.parent is! ConstructorDeclaration ||
-        node.parent.parent is! ClassDeclaration) {
+    var targetConstructor = node.parent;
+    if (targetConstructor is! ConstructorDeclaration) {
       return;
     }
-    var targetConstructor = node.parent as ConstructorDeclaration;
-    var targetClassNode = targetConstructor.parent as ClassDeclaration;
-    var targetClassElement = targetClassNode.declaredElement;
+
+    var targetClassNode = targetConstructor.parent;
+    if (targetClassNode is! ClassDeclaration) {
+      return;
+    }
+
+    var targetClassElement = targetClassNode.declaredElement!;
     var superType = targetClassElement.supertype;
+    if (superType == null) {
+      return;
+    }
+
     var initializers = targetConstructor.initializers;
     int insertOffset;
     String prefix;

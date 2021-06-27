@@ -1,0 +1,7 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method main() → dynamic
+  ;
+static method test<X extends Null, Y extends Never?, Z extends Never>() → dynamic
+  ;

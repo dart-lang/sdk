@@ -1,0 +1,491 @@
+# Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Please add new fixes to the top of the file, separated by one blank line
+# from other fixes.  Add corresponding golden tests to
+# `tests/lib/fix_data_tests` for each new fix.
+
+# For documentation about this file format, see
+# https://dart.dev/go/data-driven-fixes.
+
+version: 1
+transforms:
+  - title: "Rename to 'read'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'READ'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'read'
+
+  - title: "Rename to 'write'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'WRITE'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'write'
+
+  - title: "Rename to 'append'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'APPEND'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'append'
+
+  - title: "Rename to 'writeOnly'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'WRITE_ONLY'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'writeOnly'
+
+  - title: "Rename to 'writeOnlyAppend'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'WRITE_ONLY_APPEND'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'writeOnlyAppend'
+
+  - title: "Rename to 'continue_'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'CONTINUE'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'continue_'
+
+  - title: "Rename to 'switchingProtocols'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'SWITCHING_PROTOCOLS'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'switchingProtocols'
+
+  - title: "Rename to 'ok'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'OK'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'ok'
+
+  - title: "Rename to 'created'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'CREATED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'created'
+
+  - title: "Rename to 'accepted'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'ACCEPTED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'accepted'
+
+  - title: "Rename to 'nonAuthoritativeInformation'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'NON_AUTHORITATIVE_INFORMATION'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'nonAuthoritativeInformation'
+
+  - title: "Rename to 'noContent'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'NO_CONTENT'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'noContent'
+
+  - title: "Rename to 'resetContent'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'RESET_CONTENT'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'resetContent'
+
+  - title: "Rename to 'partialContent'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'PARTIAL_CONTENT'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'partialContent'
+
+  - title: "Rename to 'multipleChoices'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'MULTIPLE_CHOICES'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'multipleChoices'
+
+  - title: "Rename to 'movedPermanently'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'MOVED_PERMANENTLY'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'movedPermanently'
+
+  - title: "Rename to 'found'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'FOUND'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'found'
+
+  - title: "Rename to 'movedTemporarily'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'MOVED_TEMPORARILY'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'movedTemporarily'
+
+  - title: "Rename to 'seeOther'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'SEE_OTHER'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'seeOther'
+
+  - title: "Rename to 'notModified'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'NOT_MODIFIED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'notModified'
+
+  - title: "Rename to 'useProxy'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'USE_PROXY'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'useProxy'
+
+  - title: "Rename to 'temporaryRedirect'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'TEMPORARY_REDIRECT'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'temporaryRedirect'
+
+  - title: "Rename to 'badRequest'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'BAD_REQUEST'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'badRequest'
+
+  - title: "Rename to 'unauthorized'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'UNAUTHORIZED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'unauthorized'
+
+  - title: "Rename to 'paymentRequired'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'PAYMENT_REQUIRED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'paymentRequired'
+
+  - title: "Rename to 'forbidden'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'FORBIDDEN'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'forbidden'
+
+  - title: "Rename to 'notFound'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'NOT_FOUND'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'notFound'
+
+  - title: "Rename to 'methodNotAllowed'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'METHOD_NOT_ALLOWED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'methodNotAllowed'
+
+  - title: "Rename to 'notAcceptable'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'NOT_ACCEPTABLE'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'notAcceptable'
+
+  - title: "Rename to 'proxyAuthenticationRequired'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'PROXY_AUTHENTICATION_REQUIRED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'proxyAuthenticationRequired'
+
+  - title: "Rename to 'requestTimeout'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'REQUEST_TIMEOUT'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'requestTimeout'
+
+  - title: "Rename to 'conflict'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'CONFLICT'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'conflict'
+
+  - title: "Rename to 'gone'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'GONE'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'gone'
+
+  - title: "Rename to 'lengthRequired'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'LENGTH_REQUIRED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'lengthRequired'
+
+  - title: "Rename to 'preconditionFailed'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'PRECONDITION_FAILED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'preconditionFailed'
+
+  - title: "Rename to 'requestEntityTooLarge'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'REQUEST_ENTITY_TOO_LARGE'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'requestEntityTooLarge'
+
+  - title: "Rename to 'requestUriTooLong'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'REQUEST_URI_TOO_LONG'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'requestUriTooLong'
+
+  - title: "Rename to 'unsupportedMediaType'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'UNSUPPORTED_MEDIA_TYPE'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'unsupportedMediaType'
+
+  - title: "Rename to 'requestedRangeNotSatisfiable'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'REQUESTED_RANGE_NOT_SATISFIABLE'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'requestedRangeNotSatisfiable'
+  - title: "Rename to 'expectationFailed'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'EXPECTATION_FAILED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'expectationFailed'
+
+  - title: "Rename to 'upgradeRequired'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'UPGRADE_REQUIRED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'upgradeRequired'
+
+  - title: "Rename to 'internalServerError'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'INTERNAL_SERVER_ERROR'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'internalServerError'
+
+  - title: "Rename to 'notImplemented'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'NOT_IMPLEMENTED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'notImplemented'
+
+  - title: "Rename to 'badGateway'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'BAD_GATEWAY'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'badGateway'
+
+  - title: "Rename to 'serviceUnavailable'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'SERVICE_UNAVAILABLE'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'serviceUnavailable'
+
+  - title: "Rename to 'gatewayTimeout'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'GATEWAY_TIMEOUT'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'gatewayTimeout'
+
+  - title: "Rename to 'httpVersionNotSupported'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'HTTP_VERSION_NOT_SUPPORTED'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'httpVersionNotSupported'
+
+  - title: "Rename to 'networkConnectTimeoutError'"
+    date: 2021-06-15
+    element:
+      uris: [ 'dart:io', 'dart:html' ]
+      field: 'NETWORK_CONNECT_TIMEOUT_ERROR'
+      inClass: 'HttpStatus'
+    changes:
+      - kind: 'rename'
+        newName: 'networkConnectTimeoutError'

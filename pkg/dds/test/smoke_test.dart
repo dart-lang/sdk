@@ -13,18 +13,16 @@ import 'common/test_helper.dart';
 
 void main() {
   group('DDS', () {
-    Process process;
-    DartDevelopmentService dds;
+    late Process process;
+    late DartDevelopmentService dds;
 
     setUp(() async {
       process = await spawnDartProcess('smoke.dart');
     });
 
     tearDown(() async {
-      await dds?.shutdown();
-      process?.kill();
-      dds = null;
-      process = null;
+      await dds.shutdown();
+      process.kill();
     });
 
     void createSmokeTest(bool useAuthCodes, bool ipv6) {
@@ -41,7 +39,7 @@ void main() {
           expect(dds.isRunning, true);
 
           try {
-            Uri.parseIPv6Address(dds.uri.host);
+            Uri.parseIPv6Address(dds.uri!.host);
             expect(ipv6, true);
           } on FormatException {
             expect(ipv6, false);
@@ -50,11 +48,11 @@ void main() {
           // Ensure basic websocket requests are forwarded correctly to the VM service.
           final service = await vmServiceConnectUri(dds.wsUri.toString());
           final version = await service.getVersion();
-          expect(version.major > 0, true);
-          expect(version.minor >= 0, true);
+          expect(version.major! > 0, true);
+          expect(version.minor! >= 0, true);
 
           expect(
-            dds.uri.pathSegments,
+            dds.uri!.pathSegments,
             useAuthCodes ? isNotEmpty : isEmpty,
           );
 
@@ -71,7 +69,7 @@ void main() {
           final Map<String, dynamic> jsonResponse = (await response
               .transform(utf8.decoder)
               .transform(json.decoder)
-              .single);
+              .single) as Map<String, dynamic>;
           expect(jsonResponse['result']['type'], 'Version');
           expect(jsonResponse['result']['major'] > 0, true);
           expect(jsonResponse['result']['minor'] >= 0, true);
@@ -82,44 +80,9 @@ void main() {
     createSmokeTest(true, false);
     createSmokeTest(false, false);
     createSmokeTest(true, true);
-
-    test('startup fails when VM service has existing clients', () async {
-      Uri httpToWebSocketUri(Uri httpUri) {
-        final segments = (httpUri.pathSegments.isNotEmpty)
-            ? (httpUri.pathSegments.toList()..removeLast())
-            : <String>[];
-        segments.add('ws');
-        return httpUri.replace(
-          scheme: 'ws',
-          pathSegments: segments,
-        );
-      }
-
-      final _ = await vmServiceConnectUri(
-        httpToWebSocketUri(remoteVmServiceUri).toString(),
-      );
-      try {
-        dds = await DartDevelopmentService.startDartDevelopmentService(
-          remoteVmServiceUri,
-        );
-        fail(
-            'DDS startup should fail if there are existing VM service clients.');
-      } on DartDevelopmentServiceException catch (e) {
-        expect(e.message,
-            'Existing VM service clients prevent DDS from taking control.');
-        expect(e.errorCode,
-            DartDevelopmentServiceException.existingDdsInstanceError);
-      }
-    });
   });
 
   test('Invalid args test', () async {
-    // null VM Service URI
-    expect(
-        () async =>
-            await DartDevelopmentService.startDartDevelopmentService(null),
-        throwsA(TypeMatcher<ArgumentError>()));
-
     // Non-HTTP VM Service URI scheme
     expect(
         () async => await DartDevelopmentService.startDartDevelopmentService(

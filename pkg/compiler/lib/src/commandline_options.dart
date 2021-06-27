@@ -18,6 +18,7 @@ class Flags {
   static const String disableTypeInference = '--disable-type-inference';
   static const String disableRtiOptimization = '--disable-rti-optimization';
   static const String dumpInfo = '--dump-info';
+  static const String dumpDeferredGraph = '--dump-deferred-graph';
   static const String dumpSsa = '--dump-ssa';
   static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
@@ -26,8 +27,6 @@ class Flags {
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
-  static const String experimentalAllocationsPath =
-      '--experimental-allocations-path';
 
   static const String experimentalWrapped = '--experimental-wrapped';
   static const String experimentalPowersets = '--experimental-powersets';
@@ -53,6 +52,11 @@ class Flags {
 
   static const String experimentNewRti = '--experiment-new-rti';
 
+  /// Use the dart2js lowering of late instance variables rather than the CFE
+  /// lowering.
+  static const String experimentLateInstanceVariables =
+      '--experiment-late-instance-variables';
+
   static const String enableLanguageExperiments = '--enable-experiment';
 
   static const String fastStartup = '--fast-startup';
@@ -65,8 +69,6 @@ class Flags {
   static const String omitImplicitChecks = '--omit-implicit-checks';
   static const String omitAsCasts = '--omit-as-casts';
   static const String laxRuntimeTypeToString = '--lax-runtime-type-to-string';
-  static const String legacyJavaScript = '--legacy-javascript';
-  static const String noLegacyJavaScript = '--no-legacy-javascript';
 
   static const String platformBinaries = '--platform-binaries=.+';
 
@@ -80,6 +82,10 @@ class Flags {
   static const String noNativeNullAssertions = '--no-native-null-assertions';
 
   static const String noSourceMaps = '--no-source-maps';
+
+  static const String omitLateNames = '--omit-late-names';
+  static const String noOmitLateNames = '--no-omit-late-names';
+
   static const String preserveUris = '--preserve-uris';
   static const String printLegacyStars = '--debug-print-legacy-stars';
   static const String showPackageWarnings = '--show-package-warnings';
@@ -95,7 +101,9 @@ class Flags {
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String useOldRti = '--use-old-rti';
+  static const String useSimpleLoadIds = '--simple-load-ids';
   static const String verbose = '--verbose';
+  static const String verbosity = '--verbosity';
   static const String progress = '--show-internal-progress';
   static const String version = '--version';
   static const String reportMetrics = '--report-metrics';
@@ -104,6 +112,7 @@ class Flags {
   static const String dillDependencies = '--dill-dependencies';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+  static const String noClosedWorldInData = '--no-closed-world-in-data';
   static const String writeClosedWorld = '--write-closed-world';
   static const String readClosedWorld = '--read-closed-world';
   static const String readCodegen = '--read-codegen';
@@ -126,6 +135,8 @@ class Flags {
   static const String benchmarkingExperiment = '--benchmarking-x';
 
   static const String conditionalDirectives = '--conditional-directives';
+
+  static const String cfeInvocationModes = '--cfe-invocation-modes';
 
   // The syntax-only level of support for generic methods is included in the
   // 1.50 milestone for Dart. It is not experimental, but also not permanent:
@@ -156,6 +167,16 @@ class Flags {
 
   // Experimental flags.
   static const String resolveOnly = '--resolve-only';
+
+  // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
+  // flags live in options.dart.
+  // Shipping features default to on, but can be disabled individually. All
+  // shipping features can be disabled with the the [noShipping] flag.
+  static const String noShipping = '--no-shipping';
+
+  // Canary features default to off, but can still be enabled individually. All
+  // canary features can be enabled with the [canary] flag.
+  static const String canary = '--canary';
 }
 
 class Option {

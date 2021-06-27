@@ -11,7 +11,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveAwait extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_AWAIT;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_AWAIT_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -19,7 +28,7 @@ class RemoveAwait extends CorrectionProducer {
     if (awaitExpression is AwaitExpression) {
       final awaitToken = awaitExpression.awaitKeyword;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.startStart(awaitToken, awaitToken.next));
+        builder.addDeletion(range.startStart(awaitToken, awaitToken.next!));
       });
     }
   }

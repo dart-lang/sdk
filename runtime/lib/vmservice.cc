@@ -27,15 +27,23 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
  public:
   explicit RegisterRunningIsolatesVisitor(Thread* thread)
       : IsolateVisitor(),
+        zone_(thread->zone()),
         register_function_(Function::Handle(thread->zone())),
-        service_isolate_(thread->isolate()) {
-  }
+        service_isolate_(thread->isolate()) {}
 
   virtual void VisitIsolate(Isolate* isolate) {
-    ServiceIsolate::RegisterRunningIsolate(isolate);
+    isolate_ports_.Add(isolate->main_port());
+    isolate_names_.Add(&String::Handle(zone_, String::New(isolate->name())));
+  }
+
+  void RegisterIsolates() {
+    ServiceIsolate::RegisterRunningIsolates(isolate_ports_, isolate_names_);
   }
 
  private:
+  Zone* zone_;
+  GrowableArray<Dart_Port> isolate_ports_;
+  GrowableArray<const String*> isolate_names_;
   Function& register_function_;
   Isolate* service_isolate_;
 };
@@ -55,7 +63,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 0, 2) {
   // TODO(turnidge): Throw an exception when the return value is false?
   bool result = PortMap::PostMessage(
       writer.WriteMessage(message, sp.Id(), Message::kOOBPriority));
-  return Bool::Get(result).raw();
+  return Bool::Get(result).ptr();
 #else
   return Object::null();
 #endif
@@ -90,6 +98,7 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0, 0) {
     OS::PrintErr("vm-service: Registering running isolates.\n");
   }
   Isolate::VisitIsolates(&register_isolates);
+  register_isolates.RegisterIsolates();
 #endif
   return Object::null();
 }
@@ -122,7 +131,7 @@ DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   bool result = Service::ListenStream(stream_id.ToCString());
-  return Bool::Get(result).raw();
+  return Bool::Get(result).ptr();
 #else
   return Object::null();
 #endif
@@ -323,7 +332,7 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(TypedData, data, arguments->NativeArgAt(0));
   Api::Scope scope(thread);
-  Dart_Handle data_handle = Api::NewHandle(thread, data.raw());
+  Dart_Handle data_handle = Api::NewHandle(thread, data.ptr());
   Dart_Handle result_list;
   {
     TransitionVMToNative transition(thread);
@@ -368,7 +377,7 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
       idx += 2;
     }
   }
-  return Api::UnwrapArrayHandle(thread->zone(), result_list).raw();
+  return Api::UnwrapArrayHandle(thread->zone(), result_list).ptr();
 #else
   return Object::null();
 #endif

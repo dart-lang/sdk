@@ -35,8 +35,8 @@ int loadFrom(Pointer<Int32> p) {
 }
 
 void main() {
-  final p = allocate<Int32>(count: 128);
+  final p = calloc<Int32>(128);
   p[0] = 42;
   Expect.equals(42, loadFrom(p));
-  free(p);
+  calloc.free(p);
 }

@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class MissingReturnTest extends PubPackageResolutionTest {
+class MissingReturnTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_alwaysThrows() async {
     writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
@@ -96,7 +97,7 @@ Future Function() f = () async {};
 
   test_functionExpression_async_block_futureInt() async {
     await assertErrorsInCode(r'''
-Future<int> Function() f = () async {}; 
+Future<int> Function() f = () async {};
 ''', [
       error(HintCode.MISSING_RETURN, 27, 11),
     ]);
@@ -215,8 +216,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest {
   test_returnNever() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 Never foo() {

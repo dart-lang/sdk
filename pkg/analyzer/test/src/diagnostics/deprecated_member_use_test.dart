@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -32,7 +31,7 @@ main() {
 @reflectiveTest
 class DeprecatedMemberUse_BasicWorkspace_WithNullSafetyTest
     extends PubPackageResolutionTest
-    with WithNullSafetyMixin, DeprecatedMemberUse_BasicWorkspaceTestCases {
+    with DeprecatedMemberUse_BasicWorkspaceTestCases {
   test_instanceCreation_namedParameter_fromLegacy() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 class A {
@@ -110,7 +109,7 @@ class B extends A {
 
 @reflectiveTest
 class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
-    with DeprecatedMemberUse_BasicWorkspaceTestCases {}
+    with WithoutNullSafetyMixin, DeprecatedMemberUse_BasicWorkspaceTestCases {}
 
 mixin DeprecatedMemberUse_BasicWorkspaceTestCases on PubPackageResolutionTest {
   @override
@@ -134,6 +133,27 @@ export 'package:aaa/a.dart';
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE, 0, 28),
     ]);
+  }
+
+  test_field_inDeprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+class A {
+  @deprecated
+  int x = 0;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  @deprecated
+  B() {
+    x;
+    x = 1;
+  }
+}
+''');
   }
 
   test_fieldGet_implicitGetter() async {
@@ -187,6 +207,26 @@ import 'package:aaa/a.dart';
       error(HintCode.DEPRECATED_MEMBER_USE, 24, 28,
           messageContains: 'package:aaa/a.dart'),
     ]);
+  }
+
+  test_method_inDeprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+class A {
+  @deprecated
+  void foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  @deprecated
+  B() {
+    foo();
+  }
+}
+''');
   }
 
   test_methodInvocation() async {
@@ -344,10 +384,10 @@ class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
   }
 
   test_differentPackage() async {
-    newFile('$workspaceRootPath/my/pubspec.yaml');
+    newPubspecYamlFile('$workspaceRootPath/my', '');
     newFile('$workspaceRootPath/my/BUILD.gn');
 
-    newFile('$workspaceRootPath/aaa/pubspec.yaml');
+    newPubspecYamlFile('$workspaceRootPath/aaa', '');
     newFile('$workspaceRootPath/aaa/BUILD.gn');
 
     _writeWorkspacePackagesFile({
@@ -370,7 +410,7 @@ void f(A a) {}
   }
 
   test_samePackage() async {
-    newFile('$workspaceRootPath/my/pubspec.yaml');
+    newPubspecYamlFile('$workspaceRootPath/my', '');
     newFile('$workspaceRootPath/my/BUILD.gn');
 
     _writeWorkspacePackagesFile({
@@ -398,14 +438,19 @@ void f(A a) {}
   }
 
   void _writeWorkspacePackagesFile(Map<String, String> nameToLibPath) {
-    var builder = StringBuffer();
-    for (var entry in nameToLibPath.entries) {
-      builder.writeln('${entry.key}:${toUriStr(entry.value)}');
-    }
+    var packages = nameToLibPath.entries.map((entry) => '''{
+    "languageVersion": "2.2",
+    "name": "${entry.key}",
+    "packageUri": ".",
+    "rootUri": "${toUriStr(entry.value)}"
+  }''');
 
     var buildDir = 'out/debug-x87_128';
     var genPath = '$workspaceRootPath/$buildDir/dartlang/gen';
-    newFile('$genPath/foo.packages', content: builder.toString());
+    newFile('$genPath/foo_package_config.json', content: '''{
+  "configVersion": 2,
+  "packages": [ ${packages.join(', ')} ]
+}''');
   }
 }
 
@@ -418,7 +463,7 @@ class DeprecatedMemberUse_PackageBuildWorkspaceTest
         ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
     _newTestPackageGeneratedFile(
       packageName: 'aaa',
       pathInLib: 'a.dart',
@@ -448,7 +493,7 @@ void f(A a) {}
 class A {}
 ''');
 
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
     _createTestPackageBuildMarker();
 
     await assertErrorsInCode(r'''
@@ -463,7 +508,7 @@ void f(A a) {}
 
 @reflectiveTest
 class DeprecatedMemberUseFromSamePackage_BasicWorkspaceTest
-    extends PubPackageResolutionTest {
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_assignmentExpression_compound_deprecatedGetter() async {
     await assertErrorsInCode(r'''
 @deprecated
@@ -620,6 +665,36 @@ f(A a) {
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 59, 1),
     ]);
+  }
+
+  test_field_inDeprecatedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  @deprecated
+  int x = 1;
+
+  @deprecated
+  A() {
+    x;
+    x = 2;
+  }
+}
+''');
+  }
+
+  test_field_inDeprecatedFunction() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  @deprecated
+  int x = 1;
+}
+
+@deprecated
+void f(A a) {
+  a.x;
+  a.x = 2;
+}
+''');
   }
 
   test_getter() async {
@@ -812,6 +887,20 @@ f() {
     ]);
   }
 
+  test_method_inDeprecatedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  @deprecated
+  A() {
+    foo();
+  }
+
+  @deprecated
+  void foo() {}
+}
+''');
+  }
+
   test_methodInvocation_constant() async {
     await assertErrorsInCode(r'''
 class A {
@@ -960,6 +1049,32 @@ void f(A a) {
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 70, 1),
     ]);
+  }
+
+  test_parameter_positionalOptional_inDeprecatedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  @deprecated
+  A() {
+    foo(0);
+  }
+
+  void foo([@deprecated int x]) {}
+}
+''');
+  }
+
+  test_parameter_positionalOptional_inDeprecatedFunction() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo([@deprecated int x]) {}
+}
+
+@deprecated
+void f(A a) {
+  a.foo(0);
+}
+''');
   }
 
   test_parameter_positionalRequired() async {
@@ -1462,7 +1577,7 @@ void f(A a) {}
 class DeprecatedMemberUseFromSamePackage_PackageBuildWorkspaceTest
     extends _PackageBuildWorkspaceBase {
   test_generated() async {
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
 
     _newTestPackageGeneratedFile(
       packageName: 'test',
@@ -1483,7 +1598,7 @@ void f(A a) {}
   }
 
   test_lib() async {
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
     _createTestPackageBuildMarker();
 
     newFile('$testPackageLibPath/a.dart', content: r'''
@@ -1517,9 +1632,9 @@ class _PackageBuildWorkspaceBase extends PubPackageResolutionTest {
   }
 
   void _newTestPackageGeneratedFile({
-    @required String packageName,
-    @required String pathInLib,
-    @required String content,
+    required String packageName,
+    required String pathInLib,
+    required String content,
   }) {
     newFile(
       '$testPackageGeneratedPath/$packageName/lib/$pathInLib',

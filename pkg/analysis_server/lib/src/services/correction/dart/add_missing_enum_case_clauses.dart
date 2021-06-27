@@ -21,7 +21,7 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
     }
     var statement = node as SwitchStatement;
 
-    String enumName;
+    String? enumName;
     var enumConstantNames = <String>[];
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
@@ -56,13 +56,14 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
     var statementIndent = utils.getLinePrefix(statement.offset);
     var singleIndent = utils.getIndent(1);
 
+    final enumName_final = enumName;
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(utils.getLineThis(statement.end), (builder) {
         for (var constantName in enumConstantNames) {
           builder.write(statementIndent);
           builder.write(singleIndent);
           builder.write('case ');
-          builder.write(enumName);
+          builder.write(enumName_final);
           builder.write('.');
           builder.write(constantName);
           builder.writeln(':');

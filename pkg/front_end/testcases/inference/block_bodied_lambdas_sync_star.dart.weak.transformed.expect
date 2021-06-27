@@ -1,0 +1,30 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  () →* core::Iterable<core::num*>* f = () → core::Iterable<core::num*>* /* originally sync* */ {
+    function :sync_op_gen() → (core::_SyncIterator<dynamic>*, dynamic, dynamic) →* core::bool* {
+      core::int* :await_jump_var = 0;
+      dynamic :await_ctx_var;
+      function :sync_op(core::_SyncIterator<dynamic>* :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
+        {
+          {
+            :iterator.{core::_SyncIterator::_current} = 1;
+            [yield] true;
+          }
+          {
+            :iterator.{core::_SyncIterator::_yieldEachIterable} = core::_GrowableList::_literal2<core::num*>(3, 4.0);
+            [yield] true;
+          }
+        }
+        return false;
+      }
+      return :sync_op;
+    }
+    return new core::_SyncIterable::•<core::num*>(:sync_op_gen);
+  };
+  core::Iterable<core::num*>* g = f(){() →* core::Iterable<core::num*>*};
+  core::Iterable<core::int*>* h = f(){() →* core::Iterable<core::num*>*} as{TypeError} core::Iterable<core::int*>*;
+}
+static method main() → dynamic {}

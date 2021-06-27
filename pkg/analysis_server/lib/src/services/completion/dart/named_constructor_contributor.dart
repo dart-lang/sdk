@@ -22,13 +22,11 @@ class NamedConstructorContributor extends DartCompletionContributor {
         return;
       }
       var typeName = node.type;
-      if (typeName != null) {
-        var type = typeName.type;
-        if (type != null) {
-          var element = type.element;
-          if (element is ClassElement) {
-            _buildSuggestions(request, builder, libraryElement, element);
-          }
+      var type = typeName.type;
+      if (type != null) {
+        var element = type.element;
+        if (element is ClassElement) {
+          _buildSuggestions(request, builder, libraryElement, element);
         }
       }
     }
@@ -42,8 +40,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
     var isLocalClassDecl = classElem.library == libElem;
     for (var constructor in classElem.constructors) {
       if (isLocalClassDecl || !constructor.isPrivate) {
-        var name = constructor.name;
-        if (name != null) {
+        if (!classElem.isAbstract || constructor.isFactory) {
           builder.suggestConstructor(constructor, hasClassName: true);
         }
       }

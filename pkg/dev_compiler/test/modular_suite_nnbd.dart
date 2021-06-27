@@ -11,8 +11,8 @@ import 'dart:io';
 
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
-import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
+import 'package:modular_test/src/suite.dart';
 import 'package:package_config/package_config.dart';
 
 String packageConfigJsonPath = '.dart_tool/package_config.json';
@@ -48,7 +48,7 @@ const txtId = DataId('txt');
 String _packageConfigEntry(String name, Uri root,
     {Uri packageRoot, LanguageVersion version}) {
   var fields = [
-    '"name": "${name}"',
+    '"name": "$name"',
     '"rootUri": "$root"',
     if (packageRoot != null) '"packageUri": "$packageRoot"',
     if (version != null) '"languageVersion": "$version"'

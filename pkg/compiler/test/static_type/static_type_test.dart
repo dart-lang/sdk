@@ -89,6 +89,24 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
     } else if (node is ir.MethodInvocation) {
       return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
           '${typeToText(node.accept(staticTypeCache))}';
+    } else if (node is ir.InstanceInvocation) {
+      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
+          '${typeToText(node.accept(staticTypeCache))}';
+    } else if (node is ir.InstanceGetterInvocation) {
+      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
+          '${typeToText(node.accept(staticTypeCache))}';
+    } else if (node is ir.DynamicInvocation) {
+      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
+          '${typeToText(node.accept(staticTypeCache))}';
+    } else if (node is ir.FunctionInvocation) {
+      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
+          '${typeToText(node.accept(staticTypeCache))}';
+    } else if (node is ir.LocalFunctionInvocation) {
+      return '[${typeToText(node.variable.type)}]->'
+          '${typeToText(node.accept(staticTypeCache))}';
+    } else if (node is ir.EqualsCall) {
+      return '[${typeToText(node.left.accept(staticTypeCache))}]->'
+          '${typeToText(node.accept(staticTypeCache))}';
     }
     return null;
   }

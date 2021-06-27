@@ -37,15 +37,40 @@ class B extends A {
 }''');
   }
 
-  test_invalid() async {
+  test_invalid_class() async {
     await assertErrorsInCode(r'''
-class A {
-}
+class A {}
+
 class B extends A {
   @override
-  set m(int x) {}
-}''', [
-      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 50, 1),
+  set foo(int _) {}
+}
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 50, 3),
+    ]);
+  }
+
+  test_invalid_extension() async {
+    await assertErrorsInCode(r'''
+extension E on int {
+  @override
+  set foo(int _) {}
+}
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 39, 3),
+    ]);
+  }
+
+  test_invalid_mixin() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+mixin M on A {
+  @override
+  set foo(int _) {}
+}
+''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 45, 3),
     ]);
   }
 }

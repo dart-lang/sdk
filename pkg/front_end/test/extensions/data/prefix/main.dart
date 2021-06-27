@@ -5,10 +5,10 @@
 // @dart = 2.9
 
 /*library: scope=[
- lib1.dart.ShownExtension1,
- lib2.dart.ShownExtension2,
- lib3.dart.ShownExtension3]
-*/
+  async.dart.FutureExtensions,
+  lib1.dart.ShownExtension1,
+  lib2.dart.ShownExtension2,
+  lib3.dart.ShownExtension3]*/
 
 import 'lib1.dart' as lib1 show ShownExtension1;
 import 'lib2.dart' as lib2 hide HiddenExtension2;

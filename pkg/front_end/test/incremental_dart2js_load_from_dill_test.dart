@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, File;
 
 import 'package:expect/expect.dart' show Expect;
@@ -14,7 +16,7 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart';
 
-import 'incremental_load_from_dill_suite.dart'
+import 'incremental_suite.dart'
     show checkIsEqual, getOptions, initializedCompile, normalCompile;
 
 Directory outDir;

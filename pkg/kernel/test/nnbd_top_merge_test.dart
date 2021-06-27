@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart" show Expect;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/testing/type_parser_environment.dart';
 
@@ -108,6 +110,17 @@ const Map<String, dynamic> data = {
     '<E extends List<E>>(E) -> void',
     '<F extends List<F>>(F) -> void'
   ],
+  'invalid vs invalid': 'invalid',
+  'invalid vs Object': 'invalid',
+  'invalid vs Object?': 'invalid',
+  'Object vs invalid': 'invalid',
+  'Object? vs invalid': 'invalid',
+  'void vs invalid': 'invalid',
+  'dynamic vs invalid': 'invalid',
+  'Null vs invalid': 'invalid',
+  'Never vs invalid': 'invalid',
+  '() -> void vs invalid': 'invalid',
+  '<T>(T) -> void vs <T>(invalid) -> void': '<T>(invalid) -> void',
 };
 
 main() {

@@ -21,17 +21,18 @@ class InstrumentationInputConverter extends CommonInputConverter {
   /// [readBuffer] holds the contents of the file being read from disk
   /// as recorded in the instrumentation log
   /// or `null` if not converting a "Read" entry.
-  StringBuffer readBuffer;
+  StringBuffer? readBuffer;
 
   InstrumentationInputConverter(String tmpSrcDirPath, PathMap srcPathMap)
       : super(tmpSrcDirPath, srcPathMap);
 
   @override
-  Operation convert(String line) {
+  Operation? convert(String line) {
     List<String> fields;
     try {
       fields = _parseFields(line);
       if (fields.length < 2) {
+        final readBuffer = this.readBuffer;
         if (readBuffer != null) {
           readBuffer.writeln(fields.length == 1 ? fields[0] : '');
           return null;
@@ -76,7 +77,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
     return null;
   }
 
-  Map<String, dynamic> decodeJson(String line, String text) {
+  Map<String, Object?> decodeJson(String line, String text) {
     try {
       return asMap(json.decode(text));
     } catch (e, s) {

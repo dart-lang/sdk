@@ -9,7 +9,7 @@ bool f<T>(T a) => a is T;
 
 typedef bool F<R>(R a);
 
-/*member: method:indirect,needsArgs*/
+/*member: method:implicit=[method.S],indirect,needsArgs*/
 method<S>() {
   F<S> c;
 

@@ -11,24 +11,28 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithConditionalAssignment extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT;
 
   @override
+  FixKind get multiFixKind =>
+      DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    IfStatement ifStatement =
+    final node = this.node;
+    var ifStatement =
         node is IfStatement ? node : node.thisOrAncestorOfType<IfStatement>();
     if (ifStatement == null) {
       return;
     }
-    var thenStatement = ifStatement.thenStatement;
-    Statement uniqueStatement(Statement statement) {
-      if (statement is Block) {
-        return uniqueStatement(statement.statements.first);
-      }
-      return statement;
-    }
 
-    thenStatement = uniqueStatement(thenStatement);
+    var thenStatement = _uniqueStatement(ifStatement.thenStatement);
     if (thenStatement is ExpressionStatement) {
       final expression = thenStatement.expression.unParenthesized;
       if (expression is AssignmentExpression) {
@@ -47,4 +51,11 @@ class ReplaceWithConditionalAssignment extends CorrectionProducer {
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static ReplaceWithConditionalAssignment newInstance() =>
       ReplaceWithConditionalAssignment();
+
+  static Statement _uniqueStatement(Statement statement) {
+    if (statement is Block) {
+      return _uniqueStatement(statement.statements.first);
+    }
+    return statement;
+  }
 }

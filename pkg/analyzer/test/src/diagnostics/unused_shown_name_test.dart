@@ -139,7 +139,7 @@ class B {}
 ''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' show A, B;
-A a;
+A a = A();
 ''', [
       error(HintCode.UNUSED_SHOWN_NAME, 27, 1),
     ]);
@@ -163,7 +163,7 @@ class B {}
 ''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' as p show A, B;
-p.A a;
+p.A a = p.A();
 ''', [
       error(HintCode.UNUSED_SHOWN_NAME, 32, 1),
     ]);
@@ -179,8 +179,8 @@ class D {}
     await assertErrorsInCode(r'''
 import 'lib1.dart' show A, B;
 import 'lib1.dart' show C, D;
-A a;
-C c;
+A a = A();
+C c = C();
 ''', [
       error(HintCode.UNUSED_SHOWN_NAME, 27, 1),
       error(HintCode.UNUSED_SHOWN_NAME, 57, 1),

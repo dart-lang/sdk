@@ -13,7 +13,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_new.dart' as api;
 import 'commandline_options.dart';
-import 'options.dart' show CompilerOptions;
+import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -135,6 +135,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   Map<String, String> environment = new Map<String, String>();
   ReadStrategy readStrategy = ReadStrategy.fromDart;
   WriteStrategy writeStrategy = WriteStrategy.toJs;
+  FeatureOptions features = FeatureOptions();
 
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
@@ -234,9 +235,22 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough(argument);
   }
 
-  void addInEnvironment(String argument) {
+  void addInEnvironment(Iterator<String> arguments) {
+    final isDefine = arguments.current.startsWith('--define');
+    String argument;
+    if (arguments.current == '--define') {
+      arguments.moveNext();
+      argument = arguments.current;
+    } else {
+      argument = arguments.current.substring(isDefine ? '--define='.length : 2);
+    }
+    // Allow for ' ' or '=' after --define
     int eqIndex = argument.indexOf('=');
-    String name = argument.substring(2, eqIndex);
+    if (eqIndex <= 0) {
+      helpAndFail('Invalid value for --define: $argument');
+      return;
+    }
+    String name = argument.substring(0, eqIndex);
     String value = argument.substring(eqIndex + 1);
     environment[name] = value;
   }
@@ -264,8 +278,15 @@ Future<api.CompilationResult> compile(List<String> argv,
     if (argument != Flags.readData) {
       readDataUri = fe.nativeToUri(extractPath(argument, isDirectory: false));
     }
-    if (readStrategy != ReadStrategy.fromCodegen) {
+
+    if (readStrategy == ReadStrategy.fromDart) {
       readStrategy = ReadStrategy.fromData;
+    } else if (readStrategy == ReadStrategy.fromClosedWorld) {
+      readStrategy = ReadStrategy.fromDataAndClosedWorld;
+    } else if (readStrategy == ReadStrategy.fromCodegen) {
+      readStrategy = ReadStrategy.fromCodegenAndData;
+    } else if (readStrategy == ReadStrategy.fromCodegenAndClosedWorld) {
+      readStrategy = ReadStrategy.fromCodegenAndClosedWorldAndData;
     }
   }
 
@@ -274,7 +295,16 @@ Future<api.CompilationResult> compile(List<String> argv,
       readClosedWorldUri =
           fe.nativeToUri(extractPath(argument, isDirectory: false));
     }
-    readStrategy = ReadStrategy.fromClosedWorld;
+
+    if (readStrategy == ReadStrategy.fromDart) {
+      readStrategy = ReadStrategy.fromClosedWorld;
+    } else if (readStrategy == ReadStrategy.fromData) {
+      readStrategy = ReadStrategy.fromDataAndClosedWorld;
+    } else if (readStrategy == ReadStrategy.fromCodegen) {
+      readStrategy = ReadStrategy.fromCodegenAndClosedWorld;
+    } else if (readStrategy == ReadStrategy.fromCodegenAndData) {
+      readStrategy = ReadStrategy.fromCodegenAndClosedWorldAndData;
+    }
   }
 
   void setDillDependencies(String argument) {
@@ -305,7 +335,16 @@ Future<api.CompilationResult> compile(List<String> argv,
       readCodegenUri =
           fe.nativeToUri(extractPath(argument, isDirectory: false));
     }
-    readStrategy = ReadStrategy.fromCodegen;
+
+    if (readStrategy == ReadStrategy.fromDart) {
+      readStrategy = ReadStrategy.fromCodegen;
+    } else if (readStrategy == ReadStrategy.fromClosedWorld) {
+      readStrategy = ReadStrategy.fromCodegenAndClosedWorld;
+    } else if (readStrategy == ReadStrategy.fromData) {
+      readStrategy = ReadStrategy.fromCodegenAndData;
+    } else if (readStrategy == ReadStrategy.fromDataAndClosedWorld) {
+      readStrategy = ReadStrategy.fromCodegenAndClosedWorldAndData;
+    }
   }
 
   void setWriteData(String argument) {
@@ -453,6 +492,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('${Flags.dillDependencies}=.+', setDillDependencies),
     new OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     new OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
+    new OptionHandler(Flags.noClosedWorldInData, passThrough),
     new OptionHandler('${Flags.readClosedWorld}|${Flags.readClosedWorld}=.+',
         setReadClosedWorld),
     new OptionHandler('${Flags.writeClosedWorld}|${Flags.writeClosedWorld}=.+',
@@ -473,6 +513,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.initializingFormalAccess, ignoreOption),
     new OptionHandler(Flags.minify, passThrough),
     new OptionHandler(Flags.noMinify, passThrough),
+    new OptionHandler(Flags.omitLateNames, passThrough),
+    new OptionHandler(Flags.noOmitLateNames, passThrough),
     new OptionHandler(Flags.preserveUris, ignoreOption),
     new OptionHandler(Flags.printLegacyStars, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
@@ -523,8 +565,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.omitImplicitChecks, passThrough),
     new OptionHandler(Flags.omitAsCasts, passThrough),
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),
-    new OptionHandler(Flags.legacyJavaScript, passThrough),
-    new OptionHandler(Flags.noLegacyJavaScript, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
     new OptionHandler(Flags.benchmarkingExperiment, passThrough),
     new OptionHandler(Flags.soundNullSafety, setNullSafetyMode),
@@ -542,8 +582,11 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useMultiSourceInfo, passThrough),
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.useOldRti, passThrough),
+    new OptionHandler(Flags.useSimpleLoadIds, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
     new OptionHandler('${Flags.dumpSsa}=.+', passThrough),
+    new OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
+    new OptionHandler('${Flags.verbosity}=.+', passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.
@@ -551,7 +594,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     // TODO(29574): provide a warning/hint/error, when profile-based data is
     // used without `--fast-startup`.
     new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
-    new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
     new OptionHandler(Flags.experimentLocalNames, ignoreOption),
     new OptionHandler(Flags.experimentStartupFunctions, passThrough),
@@ -559,10 +601,24 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentUnreachableMethodsThrow, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
     new OptionHandler(Flags.experimentNewRti, ignoreOption),
+    new OptionHandler(Flags.experimentLateInstanceVariables, passThrough),
     new OptionHandler('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
+    // Wire up feature flags.
+    OptionHandler(Flags.canary, passThrough),
+    OptionHandler(Flags.noShipping, passThrough),
+    for (var feature in features.shipping)
+      OptionHandler('--${feature.flag}', passThrough),
+    for (var feature in features.shipping)
+      OptionHandler('--no-${feature.flag}', passThrough),
+    for (var feature in features.canary)
+      OptionHandler('--${feature.flag}', passThrough),
+    for (var feature in features.canary)
+      OptionHandler('--no-${feature.flag}', passThrough),
+
     // The following three options must come last.
-    new OptionHandler('-D.+=.*', addInEnvironment),
+    new OptionHandler('-D.+=.*|--define=.+=.*|--define', addInEnvironment,
+        multipleArguments: true),
     new OptionHandler('-.*', (String argument) {
       helpAndFail("Unknown option '$argument'.");
     }),
@@ -693,7 +749,9 @@ Future<api.CompilationResult> compile(List<String> argv,
       if (readStrategy == ReadStrategy.fromCodegen) {
         fail("Cannot read and write serialized codegen simultaneously.");
       }
-      if (readStrategy != ReadStrategy.fromData) {
+      // TODO(joshualitt) cleanup after google3 roll.
+      if (readStrategy != ReadStrategy.fromData &&
+          readStrategy != ReadStrategy.fromDataAndClosedWorld) {
         fail("Can only write serialized codegen from serialized data.");
       }
       if (codegenShards == null) {
@@ -721,6 +779,8 @@ Future<api.CompilationResult> compile(List<String> argv,
       options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
       break;
     case ReadStrategy.fromData:
+      // TODO(joshualitt): fail after Google3 roll.
+      // fail("Must read from closed world and data.");
       readDataUri ??= Uri.base.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
       break;
@@ -731,6 +791,8 @@ Future<api.CompilationResult> compile(List<String> argv,
       options.add('${Flags.readData}=${readDataUri}');
       break;
     case ReadStrategy.fromCodegen:
+    case ReadStrategy.fromCodegenAndData:
+      // TODO(joshualitt): fall through to fail after google3 roll.
       readDataUri ??= Uri.base.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
       readCodegenUri ??= Uri.base.resolve('$scriptName.code');
@@ -744,6 +806,9 @@ Future<api.CompilationResult> compile(List<String> argv,
       options.add('${Flags.codegenShards}=$codegenShards');
       break;
     case ReadStrategy.fromCodegenAndClosedWorld:
+      fail("Must read from closed world, data, and codegen");
+      break;
+    case ReadStrategy.fromCodegenAndClosedWorldAndData:
       readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
       options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
       readDataUri ??= Uri.base.resolve('$scriptName.data');
@@ -800,6 +865,8 @@ Future<api.CompilationResult> compile(List<String> argv,
         summary = 'Data files $input and $dataInput ';
         break;
       case ReadStrategy.fromData:
+        // TODO(joshualitt): fail after google3 roll.
+        //fail("Must read from closed world and data.");
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
         String dataInput =
@@ -816,6 +883,8 @@ Future<api.CompilationResult> compile(List<String> argv,
         summary = 'Data files $input, $worldInput, and $dataInput ';
         break;
       case ReadStrategy.fromCodegen:
+      case ReadStrategy.fromCodegenAndData:
+        // TODO(joshualitt): Fall through to fail after google3 roll.
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
         String dataInput =
@@ -826,6 +895,9 @@ Future<api.CompilationResult> compile(List<String> argv,
             '${codeInput}[0-${codegenShards - 1}] ';
         break;
       case ReadStrategy.fromCodegenAndClosedWorld:
+        fail("Must read from closed world, data, and codegen");
+        break;
+      case ReadStrategy.fromCodegenAndClosedWorldAndData:
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
         String worldInput =
@@ -913,6 +985,7 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      featureOptions: features,
       librariesSpecificationUri: librariesSpecificationUri,
       platformBinaries: platformBinaries,
       onError: (String message) => fail(message),
@@ -1028,7 +1101,7 @@ Supported options:
   -v, --verbose
     Display verbose information.
 
-  -D<name>=<value>
+  -D<name>=<value>, --define=<name>=<value>
     Define an environment declaration.
 
   --version
@@ -1064,6 +1137,11 @@ Supported options:
   --no-source-maps
     Do not generate a source map file.
 
+  --omit-late-names
+    Do not include names of late variables in error messages. This allows
+    dart2js to generate smaller code by removing late variable names from the
+    generated JavaScript.
+
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve
     performance of the generated code for deployment.
@@ -1091,6 +1169,7 @@ Supported options:
        Equivalent to calling dart2js with these extra flags:
         --minify
         --lax-runtime-type-to-string
+        --omit-late-names
 
     -O3
        Enables optimizations that respect the language semantics only on
@@ -1357,12 +1436,17 @@ void batchMain(List<String> batchArguments) {
   });
 }
 
+// TODO(joshualitt): Clean up the combinatorial explosion of read strategies.
+// Right now only fromClosedWorld, fromDataAndClosedWorld, and
+// fromCodegenAndClosedWorldAndData are valid.
 enum ReadStrategy {
   fromDart,
   fromClosedWorld,
   fromData,
   fromDataAndClosedWorld,
   fromCodegen,
-  fromCodegenAndClosedWorld
+  fromCodegenAndClosedWorld,
+  fromCodegenAndData,
+  fromCodegenAndClosedWorldAndData,
 }
 enum WriteStrategy { toKernel, toClosedWorld, toData, toCodegen, toJs }

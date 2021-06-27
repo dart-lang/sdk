@@ -21,9 +21,9 @@ class PackageBundleBuilder {
   }
 
   Uint8List finish({
-    @required Uint8List astBytes,
-    @required Uint8List resolutionBytes,
-    PackageBundleSdk sdk,
+    @Deprecated('This parameter is not used anymore') Uint8List? astBytes,
+    required Uint8List resolutionBytes,
+    PackageBundleSdk? sdk,
   }) {
     var byteSink = ByteSink();
     var sink = BufferedSink(byteSink);
@@ -43,11 +43,9 @@ class PackageBundleBuilder {
       );
     });
 
-    sink.writeUint8List(astBytes);
     sink.writeUint8List(resolutionBytes);
 
-    sink.flushAndDestroy();
-    return byteSink.builder.takeBytes();
+    return sink.flushAndTake();
   }
 }
 
@@ -61,9 +59,8 @@ class PackageBundleLibrary {
 
 class PackageBundleReader {
   final List<PackageBundleLibrary> libraries = [];
-  PackageBundleSdk _sdk;
-  Uint8List _astBytes;
-  Uint8List _resolutionBytes;
+  late final PackageBundleSdk? _sdk;
+  late final Uint8List _resolutionBytes;
 
   PackageBundleReader(Uint8List bytes) {
     var reader = SummaryDataReader(bytes);
@@ -86,15 +83,12 @@ class PackageBundleReader {
       );
     }
 
-    _astBytes = reader.readUint8List();
     _resolutionBytes = reader.readUint8List();
   }
 
-  Uint8List get astBytes => _astBytes;
-
   Uint8List get resolutionBytes => _resolutionBytes;
 
-  PackageBundleSdk get sdk => _sdk;
+  PackageBundleSdk? get sdk => _sdk;
 }
 
 class PackageBundleSdk {
@@ -105,9 +99,9 @@ class PackageBundleSdk {
   final String allowedExperimentsJson;
 
   PackageBundleSdk({
-    @required this.languageVersionMajor,
-    @required this.languageVersionMinor,
-    @required this.allowedExperimentsJson,
+    required this.languageVersionMajor,
+    required this.languageVersionMinor,
+    required this.allowedExperimentsJson,
   });
 
   factory PackageBundleSdk._fromReader(SummaryDataReader reader) {

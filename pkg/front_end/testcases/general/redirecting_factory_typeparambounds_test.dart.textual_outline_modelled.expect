@@ -1,3 +1,4 @@
+// @dart = 2.9
 library redirecting_factory_constructors.typeparambounds_test;
 
 class A<T, S extends T> {

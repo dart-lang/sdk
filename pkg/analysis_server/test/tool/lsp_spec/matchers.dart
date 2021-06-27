@@ -9,7 +9,7 @@ import '../../../tool/lsp_spec/typescript_parser.dart';
 
 Matcher isArrayOf(Matcher matcher) => ArrayTypeMatcher(wrapMatcher(matcher));
 
-Matcher isLiteralOf(Matcher typeMatcher, Object value) =>
+Matcher isLiteralOf(Matcher typeMatcher, String value) =>
     LiteralTypeMatcher(typeMatcher, value);
 
 Matcher isMapOf(Matcher indexMatcher, Matcher valueMatcher) =>

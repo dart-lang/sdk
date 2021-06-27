@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 /// added, changed, or removed, and therefore more analysis may be necessary.
 /// [path] is the path of the file that was added, changed, or removed, or
 /// `null` if multiple files were added, changed, or removed.
-typedef FileTrackerChangeHook = void Function(String path);
+typedef FileTrackerChangeHook = void Function(String? path);
 
 /// Maintains the file system state needed by the analysis driver, as well as
 /// information about files that have changed and the impact of those changes.
@@ -184,11 +184,6 @@ class FileTracker {
   FileState verifyApiSignature(String path) {
     return _logger.run('Verify API signature of $path', () {
       _logger.writeln('Work in ${_fsState.contextName}');
-
-      var file = _fsState.getFileForPath(path);
-      if (file.isInExternalSummaries) {
-        return file;
-      }
 
       bool anyApiChanged = false;
       List<FileState> files = _fsState.getFilesForPath(path);

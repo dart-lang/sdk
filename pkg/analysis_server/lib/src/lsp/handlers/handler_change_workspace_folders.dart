@@ -27,19 +27,18 @@ class WorkspaceFoldersHandler
       DidChangeWorkspaceFoldersParams params, CancellationToken token) {
     // Don't do anything if our analysis roots are not based on open workspaces.
     if (!updateAnalysisRoots) {
-      return success();
+      return success(null);
     }
 
-    final added = params?.event?.added
-        ?.map((wf) => Uri.parse(wf.uri).toFilePath())
-        ?.toList();
+    final added =
+        params.event.added.map((wf) => Uri.parse(wf.uri).toFilePath()).toList();
 
-    final removed = params?.event?.removed
-        ?.map((wf) => Uri.parse(wf.uri).toFilePath())
-        ?.toList();
+    final removed = params.event.removed
+        .map((wf) => Uri.parse(wf.uri).toFilePath())
+        .toList();
 
-    server.updateAnalysisRoots(added, removed);
+    server.updateWorkspaceFolders(added, removed);
 
-    return success();
+    return success(null);
   }
 }

@@ -32,67 +32,88 @@ void main() {
 
 @reflectiveTest
 class AnalysisErrorTest {
-  MockSource source = MockSource();
-  MockAnalysisError engineError;
-  ResolvedUnitResult result;
+  late MockSource source;
+  late MockAnalysisError engineError;
+  late ResolvedUnitResult result;
 
   void setUp() {
     // prepare Source
-    source.fullName = 'foo.dart';
+    source = MockSource(fullName: 'foo.dart');
     // prepare AnalysisError
-    engineError = MockAnalysisError(source,
-        engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT, 10, 20, 'my message');
+    engineError = MockAnalysisError(
+      source: source,
+      errorCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+      offset: 10,
+      length: 20,
+      message: 'my message',
+    );
     // prepare ResolvedUnitResult
     var lineInfo = engine.LineInfo([0, 5, 9, 20]);
-    result = engine.ResolvedUnitResultImpl(null, 'foo.dart', null, true, null,
-        lineInfo, false, null, [engineError]);
-  }
-
-  void tearDown() {
-    source = null;
-    engineError = null;
+    result = _ResolvedUnitResultImplMock(
+      lineInfo: lineInfo,
+      errors: [engineError],
+    );
   }
 
   void test_fromEngine_hasContextMessage() {
-    engineError.contextMessages.add(engine.DiagnosticMessageImpl(
-        filePath: 'bar.dart', offset: 30, length: 5, message: 'context'));
-    var session = MockAnalysisSession();
-    session.addFileResult(engine.FileResultImpl(
-        session, 'bar.dart', null, engine.LineInfo([0, 5, 9, 20]), false));
+    engineError.contextMessages.add(
+      engine.DiagnosticMessageImpl(
+        filePath: 'bar.dart',
+        offset: 30,
+        length: 5,
+        message: 'context',
+        url: null,
+      ),
+    );
     var error = newAnalysisError_fromEngine(
-        engine.ResolvedUnitResultImpl(session, 'foo.dart', null, true, null,
-            engine.LineInfo([0, 5, 9, 20]), false, null, [engineError]),
-        engineError);
+      _ResolvedUnitResultImplMock(
+        lineInfo: engine.LineInfo([0, 5, 9, 20]),
+        errors: [engineError],
+      ),
+      engineError,
+    );
     expect(error.toJson(), {
-      'severity': 'ERROR',
-      'type': 'COMPILE_TIME_ERROR',
-      'location': {
-        'file': 'foo.dart',
-        'offset': 10,
-        'length': 20,
-        'startLine': 3,
-        'startColumn': 2
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: 3,
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
-      'message': 'my message',
-      'code': 'ambiguous_export',
-      'contextMessages': [
+      MESSAGE: 'my message',
+      CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/diagnostics/ambiguous_export',
+      CONTEXT_MESSAGES: [
         {
-          'message': 'context',
-          'location': {
-            'file': 'bar.dart',
-            'offset': 30,
-            'length': 5,
-            'startLine': 4,
-            'startColumn': 11
+          MESSAGE: 'context',
+          LOCATION: {
+            FILE: 'bar.dart',
+            OFFSET: 30,
+            LENGTH: 5,
+            START_LINE: 4,
+            START_COLUMN: 11,
+            END_LINE: 4,
+            END_COLUMN: 16,
           }
         }
       ],
-      'hasFix': false
+      HAS_FIX: false
     });
   }
 
   void test_fromEngine_hasCorrection() {
-    engineError.correction = 'my correction';
+    engineError = MockAnalysisError(
+      source: source,
+      errorCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+      offset: 10,
+      length: 20,
+      message: 'my message',
+      correction: 'my correction',
+    );
     var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
@@ -102,22 +123,26 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CORRECTION: 'my correction',
       CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/diagnostics/ambiguous_export',
       HAS_FIX: false
     });
   }
 
   void test_fromEngine_hasUrl() {
     engineError = MockAnalysisError(
-        source,
-        MockErrorCode(url: 'http://codes.dartlang.org/TEST_ERROR'),
-        10,
-        20,
-        'my message');
+      source: source,
+      errorCode: MockErrorCode(url: 'http://codes.dartlang.org/TEST_ERROR'),
+      offset: 10,
+      length: 20,
+      message: 'my message',
+    );
     var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
@@ -127,7 +152,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'test_error',
@@ -138,11 +165,12 @@ class AnalysisErrorTest {
 
   void test_fromEngine_lint() {
     engineError = MockAnalysisError(
-        source,
-        LintCode('my_lint', 'my message', correction: 'correction'),
-        10,
-        20,
-        'my message');
+      source: source,
+      errorCode: LintCode('my_lint', 'my message', correction: 'correction'),
+      offset: 10,
+      length: 20,
+      message: 'my message',
+    );
     var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
       SEVERITY: 'INFO',
@@ -152,7 +180,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'my_lint',
@@ -162,7 +192,13 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_noCorrection() {
-    engineError.correction = null;
+    engineError = MockAnalysisError(
+      source: source,
+      errorCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+      offset: 10,
+      length: 20,
+      message: 'my message',
+    );
     var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
@@ -172,32 +208,13 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
-      HAS_FIX: false
-    });
-  }
-
-  void test_fromEngine_noLineInfo() {
-    engineError.correction = null;
-    var error = newAnalysisError_fromEngine(
-        engine.ResolvedUnitResultImpl(null, 'foo.dart', null, true, null, null,
-            false, null, [engineError]),
-        engineError);
-    expect(error.toJson(), {
-      SEVERITY: 'ERROR',
-      TYPE: 'COMPILE_TIME_ERROR',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: -1,
-        START_COLUMN: -1
-      },
-      MESSAGE: 'my message',
-      CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/diagnostics/ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -229,7 +246,6 @@ class EnumTest {
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
       engine.ElementKind.NEVER: ElementKind.UNKNOWN,
-      engine.ElementKind.TYPE_ALIAS: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
     });
   }
@@ -252,7 +268,7 @@ class EnumTester<EngineEnum, ApiEnum> {
   /// If the corresponding value is an [ApiEnum], then we check that converting
   /// the given key results in the given value.
   void run(ApiEnum Function(EngineEnum) convert,
-      {Map<EngineEnum, ApiEnum> exceptions = const {}}) {
+      {Map<EngineEnum, ApiEnum?> exceptions = const {}}) {
     var engineClass = reflectClass(EngineEnum);
     engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
       if (symbol == #values) {
@@ -283,49 +299,73 @@ class EnumTester<EngineEnum, ApiEnum> {
 }
 
 class MockAnalysisError implements engine.AnalysisError {
-  @override
-  MockSource source;
-
-  @override
-  engine.ErrorCode errorCode;
-
-  @override
-  int offset;
-
-  @override
-  String message;
-
-  @override
-  String correction;
-
-  @override
-  int length;
+  final MockSource? _source;
+  final engine.ErrorCode? _errorCode;
+  final int? _offset;
+  final int? _length;
+  final String? _message;
+  final String? _correction;
+  final DiagnosticMessage? _problemMessage;
+  final String? _correctionMessage;
 
   @override
   List<DiagnosticMessage> contextMessages = <DiagnosticMessage>[];
 
-  MockAnalysisError(
-      this.source, this.errorCode, this.offset, this.length, this.message);
+  MockAnalysisError({
+    MockSource? source,
+    engine.ErrorCode? errorCode,
+    int? offset,
+    int? length,
+    String? message,
+    String? correction,
+    DiagnosticMessage? problemMessage,
+    String? correctionMessage,
+  })  : _source = source,
+        _errorCode = errorCode,
+        _offset = offset,
+        _length = length,
+        _message = message,
+        _correction = correction,
+        _problemMessage = problemMessage,
+        _correctionMessage = correctionMessage;
 
   @override
-  String get correctionMessage => null;
+  String? get correction => _correction;
 
   @override
-  DiagnosticMessage get problemMessage => null;
+  String? get correctionMessage => _correctionMessage;
 
   @override
-  Severity get severity => null;
+  engine.ErrorCode get errorCode => _errorCode!;
+
+  @override
+  int get length => _length!;
+
+  @override
+  String get message => _message!;
+
+  @override
+  int get offset => _offset!;
+
+  @override
+  DiagnosticMessage get problemMessage => _problemMessage!;
+
+  @override
+  Severity get severity => throw UnimplementedError();
+
+  @override
+  engine.Source get source => _source!;
 }
 
 class MockAnalysisSession implements AnalysisSession {
   Map<String, FileResult> fileResults = {};
 
   void addFileResult(FileResult result) {
-    fileResults[result.path] = result;
+    fileResults[result.path!] = result;
   }
 
   @override
-  FileResult getFile(String path) => fileResults[path];
+  FileResult getFile(String path) => fileResults[path]!;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -342,7 +382,7 @@ class MockErrorCode implements engine.ErrorCode {
   String name;
 
   @override
-  String url;
+  String? url;
 
   MockErrorCode(
       {this.type = engine.ErrorType.COMPILE_TIME_ERROR,
@@ -373,4 +413,20 @@ class MockErrorCode implements engine.ErrorCode {
   String get uniqueName {
     throw StateError('Unexpected invocation of uniqueName');
   }
+}
+
+class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
+  @override
+  final engine.LineInfo lineInfo;
+
+  @override
+  final List<engine.AnalysisError> errors;
+
+  _ResolvedUnitResultImplMock({
+    required this.lineInfo,
+    required this.errors,
+  });
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -13,9 +13,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
 
 /// Compute metrics to determine which untyped variable declarations can be used
 /// to imply an expected context type, i.e. the RHS of 'var string = ^' could be
@@ -61,7 +60,7 @@ ArgParser createArgParser() {
 }
 
 /// Print usage information for this tool.
-void printUsage(ArgParser parser, {String error}) {
+void printUsage(ArgParser parser, {String? error}) {
   if (error != null) {
     print(error);
     print('');
@@ -102,7 +101,7 @@ class ImpliedTypeCollector extends RecursiveAstVisitor<void> {
   /// [data].
   ImpliedTypeCollector(this.data);
 
-  void handleVariableDeclaration(VariableDeclaration node, DartType dartType) {
+  void handleVariableDeclaration(VariableDeclaration node, DartType? dartType) {
     // If some untyped variable declaration
     if (node.equals != null && dartType == null ||
         (dartType != null && (dartType.isDynamic || dartType.isVoid))) {
@@ -139,7 +138,7 @@ class ImpliedTypeComputer {
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
-  Future<void> compute(String rootPath, {@required bool verbose}) async {
+  Future<void> compute(String rootPath, {required bool verbose}) async {
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -172,7 +171,7 @@ class ImpliedTypeComputer {
   /// output if [verbose] is `true`.
   Future<void> _computeInContext(
       ContextRoot root, ImpliedTypeCollector collector,
-      {@required bool verbose}) async {
+      {required bool verbose}) async {
     // Create a new collection to avoid consuming large quantities of memory.
     final collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
@@ -180,21 +179,16 @@ class ImpliedTypeComputer {
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (AnalysisEngine.isDartFileName(filePath)) {
+      if (file_paths.isDart(pathContext, filePath)) {
         try {
           var resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+              await context.currentSession.getResolvedUnit2(filePath);
           //
           // Check for errors that cause the file to be skipped.
           //
-          if (resolvedUnitResult == null) {
-            print('File $filePath skipped because resolved unit was null.');
-            if (verbose) {
-              print('');
-            }
-            continue;
-          } else if (resolvedUnitResult.state != ResultState.VALID) {
+          if (resolvedUnitResult is! ResolvedUnitResult) {
             print('File $filePath skipped because it could not be analyzed.');
             if (verbose) {
               print('');
@@ -214,7 +208,7 @@ class ImpliedTypeComputer {
             continue;
           }
 
-          resolvedUnitResult.unit.accept(collector);
+          resolvedUnitResult.unit!.accept(collector);
         } catch (exception, stacktrace) {
           print('Exception caught analyzing: "$filePath"');
           print(exception);
@@ -240,8 +234,6 @@ class ImpliedTypeData {
 
   /// Record the variable name with the type.
   void recordImpliedType(String name, String displayString) {
-    assert(name != null);
-    assert(displayString != null);
     var nameMap = impliedTypesMap.putIfAbsent(name, () => {});
     nameMap[displayString] = (nameMap[displayString] ?? 0) + 1;
   }

@@ -18,14 +18,15 @@ void main() {
 @reflectiveTest
 class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
   void assertHasDeclaration(ElementKind kind, String name) {
-    result = findTopLevelResult(kind, name);
+    var result = findTopLevelResult(kind, name);
     if (result == null) {
       fail('Not found: kind=$kind name="$name"\nin\n' + results.join('\n'));
     }
+    this.result = result;
   }
 
   void assertNoDeclaration(ElementKind kind, String name) {
-    result = findTopLevelResult(kind, name);
+    var result = findTopLevelResult(kind, name);
     if (result != null) {
       fail('Unexpected: kind=$kind name="$name"\nin\n' + results.join('\n'));
     }
@@ -42,7 +43,7 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     return waitForSearchResults();
   }
 
-  SearchResult findTopLevelResult(ElementKind kind, String name) {
+  SearchResult? findTopLevelResult(ElementKind kind, String name) {
     for (var result in results) {
       var element = result.path[0];
       if (element.kind == kind && element.name == name) {
@@ -78,8 +79,8 @@ class ABC {}
     await findTopLevelDeclarations('^[A-F]\$');
     assertHasDeclaration(ElementKind.CLASS, 'A');
     assertHasDeclaration(ElementKind.CLASS, 'B');
-    assertHasDeclaration(ElementKind.FUNCTION_TYPE_ALIAS, 'C');
-    assertHasDeclaration(ElementKind.FUNCTION_TYPE_ALIAS, 'D');
+    assertHasDeclaration(ElementKind.TYPE_ALIAS, 'C');
+    assertHasDeclaration(ElementKind.TYPE_ALIAS, 'D');
     assertHasDeclaration(ElementKind.FUNCTION, 'E');
     assertHasDeclaration(ElementKind.TOP_LEVEL_VARIABLE, 'F');
     assertNoDeclaration(ElementKind.CLASS, 'ABC');

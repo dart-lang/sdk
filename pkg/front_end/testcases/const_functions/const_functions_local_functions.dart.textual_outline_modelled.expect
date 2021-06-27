@@ -1,0 +1,12 @@
+import "package:expect/expect.dart";
+
+const constTwo = 2;
+int function1() {}
+int function2() {}
+int function3() {}
+int function4() {}
+int function5() {}
+int function6() {}
+int function7() {}
+int function8() {}
+void main() {}

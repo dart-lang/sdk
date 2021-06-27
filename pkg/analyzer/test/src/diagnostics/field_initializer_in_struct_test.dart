@@ -27,11 +27,23 @@ class C extends Struct {
     ]);
   }
 
+  test_fieldInitializer2() async {
+    await assertErrorsInCode('''
+import 'dart:ffi';
+class C extends Union {
+  @Int32() int f;
+  C() : f = 0;
+}
+''', [
+      error(FfiCode.FIELD_INITIALIZER_IN_STRUCT, 69, 5),
+    ]);
+  }
+
   test_superInitializer() async {
     await assertNoErrorsInCode('''
 import 'dart:ffi';
 class C extends Struct {
-  @Int32() int f;
+  @Int32() int? f;
   C() : super();
 }
 ''');

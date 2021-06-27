@@ -18,12 +18,12 @@ class UseConst extends CorrectionProducer {
     if (coveredNode is InstanceCreationExpression) {
       var instanceCreation = coveredNode as InstanceCreationExpression;
       await builder.addDartFileEdit(file, (builder) {
-        if (instanceCreation.keyword == null) {
+        var keyword = instanceCreation.keyword;
+        if (keyword == null) {
           builder.addSimpleInsertion(
               instanceCreation.constructorName.offset, 'const');
         } else {
-          builder.addSimpleReplacement(
-              range.token(instanceCreation.keyword), 'const');
+          builder.addSimpleReplacement(range.token(keyword), 'const');
         }
       });
     }

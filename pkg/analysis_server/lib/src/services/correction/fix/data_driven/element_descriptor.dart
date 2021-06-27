@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show ClassElement;
 import 'package:analyzer/dart/element/type.dart';
-import 'package:meta/meta.dart';
 
 /// The path to an element.
 class ElementDescriptor {
@@ -16,7 +15,8 @@ class ElementDescriptor {
   /// The kind of element that was changed.
   final ElementKind kind;
 
-  /// The components that uniquely identify the element within its library.
+  /// The components that uniquely identify the element within its library. The
+  /// components are ordered from the most local to the most global.
   final List<String> components;
 
   /// Initialize a newly created element descriptor to describe an element
@@ -24,9 +24,9 @@ class ElementDescriptor {
   /// within the library is given by the list of [components]. The [kind] of the
   /// element is represented by the key used in the data file.
   ElementDescriptor(
-      {@required this.libraryUris,
-      @required this.kind,
-      @required this.components});
+      {required this.libraryUris,
+      required this.kind,
+      required this.components});
 
   /// Return `true` if the described element is a constructor.
   bool get isConstructor => kind == ElementKind.constructorKind;
@@ -47,27 +47,27 @@ class ElementDescriptor {
         if (node is Annotation) {
           var className = _nameFromIdentifier(node.name);
           var constructorName = node.constructorName ?? '';
-          if (components[0] == className && components[1] == constructorName) {
+          if (components[0] == constructorName && components[1] == className) {
             return true;
           }
         } else if (node is InstanceCreationExpression) {
           var name = node.constructorName;
           var className = _nameFromIdentifier(name.type.name);
           var constructorName = name.name?.name ?? '';
-          if (components[0] == className && components[1] == constructorName) {
+          if (components[0] == constructorName && components[1] == className) {
             return true;
           }
         } else if (node is MethodInvocation) {
           var target = node.target;
           if (target == null) {
-            if (components[0] == node.methodName.name && components[1] == '') {
+            if (components[0] == '' && components[1] == node.methodName.name) {
               return true;
             }
           } else if (target is Identifier) {
             var className = _nameFromIdentifier(target);
             var constructorName = node.methodName.name;
-            if (components[0] == className &&
-                components[1] == constructorName) {
+            if (components[0] == constructorName &&
+                components[1] == className) {
               return true;
             }
           }
@@ -95,7 +95,7 @@ class ElementDescriptor {
         return false;
       case ElementKind.methodKind:
         if (node is MethodInvocation) {
-          if (components[1] == node.methodName.name) {
+          if (components[0] == node.methodName.name) {
             var target = node.realTarget;
             if (target == null) {
               // TODO(brianwilkerson) If `node.target == null` then the invocation
@@ -115,12 +115,12 @@ class ElementDescriptor {
                 // that the method might have been in the element's class.
                 return true;
               }
-              if (components[0] == type.element.name) {
+              if (components[1] == type.element?.name) {
                 return true;
               }
               if (type is InterfaceType) {
                 for (var supertype in type.allSupertypes) {
-                  if (components[0] == supertype.element.name) {
+                  if (components[1] == supertype.element.name) {
                     return true;
                   }
                 }
@@ -142,7 +142,6 @@ class ElementDescriptor {
         // TODO: Handle this case.
         return false;
     }
-    return false;
   }
 
   String _nameFromIdentifier(Identifier identifier) {

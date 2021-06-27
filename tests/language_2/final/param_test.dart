@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Disallow assignment of parameters marked as final.
 
+// @dart = 2.9
+
 class A {
   static void test(final x) {
     x = 2; /*@compile-error=unspecified*/

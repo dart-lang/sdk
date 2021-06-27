@@ -41,12 +41,12 @@ class _AsyncRun {
       // Use mutationObservers.
       var div = JS('', 'self.document.createElement("div")');
       var span = JS('', 'self.document.createElement("span")');
-      var storedCallback;
+      void Function()? storedCallback;
 
       internalCallback(_) {
         var f = storedCallback;
         storedCallback = null;
-        f();
+        f!();
       }
 
       var observer = JS('', 'new self.MutationObserver(#)',
@@ -148,7 +148,8 @@ class _TimerImpl implements Timer {
           convertDartClosureToJS(() {
             int tick = this._tick + 1;
             if (milliseconds > 0) {
-              int duration = JS('int', 'Date.now()') - start;
+              int end = JS('int', 'Date.now()');
+              int duration = end - start;
               if (duration > (tick + 1) * milliseconds) {
                 tick = duration ~/ milliseconds;
               }
@@ -206,8 +207,8 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     } else {
       // TODO(40014): Remove cast when type promotion works.
       // This would normally be `as T` but we use `as dynamic` to make the
-      // unneeded check be implict to match dart2js unsound optimizations in the
-      // user code.
+      // unneeded check be implicit to match dart2js unsound optimizations in
+      // the user code.
       _future._completeWithValue(value as dynamic);
     }
   }

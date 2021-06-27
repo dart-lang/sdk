@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Redirection constructors must not be cyclic.
 
+// @dart = 2.9
+
 class A {
   var x;
   A(x)

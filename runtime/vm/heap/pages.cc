@@ -97,9 +97,9 @@ void OldPage::VisitObjects(ObjectVisitor* visitor) const {
   uword obj_addr = object_start();
   uword end_addr = object_end();
   while (obj_addr < end_addr) {
-    ObjectPtr raw_obj = ObjectLayout::FromAddr(obj_addr);
+    ObjectPtr raw_obj = UntaggedObject::FromAddr(obj_addr);
     visitor->VisitObject(raw_obj);
-    obj_addr += raw_obj->ptr()->HeapSize();
+    obj_addr += raw_obj->untag()->HeapSize();
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -111,8 +111,8 @@ void OldPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   uword obj_addr = object_start();
   uword end_addr = object_end();
   while (obj_addr < end_addr) {
-    ObjectPtr raw_obj = ObjectLayout::FromAddr(obj_addr);
-    obj_addr += raw_obj->ptr()->VisitPointers(visitor);
+    ObjectPtr raw_obj = UntaggedObject::FromAddr(obj_addr);
+    obj_addr += raw_obj->untag()->VisitPointers(visitor);
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -128,19 +128,24 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
 
   bool table_is_empty = false;
 
-  ArrayPtr obj = static_cast<ArrayPtr>(ObjectLayout::FromAddr(object_start()));
+  ArrayPtr obj =
+      static_cast<ArrayPtr>(UntaggedObject::FromAddr(object_start()));
   ASSERT(obj->IsArray());
-  ASSERT(obj->ptr()->IsCardRemembered());
-  ObjectPtr* obj_from = obj->ptr()->from();
-  ObjectPtr* obj_to = obj->ptr()->to(Smi::Value(obj->ptr()->length_));
+  ASSERT(obj->untag()->IsCardRemembered());
+  CompressedObjectPtr* obj_from = obj->untag()->from();
+  CompressedObjectPtr* obj_to =
+      obj->untag()->to(Smi::Value(obj->untag()->length()));
+  uword heap_base = obj.heap_base();
 
   const intptr_t size = card_table_size();
   for (intptr_t i = 0; i < size; i++) {
     if (card_table_[i] != 0) {
-      ObjectPtr* card_from =
-          reinterpret_cast<ObjectPtr*>(this) + (i << kSlotsPerCardLog2);
-      ObjectPtr* card_to = reinterpret_cast<ObjectPtr*>(card_from) +
-                           (1 << kSlotsPerCardLog2) - 1;
+      CompressedObjectPtr* card_from =
+          reinterpret_cast<CompressedObjectPtr*>(this) +
+          (i << kSlotsPerCardLog2);
+      CompressedObjectPtr* card_to =
+          reinterpret_cast<CompressedObjectPtr*>(card_from) +
+          (1 << kSlotsPerCardLog2) - 1;
       // Minus 1 because to is inclusive.
 
       if (card_from < obj_from) {
@@ -153,10 +158,10 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
         card_to = obj_to;
       }
 
-      visitor->VisitPointers(card_from, card_to);
+      visitor->VisitCompressedPointers(heap_base, card_from, card_to);
 
       bool has_new_target = false;
-      for (ObjectPtr* slot = card_from; slot <= card_to; slot++) {
+      for (CompressedObjectPtr* slot = card_from; slot <= card_to; slot++) {
         if ((*slot)->IsNewObjectMayBeSmi()) {
           has_new_target = true;
           break;
@@ -183,10 +188,10 @@ ObjectPtr OldPage::FindObject(FindObjectVisitor* visitor) const {
   uword end_addr = object_end();
   if (visitor->VisitRange(obj_addr, end_addr)) {
     while (obj_addr < end_addr) {
-      ObjectPtr raw_obj = ObjectLayout::FromAddr(obj_addr);
-      uword next_obj_addr = obj_addr + raw_obj->ptr()->HeapSize();
+      ObjectPtr raw_obj = UntaggedObject::FromAddr(obj_addr);
+      uword next_obj_addr = obj_addr + raw_obj->untag()->HeapSize();
       if (visitor->VisitRange(obj_addr, next_obj_addr) &&
-          raw_obj->ptr()->FindObject(visitor)) {
+          raw_obj->untag()->FindObject(visitor)) {
         return raw_obj;  // Found object, return it.
       }
       obj_addr = next_obj_addr;
@@ -391,6 +396,11 @@ OldPage* PageSpace::AllocateLargePage(intptr_t size, OldPage::PageType type) {
   if (page == nullptr) {
     IncreaseCapacityInWordsLocked(-page_size_in_words);
     return nullptr;
+  } else {
+    intptr_t actual_size_in_words = page->memory_->size() >> kWordSizeLog2;
+    if (actual_size_in_words != page_size_in_words) {
+      IncreaseCapacityInWordsLocked(actual_size_in_words - page_size_in_words);
+    }
   }
   if (is_exec) {
     AddExecPageLocked(page);
@@ -798,9 +808,11 @@ void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
          (Thread::Current()->task_kind() == Thread::kScavengerTask));
 
   // Wait for the sweeper to finish mutating the large page list.
-  MonitorLocker ml(tasks_lock());
-  while (phase() == kSweepingLarge) {
-    ml.Wait();  // No safepoint check.
+  {
+    MonitorLocker ml(tasks_lock());
+    while (phase() == kSweepingLarge) {
+      ml.Wait();  // No safepoint check.
+    }
   }
 
   // Large pages may be added concurrently due to promotion in another scavenge
@@ -887,7 +899,7 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
  public:
   explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) {}
   virtual void VisitObject(ObjectPtr obj) {
-    array_->AddValue(obj->ptr()->HeapSize() / kObjectAlignment);
+    array_->AddValue(obj->untag()->HeapSize() / kObjectAlignment);
     array_->AddValue(obj->GetClassId());
   }
 
@@ -895,7 +907,7 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
   JSONArray* array_;
 };
 
-void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
+void PageSpace::PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
                                          JSONStream* stream) const {
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
@@ -905,7 +917,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
   heap_map.AddProperty("pageSizeBytes", kOldPageSizeInWords * kWordSize);
   {
     JSONObject class_list(&heap_map, "classList");
-    isolate->class_table()->PrintToJSONObject(&class_list);
+    isolate_group->class_table()->PrintToJSONObject(&class_list);
   }
   {
     // "pages" is an array [page0, page1, ..., pageN], each page of the form
@@ -1034,7 +1046,7 @@ bool PageSpace::MarkReservation() {
   if (oom_reservation_ == nullptr) {
     return false;
   }
-  ObjectLayout* ptr = reinterpret_cast<ObjectLayout*>(oom_reservation_);
+  UntaggedObject* ptr = reinterpret_cast<UntaggedObject*>(oom_reservation_);
   if (!ptr->IsMarked()) {
     ptr->SetMarkBit();
   }
@@ -1056,10 +1068,10 @@ void PageSpace::VisitRoots(ObjectPointerVisitor* visitor) {
     // FreeListElements are generally held untagged, but ObjectPointerVisitors
     // expect tagged pointers.
     ObjectPtr ptr =
-        ObjectLayout::FromAddr(reinterpret_cast<uword>(oom_reservation_));
+        UntaggedObject::FromAddr(reinterpret_cast<uword>(oom_reservation_));
     visitor->VisitPointer(&ptr);
     oom_reservation_ =
-        reinterpret_cast<FreeListElement*>(ObjectLayout::ToAddr(ptr));
+        reinterpret_cast<FreeListElement*>(UntaggedObject::ToAddr(ptr));
   }
 }
 
@@ -1077,7 +1089,7 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
 
   Thread* thread = Thread::Current();
   const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
-  SafepointOperationScope safepoint_scope(thread);
+  GcSafepointOperationScope safepoint_scope(thread);
 
   const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
   // Wait for pending tasks to complete and then account for the driver task.
@@ -1405,6 +1417,15 @@ uword PageSpace::TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size) {
   return TryAllocateDataBumpLocked(freelist, size);
 }
 
+ObjectPtr PageSpace::AllocateSnapshot(intptr_t size) {
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  uword address = TryAllocateDataBumpLocked(size);
+  if (address == 0) {
+    OUT_OF_MEMORY();
+  }
+  return UntaggedObject::FromAddr(address);
+}
+
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   // Setup a OldPage so precompiled Instructions can be traversed.
   // Instructions are contiguous at [pointer, pointer + size). OldPage
@@ -1436,7 +1457,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
 }
 
 bool PageSpace::IsObjectFromImagePages(dart::ObjectPtr object) {
-  uword object_addr = ObjectLayout::ToAddr(object);
+  uword object_addr = UntaggedObject::ToAddr(object);
   OldPage* image_page = image_pages_;
   while (image_page != nullptr) {
     if (image_page->Contains(object_addr)) {

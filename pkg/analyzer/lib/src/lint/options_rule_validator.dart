@@ -9,7 +9,10 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
+
+/// TODO(pq): migrate these codes to `option_codes.dart`?
 
 /// A hint code indicating reference to a deprecated lint.
 ///
@@ -56,28 +59,28 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
   final LintRuleProvider ruleProvider;
 
-  LinterRuleOptionsValidator({LintRuleProvider provider})
+  LinterRuleOptionsValidator({LintRuleProvider? provider})
       : ruleProvider = provider ?? (() => Registry.ruleRegistry.rules);
 
-  LintRule getRegisteredLint(Object value) => ruleProvider()
-      .firstWhere((rule) => rule.name == value, orElse: () => null);
+  LintRule? getRegisteredLint(Object value) =>
+      ruleProvider().firstWhereOrNull((rule) => rule.name == value);
 
   @override
   List<AnalysisError> validate(ErrorReporter reporter, YamlMap options) {
     List<AnalysisError> errors = <AnalysisError>[];
-    var node = getValue(options, linter);
+    var node = options.valueAt(linter);
     if (node is YamlMap) {
-      var rules = getValue(node, rulesKey);
+      var rules = node.valueAt(rulesKey);
       validateRules(rules, reporter);
     }
     return errors;
   }
 
-  void validateRules(YamlNode rules, ErrorReporter reporter) {
+  void validateRules(YamlNode? rules, ErrorReporter reporter) {
     if (rules is YamlList) {
       final seenRules = <String>{};
 
-      String findIncompatibleRule(LintRule rule) {
+      String? findIncompatibleRule(LintRule rule) {
         for (var incompatibleRule in rule.incompatibleRules) {
           if (seenRules.contains(incompatibleRule)) {
             return incompatibleRule;

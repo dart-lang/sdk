@@ -30,6 +30,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   final _symbolContainer = ModuleItemContainer<js_ast.Identifier>.asObject('S',
       keyToString: (js_ast.Identifier i) => '${i.name}');
 
+  ModuleItemContainer<js_ast.Identifier> get symbolContainer =>
+      _symbolContainer;
+
   /// Extension member symbols for adding Dart members to JS types.
   ///
   /// These are added to the [extensionSymbolsModule]; see that field for more
@@ -42,6 +45,47 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = <Library, js_ast.TemporaryId>{};
+
+  /// Incremental mode for expression compilation.
+  ///
+  /// If set to true, triggers emitting tall used ypes, symbols, libraries,
+  /// constants, urs inside the generated function.
+  bool _incrementalMode = false;
+
+  @protected
+  bool get incrementalMode => _incrementalMode;
+
+  /// Set incremental mode for one expression compilation.
+  ///
+  /// Sets all tables and internal structures to incremental mode so
+  /// only referenced items will be emitted in a generated function.
+  ///
+  /// Note: the compiler cannot revert to non-incremental mode.
+  @protected
+  void setIncrementalMode() {
+    incrementalModules.clear();
+    _privateNames.clear();
+    symbolContainer.setIncrementalMode();
+    _incrementalMode = true;
+  }
+
+  /// Modules and libraries accessed during compilation in incremental mode.
+  @protected
+  final Map<String, Set<String>> incrementalModules = {};
+
+  @protected
+  void setEmitIfIncrementalLibrary(Library library) {
+    if (incrementalMode && library != null) {
+      setEmitIfIncremental(libraryToModule(library), jsLibraryName(library));
+    }
+  }
+
+  @protected
+  void setEmitIfIncremental(String module, String library) {
+    if (incrementalMode && library != null) {
+      incrementalModules.putIfAbsent(module, () => {}).add(library);
+    }
+  }
 
   /// The identifier used to reference DDC's core "dart:_runtime" library from
   /// generated JS code, typically called "dart" e.g. `dart.dcall`.
@@ -220,8 +264,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   ///     dart.asInt(<expr>)
   ///
   @protected
-  js_ast.Expression runtimeCall(String code, [List<Object> args]) =>
-      js.call('#.$code', <Object>[runtimeModule, ...?args]);
+  js_ast.Expression runtimeCall(String code, [List<Object> args]) {
+    setEmitIfIncremental(libraryToModule(coreLibrary), runtimeModule.name);
+    return js.call('#.$code', <Object>[runtimeModule, ...?args]);
+  }
 
   /// Calls [runtimeCall] and uses `toStatement()` to convert the resulting
   /// expression into a statement.
@@ -276,19 +322,13 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     }
 
     var privateNames = _privateNames.putIfAbsent(library, () => HashMap());
-    return privateNames.putIfAbsent(name, initPrivateNameSymbol);
-  }
+    var symbolId = privateNames.putIfAbsent(name, initPrivateNameSymbol);
 
-  /// Emits a private name JS Symbol for [memberName] unique to a Dart
-  /// class [className].
-  ///
-  /// This is now required for fields of constant objects that may be
-  /// overridden within the same library.
-  @protected
-  js_ast.TemporaryId emitClassPrivateNameSymbol(
-      Library library, String className, String memberName,
-      [js_ast.TemporaryId id]) {
-    return emitPrivateNameSymbol(library, '$className.$memberName', id);
+    setEmitIfIncrementalLibrary(library);
+    setEmitIfIncremental(libraryToModule(coreLibrary), runtimeModule.name);
+    _symbolContainer.setEmitIfIncremental(symbolId);
+
+    return symbolId;
   }
 
   /// Emits an expression to set the property [nameExpr] on the class [className],
@@ -445,7 +485,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
           .statement('var # = Object.create(#.library)', [id, runtimeModule]));
       exports.add(js_ast.NameSpecifier(id));
     }
-
     items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
 
     if (isBuildingSdk) {
@@ -469,6 +508,8 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// Returns the canonical name to refer to the Dart library.
   js_ast.Identifier emitLibraryName(Library library) {
+    setEmitIfIncrementalLibrary(library);
+
     // Avoid adding the dart:_runtime to _imports when our runtime unit tests
     // import it explicitly. It will always be implicitly imported.
     if (isSdkInternalRuntime(library)) return runtimeModule;
@@ -479,11 +520,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
             library, () => js_ast.TemporaryId(jsLibraryName(library)));
   }
 
-  /// Emits imports and extension methods into [items].
+  /// Emits imports into [items].
   @protected
-  void emitImportsAndExtensionSymbols(List<js_ast.ModuleItem> items) {
+  void emitImports(List<js_ast.ModuleItem> items) {
     var modules = <String, List<Library>>{};
-
     for (var import in _imports.keys) {
       modules.putIfAbsent(libraryToModule(import), () => []).add(import);
     }
@@ -492,48 +532,143 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     if (!_libraries.containsKey(coreLibrary)) {
       coreModuleName = libraryToModule(coreLibrary);
     }
+
     modules.forEach((module, libraries) {
-      // Generate import directives.
-      //
-      // Our import variables are temps and can get renamed. Since our renaming
-      // is integrated into js_ast, it is aware of this possibility and will
-      // generate an "as" if needed. For example:
-      //
-      //     import {foo} from 'foo';         // if no rename needed
-      //     import {foo as foo$} from 'foo'; // if rename was needed
-      //
-      var imports = libraries.map((library) {
-        var alias = jsLibraryAlias(library);
-        if (alias != null) {
-          var aliasId = js_ast.TemporaryId(alias);
-          return js_ast.NameSpecifier(aliasId, asName: _imports[library]);
+      if (!incrementalMode || incrementalModules.containsKey(module)) {
+        var usedLibraries = incrementalModules[module];
+
+        // Generate import directives.
+        //
+        // Our import variables are temps and can get renamed. Since our renaming
+        // is integrated into js_ast, it is aware of this possibility and will
+        // generate an "as" if needed. For example:
+        //
+        //     import {foo} from 'foo';         // if no rename needed
+        //     import {foo as foo$} from 'foo'; // if rename was needed
+        //
+        var imports = <js_ast.NameSpecifier>[];
+        for (var library in libraries) {
+          if (!incrementalMode ||
+              usedLibraries.contains(jsLibraryName(library))) {
+            var alias = jsLibraryAlias(library);
+            if (alias != null) {
+              var aliasId = js_ast.TemporaryId(alias);
+              imports.add(
+                  js_ast.NameSpecifier(aliasId, asName: _imports[library]));
+            } else {
+              imports.add(js_ast.NameSpecifier(_imports[library]));
+            }
+          }
         }
-        return js_ast.NameSpecifier(_imports[library]);
-      }).toList();
-      if (module == coreModuleName) {
-        imports.add(js_ast.NameSpecifier(runtimeModule));
-        imports.add(js_ast.NameSpecifier(extensionSymbolsModule));
+
+        if (module == coreModuleName) {
+          if (!incrementalMode || usedLibraries.contains(runtimeModule.name)) {
+            imports.add(js_ast.NameSpecifier(runtimeModule));
+          }
+          if (!incrementalMode ||
+              usedLibraries.contains(extensionSymbolsModule.name)) {
+            imports.add(js_ast.NameSpecifier(extensionSymbolsModule));
+          }
+        }
+
+        if (!incrementalMode || imports.isNotEmpty) {
+          items.add(js_ast.ImportDeclaration(
+              namedImports: imports, from: js.string(module, "'")));
+        }
       }
-
-      items.add(js_ast.ImportDeclaration(
-          namedImports: imports, from: js.string(module, "'")));
     });
+  }
 
+  /// Emits extension methods into [items].
+  @protected
+  void emitExtensionSymbols(List<js_ast.ModuleItem> items,
+      {bool forceExtensionSymbols = false}) {
     // Initialize extension symbols
     _extensionSymbols.forEach((name, id) {
       js_ast.Expression value =
           js_ast.PropertyAccess(extensionSymbolsModule, propertyName(name));
       if (isBuildingSdk) {
         value = js.call('# = Symbol(#)', [value, js.string('dartx.$name')]);
+      } else if (forceExtensionSymbols) {
+        value = js.call(
+            '# || (# = Symbol(#))', [value, value, js.string('dartx.$name')]);
       }
-      if (!_symbolContainer.canEmit(id)) {
-        // Extension symbols marked with noEmit are managed manually.
-        // TODO(vsm): Change back to `const`.
-        // See https://github.com/dart-lang/sdk/issues/40380.
-        items.add(js.statement('var # = #;', [id, value]));
+      // Emit hoisted extension symbols that are marked as noEmit in regular as
+      // well as incremental mode (if needed) since they are going to be
+      // referenced as such in the generated expression.
+      if (!incrementalMode ||
+          _symbolContainer.incrementalModuleItems.contains(id)) {
+        if (!_symbolContainer.canEmit(id)) {
+          // Extension symbols marked with noEmit are managed manually.
+          // TODO(vsm): Change back to `const`.
+          // See https://github.com/dart-lang/sdk/issues/40380.
+          items.add(js.statement('var # = #;', [id, value]));
+        }
+      }
+      if (_symbolContainer.incrementalModuleItems.contains(id)) {
+        setEmitIfIncremental(
+            libraryToModule(coreLibrary), extensionSymbolsModule.name);
       }
       _symbolContainer[id] = value;
     });
+  }
+
+  /// Emits exports as imports into [items].
+  ///
+  /// Use information from exports to re-define library variables referenced
+  /// inside compiled expressions in incremental mode. That matches importing
+  /// a current module into the symbol used to represent the library during
+  /// original compilation in [ProgramCompiler.emitModule].
+  ///
+  /// Example of exports emitted to JavaScript during emitModule:
+  ///
+  /// ```
+  /// dart.trackLibraries("web/main", { ... });
+  /// // Exports:
+  /// return {
+  ///  web__main: main
+  /// };
+  /// ```
+  ///
+  /// The transformation to imports during expression compilation converts the
+  /// exports above to:
+  ///
+  /// ```
+  /// const web__main = require('web/main');
+  /// const main = web__main.web__main;
+  /// ```
+  ///
+  /// Where the compiled expression references `main`.
+  @protected
+  void emitExportsAsImports(List<js_ast.ModuleItem> items, Library current) {
+    var exports = <js_ast.NameSpecifier>[];
+    assert(incrementalMode);
+    assert(!isBuildingSdk);
+
+    var module = libraryToModule(current);
+    var usedLibraries = incrementalModules[module] ?? {};
+
+    if (usedLibraries.isNotEmpty) {
+      _libraries.forEach((library, libraryId) {
+        if (usedLibraries.contains(jsLibraryName(library))) {
+          var alias = jsLibraryAlias(library);
+          var aliasId = alias == null ? libraryId : js_ast.TemporaryId(alias);
+          var asName = alias == null ? null : libraryId;
+          exports.add(js_ast.NameSpecifier(aliasId, asName: asName));
+        }
+      });
+
+      items.add(js_ast.ImportDeclaration(
+          namedImports: exports, from: js.string(module, "'")));
+    }
+  }
+
+  /// Emits imports and extension methods into [items].
+  @protected
+  void emitImportsAndExtensionSymbols(List<js_ast.ModuleItem> items,
+      {bool forceExtensionSymbols = false}) {
+    emitImports(items);
+    emitExtensionSymbols(items, forceExtensionSymbols: forceExtensionSymbols);
   }
 
   void _emitDebuggerExtensionInfo(String name) {
@@ -564,17 +699,20 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   ///
   /// A symbol lookup on an id marked no emit omits the symbol accessor.
   js_ast.Expression getSymbol(js_ast.Identifier id) {
+    _symbolContainer.setEmitIfIncremental(id);
     return _symbolContainer.canEmit(id) ? _symbolContainer.access(id) : id;
   }
 
   /// Returns the raw JS value associated with [id].
   js_ast.Expression getSymbolValue(js_ast.Identifier id) {
+    _symbolContainer.setEmitIfIncremental(id);
     return _symbolContainer[id];
   }
 
   /// Inserts a symbol into the symbol table.
   js_ast.Expression addSymbol(js_ast.Identifier id, js_ast.Expression symbol) {
     _symbolContainer[id] = symbol;
+    _symbolContainer.setEmitIfIncremental(id);
     if (!containerizeSymbols) {
       _symbolContainer.setNoEmit(id);
     }
@@ -638,7 +776,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       _extensionSymbols[name] = id;
       addSymbol(id, id);
     }
-    return _extensionSymbols[name];
+    var symbolId = _extensionSymbols[name];
+    _symbolContainer.setEmitIfIncremental(symbolId);
+    return symbolId;
   }
 
   /// Shorthand for identifier-like property names.

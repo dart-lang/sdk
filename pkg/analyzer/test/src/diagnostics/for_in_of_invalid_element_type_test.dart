@@ -15,28 +15,38 @@ main() {
 
 @reflectiveTest
 class ForInOfInvalidElementTypeTest extends PubPackageResolutionTest {
+  test_await_declaredVariable_dynamic() async {
+    await assertNoErrorsInCode('''
+f(dynamic a) async {
+  await for (int i in a) {
+    i;
+  }
+}
+''');
+  }
+
   test_await_declaredVariableWrongType() async {
     await assertErrorsInCode('''
-f() async {
-  Stream<String> stream;
-  await for (int i in stream) {}
+f(Stream<String> stream) async {
+  await for (int i in stream) {
+    i;
+  }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 59, 6),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 55, 6),
     ]);
   }
 
   test_await_existingVariableWrongType() async {
     await assertErrorsInCode('''
-f() async {
-  Stream<String> stream;
+f(Stream<String> stream) async {
   int i;
-  await for (i in stream) {}
+  await for (i in stream) {
+    i;
+  }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 64, 6),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 60, 6),
     ]);
   }
 
@@ -44,22 +54,55 @@ f() async {
     await assertErrorsInCode('''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
-    for (String i in iterable) {}
+    for (String i in iterable) {
+      i;
+    }
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
     ]);
   }
 
-  test_declaredVariableWrongType() async {
+  test_declaredVariable_dynamic() async {
+    await assertNoErrorsInCode('''
+f(dynamic a) {
+  for (int i in a) {
+    i;
+  }
+}
+''');
+  }
+
+  test_declaredVariable_interfaceTypeTypedef_ok() async {
+    await assertNoErrorsInCode('''
+typedef S = String;
+f() {
+  for (S i in <String>[]) {
+    i;
+  }
+}
+''');
+  }
+
+  test_declaredVariable_ok() async {
+    await assertNoErrorsInCode('''
+f() {
+  for (String i in <String>[]) {
+    i;
+  }
+}
+''');
+  }
+
+  test_declaredVariable_wrongType() async {
     await assertErrorsInCode('''
 f() {
-  for (int i in <String>[]) {}
+  for (int i in <String>[]) {
+    i;
+  }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
     ]);
   }
@@ -68,10 +111,11 @@ f() {
     await assertErrorsInCode('''
 f() {
   int i;
-  for (i in <String>[]) {}
+  for (i in <String>[]) {
+    i;
+  }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
     ]);
   }

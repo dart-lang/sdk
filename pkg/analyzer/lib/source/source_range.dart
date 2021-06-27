@@ -75,7 +75,7 @@ class SourceRange {
   }
 
   /// Return `true` if this source range intersects the [otherRange].
-  bool intersects(SourceRange otherRange) {
+  bool intersects(SourceRange? otherRange) {
     if (otherRange == null) {
       return false;
     }

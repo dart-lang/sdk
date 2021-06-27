@@ -29,7 +29,7 @@ abstract class DartSdk {
 
   /// Return the content of the `allowed_experiments.json` file, or `null`
   /// if the file cannot be read, e.g. does not exist.
-  String get allowedExperimentsJson;
+  String? get allowedExperimentsJson;
 
   /// Return the language version of this SDK, or throws an exception.
   ///
@@ -50,15 +50,15 @@ abstract class DartSdk {
 
   /// Return a source representing the given 'file:' [uri] if the file is in
   /// this SDK, or `null` if the file is not in this SDK.
-  Source fromFileUri(Uri uri);
+  Source? fromFileUri(Uri uri);
 
   /// Return the library representing the library with the given 'dart:' [uri],
   /// or `null` if the given URI does not denote a library in this SDK.
-  SdkLibrary getSdkLibrary(String uri);
+  SdkLibrary? getSdkLibrary(String uri);
 
   /// Return the source representing the library with the given 'dart:' [uri],
   /// or `null` if the given URI does not denote a library in this SDK.
-  Source mapDartUri(String uri);
+  Source? mapDartUri(String uri);
 }
 
 /// Manages the DartSdk's that have been created. Clients need to create
@@ -73,11 +73,11 @@ class DartSdkManager {
   Map<SdkDescription, DartSdk> sdkMap = HashMap<SdkDescription, DartSdk>();
 
   /// Initialize a newly created manager.
-  DartSdkManager(this.defaultSdkDirectory, [@deprecated bool canUseSummaries]);
+  DartSdkManager(this.defaultSdkDirectory, [@deprecated bool? canUseSummaries]);
 
   /// Return any SDK that has been created, or `null` if no SDKs have been
   /// created.
-  DartSdk get anySdk {
+  DartSdk? get anySdk {
     if (sdkMap.isEmpty) {
       return null;
     }
@@ -103,7 +103,7 @@ class LibraryMap {
   final Map<String, SdkLibraryImpl> _libraryMap = <String, SdkLibraryImpl>{};
 
   /// Return a list containing all of the sdk libraries in this mapping.
-  List<SdkLibrary> get sdkLibraries => List.from(_libraryMap.values);
+  List<SdkLibraryImpl> get sdkLibraries => List.from(_libraryMap.values);
 
   /// Return a list containing the library URI's for which a mapping is
   /// available.
@@ -112,8 +112,9 @@ class LibraryMap {
   /// Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
   Map<String, Object> debugInfo() {
     var map = <String, Object>{};
-    for (var uri in _libraryMap.keys) {
-      var lib = _libraryMap[uri];
+    for (var entry in _libraryMap.entries) {
+      var uri = entry.key;
+      var lib = entry.value;
       map[uri] = <String, Object>{
         'path': lib.path,
         'shortName': lib.shortName,
@@ -124,7 +125,7 @@ class LibraryMap {
 
   /// Return the library with the given 'dart:' [uri], or `null` if the URI does
   /// not map to a library.
-  SdkLibrary getLibrary(String uri) => _libraryMap[uri];
+  SdkLibrary? getLibrary(String uri) => _libraryMap[uri];
 
   /// Set the library with the given 'dart:' [uri] to the given [library].
   void setLibrary(String dartUri, SdkLibraryImpl library) {
@@ -218,11 +219,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    String libraryName;
-    Expression key = node.key;
-    if (key is SimpleStringLiteral) {
-      libraryName = "$_LIBRARY_PREFIX${key.value}";
-    }
+    var key = node.key as SimpleStringLiteral;
+    var libraryName = "$_LIBRARY_PREFIX${key.value}";
+
     Expression value = node.value;
     if (value is InstanceCreationExpression) {
       SdkLibraryImpl library = SdkLibraryImpl(libraryName);
@@ -234,8 +233,8 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
           String name = argument.name.label.name;
           Expression expression = argument.expression;
           if (name == _CATEGORIES) {
-            library.category =
-                convertCategories((expression as StringLiteral).stringValue);
+            var value = (expression as StringLiteral).stringValue!;
+            library.category = convertCategories(value);
           } else if (name == _IMPLEMENTATION) {
             library._implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {
@@ -310,7 +309,7 @@ class SdkLibraryImpl implements SdkLibrary {
   /// The path to the file defining the library. The path is relative to the
   /// 'lib' directory within the SDK.
   @override
-  String path;
+  late String path;
 
   /// The name of the category containing the library. Unless otherwise
   /// specified in the libraries file all libraries are assumed to be shared

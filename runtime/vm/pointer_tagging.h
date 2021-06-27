@@ -37,6 +37,10 @@ struct ObjectAlignment {
   static constexpr intptr_t kBoolValueBitPosition = kObjectAlignmentLog2;
   static constexpr intptr_t kBoolValueMask = 1 << kBoolValueBitPosition;
 
+  // Discriminate between bool and null based on bit after the alignment bit.
+  static constexpr intptr_t kBoolVsNullBitPosition = kObjectAlignmentLog2 + 1;
+  static constexpr intptr_t kBoolVsNullMask = 1 << kBoolVsNullBitPosition;
+
   static constexpr intptr_t kTrueOffsetFromNull = kObjectAlignment * 2;
   static constexpr intptr_t kFalseOffsetFromNull = kObjectAlignment * 3;
 };
@@ -58,6 +62,10 @@ static constexpr intptr_t kObjectAlignmentMask =
 static constexpr intptr_t kBoolValueBitPosition =
     HostObjectAlignment::kBoolValueBitPosition;
 static constexpr intptr_t kBoolValueMask = HostObjectAlignment::kBoolValueMask;
+static constexpr intptr_t kBoolVsNullBitPosition =
+    HostObjectAlignment::kBoolVsNullBitPosition;
+static constexpr intptr_t kBoolVsNullMask =
+    HostObjectAlignment::kBoolVsNullMask;
 static constexpr intptr_t kTrueOffsetFromNull =
     HostObjectAlignment::kTrueOffsetFromNull;
 static constexpr intptr_t kFalseOffsetFromNull =
@@ -83,6 +91,12 @@ enum {
   kSmiTagMask = 1,
   kSmiTagShift = 1,
 };
+
+#if !defined(DART_COMPRESSED_POINTERS)
+static constexpr uintptr_t kHeapBaseMask = 0;
+#else
+static constexpr uintptr_t kHeapBaseMask = ~(4LL * GB - 1);
+#endif
 
 }  // namespace dart
 

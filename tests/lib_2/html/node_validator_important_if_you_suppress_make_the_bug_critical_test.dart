@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// This tests HTML validation and sanitization, which is very important
 /// for prevent XSS or other attacks. If you suppress this, or parts of it
 /// please make it a critical bug and bring it to the attention of the
@@ -476,6 +478,20 @@ main() {
         "<form><input name='children'><input name='children'>"
         "<input id='children' name='lastChild'>"
         "<input id='bad' onmouseover='alert(1)'>",
+        "");
+
+    // Walking templates triggers a recursive sanitization call, which shouldn't
+    // invalidate the information collected from the previous visit of the later
+    // nodes in the walk.
+    testHtml(
+        'DOM clobbering with recursive sanitize call using templates',
+        validator,
+        "<form><div>"
+          "<input id=childNodes />"
+          "<template></template>"
+          "<input id=childNodes name=lastChild />"
+          "<img id=exploitImg src=0 onerror='alert(1)' />"
+          "</div></form>",
         "");
 
     test('tagName makes containing form invalid', () {

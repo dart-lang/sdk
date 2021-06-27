@@ -16,20 +16,31 @@ class ConvertToIntLiteral extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_INT_LITERAL;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_INT_LITERAL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_INT_LITERAL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! DoubleLiteral) {
+    var literal = node;
+    if (literal is! DoubleLiteral) {
       return;
     }
-    DoubleLiteral literal = node;
-    int intValue;
+
+    int? intValue;
     try {
-      intValue = literal.value?.truncate();
+      intValue = literal.value.truncate();
     } catch (e) {
       // Double cannot be converted to int
     }
+
     if (intValue == null || intValue != literal.value) {
       return;
     }

@@ -18,10 +18,11 @@ void main() {
 @reflectiveTest
 class MemberDeclarationsTest extends AbstractSearchDomainTest {
   void assertHasDeclaration(ElementKind kind, String className) {
-    result = findTopLevelResult(kind, className);
+    var result = findTopLevelResult(kind, className);
     if (result == null) {
       fail('Not found: kind=$kind in="$className"\nin\n' + results.join('\n'));
     }
+    this.result = result;
   }
 
   Future findMemberDeclarations(String name) async {
@@ -33,7 +34,7 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
     return waitForSearchResults();
   }
 
-  SearchResult findTopLevelResult(ElementKind kind, String enclosingClass) {
+  SearchResult? findTopLevelResult(ElementKind kind, String enclosingClass) {
     for (var result in results) {
       var element = result.path[0];
       var clazz = result.path[1];

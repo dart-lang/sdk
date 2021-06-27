@@ -53,7 +53,16 @@ runTestCase(
   ensureKernelCanBeSerializedToBinary(component);
 }
 
-main() {
+String argsTestName(List<String> args) {
+  if (args.length > 0) {
+    return args.last;
+  }
+  return null;
+}
+
+main(List<String> args) {
+  final testNameFilter = argsTestName(args);
+
   group('transform-component', () {
     final testCasesDir = new Directory(
         pkgVmDir + '/testcases/transformations/type_flow/transformer');
@@ -61,7 +70,9 @@ main() {
     for (var entry
         in testCasesDir.listSync(recursive: true, followLinks: false)) {
       final path = entry.path;
-      if (path.endsWith('.dart') && !path.endsWith('.pb.dart')) {
+      if (path.endsWith('.dart') &&
+          !path.endsWith('.pb.dart') &&
+          (testNameFilter == null || path.contains(testNameFilter))) {
         final bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
         final bool enableNNBD = enableNullSafety || path.endsWith('_nnbd.dart');
         final List<String> experimentalFlags = [

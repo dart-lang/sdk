@@ -26,13 +26,6 @@
 #define __ assembler->
 
 namespace dart {
-
-DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool,
-            use_slow_path,
-            false,
-            "Set to true for debugging & verifying the slow paths.");
-
 namespace compiler {
 
 // Ensures that [EAX] is a new object, if not it will be added to the remembered
@@ -40,8 +33,8 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [EAX], [THR] and [FP].
 // The caller should simply call LeaveFrame() and return.
-static void EnsureIsNewOrRemembered(Assembler* assembler,
-                                    bool preserve_registers = true) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
+                                               bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -315,8 +308,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ Bind(&check_done);
 #endif
 
-  // EnterSafepoint takes care to not clobber *any* registers (besides scratch).
-  __ EnterSafepoint(/*scratch=*/ECX);
+  // Takes care to not clobber *any* registers (besides scratch).
+  __ EnterFullSafepoint(/*scratch=*/ECX);
 
   // Restore callee-saved registers.
   __ movl(ECX, EBX);
@@ -798,77 +791,78 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 }
 
 // Called for inline allocation of arrays.
-// Input parameters:
-//   EDX : Array length as Smi (must be preserved).
-//   ECX : array element type (either NULL or an instantiated type).
-// Uses EAX, EBX, ECX, EDI  as temporary registers.
-// The newly allocated object is returned in EAX.
+// Input registers (preserved):
+//   AllocateArrayABI::kLengthReg: array length as Smi.
+//   AllocateArrayABI::kTypeArgumentsReg: type arguments of array.
+// Output registers:
+//   AllocateArrayABI::kResultReg: newly allocated array.
+// Clobbered:
+//   EBX, EDI
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
-  Label slow_case;
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize(
-  //     (array_length * kwordSize) + target::Array::header_size()).
-  // Assert that length is a Smi.
-  __ testl(EDX, Immediate(kSmiTagMask));
-
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label slow_case;
+    // Compute the size to be allocated, it is based on the array length
+    // and is computed as:
+    // RoundedAllocationSize(
+    //     (array_length * kwordSize) + target::Array::header_size()).
+    // Assert that length is a Smi.
+    __ testl(AllocateArrayABI::kLengthReg, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);
-
-    __ cmpl(EDX, Immediate(0));
-    __ j(LESS, &slow_case);
 
     // Check for maximum allowed length.
     const Immediate& max_len =
         Immediate(target::ToRawSmi(target::Array::kMaxNewSpaceElements));
-    __ cmpl(EDX, max_len);
-    __ j(GREATER, &slow_case);
+    __ cmpl(AllocateArrayABI::kLengthReg, max_len);
+    __ j(ABOVE, &slow_case);
 
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, EAX, &slow_case,
-                                           Assembler::kFarJump));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid,
+                                           AllocateArrayABI::kResultReg,
+                                           &slow_case, Assembler::kFarJump));
 
     const intptr_t fixed_size_plus_alignment_padding =
         target::Array::header_size() +
         target::ObjectAlignment::kObjectAlignment - 1;
-    // EDX is Smi.
-    __ leal(EBX, Address(EDX, TIMES_2, fixed_size_plus_alignment_padding));
+    // AllocateArrayABI::kLengthReg is Smi.
+    __ leal(EBX, Address(AllocateArrayABI::kLengthReg, TIMES_2,
+                         fixed_size_plus_alignment_padding));
     ASSERT(kSmiTagShift == 1);
     __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
-    // ECX: array element type.
-    // EDX: array length as Smi.
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
     // EBX: allocation size.
 
     const intptr_t cid = kArrayCid;
-    __ movl(EAX, Address(THR, target::Thread::top_offset()));
-    __ addl(EBX, EAX);
+    __ movl(AllocateArrayABI::kResultReg,
+            Address(THR, target::Thread::top_offset()));
+    __ addl(EBX, AllocateArrayABI::kResultReg);
     __ j(CARRY, &slow_case);
 
     // Check if the allocation fits into the remaining space.
-    // EAX: potential new object start.
+    // AllocateArrayABI::kResultReg: potential new object start.
     // EBX: potential next object start.
-    // ECX: array element type.
-    // EDX: array length as Smi).
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: array length as Smi).
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ movl(Address(THR, target::Thread::top_offset()), EBX);
-    __ subl(EBX, EAX);
-    __ addl(EAX, Immediate(kHeapObjectTag));
+    __ subl(EBX, AllocateArrayABI::kResultReg);
+    __ addl(AllocateArrayABI::kResultReg, Immediate(kHeapObjectTag));
 
     // Initialize the tags.
-    // EAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // EBX: allocation size.
-    // ECX: array element type.
-    // EDX: array length as Smi.
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
     {
       Label size_tag_overflow, done;
       __ movl(EDI, EBX);
-      __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+      __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+      __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 
@@ -879,41 +873,50 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       // Get the class index and insert it into the tags.
       uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orl(EDI, Immediate(tags));
-      __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
+      __ movl(FieldAddress(AllocateArrayABI::kResultReg,
+                           target::Object::tags_offset()),
+              EDI);  // Tags.
     }
-    // EAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // EBX: allocation size.
-    // ECX: array element type.
-    // EDX: Array length as Smi (preserved).
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: Array length as Smi (preserved).
     // Store the type argument field.
     // No generational barrier needed, since we store into a new object.
     __ StoreIntoObjectNoBarrier(
-        EAX, FieldAddress(EAX, target::Array::type_arguments_offset()), ECX);
+        AllocateArrayABI::kResultReg,
+        FieldAddress(AllocateArrayABI::kResultReg,
+                     target::Array::type_arguments_offset()),
+        AllocateArrayABI::kTypeArgumentsReg);
 
     // Set the length field.
-    __ StoreIntoObjectNoBarrier(
-        EAX, FieldAddress(EAX, target::Array::length_offset()), EDX);
+    __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                FieldAddress(AllocateArrayABI::kResultReg,
+                                             target::Array::length_offset()),
+                                AllocateArrayABI::kLengthReg);
 
     // Initialize all array elements to raw_null.
-    // EAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // EBX: allocation size.
     // EDI: iterator which initially points to the start of the variable
     // data area to be initialized.
-    // ECX: array element type.
-    // EDX: array length as Smi.
-    __ leal(EBX, FieldAddress(EAX, EBX, TIMES_1, 0));
-    __ leal(EDI, FieldAddress(EAX, target::Array::header_size()));
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
+    __ leal(EBX, FieldAddress(AllocateArrayABI::kResultReg, EBX, TIMES_1, 0));
+    __ leal(EDI, FieldAddress(AllocateArrayABI::kResultReg,
+                              target::Array::header_size()));
     Label done;
     Label init_loop;
     __ Bind(&init_loop);
     __ cmpl(EDI, EBX);
     __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(EAX, Address(EDI, 0), NullObject());
+    __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg, Address(EDI, 0),
+                                NullObject());
     __ addl(EDI, Immediate(target::kWordSize));
     __ jmp(&init_loop, Assembler::kNearJump);
     __ Bind(&done);
-    __ ret();  // returns the newly allocated object in EAX.
+    __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
     // into the runtime.
@@ -923,12 +926,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(Immediate(0));  // Setup space on stack for return value.
-  __ pushl(EDX);           // Array length as Smi.
-  __ pushl(ECX);           // Element type.
+  __ pushl(AllocateArrayABI::kLengthReg);         // Array length as Smi.
+  __ pushl(AllocateArrayABI::kTypeArgumentsReg);  // Type arguments.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
-  __ popl(EAX);  // Pop element type argument.
-  __ popl(EDX);  // Pop array length argument (preserved).
-  __ popl(EAX);  // Pop return value from return slot.
+  __ popl(AllocateArrayABI::kTypeArgumentsReg);  // Pop type arguments.
+  __ popl(AllocateArrayABI::kLengthReg);         // Pop array length argument.
+  __ popl(AllocateArrayABI::kResultReg);  // Pop return value from return slot.
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
@@ -1078,7 +1081,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Input:
 // EDX: number of context variables.
 // Output:
-// EAX: new allocated RawContext object.
+// EAX: new allocated Context object.
 // Clobbered:
 // EBX
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
@@ -1128,9 +1131,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     Label size_tag_overflow, done;
     __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
     __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
-    __ cmpl(EBX, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpl(EBX, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EBX, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shll(EBX, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done);
 
@@ -1157,7 +1160,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // Input:
 // EDX: number of context variables.
 // Output:
-// EAX: new allocated RawContext object.
+// EAX: new allocated Context object.
 // Clobbered:
 // EBX, EDX
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
@@ -1223,11 +1226,11 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Input:
 //   ECX: context variable.
 // Output:
-//   EAX: new allocated RawContext object.
+//   EAX: new allocated Context object.
 // Clobbered:
 //   EBX, ECX, EDX
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
-  {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
     // Load num. variable in the existing context.
@@ -1320,7 +1323,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // Spilled: EAX, ECX
   // EDX: Address being stored
   __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
-  __ testl(EAX, Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+  __ testl(EAX,
+           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popl(ECX);
   __ popl(EAX);
@@ -1333,12 +1337,12 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     // Check if this object is using remembered cards.
-    __ testl(EAX, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
+    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
     __ j(NOT_EQUAL, &remember_card, Assembler::kFarJump);  // Unlikely.
   } else {
 #if defined(DEBUG)
     Label ok;
-    __ testl(EAX, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
+    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
     __ j(ZERO, &ok, Assembler::kFarJump);  // Unlikely.
     __ Stop("Wrong barrier");
     __ Bind(&ok);
@@ -1348,7 +1352,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // lock+andl is an atomic read-modify-write.
   __ lock();
   __ andl(FieldAddress(EDX, target::Object::tags_offset()),
-          Immediate(~(1 << target::ObjectLayout::kOldAndNotRememberedBit)));
+          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1449,9 +1453,9 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
 // Called for inline allocation of objects.
 // Input parameters:
 //   ESP : points to return address.
-//   kAllocationStubTypeArgumentsReg (EDX) : type arguments object
-//                                           (only if class is parameterized).
-// Uses EAX, EBX, ECX, EDX, EDI as temporary registers.
+//   AllocateObjectABI::kTypeArgumentsPos : type arguments object
+//                                          (only if class is parameterized).
+// Uses AllocateObjectABI::kResultReg, EBX, ECX, EDI as temporary registers.
 // Returns patch_code_pc offset where patching code for disabling the stub
 // has been generated (similar to regularly generated Dart code).
 void StubCodeCompiler::GenerateAllocationStubForClass(
@@ -1472,41 +1476,45 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
 
-  // EDX: instantiated type arguments (if is_cls_parameterized).
-  static_assert(kAllocationStubTypeArgumentsReg == EDX,
-                "Adjust register allocation in the AllocationStub");
-
+  // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+  //                                       (if is_cls_parameterized).
   if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
       !target::Class::TraceAllocation(cls)) {
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    // EDX: instantiated type arguments (if is_cls_parameterized).
-    __ movl(EAX, Address(THR, target::Thread::top_offset()));
-    __ leal(EBX, Address(EAX, instance_size));
+    // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+    //                                       (if is_cls_parameterized).
+    __ movl(AllocateObjectABI::kResultReg,
+            Address(THR, target::Thread::top_offset()));
+    __ leal(EBX, Address(AllocateObjectABI::kResultReg, instance_size));
     // Check if the allocation fits into the remaining space.
-    // EAX: potential new object start.
+    // AllocateObjectABI::kResultReg: potential new object start.
     // EBX: potential next object start.
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
     __ movl(Address(THR, target::Thread::top_offset()), EBX);
 
-    // EAX: new object start (untagged).
+    // AllocateObjectABI::kResultReg: new object start (untagged).
     // EBX: next object start.
-    // EDX: new object type arguments (if is_cls_parameterized).
+    // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+    //                                       (if is_cls_parameterized).
     // Set the tags.
     ASSERT(target::Class::GetId(cls) != kIllegalCid);
     uword tags = target::MakeTagWordForNewSpaceObject(target::Class::GetId(cls),
                                                       instance_size);
-    __ movl(Address(EAX, target::Object::tags_offset()), Immediate(tags));
-    __ addl(EAX, Immediate(kHeapObjectTag));
+    __ movl(
+        Address(AllocateObjectABI::kResultReg, target::Object::tags_offset()),
+        Immediate(tags));
+    __ addl(AllocateObjectABI::kResultReg, Immediate(kHeapObjectTag));
 
     // Initialize the remaining words of the object.
 
-    // EAX: new object (tagged).
+    // AllocateObjectABI::kResultReg: new object (tagged).
     // EBX: next object start.
-    // EDX: new object type arguments (if is_cls_parameterized).
+    // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+    //                                       (if is_cls_parameterized).
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * target::kWordSize)) {
       // Check if the object contains any non-header fields.
@@ -1514,42 +1522,49 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       for (intptr_t current_offset = target::Instance::first_field_offset();
            current_offset < instance_size;
            current_offset += target::kWordSize) {
-        __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, current_offset),
-                                    NullObject());
+        __ StoreIntoObjectNoBarrier(
+            AllocateObjectABI::kResultReg,
+            FieldAddress(AllocateObjectABI::kResultReg, current_offset),
+            NullObject());
       }
     } else {
-      __ leal(ECX, FieldAddress(EAX, target::Instance::first_field_offset()));
+      __ leal(ECX, FieldAddress(AllocateObjectABI::kResultReg,
+                                target::Instance::first_field_offset()));
       // Loop until the whole object is initialized.
-      // EAX: new object (tagged).
+      // AllocateObjectABI::kResultReg: new object (tagged).
       // EBX: next object start.
       // ECX: next word to be initialized.
-      // EDX: new object type arguments (if is_cls_parameterized).
+      // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+      //                                       (if is_cls_parameterized).
       Label init_loop;
       Label done;
       __ Bind(&init_loop);
       __ cmpl(ECX, EBX);
       __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-      __ StoreIntoObjectNoBarrier(EAX, Address(ECX, 0), NullObject());
+      __ StoreIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                  Address(ECX, 0), NullObject());
       __ addl(ECX, Immediate(target::kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
     }
     if (is_cls_parameterized) {
-      // EAX: new object (tagged).
-      // EDX: new object type arguments.
+      // AllocateObjectABI::kResultReg: new object (tagged).
+      // AllocateObjectABI::kTypeArgumentsReg: new object type arguments.
       // Set the type arguments in the new object.
       const intptr_t offset = target::Class::TypeArgumentsFieldOffset(cls);
-      __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, offset),
-                                  kAllocationStubTypeArgumentsReg);
+      __ StoreIntoObjectNoBarrier(
+          AllocateObjectABI::kResultReg,
+          FieldAddress(AllocateObjectABI::kResultReg, offset),
+          AllocateObjectABI::kTypeArgumentsReg);
     }
     // Done allocating and initializing the instance.
-    // EAX: new object (tagged).
+    // AllocateObjectABI::kResultReg: new object (tagged).
     __ ret();
 
     __ Bind(&slow_case);
   }
   // If is_cls_parameterized:
-  // EDX: new object type arguments.
+  //   AllocateObjectABI::kTypeArgumentsReg: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
@@ -1558,14 +1573,14 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       CastHandle<Object>(cls));  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     // Push type arguments of object to be allocated.
-    __ pushl(kAllocationStubTypeArgumentsReg);
+    __ pushl(AllocateObjectABI::kTypeArgumentsReg);
   } else {
     __ pushl(raw_null);  // Push null type arguments.
   }
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
-  __ popl(EAX);  // Pop argument (type arguments of object).
-  __ popl(EAX);  // Pop argument (class of object).
-  __ popl(EAX);  // Pop result (newly allocated object).
+  __ popl(AllocateObjectABI::kResultReg);          // Drop type arguments.
+  __ popl(AllocateObjectABI::kResultReg);          // Drop class.
+  __ popl(AllocateObjectABI::kResultReg);          // Pop allocated object.
 
   if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
     // Write-barrier elimination is enabled for [cls] and we therefore need to
@@ -1573,7 +1588,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   }
 
-  // EAX: new object
+  // AllocateObjectABI::kResultReg: new object
   // Restore the frame pointer.
   __ LeaveFrame();
   __ ret();
@@ -2262,7 +2277,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Other values are stored in non-kInstanceReg registers from TypeTestABI.
   const Register kCacheArrayReg = TypeTestABI::kInstantiatorTypeArgumentsReg;
   const Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
-  const Register kInstanceCidOrFunction =
+  const Register kInstanceCidOrSignature =
       TypeTestABI::kFunctionTypeArgumentsReg;
   const Register kInstanceInstantiatorTypeArgumentsReg =
       TypeTestABI::kDstTypeReg;
@@ -2296,18 +2311,21 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, not_closure;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassIdMayBeSmi(kInstanceCidOrSignature, TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassId(kInstanceCidOrSignature, TypeTestABI::kInstanceReg);
   }
-  __ cmpl(kInstanceCidOrFunction, Immediate(kClosureCid));
+  __ cmpl(kInstanceCidOrSignature, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
   // Closure handling.
   {
-    __ movl(kInstanceCidOrFunction,
+    __ movl(kInstanceCidOrSignature,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
+    __ movl(kInstanceCidOrSignature,
+            FieldAddress(kInstanceCidOrSignature,
+                         target::Function::signature_offset()));
     if (n >= 3) {
       __ movl(
           kInstanceInstantiatorTypeArgumentsReg,
@@ -2330,7 +2348,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ Bind(&not_closure);
     if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
+      __ LoadClassById(kScratchReg, kInstanceCidOrSignature);
       __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
       __ movl(
           kScratchReg,
@@ -2348,7 +2366,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         __ pushl(raw_null);  // function.
       }
     }
-    __ SmiTag(kInstanceCidOrFunction);
+    __ SmiTag(kInstanceCidOrSignature);
   }
 
   if (n >= 7) {
@@ -2368,10 +2386,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movl(kScratchReg,
           Address(kCacheArrayReg,
                   target::kWordSize *
-                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
+                      target::SubtypeTestCache::kInstanceCidOrSignature));
   __ cmpl(kScratchReg, raw_null);
   __ j(EQUAL, &done, Assembler::kNearJump);
-  __ cmpl(kScratchReg, kInstanceCidOrFunction);
+  __ cmpl(kScratchReg, kInstanceCidOrSignature);
   if (n == 1) {
     __ j(EQUAL, &done, Assembler::kNearJump);
   } else {
@@ -2787,21 +2805,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ int3();  // AOT only.
 }
 
-void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
-    Assembler* assembler) {
-  __ int3();  // Marker stub.
-}
-
-void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
-  __ int3();  // Marker stub.
-}
-
-void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
-  __ int3();
-}
-
 // Instantiate type arguments from instantiator and function type args.
 // EBX: uninstantiated type arguments.
 // EDX: instantiator type arguments.
@@ -2935,110 +2938,114 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == EAX);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == EAX);
 
-  // Save length argument for possible runtime call, as
-  // EAX is clobbered.
-  Label call_runtime;
-  __ pushl(AllocateTypedDataArrayABI::kLengthReg);
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    // Save length argument for possible runtime call, as
+    // EAX is clobbered.
+    Label call_runtime;
+    __ pushl(AllocateTypedDataArrayABI::kLengthReg);
 
-  NOT_IN_PRODUCT(
-      __ MaybeTraceAllocation(cid, ECX, &call_runtime, Assembler::kFarJump));
-  __ movl(EDI, AllocateTypedDataArrayABI::kLengthReg);
-  /* Check that length is a positive Smi. */
-  /* EDI: requested array length argument. */
-  __ testl(EDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &call_runtime);
-  __ cmpl(EDI, Immediate(0));
-  __ j(LESS, &call_runtime);
-  __ SmiUntag(EDI);
-  /* Check for maximum allowed length. */
-  /* EDI: untagged array length. */
-  __ cmpl(EDI, Immediate(max_len));
-  __ j(GREATER, &call_runtime);
-  /* Special case for scaling by 16. */
-  if (scale_factor == TIMES_16) {
-    /* double length of array. */
-    __ addl(EDI, EDI);
-    /* only scale by 8. */
-    scale_factor = TIMES_8;
-  }
+    NOT_IN_PRODUCT(
+        __ MaybeTraceAllocation(cid, ECX, &call_runtime, Assembler::kFarJump));
+    __ movl(EDI, AllocateTypedDataArrayABI::kLengthReg);
+    /* Check that length is a positive Smi. */
+    /* EDI: requested array length argument. */
+    __ testl(EDI, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, &call_runtime);
+    __ SmiUntag(EDI);
+    /* Check for length >= 0 && length <= max_len. */
+    /* EDI: untagged array length. */
+    __ cmpl(EDI, Immediate(max_len));
+    __ j(ABOVE, &call_runtime);
+    /* Special case for scaling by 16. */
+    if (scale_factor == TIMES_16) {
+      /* double length of array. */
+      __ addl(EDI, EDI);
+      /* only scale by 8. */
+      scale_factor = TIMES_8;
+    }
 
-  const intptr_t fixed_size_plus_alignment_padding =
-      target::TypedData::InstanceSize() +
-      target::ObjectAlignment::kObjectAlignment - 1;
-  __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding));
-  __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
-  __ movl(EAX, Address(THR, target::Thread::top_offset()));
-  __ movl(EBX, EAX);
-  /* EDI: allocation size. */
-  __ addl(EBX, EDI);
-  __ j(CARRY, &call_runtime);
+    const intptr_t fixed_size_plus_alignment_padding =
+        target::TypedData::HeaderSize() +
+        target::ObjectAlignment::kObjectAlignment - 1;
+    __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding));
+    __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
+    __ movl(EAX, Address(THR, target::Thread::top_offset()));
+    __ movl(EBX, EAX);
+    /* EDI: allocation size. */
+    __ addl(EBX, EDI);
+    __ j(CARRY, &call_runtime);
 
-  /* Check if the allocation fits into the remaining space. */
-  /* EAX: potential new object start. */
-  /* EBX: potential next object start. */
-  /* EDI: allocation size. */
-  __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
-  __ j(ABOVE_EQUAL, &call_runtime);
+    /* Check if the allocation fits into the remaining space. */
+    /* EAX: potential new object start. */
+    /* EBX: potential next object start. */
+    /* EDI: allocation size. */
+    __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
+    __ j(ABOVE_EQUAL, &call_runtime);
 
-  /* Successfully allocated the object(s), now update top to point to */
-  /* next object start and initialize the object. */
-  __ movl(Address(THR, target::Thread::top_offset()), EBX);
-  __ addl(EAX, Immediate(kHeapObjectTag));
+    /* Successfully allocated the object(s), now update top to point to */
+    /* next object start and initialize the object. */
+    __ movl(Address(THR, target::Thread::top_offset()), EBX);
+    __ addl(EAX, Immediate(kHeapObjectTag));
 
-  /* Initialize the tags. */
-  /* EAX: new object start as a tagged pointer. */
-  /* EBX: new object end address. */
-  /* EDI: allocation size. */
-  {
-    Label size_tag_overflow, done;
-    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
-    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
-                           target::ObjectAlignment::kObjectAlignmentLog2));
-    __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&size_tag_overflow);
-    __ movl(EDI, Immediate(0));
+    /* Initialize the tags. */
+    /* EAX: new object start as a tagged pointer. */
+    /* EBX: new object end address. */
+    /* EDI: allocation size. */
+    {
+      Label size_tag_overflow, done;
+      __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
+      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+      __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+                             target::ObjectAlignment::kObjectAlignmentLog2));
+      __ jmp(&done, Assembler::kNearJump);
+      __ Bind(&size_tag_overflow);
+      __ movl(EDI, Immediate(0));
+      __ Bind(&done);
+      /* Get the class index and insert it into the tags. */
+      uword tags =
+          target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+      __ orl(EDI, Immediate(tags));
+      __ movl(FieldAddress(EAX, target::Object::tags_offset()),
+              EDI); /* Tags. */
+    }
+
+    /* Set the length field. */
+    /* EAX: new object start as a tagged pointer. */
+    /* EBX: new object end address. */
+    __ popl(EDI); /* Array length. */
+    __ StoreIntoObjectNoBarrier(
+        EAX, FieldAddress(EAX, target::TypedDataBase::length_offset()), EDI);
+
+    /* Initialize all array elements to 0. */
+    /* EAX: new object start as a tagged pointer. */
+    /* EBX: new object end address. */
+    /* EDI: iterator which initially points to the start of the variable */
+    /* ECX: scratch register. */
+    /* data area to be initialized. */
+    __ xorl(ECX, ECX); /* Zero. */
+    __ leal(EDI, FieldAddress(EAX, target::TypedData::HeaderSize()));
+    __ StoreInternalPointer(
+        EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()),
+        EDI);
+    Label done, init_loop;
+    __ Bind(&init_loop);
+    __ cmpl(EDI, EBX);
+    __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+    __ movl(Address(EDI, 0), ECX);
+    __ addl(EDI, Immediate(target::kWordSize));
+    __ jmp(&init_loop, Assembler::kNearJump);
     __ Bind(&done);
-    /* Get the class index and insert it into the tags. */
-    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
-    __ orl(EDI, Immediate(tags));
-    __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI); /* Tags. */
+
+    __ ret();
+
+    __ Bind(&call_runtime);
+    __ popl(AllocateTypedDataArrayABI::kLengthReg);
   }
 
-  /* Set the length field. */
-  /* EAX: new object start as a tagged pointer. */
-  /* EBX: new object end address. */
-  __ popl(EDI); /* Array length. */
-  __ StoreIntoObjectNoBarrier(
-      EAX, FieldAddress(EAX, target::TypedDataBase::length_offset()), EDI);
-
-  /* Initialize all array elements to 0. */
-  /* EAX: new object start as a tagged pointer. */
-  /* EBX: new object end address. */
-  /* EDI: iterator which initially points to the start of the variable */
-  /* ECX: scratch register. */
-  /* data area to be initialized. */
-  __ xorl(ECX, ECX); /* Zero. */
-  __ leal(EDI, FieldAddress(EAX, target::TypedData::InstanceSize()));
-  __ StoreInternalPointer(
-      EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()), EDI);
-  Label done, init_loop;
-  __ Bind(&init_loop);
-  __ cmpl(EDI, EBX);
-  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-  __ movl(Address(EDI, 0), ECX);
-  __ addl(EDI, Immediate(target::kWordSize));
-  __ jmp(&init_loop, Assembler::kNearJump);
-  __ Bind(&done);
-
-  __ ret();
-
-  __ Bind(&call_runtime);
-  __ popl(EDI);  // Array length
   __ EnterStubFrame();
   __ PushObject(Object::null_object());  // Make room for the result.
   __ pushl(Immediate(target::ToRawSmi(cid)));
-  __ pushl(EDI);  // Array length
+  __ pushl(AllocateTypedDataArrayABI::kLengthReg);
   __ CallRuntime(kAllocateTypedDataRuntimeEntry, 2);
   __ Drop(2);  // Drop arguments.
   __ popl(AllocateTypedDataArrayABI::kResultReg);

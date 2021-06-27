@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core' hide MapEntry;
+// @dart = 2.9
 
+import 'package:front_end/src/fasta/util/helpers.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../builder/extension_builder.dart';
 import '../builder/library_builder.dart';
@@ -104,5 +106,11 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
       _onType = library.loader.computeTypeBuilder(extension.onType);
     }
     return _onType;
+  }
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    // TODO(johnniwinther): Remove the need for this.
   }
 }

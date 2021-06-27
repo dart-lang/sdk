@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that used static consts are emitted.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Guide {

@@ -42,15 +42,15 @@ DEFINE_FLAG(charp,
             "Print sizes of all instruction objects to the given file");
 #endif
 
-const InstructionsSectionLayout* Image::ExtraInfo(const uword raw_memory,
-                                                  const uword size) {
+const UntaggedInstructionsSection* Image::ExtraInfo(const uword raw_memory,
+                                                    const uword size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   auto const raw_value =
       FieldValue(raw_memory, HeaderField::InstructionsSectionOffset);
   if (raw_value != kNoInstructionsSection) {
     ASSERT(raw_value >= kHeaderSize);
     ASSERT(raw_value <= size - InstructionsSection::HeaderSize());
-    auto const layout = reinterpret_cast<const InstructionsSectionLayout*>(
+    auto const layout = reinterpret_cast<const UntaggedInstructionsSection*>(
         raw_memory + raw_value);
     // The instructions section is likely non-empty in bare instructions mode
     // (unless splitting into multiple outputs and there are no Code objects
@@ -142,12 +142,12 @@ bool Image::compiled_to_elf() const {
 #endif
 }
 
-intptr_t ObjectOffsetTrait::Hashcode(Key key) {
+uword ObjectOffsetTrait::Hash(Key key) {
   ObjectPtr obj = key;
   ASSERT(!obj->IsSmi());
 
-  uword body = ObjectLayout::ToAddr(obj) + sizeof(ObjectLayout);
-  uword end = ObjectLayout::ToAddr(obj) + obj->ptr()->HeapSize();
+  uword body = UntaggedObject::ToAddr(obj) + sizeof(UntaggedObject);
+  uword end = UntaggedObject::ToAddr(obj) + obj->untag()->HeapSize();
 
   uint32_t hash = obj->GetClassId();
   // Don't include the header. Objects in the image are pre-marked, but objects
@@ -169,16 +169,16 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
     return false;
   }
 
-  intptr_t heap_size = a->ptr()->HeapSize();
-  if (b->ptr()->HeapSize() != heap_size) {
+  intptr_t heap_size = a->untag()->HeapSize();
+  if (b->untag()->HeapSize() != heap_size) {
     return false;
   }
 
   // Don't include the header. Objects in the image are pre-marked, but objects
   // in the current isolate are not.
-  uword body_a = ObjectLayout::ToAddr(a) + sizeof(ObjectLayout);
-  uword body_b = ObjectLayout::ToAddr(b) + sizeof(ObjectLayout);
-  uword body_size = heap_size - sizeof(ObjectLayout);
+  uword body_a = UntaggedObject::ToAddr(a) + sizeof(UntaggedObject);
+  uword body_b = UntaggedObject::ToAddr(b) + sizeof(UntaggedObject);
+  uword body_size = heap_size - sizeof(UntaggedObject);
   return 0 == memcmp(reinterpret_cast<const void*>(body_a),
                      reinterpret_cast<const void*>(body_b), body_size);
 }
@@ -259,12 +259,12 @@ intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw_object) {
     case kCodeSourceMapCid: {
       auto raw_map = CodeSourceMap::RawCast(raw_object);
       return compiler::target::CodeSourceMap::InstanceSize(
-          raw_map->ptr()->length_);
+          raw_map->untag()->length_);
     }
     case kPcDescriptorsCid: {
       auto raw_desc = PcDescriptors::RawCast(raw_object);
       return compiler::target::PcDescriptors::InstanceSize(
-          raw_desc->ptr()->length_);
+          raw_desc->untag()->length_);
     }
     case kInstructionsCid: {
       auto raw_insns = Instructions::RawCast(raw_object);
@@ -377,7 +377,7 @@ void ImageWriter::DumpInstructionsSizes() {
       js.PrintPropertyStr("l", url);
       js.PrintPropertyStr("c", name);
     } else if (owner.IsClass()) {
-      cls ^= owner.raw();
+      cls ^= owner.ptr();
       name = cls.ScrubbedName();
       lib = cls.library();
       url = lib.url();
@@ -388,7 +388,7 @@ void ImageWriter::DumpInstructionsSizes() {
                      data.code_->QualifiedName(
                          NameFormattingParams::DisambiguatedWithoutClassName(
                              Object::kInternalName)));
-    js.PrintProperty("s", SizeInSnapshot(data.insns_->raw()));
+    js.PrintProperty("s", SizeInSnapshot(data.insns_->ptr()));
     js.CloseObject();
   }
   if (trampolines_total_size != 0) {
@@ -435,7 +435,7 @@ void ImageWriter::DumpStatistics() {
 void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Heap* heap = thread->isolate()->heap();
+  Heap* heap = thread->isolate_group()->heap();
   TIMELINE_DURATION(thread, Isolate, "WriteInstructions");
 
   // Handlify collected raw pointers as building the names below
@@ -451,7 +451,7 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
 
     // Reset object id as an isolate snapshot after a VM snapshot will not use
     // the VM snapshot's text image.
-    heap->SetObjectId(data.insns_->raw(), 0);
+    heap->SetObjectId(data.insns_->ptr(), 0);
   }
   for (intptr_t i = 0; i < objects_.length(); i++) {
     ObjectData& data = objects_[i];
@@ -462,15 +462,13 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
   // BSSsection in the text section as an initial InstructionsSection object.
   WriteBss(vm);
 
-  offset_space_ = vm ? V8SnapshotProfileWriter::kVmText
-                     : V8SnapshotProfileWriter::kIsolateText;
+  offset_space_ = vm ? IdSpace::kVmText : IdSpace::kIsolateText;
   WriteText(vm);
 
   // Append the direct-mapped RO data objects after the clustered snapshot
   // and then for ELF and assembly outputs, add appropriate sections with
   // that combined data.
-  offset_space_ = vm ? V8SnapshotProfileWriter::kVmData
-                     : V8SnapshotProfileWriter::kIsolateData;
+  offset_space_ = vm ? IdSpace::kVmData : IdSpace::kIsolateData;
   WriteROData(clustered_stream, vm);
 }
 
@@ -493,7 +491,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
   if (profile_writer_ != nullptr) {
     const intptr_t end_position = stream->Position();
     profile_writer_->AttributeBytesTo(
-        V8SnapshotProfileWriter::ArtificialRootId(),
+        V8SnapshotProfileWriter::kArtificialRootId,
         end_position - start_position);
   }
 #endif
@@ -514,10 +512,10 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
     if (obj.IsCompressedStackMaps()) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
       const intptr_t payload_size = map.payload_size();
-      stream->WriteTargetWord(map.raw()->ptr()->flags_and_size_);
+      stream->WriteTargetWord(map.ptr()->untag()->flags_and_size_);
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::CompressedStackMaps::HeaderSize());
-      stream->WriteBytes(map.raw()->ptr()->data(), payload_size);
+      stream->WriteBytes(map.ptr()->untag()->data(), payload_size);
     } else if (obj.IsCodeSourceMap()) {
       const CodeSourceMap& map = CodeSourceMap::Cast(obj);
       stream->WriteTargetWord(map.Length());
@@ -529,15 +527,15 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
       stream->WriteTargetWord(desc.Length());
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::PcDescriptors::HeaderSize());
-      stream->WriteBytes(desc.raw()->ptr()->data(), desc.Length());
+      stream->WriteBytes(desc.ptr()->untag()->data(), desc.Length());
     } else if (obj.IsString()) {
       const String& str = String::Cast(obj);
-      RELEASE_ASSERT(String::GetCachedHash(str.raw()) != 0);
+      RELEASE_ASSERT(String::GetCachedHash(str.ptr()) != 0);
       RELEASE_ASSERT(str.IsOneByteString() || str.IsTwoByteString());
 
-      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->length_));
+      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->length()));
 #if !defined(HASH_IN_OBJECT_HEADER)
-      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->hash_));
+      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->hash()));
 #endif
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::String::InstanceSize());
@@ -557,16 +555,16 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
   }
 }
 
-static UNLESS_DEBUG(constexpr) const uword kReadOnlyGCBits =
-    ObjectLayout::OldBit::encode(true) |
-    ObjectLayout::OldAndNotMarkedBit::encode(false) |
-    ObjectLayout::OldAndNotRememberedBit::encode(true) |
-    ObjectLayout::NewBit::encode(false);
+static constexpr uword kReadOnlyGCBits =
+    UntaggedObject::OldBit::encode(true) |
+    UntaggedObject::OldAndNotMarkedBit::encode(false) |
+    UntaggedObject::OldAndNotRememberedBit::encode(true) |
+    UntaggedObject::NewBit::encode(false);
 
 uword ImageWriter::GetMarkedTags(classid_t cid,
                                  intptr_t size,
                                  bool is_canonical /* = false */) {
-  // ObjectLayout::SizeTag expects a size divisible by kObjectAlignment and
+  // UntaggedObject::SizeTag expects a size divisible by kObjectAlignment and
   // checks this in debug mode, but the size on the target machine may not be
   // divisible by the host machine's object alignment if they differ.
   //
@@ -583,16 +581,17 @@ uword ImageWriter::GetMarkedTags(classid_t cid,
       size << (kObjectAlignmentLog2 -
                compiler::target::ObjectAlignment::kObjectAlignmentLog2);
 
-  return kReadOnlyGCBits | ObjectLayout::ClassIdTag::encode(cid) |
-         ObjectLayout::SizeTag::encode(adjusted_size) |
-         ObjectLayout::CanonicalBit::encode(is_canonical);
+  return kReadOnlyGCBits | UntaggedObject::ClassIdTag::encode(cid) |
+         UntaggedObject::SizeTag::encode(adjusted_size) |
+         UntaggedObject::CanonicalBit::encode(is_canonical);
 }
 
 uword ImageWriter::GetMarkedTags(const Object& obj) {
-  uword tags = GetMarkedTags(obj.raw()->GetClassId(), SizeInSnapshot(obj),
-                             obj.IsCanonical());
+  uword tags = GetMarkedTags(obj.ptr()->untag()->GetClassId(),
+                             SizeInSnapshot(obj), obj.IsCanonical());
 #if defined(HASH_IN_OBJECT_HEADER)
-  tags = ObjectLayout::HashTag::update(obj.raw()->ptr()->GetHeaderHash(), tags);
+  tags = UntaggedObject::HashTag::update(obj.ptr()->untag()->GetHeaderHash(),
+                                         tags);
 #endif
   return tags;
 }
@@ -652,14 +651,14 @@ void ImageWriter::WriteText(bool vm) {
   const char* bss_symbol = SectionSymbol(ProgramSection::Bss, vm);
   ASSERT(bss_symbol != nullptr);
 
-  if (FLAG_precompiled_mode) {
-    if (profile_writer_ != nullptr) {
-      profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
-                                            instructions_symbol);
-      profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
-      profile_writer_->AddRoot(parent_id);
-    }
+  if (profile_writer_ != nullptr) {
+    profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
+                                          instructions_symbol);
+    profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
+    profile_writer_->AddRoot(parent_id);
+  }
 
+  if (FLAG_precompiled_mode) {
     const intptr_t section_header_length =
         compiler::target::InstructionsSection::HeaderSize();
     // Calculated using next_text_offset_, which doesn't include post-payload
@@ -679,10 +678,10 @@ void ImageWriter::WriteText(bool vm) {
                                             instructions_symbol);
       profile_writer_->AttributeBytesTo(id,
                                         section_size - section_payload_length);
-      const intptr_t element_offset = id.second - parent_id.second;
+      const intptr_t element_offset = id.nonce() - parent_id.nonce();
       profile_writer_->AttributeReferenceTo(
           parent_id,
-          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+          V8SnapshotProfileWriter::Reference::Element(element_offset), id);
       // Later objects will have the InstructionsSection as a parent if in
       // bare instructions mode, otherwise the image.
       if (bare_instruction_payloads) {
@@ -713,7 +712,7 @@ void ImageWriter::WriteText(bool vm) {
             ? compiler::target::InstructionsSection::HeaderSize()
             : compiler::target::InstructionsSection::InstanceSize(0);
     text_offset += Align(section_contents_alignment, text_offset);
-    ASSERT_EQUAL(text_offset - id.second, expected_size);
+    ASSERT_EQUAL(text_offset - id.nonce(), expected_size);
   }
 #endif
 
@@ -724,7 +723,7 @@ void ImageWriter::WriteText(bool vm) {
   SnapshotTextObjectNamer namer(zone);
 #endif
 
-  ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
+  ASSERT(offset_space_ != IdSpace::kSnapshot);
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
     const bool is_trampoline = data.trampoline_bytes != nullptr;
@@ -740,13 +739,13 @@ void ImageWriter::WriteText(bool vm) {
       const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
       auto const type = is_trampoline ? trampoline_type_ : instructions_type_;
       const intptr_t size = is_trampoline ? data.trampoline_length
-                                          : SizeInSnapshot(data.insns_->raw());
+                                          : SizeInSnapshot(data.insns_->ptr());
       profile_writer_->SetObjectTypeAndName(id, type, object_name);
       profile_writer_->AttributeBytesTo(id, size);
-      const intptr_t element_offset = id.second - parent_id.second;
+      const intptr_t element_offset = id.nonce() - parent_id.nonce();
       profile_writer_->AttributeReferenceTo(
           parent_id,
-          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+          V8SnapshotProfileWriter::Reference::Element(element_offset), id);
     }
 #endif
 
@@ -769,7 +768,7 @@ void ImageWriter::WriteText(bool vm) {
 
       // Write Instructions with the mark and read-only bits set.
       text_offset += WriteTargetWord(GetMarkedTags(insns));
-      text_offset += WriteFixed(insns.raw_ptr()->size_and_flags_);
+      text_offset += WriteFixed(insns.untag()->size_and_flags_);
       text_offset +=
           Align(compiler::target::Instructions::kNonBarePayloadAlignment,
                 text_offset);
@@ -798,7 +797,7 @@ void ImageWriter::WriteText(bool vm) {
       const uword payload_size = insns.Size();
       descriptors = code.pc_descriptors();
       PcDescriptors::Iterator iterator(
-          descriptors, /*kind_mask=*/PcDescriptorsLayout::kBSSRelocation);
+          descriptors, /*kind_mask=*/UntaggedPcDescriptors::kBSSRelocation);
 
       auto const payload_end = payload_start + payload_size;
       auto cursor = payload_start;
@@ -835,7 +834,7 @@ void ImageWriter::WriteText(bool vm) {
             : compiler::target::ObjectAlignment::kObjectAlignment;
     text_offset += AlignWithBreakInstructions(alignment, text_offset);
 
-    ASSERT_EQUAL(text_offset - instr_start, SizeInSnapshot(insns.raw()));
+    ASSERT_EQUAL(text_offset - instr_start, SizeInSnapshot(insns.ptr()));
   }
 
   // Should be a no-op unless writing bare instruction payloads, in which case
@@ -1283,8 +1282,10 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(
       ".cfi_offset rip, 8\n");  // saved pc is *(CFA+8)
   // saved sp is CFA+16
-  // Should be ".cfi_value_offset rsp, 16", but requires gcc newer than late
-  // 2016 and not supported by Android's libunwind.
+  // Would prefer to use ".cfi_value_offset sp, 16", but this requires gcc
+  // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
+  // because DW_CFA_val_offset uses scaled operand and we don't know what
+  // data alignment factor will be choosen by the assembler when emitting CIE.
   // DW_CFA_expression          0x10
   // uleb128 register (rsp)        7   (DWARF register number)
   // uleb128 size of operation     2
@@ -1301,19 +1302,36 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(
       ".cfi_offset x30, 8\n");  // saved pc is *(CFA+8)
   // saved sp is CFA+16
-  // Should be ".cfi_value_offset sp, 16", but requires gcc newer than late
-  // 2016 and not supported by Android's libunwind.
+  // Would prefer to use ".cfi_value_offset sp, 16", but this requires gcc
+  // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
+  // because DW_CFA_val_offset uses scaled operand and we don't know what
+  // data alignment factor will be choosen by the assembler when emitting CIE.
+#if defined(TARGET_OS_ANDROID)
+  // On Android libunwindstack has a bug (b/191113792): it does not push
+  // CFA value to the expression stack before evaluating expression given
+  // to DW_CFA_expression. We have to workaround this bug by manually pushing
+  // CFA (R11) to the stack using DW_OP_breg29 0.
+  // DW_CFA_expression          0x10
+  // uleb128 register (x31)       31
+  // uleb128 size of operation     4
+  // DW_OP_breg11               0x8d (0x70 + 29)
+  // sleb128 offset                0
+  // DW_OP_plus_uconst          0x23
+  // uleb128 addend               16
+  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 4, 0x8d, 0, 0x23, 16\n");
+#else
   // DW_CFA_expression          0x10
   // uleb128 register (x31)       31
   // uleb128 size of operation     2
   // DW_OP_plus_uconst          0x23
   // uleb128 addend               16
   assembly_stream_->WriteString(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
+#endif
 
 #elif defined(TARGET_ARCH_ARM)
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
-  assembly_stream_->WriteString(".cfi_def_cfa r7, 0\n");  // CFA is fp+j0
+  assembly_stream_->WriteString(".cfi_def_cfa r7, 0\n");  // CFA is fp+0
   assembly_stream_->WriteString(".cfi_offset r7, 0\n");  // saved fp is *(CFA+0)
 #else
   COMPILE_ASSERT(FP == R11);
@@ -1323,14 +1341,31 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 #endif
   assembly_stream_->WriteString(".cfi_offset lr, 4\n");  // saved pc is *(CFA+4)
   // saved sp is CFA+8
-  // Should be ".cfi_value_offset sp, 8", but requires gcc newer than late
-  // 2016 and not supported by Android's libunwind.
+  // Would prefer to use ".cfi_value_offset sp, 16", but this requires gcc
+  // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
+  // because DW_CFA_val_offset uses scaled operand and we don't know what
+  // data alignment factor will be choosen by the assembler when emitting CIE.
+#if defined(TARGET_OS_ANDROID)
+  // On Android libunwindstack has a bug (b/191113792): it does not push
+  // CFA value to the expression stack before evaluating expression given
+  // to DW_CFA_expression. We have to workaround this bug by manually pushing
+  // CFA (R11) to the stack using DW_OP_breg11 0.
+  // DW_CFA_expression          0x10
+  // uleb128 register (sp)        13
+  // uleb128 size of operation     4
+  // DW_OP_breg11               0x7b (0x70 + 11)
+  // sleb128 offset                0
+  // DW_OP_plus_uconst          0x23
+  // uleb128 addend                8
+  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 4, 0x7b, 0, 0x23, 16\n");
+#else
   // DW_CFA_expression          0x10
   // uleb128 register (sp)        13
   // uleb128 size of operation     2
   // DW_OP_plus_uconst          0x23
   // uleb128 addend                8
   assembly_stream_->WriteString(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
+#endif
 
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
 #if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
@@ -1556,10 +1591,10 @@ InstructionsPtr ImageReader::GetInstructionsAt(uint32_t offset) const {
   ASSERT(!FLAG_precompiled_mode || !FLAG_use_bare_instructions);
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
-  ObjectPtr result = ObjectLayout::FromAddr(
+  ObjectPtr result = UntaggedObject::FromAddr(
       reinterpret_cast<uword>(instructions_image_) + offset);
   ASSERT(result->IsInstructions());
-  ASSERT(result->ptr()->IsMarked());
+  ASSERT(result->untag()->IsMarked());
 
   return Instructions::RawCast(result);
 }
@@ -1568,8 +1603,8 @@ ObjectPtr ImageReader::GetObjectAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
   ObjectPtr result =
-      ObjectLayout::FromAddr(reinterpret_cast<uword>(data_image_) + offset);
-  ASSERT(result->ptr()->IsMarked());
+      UntaggedObject::FromAddr(reinterpret_cast<uword>(data_image_) + offset);
+  ASSERT(result->untag()->IsMarked());
 
   return result;
 }

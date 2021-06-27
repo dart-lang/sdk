@@ -17,6 +17,11 @@ void main() {
 
 @reflectiveTest
 class FlutterTest extends AbstractSingleUnitTest {
+  @override
+  // TODO(brianwilkerson) Update these tests. I believe that will require
+  //  updating the mock flutter package.
+  String? get testPackageLanguageVersion => '2.9';
+
   Flutter get _flutter => Flutter.instance;
 
   @override
@@ -111,14 +116,14 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) => null;
 }
 ''');
-    FunctionDeclaration main = testUnit.declarations[0];
-    BlockFunctionBody body = main.functionExpression.body;
-    List<Statement> statements = body.block.statements;
+    var main = testUnit.declarations[0] as FunctionDeclaration;
+    var body = main.functionExpression.body as BlockFunctionBody;
+    var statements = body.block.statements;
 
     // new MyWidget(1234);
     {
-      ExpressionStatement statement = statements[0];
-      InstanceCreationExpression creation = statement.expression;
+      var statement = statements[0] as ExpressionStatement;
+      var creation = statement.expression as InstanceCreationExpression;
       var constructorName = creation.constructorName;
       var typeName = constructorName.type;
       var argumentList = creation.argumentList;
@@ -134,8 +139,8 @@ class MyWidget extends StatelessWidget {
 
     // new MyWidget.named(5678);
     {
-      ExpressionStatement statement = statements[1];
-      InstanceCreationExpression creation = statement.expression;
+      var statement = statements[1] as ExpressionStatement;
+      var creation = statement.expression as InstanceCreationExpression;
       var constructorName = creation.constructorName;
       var typeName = constructorName.type;
       var argumentList = creation.argumentList;
@@ -165,16 +170,14 @@ Text createEmptyText() => new Text('');
 Text createText(String txt) => new Text(txt);
 ''');
     {
-      MethodInvocation invocation = findNodeAtString(
-          'createEmptyText();', (node) => node is MethodInvocation);
+      var invocation = findNode.methodInvocation('createEmptyText();');
       expect(_flutter.identifyWidgetExpression(invocation), invocation);
       var argumentList = invocation.argumentList;
       expect(_flutter.identifyWidgetExpression(argumentList), isNull);
     }
 
     {
-      MethodInvocation invocation = findNodeAtString(
-          "createText('xyz');", (node) => node is MethodInvocation);
+      var invocation = findNode.methodInvocation("createText('xyz');");
       expect(_flutter.identifyWidgetExpression(invocation), invocation);
       var argumentList = invocation.argumentList;
       expect(_flutter.identifyWidgetExpression(argumentList), isNull);
@@ -195,7 +198,7 @@ main() {
 
 Text createEmptyText() => new Text('');
 ''');
-    Expression childExpression = findNodeAtString('child: ');
+    var childExpression = findNode.namedExpression('child: ');
     expect(_flutter.identifyWidgetExpression(childExpression), isNull);
   }
 
@@ -212,7 +215,7 @@ main(Foo foo) {
   foo.bar; // ref
 }
 ''');
-    SimpleIdentifier bar = findNodeAtString('bar; // ref');
+    var bar = findNode.simple('bar; // ref');
     expect(_flutter.identifyWidgetExpression(bar), bar.parent);
   }
 
@@ -229,7 +232,7 @@ main(Foo foo) {
   foo.bar; // ref
 }
 ''');
-    SimpleIdentifier foo = findNodeAtString('foo.bar');
+    var foo = findNode.simple('foo.bar');
     expect(_flutter.identifyWidgetExpression(foo), foo.parent);
   }
 
@@ -241,7 +244,7 @@ main(Widget widget) {
   widget; // ref
 }
 ''');
-    Expression expression = findNodeAtString('widget; // ref');
+    var expression = findNode.simple('widget; // ref');
     expect(_flutter.identifyWidgetExpression(expression), expression);
   }
 
@@ -258,12 +261,12 @@ Text createEmptyText() => new Text('');
 ''');
     expect(_flutter.identifyWidgetExpression(null), isNull);
     {
-      Expression expression = findNodeAtString('42;');
+      var expression = findNode.integerLiteral('42;');
       expect(_flutter.identifyWidgetExpression(expression), isNull);
     }
 
     {
-      Expression expression = findNodeAtString('intVariable;');
+      var expression = findNode.simple('intVariable;');
       expect(_flutter.identifyWidgetExpression(expression), isNull);
     }
   }
@@ -279,7 +282,7 @@ main() {
 
 void useWidget(Widget w) {}
 ''');
-    Expression expression = findNodeAtString('text); // ref');
+    var expression = findNode.simple('text); // ref');
     expect(_flutter.identifyWidgetExpression(expression), expression);
   }
 
@@ -323,10 +326,10 @@ main(bool condition, Widget w1, Widget w2) {
   condition ? w1 : w2;
 }
 ''');
-    Expression thenWidget = findNodeAtString('w1 :');
+    var thenWidget = findNode.simple('w1 :');
     expect(_flutter.identifyWidgetExpression(thenWidget), thenWidget);
 
-    Expression elseWidget = findNodeAtString('w2;');
+    var elseWidget = findNode.simple('w2;');
     expect(_flutter.identifyWidgetExpression(elseWidget), elseWidget);
   }
 
@@ -337,7 +340,7 @@ import 'package:flutter/widgets.dart';
 
 main(Widget widget) => widget; // ref
 ''');
-    Expression expression = findNodeAtString('widget; // ref');
+    var expression = findNode.simple('widget; // ref');
     expect(_flutter.identifyWidgetExpression(expression), expression);
   }
 
@@ -350,7 +353,7 @@ main(Widget widget) {
   widget; // ref
 }
 ''');
-    Expression expression = findNodeAtString('widget; // ref');
+    var expression = findNode.simple('widget; // ref');
     expect(_flutter.identifyWidgetExpression(expression), expression);
   }
 
@@ -400,7 +403,7 @@ main(Widget widget) {
   return [widget]; // ref
 }
 ''');
-    Expression expression = findNodeAtString('widget]; // ref');
+    var expression = findNode.simple('widget]; // ref');
     expect(_flutter.identifyWidgetExpression(expression), expression);
   }
 
@@ -415,7 +418,7 @@ main() {
 
 void useWidget({Widget child}) {}
 ''');
-    Expression expression = findNodeAtString('text); // ref');
+    var expression = findNode.simple('text); // ref');
     expect(_flutter.identifyWidgetExpression(expression), expression);
   }
 
@@ -427,7 +430,7 @@ main(Widget widget) {
   return widget; // ref
 }
 ''');
-    Expression expression = findNodeAtString('widget; // ref');
+    var expression = findNode.simple('widget; // ref');
     expect(_flutter.identifyWidgetExpression(expression), expression);
   }
 
@@ -494,51 +497,49 @@ class MyWidget extends StatelessWidget {
 Text createEmptyText() => new Text('');
 ''');
     {
-      Expression expression = findNodeAtString('named(); // use');
+      var expression = findNode.simple('named(); // use');
       expect(_flutter.isWidgetExpression(expression), isFalse);
-      var creation = expression.parent.parent as InstanceCreationExpression;
+      var creation = expression.parent?.parent as InstanceCreationExpression;
       expect(_flutter.isWidgetExpression(creation), isTrue);
     }
 
     {
-      Expression expression = findNodeAtString("new Text('abc')");
+      var expression = findNode.instanceCreation("new Text('abc')");
       expect(_flutter.isWidgetExpression(expression), isTrue);
     }
 
     {
-      Expression expression = findNodeAtString('text;');
+      var expression = findNode.simple('text;');
       expect(_flutter.isWidgetExpression(expression), isTrue);
     }
 
     {
-      Expression expression = findNodeAtString(
-          'createEmptyText();', (node) => node is MethodInvocation);
+      var expression = findNode.methodInvocation('createEmptyText();');
       expect(_flutter.isWidgetExpression(expression), isTrue);
     }
 
     {
-      SimpleIdentifier expression = findNodeAtString('Container(');
+      var expression = findNode.simple('Container(');
       expect(_flutter.isWidgetExpression(expression), isFalse);
     }
 
     {
-      NamedExpression expression =
-          findNodeAtString('child: ', (n) => n is NamedExpression);
+      var expression = findNode.namedExpression('child: ');
       expect(_flutter.isWidgetExpression(expression), isFalse);
     }
 
     {
-      Expression expression = findNodeAtString('42;');
+      var expression = findNode.integerLiteral('42;');
       expect(_flutter.isWidgetExpression(expression), isFalse);
     }
 
     {
-      Expression expression = findNodeAtString('intVariable;');
+      var expression = findNode.simple('intVariable;');
       expect(_flutter.isWidgetExpression(expression), isFalse);
     }
   }
 
-  VariableDeclaration _getTopVariable(String name, [CompilationUnit unit]) {
+  VariableDeclaration _getTopVariable(String name, [CompilationUnit? unit]) {
     unit ??= testUnit;
     for (var topDeclaration in unit.declarations) {
       if (topDeclaration is TopLevelVariableDeclaration) {
@@ -553,7 +554,7 @@ Text createEmptyText() => new Text('');
   }
 
   InstanceCreationExpression _getTopVariableCreation(String name,
-      [CompilationUnit unit]) {
+      [CompilationUnit? unit]) {
     return _getTopVariable(name, unit).initializer
         as InstanceCreationExpression;
   }

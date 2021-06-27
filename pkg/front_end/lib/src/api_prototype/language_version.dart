@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -145,9 +147,10 @@ Future<bool> uriUsesLegacyLanguageVersion(
   if (SourceLibraryBuilder.isOptOutTest(uri)) return true;
   VersionAndPackageUri versionAndLibraryUri =
       await languageVersionForUri(uri, options);
-  return (versionAndLibraryUri.version <
-      options.getExperimentEnabledVersionInLibrary(
-          ExperimentalFlag.nonNullable, versionAndLibraryUri.packageUri));
+  return !options.isExperimentEnabledInLibraryByVersion(
+      ExperimentalFlag.nonNullable,
+      versionAndLibraryUri.packageUri,
+      versionAndLibraryUri.version);
 }
 
 class VersionAndPackageUri {

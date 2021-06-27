@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_DEBUGGER_H_
 #define RUNTIME_VM_DEBUGGER_H_
 
+#include <memory>
+
 #include "include/dart_tools_api.h"
 
 #include "vm/kernel_isolate.h"
@@ -15,6 +17,8 @@
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stack_trace.h"
+
+#if !defined(PRODUCT)
 
 DECLARE_FLAG(bool, verbose_debug);
 
@@ -74,8 +78,20 @@ class Breakpoint {
   void SetIsPerClosure(const Instance& closure) {
     ASSERT(kind_ == kNone);
     kind_ = kPerClosure;
-    closure_ = closure.raw();
+    closure_ = closure.ptr();
   }
+
+  void Enable() {
+    ASSERT(!enabled_);
+    enabled_ = true;
+  }
+
+  void Disable() {
+    ASSERT(enabled_);
+    enabled_ = false;
+  }
+
+  bool is_enabled() const { return enabled_; }
 
   // Mark that this breakpoint is a result of a step OverAwait request.
   void set_is_synthetic_async(bool is_synthetic_async) {
@@ -101,6 +117,7 @@ class Breakpoint {
   InstancePtr closure_;
   BreakpointLocation* bpt_location_;
   bool is_synthetic_async_;
+  bool enabled_ = false;
 
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Breakpoint);
@@ -120,23 +137,30 @@ class Breakpoint {
 class BreakpointLocation {
  public:
   // Create a new unresolved breakpoint.
-  BreakpointLocation(const Script& script,
+  BreakpointLocation(Debugger* debugger,
+                     const GrowableHandlePtrArray<const Script>& scripts,
                      TokenPosition token_pos,
                      TokenPosition end_token_pos,
                      intptr_t requested_line_number,
                      intptr_t requested_column_number);
   // Create a new latent breakpoint.
-  BreakpointLocation(const String& url,
+  BreakpointLocation(Debugger* debugger,
+                     const String& url,
                      intptr_t requested_line_number,
                      intptr_t requested_column_number);
 
   ~BreakpointLocation();
 
-  FunctionPtr function() const { return function_; }
-  TokenPosition token_pos() const { return token_pos_; }
-  TokenPosition end_token_pos() const { return end_token_pos_; }
+  TokenPosition token_pos() const { return token_pos_.load(); }
+  intptr_t line_number();
+  TokenPosition end_token_pos() const { return end_token_pos_.load(); }
 
-  ScriptPtr script() const { return script_; }
+  ScriptPtr script() const {
+    if (scripts_.length() == 0) {
+      return Script::null();
+    }
+    return scripts_.At(0);
+  }
   StringPtr url() const { return url_; }
 
   intptr_t requested_line_number() const { return requested_line_number_; }
@@ -152,7 +176,12 @@ class BreakpointLocation {
 
   bool AnyEnabled() const;
   bool IsResolved() const { return code_token_pos_.IsReal(); }
-  bool IsLatent() const { return !token_pos_.IsReal(); }
+  bool IsLatent() const { return !token_pos().IsReal(); }
+
+  bool EnsureIsResolved(const Function& target_function,
+                        TokenPosition exact_token_pos);
+
+  Debugger* debugger() { return debugger_; }
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -167,53 +196,89 @@ class BreakpointLocation {
   Breakpoint* breakpoints() const { return this->conditions_; }
   void set_breakpoints(Breakpoint* head) { this->conditions_ = head; }
 
-  ScriptPtr script_;
+  // Finds the breakpoint we hit at |location|.
+  Breakpoint* FindHitBreakpoint(ActivationFrame* top_frame);
+
+  SafepointRwLock* line_number_lock() { return line_number_lock_.get(); }
+
+  Debugger* debugger_;
+  MallocGrowableArray<ScriptPtr> scripts_;
   StringPtr url_;
-  TokenPosition token_pos_;
-  TokenPosition end_token_pos_;
+  std::unique_ptr<SafepointRwLock> line_number_lock_;
+  intptr_t line_number_;  // lazily computed for token_pos_
+  std::atomic<TokenPosition> token_pos_;
+  std::atomic<TokenPosition> end_token_pos_;
   BreakpointLocation* next_;
   Breakpoint* conditions_;
   intptr_t requested_line_number_;
   intptr_t requested_column_number_;
 
   // Valid for resolved breakpoints:
-  FunctionPtr function_;
   TokenPosition code_token_pos_;
 
   friend class Debugger;
+  friend class GroupDebugger;
   DISALLOW_COPY_AND_ASSIGN(BreakpointLocation);
 };
 
 // CodeBreakpoint represents a location in compiled code.
 // There may be more than one CodeBreakpoint for one BreakpointLocation,
 // e.g. when a function gets compiled as a regular function and as a closure.
+// There may be more than one BreakpointLocation associated with CodeBreakpoint,
+// one for for every isolate in a group that sets a breakpoint at particular
+// code location represented by the CodeBreakpoint.
+// Each BreakpointLocation might be enabled/disabled based on whether it has
+// any actual breakpoints associated with it.
+// The CodeBreakpoint is enabled if it has any such BreakpointLocations
+// associated with it.
+// The class is not thread-safe - users of this class need to ensure the access
+// is synchronized, guarded by mutexes or run inside of a safepoint scope.
 class CodeBreakpoint {
  public:
+  // Unless CodeBreakpoint is unlinked and is no longer used there should be at
+  // least one BreakpointLocation associated with CodeBreakpoint. If there are
+  // more BreakpointLocation added assumption is is that all of them point to
+  // the same source so have the same token pos.
   CodeBreakpoint(const Code& code,
-                 TokenPosition token_pos,
+                 BreakpointLocation* loc,
                  uword pc,
-                 PcDescriptorsLayout::Kind kind);
+                 UntaggedPcDescriptors::Kind kind);
   ~CodeBreakpoint();
 
-  FunctionPtr function() const;
-  uword pc() const { return pc_; }
-  TokenPosition token_pos() const { return token_pos_; }
+  // Used by GroupDebugger to find CodeBreakpoint associated with
+  // particular function.
+  FunctionPtr function() const { return Code::Handle(code_).function(); }
 
-  ScriptPtr SourceCode();
-  StringPtr SourceUrl();
-  intptr_t LineNumber();
+  uword pc() const { return pc_; }
+  bool HasBreakpointLocation(BreakpointLocation* breakpoint_location);
+  bool FindAndDeleteBreakpointLocation(BreakpointLocation* breakpoint_location);
+  bool HasNoBreakpointLocations() {
+    return breakpoint_locations_.length() == 0;
+  }
 
   void Enable();
   void Disable();
-  bool IsEnabled() const { return is_enabled_; }
+  bool IsEnabled() const { return enabled_count_ > 0; }
 
   CodePtr OrigStubAddress() const;
+
+  const char* ToCString() const;
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  BreakpointLocation* bpt_location() const { return bpt_location_; }
-  void set_bpt_location(BreakpointLocation* value) { bpt_location_ = value; }
+  // Finds right BreakpointLocation for a given Isolate's debugger.
+  BreakpointLocation* FindBreakpointForDebugger(Debugger* debugger);
+  // Adds new BreakpointLocation for another isolate that wants to
+  // break at the same function/code location that this CodeBreakpoint
+  // represents.
+  void AddBreakpointLocation(BreakpointLocation* breakpoint_location) {
+    ASSERT(breakpoint_locations_.length() == 0 ||
+           (breakpoint_location->token_pos() ==
+                breakpoint_locations_.At(0)->token_pos() &&
+            breakpoint_location->url() == breakpoint_locations_.At(0)->url()));
+    breakpoint_locations_.Add(breakpoint_location);
+  }
 
   void set_next(CodeBreakpoint* value) { next_ = value; }
   CodeBreakpoint* next() const { return this->next_; }
@@ -222,18 +287,19 @@ class CodeBreakpoint {
   void RestoreCode();
 
   CodePtr code_;
-  TokenPosition token_pos_;
   uword pc_;
-  intptr_t line_number_;
-  bool is_enabled_;
+  int enabled_count_;  // incremented for every enabled breakpoint location
 
-  BreakpointLocation* bpt_location_;
+  // Breakpoint locations from different debuggers/isolates that
+  // point to this code breakpoint.
+  MallocGrowableArray<BreakpointLocation*> breakpoint_locations_;
   CodeBreakpoint* next_;
 
-  PcDescriptorsLayout::Kind breakpoint_kind_;
+  UntaggedPcDescriptors::Kind breakpoint_kind_;
   CodePtr saved_value_;
 
   friend class Debugger;
+  friend class GroupDebugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
 };
 
@@ -317,7 +383,7 @@ class ActivationFrame : public ZoneAllocated {
 
   ArrayPtr GetLocalVariables();
   ObjectPtr GetParameter(intptr_t index);
-  ObjectPtr GetClosure();
+  ClosurePtr GetClosure();
   ObjectPtr GetReceiver();
 
   const Context& GetSavedCurrentContext();
@@ -432,14 +498,33 @@ class DebuggerStackTrace : public ZoneAllocated {
 
   ActivationFrame* GetHandlerFrame(const Instance& exc_obj) const;
 
+  static DebuggerStackTrace* CollectAwaiterReturn();
+  static DebuggerStackTrace* Collect();
+  // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
+  // Frames corresponding to invisible functions are omitted. It is not valid
+  // to query local variables in the returned stack.
+  static DebuggerStackTrace* From(const class StackTrace& ex_trace);
+
  private:
   void AddActivation(ActivationFrame* frame);
   void AddMarker(ActivationFrame::Kind marker);
   void AddAsyncCausalFrame(uword pc, const Code& code);
 
+  void AppendCodeFrames(Thread* thread,
+                        Isolate* isolate,
+                        Zone* zone,
+                        StackFrame* frame,
+                        Code* code,
+                        Code* inlined_code,
+                        Array* deopt_frame);
+
+  static DebuggerStackTrace* CollectAsyncCausal();
+  static DebuggerStackTrace* CollectAsyncLazy();
+
   ZoneGrowableArray<ActivationFrame*> trace_;
 
   friend class Debugger;
+
   DISALLOW_COPY_AND_ASSIGN(DebuggerStackTrace);
 };
 
@@ -450,6 +535,161 @@ typedef enum {
   kPauseOnAllExceptions,
   kInvalidExceptionPauseInfo
 } Dart_ExceptionPauseInfo;
+
+class DebuggerKeyValueTrait : public AllStatic {
+ public:
+  typedef const Debugger* Key;
+  typedef bool Value;
+
+  struct Pair {
+    Key key;
+    Value value;
+    Pair() : key(NULL), value(false) {}
+    Pair(const Key key, const Value& value) : key(key), value(value) {}
+    Pair(const Pair& other) : key(other.key), value(other.value) {}
+    Pair& operator=(const Pair&) = default;
+  };
+
+  static Key KeyOf(Pair kv) { return kv.key; }
+  static Value ValueOf(Pair kv) { return kv.value; }
+  static uword Hash(Key key) {
+    return Utils::WordHash(reinterpret_cast<intptr_t>(key));
+  }
+  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
+};
+
+class DebuggerSet : public MallocDirectChainedHashMap<DebuggerKeyValueTrait> {
+ public:
+  typedef DebuggerKeyValueTrait::Key Key;
+  typedef DebuggerKeyValueTrait::Value Value;
+  typedef DebuggerKeyValueTrait::Pair Pair;
+
+  virtual ~DebuggerSet() { Clear(); }
+
+  void Insert(const Key& key) {
+    Pair pair(key, /*value=*/true);
+    MallocDirectChainedHashMap<DebuggerKeyValueTrait>::Insert(pair);
+  }
+
+  void Remove(const Key& key) {
+    MallocDirectChainedHashMap<DebuggerKeyValueTrait>::Remove(key);
+  }
+};
+
+class BoolCallable : public ValueObject {
+ public:
+  BoolCallable() {}
+  virtual ~BoolCallable() {}
+
+  virtual bool Call() = 0;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoolCallable);
+};
+
+template <typename T>
+class LambdaBoolCallable : public BoolCallable {
+ public:
+  explicit LambdaBoolCallable(T& lambda) : lambda_(lambda) {}
+  bool Call() { return lambda_(); }
+
+ private:
+  T& lambda_;
+  DISALLOW_COPY_AND_ASSIGN(LambdaBoolCallable);
+};
+
+class GroupDebugger {
+ public:
+  explicit GroupDebugger(IsolateGroup* isolate_group);
+  ~GroupDebugger();
+
+  void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
+
+  // Returns [nullptr] if no breakpoint exists for the given address.
+  CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
+  BreakpointLocation* GetBreakpointLocationFor(Debugger* debugger,
+                                               uword breakpoint_address,
+                                               CodeBreakpoint** pcbpt);
+  CodePtr GetPatchedStubAddress(uword breakpoint_address);
+
+  void RegisterBreakpointLocation(BreakpointLocation* location);
+  void UnregisterBreakpointLocation(BreakpointLocation* location);
+
+  void RemoveBreakpointLocation(BreakpointLocation* bpt_location);
+  void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
+
+  // Returns true if the call at address pc is patched to point to
+  // a debugger stub.
+  bool HasActiveBreakpoint(uword pc);
+  bool HasCodeBreakpointInFunction(const Function& func);
+  bool HasCodeBreakpointInCode(const Code& code);
+
+  bool HasBreakpointInFunction(const Function& func);
+  bool HasBreakpointInCode(const Code& code);
+
+  void SyncBreakpointLocation(BreakpointLocation* loc);
+
+  void Pause();
+
+  bool EnsureLocationIsInFunction(Zone* zone,
+                                  const Function& function,
+                                  BreakpointLocation* location);
+  void NotifyCompilation(const Function& func);
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  SafepointRwLock* code_breakpoints_lock() {
+    return code_breakpoints_lock_.get();
+  }
+
+  SafepointRwLock* breakpoint_locations_lock() {
+    return breakpoint_locations_lock_.get();
+  }
+
+  SafepointRwLock* single_stepping_set_lock() {
+    return single_stepping_set_lock_.get();
+  }
+  void RegisterSingleSteppingDebugger(Thread* thread, const Debugger* debugger);
+  void UnregisterSingleSteppingDebugger(Thread* thread,
+                                        const Debugger* debugger);
+
+  bool RunUnderReadLockIfNeededCallable(Thread* thread,
+                                        SafepointRwLock* rw_lock,
+                                        BoolCallable* callable);
+
+  template <typename T>
+  bool RunUnderReadLockIfNeeded(Thread* thread,
+                                SafepointRwLock* rw_lock,
+                                T function) {
+    LambdaBoolCallable<T> callable(function);
+    return RunUnderReadLockIfNeededCallable(thread, rw_lock, &callable);
+  }
+
+  // Returns [true] if there is at least one breakpoint set in function or code.
+  // Checks for both user-defined and internal temporary breakpoints.
+  bool HasBreakpoint(Thread* thread, const Function& function);
+  bool IsDebugging(Thread* thread, const Function& function);
+
+ private:
+  IsolateGroup* isolate_group_;
+
+  std::unique_ptr<SafepointRwLock> code_breakpoints_lock_;
+  CodeBreakpoint* code_breakpoints_;
+
+  // Secondary list of all breakpoint_locations_(primary is in Debugger class).
+  // This list is kept in sync with all the lists in Isolate Debuggers and is
+  // used to quickly scan BreakpointLocations when new Function is compiled.
+  std::unique_ptr<SafepointRwLock> breakpoint_locations_lock_;
+  MallocGrowableArray<BreakpointLocation*> breakpoint_locations_;
+
+  std::unique_ptr<SafepointRwLock> single_stepping_set_lock_;
+  DebuggerSet single_stepping_set_;
+
+  void RemoveUnlinkedCodeBreakpoints();
+  void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
+
+  bool needs_breakpoint_cleanup_;
+};
 
 class Debugger {
  public:
@@ -468,7 +708,6 @@ class Debugger {
   void NotifyIsolateCreated();
   void Shutdown();
 
-  void NotifyCompilation(const Function& func);
   void NotifyDoneLoading();
 
   // Set breakpoint at closest location to function entry.
@@ -492,6 +731,9 @@ class Debugger {
   BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
                                                   intptr_t line_number,
                                                   intptr_t column_number);
+
+  // Returns true if the breakpoint's state changed.
+  bool SetBreakpointState(Breakpoint* bpt, bool enable);
 
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);
@@ -533,37 +775,15 @@ class Debugger {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  // Returns true if there is at least one breakpoint set in func or code.
-  // Checks for both user-defined and internal temporary breakpoints.
-  // This may be called from different threads, therefore do not use the,
-  // debugger's zone.
-  bool HasBreakpoint(const Function& func, Zone* zone);
-  bool HasBreakpoint(const Code& code);
-
-  // Returns true if the call at address pc is patched to point to
-  // a debugger stub.
-  bool HasActiveBreakpoint(uword pc);
-
   // Returns a stack trace with frames corresponding to invisible functions
   // omitted. CurrentStackTrace always returns a new trace on the current stack.
   // The trace returned by StackTrace may have been cached; it is suitable for
   // use when stepping, but otherwise may be out of sync with the current stack.
   DebuggerStackTrace* StackTrace();
-  DebuggerStackTrace* CurrentStackTrace();
 
   DebuggerStackTrace* AsyncCausalStackTrace();
-  DebuggerStackTrace* CurrentAsyncCausalStackTrace();
 
   DebuggerStackTrace* AwaiterStackTrace();
-  DebuggerStackTrace* CurrentAwaiterStackTrace();
-
-  // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
-  // Frames corresponding to invisible functions are omitted. It is not valid
-  // to query local variables in the returned stack.
-  DebuggerStackTrace* StackTraceFrom(const class StackTrace& dart_stacktrace);
-
-  // Utility functions.
-  static const char* QualifiedFunctionName(const Function& func);
 
   // Pause execution for a breakpoint.  Called from generated code.
   ErrorPtr PauseBreakpoint();
@@ -584,121 +804,78 @@ class Debugger {
   // Dart.
   void PauseDeveloper(const String& msg);
 
-  CodePtr GetPatchedStubAddress(uword breakpoint_address);
-
   void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
   void PrintSettingsToJSONObject(JSONObject* jsobj) const;
 
   static bool IsDebuggable(const Function& func);
-  static bool IsDebugging(Thread* thread, const Function& func);
 
   intptr_t limitBreakpointId() { return next_id_; }
 
   // Callback to the debugger to continue frame rewind, post-deoptimization.
   void RewindPostDeopt();
 
-  DebuggerStackTrace* CollectAwaiterReturnStackTrace();
-
  private:
   ErrorPtr PauseRequest(ServiceEvent::EventKind kind);
-
-  // Finds the breakpoint we hit at |location|.
-  Breakpoint* FindHitBreakpoint(BreakpointLocation* location,
-                                ActivationFrame* top_frame);
 
   // Will return false if we are not at an await.
   bool SetupStepOverAsyncSuspension(const char** error);
 
   bool NeedsIsolateEvents();
   bool NeedsDebugEvents();
-  void InvokeEventHandler(ServiceEvent* event);
 
   void SendBreakpointEvent(ServiceEvent::EventKind kind, Breakpoint* bpt);
 
-  bool IsAtAsyncJump(ActivationFrame* top_frame);
-  void FindCompiledFunctions(const Script& script,
-                             TokenPosition start_pos,
-                             TokenPosition end_pos,
-                             GrowableObjectArray* code_function_list);
+  void FindCompiledFunctions(
+      const GrowableHandlePtrArray<const Script>& scripts,
+      TokenPosition start_pos,
+      TokenPosition end_pos,
+      GrowableObjectArray* code_function_list);
   bool FindBestFit(const Script& script,
                    TokenPosition token_pos,
                    TokenPosition last_token_pos,
                    Function* best_fit);
-  FunctionPtr FindInnermostClosure(const Function& function,
-                                   TokenPosition token_pos);
-  TokenPosition ResolveBreakpointPos(const Function& func,
-                                     TokenPosition requested_token_pos,
-                                     TokenPosition last_token_pos,
-                                     intptr_t requested_column,
-                                     TokenPosition exact_token_pos);
   void DeoptimizeWorld();
   void NotifySingleStepping(bool value) const;
-  BreakpointLocation* SetCodeBreakpoints(const Script& script,
-                                         TokenPosition token_pos,
-                                         TokenPosition last_token_pos,
-                                         intptr_t requested_line,
-                                         intptr_t requested_column,
-                                         TokenPosition exact_token_pos,
-                                         const GrowableObjectArray& functions);
+  BreakpointLocation* SetCodeBreakpoints(
+      const GrowableHandlePtrArray<const Script>& scripts,
+      TokenPosition token_pos,
+      TokenPosition last_token_pos,
+      intptr_t requested_line,
+      intptr_t requested_column,
+      TokenPosition exact_token_pos,
+      const GrowableObjectArray& functions);
   BreakpointLocation* SetBreakpoint(const Script& script,
                                     TokenPosition token_pos,
                                     TokenPosition last_token_pos,
                                     intptr_t requested_line,
                                     intptr_t requested_column,
                                     const Function& function);
+  BreakpointLocation* SetBreakpoint(
+      const GrowableHandlePtrArray<const Script>& scripts,
+      TokenPosition token_pos,
+      TokenPosition last_token_pos,
+      intptr_t requested_line,
+      intptr_t requested_column,
+      const Function& function);
   bool RemoveBreakpointFromTheList(intptr_t bp_id, BreakpointLocation** list);
   Breakpoint* GetBreakpointByIdInTheList(intptr_t id, BreakpointLocation* list);
-  void RemoveUnlinkedCodeBreakpoints();
-  void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
   BreakpointLocation* GetLatentBreakpoint(const String& url,
                                           intptr_t line,
                                           intptr_t column);
   void RegisterBreakpointLocation(BreakpointLocation* bpt);
-  void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
+  BreakpointLocation* GetResolvedBreakpointLocation(
+      const String& script_url,
+      TokenPosition code_token_pos);
   BreakpointLocation* GetBreakpointLocation(
-      const Script& script,
+      const String& script_url,
       TokenPosition token_pos,
       intptr_t requested_line,
       intptr_t requested_column,
       TokenPosition code_token_pos = TokenPosition::kNoSource);
-  void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
-  // Returns NULL if no breakpoint exists for the given address.
-  CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
 
-  void SyncBreakpointLocation(BreakpointLocation* loc);
   void PrintBreakpointsListToJSONArray(BreakpointLocation* sbpt,
                                        JSONArray* jsarr) const;
 
-  ActivationFrame* TopDartFrame() const;
-  static ActivationFrame* CollectDartFrame(
-      Isolate* isolate,
-      uword pc,
-      StackFrame* frame,
-      const Code& code,
-      const Array& deopt_frame,
-      intptr_t deopt_frame_offset,
-      ActivationFrame::Kind kind = ActivationFrame::kRegular);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  static ArrayPtr DeoptimizeToArray(Thread* thread,
-                                    StackFrame* frame,
-                                    const Code& code);
-  TokenPosition FindExactTokenPosition(const Script& script,
-                                       TokenPosition start_of_line,
-                                       intptr_t column_number);
-#endif
-  // Appends at least one stack frame. Multiple frames will be appended
-  // if |code| at the frame's pc contains inlined functions.
-  static void AppendCodeFrames(Thread* thread,
-                               Isolate* isolate,
-                               Zone* zone,
-                               DebuggerStackTrace* stack_trace,
-                               StackFrame* frame,
-                               Code* code,
-                               Code* inlined_code,
-                               Array* deopt_frame);
-  static DebuggerStackTrace* CollectStackTrace();
-  static DebuggerStackTrace* CollectAsyncCausalStackTrace();
-  static DebuggerStackTrace* CollectAsyncLazyStackTrace();
   void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }
@@ -718,9 +895,6 @@ class Debugger {
                         DebuggerStackTrace* awaiter_stack_trace);
   void ClearCachedStackTraces();
 
-  // Can we rewind to the indicated frame?
-  bool CanRewindFrame(intptr_t frame_index, const char** error) const;
-
   void RewindToFrame(intptr_t frame_index);
   void RewindToUnoptimizedFrame(StackFrame* frame, const Code& code);
   void RewindToOptimizedFrame(StackFrame* frame,
@@ -734,6 +908,8 @@ class Debugger {
   void SetAsyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
   void SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
 
+  GroupDebugger* group_debugger() { return isolate_->group()->debugger(); }
+
   Isolate* isolate_;
 
   // ID number generator.
@@ -741,10 +917,10 @@ class Debugger {
 
   BreakpointLocation* latent_locations_;
   BreakpointLocation* breakpoint_locations_;
-  CodeBreakpoint* code_breakpoints_;
 
   // Tells debugger what to do when resuming execution after a breakpoint.
   ResumeAction resume_action_;
+  void set_resume_action(ResumeAction action);
   intptr_t resume_frame_index_;
   intptr_t post_deopt_frame_index_;
 
@@ -783,8 +959,6 @@ class Debugger {
   // breakpoint.
   bool skip_next_step_;
 
-  bool needs_breakpoint_cleanup_;
-
   // We keep this breakpoint alive until after the debugger does the step over
   // async continuation machinery so that we can report that we've stopped
   // at the breakpoint.
@@ -818,5 +992,7 @@ class DisableBreakpointsScope : public ValueObject {
 };
 
 }  // namespace dart
+
+#endif  // !defined(PRODUCT)
 
 #endif  // RUNTIME_VM_DEBUGGER_H_

@@ -17,12 +17,12 @@ main() {
 class InvalidFactoryNameNotAClassTest extends PubPackageResolutionTest {
   test_notClassName() async {
     await assertErrorsInCode(r'''
-int B;
+int B = 0;
 class A {
   factory B() => throw 0;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 27, 1),
+      error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 31, 1),
     ]);
   }
 

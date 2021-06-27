@@ -22,9 +22,9 @@ GeneratedFile javaGeneratedFile(
 
 /// Iterate through the values in [map] in the order of increasing keys.
 Iterable<String> _valuesSortedByKey(Map<String, String> map) {
-  var keys = map.keys.toList();
-  keys.sort();
-  return keys.map((String key) => map[key]);
+  var entries = map.entries.toList();
+  entries.sort((a, b) => a.key.compareTo(b.key));
+  return entries.map((e) => e.value);
 }
 
 /// Common code for all Java code generation.
@@ -46,7 +46,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
     'Override': 'OverrideMember',
   };
 
-  _CodegenJavaState _state;
+  _CodegenJavaState _state = _CodegenJavaState();
 
   /// Visitor used to produce doc comments.
   final ToHtmlVisitor toHtmlVisitor;
@@ -125,19 +125,17 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   /// Return a suitable representation of [name] as the name of a Java variable.
   String javaName(String name) {
-    if (_variableRenames.containsKey(name)) {
-      return _variableRenames[name];
-    }
-    return name;
+    return _variableRenames[name] ?? name;
   }
 
   /// Convert the given [TypeDecl] to a Java type.
   String javaType(TypeDecl type, [bool optional = false]) {
     if (type is TypeReference) {
-      TypeReference resolvedType = resolveTypeReferenceChain(type);
+      var resolvedType = resolveTypeReferenceChain(type) as TypeReference;
       var typeName = resolvedType.typeName;
-      if (_typeRenames.containsKey(typeName)) {
-        typeName = _typeRenames[typeName];
+      var renameTo = _typeRenames[typeName];
+      if (renameTo != null) {
+        typeName = renameTo;
         if (optional) {
           if (typeName == 'boolean') {
             typeName = 'Boolean';

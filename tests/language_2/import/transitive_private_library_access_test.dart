@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to check that we can resolve unqualified identifiers
 
+// @dart = 2.9
+
 // Import 'dart:typed_data' which internally imports 'dart:_internal'.
 import 'dart:typed_data';
 

@@ -1015,6 +1015,30 @@ a:focus, a:hover {
           is only defined if the displayed text should be different than the
           completion.  Otherwise it is omitted.
         </p>
+      </dd><dt class="field"><b>replacementOffset: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The offset of the start of the text to be
+          replaced. If supplied, this should be used in
+          preference to the offset provided on the
+          containing completion results.
+
+          This value may be provided independently of
+          replacementLength (for example if only one
+          differs from the completion result value).
+        </p>
+      </dd><dt class="field"><b>replacementLength: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The length of the text to be replaced.
+          If supplied, this should be used in preference
+          to the offset provided on the
+          containing completion results.
+
+          This value may be provided independently of
+          replacementOffset (for example if only one
+          differs from the completion result value).
+        </p>
       </dd><dt class="field"><b>selectionOffset: int</b></dt><dd>
         
         <p>
@@ -1289,12 +1313,18 @@ a:focus, a:hover {
           The type parameter list for the element. If the element doesn't have
           type parameters, this field will not be defined.
         </p>
+      </dd><dt class="field"><b>aliasedType: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If the element is a type alias, this field is the aliased type.
+          Otherwise this field will not be defined.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_ElementKind">ElementKind: String</a></dt><dd>
     <p>
       An enumeration of the kinds of elements.
     </p>
     
-  <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_INVOCATION</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">EXTENSION</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_INVOCATION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">MIXIN</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_FilePath">FilePath: String</a></dt><dd>
+  <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_INVOCATION</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">EXTENSION</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_INVOCATION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">MIXIN</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_ALIAS</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_FilePath">FilePath: String</a></dt><dd>
     
     <p>
       The absolute, normalized path of a file.
@@ -1309,7 +1339,7 @@ a:focus, a:hover {
       An enumeration of the kinds of folding regions.
     </p>
     
-  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
+  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">COMMENT</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt><dt class="value">PARAMETERS</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
     <p>
       A description of a region that can be folded.
     </p>
@@ -1397,7 +1427,7 @@ a:focus, a:hover {
       </dd><dt class="value">TOP_LEVEL_VARIABLE</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
-      </dd><dt class="value">PARAMETER_DECLARATION</dt><dt class="value">PARAMETER_REFERENCE</dt><dt class="value">STATIC_FIELD_DECLARATION</dt><dt class="value">STATIC_GETTER_DECLARATION</dt><dt class="value">STATIC_GETTER_REFERENCE</dt><dt class="value">STATIC_METHOD_DECLARATION</dt><dt class="value">STATIC_METHOD_REFERENCE</dt><dt class="value">STATIC_SETTER_DECLARATION</dt><dt class="value">STATIC_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_FUNCTION_DECLARATION</dt><dt class="value">TOP_LEVEL_FUNCTION_REFERENCE</dt><dt class="value">TOP_LEVEL_GETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_GETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_SETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_VARIABLE_DECLARATION</dt><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNRESOLVED_INSTANCE_MEMBER_REFERENCE</dt><dt class="value">VALID_STRING_ESCAPE</dt></dl></dd><dt class="typeDefinition"><a name="type_KytheEntry">KytheEntry: object</a></dt><dd>
+      </dd><dt class="value">PARAMETER_DECLARATION</dt><dt class="value">PARAMETER_REFERENCE</dt><dt class="value">STATIC_FIELD_DECLARATION</dt><dt class="value">STATIC_GETTER_DECLARATION</dt><dt class="value">STATIC_GETTER_REFERENCE</dt><dt class="value">STATIC_METHOD_DECLARATION</dt><dt class="value">STATIC_METHOD_REFERENCE</dt><dt class="value">STATIC_SETTER_DECLARATION</dt><dt class="value">STATIC_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_FUNCTION_DECLARATION</dt><dt class="value">TOP_LEVEL_FUNCTION_REFERENCE</dt><dt class="value">TOP_LEVEL_GETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_GETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_SETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_VARIABLE_DECLARATION</dt><dt class="value">TYPE_ALIAS</dt><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNRESOLVED_INSTANCE_MEMBER_REFERENCE</dt><dt class="value">VALID_STRING_ESCAPE</dt></dl></dd><dt class="typeDefinition"><a name="type_KytheEntry">KytheEntry: object</a></dt><dd>
     <p>
       This object matches the format and documentation of the Entry object
       documented in the
@@ -1548,6 +1578,18 @@ a:focus, a:hover {
         <p>
           The one-based index of the column containing the first character of
           the range.
+        </p>
+      </dd><dt class="field"><b>endLine: int</b></dt><dd>
+        
+        <p>
+          The one-based index of the line containing the character immediately
+          following the range.
+        </p>
+      </dd><dt class="field"><b>endColumn: int</b></dt><dd>
+        
+        <p>
+          The one-based index of the column containing the character immediately
+          following the range.
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_NavigationRegion">NavigationRegion: object</a></dt><dd>
     <p>

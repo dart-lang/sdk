@@ -79,28 +79,31 @@ class MyFixContributor extends Object
     with FixContributorMixin
     implements FixContributor {
   static FixKind defineComponent =
-      new FixKind('defineComponent', 100, "Define a component named {0}");
+      FixKind('defineComponent', 100, "Define a component named {0}");
 
   AnalysisSession get session => request.result.session;
 
   @override
-  void computeFixesForError(AnalysisError error) {
+  Future<void> computeFixesForError(AnalysisError error) async {
     ErrorCode code = error.errorCode;
     if (code == MyErrorCode.undefinedComponent) {
-      _defineComponent(error);
-      _useExistingComponent(error);
+      await _defineComponent(error);
+      await _useExistingComponent(error);
     }
   }
 
-  void _defineComponent(AnalysisError error) {
+  Future<void> _defineComponent(AnalysisError error) async {
     // TODO Get the name from the source code.
     String componentName = null;
-    ChangeBuilder builder = new ChangeBuilder(session: session);
-    // TODO Build the edit to insert the definition of the component.
+    ChangeBuilder builder = ChangeBuilder(session: session);
+    await changeBuilder.addDartFileEdit(path,
+        (DartFileEditBuilder fileEditBuilder) {
+      // TODO Build the edit to insert the definition of the component.
+    });
     addFix(error, defineComponent, builder, args: [componentName]);
   }
 
-  void _useExistingComponent(AnalysisError error) {
+  Future<void> _useExistingComponent(AnalysisError error) async {
     // ...
   }
 }
@@ -114,9 +117,8 @@ class MyPlugin extends ServerPlugin with FixesMixin, DartFixesMixin {
   // ...
 
   @override
-  List<FixContributor> getFixContributors(
-      AnalysisDriverGeneric driver) {
-    return <FixContributor>[new MyFixContributor()];
+  List<FixContributor> getFixContributors(String path) {
+    return <FixContributor>[MyFixContributor()];
   }
 }
 ```

@@ -15,7 +15,8 @@ abstract class FlutterParentAndChild extends CorrectionProducer {
       InstanceCreationExpression parent,
       InstanceCreationExpression child) async {
     // The child must have its own child.
-    if (flutter.findChildArgument(child) == null) {
+    var stableChild = flutter.findChildArgument(child);
+    if (stableChild == null) {
       return;
     }
 
@@ -36,11 +37,8 @@ abstract class FlutterParentAndChild extends CorrectionProducer {
 
         // Write all the arguments of the parent.
         // Don't write the "child".
-        Expression stableChild;
         for (var argument in childArgs.arguments) {
-          if (flutter.isChildArgument(argument)) {
-            stableChild = argument;
-          } else {
+          if (argument != stableChild) {
             var text = utils.getNodeText(argument);
             text = replaceSourceIndent(text, childIndent, parentIndent);
             builder.write(parentIndent);
@@ -98,16 +96,16 @@ class FlutterSwapWithChild extends FlutterParentAndChild {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var parent = flutter.identifyNewExpression(node);
-    if (!flutter.isWidgetCreation(parent)) {
+    if (parent == null || !flutter.isWidgetCreation(parent)) {
       return;
     }
 
     var childArgument = flutter.findChildArgument(parent);
-    if (childArgument?.expression is! InstanceCreationExpression ||
-        !flutter.isWidgetCreation(childArgument.expression)) {
+    var child = childArgument?.expression;
+    if (child is! InstanceCreationExpression ||
+        !flutter.isWidgetCreation(child)) {
       return;
     }
-    InstanceCreationExpression child = childArgument.expression;
 
     await swapParentAndChild(builder, parent, child);
   }

@@ -11,15 +11,27 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceFinalWithConst extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_FINAL_WITH_CONST;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_FINAL_WITH_CONST_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
+    final node = this.node;
     if (node is VariableDeclarationList) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-            range.token((node as VariableDeclarationList).keyword), 'const');
-      });
+      var keyword = node.keyword;
+      if (keyword != null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.token(keyword), 'const');
+        });
+      }
     }
   }
 

@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
-import 'package:meta/meta.dart';
 
 /// Base class for common processor functionality.
 abstract class BaseProcessor {
@@ -29,26 +28,22 @@ abstract class BaseProcessor {
   final ResolvedUnitResult resolvedResult;
   final ChangeWorkspace workspace;
 
-  AstNode node;
-
   BaseProcessor({
     this.selectionOffset = -1,
     this.selectionLength = 0,
-    @required this.resolvedResult,
-    @required this.workspace,
-  })  : file = resolvedResult.path,
+    required this.resolvedResult,
+    required this.workspace,
+  })  : file = resolvedResult.path!,
         session = resolvedResult.session,
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,
-        selectionEnd = (selectionOffset ?? 0) + (selectionLength ?? 0),
+        selectionEnd = selectionOffset + selectionLength,
         utils = CorrectionUtils(resolvedResult);
 
   Flutter get flutter => Flutter.instance;
 
-  @protected
-  bool setupCompute() {
+  AstNode? findSelectedNode() {
     final locator = NodeLocator(selectionOffset, selectionEnd);
-    node = locator.searchWithin(resolvedResult.unit);
-    return node != null;
+    return locator.searchWithin(resolvedResult.unit);
   }
 }

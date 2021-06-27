@@ -377,6 +377,7 @@ class Monitor {
 
   friend class MonitorLocker;
   friend class SafepointMonitorLocker;
+  friend class SafepointRwLock;
   friend void Dart_TestMonitor();
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };

@@ -21,7 +21,12 @@ class RemoveUnusedElement extends _RemoveUnused {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final sourceRanges = <SourceRange>[];
+
     final referencedNode = node.parent;
+    if (referencedNode == null) {
+      return;
+    }
+
     if (referencedNode is ClassDeclaration ||
         referencedNode is EnumDeclaration ||
         referencedNode is FunctionDeclaration ||
@@ -29,16 +34,19 @@ class RemoveUnusedElement extends _RemoveUnused {
         referencedNode is MethodDeclaration ||
         referencedNode is VariableDeclaration) {
       final element = referencedNode is Declaration
-          ? referencedNode.declaredElement
-          : (referencedNode as NamedCompilationUnitMember).declaredElement;
+          ? referencedNode.declaredElement!
+          : (referencedNode as NamedCompilationUnitMember).declaredElement!;
       final references = _findAllReferences(unit, element);
       // todo (pq): consider filtering for references that are limited to within the class.
       if (references.length == 1) {
+        var parent = referencedNode.parent;
+        var grandParent = parent?.parent;
         SourceRange sourceRange;
-        if (referencedNode is VariableDeclaration) {
-          VariableDeclarationList parent = referencedNode.parent;
+        if (referencedNode is VariableDeclaration &&
+            parent is VariableDeclarationList &&
+            grandParent != null) {
           if (parent.variables.length == 1) {
-            sourceRange = utils.getLinesRange(range.node(parent.parent));
+            sourceRange = utils.getLinesRange(range.node(grandParent));
           } else {
             sourceRange = range.nodeInList(parent.variables, referencedNode);
           }
@@ -71,7 +79,7 @@ class RemoveUnusedField extends _RemoveUnused {
       return;
     }
 
-    final element = (declaration as VariableDeclaration).declaredElement;
+    final element = declaration.declaredElement;
     if (element is! FieldElement) {
       return;
     }
@@ -88,13 +96,20 @@ class RemoveUnusedField extends _RemoveUnused {
       if (referenceNode == null) {
         return;
       }
+      var parent = referenceNode.parent;
+      var grandParent = parent?.parent;
       SourceRange sourceRange;
-      if (referenceNode is VariableDeclaration) {
-        sourceRange = _forVariableDeclaration(referenceNode);
+      if (referenceNode is VariableDeclaration &&
+          parent is VariableDeclarationList &&
+          grandParent != null) {
+        sourceRange =
+            _forVariableDeclaration(referenceNode, parent, grandParent);
       } else if (referenceNode is ConstructorFieldInitializer) {
         sourceRange = _forConstructorFieldInitializer(referenceNode);
       } else if (referenceNode is FieldFormalParameter) {
-        sourceRange = _forFieldFormalParameter(referenceNode);
+        sourceRange = _forFieldFormalParameter(
+          referenceNode,
+        );
       } else {
         sourceRange = utils.getLinesRange(range.node(referenceNode));
       }
@@ -120,7 +135,8 @@ class RemoveUnusedField extends _RemoveUnused {
   }
 
   SourceRange _forFieldFormalParameter(FieldFormalParameter node) {
-    var parameter = node.parent is DefaultFormalParameter ? node.parent : node;
+    var parent = node.parent;
+    var parameter = parent is DefaultFormalParameter ? parent : node;
     var parameterList = parameter.parent as FormalParameterList;
 
     // (node) -> ()
@@ -131,12 +147,12 @@ class RemoveUnusedField extends _RemoveUnused {
       );
     }
 
-    var prevToken = parameter.beginToken.previous;
-    var nextToken = parameter.endToken.next;
+    var prevToken = parameter.beginToken.previous!;
+    var nextToken = parameter.endToken.next!;
 
     // (node, tail) -> (tail)
     if (nextToken.type == TokenType.COMMA) {
-      nextToken = nextToken.next;
+      nextToken = nextToken.next!;
       return range.startStart(parameter.beginToken, nextToken);
     }
 
@@ -145,22 +161,22 @@ class RemoveUnusedField extends _RemoveUnused {
     var isFirstOptional = prevToken.type == TokenType.OPEN_CURLY_BRACKET ||
         prevToken.type == TokenType.OPEN_SQUARE_BRACKET;
     if (isFirstOptional) {
-      prevToken = prevToken.previous;
+      prevToken = prevToken.previous!;
     }
     if (isFirstOptional) {
       var isLastOptional = nextToken.type == TokenType.CLOSE_CURLY_BRACKET ||
           nextToken.type == TokenType.CLOSE_SQUARE_BRACKET;
       if (isLastOptional) {
-        nextToken = nextToken.next;
+        nextToken = nextToken.next!;
       }
     }
-    return range.endStart(prevToken.previous, nextToken);
+    return range.endStart(prevToken.previous!, nextToken);
   }
 
-  SourceRange _forVariableDeclaration(VariableDeclaration node) {
-    VariableDeclarationList parent = node.parent;
+  SourceRange _forVariableDeclaration(VariableDeclaration node,
+      VariableDeclarationList parent, AstNode grandParent) {
     if (parent.variables.length == 1) {
-      return utils.getLinesRange(range.node(parent.parent));
+      return utils.getLinesRange(range.node(grandParent));
     } else {
       return range.nodeInList(parent.variables, node);
     }

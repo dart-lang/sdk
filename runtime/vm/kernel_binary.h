@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 53;
-static const uint32_t kMaxSupportedKernelFormatVersion = 53;
+static const uint32_t kMinSupportedKernelFormatVersion = 66;
+static const uint32_t kMaxSupportedKernelFormatVersion = 66;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -96,6 +96,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 53;
   V(ConstListLiteral, 58)                                                      \
   V(ConstSetLiteral, 110)                                                      \
   V(ConstMapLiteral, 59)                                                       \
+  V(ConstructorTearOff, 60)                                                    \
   V(ExpressionStatement, 61)                                                   \
   V(Block, 62)                                                                 \
   V(EmptyStatement, 63)                                                        \
@@ -118,7 +119,6 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 53;
   V(AsyncForInStatement, 80)                                                   \
   V(AssertBlock, 81)                                                           \
   V(TypedefType, 87)                                                           \
-  V(BottomType, 89)                                                            \
   V(NeverType, 98)                                                             \
   V(InvalidType, 90)                                                           \
   V(DynamicType, 91)                                                           \
@@ -132,6 +132,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 53;
   V(InstanceGet, 118)                                                          \
   V(InstanceSet, 119)                                                          \
   V(InstanceInvocation, 120)                                                   \
+  V(InstanceGetterInvocation, 89)                                              \
   V(InstanceTearOff, 121)                                                      \
   V(DynamicGet, 122)                                                           \
   V(DynamicSet, 123)                                                           \
@@ -214,33 +215,35 @@ enum class NamedTypeFlags : uint8_t {
   kIsRequired = 1 << 0,
 };
 
+// Keep in sync with package:kernel/lib/ast.dart
+enum class FunctionAccessKind {
+  kFunction,
+  kFunctionType,
+  kInapplicable,
+  kNullable,
+};
+
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
 static const int KernelFormatVersionOffset = 4;
-static const int SourceTableFieldCountFromFirstLibraryOffsetPre41 = 6;
-static const int SourceTableFieldCountFromFirstLibraryOffset41Plus = 7;
+static const int SourceTableFieldCountFromFirstLibraryOffset = 9;
 
 static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
 
 class Reader : public ValueObject {
  public:
-  Reader(const uint8_t* buffer, intptr_t size)
-      : thread_(NULL),
-        raw_buffer_(buffer),
-        typed_data_(NULL),
-        size_(size),
-        offset_(0),
-        max_position_(TokenPosition::kNoSource),
-        min_position_(TokenPosition::kNoSource) {}
+  explicit Reader(const ProgramBinary& binary)
+      : Reader(binary.kernel_data, binary.kernel_data_size) {
+    // Make sure to link any Program / KernelProgramInfo objects created
+    // from this reader back to originating typed data to keep it alive.
+    set_typed_data(binary.typed_data);
+  }
 
   explicit Reader(const ExternalTypedData& typed_data)
       : thread_(Thread::Current()),
         raw_buffer_(NULL),
         typed_data_(&typed_data),
-        size_(typed_data.IsNull() ? 0 : typed_data.Length()),
-        offset_(0),
-        max_position_(TokenPosition::kNoSource),
-        min_position_(TokenPosition::kNoSource) {}
+        size_(typed_data.IsNull() ? 0 : typed_data.Length()) {}
 
   uint32_t ReadFromIndex(intptr_t end_offset,
                          intptr_t fields_before,
@@ -456,6 +459,9 @@ class Reader : public ValueObject {
   TypedDataPtr ReadLineStartsData(intptr_t line_start_count);
 
  private:
+  Reader(const uint8_t* buffer, intptr_t size)
+      : thread_(NULL), raw_buffer_(buffer), typed_data_(NULL), size_(size) {}
+
   const uint8_t* buffer() const {
     if (raw_buffer_ != NULL) {
       return raw_buffer_;
@@ -468,10 +474,10 @@ class Reader : public ValueObject {
   const uint8_t* raw_buffer_;
   const ExternalTypedData* typed_data_;
   intptr_t size_;
-  intptr_t offset_;
-  TokenPosition max_position_;
-  TokenPosition min_position_;
-  intptr_t current_script_id_;
+  intptr_t offset_ = 0;
+  TokenPosition max_position_ = TokenPosition::kNoSource;
+  TokenPosition min_position_ = TokenPosition::kNoSource;
+  intptr_t current_script_id_ = -1;
 
   friend class PositionScope;
   friend class Program;

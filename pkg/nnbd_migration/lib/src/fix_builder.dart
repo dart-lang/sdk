@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -26,6 +25,7 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
@@ -85,7 +85,7 @@ class CompoundAssignmentReadNullable implements Problem {
 /// actually make the changes; it simply reports what changes are necessary
 /// through abstract methods.
 class FixBuilder {
-  final DecoratedClassHierarchy _decoratedClassHierarchy;
+  final DecoratedClassHierarchy? _decoratedClassHierarchy;
 
   /// The type provider providing non-nullable types.
   final TypeProvider typeProvider;
@@ -98,18 +98,18 @@ class FixBuilder {
   final TypeSystemImpl _typeSystem;
 
   /// Variables for this migration run.
-  final Variables _variables;
+  final Variables? _variables;
 
   /// The file being analyzed.
-  final Source source;
+  final Source? source;
 
-  ResolverVisitor _resolver;
+  late ResolverVisitor _resolver;
 
   /// The listener to which exceptions should be reported.
-  final NullabilityMigrationListener listener;
+  final NullabilityMigrationListener? listener;
 
   /// The compilation unit for which fixes are being built.
-  final CompilationUnit unit;
+  final CompilationUnit? unit;
 
   final MigrationResolutionHooksImpl migrationResolutionHooks;
 
@@ -117,7 +117,7 @@ class FixBuilder {
   /// that type should be.
   final Map<ParameterElement, DartType> _addedParameterTypes = {};
 
-  final bool warnOnWeakCode;
+  final bool? warnOnWeakCode;
 
   final NullabilityGraph _graph;
 
@@ -136,15 +136,15 @@ class FixBuilder {
   final Map<String, Version> _neededPackages;
 
   factory FixBuilder(
-      Source source,
-      DecoratedClassHierarchy decoratedClassHierarchy,
+      Source? source,
+      DecoratedClassHierarchy? decoratedClassHierarchy,
       TypeProvider typeProvider,
       TypeSystemImpl typeSystem,
-      Variables variables,
+      Variables? variables,
       LibraryElement definingLibrary,
-      NullabilityMigrationListener listener,
-      CompilationUnit unit,
-      bool warnOnWeakCode,
+      NullabilityMigrationListener? listener,
+      CompilationUnit? unit,
+      bool? warnOnWeakCode,
       NullabilityGraph graph,
       Map<String, Version> neededPackages) {
     var migrationResolutionHooks = MigrationResolutionHooksImpl();
@@ -194,7 +194,7 @@ class FixBuilder {
     _resolver = ResolverVisitorForMigration(
         inheritanceManager,
         definingLibrary,
-        source,
+        source!,
         typeProvider,
         errorListener,
         _typeSystem,
@@ -206,15 +206,13 @@ class FixBuilder {
   /// makes note of changes that need to be made.
   void visitAll() {
     try {
-      NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-        ElementTypeProvider.current = migrationResolutionHooks;
-        unit.accept(_FixBuilderPreVisitor(this));
-        unit.accept(_resolver);
-        unit.accept(_FixBuilderPostVisitor(this));
-      });
+      ElementTypeProvider.current = migrationResolutionHooks;
+      unit!.accept(_FixBuilderPreVisitor(this));
+      unit!.accept(_resolver);
+      unit!.accept(_FixBuilderPostVisitor(this));
     } catch (exception, stackTrace) {
       if (listener != null) {
-        listener.reportException(source, unit, exception, stackTrace);
+        listener!.reportException(source, unit, exception, stackTrace);
       } else {
         rethrow;
       }
@@ -235,14 +233,14 @@ class FixBuilder {
   /// type of the class within which [element] is being accessed; this is used
   /// to perform the correct substitutions.
   DartType _computeMigratedType(Element element) {
-    element = element.declaration;
+    element = element.declaration!;
     if (element is ClassElement || element is TypeParameterElement) {
       return typeProvider.typeType;
     } else if (element is PropertyAccessorElement &&
         element.isSynthetic &&
         !element.variable.isSynthetic) {
-      var variableType = _variables
-          .toFinalType(_variables.decoratedElementType(element.variable));
+      var variableType = _variables!
+          .toFinalType(_variables!.decoratedElementType(element.variable));
       if (element.isSetter) {
         return FunctionTypeImpl(
             returnType: typeProvider.voidType,
@@ -260,20 +258,20 @@ class FixBuilder {
             nullabilitySuffix: NullabilitySuffix.none);
       }
     } else {
-      return _variables.toFinalType(_variables.decoratedElementType(element));
+      return _variables!.toFinalType(_variables!.decoratedElementType(element));
     }
   }
 
   /// Returns the [NodeChange] object accumulating changes for the given [node],
   /// creating it if necessary.
   NodeChange _getChange(AstNode node) =>
-      changes[node] ??= NodeChange.create(node);
+      changes[node] ??= NodeChange.create(node)!;
 
   /// Determines whether the given [node], which is a null-aware method
   /// invocation, property access, or index expression, should remain null-aware
   /// after migration.
   bool _shouldStayNullAware(Expression node) {
-    Expression target;
+    Expression? target;
     if (node is PropertyAccess) {
       target = node.target;
     } else if (node is MethodInvocation) {
@@ -281,7 +279,7 @@ class FixBuilder {
     } else {
       throw StateError('Unexpected expression type: ${node.runtimeType}');
     }
-    if (!_typeSystem.isPotentiallyNullable(target.staticType)) {
+    if (!_typeSystem.isPotentiallyNullable(target!.staticType!)) {
       (_getChange(node) as NodeChangeForNullAware).removeNullAwareness = true;
       return false;
     }
@@ -318,7 +316,7 @@ class FixReason_NullCheckHint implements SimpleFixReasonInfo {
 class MigrationResolutionHooksImpl
     with ResolutionUtils
     implements MigrationResolutionHooks {
-  FixBuilder _fixBuilder;
+  FixBuilder? _fixBuilder;
 
   final Expando<List<CollectionElement>> _collectionElements = Expando();
 
@@ -327,7 +325,7 @@ class MigrationResolutionHooksImpl
   final Map<Expression, _AssignmentLikeExpressionHandler>
       _assignmentLikeExpressionHandlers = {};
 
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
       _flowAnalysis;
 
   /// Deferred processing that should be performed once we have finished
@@ -335,19 +333,19 @@ class MigrationResolutionHooksImpl
   final Map<MethodInvocation, DartType Function(DartType)>
       _deferredMethodInvocationProcessing = {};
 
-  TypeProvider get typeProvider => _fixBuilder.typeProvider;
+  TypeProvider get typeProvider => _fixBuilder!.typeProvider;
 
   @override
   void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
       TypeParameterElement oldTypeParameter) {
-    DecoratedTypeParameterBounds.current.put(newTypeParameter,
-        DecoratedTypeParameterBounds.current.get(oldTypeParameter));
+    DecoratedTypeParameterBounds.current!.put(newTypeParameter,
+        DecoratedTypeParameterBounds.current!.get(oldTypeParameter));
   }
 
   @override
   List<InterfaceType> getClassInterfaces(ClassElementImpl element) {
     return _wrapExceptions(
-        _fixBuilder.unit,
+        _fixBuilder!.unit,
         () => element.interfacesInternal,
         () => [
               for (var interface in element.interfacesInternal)
@@ -356,11 +354,11 @@ class MigrationResolutionHooksImpl
   }
 
   @override
-  bool getConditionalKnownValue(AstNode node) =>
+  bool? getConditionalKnownValue(AstNode node) =>
       _wrapExceptions(node, () => null, () {
         // TODO(paulberry): handle conditional expressions.
-        var conditionalDiscard = _fixBuilder._variables
-            .getConditionalDiscard(_fixBuilder.source, node);
+        var conditionalDiscard = _fixBuilder!._variables!
+            .getConditionalDiscard(_fixBuilder!.source, node);
         if (conditionalDiscard == null) {
           return null;
         } else {
@@ -368,19 +366,19 @@ class MigrationResolutionHooksImpl
             return null;
           }
           var conditionValue = conditionalDiscard.keepTrue;
-          (_fixBuilder._getChange(node) as NodeChangeForConditional)
+          (_fixBuilder!._getChange(node) as NodeChangeForConditional)
             ..conditionValue = conditionValue
             ..conditionReason = conditionalDiscard.reason;
           // If we're just issuing warnings, instruct the resolver to go ahead
           // and visit both branches of the conditional.
-          return _fixBuilder.warnOnWeakCode ? null : conditionValue;
+          return _fixBuilder!.warnOnWeakCode! ? null : conditionValue;
         }
       });
 
   @override
   List<ParameterElement> getExecutableParameters(
       ExecutableElementImpl element) {
-    if (_fixBuilder._graph.isBeingMigrated(element.library.source)) {
+    if (_fixBuilder!._graph.isBeingMigrated(element.library.source)) {
       // The element is part of a library that's being migrated, so its
       // parameters all have been visited (and thus have their own final
       // types).  So we don't need to do anything.
@@ -399,8 +397,8 @@ class MigrationResolutionHooksImpl
 
   @override
   FunctionType getExecutableType(ElementImplWithFunctionType element) =>
-      _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
-        var type = _fixBuilder._computeMigratedType(element);
+      _wrapExceptions(_fixBuilder!.unit, () => element.typeInternal, () {
+        var type = _fixBuilder!._computeMigratedType(element);
         Element baseElement = element;
         if (baseElement is Member) {
           type = baseElement.substitution.substituteType(type);
@@ -411,17 +409,17 @@ class MigrationResolutionHooksImpl
   @override
   DartType getExtendedType(ExtensionElementImpl element) {
     return _wrapExceptions(
-        _fixBuilder.unit,
+        _fixBuilder!.unit,
         () => element.extendedTypeInternal,
-        () => _fixBuilder._variables
-            .toFinalType(_fixBuilder._variables.decoratedElementType(element)));
+        () => _fixBuilder!._variables!.toFinalType(
+            _fixBuilder!._variables!.decoratedElementType(element)));
   }
 
   @override
   DartType getFieldType(PropertyInducingElementImpl element) =>
-      _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
+      _wrapExceptions(_fixBuilder!.unit, () => element.typeInternal, () {
         assert(!element.isSynthetic);
-        return _fixBuilder._computeMigratedType(element);
+        return _fixBuilder!._computeMigratedType(element);
       });
 
   @override
@@ -429,7 +427,7 @@ class MigrationResolutionHooksImpl
       node,
       () => node.elements,
       () => _collectionElements[node] ??=
-          _transformCollectionElements(node.elements, node.typeArguments));
+          _transformCollectionElements(node.elements));
 
   @override
   List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) =>
@@ -437,14 +435,14 @@ class MigrationResolutionHooksImpl
           node,
           () => node.elements,
           () => _collectionElements[node] ??=
-              _transformCollectionElements(node.elements, node.typeArguments));
+              _transformCollectionElements(node.elements));
 
   @override
-  DartType getTypeParameterBound(TypeParameterElementImpl element) {
-    var decoratedBound = _fixBuilder._variables
+  DartType? getTypeParameterBound(TypeParameterElementImpl element) {
+    var decoratedBound = _fixBuilder!._variables!
         .decoratedTypeParameterBound(element, allowNullUnparentedBounds: true);
     if (decoratedBound == null) return element.boundInternal;
-    var bound = _fixBuilder._variables.toFinalType(decoratedBound);
+    var bound = _fixBuilder!._variables!.toFinalType(decoratedBound);
     if (bound.isDynamic) {
       return null;
     } else if (bound.isDartCoreObject &&
@@ -457,7 +455,7 @@ class MigrationResolutionHooksImpl
 
   @override
   DartType getVariableType(VariableElementImpl variable) =>
-      _wrapExceptions(_fixBuilder.unit, () => variable.typeInternal, () {
+      _wrapExceptions(_fixBuilder!.unit, () => variable.typeInternal, () {
         if (variable.library == null) {
           // This is a synthetic variable created during resolution (e.g. a
           // parameter of a function type), so the type it currently has is the
@@ -470,10 +468,10 @@ class MigrationResolutionHooksImpl
               enclosingElement.isSynthetic) {
             // This is the parameter of a synthetic getter, so it has the same
             // type as the corresponding variable.
-            return _fixBuilder._computeMigratedType(enclosingElement.variable);
+            return _fixBuilder!._computeMigratedType(enclosingElement.variable);
           }
         }
-        return _fixBuilder._computeMigratedType(variable);
+        return _fixBuilder!._computeMigratedType(variable);
       });
 
   @override
@@ -485,31 +483,53 @@ class MigrationResolutionHooksImpl
 
   @override
   bool isLibraryNonNullableByDefault(LibraryElementImpl element) {
-    return _fixBuilder._graph.isBeingMigrated(element.source) ||
+    return _fixBuilder!._graph.isBeingMigrated(element.source) ||
         element.isNonNullableByDefaultInternal;
   }
 
   @override
   bool isMethodInvocationNullAware(MethodInvocation node) {
     return node.isNullAware &&
-        (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
+        (_shouldStayNullAware[node] ??=
+            _fixBuilder!._shouldStayNullAware(node));
+  }
+
+  /// Indicates whether the given [element] is a member of an extension on a
+  /// potentially nullable type (and hence the extension member can be invoked
+  /// on a nullable type without introducing a null check).
+  bool isNullableExtensionMember(Element? element) {
+    if (element != null) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is ExtensionElement) {
+        return _fixBuilder!._typeSystem
+            .isPotentiallyNullable(enclosingElement.extendedType);
+      }
+    }
+    return false;
   }
 
   @override
   bool isPropertyAccessNullAware(PropertyAccess node) {
     return node.isNullAware &&
-        (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
+        (_shouldStayNullAware[node] ??=
+            _fixBuilder!._shouldStayNullAware(node));
   }
 
   @override
   DartType modifyExpressionType(Expression node, DartType type) =>
       _wrapExceptions(node, () => type, () {
+        if (node is NamedExpression) {
+          // Do not attempt to modify named expressions.  We should already have
+          // been called for [node.expression], and we should have made the
+          // necessary modifications then.
+          return type;
+        }
         var parent = node.parent;
         if (parent is AssignmentExpression) {
           if (parent.leftHandSide == node) {
             return type;
           }
-          return _assignmentLikeExpressionHandlers[parent]
+          return _assignmentLikeExpressionHandlers[parent]!
               .modifyAssignmentRhs(this, node, type);
         } else if (parent is PrefixExpression) {
           if (_isIncrementOrDecrementOperator(parent.operator.type)) {
@@ -529,7 +549,7 @@ class MigrationResolutionHooksImpl
     var postMigrationType = parameter.type;
     if (postMigrationType != type) {
       // TODO(paulberry): test field formal parameters.
-      _fixBuilder._addedParameterTypes[parameter] = postMigrationType;
+      _fixBuilder!._addedParameterTypes[parameter] = postMigrationType;
       return postMigrationType;
     }
     return type;
@@ -537,23 +557,23 @@ class MigrationResolutionHooksImpl
 
   @override
   void setCompoundAssignmentExpressionTypes(CompoundAssignmentExpression node) {
-    assert(_assignmentLikeExpressionHandlers[node] == null);
+    assert(_assignmentLikeExpressionHandlers[node as Expression] == null);
     if (node is AssignmentExpression) {
       var handler = _AssignmentExpressionHandler(node);
       _assignmentLikeExpressionHandlers[node] = handler;
-      handler.handleLValueType(this, node.readType, node.writeType);
+      handler.handleLValueType(this, node.readType, node.writeType!);
     } else if (node is PrefixExpression) {
       assert(_isIncrementOrDecrementOperator(node.operator.type));
       var handler = _PrefixExpressionHandler(node);
       _assignmentLikeExpressionHandlers[node] = handler;
-      handler.handleLValueType(this, node.readType, node.writeType);
-      handler.handleAssignmentRhs(this, _fixBuilder.typeProvider.intType);
+      handler.handleLValueType(this, node.readType, node.writeType!);
+      handler.handleAssignmentRhs(this, _fixBuilder!.typeProvider.intType);
     } else if (node is PostfixExpression) {
       assert(_isIncrementOrDecrementOperator(node.operator.type));
       var handler = _PostfixExpressionHandler(node);
       _assignmentLikeExpressionHandlers[node] = handler;
-      handler.handleLValueType(this, node.readType, node.writeType);
-      handler.handleAssignmentRhs(this, _fixBuilder.typeProvider.intType);
+      handler.handleLValueType(this, node.readType, node.writeType!);
+      handler.handleAssignmentRhs(this, _fixBuilder!.typeProvider.intType);
     } else {
       throw StateError('(${node.runtimeType}) $node');
     }
@@ -561,49 +581,66 @@ class MigrationResolutionHooksImpl
 
   @override
   void setFlowAnalysis(
-      FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
+      FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
           flowAnalysis) {
     _flowAnalysis = flowAnalysis;
   }
 
-  DartType _addCast(
+  DartType _addCastOrNullCheck(
       Expression node, DartType expressionType, DartType contextType) {
-    var isDowncast =
-        _fixBuilder._typeSystem.isSubtypeOf(contextType, expressionType);
     var checks =
-        _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
-    var info = AtomicEditInfo(
-        isDowncast
-            ? NullabilityFixDescription.downcastExpression
-            : NullabilityFixDescription.otherCastExpression,
-        checks != null ? checks.edges : {});
-    (_fixBuilder._getChange(node) as NodeChangeForExpression)
-        .introduceAs(contextType, info);
-    _flowAnalysis.asExpression_end(node, contextType);
-    return contextType;
+        _fixBuilder!._variables!.expressionChecks(_fixBuilder!.source, node);
+    var change = _createExpressionChange(node, expressionType, contextType);
+    var info = AtomicEditInfo(change.description, checks?.edges ?? {});
+    (_fixBuilder!._getChange(node) as NodeChangeForExpression)
+        .addExpressionChange(change, info);
+    return change.resultType;
   }
 
   DartType _addNullCheck(Expression node, DartType type,
-      {AtomicEditInfo info, HintComment hint}) {
+      {AtomicEditInfo? info, HintComment? hint}) {
+    var change = _createNullCheckChange(node, type, hint: hint);
     var checks =
-        _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
-    bool noValidMigration = node is NullLiteral && hint == null;
-    info ??= checks != null
-        ? AtomicEditInfo(
-            noValidMigration
-                ? NullabilityFixDescription.noValidMigrationForNull
-                : NullabilityFixDescription.checkExpression,
-            checks.edges)
-        : null;
+        _fixBuilder!._variables!.expressionChecks(_fixBuilder!.source, node);
+    info ??= AtomicEditInfo(change.description, checks?.edges ?? {});
     var nodeChangeForExpression =
-        _fixBuilder._getChange(node) as NodeChangeForExpression;
-    if (noValidMigration) {
-      nodeChangeForExpression.addNoValidMigration(info);
-    } else {
-      nodeChangeForExpression.addNullCheck(info, hint: hint);
+        _fixBuilder!._getChange(node) as NodeChangeForExpression;
+    nodeChangeForExpression.addExpressionChange(change, info);
+    return change.resultType;
+  }
+
+  ExpressionChange _createExpressionChange(
+      Expression node, DartType expressionType, DartType contextType) {
+    var expressionFutureTypeArgument = _getFutureTypeArgument(expressionType);
+    var contextFutureTypeArgument = _getFutureTypeArgument(contextType);
+    if (expressionFutureTypeArgument != null &&
+        contextFutureTypeArgument != null) {
+      return IntroduceThenChange(
+          contextType,
+          _createExpressionChange(
+              node, expressionFutureTypeArgument, contextFutureTypeArgument));
     }
-    _flowAnalysis.nonNullAssert_end(node);
-    return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
+    // Either a cast or a null check is needed.  We prefer to do a null
+    // check if we can.
+    var nonNullType = _fixBuilder!._typeSystem.promoteToNonNull(expressionType);
+    if (_fixBuilder!._typeSystem.isSubtypeOf(nonNullType, contextType)) {
+      return _createNullCheckChange(node, expressionType);
+    } else {
+      _flowAnalysis!.asExpression_end(node, contextType);
+      return IntroduceAsChange(contextType,
+          isDowncast: _fixBuilder!._typeSystem
+              .isSubtypeOf(contextType, expressionType));
+    }
+  }
+
+  ExpressionChange _createNullCheckChange(Expression node, DartType type,
+      {HintComment? hint}) {
+    var resultType =
+        _fixBuilder!._typeSystem.promoteToNonNull(type as TypeImpl);
+    _flowAnalysis!.nonNullAssert_end(node);
+    return node is NullLiteral && hint == null
+        ? NoValidMigrationChange(resultType)
+        : NullCheckChange(resultType, hint: hint);
   }
 
   Expression _findNullabilityContextAncestor(Expression node) {
@@ -621,14 +658,24 @@ class MigrationResolutionHooksImpl
 
   InterfaceType _getClassInterface(
       ClassElement class_, ClassElement superclass) {
-    var decoratedSupertype = _fixBuilder._decoratedClassHierarchy
+    var decoratedSupertype = _fixBuilder!._decoratedClassHierarchy!
         .getDecoratedSupertype(class_, superclass);
-    var finalType = _fixBuilder._variables.toFinalType(decoratedSupertype);
+    var finalType = _fixBuilder!._variables!.toFinalType(decoratedSupertype);
     return finalType as InterfaceType;
   }
 
+  DartType? _getFutureTypeArgument(DartType type) {
+    if (type is InterfaceType && type.isDartAsyncFuture) {
+      var typeArguments = type.typeArguments;
+      if (typeArguments.isNotEmpty) {
+        return typeArguments.first;
+      }
+    }
+    return null;
+  }
+
   DartType _modifyRValueType(Expression node, DartType type,
-      {DartType context}) {
+      {DartType? context}) {
     if (node is MethodInvocation) {
       var deferredProcessing = _deferredMethodInvocationProcessing.remove(node);
       if (deferredProcessing != null) {
@@ -636,7 +683,7 @@ class MigrationResolutionHooksImpl
       }
     }
     var hint =
-        _fixBuilder._variables.getNullCheckHint(_fixBuilder.source, node);
+        _fixBuilder!._variables!.getNullCheckHint(_fixBuilder!.source, node);
     if (hint != null) {
       type = _addNullCheck(node, type,
           info: AtomicEditInfo(
@@ -652,42 +699,35 @@ class MigrationResolutionHooksImpl
     var ancestor = _findNullabilityContextAncestor(node);
     context ??=
         InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
-    if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
+    if (!_fixBuilder!._typeSystem.isSubtypeOf(type, context)) {
       var transformationInfo =
-          _fixBuilder._whereOrNullTransformer.tryTransformOrElseArgument(node);
+          _fixBuilder!._whereOrNullTransformer.tryTransformOrElseArgument(node);
       if (transformationInfo != null) {
         // We can fix this by dropping the node and changing the method call.
-        _fixBuilder.needsIterableExtension = true;
-        _fixBuilder._neededPackages['collection'] =
+        _fixBuilder!.needsIterableExtension = true;
+        _fixBuilder!._neededPackages['collection'] =
             Version.parse('1.15.0-nullsafety.4');
         var info = AtomicEditInfo(
             NullabilityFixDescription.changeMethodName(
                 transformationInfo.originalName,
                 transformationInfo.replacementName),
             {});
-        (_fixBuilder._getChange(transformationInfo.methodInvocation.methodName)
+        (_fixBuilder!._getChange(transformationInfo.methodInvocation.methodName)
                 as NodeChangeForMethodName)
             .replaceWith(transformationInfo.replacementName, info);
-        (_fixBuilder._getChange(
+        (_fixBuilder!._getChange(
                     transformationInfo.methodInvocation.argumentList)
                 as NodeChangeForArgumentList)
             .dropArgument(transformationInfo.orElseArgument, info);
         _deferredMethodInvocationProcessing[
                 transformationInfo.methodInvocation] =
-            (methodInvocationType) => _fixBuilder._typeSystem
+            (methodInvocationType) => _fixBuilder!._typeSystem
                 .makeNullable(methodInvocationType as TypeImpl);
         return type;
       }
-      // Either a cast or a null check is needed.  We prefer to do a null
-      // check if we can.
-      var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(type);
-      if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, context)) {
-        return _addNullCheck(node, type);
-      } else {
-        return _addCast(node, type, context);
-      }
+      return _addCastOrNullCheck(node, type, context);
     }
-    if (!_fixBuilder._typeSystem.isNullable(type)) return type;
+    if (!_fixBuilder!._typeSystem.isNullable(type)) return type;
     if (_needsNullCheckDueToStructure(ancestor)) {
       return _addNullCheck(node, type);
     }
@@ -705,64 +745,75 @@ class MigrationResolutionHooksImpl
             operatorType == TokenType.BANG_EQ) {
           return false;
         } else {
-          return true;
+          return !isNullableExtensionMember(parent.staticElement);
         }
       }
     } else if (parent is PrefixedIdentifier) {
-      if (isDeclaredOnObject(parent.identifier.name)) {
+      if (isDeclaredOnObject(parent.identifier.name) ||
+          isNullableExtensionMember(parent.identifier.staticElement)) {
         return false;
       }
       return identical(node, parent.prefix);
     } else if (parent is PropertyAccess) {
-      if (isDeclaredOnObject(parent.propertyName.name)) {
+      if (isDeclaredOnObject(parent.propertyName.name) ||
+          isNullableExtensionMember(parent.propertyName.staticElement)) {
         return false;
       }
       // TODO(paulberry): what about cascaded?
       return parent.operator.type == TokenType.PERIOD &&
           identical(node, parent.target);
     } else if (parent is MethodInvocation) {
-      if (isDeclaredOnObject(parent.methodName.name)) {
+      if (isDeclaredOnObject(parent.methodName.name) ||
+          isNullableExtensionMember(parent.methodName.staticElement)) {
         return false;
       }
       // TODO(paulberry): what about cascaded?
-      return parent.operator.type == TokenType.PERIOD &&
+      return parent.operator!.type == TokenType.PERIOD &&
           identical(node, parent.target);
     } else if (parent is IndexExpression) {
-      return identical(node, parent.target);
+      if (identical(node, parent.target)) {
+        return !isNullableExtensionMember(parent.staticElement);
+      } else {
+        return false;
+      }
     } else if (parent is ConditionalExpression) {
       return identical(node, parent.condition);
     } else if (parent is FunctionExpressionInvocation) {
-      return identical(node, parent.function);
+      if (identical(node, parent.function)) {
+        return !isNullableExtensionMember(parent.staticElement);
+      } else {
+        return false;
+      }
     } else if (parent is PrefixExpression) {
       // TODO(paulberry): for prefix increment/decrement, inserting a null check
       // isn't sufficient.
-      return true;
+      return !isNullableExtensionMember(parent.staticElement);
     } else if (parent is ThrowExpression) {
       return true;
     }
     return false;
   }
 
-  CollectionElement _transformCollectionElement(CollectionElement node) {
+  CollectionElement? _transformCollectionElement(CollectionElement? node) {
     while (node is IfElement) {
-      var conditionalDiscard = _fixBuilder._variables
-          .getConditionalDiscard(_fixBuilder.source, node);
+      var conditionalDiscard = _fixBuilder!._variables!
+          .getConditionalDiscard(_fixBuilder!.source, node);
       if (conditionalDiscard == null ||
           conditionalDiscard.keepTrue && conditionalDiscard.keepFalse) {
         return node;
       }
       var conditionValue = conditionalDiscard.keepTrue;
-      var ifElement = node as IfElement;
+      var ifElement = node;
       node = conditionValue ? ifElement.thenElement : ifElement.elseElement;
     }
     return node;
   }
 
   List<CollectionElement> _transformCollectionElements(
-      NodeList<CollectionElement> elements, TypeArgumentList typeArguments) {
+      NodeList<CollectionElement> elements) {
     return elements
         .map(_transformCollectionElement)
-        .where((e) => e != null)
+        .whereType<CollectionElement>()
         .toList();
   }
 
@@ -771,13 +822,13 @@ class MigrationResolutionHooksImpl
   /// listener and [fallback] is called to produce a result.  Otherwise the
   /// exception is propagated normally.
   T _wrapExceptions<T>(
-      AstNode node, T Function() fallback, T Function() compute) {
-    if (_fixBuilder.listener == null) return compute();
+      AstNode? node, T Function() fallback, T Function() compute) {
+    if (_fixBuilder!.listener == null) return compute();
     try {
       return compute();
     } catch (exception, stackTrace) {
-      _fixBuilder.listener
-          .reportException(_fixBuilder.source, node, exception, stackTrace);
+      _fixBuilder!.listener!
+          .reportException(_fixBuilder!.source, node, exception, stackTrace);
       return fallback();
     }
   }
@@ -801,7 +852,7 @@ class _AssignmentExpressionHandler extends _AssignmentLikeExpressionHandler {
   _AssignmentExpressionHandler(this.node);
 
   @override
-  MethodElement get combiner => node.staticElement;
+  MethodElement? get combiner => node.staticElement;
 
   @override
   TokenType get combinerType => node.operator.type;
@@ -815,16 +866,16 @@ class _AssignmentExpressionHandler extends _AssignmentLikeExpressionHandler {
 /// assignment.
 abstract class _AssignmentLikeExpressionHandler {
   /// For compound and null-aware assignments, the type read from the LHS.
-  /*late final*/ DartType readType;
+  late final DartType? readType;
 
   /// The type that may be written to the LHS.
-  /*late final*/ DartType writeType;
+  late final DartType writeType;
 
   /// The type that should be used as a context type when inferring the RHS.
-  DartType rhsContextType;
+  DartType? rhsContextType;
 
   /// Gets the static element representing the combiner.
-  MethodElement get combiner;
+  MethodElement? get combiner;
 
   /// Gets the operator type representing the combiner.
   TokenType get combinerType;
@@ -840,12 +891,12 @@ abstract class _AssignmentLikeExpressionHandler {
   /// [writeType].
   void handleAssignmentRhs(
       MigrationResolutionHooksImpl hooks, DartType rhsType) {
-    MethodElement combiner = this.combiner;
+    MethodElement? combiner = this.combiner;
     if (combiner != null) {
-      var fixBuilder = hooks._fixBuilder;
+      var fixBuilder = hooks._fixBuilder!;
       var combinerReturnType =
           fixBuilder._typeSystem.refineBinaryExpressionType(
-        readType,
+        readType!,
         combinerType,
         rhsType,
         combiner.returnType,
@@ -863,27 +914,27 @@ abstract class _AssignmentLikeExpressionHandler {
   /// assignments, the [readType] is non-nullable, and that for null-aware
   /// assignments, the [readType] is nullable.
   void handleLValueType(MigrationResolutionHooksImpl hooks,
-      DartType readTypeToSet, DartType writeTypeToSet) {
+      DartType? readTypeToSet, DartType writeTypeToSet) {
     assert(writeTypeToSet.nullabilitySuffix != NullabilitySuffix.star);
     writeType = writeTypeToSet;
     // TODO(scheglov) Remove this after the analyzer breaking change that
     // will top setting types for LHS.
-    target.staticType = writeTypeToSet;
+    (target as ExpressionImpl).staticType = writeTypeToSet;
     var fixBuilder = hooks._fixBuilder;
     if (combinerType == TokenType.EQ) {
       rhsContextType = writeTypeToSet;
     } else {
       readType = readTypeToSet;
-      assert(readType.nullabilitySuffix != NullabilitySuffix.star);
+      assert(readType!.nullabilitySuffix != NullabilitySuffix.star);
       if (combinerType == TokenType.QUESTION_QUESTION_EQ) {
         rhsContextType = writeTypeToSet;
-        if (fixBuilder._typeSystem.isNonNullable(readType)) {
+        if (fixBuilder!._typeSystem.isNonNullable(readType!)) {
           (fixBuilder._getChange(node) as NodeChangeForAssignment)
               .isWeakNullAware = true;
         }
       } else {
-        if (!readType.isDynamic &&
-            fixBuilder._typeSystem.isPotentiallyNullable(readType)) {
+        if (!readType!.isDynamic &&
+            fixBuilder!._typeSystem.isPotentiallyNullable(readType!)) {
           (fixBuilder._getChange(node) as NodeChangeForAssignmentLike)
               .hasNullableSource = true;
         }
@@ -910,14 +961,14 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
   _FixBuilderPostVisitor(this._fixBuilder);
 
   @override
-  NullabilityMigrationListener get listener => _fixBuilder.listener;
+  NullabilityMigrationListener? get listener => _fixBuilder.listener;
 
   @override
-  Source get source => _fixBuilder.source;
+  Source? get source => _fixBuilder.source;
 
   @override
   void visitAsExpression(AsExpression node) {
-    if (!_fixBuilder._variables.wasUnnecessaryCast(_fixBuilder.source, node) &&
+    if (!_fixBuilder._variables!.wasUnnecessaryCast(_fixBuilder.source, node) &&
         BestPracticesVerifier.isUnnecessaryCast(
             node, _fixBuilder._typeSystem)) {
       (_fixBuilder._getChange(node) as NodeChangeForAsExpression).removeAs =
@@ -952,7 +1003,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.type == null) {
-      var typeToAdd = _fixBuilder._addedParameterTypes[node.declaredElement];
+      var typeToAdd = _fixBuilder._addedParameterTypes[node.declaredElement!];
       if (typeToAdd != null) {
         (_fixBuilder._getChange(node) as NodeChangeForSimpleFormalParameter)
             .addExplicitType = typeToAdd;
@@ -969,7 +1020,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       bool explicitTypeNeeded = false;
       for (var variableDeclaration in node.variables) {
         var neededType = _fixBuilder
-            ._computeMigratedType(variableDeclaration.declaredElement);
+            ._computeMigratedType(variableDeclaration.declaredElement!);
         neededTypes.add(neededType);
         var inferredType = variableDeclaration.initializer?.staticType ??
             _fixBuilder.typeProvider.dynamicType;
@@ -993,10 +1044,10 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
     // Check if the nullability node for a single variable declaration has been
     // declared to be late.
     if (node.variables.length == 1) {
-      var variableElement = node.variables.single.declaredElement;
-      var lateCondition = _fixBuilder._variables
+      var variableElement = node.variables.single.declaredElement!;
+      var lateCondition = _fixBuilder._variables!
           .decoratedElementType(variableElement)
-          .node
+          .node!
           .lateCondition;
       switch (lateCondition) {
         case LateCondition.possiblyLate:
@@ -1014,7 +1065,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       }
     }
 
-    var lateHint = _fixBuilder._variables.getLateHint(source, node);
+    var lateHint = _fixBuilder._variables!.getLateHint(source, node);
     if (lateHint != null) {
       (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)
           .lateHint = lateHint;
@@ -1033,7 +1084,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
 
   /// Searches [unit] for an unprefixed import directive whose URI matches
   /// [uri], returning it if found, or `null` if not found.
-  ImportDirective _findImportDirective(CompilationUnit unit, String uri) {
+  ImportDirective? _findImportDirective(CompilationUnit unit, String uri) {
     for (var directive in unit.directives) {
       if (directive is ImportDirective &&
           directive.prefix == null &&
@@ -1055,26 +1106,36 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   _FixBuilderPreVisitor(this._fixBuilder);
 
   @override
-  NullabilityMigrationListener get listener => _fixBuilder.listener;
+  NullabilityMigrationListener? get listener => _fixBuilder.listener;
 
   @override
-  Source get source => _fixBuilder.source;
+  Source? get source => _fixBuilder.source;
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     var element = node.declaredElement;
     if (node.defaultValue == null) {
+      var requiredHint =
+          _fixBuilder._variables!.getRequiredHint(_fixBuilder.source, node);
       var nullabilityNode =
-          _fixBuilder._variables.decoratedElementType(element).node;
+          _fixBuilder._variables!.decoratedElementType(element!).node!;
       if (!nullabilityNode.isNullable) {
-        if (element.isNamed) {
-          _addRequiredKeyword(node, nullabilityNode);
+        var enclosingElement = element.enclosingElement;
+        if (enclosingElement is ConstructorElement &&
+            enclosingElement.isFactory &&
+            enclosingElement.redirectedConstructor != null) {
+          // Redirecting factory constructors inherit their parameters' default
+          // values from the constructors they redirect to, so the lack of a
+          // default value doesn't mean the parameter has to be nullable.
+        } else if (element.isNamed) {
+          _addRequiredKeyword(node, nullabilityNode, requiredHint);
         } else {
           _fixBuilder._addProblem(
               node, const NonNullableUnnamedOptionalParameter());
         }
-      } else if (element.metadata.any((m) => m.isRequired)) {
-        _addRequiredKeyword(node, nullabilityNode);
+      } else if (requiredHint != null ||
+          element.metadata.any((m) => m.isRequired)) {
+        _addRequiredKeyword(node, nullabilityNode, requiredHint);
       }
     }
     super.visitDefaultFormalParameter(node);
@@ -1085,12 +1146,12 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     if (node.type == null) {
       // Potentially add an explicit type to a field formal parameter.
       var decl = node.declaredElement as FieldFormalParameterElement;
-      var decoratedType = _fixBuilder._variables.decoratedElementType(decl);
+      var decoratedType = _fixBuilder._variables!.decoratedElementType(decl);
       var decoratedFieldType =
-          _fixBuilder._variables.decoratedElementType(decl.field);
-      var typeToAdd = _fixBuilder._variables.toFinalType(decoratedType);
+          _fixBuilder._variables!.decoratedElementType(decl.field!);
+      var typeToAdd = _fixBuilder._variables!.toFinalType(decoratedType);
       var fieldFinalType =
-          _fixBuilder._variables.toFinalType(decoratedFieldType);
+          _fixBuilder._variables!.toFinalType(decoratedFieldType);
       if (typeToAdd is InterfaceType &&
           !_fixBuilder._typeSystem.isSubtypeOf(fieldFinalType, typeToAdd)) {
         (_fixBuilder._getChange(node) as NodeChangeForFieldFormalParameter)
@@ -1099,12 +1160,12 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     } else if (node.parameters != null) {
       // Handle function-typed field formal parameters.
       var decoratedType =
-          _fixBuilder._variables.decoratedElementType(node.declaredElement);
-      if (decoratedType.node.isNullable) {
+          _fixBuilder._variables!.decoratedElementType(node.declaredElement!);
+      if (decoratedType.node!.isNullable) {
         (_fixBuilder._getChange(node) as NodeChangeForFieldFormalParameter)
-            .recordNullability(decoratedType, decoratedType.node.isNullable,
+            .recordNullability(decoratedType, decoratedType.node!.isNullable,
                 nullabilityHint:
-                    _fixBuilder._variables.getNullabilityHint(source, node));
+                    _fixBuilder._variables!.getNullabilityHint(source, node));
       }
     }
     super.visitFieldFormalParameter(node);
@@ -1113,59 +1174,60 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     var decoratedType =
-        _fixBuilder._variables.decoratedElementType(node.declaredElement);
-    if (decoratedType.node.isNullable) {
+        _fixBuilder._variables!.decoratedElementType(node.declaredElement!);
+    if (decoratedType.node!.isNullable) {
       (_fixBuilder._getChange(node)
               as NodeChangeForFunctionTypedFormalParameter)
-          .recordNullability(decoratedType, decoratedType.node.isNullable,
+          .recordNullability(decoratedType, decoratedType.node!.isNullable,
               nullabilityHint:
-                  _fixBuilder._variables.getNullabilityHint(source, node));
+                  _fixBuilder._variables!.getNullabilityHint(source, node));
     }
     super.visitFunctionTypedFormalParameter(node);
   }
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    var decoratedType = _fixBuilder._variables
+    var decoratedType = _fixBuilder._variables!
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (!typeIsNonNullableByContext(node)) {
       _makeTypeNameNullable(node, decoratedType);
     }
     (node as GenericFunctionTypeImpl).type =
-        _fixBuilder._variables.toFinalType(decoratedType);
+        _fixBuilder._variables!.toFinalType(decoratedType);
     super.visitGenericFunctionType(node);
   }
 
   @override
   void visitTypeName(TypeName node) {
-    var decoratedType = _fixBuilder._variables
+    var decoratedType = _fixBuilder._variables!
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (!typeIsNonNullableByContext(node)) {
-      if (!_typeIsNaturallyNullable(decoratedType.type)) {
+      if (!_typeIsNaturallyNullable(decoratedType.type!)) {
         _makeTypeNameNullable(node, decoratedType);
       }
     }
-    node.type = _fixBuilder._variables.toFinalType(decoratedType);
+    (node as TypeNameImpl).type =
+        _fixBuilder._variables!.toFinalType(decoratedType);
     super.visitTypeName(node);
   }
 
-  void _addRequiredKeyword(
-      DefaultFormalParameter parameter, NullabilityNode node) {
+  void _addRequiredKeyword(DefaultFormalParameter parameter,
+      NullabilityNode node, HintComment? requiredHint) {
     // Change an existing `@required` annotation into a `required` keyword if
     // possible.
-    final element = parameter.declaredElement;
-    final method = element.enclosingElement;
-    final cls = method.enclosingElement;
+    final element = parameter.declaredElement!;
+    final method = element.enclosingElement!;
+    final cls = method.enclosingElement!;
     var info = AtomicEditInfo(
         NullabilityFixDescription.addRequired(
             cls.name, method.name, element.name),
         {FixReasonTarget.root: node});
     var metadata = parameter.metadata;
-    if (metadata != null && metadata.isNotEmpty) {
+    if (metadata.isNotEmpty) {
       // Only the last annotation can be changed into a `required` keyword;
       // changing an earlier annotation into a keyword would be illegal.
       var lastAnnotation = metadata.last;
-      if (lastAnnotation.elementAnnotation.isRequired) {
+      if (lastAnnotation.elementAnnotation!.isRequired) {
         (_fixBuilder._getChange(lastAnnotation) as NodeChangeForAnnotation)
           ..changeToRequiredKeyword = true
           ..changeToRequiredKeywordInfo = info;
@@ -1176,10 +1238,10 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var nodeChange = (_fixBuilder._getChange(parameter)
         as NodeChangeForDefaultFormalParameter)
       ..addRequiredKeyword = true
-      ..addRequiredKeywordInfo = info;
-    var requiredAnnotation = metadata?.firstWhere(
-        (annotation) => annotation.elementAnnotation.isRequired,
-        orElse: () => null);
+      ..addRequiredKeywordInfo = info
+      ..requiredHint = requiredHint;
+    var requiredAnnotation = metadata.firstWhereOrNull(
+        (annotation) => annotation.elementAnnotation!.isRequired);
     if (requiredAnnotation != null) {
       // If the parameter was annotated with `@required`, but it was not the
       // last annotation, we remove the annotation in addition to adding the
@@ -1191,13 +1253,13 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   }
 
   void _makeTypeNameNullable(TypeAnnotation node, DecoratedType decoratedType) {
-    bool makeNullable = decoratedType.node.isNullable;
-    if (decoratedType.type.isDartAsyncFutureOr) {
+    bool makeNullable = decoratedType.node!.isNullable;
+    if (decoratedType.type!.isDartAsyncFutureOr) {
       var typeArguments = decoratedType.typeArguments;
       if (typeArguments.length == 1) {
-        var typeArgument = typeArguments[0];
-        if ((_typeIsNaturallyNullable(typeArgument.type) ||
-            typeArgument.node.isNullable)) {
+        var typeArgument = typeArguments[0]!;
+        if ((_typeIsNaturallyNullable(typeArgument.type!) ||
+            typeArgument.node!.isNullable)) {
           // FutureOr<T?>? is equivalent to FutureOr<T?>, so there is no need to
           // make this type nullable.
           makeNullable = false;
@@ -1208,7 +1270,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         .recordNullability(
             decoratedType, makeNullable,
             nullabilityHint:
-                _fixBuilder._variables.getNullabilityHint(source, node));
+                _fixBuilder._variables!.getNullabilityHint(source, node));
   }
 
   bool _typeIsNaturallyNullable(DartType type) =>
@@ -1225,7 +1287,7 @@ class _PostfixExpressionHandler extends _AssignmentLikeExpressionHandler {
       : assert(_isIncrementOrDecrementOperator(node.operator.type));
 
   @override
-  MethodElement get combiner => node.staticElement;
+  MethodElement? get combiner => node.staticElement;
 
   @override
   TokenType get combinerType => node.operator.type;
@@ -1244,7 +1306,7 @@ class _PrefixExpressionHandler extends _AssignmentLikeExpressionHandler {
       : assert(_isIncrementOrDecrementOperator(node.operator.type));
 
   @override
-  MethodElement get combiner => node.staticElement;
+  MethodElement? get combiner => node.staticElement;
 
   @override
   TokenType get combinerType => node.operator.type;

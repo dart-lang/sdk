@@ -331,7 +331,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
   }
 
   Iterable<E> take(int n) {
-    return new SubListIterable<E>(this, 0, n);
+    return new SubListIterable<E>(this, 0, checkNotNullable(n, "count"));
   }
 
   Iterable<E> takeWhile(bool test(E value)) {

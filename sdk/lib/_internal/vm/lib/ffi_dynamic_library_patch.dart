@@ -8,7 +8,7 @@ import "dart:_internal" show patch;
 import 'dart:typed_data';
 import 'dart:isolate';
 
-DynamicLibrary _open(String name) native "Ffi_dl_open";
+DynamicLibrary _open(String path) native "Ffi_dl_open";
 DynamicLibrary _processLibrary() native "Ffi_dl_processLibrary";
 DynamicLibrary _executableLibrary() native "Ffi_dl_executableLibrary";
 
@@ -16,8 +16,8 @@ DynamicLibrary _executableLibrary() native "Ffi_dl_executableLibrary";
 @pragma("vm:entry-point")
 class DynamicLibrary {
   @patch
-  factory DynamicLibrary.open(String name) {
-    return _open(name);
+  factory DynamicLibrary.open(String path) {
+    return _open(path);
   }
 
   @patch
@@ -29,6 +29,9 @@ class DynamicLibrary {
   @patch
   Pointer<T> lookup<T extends NativeType>(String symbolName)
       native "Ffi_dl_lookup";
+
+  @patch
+  bool providesSymbol(String symbolName) native "Ffi_dl_providesSymbol";
 
   // TODO(dacoharkes): Expose this to users, or extend Pointer?
   // https://github.com/dart-lang/sdk/issues/35881
@@ -52,7 +55,7 @@ class DynamicLibrary {
 
 extension DynamicLibraryExtension on DynamicLibrary {
   @patch
-  DS lookupFunction<NS extends Function, DS extends Function>(
-          String symbolName) =>
+  DS lookupFunction<NS extends Function, DS extends Function>(String symbolName,
+          {bool isLeaf: false}) =>
       throw UnsupportedError("The body is inlined in the frontend.");
 }

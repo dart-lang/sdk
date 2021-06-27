@@ -14,6 +14,7 @@
 #include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 
 namespace dart {
 
@@ -53,32 +54,25 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     return Thread::ObjectAtOffset(offset, obj);
   }
 
-  // A code object may have an object pool attached in bare instructions mode
-  // if the v8 snapshot profile writer is active, but this pool cannot be used
-  // for object loading.
-  if (FLAG_use_bare_instructions) return false;
-
   COMPILE_ASSERT(PP == R15);
   if ((bytes[0] == 0x49) || (bytes[0] == 0x4d)) {
     if ((bytes[1] == 0x8b) || (bytes[1] == 0x3b)) {  // movq, cmpq
       if ((bytes[2] & 0xc7) == (0x80 | (PP & 7))) {  // [r15+disp32]
         intptr_t index = IndexFromPPLoadDisp32(pc + 3);
-        const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-        if (!pool.IsNull()) {
-          if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
-            *obj = pool.ObjectAt(index);
-            return true;
-          }
+        const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
+        if (!pool.IsNull() && (index < pool.Length()) &&
+            (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
+          *obj = pool.ObjectAt(index);
+          return true;
         }
       }
       if ((bytes[2] & 0xc7) == (0x40 | (PP & 7))) {  // [r15+disp8]
         intptr_t index = IndexFromPPLoadDisp8(pc + 3);
-        const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-        if (!pool.IsNull()) {
-          if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
-            *obj = pool.ObjectAt(index);
-            return true;
-          }
+        const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
+        if (!pool.IsNull() && (index < pool.Length()) &&
+            (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
+          *obj = pool.ObjectAt(index);
+          return true;
         }
       }
     }

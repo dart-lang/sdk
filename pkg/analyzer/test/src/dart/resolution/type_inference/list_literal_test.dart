@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ListLiteralTest extends PubPackageResolutionTest {
+class ListLiteralTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_context_noTypeArgs_expression_conflict() async {
     await assertErrorsInCode('''
 List<int> a = ['a'];

@@ -1,0 +1,23 @@
+mixin Diagnosticable {
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
+}
+
+class DiagnosticPropertiesBuilder {}
+
+abstract class PointerEvent with Diagnosticable {}
+
+abstract class PointerSignalEvent extends PointerEvent {}
+
+mixin _PointerEventDescription on PointerEvent {
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
+}
+mixin _CopyPointerScrollEvent on PointerEvent {}
+
+class PointerScrollEvent extends PointerSignalEvent
+    with _PointerEventDescription, _CopyPointerScrollEvent {
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
+}
+
+main() {}

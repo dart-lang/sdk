@@ -16,7 +16,7 @@ final bool _stampPubspecVersion = false;
 
 /// Parse the 'service.md' into a model and generate both Dart and Java
 /// libraries.
-main(List<String> args) async {
+void main(List<String> args) async {
   String appDirPath = dirname(Platform.script.toFilePath());
 
   // Parse service.md into a model.
@@ -36,7 +36,7 @@ main(List<String> args) async {
   await _generateAsserts(appDirPath, nodes);
 }
 
-_generateDart(String appDirPath, List<Node> nodes) async {
+Future _generateDart(String appDirPath, List<Node> nodes) async {
   var outDirPath = normalize(join(appDirPath, '..', 'lib/src'));
   var outDir = Directory(outDirPath);
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
@@ -64,7 +64,7 @@ _generateDart(String appDirPath, List<Node> nodes) async {
   print('Wrote Dart to ${outputFile.path}.');
 }
 
-_generateJava(String appDirPath, List<Node> nodes) async {
+Future _generateJava(String appDirPath, List<Node> nodes) async {
   var srcDirPath = normalize(join(appDirPath, '..', 'java', 'src'));
   var generator = java.JavaGenerator(srcDirPath);
   java.api = java.Api();
@@ -93,7 +93,7 @@ ${generatedPaths.join('\n')}
   print('Wrote Java to $srcDirPath.');
 }
 
-_generateAsserts(String appDirPath, List<Node> nodes) async {
+Future _generateAsserts(String appDirPath, List<Node> nodes) async {
   var outDirPath = normalize(join(appDirPath, '..', 'example'));
   var outDir = Directory(outDirPath);
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
@@ -132,8 +132,8 @@ void _stampPubspec(Version version) {
     if (line.startsWith(pattern)) {
       found = true;
       Version v = Version.parse(line.substring(pattern.length));
-      String pre = v.preRelease.isEmpty ? null : v.preRelease.join('-');
-      String build = v.build.isEmpty ? null : v.build.join('+');
+      String? pre = v.preRelease.isEmpty ? null : v.preRelease.join('-');
+      String? build = v.build.isEmpty ? null : v.build.join('+');
       v = Version(version.major, version.minor, v.patch,
           pre: pre, build: build);
       return '${pattern}${v.toString()}';

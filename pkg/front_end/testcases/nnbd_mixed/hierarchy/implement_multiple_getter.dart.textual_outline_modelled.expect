@@ -1,0 +1,25 @@
+abstract class AbstractClass implements Interface1, Interface2 {
+  int get declareAbstractImplementMultipleGetter;
+  int get declareConcreteImplementMultipleGetter => 0;
+}
+
+class ConcreteClass implements Interface1, Interface2 {
+  int get declareAbstractImplementMultipleGetter;
+  int get declareConcreteImplementMultipleGetter => 0;
+}
+
+class ConcreteSub extends AbstractClass {}
+
+class Interface1 {
+  int get declareAbstractImplementMultipleGetter => 0;
+  int get declareConcreteImplementMultipleGetter => 0;
+  int get implementMultipleGetter => 0;
+}
+
+class Interface2 {
+  int get declareAbstractImplementMultipleGetter => 0;
+  int get declareConcreteImplementMultipleGetter => 0;
+  int get implementMultipleGetter => 0;
+}
+
+main() {}

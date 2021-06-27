@@ -8,7 +8,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 class RefactoringStatus {
   /// The current severity of this [RefactoringStatus] - the maximum of the
   /// severities of its [entries].
-  RefactoringProblemSeverity _severity;
+  RefactoringProblemSeverity? _severity;
 
   /// A list of [RefactoringProblem]s.
   final List<RefactoringProblem> problems = [];
@@ -17,21 +17,21 @@ class RefactoringStatus {
   RefactoringStatus();
 
   /// Creates a new [RefactoringStatus] with the ERROR severity.
-  factory RefactoringStatus.error(String msg, [Location location]) {
+  factory RefactoringStatus.error(String msg, [Location? location]) {
     var status = RefactoringStatus();
     status.addError(msg, location);
     return status;
   }
 
   /// Creates a new [RefactoringStatus] with the FATAL severity.
-  factory RefactoringStatus.fatal(String msg, [Location location]) {
+  factory RefactoringStatus.fatal(String msg, [Location? location]) {
     var status = RefactoringStatus();
     status.addFatalError(msg, location);
     return status;
   }
 
   /// Creates a new [RefactoringStatus] with the WARNING severity.
-  factory RefactoringStatus.warning(String msg, [Location location]) {
+  factory RefactoringStatus.warning(String msg, [Location? location]) {
     var status = RefactoringStatus();
     status.addWarning(msg, location);
     return status;
@@ -54,8 +54,8 @@ class RefactoringStatus {
 
   /// Returns the message of the [RefactoringProblem] with highest severity;
   /// may be `null` if no problems.
-  String get message {
-    var problem = this.problem;
+  String? get message {
+    final problem = this.problem;
     if (problem == null) {
       return null;
     }
@@ -65,7 +65,7 @@ class RefactoringStatus {
   /// Returns the first [RefactoringProblem] with the highest severity.
   ///
   /// Returns `null` if no entries.
-  RefactoringProblem get problem {
+  RefactoringProblem? get problem {
     for (var problem in problems) {
       if (problem.severity == _severity) {
         return problem;
@@ -75,16 +75,16 @@ class RefactoringStatus {
   }
 
   /// Returns the current severity of this [RefactoringStatus].
-  RefactoringProblemSeverity get severity => _severity;
+  RefactoringProblemSeverity? get severity => _severity;
 
   /// Adds an ERROR problem with the given message and location.
-  void addError(String msg, [Location location]) {
+  void addError(String msg, [Location? location]) {
     _addProblem(RefactoringProblem(RefactoringProblemSeverity.ERROR, msg,
         location: location));
   }
 
   /// Adds a FATAL problem with the given message and location.
-  void addFatalError(String msg, [Location location]) {
+  void addFatalError(String msg, [Location? location]) {
     _addProblem(RefactoringProblem(RefactoringProblemSeverity.FATAL, msg,
         location: location));
   }
@@ -96,7 +96,7 @@ class RefactoringStatus {
   /// The resulting severity is the more severe of this and [other] severities.
   ///
   /// Merging with `null` is allowed - it has no effect.
-  void addStatus(RefactoringStatus other) {
+  void addStatus(RefactoringStatus? other) {
     if (other == null) {
       return;
     }
@@ -105,7 +105,7 @@ class RefactoringStatus {
   }
 
   /// Adds a WARNING problem with the given message and location.
-  void addWarning(String msg, [Location location]) {
+  void addWarning(String msg, [Location? location]) {
     _addProblem(RefactoringProblem(RefactoringProblemSeverity.WARNING, msg,
         location: location));
   }
@@ -114,10 +114,11 @@ class RefactoringStatus {
   String toString() {
     var sb = StringBuffer();
     sb.write('<');
-    if (_severity == null) {
+    var severity = _severity;
+    if (severity == null) {
       sb.write('OK');
     } else {
-      sb.write(_severity.name);
+      sb.write(severity.name);
     }
     if (!isOK) {
       sb.write('\n');

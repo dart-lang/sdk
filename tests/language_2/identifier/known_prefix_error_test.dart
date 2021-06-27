@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that identifiers which are used explicitly in the grammar but are
 // not built-in identifiers can be used as library prefixes.
 
@@ -15,6 +17,10 @@ import "package:expect/expect.dart";
 import 'built_in_prefix_library_async.dart' as async;
 import 'built_in_prefix_library_await.dart' as await;
 import 'built_in_prefix_library_hide.dart' as hide;
+import 'built_in_prefix_library_library.dart' as library;
+//                                               ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] Can't use 'library' as a name here.
 import 'built_in_prefix_library_of.dart' as of;
 import 'built_in_prefix_library_on.dart' as on;
 import 'built_in_prefix_library_show.dart' as show;
@@ -22,52 +28,44 @@ import 'built_in_prefix_library_sync.dart' as sync;
 import 'built_in_prefix_library_yield.dart' as yield;
 
 async<dynamic> _async = new async.A();
-// [error line 24, column 1, length 5]
-// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'async' isn't a type.
-// [error line 24, column 1]
-// [cfe] Expected 0 type arguments.
-await<dynamic> _await = new await.A();
 // [error line 30, column 1, length 5]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
+// [cfe] 'async' isn't a type.
+// [cfe] Expected 0 type arguments.
+await<dynamic> _await = new await.A();
+// [error line 35, column 1, length 5]
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'await' isn't a type.
-// [error line 30, column 1]
 // [cfe] Expected 0 type arguments.
 hide<dynamic> _hide = new hide.A();
-// [error line 36, column 1, length 4]
+// [error line 40, column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'hide' isn't a type.
-// [error line 36, column 1]
 // [cfe] Expected 0 type arguments.
 of<dynamic> _of = new of.A();
-// [error line 42, column 1, length 2]
+// [error line 45, column 1, length 2]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'of' isn't a type.
-// [error line 42, column 1]
 // [cfe] Expected 0 type arguments.
 on<dynamic> _on = new on.A();
-// [error line 48, column 1, length 2]
+// [error line 50, column 1, length 2]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'on' isn't a type.
-// [error line 48, column 1]
 // [cfe] Expected 0 type arguments.
 show<dynamic> _show = new show.A();
-// [error line 54, column 1, length 4]
+// [error line 55, column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'show' isn't a type.
-// [error line 54, column 1]
 // [cfe] Expected 0 type arguments.
 sync<dynamic> _sync = new sync.A();
 // [error line 60, column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sync' isn't a type.
-// [error line 60, column 1]
 // [cfe] Expected 0 type arguments.
 yield<dynamic> _yield = new yield.A();
-// [error line 66, column 1, length 5]
+// [error line 65, column 1, length 5]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'yield' isn't a type.
-// [error line 66, column 1]
 // [cfe] Expected 0 type arguments.
 
 async.B<async> _B_async = new async.B();
@@ -107,49 +105,41 @@ async.B<async<dynamic>> _B2_async = new async.B();
 //      ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'async' isn't a type.
-//      ^
 // [cfe] Expected 0 type arguments.
 await.B<await<dynamic>> _B2_await = new await.B();
 //      ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'await' isn't a type.
-//      ^
 // [cfe] Expected 0 type arguments.
 hide.B<hide<dynamic>> _B2_hide = new hide.B();
 //     ^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'hide' isn't a type.
-//     ^
 // [cfe] Expected 0 type arguments.
 of.B<of<dynamic>> _B2_of = new of.B();
 //   ^^
 // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'of' isn't a type.
-//   ^
 // [cfe] Expected 0 type arguments.
 on.B<on<dynamic>> _B2_on = new on.B();
 //   ^^
 // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'on' isn't a type.
-//   ^
 // [cfe] Expected 0 type arguments.
 show.B<show<dynamic>> _B2_show = new show.B();
 //     ^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'show' isn't a type.
-//     ^
 // [cfe] Expected 0 type arguments.
 sync.B<sync<dynamic>> _B2_sync = new sync.B();
 //     ^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'sync' isn't a type.
-//     ^
 // [cfe] Expected 0 type arguments.
 yield.B<yield<dynamic>> _B2_yield = new yield.B();
 //      ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'yield' isn't a type.
-//      ^
 // [cfe] Expected 0 type arguments.
 
 main() {

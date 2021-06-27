@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -21,7 +22,7 @@ class ConvertIntoBlockBody extends CorrectionProducer {
       return;
     }
 
-    var returnValue = (body as ExpressionFunctionBody).expression;
+    var returnValue = body.expression;
 
     // Return expressions can be quite large, e.g. Flutter build() methods.
     // It is surprising to see this Quick Assist deep in the function body.
@@ -29,10 +30,10 @@ class ConvertIntoBlockBody extends CorrectionProducer {
       return;
     }
 
-    var returnValueType = returnValue.staticType;
+    var returnValueType = returnValue.typeOrThrow;
     var returnValueCode = utils.getNodeText(returnValue);
     // prepare prefix
-    var prefix = utils.getNodePrefix(body.parent);
+    var prefix = utils.getNodePrefix(body.parent!);
     var indent = utils.getIndent(1);
 
     await builder.addDartFileEdit(file, (builder) {

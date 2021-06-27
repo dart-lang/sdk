@@ -21,7 +21,7 @@ enum ElementKind {
 
 extension ElementKindUtilities on ElementKind {
   /// Return the element kind corresponding to the given [name].
-  static ElementKind fromName(String name) {
+  static ElementKind? fromName(String name) {
     for (var kind in ElementKind.values) {
       if (kind.toString() == 'ElementKind.${name}Kind') {
         return kind;

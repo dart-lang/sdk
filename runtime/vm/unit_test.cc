@@ -322,7 +322,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult result = KernelIsolate::CompileToKernel(
       url, platform_strong_dill, platform_strong_dill_size, sourcefiles_count,
-      sourcefiles, incrementally, NULL, multiroot_filepaths, multiroot_scheme);
+      sourcefiles, incrementally, false, NULL, multiroot_filepaths,
+      multiroot_scheme);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {
@@ -527,19 +528,15 @@ Dart_Handle TestCase::SetReloadTestScript(const char* script) {
   return Api::Success();
 }
 
-Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
-                                    intptr_t kernel_buffer_size) {
+Dart_Handle TestCase::TriggerReload(
+    std::function<bool(IsolateGroup*, JSONStream*)> do_reload) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  IsolateGroup* isolate_group = thread->isolate_group();
   JSONStream js;
   bool success = false;
   {
     TransitionNativeToVM transition(thread);
-    success =
-        isolate->group()->ReloadKernel(&js,
-                                       false,  // force_reload
-                                       kernel_buffer, kernel_buffer_size,
-                                       true);  // dont_delete_reload_context
+    success = do_reload(isolate_group, &js);
     OS::PrintErr("RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
@@ -550,21 +547,40 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
 
   if (Dart_IsError(result)) {
     // Keep load error.
-  } else if (isolate->group()->reload_context()->reload_aborted()) {
+  } else if (isolate_group->reload_context()->reload_aborted()) {
     TransitionNativeToVM transition(thread);
-    result = Api::NewHandle(
-        thread, isolate->reload_context()->group_reload_context()->error());
+    result = Api::NewHandle(thread, isolate_group->program_reload_context()
+                                        ->group_reload_context()
+                                        ->error());
   } else {
     result = Dart_RootLibrary();
   }
 
   TransitionNativeToVM transition(thread);
-  if (isolate->reload_context() != NULL) {
-    isolate->DeleteReloadContext();
-    isolate->group()->DeleteReloadContext();
+  if (isolate_group->program_reload_context() != NULL) {
+    isolate_group->DeleteReloadContext();
   }
 
   return result;
+}
+
+Dart_Handle TestCase::TriggerReload(const char* root_script_url) {
+  return TriggerReload([&](IsolateGroup* isolate_group, JSONStream* js) {
+    return isolate_group->ReloadSources(js,
+                                        /*force_reload=*/false, root_script_url,
+                                        /*packages_url=*/nullptr,
+                                        /*dont_delete_reload_context=*/true);
+  });
+}
+
+Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size) {
+  return TriggerReload([&](IsolateGroup* isolate_group, JSONStream* js) {
+    return isolate_group->ReloadKernel(js,
+                                       /*force_reload=*/false, kernel_buffer,
+                                       kernel_buffer_size,
+                                       /*dont_delete_reload_context=*/true);
+  });
 }
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
@@ -643,7 +659,7 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
                                          param_values,
                                          TypeArguments::null_type_arguments());
   }
-  return Api::NewHandle(thread, val.raw());
+  return Api::NewHandle(thread, val.ptr());
 }
 
 #if !defined(PRODUCT)
@@ -653,8 +669,8 @@ static bool IsHex(int c) {
 #endif
 
 void AssemblerTest::Assemble() {
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Thread::Current(), name_));
+  auto thread = Thread::Current();
+  const String& function_name = String::ZoneHandle(Symbols::New(thread, name_));
 
   // We make a dummy script so that exception objects can be composed for
   // assembler instructions that do runtime calls.
@@ -664,9 +680,11 @@ void AssemblerTest::Assemble() {
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, cls, TokenPosition::kMinSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, cls, TokenPosition::kMinSource));
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   code_ = Code::FinalizeCodeAndNotify(function, nullptr, assembler_,
                                       Code::PoolAttachment::kAttachPool);
   code_.set_owner(function);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.loader;
 
 import 'dart:collection' show Queue;
@@ -32,11 +34,20 @@ import 'messages.dart'
         noLength,
         SummaryTemplate,
         Template,
+        messageLanguageVersionInvalidInDotPackages,
         messagePlatformPrivateLibraryAccess,
         templateInternalProblemContextSeverity,
+        templateLanguageVersionTooHigh,
         templateSourceBodySummary;
 
 import 'problems.dart' show internalProblem, unhandled;
+
+import 'source/source_library_builder.dart' as src
+    show
+        LanguageVersion,
+        InvalidLanguageVersion,
+        ImplicitLanguageVersion,
+        SourceLibraryBuilder;
 
 import 'target_implementation.dart' show TargetImplementation;
 
@@ -74,6 +85,7 @@ abstract class Loader {
   final Set<String> seenMessages = new Set<String>();
 
   LibraryBuilder coreLibrary;
+  LibraryBuilder typedDataLibrary;
 
   /// The first library that we've been asked to compile. When compiling a
   /// program (aka script), this is the library that should have a main method.
@@ -142,9 +154,9 @@ abstract class Loader {
         packageForLanguageVersion =
             target.uriTranslator.packages.packageOf(fileUri);
       }
-      bool hasPackageSpecifiedLanguageVersion = false;
-      Version version;
+      src.LanguageVersion packageLanguageVersion;
       Uri packageUri;
+      Message packageLanguageVersionProblem;
       if (packageForLanguageVersion != null) {
         Uri importUri = origin?.importUri ?? uri;
         if (importUri.scheme != 'dart' &&
@@ -154,26 +166,56 @@ abstract class Loader {
               new Uri(scheme: 'package', path: packageForLanguageVersion.name);
         }
         if (packageForLanguageVersion.languageVersion != null) {
-          hasPackageSpecifiedLanguageVersion = true;
           if (packageForLanguageVersion.languageVersion
-              is! InvalidLanguageVersion) {
-            version = new Version(
+              is InvalidLanguageVersion) {
+            packageLanguageVersionProblem =
+                messageLanguageVersionInvalidInDotPackages;
+            packageLanguageVersion = new src.InvalidLanguageVersion(
+                fileUri, 0, noLength, target.currentSdkVersion, false);
+          } else {
+            Version version = new Version(
                 packageForLanguageVersion.languageVersion.major,
                 packageForLanguageVersion.languageVersion.minor);
+            if (version > target.currentSdkVersion) {
+              packageLanguageVersionProblem =
+                  templateLanguageVersionTooHigh.withArguments(
+                      target.currentSdkVersion.major,
+                      target.currentSdkVersion.minor);
+              packageLanguageVersion = new src.InvalidLanguageVersion(
+                  fileUri, 0, noLength, target.currentSdkVersion, false);
+            } else {
+              packageLanguageVersion = new src.ImplicitLanguageVersion(version);
+            }
           }
         }
       }
-      LibraryBuilder library = target.createLibraryBuilder(uri, fileUri,
-          packageUri, origin, referencesFrom, referenceIsPartOwner);
+      packageLanguageVersion ??=
+          new src.ImplicitLanguageVersion(target.currentSdkVersion);
+
+      LibraryBuilder library = target.createLibraryBuilder(
+          uri,
+          fileUri,
+          packageUri,
+          packageLanguageVersion,
+          origin,
+          referencesFrom,
+          referenceIsPartOwner);
       if (library == null) {
         throw new StateError("createLibraryBuilder for uri $uri, "
             "fileUri $fileUri returned null.");
       }
-      if (hasPackageSpecifiedLanguageVersion) {
-        library.setLanguageVersion(version, explicit: false);
+      if (packageLanguageVersionProblem != null &&
+          library is src.SourceLibraryBuilder) {
+        library.addPostponedProblem(
+            packageLanguageVersionProblem, 0, noLength, library.fileUri);
       }
-      if (uri.scheme == "dart" && uri.path == "core") {
-        coreLibrary = library;
+
+      if (uri.scheme == "dart") {
+        if (uri.path == "core") {
+          coreLibrary = library;
+        } else if (uri.path == "typed_data") {
+          typedDataLibrary = library;
+        }
       }
       if (library.loader != this) {
         if (coreLibrary == library) {
@@ -194,8 +236,8 @@ abstract class Loader {
       if (coreLibrary == library) {
         target.loadExtraRequiredLibraries(this);
       }
-      if (target.backendTarget
-          .mayDefineRestrictedType(origin?.importUri ?? uri)) {
+      Uri libraryUri = origin?.importUri ?? uri;
+      if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
         library.mayImplementRestrictedTypes = true;
       }
       if (uri.scheme == "dart") {
@@ -258,9 +300,9 @@ abstract class Loader {
   void logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
       int libraryCount = 0;
-      builders.forEach((Uri uri, LibraryBuilder library) {
+      for (LibraryBuilder library in builders.values) {
         if (library.loader == this) libraryCount++;
-      });
+      }
       double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
       Message message = template.withArguments(
           libraryCount, byteCount, ms, byteCount / ms, ms / libraryCount);
@@ -306,7 +348,7 @@ abstract class Loader {
       List<LocatedMessage> context,
       bool problemOnLibrary: false,
       List<Uri> involvedFiles}) {
-    severity = target.fixSeverity(severity, message, fileUri);
+    severity ??= message.code.severity;
     if (severity == Severity.ignored) return null;
     String trace = """
 message: ${message.message}

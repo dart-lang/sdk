@@ -27,8 +27,8 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 /// Print the given [component].  Do nothing if it is `null`.  If the
 /// [libraryFilter] is provided, then only libraries that satisfy it are
 /// printed.
-void printComponentText(Component component,
-    {bool libraryFilter(Library library)}) {
+void printComponentText(Component? component,
+    {bool Function(Library library)? libraryFilter}) {
   if (component == null) return;
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb);
@@ -43,7 +43,7 @@ void printComponentText(Component component,
 
 /// Write [component] to file only including libraries that match [filter].
 Future<Null> writeComponentToFile(Component component, Uri uri,
-    {bool filter(Library library)}) async {
+    {bool Function(Library library)? filter}) async {
   File output = new File.fromUri(uri);
   IOSink sink = output.openWrite();
   try {
@@ -56,7 +56,7 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
 
 /// Serialize the libraries in [component] that match [filter].
 Uint8List serializeComponent(Component component,
-    {bool filter(Library library),
+    {bool Function(Library library)? filter,
     bool includeSources: true,
     bool includeOffsets: true}) {
   ByteSink byteSink = new ByteSink();
@@ -73,16 +73,17 @@ const String kDebugClassName = "#DebugClass";
 Component createExpressionEvaluationComponent(Procedure procedure) {
   Library realLibrary = procedure.enclosingLibrary;
 
-  Library fakeLibrary = new Library(new Uri(scheme: 'evaluate', path: 'source'))
+  Uri uri = new Uri(scheme: 'evaluate', path: 'source');
+  Library fakeLibrary = new Library(uri, fileUri: uri)
     ..setLanguageVersion(realLibrary.languageVersion)
     ..isNonNullableByDefault = realLibrary.isNonNullableByDefault
     ..nonNullableByDefaultCompiledMode =
         realLibrary.nonNullableByDefaultCompiledMode;
 
-  if (procedure.parent is Class) {
-    Class realClass = procedure.parent;
-
-    Class fakeClass = new Class(name: kDebugClassName)..parent = fakeLibrary;
+  TreeNode? realClass = procedure.parent;
+  if (realClass is Class) {
+    Class fakeClass = new Class(name: kDebugClassName, fileUri: uri)
+      ..parent = fakeLibrary;
     Map<TypeParameter, TypeParameter> typeParams =
         <TypeParameter, TypeParameter>{};
     Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
@@ -97,14 +98,15 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
         typeSubstitution: typeSubstitution, typeParams: typeParams);
 
     for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters.add(typeParam.accept<TreeNode>(cloner));
+      fakeClass.typeParameters
+          .add(typeParam.accept<TreeNode>(cloner) as TypeParameter);
     }
 
     if (realClass.supertype != null) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(
-          realClass.supertype.className,
-          realClass.supertype.typeArguments.map(cloner.visitType).toList());
+          realClass.supertype!.className,
+          realClass.supertype!.typeArguments.map(cloner.visitType).toList());
     }
 
     // Rebind the type parameters in the procedure.

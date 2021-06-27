@@ -11,13 +11,13 @@ var tests = <VMTest>[
   (VmService service) async {
     final vm = await service.getVM();
     final result =
-        await service.getIsolateGroupMemoryUsage(vm.isolateGroups.first.id);
+        await service.getIsolateGroupMemoryUsage(vm.isolateGroups!.first.id!);
     expect(result.heapUsage, isPositive);
     expect(result.heapCapacity, isPositive);
     expect(result.externalUsage, isNonNegative);
   },
   (VmService service) async {
-    bool caughtException;
+    bool? caughtException;
     try {
       await service.getMemoryUsage('badid');
       fail('Unreachable');
@@ -32,4 +32,8 @@ var tests = <VMTest>[
   },
 ];
 
-main(args) async => runVMTests(args, tests);
+main(args) async => runVMTests(
+      args,
+      tests,
+      'get_isolate_group_memory_usage.dart',
+    );

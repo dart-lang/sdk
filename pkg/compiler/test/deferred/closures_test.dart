@@ -11,7 +11,6 @@ import 'package:compiler/compiler_new.dart';
 import 'package:expect/expect.dart';
 
 import '../helpers/memory_compiler.dart';
-import '../helpers/output_collector.dart';
 
 void main() {
   asyncTest(() async {

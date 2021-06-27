@@ -10,7 +10,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexExpressionTest);
-    defineReflectiveTests(IndexExpressionWithNullSafetyTest);
   });
 }
 
@@ -68,6 +67,36 @@ void f(A a) {
     );
   }
 
+  test_read_cascade_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator[](int index) => false;
+}
+
+void f(A? a) {
+  a?..[0]..[1];
+}
+''');
+
+    var indexElement = findElement.method('[]');
+
+    assertIndexExpression(
+      findNode.index('..[0]'),
+      readElement: indexElement,
+      writeElement: null,
+      type: 'bool',
+    );
+
+    assertIndexExpression(
+      findNode.index('..[1]'),
+      readElement: indexElement,
+      writeElement: null,
+      type: 'bool',
+    );
+
+    assertType(findNode.cascade('a?'), 'A?');
+  }
+
   test_read_generic() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
@@ -97,6 +126,28 @@ void f(A<double> a) {
     );
   }
 
+  test_read_nullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator[](int index) => false;
+}
+
+void f(A? a) {
+  a?[0];
+}
+''');
+
+    var indexElement = findElement.method('[]');
+
+    var indexExpression = findNode.index('a?[0]');
+    assertIndexExpression(
+      indexExpression,
+      readElement: indexElement,
+      writeElement: null,
+      type: 'bool?',
+    );
+  }
+
   test_readWrite_assignment() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -111,7 +162,7 @@ void f(A a) {
 
     var indexElement = findElement.method('[]');
     var indexEqElement = findElement.method('[]=');
-    var numPlusElement = numElement.getMethod('+');
+    var numPlusElement = numElement.getMethod('+')!;
 
     var indexExpression = findNode.index('a[0]');
     if (hasAssignmentLeftResolution) {
@@ -160,7 +211,7 @@ void f(A<double> a) {
 
     var indexElement = findElement.method('[]');
     var indexEqElement = findElement.method('[]=');
-    var doublePlusElement = doubleElement.getMethod('+');
+    var doublePlusElement = doubleElement.getMethod('+')!;
 
     var indexExpression = findNode.index('a[0]');
     if (hasAssignmentLeftResolution) {
@@ -207,6 +258,52 @@ void f(A<double> a) {
     );
   }
 
+  test_readWrite_nullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  num operator[](int index) => 0;
+  void operator[]=(int index, num value) {}
+}
+
+void f(A? a) {
+  a?[0] += 1.2;
+}
+''');
+
+    var indexElement = findElement.method('[]');
+    var indexEqElement = findElement.method('[]=');
+    var numPlusElement = numElement.getMethod('+')!;
+
+    var indexExpression = findNode.index('a?[0]');
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: indexElement,
+        writeElement: indexEqElement,
+        type: 'num',
+      );
+    }
+    assertParameterElement(
+      indexExpression.index,
+      indexEqElement.parameters[0],
+    );
+
+    var assignment = indexExpression.parent as AssignmentExpression;
+    assertAssignment(
+      assignment,
+      readElement: indexElement,
+      readType: 'num',
+      writeElement: indexEqElement,
+      writeType: 'num',
+      operatorElement: numPlusElement,
+      type: 'double?',
+    );
+    assertParameterElement(
+      assignment.rightHandSide,
+      numPlusElement.parameters[0],
+    );
+  }
+
   test_write() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -247,157 +344,6 @@ void f(A a) {
     assertParameterElement(
       assignment.rightHandSide,
       indexEqElement.parameters[1],
-    );
-  }
-
-  test_write_generic() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {
-  void operator[]=(int index, T value) {}
-}
-
-void f(A<double> a) {
-  a[0] = 1.2;
-}
-''');
-
-    var indexEqElement = findElement.method('[]=');
-
-    var indexExpression = findNode.index('a[0]');
-    if (hasAssignmentLeftResolution) {
-      assertIndexExpression(
-        indexExpression,
-        readElement: null,
-        writeElement: elementMatcher(
-          indexEqElement,
-          substitution: {'T': 'double'},
-        ),
-        type: null,
-      );
-    }
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        indexEqElement,
-        substitution: {'T': 'double'},
-      ),
-      writeType: 'double',
-      operatorElement: null,
-      type: 'double',
-    );
-    assertParameterElement(
-      assignment.rightHandSide,
-      indexEqElement.parameters[1],
-    );
-  }
-}
-
-@reflectiveTest
-class IndexExpressionWithNullSafetyTest extends IndexExpressionTest
-    with WithNullSafetyMixin {
-  test_read_cascade_nullShorting() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  bool operator[](int index) => false;
-}
-
-void f(A? a) {
-  a?..[0]..[1];
-}
-''');
-
-    var indexElement = findElement.method('[]');
-
-    assertIndexExpression(
-      findNode.index('..[0]'),
-      readElement: indexElement,
-      writeElement: null,
-      type: 'bool',
-    );
-
-    assertIndexExpression(
-      findNode.index('..[1]'),
-      readElement: indexElement,
-      writeElement: null,
-      type: 'bool',
-    );
-
-    assertType(findNode.cascade('a?'), 'A?');
-  }
-
-  test_read_nullable() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  bool operator[](int index) => false;
-}
-
-void f(A? a) {
-  a?[0];
-}
-''');
-
-    var indexElement = findElement.method('[]');
-
-    var indexExpression = findNode.index('a?[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: null,
-      type: 'bool?',
-    );
-  }
-
-  test_readWrite_nullable() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  num operator[](int index) => 0;
-  void operator[]=(int index, num value) {}
-}
-
-void f(A? a) {
-  a?[0] += 1.2;
-}
-''');
-
-    var indexElement = findElement.method('[]');
-    var indexEqElement = findElement.method('[]=');
-    var numPlusElement = numElement.getMethod('+');
-
-    var indexExpression = findNode.index('a?[0]');
-    if (hasAssignmentLeftResolution) {
-      assertIndexExpression(
-        indexExpression,
-        readElement: indexElement,
-        writeElement: indexEqElement,
-        type: 'num',
-      );
-    }
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      readElement: indexElement,
-      readType: 'num',
-      writeElement: indexEqElement,
-      writeType: 'num',
-      operatorElement: numPlusElement,
-      type: 'double?',
-    );
-    assertParameterElement(
-      assignment.rightHandSide,
-      numPlusElement.parameters[0],
     );
   }
 
@@ -451,6 +397,55 @@ void f(A? a) {
     }
 
     assertType(findNode.cascade('a?'), 'A?');
+  }
+
+  test_write_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  void operator[]=(int index, T value) {}
+}
+
+void f(A<double> a) {
+  a[0] = 1.2;
+}
+''');
+
+    var indexEqElement = findElement.method('[]=');
+
+    var indexExpression = findNode.index('a[0]');
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: null,
+        writeElement: elementMatcher(
+          indexEqElement,
+          substitution: {'T': 'double'},
+        ),
+        type: null,
+      );
+    }
+    assertParameterElement(
+      indexExpression.index,
+      indexEqElement.parameters[0],
+    );
+
+    var assignment = indexExpression.parent as AssignmentExpression;
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        indexEqElement,
+        substitution: {'T': 'double'},
+      ),
+      writeType: 'double',
+      operatorElement: null,
+      type: 'double',
+    );
+    assertParameterElement(
+      assignment.rightHandSide,
+      indexEqElement.parameters[1],
+    );
   }
 
   test_write_nullable() async {

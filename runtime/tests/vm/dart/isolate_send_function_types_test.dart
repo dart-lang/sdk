@@ -22,7 +22,7 @@ main(args) async {
     Expect.equals(
         await caughtErrorCompleter.future,
         "Invalid argument(s): Illegal argument in isolate message : "
-        "(function types are not supported yet)");
+        "(object is a FunctionType)");
   }
 
   Future<void> genericFunc<T>() async {
@@ -36,7 +36,7 @@ main(args) async {
     Expect.equals(
         await caughtErrorCompleter.future,
         "Invalid argument(s): Illegal argument in isolate message : "
-        "(function types are not supported yet)");
+        "(object is a FunctionType)");
   }
 
   await genericFunc<int>();

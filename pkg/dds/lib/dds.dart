@@ -7,35 +7,9 @@
 library dds;
 
 import 'dart:async';
-import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
-import 'dart:typed_data';
 
-import 'package:async/async.dart';
-import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
-import 'package:meta/meta.dart';
-import 'package:pedantic/pedantic.dart';
-import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart' as io;
-import 'package:shelf_proxy/shelf_proxy.dart';
-import 'package:shelf_web_socket/shelf_web_socket.dart';
-import 'package:sse/server/sse_handler.dart';
-import 'package:stream_channel/stream_channel.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-
-part 'src/binary_compatible_peer.dart';
-part 'src/client.dart';
-part 'src/client_manager.dart';
-part 'src/constants.dart';
-part 'src/dds_impl.dart';
-part 'src/expression_evaluator.dart';
-part 'src/logging_repository.dart';
-part 'src/isolate_manager.dart';
-part 'src/named_lookup.dart';
-part 'src/rpc_error_codes.dart';
-part 'src/stream_manager.dart';
+import 'src/dds_impl.dart';
 
 /// An intermediary between a Dart VM service and its clients that offers
 /// additional functionality on top of the standard VM service protocol.
@@ -65,13 +39,12 @@ abstract class DartDevelopmentService {
   /// default.
   static Future<DartDevelopmentService> startDartDevelopmentService(
     Uri remoteVmServiceUri, {
-    Uri serviceUri,
+    Uri? serviceUri,
     bool enableAuthCodes = true,
     bool ipv6 = false,
+    DevToolsConfiguration? devToolsConfiguration,
+    bool logRequests = false,
   }) async {
-    if (remoteVmServiceUri == null) {
-      throw ArgumentError.notNull('remoteVmServiceUri');
-    }
     if (remoteVmServiceUri.scheme != 'http') {
       throw ArgumentError(
         'remoteVmServiceUri must have an HTTP scheme. Actual: ${remoteVmServiceUri.scheme}',
@@ -87,23 +60,28 @@ abstract class DartDevelopmentService {
       // If provided an address to bind to, ensure it uses a protocol consistent
       // with that used to spawn DDS.
       final addresses = await InternetAddress.lookup(serviceUri.host);
-      final address = addresses.firstWhere(
-        (a) => (a.type ==
-            (ipv6 ? InternetAddressType.IPv6 : InternetAddressType.IPv4)),
-        orElse: () => null,
-      );
-      if (address == null) {
+
+      try {
+        // Check to see if there's a valid address.
+        addresses.firstWhere(
+          (a) => (a.type ==
+              (ipv6 ? InternetAddressType.IPv6 : InternetAddressType.IPv4)),
+        );
+      } on StateError {
+        // Could not find a valid address.
         throw ArgumentError(
           "serviceUri '$serviceUri' is not an IPv${ipv6 ? "6" : "4"} address.",
         );
       }
     }
 
-    final service = _DartDevelopmentService(
+    final service = DartDevelopmentServiceImpl(
       remoteVmServiceUri,
       serviceUri,
       enableAuthCodes,
       ipv6,
+      devToolsConfiguration,
+      logRequests,
     );
     await service.startService();
     return service;
@@ -135,19 +113,24 @@ abstract class DartDevelopmentService {
   /// [DartDevelopmentService] via HTTP.
   ///
   /// Returns `null` if the service is not running.
-  Uri get uri;
+  Uri? get uri;
 
   /// The [Uri] VM service clients can use to communicate with this
   /// [DartDevelopmentService] via server-sent events (SSE).
   ///
   /// Returns `null` if the service is not running.
-  Uri get sseUri;
+  Uri? get sseUri;
 
   /// The [Uri] VM service clients can use to communicate with this
   /// [DartDevelopmentService] via a [WebSocket].
   ///
   /// Returns `null` if the service is not running.
-  Uri get wsUri;
+  Uri? get wsUri;
+
+  /// The HTTP [Uri] of the hosted DevTools instance.
+  ///
+  /// Returns `null` if DevTools is not running.
+  Uri? get devToolsUri;
 
   /// Set to `true` if this instance of [DartDevelopmentService] is accepting
   /// requests.
@@ -155,7 +138,7 @@ abstract class DartDevelopmentService {
 
   /// The version of the DDS protocol supported by this [DartDevelopmentService]
   /// instance.
-  static const String protocolVersion = '1.1';
+  static const String protocolVersion = '1.2';
 }
 
 class DartDevelopmentServiceException implements Exception {
@@ -171,24 +154,34 @@ class DartDevelopmentServiceException implements Exception {
   /// Set when a connection error has occurred after startup.
   static const int connectionError = 3;
 
-  factory DartDevelopmentServiceException._existingDdsInstanceError(
-      String message) {
+  factory DartDevelopmentServiceException.existingDdsInstance(String message) {
     return DartDevelopmentServiceException._(existingDdsInstanceError, message);
   }
 
-  factory DartDevelopmentServiceException._failedToStartError() {
+  factory DartDevelopmentServiceException.failedToStart() {
     return DartDevelopmentServiceException._(
         failedToStartError, 'Failed to start Dart Development Service');
   }
 
-  factory DartDevelopmentServiceException._connectionError(String message) {
+  factory DartDevelopmentServiceException.connectionIssue(String message) {
     return DartDevelopmentServiceException._(connectionError, message);
   }
 
   DartDevelopmentServiceException._(this.errorCode, this.message);
 
+  @override
   String toString() => 'DartDevelopmentServiceException: $message';
 
   final int errorCode;
   final String message;
+}
+
+class DevToolsConfiguration {
+  const DevToolsConfiguration({
+    required this.customBuildDirectoryPath,
+    this.enable = false,
+  });
+
+  final bool enable;
+  final Uri customBuildDirectoryPath;
 }

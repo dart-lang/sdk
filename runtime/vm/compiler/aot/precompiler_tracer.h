@@ -54,7 +54,7 @@ class PrecompilerTracer : public ZoneAllocated {
   struct CString {
     const char* str;
     const intptr_t length;
-    intptr_t hash;
+    uword hash;
   };
 
   struct StringTableTraits {
@@ -92,7 +92,7 @@ class PrecompilerTracer : public ZoneAllocated {
     static const char* Name() { return "EntityTableTraits"; }
 
     static bool IsMatch(const Object& a, const Object& b) {
-      return a.raw() == b.raw();
+      return a.ptr() == b.ptr();
     }
 
     static uword Hash(const Object& obj) {

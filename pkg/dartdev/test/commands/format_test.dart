@@ -62,6 +62,33 @@ void format() {
             'Formatted lib/main.dart\nFormatted 1 file (1 changed) in '));
   });
 
+  test('formatted with exit code set', () {
+    p = project(mainSrc: 'int get foo =>       1;\n');
+    ProcessResult result = p.runSync([
+      'format',
+      '--set-exit-if-changed',
+      p.relativeFilePath,
+    ]);
+    expect(result.exitCode, isNot(0));
+    expect(result.stderr, isEmpty);
+    expect(
+        result.stdout,
+        startsWith(
+            'Formatted lib/main.dart\nFormatted 1 file (1 changed) in '));
+  });
+
+  test('not formatted with exit code set', () {
+    p = project(mainSrc: 'int get foo => 1;\n');
+    ProcessResult result = p.runSync([
+      'format',
+      '--set-exit-if-changed',
+      p.relativeFilePath,
+    ]);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, startsWith('Formatted 1 file (0 changed) in '));
+  });
+
   test('unknown file', () {
     p = project(mainSrc: 'int get foo => 1;\n');
     var unknownFilePath = '${p.relativeFilePath}-unknown-file.dart';

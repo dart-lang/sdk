@@ -38,7 +38,7 @@ DEFINE_FLAG(int,
             "generate exhaustive class tests instead of a megamorphic call");
 
 // Quick access to the current isolate and zone.
-#define I (isolate())
+#define IG (isolate_group())
 #define Z (zone())
 
 #ifdef DART_PRECOMPILER
@@ -49,15 +49,15 @@ DEFINE_FLAG(int,
 //   the receiver type can be only the function's class.
 // Returns Function::null() if there is no unique dynamic target for
 // given 'fname'. 'fname' must be a symbol.
-static void GetUniqueDynamicTarget(Isolate* isolate,
+static void GetUniqueDynamicTarget(IsolateGroup* isolate_group,
                                    const String& fname,
                                    Object* function) {
   UniqueFunctionsMap functions_map(
-      isolate->object_store()->unique_dynamic_targets());
+      isolate_group->object_store()->unique_dynamic_targets());
   ASSERT(fname.IsSymbol());
   *function = functions_map.GetOrNull(fname);
-  ASSERT(functions_map.Release().raw() ==
-         isolate->object_store()->unique_dynamic_targets());
+  ASSERT(functions_map.Release().ptr() ==
+         isolate_group->object_store()->unique_dynamic_targets());
 }
 
 AotCallSpecializer::AotCallSpecializer(
@@ -70,8 +70,9 @@ AotCallSpecializer::AotCallSpecializer(
       precompiler_(precompiler),
       has_unique_no_such_method_(false) {
   Function& target_function = Function::Handle();
-  if (isolate()->object_store()->unique_dynamic_targets() != Array::null()) {
-    GetUniqueDynamicTarget(isolate(), Symbols::NoSuchMethod(),
+  if (isolate_group()->object_store()->unique_dynamic_targets() !=
+      Array::null()) {
+    GetUniqueDynamicTarget(isolate_group(), Symbols::NoSuchMethod(),
                            &target_function);
     has_unique_no_such_method_ = !target_function.IsNull();
   }
@@ -79,13 +80,15 @@ AotCallSpecializer::AotCallSpecializer(
 
 bool AotCallSpecializer::TryCreateICDataForUniqueTarget(
     InstanceCallInstr* call) {
-  if (isolate()->object_store()->unique_dynamic_targets() == Array::null()) {
+  if (isolate_group()->object_store()->unique_dynamic_targets() ==
+      Array::null()) {
     return false;
   }
 
   // Check if the target is unique.
   Function& target_function = Function::Handle(Z);
-  GetUniqueDynamicTarget(isolate(), call->function_name(), &target_function);
+  GetUniqueDynamicTarget(isolate_group(), call->function_name(),
+                         &target_function);
 
   if (target_function.IsNull()) {
     return false;
@@ -152,20 +155,20 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
     return false;
   }
 
-  if (call->function_name().raw() != Symbols::GetRuntimeType().raw()) {
+  if (call->function_name().ptr() != Symbols::GetRuntimeType().ptr()) {
     return false;
   }
 
   // There is only a single function Object.get:runtimeType that can be invoked
   // by this call. Convert dynamic invocation to a static one.
-  const Class& cls = Class::Handle(Z, I->object_store()->object_class());
+  const Class& cls = Class::Handle(Z, IG->object_store()->object_class());
   const Function& function =
       Function::Handle(Z, call->ResolveForReceiverClass(cls));
   ASSERT(!function.IsNull());
-  const Function& target = Function::ZoneHandle(Z, function.raw());
+  const Function& target = Function::ZoneHandle(Z, function.ptr());
   StaticCallInstr* static_call =
       StaticCallInstr::FromCall(Z, call, target, call->CallCount());
-  static_call->SetResultType(Z, CompileType::FromCid(kTypeCid));
+  // Since the result is either a Type or a FunctionType, we cannot pin it.
   call->ReplaceWith(static_call, current_iterator());
   return true;
 }
@@ -192,7 +195,7 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
 
   if (IsGetRuntimeType(left) && left->input_use_list()->IsSingleUse() &&
       IsGetRuntimeType(right) && right->input_use_list()->IsSingleUse()) {
-    const Class& cls = Class::Handle(Z, I->object_store()->object_class());
+    const Class& cls = Class::Handle(Z, IG->object_store()->object_class());
     const Function& have_same_runtime_type = Function::ZoneHandle(
         Z,
         cls.LookupStaticFunctionAllowPrivate(Symbols::HaveSameRuntimeType()));
@@ -219,33 +222,6 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
   }
 
   return false;
-}
-
-static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
-  ASSERT(instr->type_args_len() == 0);
-
-  // If Smi is not assignable to the interface target of the call, the receiver
-  // is definitely not a Smi.
-  if (!instr->CanReceiverBeSmiBasedOnInterfaceTarget(
-          Thread::Current()->zone())) {
-    return false;
-  }
-
-  // Phis with at least one known smi are // guessed to be likely smi as well.
-  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
-    PhiInstr* phi = instr->ArgumentAt(i)->AsPhi();
-    if (phi != NULL) {
-      for (intptr_t j = 0; j < phi->InputCount(); ++j) {
-        if (phi->InputAt(j)->Type()->ToCid() == kSmiCid) return true;
-      }
-    }
-  }
-  // If all of the inputs are known smis or the result of CheckedSmiOp,
-  // we guess the operand to be likely smi.
-  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
-    if (!instr->ArgumentAt(i)->IsCheckedSmiOp()) return false;
-  }
-  return true;
 }
 
 bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
@@ -283,8 +259,7 @@ bool AotCallSpecializer::IsSupportedIntOperandForStaticDoubleOp(
       return true;
     }
 
-    if (FlowGraphCompiler::SupportsUnboxedInt64() &&
-        FlowGraphCompiler::CanConvertInt64ToDouble()) {
+    if (FlowGraphCompiler::CanConvertInt64ToDouble()) {
       return true;
     }
   }
@@ -312,8 +287,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
 
     if (input->Type()->ToNullableCid() == kSmiCid) {
       conversion = new (Z) SmiToDoubleInstr(input, call->source());
-    } else if (FlowGraphCompiler::SupportsUnboxedInt64() &&
-               FlowGraphCompiler::CanConvertInt64ToDouble()) {
+    } else if (FlowGraphCompiler::CanConvertInt64ToDouble()) {
       conversion = new (Z) Int64ToDoubleInstr(input, DeoptId::kNone,
                                               Instruction::kNotSpeculative);
     } else {
@@ -474,7 +448,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     CompileType* left_type = left_value->Type();
     CompileType* right_type = right_value->Type();
 
-    const bool is_equality_op = Token::IsEqualityOperator(op_kind);
     bool has_nullable_int_args =
         left_type->IsNullableInt() && right_type->IsNullableInt();
 
@@ -483,12 +456,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         has_nullable_int_args = false;
       }
     }
-
-    // NOTE: We cannot use strict comparisons if the receiver has an overridden
-    // == operator or if either side can be a double, since 1.0 == 1.
-    const bool can_use_strict_compare =
-        is_equality_op && has_nullable_int_args &&
-        (left_type->IsNullableSmi() || right_type->IsNullableSmi());
 
     // We only support binary operations if both operands are nullable integers
     // or when we can use a cheap strict comparison operation.
@@ -499,56 +466,32 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     switch (op_kind) {
       case Token::kEQ:
       case Token::kNE:
-      case Token::kLT:
-      case Token::kLTE:
-      case Token::kGT:
-      case Token::kGTE: {
-        const bool supports_unboxed_int =
-            FlowGraphCompiler::SupportsUnboxedInt64();
-        const bool can_use_equality_compare =
-            supports_unboxed_int && is_equality_op && left_type->IsInt() &&
-            right_type->IsInt();
-
-        // We prefer equality compare, since it doesn't require boxing.
-        if (!can_use_equality_compare && can_use_strict_compare) {
+        if (left_type->IsNull() || left_type->IsNullableSmi() ||
+            right_type->IsNull() || right_type->IsNullableSmi()) {
           replacement = new (Z) StrictCompareInstr(
               instr->source(),
               (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
               left_value->CopyWithType(Z), right_value->CopyWithType(Z),
               /*needs_number_check=*/false, DeoptId::kNone);
-          break;
-        }
-
-        if (supports_unboxed_int) {
-          if (can_use_equality_compare) {
-            replacement = new (Z) EqualityCompareInstr(
-                instr->source(), op_kind, left_value->CopyWithType(Z),
-                right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
-                Instruction::kNotSpeculative);
-            break;
-          } else if (Token::IsRelationalOperator(op_kind)) {
-            left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-            right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z) RelationalOpInstr(
-                instr->source(), op_kind, left_value, right_value, kMintCid,
-                DeoptId::kNone, Instruction::kNotSpeculative);
-            break;
-          } else {
-            // TODO(dartbug.com/30480): Figure out how to handle null in
-            // equality comparisons.
-            replacement = new (Z)
-                CheckedSmiComparisonInstr(op_kind, left_value->CopyWithType(Z),
-                                          right_value->CopyWithType(Z), instr);
-            break;
-          }
         } else {
-          replacement = new (Z)
-              CheckedSmiComparisonInstr(op_kind, left_value->CopyWithType(Z),
-                                        right_value->CopyWithType(Z), instr);
-          break;
+          const bool null_aware =
+              left_type->is_nullable() || right_type->is_nullable();
+          replacement = new (Z) EqualityCompareInstr(
+              instr->source(), op_kind, left_value->CopyWithType(Z),
+              right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
+              null_aware, Instruction::kNotSpeculative);
         }
         break;
-      }
+      case Token::kLT:
+      case Token::kLTE:
+      case Token::kGT:
+      case Token::kGTE:
+        left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+        right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+        replacement = new (Z) RelationalOpInstr(
+            instr->source(), op_kind, left_value, right_value, kMintCid,
+            DeoptId::kNone, Instruction::kNotSpeculative);
+        break;
       case Token::kMOD:
         replacement = TryOptimizeMod(instr, op_kind, left_value, right_value);
         if (replacement != nullptr) break;
@@ -564,6 +507,8 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         FALL_THROUGH;
       case Token::kSHR:
         FALL_THROUGH;
+      case Token::kUSHR:
+        FALL_THROUGH;
       case Token::kBIT_OR:
         FALL_THROUGH;
       case Token::kBIT_XOR:
@@ -575,27 +520,18 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       case Token::kSUB:
         FALL_THROUGH;
       case Token::kMUL: {
-        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          if (op_kind == Token::kSHR || op_kind == Token::kSHL) {
-            left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-            right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z) ShiftInt64OpInstr(
-                op_kind, left_value, right_value, DeoptId::kNone);
-            break;
-          } else {
-            left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-            right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z) BinaryInt64OpInstr(
-                op_kind, left_value, right_value, DeoptId::kNone,
-                Instruction::kNotSpeculative);
-            break;
-          }
-        }
-        if (op_kind != Token::kMOD && op_kind != Token::kTRUNCDIV) {
-          replacement =
-              new (Z) CheckedSmiOpInstr(op_kind, left_value->CopyWithType(Z),
-                                        right_value->CopyWithType(Z), instr);
-          break;
+        if (op_kind == Token::kSHL || op_kind == Token::kSHR ||
+            op_kind == Token::kUSHR) {
+          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z) ShiftInt64OpInstr(op_kind, left_value,
+                                                  right_value, DeoptId::kNone);
+        } else {
+          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z)
+              BinaryInt64OpInstr(op_kind, left_value, right_value,
+                                 DeoptId::kNone, Instruction::kNotSpeculative);
         }
         break;
       }
@@ -612,12 +548,10 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       return false;
     }
 
-    if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-      if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
-        left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-        replacement = new (Z) UnaryInt64OpInstr(
-            op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
-      }
+    if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
+      left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+      replacement = new (Z) UnaryInt64OpInstr(
+          op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
     }
   }
 
@@ -673,7 +607,8 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) EqualityCompareInstr(
               instr->source(), op_kind, left_value, right_value, kDoubleCid,
-              DeoptId::kNone, Instruction::kNotSpeculative);
+              DeoptId::kNone, /*null_aware=*/false,
+              Instruction::kNotSpeculative);
           break;
         }
         break;
@@ -809,7 +744,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   if (has_one_target) {
     const Function& target = targets.FirstTarget();
-    FunctionLayout::Kind function_kind = target.kind();
+    UntaggedFunction::Kind function_kind = target.kind();
     if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
         FlowGraph::ToCheck::kNoCheck) {
       StaticCallInstr* call = StaticCallInstr::FromCall(
@@ -819,62 +754,16 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
-  switch (instr->token_kind()) {
-    case Token::kEQ:
-    case Token::kNE:
-    case Token::kLT:
-    case Token::kLTE:
-    case Token::kGT:
-    case Token::kGTE: {
-      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
-          HasLikelySmiOperand(instr)) {
-        ASSERT(receiver_idx == 0);
-        Definition* left = instr->ArgumentAt(0);
-        Definition* right = instr->ArgumentAt(1);
-        CheckedSmiComparisonInstr* smi_op = new (Z)
-            CheckedSmiComparisonInstr(instr->token_kind(), new (Z) Value(left),
-                                      new (Z) Value(right), instr);
-        ReplaceCall(instr, smi_op);
-        return;
-      }
-      break;
-    }
-    case Token::kSHL:
-    case Token::kSHR:
-    case Token::kBIT_OR:
-    case Token::kBIT_XOR:
-    case Token::kBIT_AND:
-    case Token::kADD:
-    case Token::kSUB:
-    case Token::kMUL: {
-      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
-          HasLikelySmiOperand(instr)) {
-        ASSERT(receiver_idx == 0);
-        Definition* left = instr->ArgumentAt(0);
-        Definition* right = instr->ArgumentAt(1);
-        CheckedSmiOpInstr* smi_op =
-            new (Z) CheckedSmiOpInstr(instr->token_kind(), new (Z) Value(left),
-                                      new (Z) Value(right), instr);
-
-        ReplaceCall(instr, smi_op);
-        return;
-      }
-      break;
-    }
-    default:
-      break;
-  }
-
   // No IC data checks. Try resolve target using the propagated cid.
   const intptr_t receiver_cid =
       instr->ArgumentValueAt(receiver_idx)->Type()->ToCid();
-  if (receiver_cid != kDynamicCid) {
+  if (receiver_cid != kDynamicCid && receiver_cid != kSentinelCid) {
     const Class& receiver_class =
-        Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
+        Class::Handle(Z, isolate_group()->class_table()->At(receiver_cid));
     const Function& function =
         Function::Handle(Z, instr->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
-      const Function& target = Function::ZoneHandle(Z, function.raw());
+      const Function& target = Function::ZoneHandle(Z, function.ptr());
       StaticCallInstr* call =
           StaticCallInstr::FromCall(Z, instr, target, instr->CallCount());
       instr->ReplaceWith(call, current_iterator());
@@ -892,8 +781,9 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         const intptr_t cid = class_ids[i];
         // Skip sentinel cid. It may appear in the unreachable code after
         // inlining a method which doesn't return.
-        if (cid == kNeverCid) continue;
-        const Class& cls = Class::Handle(Z, isolate()->class_table()->At(cid));
+        if (cid == kSentinelCid) continue;
+        const Class& cls =
+            Class::Handle(Z, isolate_group()->class_table()->At(cid));
         const Function& target =
             Function::Handle(Z, instr->ResolveForReceiverClass(cls));
         if (target.recognized_kind() != MethodRecognizer::kObjectEquals) {
@@ -952,7 +842,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       Class& cls = Class::Handle(Z);
       for (intptr_t i = 0; i < class_ids.length(); i++) {
         const intptr_t cid = class_ids[i];
-        cls = isolate()->class_table()->At(cid);
+        cls = isolate_group()->class_table()->At(cid);
         target = instr->ResolveForReceiverClass(cls);
         ASSERT(target.IsNull() || !target.IsInvokeFieldDispatcher());
         if (target.IsNull()) {
@@ -963,9 +853,9 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           // First we are trying to compute a single target for all subclasses.
           if (single_target.IsNull()) {
             ASSERT(i == 0);
-            single_target = target.raw();
+            single_target = target.ptr();
             continue;
-          } else if (single_target.raw() == target.raw()) {
+          } else if (single_target.ptr() == target.ptr()) {
             continue;
           }
 
@@ -988,12 +878,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           single_target = Function::null();
         }
 
-        ASSERT(ic_data.raw() != ICData::null());
-        ASSERT(single_target.raw() == Function::null());
+        ASSERT(ic_data.ptr() != ICData::null());
+        ASSERT(single_target.ptr() == Function::null());
         ic_data.AddReceiverCheck(cid, target);
       }
 
-      if (single_target.raw() != Function::null()) {
+      if (single_target.ptr() != Function::null()) {
         // If this is a getter or setter invocation try inlining it right away
         // instead of replacing it with a static call.
         if ((op_kind == Token::kGET) || (op_kind == Token::kSET)) {
@@ -1013,12 +903,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
         // We have computed that there is only a single target for this call
         // within the whole hierarchy. Replace InstanceCall with StaticCall.
-        const Function& target = Function::ZoneHandle(Z, single_target.raw());
+        const Function& target = Function::ZoneHandle(Z, single_target.ptr());
         StaticCallInstr* call =
             StaticCallInstr::FromCall(Z, instr, target, instr->CallCount());
         instr->ReplaceWith(call, current_iterator());
         return;
-      } else if ((ic_data.raw() != ICData::null()) &&
+      } else if ((ic_data.ptr() != ICData::null()) &&
                  !ic_data.NumberOfChecksIs(0)) {
         const CallTargets* targets = CallTargets::Create(Z, ic_data);
         ASSERT(!targets->is_empty());
@@ -1067,7 +957,7 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
 
   // Ignore callsites like f.call() for now. Those need to be handled
   // specially if f is a closure.
-  if (call->function_name().raw() == Symbols::Call().raw()) {
+  if (call->function_name().ptr() == Symbols::Call().ptr()) {
     return false;
   }
 
@@ -1085,7 +975,7 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
   ArgumentsDescriptor args_desc(args_desc_array);
   target = Resolver::ResolveDynamicForReceiverClass(
       receiver_class, getter_name, args_desc, /*allow_add=*/false);
-  if (target.raw() == Function::null() || target.IsMethodExtractor()) {
+  if (target.ptr() == Function::null() || target.IsMethodExtractor()) {
     return false;
   }
 
@@ -1161,9 +1051,9 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
   const intptr_t receiver_idx = call->type_args_len() > 0 ? 1 : 0;
   const intptr_t receiver_cid =
       call->ArgumentValueAt(receiver_idx)->Type()->ToCid();
-  if (receiver_cid != kDynamicCid) {
+  if (receiver_cid != kDynamicCid && receiver_cid != kSentinelCid) {
     const Class& receiver_class =
-        Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
+        Class::Handle(Z, isolate_group()->class_table()->At(receiver_cid));
     const Function& function =
         Function::ZoneHandle(Z, call->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {

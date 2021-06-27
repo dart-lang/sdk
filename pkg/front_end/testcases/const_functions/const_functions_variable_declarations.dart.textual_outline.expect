@@ -1,0 +1,22 @@
+import "package:expect/expect.dart";
+
+const var1 = function1(1, 2);
+const var1_1 = function1(2, 2);
+int function1(int a, int b) {}
+const var2 = function2();
+String function2() {}
+const var3 = function3();
+int function3() {}
+const var4 = function4();
+int function4() {}
+const var5 = function5();
+int function5() {}
+const var6 = function6();
+int function6() {}
+const var7 = function7();
+int function7() {}
+const var8 = function8();
+int function8() {}
+const var9 = function9();
+int? function9() {}
+void main() {}

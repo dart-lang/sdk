@@ -65,16 +65,16 @@ main() {
         NEGATIVE_NUMBER_FOLDING, 'main', new RegExp(r"print\(1\)"));
     await compile(NULL_EQUALS_FOLDING, entry: 'foo', check: (String generated) {
       RegExp regexp = new RegExp(r'a == null');
-      Expect.isTrue(regexp.hasMatch(generated));
+      Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
 
-      regexp = new RegExp(r'null == b');
-      Expect.isTrue(regexp.hasMatch(generated));
+      regexp = new RegExp(r'b == null');
+      Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
 
       regexp = new RegExp(r'4 === c');
-      Expect.isTrue(regexp.hasMatch(generated));
+      Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
 
       regexp = new RegExp('"foo" === d');
-      Expect.isTrue(regexp.hasMatch(generated));
+      Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
     });
     await compileAndMatch(LIST_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"));
     await compileAndMatch(LIST_INDEX_FOLDING, 'foo', new RegExp(r"return 1"));

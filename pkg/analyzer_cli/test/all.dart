@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'analysis_options_test.dart' as analysis_options;
-import 'build_mode_test.dart' as build_mode;
 import 'driver_test.dart' as driver;
 import 'embedder_test.dart' as embedder;
 import 'errors_reported_once_test.dart' as errors_reported_once;
@@ -16,7 +15,6 @@ import 'strong_mode_test.dart' as strong_mode;
 
 void main() {
   analysis_options.main();
-  build_mode.main();
   driver.main();
   embedder.main();
   errors_reported_once.main();

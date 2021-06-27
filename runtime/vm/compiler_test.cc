@@ -88,18 +88,16 @@ ISOLATE_UNIT_TEST_CASE(OptimizeCompileFunctionOnHelperThread) {
   // Constant in product mode.
   FLAG_background_compilation = true;
 #endif
-  Isolate* isolate = thread->isolate();
-  BackgroundCompiler::Start(isolate);
-  isolate->optimizing_background_compiler()->Compile(func);
+  auto isolate_group = thread->isolate_group();
+  isolate_group->background_compiler()->EnqueueCompilation(func);
   Monitor* m = new Monitor();
   {
-    MonitorLocker ml(m);
+    SafepointMonitorLocker ml(m);
     while (!func.HasOptimizedCode()) {
-      ml.WaitWithSafepointCheck(thread, 1);
+      ml.Wait(1);
     }
   }
   delete m;
-  BackgroundCompiler::Stop(isolate);
 }
 
 ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
@@ -267,8 +265,9 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   EXPECT(val.IsInteger());
   EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
 
-  intptr_t initial_class_table_size =
-      Isolate::Current()->class_table()->NumCids();
+  auto class_table = IsolateGroup::Current()->class_table();
+
+  intptr_t initial_class_table_size = class_table->NumCids();
 
   val = Api::UnwrapHandle(
       TestCase::EvaluateExpression(lib, expression,
@@ -279,8 +278,7 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   EXPECT(val.IsInteger());
   EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
 
-  intptr_t final_class_table_size =
-      Isolate::Current()->class_table()->NumCids();
+  intptr_t final_class_table_size = class_table->NumCids();
   // Eval should not eat into this non-renewable resource.
   EXPECT_EQ(initial_class_table_size, final_class_table_size);
 }

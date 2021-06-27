@@ -754,8 +754,8 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
 }
 
 class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
-  final _functionReflectee;
-  _FunctionTypeMirror._(reflectee, this._functionReflectee, reflectedType)
+  final _signatureReflectee;
+  _FunctionTypeMirror._(reflectee, this._signatureReflectee, reflectedType)
       : super._(reflectee, reflectedType, null, null, false, false, false,
             false, false);
 
@@ -773,7 +773,7 @@ class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
   MethodMirror get callMethod {
     var m = _callMethod;
     if (m != null) return m;
-    return _callMethod = _FunctionTypeMirror_call_method(_functionReflectee);
+    return _callMethod = _FunctionTypeMirror_call_method(_signatureReflectee);
   }
 
   TypeMirror? _returnType;
@@ -781,7 +781,7 @@ class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
     var t = _returnType;
     if (t != null) return t;
     return _returnType =
-        reflectType(_FunctionTypeMirror_return_type(_functionReflectee));
+        reflectType(_FunctionTypeMirror_return_type(_signatureReflectee));
   }
 
   List<ParameterMirror>? _parameters;
@@ -789,7 +789,7 @@ class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
     var p = _parameters;
     if (p != null) return p;
     return _parameters = new UnmodifiableListView<ParameterMirror>(
-        _FunctionTypeMirror_parameters(_functionReflectee)
+        _FunctionTypeMirror_parameters(_signatureReflectee)
             .cast<ParameterMirror>());
   }
 
@@ -802,13 +802,13 @@ class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 
-  MethodMirror _FunctionTypeMirror_call_method(functionReflectee)
+  MethodMirror _FunctionTypeMirror_call_method(signatureReflectee)
       native "FunctionTypeMirror_call_method";
 
-  static Type _FunctionTypeMirror_return_type(functionReflectee)
+  static Type _FunctionTypeMirror_return_type(signatureReflectee)
       native "FunctionTypeMirror_return_type";
 
-  List<dynamic> _FunctionTypeMirror_parameters(functionReflectee)
+  List<dynamic> _FunctionTypeMirror_parameters(signatureReflectee)
       native "FunctionTypeMirror_parameters";
 }
 
@@ -884,9 +884,8 @@ class _TypeVariableMirror extends _DeclarationMirror
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 
   bool operator ==(Object other) {
-    return other is TypeVariableMirror &&
-        simpleName == other.simpleName &&
-        owner == other.owner;
+    return other is TypeVariableMirror && simpleName == other.simpleName;
+    // Type variables do not refer to owner.
   }
 
   int get hashCode => simpleName.hashCode;
@@ -912,110 +911,6 @@ class _TypeVariableMirror extends _DeclarationMirror
 
   static Type _TypeVariableMirror_upper_bound(reflectee)
       native "TypeVariableMirror_upper_bound";
-}
-
-class _TypedefMirror extends _DeclarationMirror
-    implements TypedefMirror, _TypeMirror {
-  final Type _reflectedType;
-  final bool _isGeneric;
-  final bool _isGenericDeclaration;
-
-  _TypedefMirror(reflectee, this._reflectedType, String simpleName,
-      this._isGeneric, this._isGenericDeclaration, this._owner)
-      : super._(reflectee, _s(simpleName));
-
-  bool get isTopLevel => true;
-
-  DeclarationMirror? _owner;
-  DeclarationMirror? get owner {
-    var o = _owner;
-    if (o != null) return o;
-    var uri = _ClassMirror._libraryUri(_reflectee);
-    return _owner = currentMirrorSystem().libraries[Uri.parse(uri)];
-  }
-
-  _FunctionTypeMirror? _referent;
-  FunctionTypeMirror get referent {
-    var r = _referent;
-    if (r != null) return r;
-    var result = _nativeReferent(_reflectedType) as _FunctionTypeMirror;
-    result._instantiator = _reflectedType;
-    return _referent = result;
-  }
-
-  bool get hasReflectedType => !_isGenericDeclaration;
-  Type get reflectedType {
-    if (!hasReflectedType) {
-      throw new UnsupportedError(
-          "Declarations of generics have no reflected type");
-    }
-    return _reflectedType;
-  }
-
-  bool get isOriginalDeclaration => !_isGeneric || _isGenericDeclaration;
-
-  TypedefMirror get originalDeclaration {
-    if (isOriginalDeclaration) {
-      return this;
-    } else {
-      return _nativeDeclaration(_reflectedType);
-    }
-  }
-
-  List<TypeVariableMirror>? _typeVariables;
-  List<TypeVariableMirror> get typeVariables {
-    var v = _typeVariables;
-    if (v != null) return v;
-
-    var result = <TypeVariableMirror>[];
-    List params = _ClassMirror._ClassMirror_type_variables(_reflectee);
-    TypedefMirror owner = originalDeclaration;
-    var mirror;
-    for (var i = 0; i < params.length; i += 2) {
-      mirror = new _TypeVariableMirror._(params[i + 1], params[i], owner);
-      result.add(mirror);
-    }
-    return _typeVariables =
-        new UnmodifiableListView<TypeVariableMirror>(result);
-  }
-
-  List<TypeMirror>? _typeArguments;
-  List<TypeMirror> get typeArguments {
-    var a = _typeArguments;
-    if (a != null) return a;
-
-    if (_isGenericDeclaration) {
-      return _typeArguments = const <TypeMirror>[];
-    } else {
-      return _typeArguments = new UnmodifiableListView<TypeMirror>(
-          _ClassMirror._computeTypeArguments(_reflectedType)
-              .cast<TypeMirror>());
-    }
-  }
-
-  String toString() => "TypedefMirror on '${_n(simpleName)}'";
-
-  bool isSubtypeOf(TypeMirror other) {
-    if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return true;
-    if (other == currentMirrorSystem().neverType) return false;
-    return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
-  }
-
-  bool isAssignableTo(TypeMirror other) {
-    if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return true;
-    if (other == currentMirrorSystem().neverType) return false;
-    final otherReflectedType = (other as _TypeMirror)._reflectedType;
-    return _subtypeTest(_reflectedType, otherReflectedType) ||
-        _subtypeTest(otherReflectedType, _reflectedType);
-  }
-
-  static FunctionTypeMirror _nativeReferent(reflectedType)
-      native "TypedefMirror_referent";
-
-  static TypedefMirror _nativeDeclaration(reflectedType)
-      native "TypedefMirror_declaration";
 }
 
 Symbol _asSetter(Symbol getter, LibraryMirror library) {

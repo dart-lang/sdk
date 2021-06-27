@@ -9,32 +9,32 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
     ;
   method returnTypeVariable() → self::Class::E% {
     function #result#initializer() → self::Class::E%
-      return this.{self::Class::field};
-    late self::Class::E% result = #result#initializer.call();
+      return this.{self::Class::field}{self::Class::E%};
+    late self::Class::E% result = #result#initializer(){() → self::Class::E%};
     return result;
   }
 }
 static method returnNonNullable(core::int value) → core::int {
   function #result#initializer() → core::int
     return value;
-  late core::int result = #result#initializer.call();
+  late core::int result = #result#initializer(){() → core::int};
   return result;
 }
 static method returnNullable(core::int? value) → core::int? {
   function #result#initializer() → core::int?
     return value;
-  late core::int? result = #result#initializer.call();
+  late core::int? result = #result#initializer(){() → core::int?};
   return result;
 }
 static method main() → dynamic {
-  self::expect(42, new self::Class::•<core::int>(42).{self::Class::returnTypeVariable}());
-  self::expect(87, new self::Class::•<core::int?>(87).{self::Class::returnTypeVariable}());
-  self::expect(null, new self::Class::•<core::int?>(null).{self::Class::returnTypeVariable}());
+  self::expect(42, new self::Class::•<core::int>(42).{self::Class::returnTypeVariable}(){() → core::int});
+  self::expect(87, new self::Class::•<core::int?>(87).{self::Class::returnTypeVariable}(){() → core::int?});
+  self::expect(null, new self::Class::•<core::int?>(null).{self::Class::returnTypeVariable}(){() → core::int?});
   self::expect(42, self::returnNonNullable(42));
   self::expect(87, self::returnNullable(87));
   self::expect(null, self::returnNullable(null));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }

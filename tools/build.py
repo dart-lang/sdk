@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -29,7 +29,7 @@ This script invokes ninja to build Dart.
 
 def BuildOptions():
     parser = argparse.ArgumentParser(
-        description='Runs GN (if ncecessary) followed by ninja',
+        description='Runs GN (if necessary) followed by ninja',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     config_group = parser.add_argument_group('Configuration Related Arguments')
@@ -53,6 +53,11 @@ def BuildOptions():
                              help="Don't try to start goma",
                              default=False,
                              action='store_true')
+    other_group.add_argument(
+        "--check-clean",
+        help="Check that a second invocation of Ninja has nothing to do",
+        default=False,
+        action='store_true')
 
     parser.add_argument('build_targets', nargs='*')
 
@@ -143,7 +148,7 @@ def EnsureGomaStarted(out_dir):
         return False
     goma_ctl = os.path.join(goma_dir, 'goma_ctl.py')
     goma_ctl_command = [
-        'python',
+        'python3',
         goma_ctl,
         'ensure_start',
     ]
@@ -188,6 +193,25 @@ def RunOneBuildCommand(build_config, args, env):
         return 1
     else:
         NotifyBuildDone(build_config, success=True, start=start_time)
+
+    return 0
+
+
+def CheckCleanBuild(build_config, args, env):
+    args = args + ['-n', '-d', 'explain']
+    print(' '.join(args))
+    process = subprocess.Popen(args,
+                               env=env,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               stdin=None)
+    out, err = process.communicate()
+    process.wait()
+    if process.returncode != 0:
+        return 1
+    if 'ninja: no work to do' not in out.decode('utf-8'):
+        print(err.decode('utf-8'))
+        return 1
 
     return 0
 
@@ -269,6 +293,11 @@ def Main():
                     for (_, to_kill) in active_goma_builds:
                         to_kill.terminate()
                     return 1
+
+    if options.check_clean:
+        for (build_config, args, goma) in configs:
+            if CheckCleanBuild(build_config, args, env=env) != 0:
+                return 1
 
     endtime = time.time()
     print("The build took %.3f seconds" % (endtime - starttime))

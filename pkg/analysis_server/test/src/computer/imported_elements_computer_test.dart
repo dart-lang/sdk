@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,9 +19,9 @@ void main() {
 
 @reflectiveTest
 class ImportedElementsComputerTest extends AbstractContextTest {
-  String sourcePath;
+  late String sourcePath;
 
-  List<ImportedElements> importedElements;
+  late List<ImportedElements> importedElements;
 
   void assertElements(List<ImportedElements> expectedElementsList) {
     expect(importedElements, hasLength(expectedElementsList.length));
@@ -469,9 +470,10 @@ bool randomBool() {
   Future<void> _computeElements(String content, String selection) async {
     // TODO(brianwilkerson) Automatically extract the selection from the content.
     newFile(sourcePath, content: content);
-    var result = await session.getResolvedUnit(sourcePath);
+    var result =
+        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
     var computer = ImportedElementsComputer(
-        result.unit, content.indexOf(selection), selection.length);
+        result.unit!, content.indexOf(selection), selection.length);
     importedElements = computer.compute();
   }
 }

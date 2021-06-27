@@ -78,6 +78,8 @@ abstract class TypeParamOrArgInfo {
   /// Return the number of type arguments
   int get typeArgumentCount;
 
+  bool get recovered => false;
+
   /// Return the simple type associated with this simple type argument
   /// or throw an exception if this is not a simple type argument.
   TypeInfo get typeInfo {
@@ -293,11 +295,11 @@ TypeInfo computeType(final Token token, bool required,
       // identifier `?` Function `(`
       return new ComplexTypeInfo(token, noTypeParamOrArg)
           .computeIdentifierQuestionGFT(required);
-    } else if (required || looksLikeName(next)) {
+    } else if (required || looksLikeNameSimpleType(next)) {
       // identifier `?`
       return simpleNullableType;
     }
-  } else if (required || looksLikeName(next)) {
+  } else if (required || looksLikeNameSimpleType(next)) {
     // identifier identifier
     return simpleType;
   }
@@ -346,5 +348,53 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token,
 /// possible other constructs will pass (e.g., 'a < C, D > 3').
 TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
   TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
-  return optional('(', typeArg.skip(token).next!) ? typeArg : noTypeParamOrArg;
+  return mayFollowTypeArgs(typeArg.skip(token).next!) && !typeArg.recovered
+      ? typeArg
+      : noTypeParamOrArg;
+}
+
+/// Indicates whether the given [token] is allowed to follow a list of type
+/// arguments used as a selector after an expression.
+///
+/// This is used for disambiguating constructs like `f(a<b,c>(d))` and
+/// `f(a<b,c>-d)`.  In the case of `f(a<b,c>(d))`, `true` will be returned,
+/// indicating that the `<` and `>` should be interpreted as delimiting type
+/// arguments (so one argument is being passed to `f` -- a call to the generic
+/// function `a`).  In the case of `f(a<b,c>-d)`, `false` will be returned,
+/// indicating that the `<` and `>` should be interpreted as operators (so two
+/// arguments are being passed to `f`: `a < b` and `c > -d`).
+bool mayFollowTypeArgs(Token token) {
+  const Set<String> tokensThatMayFollowTypeArg = {
+    '(',
+    ')',
+    ']',
+    '}',
+    ':',
+    ';',
+    ',',
+    '.',
+    '?',
+    '==',
+    '!=',
+    '..',
+    '?.',
+    '??',
+    '?..',
+    '&',
+    '|',
+    '^',
+    '+',
+    '*',
+    '%',
+    '/',
+    '~/'
+  };
+  if (token.type == TokenType.EOF) {
+    // The spec doesn't have anything to say about this case, since an
+    // expression can't occur at the end of a file, but for testing it's to our
+    // advantage to allow EOF after type arguments, so that an isolated `f<x>`
+    // can be parsed as an expression.
+    return true;
+  }
+  return tokensThatMayFollowTypeArg.contains(token.lexeme);
 }

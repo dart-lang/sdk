@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 library fasta.tool.entry_points;
 
 import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File;
 
-import "package:kernel/ast.dart" hide MapEntry;
+import "package:kernel/ast.dart";
 
 import "package:front_end/src/fasta/type_inference/type_schema.dart"
     show UnknownType;
@@ -242,11 +244,6 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
-  void visitBottomType(BottomType node, StringBuffer sb) {
-    sb.write("⊥");
-  }
-
-  @override
   void visitNeverType(NeverType node, StringBuffer sb) {
     sb.write("Never");
     writeNullability(node.nullability, sb);
@@ -345,6 +342,11 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void visitTypedefType(TypedefType node, StringBuffer sb) {
+    throw "not implemented";
+  }
+
+  @override
+  void visitExtensionType(ExtensionType node, StringBuffer sb) {
     throw "not implemented";
   }
 

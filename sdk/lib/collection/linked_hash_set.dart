@@ -15,8 +15,6 @@ part of dart.collection;
 /// symmetric, transitive, and consistent over time), and that `hashCode`
 /// must be the same for objects that are considered equal by `==`.
 ///
-/// The set allows `null` as an element.
-///
 /// Iteration of elements is done in element insertion order.
 /// An element that was added after another will occur later in the iteration.
 /// Adding an element that is already in the set
@@ -54,10 +52,10 @@ abstract class LinkedHashSet<E> implements Set<E> {
   ///
   /// If [isValidKey] is omitted, it defaults to testing if the object is an
   /// [E] instance. That means that:
-  ///
-  ///     new LinkedHashSet<int>(equals: (int e1, int e2) => (e1 - e2) % 5 == 0,
-  ///                            hashCode: (int e) => e % 5)
-  ///
+  /// ```dart
+  /// LinkedHashSet<int>(equals: (int e1, int e2) => (e1 - e2) % 5 == 0,
+  ///                    hashCode: (int e) => e % 5)
+  /// ```
   /// does not need an `isValidKey` argument, because it defaults to only
   /// accepting `int` values which are accepted by both `equals` and `hashCode`.
   ///
@@ -78,9 +76,10 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// Creates an insertion-ordered identity-based set.
   ///
   /// Effectively a shorthand for:
-  ///
-  ///     new LinkedHashSet<E>(equals: identical,
-  ///                          hashCode: identityHashCode)
+  /// ```dart
+  /// LinkedHashSet<E>(equals: identical,
+  ///                      hashCode: identityHashCode)
+  /// ```
   external factory LinkedHashSet.identity();
 
   /// Create a linked hash set containing all [elements].
@@ -91,10 +90,11 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// All the [elements] should be instances of [E].
   /// The `elements` iterable itself may have any element type,
   /// so this constructor can be used to down-cast a `Set`, for example as:
-  ///
-  ///     Set<SuperType> superSet = ...;
-  ///     Iterable<SuperType> tmp = superSet.where((e) => e is SubType);
-  ///     Set<SubType> subSet = new LinkedHashSet<SubType>.from(tmp);
+  /// ```dart
+  /// Set<SuperType> superSet = ...;
+  /// Iterable<SuperType> tmp = superSet.where((e) => e is SubType);
+  /// Set<SubType> subSet = LinkedHashSet<SubType>.from(tmp);
+  /// ```
   factory LinkedHashSet.from(Iterable<dynamic> elements) {
     LinkedHashSet<E> result = LinkedHashSet<E>();
     for (final element in elements) {

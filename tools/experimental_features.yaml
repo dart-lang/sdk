@@ -50,6 +50,12 @@
 #    eventual removal from this file. If this field is omitted, then 'expired'
 #    is considered to be false.
 #
+# 4. validation: (optional string)
+#    If provided this should be a program that prints "feature enabled" on
+#    stdout if the feature is enabled, and throws or fails to compile otherwise.
+#    The intended use for this is to be able to run generic tests for each
+#    experiment.
+#
 # Using the above fields, experiments pass through several states:
 #
 # Disabled:
@@ -97,33 +103,58 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.12.0'
+current-version: '2.14.0'
 
 features:
-  triple-shift:
-    help: "Triple-shift operator"
-
   variance:
     help: "Sound variance"
 
-  nonfunction-type-aliases:
-    help: "Type aliases define a <type>, not just a <functionType>"
-
   alternative-invalidation-strategy:
-    help: "Alternative invalidation strategy for incremental compilation"
+    help: "Alternative invalidation strategy for incremental compilation."
     category: "CFE"
 
   value-class:
     help: "Value class"
+
+  extension-types:
+    help: "Extension Types"
+
+  const-functions:
+    help: "Allow more of the Dart language to be executed in const expressions."
+
+  constructor-tearoffs:
+    help: "Allow constructor tear-offs and explicit generic instantiations."
+
+# Experiment flag only used for testing.
+  test-experiment:
+    help: >-
+      Has no effect. Can be used for testing the --enable-experiment
+      command line functionality.
+
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
 
+  nonfunction-type-aliases:
+    help: "Type aliases define a <type>, not just a <functionType>"
+    enabledIn: '2.13.0'
+    validation: |
+      typedef S = String;
+      void main() {
+        S s = 'feature enabled';
+        print(s);
+      }
+
   non-nullable:
     help: "Non Nullable by default"
     experimentalReleaseVersion: '2.10.0'
     enabledIn: '2.12.0'
+    validation: |
+      void main() {
+        int? a = null;
+        print('feature enabled');
+      }
 
   extension-methods:
     help: "Extension Methods"
@@ -139,6 +170,12 @@ features:
     enabledIn: '2.0.0'
     expired: true
 
+  generic-metadata:
+    help: >-
+      Allow annotations to accept type arguments;
+      also allow generic function types as type arguments.
+    enabledIn: '2.14.0'
+
   set-literals:
     help: "Set Literals"
     enabledIn: '2.0.0'
@@ -148,3 +185,14 @@ features:
     help: "Spread Collections"
     enabledIn: '2.0.0'
     expired: true
+
+  triple-shift:
+    help: "Triple-shift operator"
+    enabledIn: '2.14.0'
+    validation: |
+      class A {
+        operator>>>(int k) => 42;
+      }
+      void main() {
+        if ((A() >>> 1) == 42) print('feature enabled');
+      }

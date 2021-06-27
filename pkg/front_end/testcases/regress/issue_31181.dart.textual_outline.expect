@@ -1,3 +1,4 @@
+// @dart = 2.9
 typedef Foo<T> = T Function<T>(T a);
 Foo x;
 main() {}

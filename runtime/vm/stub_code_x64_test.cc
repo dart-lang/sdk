@@ -28,9 +28,10 @@ static Function* CreateFunction(const char* name) {
       Class::New(lib, class_name, script, TokenPosition::kNoSource));
   const String& function_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, owner_class, TokenPosition::kNoSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, owner_class, TokenPosition::kNoSource));
   return &function;
 }
 
@@ -59,6 +60,7 @@ ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler assembler(&object_pool_builder);
   GenerateCallToCallRuntimeStub(&assembler, length);
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       *CreateFunction("Test_CallRuntimeStubCode"), nullptr, &assembler,
       Code::PoolAttachment::kAttachPool));
@@ -101,13 +103,14 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   compiler::Assembler assembler(&object_pool_builder);
   GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
                                     rhs_index_value, length_value);
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler,
       Code::PoolAttachment::kAttachPool));
   const Function& function = RegisterFakeFunction(kName, code);
   Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
-  EXPECT_EQ(Bool::True().raw(), result.raw());
+  EXPECT_EQ(Bool::True().ptr(), result.ptr());
 }
 
 }  // namespace dart

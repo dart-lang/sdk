@@ -235,7 +235,6 @@ class IsolateGroupReloadContext {
 
   int64_t start_time_micros_ = -1;
   int64_t reload_timestamp_ = -1;
-  Isolate* first_isolate_ = nullptr;
   bool reload_skipped_ = false;
   bool reload_finalized_ = false;
   JSONStream* js_;
@@ -257,7 +256,7 @@ class IsolateGroupReloadContext {
 
     static Key KeyOf(Pair kv) { return kv->cid(); }
     static Value ValueOf(Pair kv) { return kv; }
-    static intptr_t Hashcode(Key key) { return key; }
+    static uword Hash(Key key) { return Utils::WordHash(key); }
     static bool IsKeyEqual(Pair kv, Key key) { return kv->cid() == key; }
   };
 
@@ -295,19 +294,19 @@ class IsolateGroupReloadContext {
   friend class ObjectLocator;
   friend class MarkFunctionsForRecompilation;  // IsDirty.
   friend class ReasonForCancelling;
-  friend class IsolateReloadContext;
+  friend class ProgramReloadContext;
   friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
-  friend class ObjectLayout;  // GetClassSizeForHeapWalkAt
+  friend class UntaggedObject;  // GetClassSizeForHeapWalkAt
 
   static Dart_FileModifiedCallback file_modified_callback_;
 };
 
-class IsolateReloadContext {
+class ProgramReloadContext {
  public:
-  IsolateReloadContext(
+  ProgramReloadContext(
       std::shared_ptr<IsolateGroupReloadContext> group_reload_context,
-      Isolate* isolate);
-  ~IsolateReloadContext();
+      IsolateGroup* isolate_group);
+  ~ProgramReloadContext();
 
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
@@ -334,7 +333,7 @@ class IsolateReloadContext {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  Isolate* isolate() { return isolate_; }
+  IsolateGroup* isolate_group() { return isolate_group_; }
   ObjectStore* object_store();
 
   void EnsuredUnoptimizedCodeForStack();
@@ -382,7 +381,7 @@ class IsolateReloadContext {
   // The zone used for all reload related allocations.
   Zone* zone_;
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   intptr_t saved_num_cids_ = -1;
   intptr_t saved_num_tlc_cids_ = -1;
   std::atomic<ClassPtr*> saved_class_table_;
@@ -420,6 +419,7 @@ class IsolateReloadContext {
   ObjectPtr* to() { return reinterpret_cast<ObjectPtr*>(&saved_libraries_); }
 
   friend class Isolate;
+  friend class IsolateGroup;
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
   friend class Library;
   friend class ObjectLocator;
@@ -457,6 +457,48 @@ class CallSiteResetter : public ValueObject {
   Array& edge_counters_;
   PcDescriptors& descriptors_;
   ICData& ic_data_;
+};
+
+class ReloadHandler {
+ public:
+  ReloadHandler() {}
+  ~ReloadHandler() {}
+
+  void RegisterIsolate();
+  void UnregisterIsolate();
+  void CheckForReload();
+
+ private:
+  friend class ReloadOperationScope;
+
+  void PauseIsolatesForReloadLocked();
+  void ResumeIsolatesLocked();
+  void ParticipateIfReloadRequested(SafepointMonitorLocker* ml,
+                                    bool is_registered,
+                                    bool allow_later_retry);
+
+  intptr_t registered_isolate_count_ = 0;
+
+  Monitor monitor_;
+  Thread* reloading_thread_ = nullptr;
+
+  Monitor checkin_monitor_;
+  intptr_t isolates_checked_in_ = 0;
+};
+
+class ReloadOperationScope : public ThreadStackResource {
+ public:
+  explicit ReloadOperationScope(Thread* thread)
+      : ThreadStackResource(thread), isolate_group_(thread->isolate_group()) {
+    isolate_group_->reload_handler()->PauseIsolatesForReloadLocked();
+  }
+
+  ~ReloadOperationScope() {
+    isolate_group_->reload_handler()->ResumeIsolatesLocked();
+  }
+
+ private:
+  IsolateGroup* isolate_group_;
 };
 
 }  // namespace dart

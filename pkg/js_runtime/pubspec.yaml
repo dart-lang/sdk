@@ -1,0 +1,12 @@
+name: js_runtime
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+
+dev_dependencies:
+  expect:
+    path: ../expect
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared

@@ -12,6 +12,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveQuestionMarkTest);
+    defineReflectiveTests(UnnecessaryNullableForFinalVariableDeclarationsTest);
   });
 }
 
@@ -91,6 +92,75 @@ class B with A? {}
     await assertHasFix('''
 mixin A {}
 class B with A {}
+''');
+  }
+}
+
+@reflectiveTest
+class UnnecessaryNullableForFinalVariableDeclarationsTest
+    extends FixProcessorLintTest with WithNullSafetyMixin {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
+
+  @override
+  String get lintCode => 'unnecessary_nullable_for_final_variable_declarations';
+
+  Future<void> test_const_field_static() async {
+    await resolveTestCode('''
+class C {
+  static const int? zero = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  static const int zero = 0;
+}
+''');
+  }
+
+  Future<void> test_const_topLevelVariable() async {
+    await resolveTestCode('''
+const int? zero = 0;
+''');
+    await assertHasFix('''
+const int zero = 0;
+''');
+  }
+
+  Future<void> test_final_field_static() async {
+    await resolveTestCode('''
+class C {
+  static final int? zero = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  static final int zero = 0;
+}
+''');
+  }
+
+  Future<void> test_final_localVariable() async {
+    await resolveTestCode('''
+void f() {
+  final int? zero = 0;
+  zero;
+}
+''');
+    await assertHasFix('''
+void f() {
+  final int zero = 0;
+  zero;
+}
+''');
+  }
+
+  Future<void> test_final_topLevelVariable() async {
+    await resolveTestCode('''
+final int? zero = 0;
+''');
+    await assertHasFix('''
+final int zero = 0;
 ''');
   }
 }

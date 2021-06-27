@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Tests that an exception on a non-socket _NativeSocket, e.g. a pipe to
 /// another process, is properly thrown as a SocketException. This test confirms
 /// the absence of a regression during the dart:io null safety migration where
 /// the late localAddress field wasn't initialized in an error path, raising a
-/// LateInitializationError instead.
+/// late initialization error instead.
 ///
 /// https://github.com/flutter/flutter/issues/57125
 

@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/pub/pub_api.dart';
+import 'package:http/http.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'completion.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -43,7 +46,7 @@ linter:
         'always_declare_return_types',
         'annotate_overrides',
       ],
-      verifyEditsFor: 'annotate_overrides',
+      applyEditsFor: 'annotate_overrides',
       expectedContent: expected,
     );
   }
@@ -63,7 +66,7 @@ linter:
       analysisOptionsUri,
       content,
       expectCompletions: ['annotate_overrides'],
-      verifyEditsFor: 'annotate_overrides',
+      applyEditsFor: 'annotate_overrides',
       expectedContent: expected,
     );
   }
@@ -78,7 +81,7 @@ linter: ''';
       analysisOptionsUri,
       content,
       expectCompletions: ['linter: '],
-      verifyEditsFor: 'linter: ',
+      applyEditsFor: 'linter: ',
       expectedContent: expected,
     );
   }
@@ -93,48 +96,16 @@ linter: ''';
       analysisOptionsUri,
       content,
       expectCompletions: ['linter: '],
-      verifyEditsFor: 'linter: ',
+      applyEditsFor: 'linter: ',
       expectedContent: expected,
     );
-  }
-}
-
-mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
-  Future<void> verifyCompletions(
-    Uri fileUri,
-    String content, {
-    List<String> expectCompletions,
-    String verifyEditsFor,
-    String expectedContent,
-  }) async {
-    await initialize();
-    await openFile(fileUri, withoutMarkers(content));
-    final res = await getCompletion(fileUri, positionFromMarker(content));
-
-    for (final expectedCompletion in expectCompletions) {
-      expect(
-        res.any((c) => c.label == expectedCompletion),
-        isTrue,
-        reason:
-            '"$expectedCompletion" was not in ${res.map((c) => '"${c.label}"')}',
-      );
-    }
-
-    // Check the edits apply correctly.
-    if (verifyEditsFor != null) {
-      final item = res.singleWhere((c) => c.label == verifyEditsFor);
-      expect(item.insertTextFormat, isNull);
-      expect(item.insertText, isNull);
-      final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
-      expect(updated, equals(expectedContent));
-    }
   }
 }
 
 @reflectiveTest
 class FixDataCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
-  Uri fixDataUri;
+  late Uri fixDataUri;
 
   @override
   void setUp() {
@@ -158,7 +129,7 @@ transforms:
       fixDataUri,
       content,
       expectCompletions: ['kind: '],
-      verifyEditsFor: 'kind: ',
+      applyEditsFor: 'kind: ',
       expectedContent: expected,
     );
   }
@@ -179,7 +150,7 @@ transforms:
       fixDataUri,
       content,
       expectCompletions: ['kind: '],
-      verifyEditsFor: 'kind: ',
+      applyEditsFor: 'kind: ',
       expectedContent: expected,
     );
   }
@@ -196,7 +167,7 @@ transforms:''';
       fixDataUri,
       content,
       expectCompletions: ['transforms:'],
-      verifyEditsFor: 'transforms:',
+      applyEditsFor: 'transforms:',
       expectedContent: expected,
     );
   }
@@ -211,7 +182,7 @@ transforms:''';
       fixDataUri,
       content,
       expectCompletions: ['transforms:'],
-      verifyEditsFor: 'transforms:',
+      applyEditsFor: 'transforms:',
       expectedContent: expected,
     );
   }
@@ -220,6 +191,67 @@ transforms:''';
 @reflectiveTest
 class PubspecCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
+  /// Sample package name list JSON in the same format as the API:
+  /// https://pub.dev/api/package-name-completion-data
+  static const samplePackageList = '''
+  { "packages": ["one", "two", "three"] }
+  ''';
+
+  /// Sample package details JSON in the same format as the API:
+  /// https://pub.dev/api/packages/devtools
+  static const samplePackageDetails = '''
+  {
+    "name":"package",
+    "latest":{
+      "version":"1.2.3",
+      "pubspec":{
+        "description":"Description of package"
+      }
+    }
+  }
+  ''';
+
+  @override
+  void setUp() {
+    super.setUp();
+    // Cause retries to run immediately.
+    PubApi.failedRetryInitialDelaySeconds = 0;
+  }
+
+  Future<void> test_insertReplaceRanges() async {
+    final content = '''
+name: foo
+version: 1.0.0
+
+environment:
+  s^dk
+''';
+    final expectedReplaced = '''
+name: foo
+version: 1.0.0
+
+environment:
+  sdk: 
+''';
+    final expectedInserted = '''
+name: foo
+version: 1.0.0
+
+environment:
+  sdk: dk
+''';
+
+    await verifyCompletions(
+      pubspecFileUri,
+      content,
+      expectCompletions: ['sdk: '],
+      applyEditsFor: 'sdk: ',
+      verifyInsertReplaceRanges: true,
+      expectedContent: expectedReplaced,
+      expectedContentIfInserting: expectedInserted,
+    );
+  }
+
   Future<void> test_nested() async {
     final content = '''
 name: foo
@@ -239,7 +271,7 @@ environment:
       pubspecFileUri,
       content,
       expectCompletions: ['flutter: ', 'sdk: '],
-      verifyEditsFor: 'sdk: ',
+      applyEditsFor: 'sdk: ',
       expectedContent: expected,
     );
   }
@@ -263,8 +295,126 @@ environment:
       pubspecFileUri,
       content,
       expectCompletions: ['flutter: ', 'sdk: '],
-      verifyEditsFor: 'sdk: ',
+      applyEditsFor: 'sdk: ',
       expectedContent: expected,
+    );
+  }
+
+  Future<void> test_package_description() async {
+    httpClient.sendHandler = (BaseRequest request) async {
+      if (request.url.path.startsWith(PubApi.packageNameListPath)) {
+        return Response(samplePackageList, 200);
+      } else if (request.url.path.startsWith(PubApi.packageInfoPath)) {
+        return Response(samplePackageDetails, 200);
+      } else {
+        throw UnimplementedError();
+      }
+    };
+
+    final content = '''
+name: foo
+version: 1.0.0
+
+dependencies:
+  ^''';
+
+    await initialize();
+    await openFile(pubspecFileUri, withoutMarkers(content));
+    await pumpEventQueue();
+
+    // Descriptions are included in the documentation field that is only added
+    // when completions are resolved.
+    final completion = await getResolvedCompletion(
+      pubspecFileUri,
+      positionFromMarker(content),
+      'one: ',
+    );
+    expect(
+      completion.documentation!.valueEquals('Description of package'),
+      isTrue,
+    );
+  }
+
+  Future<void> test_package_names() async {
+    httpClient.sendHandler = (BaseRequest request) async {
+      if (request.url.toString().endsWith(PubApi.packageNameListPath)) {
+        return Response(samplePackageList, 200);
+      } else {
+        throw UnimplementedError();
+      }
+    };
+
+    final content = '''
+name: foo
+version: 1.0.0
+
+dependencies:
+  ^''';
+
+    final expected = '''
+name: foo
+version: 1.0.0
+
+dependencies:
+  one: ''';
+
+    await verifyCompletions(
+      pubspecFileUri,
+      content,
+      expectCompletions: ['one: ', 'two: ', 'three: '],
+      applyEditsFor: 'one: ',
+      expectedContent: expected,
+    );
+  }
+
+  Future<void> test_package_version() async {
+    httpClient.sendHandler = (BaseRequest request) async {
+      if (request.url.path.startsWith(PubApi.packageNameListPath)) {
+        return Response(samplePackageList, 200);
+      } else if (request.url.path.startsWith(PubApi.packageInfoPath)) {
+        return Response(samplePackageDetails, 200);
+      } else {
+        throw UnimplementedError();
+      }
+    };
+
+    final content = '''
+name: foo
+version: 1.0.0
+
+dependencies:
+  ^''';
+
+    final expected = '''
+name: foo
+version: 1.0.0
+
+dependencies:
+  one: ^1.2.3''';
+
+    await initialize();
+    await openFile(pubspecFileUri, withoutMarkers(content));
+
+    // Versions are currently only available if we've previously resolved on the
+    // package name, so first complete/resolve that.
+    final newContent = (await verifyCompletions(
+      pubspecFileUri,
+      content,
+      expectCompletions: ['one: '],
+      resolve: true,
+      applyEditsFor: 'one: ',
+      openCloseFile: false,
+    ))!;
+    await replaceFile(222, pubspecFileUri, newContent);
+
+    await verifyCompletions(
+      pubspecFileUri,
+      newContent.replaceFirst(
+          'one: ', 'one: ^'), // Insert caret at new location
+      expectCompletions: ['^1.2.3'],
+      applyEditsFor: '^1.2.3',
+      expectedContent: expected,
+      openCloseFile: false,
     );
   }
 
@@ -280,7 +430,7 @@ name: ''';
       pubspecFileUri,
       content,
       expectCompletions: ['name: ', 'description: '],
-      verifyEditsFor: 'name: ',
+      applyEditsFor: 'name: ',
       expectedContent: expected,
     );
   }
@@ -295,7 +445,7 @@ name: ''';
       pubspecFileUri,
       content,
       expectCompletions: ['name: ', 'description: '],
-      verifyEditsFor: 'name: ',
+      applyEditsFor: 'name: ',
       expectedContent: expected,
     );
   }

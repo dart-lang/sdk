@@ -1,0 +1,99 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/generic_metadata/generic_metadata.dart:21:2: Error: Expected 1 type arguments.
+// @A<int, num>() // error
+//  ^
+// pkg/front_end/testcases/generic_metadata/generic_metadata.dart:6:9: Context: Found this candidate, but the arguments don't match.
+//   const A();
+//         ^
+//
+// pkg/front_end/testcases/generic_metadata/generic_metadata.dart:22:2: Error: Expected 2 type arguments.
+// @B<int>() // error
+//  ^
+// pkg/front_end/testcases/generic_metadata/generic_metadata.dart:10:9: Context: Found this candidate, but the arguments don't match.
+//   const B();
+//         ^
+//
+// pkg/front_end/testcases/generic_metadata/generic_metadata.dart:23:2: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'C'.
+// Try changing type arguments so that they conform to the bounds.
+// @C<String>() // error
+//  ^
+// pkg/front_end/testcases/generic_metadata/generic_metadata.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
+// class C<T extends num> {
+//         ^
+//
+// pkg/front_end/testcases/generic_metadata/generic_metadata.dart:24:2: Error: Type argument 'num' doesn't conform to the bound 'S' of the type variable 'T' on 'D'.
+// Try changing type arguments so that they conform to the bounds.
+// @D<int, num>() // error
+//  ^
+// pkg/front_end/testcases/generic_metadata/generic_metadata.dart:17:24: Context: This is the type variable whose bound isn't conformed to.
+// class D<S extends num, T extends S> {
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+}
+class B<S extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::B<self::B::S%, self::B::T%>
+    : super core::Object::•()
+    ;
+}
+class C<T extends core::num> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+}
+class D<S extends core::num, T extends self::D::S = core::num> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::D<self::D::S, self::D::T>
+    : super core::Object::•()
+    ;
+}
+@invalid-expression "pkg/front_end/testcases/generic_metadata/generic_metadata.dart:21:2: Error: Expected 1 type arguments.
+@A<int, num>() // error
+ ^"
+@invalid-expression "pkg/front_end/testcases/generic_metadata/generic_metadata.dart:22:2: Error: Expected 2 type arguments.
+@B<int>() // error
+ ^"
+@#C1
+@#C2
+static method test() → dynamic {}
+@#C3
+@#C4
+@#C5
+@#C6
+@#C7
+@#C7
+@#C8
+@#C9
+@#C9
+@#C10
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::C<core::String> {}
+  #C2 = self::D<core::int, core::num> {}
+  #C3 = self::A<dynamic> {}
+  #C4 = self::A<core::int> {}
+  #C5 = self::B<dynamic, dynamic> {}
+  #C6 = self::B<core::int, core::String> {}
+  #C7 = self::C<core::num> {}
+  #C8 = self::C<core::int> {}
+  #C9 = self::D<core::num, core::num> {}
+  #C10 = self::D<core::num, core::int> {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///generic_metadata.dart:
+- C. (from org-dartlang-testcase:///generic_metadata.dart:14:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- D. (from org-dartlang-testcase:///generic_metadata.dart:18:9)
+- A. (from org-dartlang-testcase:///generic_metadata.dart:6:9)
+- B. (from org-dartlang-testcase:///generic_metadata.dart:10:9)

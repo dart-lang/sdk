@@ -9,10 +9,10 @@ import 'test_helper.dart';
 
 var tests = <VMTest>[
   (VM vm) async {
-    var result = await vm.invokeRpcNoUpgrade('getVersion', {});
+    final result = await vm.invokeRpcNoUpgrade('getVersion', {});
     expect(result['type'], equals('Version'));
     expect(result['major'], equals(3));
-    expect(result['minor'], equals(42));
+    expect(result['minor'], equals(48));
     expect(result['_privateMajor'], equals(0));
     expect(result['_privateMinor'], equals(0));
   },

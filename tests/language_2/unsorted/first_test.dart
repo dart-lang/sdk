@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // First dart test program.
 
+// @dart = 2.9
+
 class FirstTest {
   static testMain() {
     return 42;

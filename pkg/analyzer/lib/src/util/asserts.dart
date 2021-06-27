@@ -5,7 +5,7 @@
 /// Ensures that the given [value] is not null.
 /// Otherwise throws an [ArgumentError].
 /// An optional [description] is used in the error message.
-void notNull(Object value, [String description]) {
+void notNull(Object? value, [String? description]) {
   if (value == null) {
     if (description == null) {
       throw ArgumentError('Must not be null');

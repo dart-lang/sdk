@@ -12,6 +12,7 @@ import 'commands/fix_test.dart' as fix;
 import 'commands/flag_test.dart' as flag;
 import 'commands/format_test.dart' as format;
 import 'commands/help_test.dart' as help;
+import 'commands/language_server_test.dart' as language_server;
 import 'commands/migrate_test.dart' as migrate;
 import 'commands/pub_test.dart' as pub;
 import 'commands/run_test.dart' as run;
@@ -39,6 +40,7 @@ void main() {
     help.main();
     implicit_smoke.main();
     invalid_smoke.main();
+    language_server.main();
     migrate.main();
     no_such_file.main();
     pub.main();

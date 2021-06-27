@@ -22,6 +22,7 @@ import 'expectation_set.dart';
 import 'multitest.dart';
 import 'path.dart';
 import 'repository.dart';
+import 'runtime_configuration.dart' show QemuConfig;
 import 'summary_report.dart';
 import 'test_case.dart';
 import 'test_file.dart';
@@ -221,23 +222,13 @@ abstract class TestSuite {
   /// Create a directories for generated assets (tests, html files,
   /// pubspec checkouts ...).
   String createOutputDirectory(Path testPath) {
-    var checked = configuration.isChecked ? '-checked' : '';
-    var minified = configuration.isMinified ? '-minified' : '';
-    var sdk = configuration.useSdk ? '-sdk' : '';
-    var dirName = "${configuration.compiler.name}-${configuration.runtime.name}"
-        "$checked$minified$sdk";
-    return createGeneratedTestDirectoryHelper("tests", dirName, testPath);
+    return createGeneratedTestDirectoryHelper(
+        "tests", configuration.configuration.name, testPath);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
-    var checked = configuration.isChecked ? '-checked' : '';
-    var minified = configuration.isMinified ? '-minified' : '';
-    var csp = configuration.isCsp ? '-csp' : '';
-    var sdk = configuration.useSdk ? '-sdk' : '';
-    var dirName = "${configuration.compiler.name}"
-        "$checked$minified$csp$sdk";
     return createGeneratedTestDirectoryHelper(
-        "compilations", dirName, testPath);
+        "compilations", configuration.configuration.name, testPath);
   }
 
   String createPubspecCheckoutDirectory(Path directoryOfPubspecYaml) {
@@ -261,6 +252,8 @@ abstract class TestSuite {
 class VMTestSuite extends TestSuite {
   String targetRunnerPath;
   String hostRunnerPath;
+  List<String> initialHostArguments;
+  List<String> initialTargetArguments;
   final String dartDir;
 
   VMTestSuite(TestConfiguration configuration)
@@ -279,6 +272,18 @@ class VMTestSuite extends TestSuite {
     } else {
       hostRunnerPath = targetRunnerPath;
     }
+
+    initialHostArguments = <String>[];
+    initialTargetArguments = <String>[];
+    if (configuration.useQemu) {
+      final config = QemuConfig.all[configuration.architecture];
+      initialHostArguments.insert(0, hostRunnerPath);
+      initialHostArguments.insertAll(0, config.arguments);
+      initialTargetArguments.insert(0, targetRunnerPath);
+      initialTargetArguments.insertAll(0, config.arguments);
+      hostRunnerPath = config.executable;
+      targetRunnerPath = config.executable;
+    }
   }
 
   void findTestCases(TestCaseEvent onTest, Map testCache) {
@@ -287,7 +292,7 @@ class VMTestSuite extends TestSuite {
     var expectations = ExpectationSet.read(statusFiles, configuration);
 
     try {
-      for (var test in _listTests(hostRunnerPath)) {
+      for (var test in _listTests()) {
         _addTest(expectations, test, onTest);
       }
     } catch (error, s) {
@@ -319,12 +324,14 @@ class VMTestSuite extends TestSuite {
         hasRuntimeError: testExpectation == Expectation.runtimeError,
         hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
-    var filename = configuration.architecture == Architecture.x64
+    var filename = configuration.architecture == Architecture.x64 ||
+            configuration.architecture == Architecture.x64c
         ? '$buildDir/gen/kernel-service.dart.snapshot'
         : '$buildDir/gen/kernel_service.dill';
     var dfePath = Path(filename).absolute.toNativePath();
     var args = [
-      // '--dfe' has to be the first argument for run_vm_test to pick it up.
+      ...initialTargetArguments,
+      // '--dfe' must be the first VM argument for run_vm_test to pick it up.
       '--dfe=$dfePath',
       if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       if (configuration.experiments.isNotEmpty)
@@ -339,10 +346,11 @@ class VMTestSuite extends TestSuite {
     _addTestCase(testFile, fullName, [command], expectations, onTest);
   }
 
-  Iterable<VMUnitTest> _listTests(String runnerPath) {
-    var result = Process.runSync(runnerPath, ["--list"]);
+  Iterable<VMUnitTest> _listTests() {
+    var args = [...initialHostArguments, "--list"];
+    var result = Process.runSync(hostRunnerPath, args);
     if (result.exitCode != 0) {
-      throw "Failed to list tests: '$runnerPath --list'. "
+      throw "Failed to list tests: '$hostRunnerPath ${args.join(' ')}'. "
           "Process exited with ${result.exitCode}";
     }
 
@@ -989,7 +997,7 @@ class StandardTestSuite extends TestSuite {
     }
     args.addAll(additionalOptions(testFile.path));
     if (configuration.compiler == Compiler.dart2analyzer) {
-      args.add('--format=machine');
+      args.add('--format=json');
       args.add('--no-hints');
     }
 

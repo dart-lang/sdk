@@ -4,12 +4,11 @@
 // Dart test for legally self referencing function type alias.
 
 typedef void F(List<G> l);
-// [error line 6, column 1, length 26]
-// [analyzer] COMPILE_TIME_ERROR.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
 //           ^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
 // [cfe] The typedef 'F' has a reference to itself.
 typedef void G(List<F> l);
-// [error line 11, column 1, length 26]
+//           ^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
 
 main() {

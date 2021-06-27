@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
+import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -18,8 +19,6 @@ void computeLibraryCycle(Uint32List salt, FileState file) {
 
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
-  final int id = fileObjectId++;
-
   /// The libraries that belong to this cycle.
   final List<FileState> libraries = [];
 
@@ -35,7 +34,7 @@ class LibraryCycle {
   /// transitive signatures of the cycles that the [libraries] reference
   /// directly.  So, indirectly it is based on the transitive closure of all
   /// files that [libraries] reference (but we don't compute these files).
-  String transitiveSignature;
+  String? transitiveSignature;
 
   /// The map from a library in [libraries] to its transitive signature.
   ///
@@ -50,10 +49,6 @@ class LibraryCycle {
   LibraryCycle();
 
   LibraryCycle.external() : transitiveSignature = '<external>';
-
-  bool get isUnresolvedFile {
-    return libraries.length == 1 && libraries[0].isUnresolved;
-  }
 
   /// Invalidate this cycle and any cycles that directly or indirectly use it.
   ///
@@ -71,7 +66,7 @@ class LibraryCycle {
 
   @override
   String toString() {
-    return '[[id: $id] ' + libraries.join(', ') + ']';
+    return '[' + libraries.join(', ') + ']';
   }
 }
 
@@ -121,8 +116,10 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     // Append direct referenced cycles.
     for (var node in scc) {
       var file = node.file;
-      _appendDirectlyReferenced(cycle, signature, file.importedFiles);
-      _appendDirectlyReferenced(cycle, signature, file.exportedFiles);
+      _appendDirectlyReferenced(
+          cycle, signature, file.importedFiles.whereNotNull().toList());
+      _appendDirectlyReferenced(
+          cycle, signature, file.exportedFiles.whereNotNull().toList());
     }
 
     // Fill the cycle with libraries.
@@ -146,7 +143,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     for (var node in scc) {
       var librarySignatureBuilder = ApiSignature()
         ..addString(node.file.uriStr)
-        ..addString(cycle.transitiveSignature);
+        ..addString(cycle.transitiveSignature!);
       var librarySignature = librarySignatureBuilder.toHex();
 
       node.file.internal_setLibraryCycle(
@@ -174,7 +171,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
       if (cycle.directDependencies.add(referencedCycle)) {
         referencedCycle._directUsers.add(cycle);
-        signature.addString(referencedCycle.transitiveSignature);
+        signature.addString(referencedCycle.transitiveSignature!);
       }
     }
   }

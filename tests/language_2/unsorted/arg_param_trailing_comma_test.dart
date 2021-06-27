@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing params.
 
+// @dart = 2.9
+
 // Convenience values.
 var c = new C();
 var x = 42;

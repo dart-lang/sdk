@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=10
 
+// @dart = 2.9
+
 // Declares foo that returns 42.
 import "constraints_lib2.dart" deferred as lib;
 

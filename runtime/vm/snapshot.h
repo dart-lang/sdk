@@ -139,6 +139,14 @@ class Snapshot {
     return (kind == kFullJIT) || (kind == kFullAOT);
   }
 
+  static bool IncludesStringsInROData(Kind kind) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    return IncludesCode(kind);
+#else
+    return false;
+#endif
+  }
+
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
 
   const uint8_t* DataImage() const {
@@ -258,9 +266,10 @@ class SnapshotReader : public BaseReader {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
   Isolate* isolate() const { return thread_->isolate(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Heap* heap() const { return heap_; }
-  ObjectStore* object_store() const { return isolate()->object_store(); }
-  ClassTable* class_table() const { return isolate()->class_table(); }
+  ObjectStore* object_store() const { return isolate_group()->object_store(); }
+  ClassTable* class_table() const { return isolate_group()->class_table(); }
   PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
   Class* ClassHandle() { return &cls_; }
@@ -276,6 +285,7 @@ class SnapshotReader : public BaseReader {
   TypedData* TypedDataHandle() { return &typed_data_; }
   TypedDataView* TypedDataViewHandle() { return &typed_data_view_; }
   Function* FunctionHandle() { return &function_; }
+  Smi* SmiHandle() { return &smi_; }
   Snapshot::Kind kind() const { return kind_; }
 
   // Reads an object.
@@ -288,7 +298,7 @@ class SnapshotReader : public BaseReader {
   Object* GetBackRef(intptr_t id);
 
   // Read version number of snapshot and verify.
-  ApiErrorPtr VerifyVersionAndFeatures(Isolate* isolate);
+  ApiErrorPtr VerifyVersionAndFeatures(IsolateGroup* isolate_group);
 
   ObjectPtr NewInteger(int64_t value);
 
@@ -370,6 +380,7 @@ class SnapshotReader : public BaseReader {
   TypedData& typed_data_;          // Temporary typed data handle.
   TypedDataView& typed_data_view_;  // Temporary typed data view handle.
   Function& function_;             // Temporary function handle.
+  Smi& smi_;                       // Temporary Smi handle.
   UnhandledException& error_;      // Error handle.
   const Class& set_class_;         // The LinkedHashSet class.
   intptr_t max_vm_isolate_object_id_;
@@ -400,11 +411,12 @@ class SnapshotReader : public BaseReader {
   friend class PatchClass;
   friend class RegExp;
   friend class Script;
-  friend class SignatureData;
   friend class SubtypeTestCache;
   friend class TransferableTypedData;
   friend class Type;
+  friend class FunctionType;
   friend class TypedDataView;
+  friend class TypeParameters;
   friend class TypeArguments;
   friend class TypeParameter;
   friend class TypeRef;
@@ -590,13 +602,14 @@ class SnapshotWriter : public BaseWriter {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
   Isolate* isolate() const { return thread_->isolate(); }
-  Heap* heap() const { return isolate()->heap(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
+  Heap* heap() const { return isolate_group()->heap(); }
 
   // Serialize an object into the buffer.
   void WriteObject(ObjectPtr raw);
 
   static uint32_t GetObjectTags(ObjectPtr raw);
-  static uint32_t GetObjectTags(ObjectLayout* raw);
+  static uint32_t GetObjectTags(UntaggedObject* raw);
   static uword GetObjectTagsAndHash(ObjectPtr raw);
 
   Exceptions::ExceptionType exception_type() const { return exception_type_; }
@@ -622,7 +635,7 @@ class SnapshotWriter : public BaseWriter {
   bool CheckAndWritePredefinedObject(ObjectPtr raw);
   bool HandleVMIsolateObject(ObjectPtr raw);
 
-  void WriteClassId(ClassLayout* cls);
+  void WriteClassId(UntaggedClass* cls);
   void WriteObjectImpl(ObjectPtr raw, bool as_reference);
   void WriteMarkedObjectImpl(ObjectPtr raw,
                              intptr_t tags,
@@ -634,7 +647,7 @@ class SnapshotWriter : public BaseWriter {
                     intptr_t tags,
                     SmiPtr length,
                     TypeArgumentsPtr type_arguments,
-                    ObjectPtr data[],
+                    CompressedObjectPtr data[],
                     bool as_reference);
   ClassPtr GetFunctionOwner(FunctionPtr func);
   void CheckForNativeFields(ClassPtr cls);
@@ -659,36 +672,37 @@ class SnapshotWriter : public BaseWriter {
   const char* exception_msg_;  // Message associated with exception.
   bool can_send_any_object_;   // True if any Dart instance can be sent.
 
-  friend class ArrayLayout;
-  friend class ClassLayout;
-  friend class CodeLayout;
-  friend class ContextScopeLayout;
-  friend class DynamicLibraryLayout;
-  friend class ExceptionHandlersLayout;
-  friend class FieldLayout;
-  friend class FunctionLayout;
-  friend class GrowableObjectArrayLayout;
-  friend class ImmutableArrayLayout;
-  friend class InstructionsLayout;
-  friend class LibraryLayout;
-  friend class LinkedHashMapLayout;
-  friend class LocalVarDescriptorsLayout;
-  friend class MirrorReferenceLayout;
-  friend class ObjectPoolLayout;
-  friend class PointerLayout;
-  friend class ReceivePortLayout;
-  friend class RegExpLayout;
-  friend class ScriptLayout;
-  friend class StackTraceLayout;
-  friend class SubtypeTestCacheLayout;
-  friend class TransferableTypedDataLayout;
-  friend class TypeLayout;
-  friend class TypeArgumentsLayout;
-  friend class TypeParameterLayout;
-  friend class TypeRefLayout;
-  friend class TypedDataViewLayout;
-  friend class UserTagLayout;
-  friend class WeakSerializationReferenceLayout;
+  friend class UntaggedArray;
+  friend class UntaggedClass;
+  friend class UntaggedCode;
+  friend class UntaggedContextScope;
+  friend class UntaggedDynamicLibrary;
+  friend class UntaggedExceptionHandlers;
+  friend class UntaggedField;
+  friend class UntaggedFunction;
+  friend class UntaggedFunctionType;
+  friend class UntaggedGrowableObjectArray;
+  friend class UntaggedImmutableArray;
+  friend class UntaggedInstructions;
+  friend class UntaggedLibrary;
+  friend class UntaggedLinkedHashMap;
+  friend class UntaggedLocalVarDescriptors;
+  friend class UntaggedMirrorReference;
+  friend class UntaggedObjectPool;
+  friend class UntaggedPointer;
+  friend class UntaggedReceivePort;
+  friend class UntaggedRegExp;
+  friend class UntaggedScript;
+  friend class UntaggedStackTrace;
+  friend class UntaggedSubtypeTestCache;
+  friend class UntaggedTransferableTypedData;
+  friend class UntaggedType;
+  friend class UntaggedTypeArguments;
+  friend class UntaggedTypeParameter;
+  friend class UntaggedTypeRef;
+  friend class UntaggedTypedDataView;
+  friend class UntaggedUserTag;
+  friend class UntaggedWeakSerializationReference;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
@@ -737,7 +751,10 @@ class SnapshotWriterVisitor : public ObjectPointerVisitor {
         writer_(writer),
         as_references_(as_references) {}
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last);
 
  private:
   SnapshotWriter* writer_;

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -1407,7 +1406,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_typeParameter() {
-    void check({DartType bound, DartType T2}) {
+    void check({DartType? bound, required DartType T2}) {
       var T1 = typeParameterTypeNone(
         typeParameter('T', bound: bound),
       );
@@ -1435,8 +1434,8 @@ actual: $resultStr
 
     // Check that the result is a lower bound.
     if (checkSubtype) {
-      expect(typeSystem.isSubtypeOf2(result, T1), true);
-      expect(typeSystem.isSubtypeOf2(result, T2), true);
+      expect(typeSystem.isSubtypeOf(result, T1), true);
+      expect(typeSystem.isSubtypeOf(result, T2), true);
     }
 
     // Check for symmetry.
@@ -2094,14 +2093,14 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var bElementStar = class_(name: 'B', superType: aStar);
     var bElementNone = class_(name: 'B', superType: aNone);
 
-    InterfaceTypeImpl _bTypeStarElement(NullabilitySuffix nullability) {
+    InterfaceType _bTypeStarElement(NullabilitySuffix nullability) {
       return interfaceType(
         bElementStar,
         nullabilitySuffix: nullability,
       );
     }
 
-    InterfaceTypeImpl _bTypeNoneElement(NullabilitySuffix nullability) {
+    InterfaceType _bTypeNoneElement(NullabilitySuffix nullability) {
       return interfaceType(
         bElementNone,
         nullabilitySuffix: nullability,
@@ -2310,14 +2309,14 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var cElementNone = class_(name: 'C', superType: aNone);
     var cElementStar = class_(name: 'C', superType: aStar);
 
-    InterfaceTypeImpl bTypeElementNone(NullabilitySuffix nullability) {
+    InterfaceType bTypeElementNone(NullabilitySuffix nullability) {
       return interfaceType(
         bElementNone,
         nullabilitySuffix: nullability,
       );
     }
 
-    InterfaceTypeImpl bTypeElementStar(NullabilitySuffix nullability) {
+    InterfaceType bTypeElementStar(NullabilitySuffix nullability) {
       return interfaceType(
         bElementStar,
         nullabilitySuffix: nullability,
@@ -2332,14 +2331,14 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var bStarStar = bTypeElementStar(NullabilitySuffix.star);
     var bStarNone = bTypeElementStar(NullabilitySuffix.none);
 
-    InterfaceTypeImpl cTypeElementNone(NullabilitySuffix nullability) {
+    InterfaceType cTypeElementNone(NullabilitySuffix nullability) {
       return interfaceType(
         cElementNone,
         nullabilitySuffix: nullability,
       );
     }
 
-    InterfaceTypeImpl cTypeElementStar(NullabilitySuffix nullability) {
+    InterfaceType cTypeElementStar(NullabilitySuffix nullability) {
       return interfaceType(
         cElementStar,
         nullabilitySuffix: nullability,
@@ -3092,6 +3091,63 @@ class UpperBoundTest extends _BoundsTestBase {
     );
   }
 
+  void test_typeParameter_greatestClosure_functionBounded() {
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+    T.bound = functionTypeNone(
+      returnType: voidNone,
+      parameters: [
+        requiredParameter(type: T_none),
+      ],
+    );
+
+    _checkLeastUpperBound(
+      T_none,
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: nullNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: neverNone),
+        ],
+      ),
+    );
+  }
+
+  void test_typeParameter_greatestClosure_functionPromoted() {
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+    var T_none_promoted = typeParameterTypeNone(
+      T,
+      promotedBound: functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: T_none),
+        ],
+      ),
+    );
+
+    _checkLeastUpperBound(
+      T_none_promoted,
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: nullNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: neverNone),
+        ],
+      ),
+    );
+  }
+
   void test_typeParameter_interface_bounded() {
     var A = class_(name: 'A');
     var A_none = interfaceTypeNone(A);
@@ -3203,8 +3259,8 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameters_multi_basic() {
     // class A<out T, inout U, in V>
     var T = typeParameter('T', variance: Variance.covariant);
-    var U = typeParameter('T', variance: Variance.invariant);
-    var V = typeParameter('T', variance: Variance.contravariant);
+    var U = typeParameter('U', variance: Variance.invariant);
+    var V = typeParameter('V', variance: Variance.contravariant);
     var A = class_(name: 'A', typeParameters: [T, U, V]);
 
     // A<num, num, num>
@@ -3213,7 +3269,7 @@ class UpperBoundTest extends _BoundsTestBase {
       A,
       typeArguments: [numNone, numNone, numNone],
     );
-    var A_num_int_num = interfaceTypeNone(
+    var A_int_num_int = interfaceTypeNone(
       A,
       typeArguments: [intNone, numNone, intNone],
     );
@@ -3224,7 +3280,7 @@ class UpperBoundTest extends _BoundsTestBase {
       typeArguments: [numNone, numNone, intNone],
     );
 
-    _checkLeastUpperBound(A_num_num_num, A_num_int_num, A_num_num_int);
+    _checkLeastUpperBound(A_num_num_num, A_int_num_int, A_num_num_int);
   }
 
   void test_typeParameters_multi_objectInterface() {
@@ -3366,31 +3422,29 @@ class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
   }
 
   void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() async {
-      var expectedStr = _typeString(expected);
+    var expectedStr = _typeString(expected);
 
-      var result = typeSystem.getLeastUpperBound(T1, T2);
-      var resultStr = _typeString(result);
-      expect(result, expected, reason: '''
+    var result = typeSystem.getLeastUpperBound(T1, T2);
+    var resultStr = _typeString(result);
+    expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
 ''');
 
-      // Check that the result is an upper bound.
-      expect(typeSystem.isSubtypeOf2(T1, result), true);
-      expect(typeSystem.isSubtypeOf2(T2, result), true);
+    // Check that the result is an upper bound.
+    expect(typeSystem.isSubtypeOf(T1, result), true);
+    expect(typeSystem.isSubtypeOf(T2, result), true);
 
-      // Check for symmetry.
-      result = typeSystem.getLeastUpperBound(T2, T1);
-      resultStr = _typeString(result);
-      expect(result, expected, reason: '''
+    // Check for symmetry.
+    result = typeSystem.getLeastUpperBound(T2, T1);
+    resultStr = _typeString(result);
+    expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
 ''');
-    });
   }
 
-  String _typeParametersStr(TypeImpl type) {
+  String _typeParametersStr(DartType type) {
     var typeStr = '';
 
     var typeParameterCollector = _TypeParameterCollector();
@@ -3401,8 +3455,7 @@ actual: $resultStr
     return typeStr;
   }
 
-  String _typeString(TypeImpl type) {
-    if (type == null) return null;
+  String _typeString(DartType type) {
     return type.getDisplayString(withNullability: true) +
         _typeParametersStr(type);
   }

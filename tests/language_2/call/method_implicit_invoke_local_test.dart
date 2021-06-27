@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class C1 {
@@ -32,7 +34,8 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
   // [cfe] Too few positional arguments: 1 required, 0 given.
   c2(3, 4);
-  //^^^^^^
+  //    ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //^^^^^^
   // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 }

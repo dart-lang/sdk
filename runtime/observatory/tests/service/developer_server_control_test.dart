@@ -11,6 +11,7 @@ import 'test_helper.dart';
 int? majorVersion;
 int? minorVersion;
 Uri? serverUri;
+Uri? wsServerUri;
 
 Future<Null> testeeBefore() async {
   print('testee before');
@@ -20,8 +21,8 @@ Future<Null> testeeBefore() async {
   ServiceProtocolInfo info = await Service.getInfo();
   majorVersion = info.majorVersion;
   minorVersion = info.minorVersion;
-  serverUri = info.serverUri;
   Expect.isNull(info.serverUri);
+  Expect.isNull(info.serverWebSocketUri);
   {
     // Now, start the web server and store the URI which is expected to be
     // non NULL in the top level variable.
@@ -30,7 +31,11 @@ Future<Null> testeeBefore() async {
     Expect.equals(info.majorVersion, majorVersion);
     Expect.equals(info.minorVersion, minorVersion);
     Expect.isNotNull(info.serverUri);
+    Expect.isNotNull(info.serverWebSocketUri);
     serverUri = info.serverUri;
+    wsServerUri = info.serverWebSocketUri;
+    Expect.equals(wsServerUri!.scheme, 'ws');
+    Expect.isTrue(wsServerUri!.path.endsWith('ws'));
   }
   {
     // Now try starting the web server again, this should just return the
@@ -39,6 +44,7 @@ Future<Null> testeeBefore() async {
     Expect.equals(info.majorVersion, majorVersion);
     Expect.equals(info.minorVersion, minorVersion);
     Expect.equals(info.serverUri, serverUri);
+    Expect.equals(info.serverWebSocketUri, wsServerUri);
   }
   {
     // Try turning off the web server, this should turn off the server and
@@ -47,6 +53,7 @@ Future<Null> testeeBefore() async {
     Expect.equals(info.majorVersion, majorVersion);
     Expect.equals(info.minorVersion, minorVersion);
     Expect.isNull(info.serverUri);
+    Expect.isNull(info.serverWebSocketUri);
   }
   {
     // Try turning off the web server again, this should be a nop
@@ -55,16 +62,17 @@ Future<Null> testeeBefore() async {
     Expect.equals(info.majorVersion, majorVersion);
     Expect.equals(info.minorVersion, minorVersion);
     Expect.isNull(info.serverUri);
+    Expect.isNull(info.serverWebSocketUri);
   }
   {
     // Start the web server again for the test below.
     ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
     majorVersion = info.majorVersion;
     minorVersion = info.minorVersion;
-    serverUri = info.serverUri;
     Expect.equals(info.majorVersion, majorVersion);
     Expect.equals(info.minorVersion, minorVersion);
-    Expect.equals(info.serverUri, serverUri);
+    Expect.isNotNull(info.serverUri);
+    Expect.isNotNull(info.serverWebSocketUri);
   }
 }
 

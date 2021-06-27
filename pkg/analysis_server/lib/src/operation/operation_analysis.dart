@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_folding.dart';
-import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
@@ -13,15 +12,11 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 Future<void> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
   var searchEngine = server.searchEngine;
-  if (searchEngine == null) {
-    return;
-  }
   for (var file in files) {
     var unit = server.getCachedResolvedUnit(file)?.unit;
     var unitElement = unit?.declaredElement;
@@ -33,11 +28,10 @@ Future<void> scheduleImplementedNotification(
             file, computer.classes, computer.members);
         server.sendNotification(params.toNotification());
       } catch (exception, stackTrace) {
-        AnalysisEngine.instance.instrumentationService.logException(
-            CaughtException.withMessage(
-                'Failed to send analysis.implemented notification.',
-                exception,
-                stackTrace));
+        server.instrumentationService.logException(CaughtException.withMessage(
+            'Failed to send analysis.implemented notification.',
+            exception,
+            stackTrace));
       }
     }
   }
@@ -80,7 +74,7 @@ void sendAnalysisNotificationClosingLabels(AnalysisServer server, String file,
 void sendAnalysisNotificationFlushResults(
     AnalysisServer server, List<String> files) {
   _sendNotification(server, () {
-    if (files != null && files.isNotEmpty) {
+    if (files.isNotEmpty) {
       var params = protocol.AnalysisFlushResultsParams(files);
       server.sendNotification(params.toNotification());
     }
@@ -96,27 +90,19 @@ void sendAnalysisNotificationFolding(AnalysisServer server, String file,
   });
 }
 
-void sendAnalysisNotificationHighlights(
-    AnalysisServer server, String file, CompilationUnit dartUnit) {
-  _sendNotification(server, () {
-    var regions = DartUnitHighlightsComputer(dartUnit).compute();
-    var params = protocol.AnalysisHighlightsParams(file, regions);
-    server.sendNotification(params.toNotification());
-  });
-}
-
 void sendAnalysisNotificationOutline(
     AnalysisServer server, ResolvedUnitResult resolvedUnit) {
   _sendNotification(server, () {
     protocol.FileKind fileKind;
-    if (resolvedUnit.unit.directives.any((d) => d is PartOfDirective)) {
+    var unit = resolvedUnit.unit!;
+    if (unit.directives.any((d) => d is PartOfDirective)) {
       fileKind = protocol.FileKind.PART;
     } else {
       fileKind = protocol.FileKind.LIBRARY;
     }
 
     // compute library name
-    var libraryName = _computeLibraryName(resolvedUnit.unit);
+    var libraryName = _computeLibraryName(unit);
 
     // compute Outline
     var outline = DartUnitOutlineComputer(
@@ -126,7 +112,7 @@ void sendAnalysisNotificationOutline(
 
     // send notification
     var params = protocol.AnalysisOutlineParams(
-        resolvedUnit.path, fileKind, outline,
+        resolvedUnit.path!, fileKind, outline,
         libraryName: libraryName);
     server.sendNotification(params.toNotification());
   });
@@ -141,15 +127,18 @@ void sendAnalysisNotificationOverrides(
   });
 }
 
-String _computeLibraryName(CompilationUnit unit) {
+String? _computeLibraryName(CompilationUnit unit) {
   for (var directive in unit.directives) {
-    if (directive is LibraryDirective && directive.name != null) {
+    if (directive is LibraryDirective) {
       return directive.name.name;
     }
   }
   for (var directive in unit.directives) {
-    if (directive is PartOfDirective && directive.libraryName != null) {
-      return directive.libraryName.name;
+    if (directive is PartOfDirective) {
+      var libraryName = directive.libraryName;
+      if (libraryName != null) {
+        return libraryName.name;
+      }
     }
   }
   return null;
@@ -160,8 +149,7 @@ void _sendNotification(AnalysisServer server, Function() f) {
   try {
     f();
   } catch (exception, stackTrace) {
-    AnalysisEngine.instance.instrumentationService.logException(
-        CaughtException.withMessage(
-            'Failed to send notification', exception, stackTrace));
+    server.instrumentationService.logException(CaughtException.withMessage(
+        'Failed to send notification', exception, stackTrace));
   }
 }

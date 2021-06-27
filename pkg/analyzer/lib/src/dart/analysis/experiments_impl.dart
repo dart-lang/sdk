@@ -109,10 +109,10 @@ Future<T> overrideKnownFeaturesAsync<T>(
 ///
 /// Features in [explicitDisabledFlags] are always disabled.
 List<bool> restrictEnableFlagsToVersion({
-  @required Version sdkLanguageVersion,
-  @required List<bool> explicitEnabledFlags,
-  @required List<bool> explicitDisabledFlags,
-  @required Version version,
+  required Version sdkLanguageVersion,
+  required List<bool> explicitEnabledFlags,
+  required List<bool> explicitDisabledFlags,
+  required Version version,
 }) {
   var decodedFlags = List.filled(_knownFeatures.length, false);
   for (var feature in _knownFeatures.values) {
@@ -193,7 +193,7 @@ Iterable<ValidationResult> validateFlags(List<String> flags) sync* {
   var previousFlagValue = <int, bool>{};
   for (int flagIndex = 0; flagIndex < flags.length; flagIndex++) {
     var flag = flags[flagIndex];
-    ExperimentalFeature feature;
+    ExperimentalFeature? feature;
     bool requestedValue;
     if (flag.startsWith('no-')) {
       feature = _knownFeatures[flag.substring(3)];
@@ -210,8 +210,8 @@ Iterable<ValidationResult> validateFlags(List<String> flags) sync* {
           : IllegalUseOfExpiredFlag(flagIndex, feature);
     } else if (previousFlagIndex.containsKey(feature.index) &&
         previousFlagValue[feature.index] != requestedValue) {
-      yield ConflictingFlags(
-          flagIndex, previousFlagIndex[feature.index], feature, requestedValue);
+      yield ConflictingFlags(flagIndex, previousFlagIndex[feature.index]!,
+          feature, requestedValue);
     } else {
       previousFlagIndex[feature.index] = flagIndex;
       previousFlagValue[feature.index] = requestedValue;
@@ -230,7 +230,7 @@ Map<int, bool> _flagStringsToMap(List<String> flags) {
   var result = <int, bool>{};
   for (int flagIndex = 0; flagIndex < flags.length; flagIndex++) {
     var flag = flags[flagIndex];
-    ExperimentalFeature feature;
+    ExperimentalFeature? feature;
     bool requestedValue;
     if (flag.startsWith('no-')) {
       feature = _knownFeatures[flag.substring(3)];
@@ -326,30 +326,28 @@ class ExperimentalFeature implements Feature {
 
   /// The first language version in which this feature can be enabled using
   /// the [enableString] experimental flag.
-  final Version experimentalReleaseVersion;
+  final Version? experimentalReleaseVersion;
 
   @override
-  final Version releaseVersion;
+  final Version? releaseVersion;
 
   ExperimentalFeature({
-    @required this.index,
-    @required this.enableString,
-    @required this.isEnabledByDefault,
-    @required this.isExpired,
-    @required this.documentation,
-    @required this.experimentalReleaseVersion,
-    @required this.releaseVersion,
-  })  : assert(index != null),
-        assert(isEnabledByDefault
+    required this.index,
+    required this.enableString,
+    required this.isEnabledByDefault,
+    required this.isExpired,
+    required this.documentation,
+    required this.experimentalReleaseVersion,
+    required this.releaseVersion,
+  }) : assert(isEnabledByDefault
             ? releaseVersion != null
-            : releaseVersion == null),
-        assert(enableString != null);
+            : releaseVersion == null);
 
   /// The string to disable the feature.
   String get disableString => 'no-$enableString';
 
   @override
-  String get experimentalFlag => isExpired ? null : enableString;
+  String? get experimentalFlag => isExpired ? null : enableString;
 
   @override
   FeatureStatus get status {

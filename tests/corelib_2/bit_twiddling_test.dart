@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing int.bitLength, int.toUnsigned and int.toSigned.
 
+// @dart = 2.9
+
 library bit_twiddling_test;
 
 import "package:expect/expect.dart";

@@ -19,7 +19,7 @@ abstract class SimpleWorkspace extends Workspace {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider provider;
 
-  Map<String, List<Folder>> packageMap;
+  final Map<String, List<Folder>> packageMap;
 
   /// The absolute workspace root path.
   @override
@@ -32,7 +32,10 @@ abstract class SimpleWorkspace extends Workspace {
       PackageMapUriResolver(provider, packageMap);
 
   @override
-  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
+  SourceFactory createSourceFactory(
+    DartSdk? sdk,
+    SummaryDataStore? summaryData,
+  ) {
     if (summaryData != null) {
       throw UnsupportedError(
           'Summary files are not supported in a Pub workspace.');

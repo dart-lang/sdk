@@ -1,3 +1,4 @@
+// @dart = 2.9
 class _X<T> {
   const factory _X() = _Y<T>;
 }

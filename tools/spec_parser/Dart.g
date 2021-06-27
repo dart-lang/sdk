@@ -4,6 +4,37 @@
 
 // CHANGES:
 //
+// v0.12 (82403371ac00ddf004be60fa7b705474d2864509) Cf. language issue #1341:
+// correct `metadata`. Change `qualifiedName` such that it only includes the
+// cases with a '.'; the remaining case is added where `qualifiedName` is used.
+//
+// v0.11 (67c703063d5b68c9e132edbaf34dfe375851f5a6) Corrections, mainly:
+// `fieldFormalParameter` now allows `?` on the parameter type; cascade was
+// reorganized in the spec, it is now reorganized similarly here; `?` was
+// removed from argumentPart (null-aware invocation was never added).
+//
+// v0.10 (8ccdb9ae796d543e4ad8f339c847c02b09018d2d) Simplify grammar by making
+// `constructorInvocation` an alternative in `primary`.
+//
+// v0.9 (f4d7951a88e1b738e22b768c3bc72bf1a1062365) Introduce abstract and
+// external variables.
+//
+// v0.8 (a9ea9365ad8a3e3b59115bd889a55b6aa2c5a5fa) Change null-aware
+// invocations of `operator []` and `operator []=` to not have a period.
+//
+// v0.7 (6826faf583f6a543b1a0e2e85bd6a8042607ce00) Introduce extension and
+// mixin declarations. Revise rules about string literals and string
+// interpolation. Reorganize "keywords" (built-in identifiers, reserved words,
+// other words that are specified in the grammar and not parsed as IDENTIFIER)
+// into explicitly marked groups. Change the cascade syntax to be
+// compositional.
+//
+// v0.6 (a58052974ec2b4b334922c5227b043ed2b9c2cc5) Introduce syntax associated
+// with null safety.
+//
+// v0.5 (56793b3d4714d4818d855a72074d5295489aef3f) Stop treating `ASYNC` as a
+// conditional reserved word (only `AWAIT` and `YIELD` get this treatment).
+//
 // v0.4 Added support for 'unified collections' (spreads and control flow
 // in collection literals).
 //
@@ -328,23 +359,6 @@ methodSignature
     |    operatorSignature
     |    constructorSignature
     ;
-
-// https://github.com/dart-lang/sdk/issues/29501 reports on the problem which
-// was solved by adding a case for redirectingFactoryConstructorSignature.
-// TODO(eernst): Close that issue when this is integrated into the spec.
-
-// https://github.com/dart-lang/sdk/issues/29502 reports on the problem that
-// than external const factory constructor declaration cannot be derived by
-// the spec grammar (and also not by this grammar). The following fixes were
-// introduced for that: Added the 'factoryConstructorSignature' case below in
-// 'declaration'; also added 'CONST?' in the 'factoryConstructorSignature'
-// rule, such that const factories in general are allowed.
-// TODO(eernst): Close that issue when this is integrated into the spec.
-
-// TODO(eernst): Note that `EXTERNAL? STATIC? functionSignature` includes
-// `STATIC functionSignature`, but a static function cannot be abstract.
-// We might want to make that a syntax error rather than a static semantic
-// check.
 
 declaration
     :    EXTERNAL factoryConstructorSignature
@@ -870,27 +884,7 @@ assignableSelector
 
 identifierNotFUNCTION
     :    IDENTIFIER
-    |    ABSTRACT // Built-in identifier.
-    |    AS // Built-in identifier.
-    |    COVARIANT // Built-in identifier.
-    |    DEFERRED // Built-in identifier.
-    |    DYNAMIC // Built-in identifier.
-    |    EXPORT // Built-in identifier.
-    |    EXTERNAL // Built-in identifier.
-    |    FACTORY // Built-in identifier.
-    |    GET // Built-in identifier.
-    |    IMPLEMENTS // Built-in identifier.
-    |    IMPORT // Built-in identifier.
-    |    INTERFACE // Built-in identifier.
-    |    LATE // Built-in identifier.
-    |    LIBRARY // Built-in identifier.
-    |    MIXIN // Built-in identifier.
-    |    OPERATOR // Built-in identifier.
-    |    PART // Built-in identifier.
-    |    REQUIRED // Built-in identifier.
-    |    SET // Built-in identifier.
-    |    STATIC // Built-in identifier.
-    |    TYPEDEF // Built-in identifier.
+    |    builtInIdentifier
     |    ASYNC // Not a built-in identifier.
     |    HIDE // Not a built-in identifier.
     |    OF // Not a built-in identifier.
@@ -1126,7 +1120,7 @@ partDirective
     ;
 
 partHeader
-    :    metadata PART OF identifier ('.' identifier)* ';'
+    :    metadata PART OF (dottedIdentifierList | uri)';'
     ;
 
 partDeclaration
@@ -1188,7 +1182,7 @@ typeNotVoidNotFunctionList
     ;
 
 typeAlias
-    :    TYPEDEF typeIdentifier typeParameters? '=' functionType ';'
+    :    TYPEDEF typeIdentifier typeParameters? '=' type ';'
     |    TYPEDEF functionTypeAlias
     ;
 
@@ -1227,8 +1221,8 @@ normalParameterTypes
     ;
 
 normalParameterType
-    :    typedIdentifier
-    |    type
+    :    metadata typedIdentifier
+    |    metadata type
     ;
 
 optionalParameterTypes
@@ -1245,7 +1239,7 @@ namedParameterTypes
     ;
 
 namedParameterType
-    :    REQUIRED? typedIdentifier
+    :    metadata REQUIRED? typedIdentifier
     ;
 
 typedIdentifier
@@ -1259,7 +1253,7 @@ constructorDesignation
     ;
 
 symbolLiteral
-    :    '#' (operator | (identifier ('.' identifier)*))
+    :    '#' (operator | (identifier ('.' identifier)*) | VOID)
     ;
 
 // Not used in the specification (needed here for <uri>).
@@ -1291,6 +1285,68 @@ multiLineString
     |    MULTI_LINE_STRING_DQ_BEGIN_MID expression
          (MULTI_LINE_STRING_DQ_MID_MID expression)*
          MULTI_LINE_STRING_DQ_MID_END
+    ;
+
+reservedWord
+    :    ASSERT
+    |    BREAK
+    |    CASE
+    |    CATCH
+    |    CLASS
+    |    CONST
+    |    CONTINUE
+    |    DEFAULT
+    |    DO
+    |    ELSE
+    |    ENUM
+    |    EXTENDS
+    |    FALSE
+    |    FINAL
+    |    FINALLY
+    |    FOR
+    |    IF
+    |    IN
+    |    IS
+    |    NEW
+    |    NULL
+    |    RETHROW
+    |    RETURN
+    |    SUPER
+    |    SWITCH
+    |    THIS
+    |    THROW
+    |    TRUE
+    |    TRY
+    |    VAR
+    |    VOID
+    |    WHILE
+    |    WITH
+    ;
+
+builtInIdentifier
+    :    ABSTRACT
+    |    AS
+    |    COVARIANT
+    |    DEFERRED
+    |    DYNAMIC
+    |    EXPORT
+    |    EXTENSION
+    |    EXTERNAL
+    |    FACTORY
+    |    FUNCTION
+    |    GET
+    |    IMPLEMENTS
+    |    IMPORT
+    |    INTERFACE
+    |    LATE
+    |    LIBRARY
+    |    OPERATOR
+    |    MIXIN
+    |    PART
+    |    REQUIRED
+    |    SET
+    |    STATIC
+    |    TYPEDEF
     ;
 
 // ---------------------------------------- Lexer rules.

@@ -1,0 +1,33 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Reproduce a crash.
+
+type: newworld
+trackWidgetCreation: true
+target: DDC # basically needed for widget creation to be run
+worlds:
+  - entry: app/main.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../flutter",
+              "languageVersion": "2.12"
+            }
+          ]
+        }
+      app/main.dart: |
+        import "package:flutter/src/cupertino/interface_level.dart";
+      flutter/src/widgets/framework.dart: |
+        abstract class Widget {}
+        abstract class ProxyWidget extends Widget {}
+        abstract class InheritedWidget extends ProxyWidget {}
+      flutter/src/cupertino/interface_level.dart: |
+        import '../widgets/framework.dart';
+        class CupertinoUserInterfaceLevel extends InheritedWidget {}
+    expectedLibraryCount: 3

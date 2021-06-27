@@ -4,10 +4,12 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,15 +25,15 @@ main() {
 }
 
 abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
-  TestAnalysisContext analysisContext;
+  late TestAnalysisContext analysisContext;
 
   @override
-  LibraryElementImpl testLibrary;
+  late LibraryElementImpl testLibrary;
 
   @override
-  TypeProvider typeProvider;
+  late TypeProviderImpl typeProvider;
 
-  TypeSystemImpl typeSystem;
+  late TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
     return FeatureSet.forTesting(
@@ -56,15 +58,15 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
 }
 
 abstract class AbstractTypeSystemTest with ElementsTypesMixin {
-  TestAnalysisContext analysisContext;
+  late TestAnalysisContext analysisContext;
 
   @override
-  LibraryElementImpl testLibrary;
+  late LibraryElementImpl testLibrary;
 
   @override
-  TypeProvider typeProvider;
+  late TypeProvider typeProvider;
 
-  TypeSystemImpl typeSystem;
+  late TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
     return FeatureSet.forTesting();
@@ -390,7 +392,7 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 
   void _checkGroups(DartType t1,
-      {List<DartType> interassignable, List<DartType> unrelated}) {
+      {List<DartType>? interassignable, List<DartType>? unrelated}) {
     if (interassignable != null) {
       for (DartType t2 in interassignable) {
         _checkEquivalent(t1, t2);
@@ -404,11 +406,11 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 
   void _checkIsAssignableTo(DartType type1, DartType type2) {
-    expect(typeSystem.isAssignableTo2(type1, type2), true);
+    expect(typeSystem.isAssignableTo(type1, type2), true);
   }
 
   void _checkIsNotAssignableTo(DartType type1, DartType type2) {
-    expect(typeSystem.isAssignableTo2(type1, type2), false);
+    expect(typeSystem.isAssignableTo(type1, type2), false);
   }
 
   void _checkIsStrictAssignableTo(DartType type1, DartType type2) {
@@ -467,22 +469,55 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter() {
-    void check(
-      TypeParameterTypeImpl type,
-      TypeParameterElement expectedElement,
-      DartType expectedBound,
-    ) {
-      expect(type.element, expectedElement);
-      expect(type.promotedBound, expectedBound);
+    TypeParameterTypeImpl tryPromote(DartType to, TypeParameterTypeImpl from) {
+      return typeSystem.tryPromoteToType(to, from) as TypeParameterTypeImpl;
+    }
+
+    void check(TypeParameterTypeImpl type, String expected) {
+      expect(type.getDisplayString(withNullability: true), expected);
     }
 
     var T = typeParameter('T');
-    var T0 = typeParameterTypeNone(T);
+    var T_none = typeParameterTypeNone(T);
+    var T_question = typeParameterTypeQuestion(T);
+    var T_star = typeParameterTypeStar(T);
 
-    var T1 = typeSystem.tryPromoteToType(numNone, T0);
-    check(T1, T, numNone);
+    check(tryPromote(numNone, T_none), 'T & num');
+    check(tryPromote(numQuestion, T_none), 'T & num?');
+    check(tryPromote(numStar, T_none), 'T & num*');
 
-    var T2 = typeSystem.tryPromoteToType(intNone, T1);
-    check(T2, T, intNone);
+    check(tryPromote(numNone, T_question), 'T & num');
+    check(tryPromote(numQuestion, T_question), 'T? & num?');
+    check(tryPromote(numStar, T_question), 'T* & num*');
+
+    check(tryPromote(numNone, T_star), 'T* & num');
+    check(tryPromote(numQuestion, T_star), 'T* & num?');
+    check(tryPromote(numStar, T_star), 'T* & num*');
+  }
+
+  test_typeParameter_twice() {
+    TypeParameterTypeImpl tryPromote(DartType to, TypeParameterTypeImpl from) {
+      return typeSystem.tryPromoteToType(to, from) as TypeParameterTypeImpl;
+    }
+
+    void check(
+      TypeParameterTypeImpl type,
+      TypeParameterElement element,
+      NullabilitySuffix nullability,
+      DartType promotedBound,
+    ) {
+      expect(type.element, element);
+      expect(type.nullabilitySuffix, nullability);
+      expect(type.promotedBound, promotedBound);
+    }
+
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+
+    var T1 = tryPromote(numNone, T_none);
+    check(T1, T, NullabilitySuffix.none, numNone);
+
+    var T2 = tryPromote(intNone, T1);
+    check(T2, T, NullabilitySuffix.none, intNone);
   }
 }

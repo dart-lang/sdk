@@ -4,8 +4,11 @@
 
 const String CODE = 'code';
 const String COMPLETION_RESULTS = 'completion.results';
+const String CONTEXT_MESSAGES = 'contextMessages';
 const String CORRECTION = 'correction';
 const String EDITS = 'edits';
+const String END_COLUMN = 'endColumn';
+const String END_LINE = 'endLine';
 const String FILE = 'file';
 const String FILE_STAMP = 'fileStamp';
 const String HAS_FIX = 'hasFix';

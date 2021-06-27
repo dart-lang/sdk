@@ -24,9 +24,9 @@ void main() {
 class RefactoringLocationTest extends AbstractSingleUnitTest {
   Future<void> test_createLocation_forElement() async {
     await resolveTestCode('class MyClass {}');
-    var element = findElement('MyClass');
+    var element = findElement.class_('MyClass');
     // check
-    var location = newLocation_fromElement(element);
+    var location = newLocation_fromElement(element)!;
     expect(location.file, testFile);
     expect(location.offset, 6);
     expect(location.length, 7);
@@ -36,7 +36,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
 
   Future<void> test_createLocation_forMatch() async {
     await resolveTestCode('class MyClass {}');
-    var element = findElement('MyClass');
+    var element = findElement.class_('MyClass');
     var sourceRange = range.elementName(element);
     SearchMatch match = SearchMatchImpl(
         element.source.fullName,
@@ -60,7 +60,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
 main() {
 }
 ''');
-    var node = findNodeAtString('main');
+    var node = findNode.simple('main');
     // check
     var location = newLocation_fromNode(node);
     expect(location.file, testFile);
@@ -98,7 +98,7 @@ class RefactoringStatusTest {
   }
 
   void test_addFatalError_withLocation() {
-    var location = Location('/test.dart', 1, 2, 3, 4);
+    var location = Location('/test.dart', 1, 2, 3, 4, 5, 6);
     var refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
@@ -112,9 +112,10 @@ class RefactoringStatusTest {
     var problems = refactoringStatus.problems;
     expect(problems, hasLength(1));
     expect(problems[0].message, 'msg');
-    expect(problems[0].location.file, '/test.dart');
-    expect(problems[0].location.offset, 1);
-    expect(problems[0].location.length, 2);
+    var problemLocation = problems[0].location!;
+    expect(problemLocation.file, '/test.dart');
+    expect(problemLocation.offset, 1);
+    expect(problemLocation.length, 2);
     // add WARNING, resulting severity is still FATAL
     refactoringStatus.addWarning('warning');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.FATAL);
@@ -200,22 +201,22 @@ class RefactoringStatusTest {
     refactoringStatus.addError('msgError');
     refactoringStatus.addWarning('msgWarning');
     refactoringStatus.addFatalError('msgFatalError');
+    var problem = refactoringStatus.problem!;
     // get entry
-    {
-      var problem = refactoringStatus.problem;
-      expect(problem.severity, RefactoringProblemSeverity.FATAL);
-      expect(problem.message, 'msgFatalError');
-    }
+    expect(problem.severity, RefactoringProblemSeverity.FATAL);
+    expect(problem.message, 'msgFatalError');
     // get message
-    expect(refactoringStatus.problem.message, 'msgFatalError');
+    expect(problem.message, 'msgFatalError');
   }
 
   void test_newError() {
-    var location = Location('/test.dart', 1, 2, 3, 4);
+    var location = Location('/test.dart', 1, 2, 3, 4, 5, 6);
     var refactoringStatus = RefactoringStatus.error('msg', location);
+    var problem = refactoringStatus.problem!;
+    var problemLocation = problem.location!;
     expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
-    expect(refactoringStatus.problem.message, 'msg');
-    expect(refactoringStatus.problem.location.file, '/test.dart');
+    expect(problem.message, 'msg');
+    expect(problemLocation.file, '/test.dart');
   }
 
   void test_newFatalError() {

@@ -2,17 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Dart test program for testing dart:ffi function pointers with callbacks.
 //
-// VMOptions=--enable-testing-pragmas
-// VMOptions=--enable-testing-pragmas --stacktrace-every=100
-// VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code
-// VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
-// VMOptions=--use-slow-path --enable-testing-pragmas
-// VMOptions=--use-slow-path --enable-testing-pragmas --stacktrace-every=100
-// VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code
-// VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
+// VMOptions=--stacktrace-every=100
+// VMOptions=--write-protect-code --no-dual-map-code
+// VMOptions=--write-protect-code --no-dual-map-code --stacktrace-every=100
+// VMOptions=--use-slow-path
+// VMOptions=--use-slow-path --stacktrace-every=100
+// VMOptions=--use-slow-path --write-protect-code --no-dual-map-code
+// VMOptions=--use-slow-path --write-protect-code --no-dual-map-code --stacktrace-every=100
 // VMOptions=--use-bare-instructions=false
+// VMOptions=--dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';
@@ -23,6 +25,13 @@ typedef SimpleAdditionType = Int32 Function(Int32, Int32);
 int simpleAddition(int x, int y) {
   print("simpleAddition($x, $y)");
   return x + y;
+}
+
+class Foo {
+  static int simpleAddition(int x, int y) {
+    print("Foo.simpleAddition($x, $y)");
+    return x + y;
+  }
 }
 
 typedef IntComputationType = Int64 Function(Int8, Int16, Int32, Int64);
@@ -190,6 +199,8 @@ int returnMaxUint8v2() {
 final testcases = [
   CallbackTest("SimpleAddition",
       Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0)),
+  CallbackTest("SimpleAddition",
+      Pointer.fromFunction<SimpleAdditionType>(Foo.simpleAddition, 0)),
   CallbackTest("IntComputation",
       Pointer.fromFunction<IntComputationType>(intComputation, 0)),
   CallbackTest("UintComputation",

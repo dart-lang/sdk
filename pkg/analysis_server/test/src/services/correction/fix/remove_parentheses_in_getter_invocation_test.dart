@@ -24,7 +24,7 @@ class RemoveParenthesesInGetterInvocationTest extends FixProcessorTest {
 class A {
   int get foo => 0;
 }
-main(A a) {
+void f(A a) {
   a.foo();
 }
 ''');
@@ -32,7 +32,7 @@ main(A a) {
 class A {
   int get foo => 0;
 }
-main(A a) {
+void f(A a) {
   a.foo;
 }
 ''');

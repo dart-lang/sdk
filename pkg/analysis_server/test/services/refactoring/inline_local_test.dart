@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,7 +19,7 @@ void main() {
 @reflectiveTest
 class InlineLocalTest extends RefactoringTest {
   @override
-  InlineLocalRefactoringImpl refactoring;
+  late InlineLocalRefactoringImpl refactoring;
 
   Future<void> test_access() async {
     await indexTestUnit('''
@@ -50,7 +49,7 @@ main() {
 
   Future<void> test_bad_selectionParameter() async {
     await indexTestUnit(r'''
-main(int test) {
+void f(int test) {
 }
 ''');
     _createRefactoring('test) {');
@@ -157,7 +156,7 @@ main() {
 
   Future<void> test_OK_inSwitchCase() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
   switch (p) {
     case 0:
       int test = 42;
@@ -169,7 +168,7 @@ main(int p) {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main(int p) {
+void f(int p) {
   switch (p) {
     case 0:
       print(42);
@@ -637,7 +636,7 @@ main() {
 
   void _createRefactoring(String search) {
     var offset = findOffset(search);
-    refactoring = InlineLocalRefactoring(
+    refactoring = InlineLocalRefactoringImpl(
       searchEngine,
       testAnalysisResult,
       offset,

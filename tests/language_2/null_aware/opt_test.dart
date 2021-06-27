@@ -6,6 +6,8 @@
 //
 // Basic null-aware operator test that invokes the optimizing compiler.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class C {

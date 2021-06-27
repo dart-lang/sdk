@@ -52,7 +52,7 @@ class Bar {
       )),
     ]);
 
-    final notifiedChanges = pluginManager.analysisUpdateContentParams
+    final notifiedChanges = pluginManager.analysisUpdateContentParams!
         .files[mainFilePath] as ChangeContentOverlay;
 
     expect(
@@ -96,8 +96,27 @@ class Bar {
     await _initializeAndOpen();
     await closeFile(mainFileUri);
 
-    expect(pluginManager.analysisUpdateContentParams.files,
+    expect(pluginManager.analysisUpdateContentParams!.files,
         equals({mainFilePath: RemoveContentOverlay()}));
+  }
+
+  Future<void>
+      test_documentOpen_addsOverlayOnlyToDriver_onlyIfInsideRoots() async {
+    // Ensures that opening a file doesn't add it to the driver if it's outside
+    // of the drivers root.
+    final fileInsideRootPath = mainFilePath;
+    final fileOutsideRootPath = convertPath('/home/unrelated/main.dart');
+    await initialize();
+    await openFile(Uri.file(fileInsideRootPath), content);
+    await openFile(Uri.file(fileOutsideRootPath), content);
+
+    // Expect both files return the same driver
+    final driverForInside = server.getAnalysisDriver(fileInsideRootPath)!;
+    final driverForOutside = server.getAnalysisDriver(fileOutsideRootPath)!;
+    expect(driverForInside, equals(driverForOutside));
+    // But that only the file inside the root was added.
+    expect(driverForInside.addedFiles, contains(fileInsideRootPath));
+    expect(driverForInside.addedFiles, isNot(contains(fileOutsideRootPath)));
   }
 
   Future<void> test_documentOpen_createsOverlay() async {
@@ -111,7 +130,7 @@ class Bar {
   Future<void> test_documentOpen_notifiesPlugins() async {
     await _initializeAndOpen();
 
-    expect(pluginManager.analysisUpdateContentParams.files,
+    expect(pluginManager.analysisUpdateContentParams!.files,
         equals({mainFilePath: AddContentOverlay(content)}));
   }
 
@@ -146,7 +165,7 @@ class Bar {
     await pumpEventQueue(times: 5000);
 
     // Ensure the opened file is in the priority list.
-    expect(server.getAnalysisDriver(mainFilePath).priorityFiles,
+    expect(server.getAnalysisDriver(mainFilePath)!.priorityFiles,
         equals([mainFilePath]));
   }
 

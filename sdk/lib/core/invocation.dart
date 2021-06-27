@@ -4,110 +4,90 @@
 
 part of dart.core;
 
-/**
- * Representation of the invocation of a member on an object.
- *
- * This is the type of objects passed to [Object.noSuchMethod] when
- * an object doesn't support the member invocation that was attempted
- * on it.
- */
+/// Representation of the invocation of a member on an object.
+///
+/// This is the type of objects passed to [Object.noSuchMethod] when
+/// an object doesn't support the member invocation that was attempted
+/// on it.
 abstract class Invocation {
   Invocation();
 
-  /**
-   * Creates an invocation corresponding to a method invocation.
-   *
-   * The method invocation has no type arguments.
-   * If the named arguments are omitted, they default to no named arguments.
-   */
+  /// Creates an invocation corresponding to a method invocation.
+  ///
+  /// The method invocation has no type arguments.
+  /// If the named arguments are omitted, they default to no named arguments.
   factory Invocation.method(
           Symbol memberName, Iterable<Object?>? positionalArguments,
           [Map<Symbol, Object?>? namedArguments]) =>
       _Invocation.method(memberName, null, positionalArguments, namedArguments);
 
-  /**
-   * Creates an invocation corresponding to a generic method invocation.
-   *
-   * If [typeArguments] is `null` or empty, the constructor is equivalent to
-   * calling [Invocation.method] with the remaining arguments.
-   * All the individual type arguments must be non-null.
-   *
-   * If the named arguments are omitted, they default to no named arguments.
-   */
+  /// Creates an invocation corresponding to a generic method invocation.
+  ///
+  /// If [typeArguments] is `null` or empty, the constructor is equivalent to
+  /// calling [Invocation.method] with the remaining arguments.
+  /// All the individual type arguments must be non-null.
+  ///
+  /// If the named arguments are omitted, they default to no named arguments.
   factory Invocation.genericMethod(Symbol memberName,
           Iterable<Type>? typeArguments, Iterable<Object?>? positionalArguments,
           [Map<Symbol, Object?>? namedArguments]) =>
       _Invocation.method(
           memberName, typeArguments, positionalArguments, namedArguments);
 
-  /**
-   * Creates an invocation corresponding to a getter invocation.
-   */
+  /// Creates an invocation corresponding to a getter invocation.
   factory Invocation.getter(Symbol name) = _Invocation.getter;
 
-  /**
-   * Creates an invocation corresponding to a setter invocation.
-   *
-   * This constructor accepts any [Symbol] as [memberName], but remember that
-   * *actual setter names* end in `=`, so the invocation corresponding
-   * to `object.member = value` is
-   * ```dart
-   * Invocation.setter(const Symbol("member="), value)
-   * ```
-   */
+  /// Creates an invocation corresponding to a setter invocation.
+  ///
+  /// This constructor accepts any [Symbol] as [memberName], but remember that
+  /// *actual setter names* end in `=`, so the invocation corresponding
+  /// to `object.member = value` is
+  /// ```dart
+  /// Invocation.setter(const Symbol("member="), value)
+  /// ```
   factory Invocation.setter(Symbol memberName, Object? argument) =
       _Invocation.setter;
 
-  /** The name of the invoked member. */
+  /// The name of the invoked member.
   Symbol get memberName;
 
-  /**
-   * An unmodifiable view of the type arguments of the call.
-   *
-   * If the member is a getter, setter or operator,
-   * the type argument list is always empty.
-   */
+  /// An unmodifiable view of the type arguments of the call.
+  ///
+  /// If the member is a getter, setter or operator,
+  /// the type argument list is always empty.
   List<Type> get typeArguments => const <Type>[];
 
-  /**
-   * An unmodifiable view of the positional arguments of the call.
-   *
-   * If the member is a getter, the positional arguments list is
-   * always empty.
-   */
+  /// An unmodifiable view of the positional arguments of the call.
+  ///
+  /// If the member is a getter, the positional arguments list is
+  /// always empty.
   List<dynamic> get positionalArguments;
 
-  /**
-   * An unmodifiable view of the named arguments of the call.
-   *
-   * If the member is a getter, setter or operator,
-   * the named arguments map is always empty.
-   */
+  /// An unmodifiable view of the named arguments of the call.
+  ///
+  /// If the member is a getter, setter or operator,
+  /// the named arguments map is always empty.
   Map<Symbol, dynamic> get namedArguments;
 
-  /** Whether the invocation was a method call. */
+  /// Whether the invocation was a method call.
   bool get isMethod;
 
-  /**
-   * Whether the invocation was a getter call.
-   * If so, all three types of arguments lists are empty.
-   */
+  /// Whether the invocation was a getter call.
+  /// If so, all three types of arguments lists are empty.
   bool get isGetter;
 
-  /**
-   * Whether the invocation was a setter call.
-   *
-   * If so, [positionalArguments] has exactly one positional
-   * argument, [namedArguments] is empty, and typeArguments is
-   * empty.
-   */
+  /// Whether the invocation was a setter call.
+  ///
+  /// If so, [positionalArguments] has exactly one positional
+  /// argument, [namedArguments] is empty, and typeArguments is
+  /// empty.
   bool get isSetter;
 
-  /** Whether the invocation was a getter or a setter call. */
+  /// Whether the invocation was a getter or a setter call.
   bool get isAccessor => isGetter || isSetter;
 }
 
-/** Implementation of [Invocation] used by its factory constructors. */
+/// Implementation of [Invocation] used by its factory constructors.
 class _Invocation implements Invocation {
   final Symbol memberName;
   final List<Type> typeArguments;

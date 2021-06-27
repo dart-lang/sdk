@@ -1,0 +1,8 @@
+// @dart = 2.9
+extension on int {
+  static int foo = 2;
+  void foo() {}
+}
+
+main() {}
+void test() {}

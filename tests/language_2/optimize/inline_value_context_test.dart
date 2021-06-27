@@ -6,6 +6,8 @@
 // with instance of B and cause deoptimization.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

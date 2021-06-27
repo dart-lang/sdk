@@ -20,6 +20,9 @@ foo1() {
 /*prod.member: foo2:function() {
   return C.JSString_methods.codeUnitAt$1("Hello", 1.5);
 }*/
+/*canary.member: foo2:function() {
+  return A.JSString_methods.codeUnitAt$1("Hello", B._asInt(1.5));
+}*/
 foo2() {
   var a = 'Hello';
   dynamic b = 1.5;
@@ -28,8 +31,11 @@ foo2() {
 }
 
 @pragma('dart2js:noInline')
-/*member: foo3:function() {
+/*spec|prod.member: foo3:function() {
   return C.JSString_methods._codeUnitAt$1("Hello", 55);
+}*/
+/*canary.member: foo3:function() {
+  return A.JSString_methods._codeUnitAt$1("Hello", 55);
 }*/
 foo3() {
   var a = 'Hello';

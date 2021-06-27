@@ -70,13 +70,18 @@ class List<E> {
     final result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);
   }
+}
 
-  // Factory constructing a mutable List from a parser generated List literal.
-  // [elements] contains elements that are already type checked.
-  @pragma("vm:entry-point", "call")
-  factory List._fromLiteral(_List elements) {
-    final result = new _GrowableList<E>._withData(elements);
-    result._setLength(elements.length);
-    return result;
-  }
+// Used by Dart_ListLength.
+@pragma("vm:entry-point", "call")
+int _listLength(List list) => list.length;
+
+// Used by Dart_ListGetRange, Dart_ListGetAsBytes.
+@pragma("vm:entry-point", "call")
+Object? _listGetAt(List list, int index) => list[index];
+
+// Used by Dart_ListSetAt, Dart_ListSetAsBytes.
+@pragma("vm:entry-point", "call")
+void _listSetAt(List list, int index, Object? value) {
+  list[index] = value;
 }

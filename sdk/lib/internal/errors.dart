@@ -4,7 +4,7 @@
 
 part of dart._internal;
 
-class LateError extends Error implements LateInitializationError {
+class LateError extends Error {
   final String? _message;
 
   LateError([this._message]);

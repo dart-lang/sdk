@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateFunction extends CorrectionProducer {
-  String _functionName;
+  String _functionName = '';
 
   @override
   List<Object> get fixArguments => [_functionName];
@@ -35,8 +35,10 @@ class CreateFunction extends CorrectionProducer {
     // prepare environment
     int insertOffset;
     String sourcePrefix;
-    AstNode enclosingMember =
-        node.thisOrAncestorOfType<CompilationUnitMember>();
+    var enclosingMember = node.thisOrAncestorOfType<CompilationUnitMember>();
+    if (enclosingMember == null) {
+      return;
+    }
     insertOffset = enclosingMember.end;
     sourcePrefix = '$eol$eol';
     utils.targetClassElement = null;

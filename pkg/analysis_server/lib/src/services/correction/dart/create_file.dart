@@ -5,12 +5,12 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateFile extends CorrectionProducer {
-  String _fileName;
+  String _fileName = '';
 
   @override
   List<Object> get fixArguments => [_fileName];
@@ -23,14 +23,15 @@ class CreateFile extends CorrectionProducer {
     // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral) {
       var parent = node.parent;
-      if (parent is ImportDirective) {
+      if (parent is NamespaceDirective) {
         // TODO(brianwilkerson) Support the case where the node's parent is a
         //  Configuration.
         var source = parent.uriSource;
         if (source != null) {
           var fullName = source.fullName;
-          if (resourceProvider.pathContext.isAbsolute(fullName) &&
-              AnalysisEngine.isDartFileName(fullName)) {
+          var pathContext = resourceProvider.pathContext;
+          if (pathContext.isAbsolute(fullName) &&
+              file_paths.isDart(pathContext, fullName)) {
             await builder.addDartFileEdit(fullName, (builder) {
               builder.addSimpleInsertion(0, '// TODO Implement this library.');
             });

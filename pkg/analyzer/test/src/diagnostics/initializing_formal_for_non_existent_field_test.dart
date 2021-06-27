@@ -30,13 +30,13 @@ class A {
   test_notInEnclosingClass() async {
     await assertErrorsInCode(r'''
 class A {
-int x;
+  int x = 1;
 }
 class B extends A {
   B(this.x) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, 43,
+      error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, 49,
           6),
     ]);
   }

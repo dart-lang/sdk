@@ -25,10 +25,14 @@ import 'messages.dart'
 class DebugAbort {
   final LocatedMessage message;
 
-  DebugAbort(Uri uri, int charOffset, Severity severity, StackTrace trace)
-      : message = templateInternalProblemDebugAbort
-            .withArguments(severityTexts[severity], "$trace")
-            .withLocation(uri, charOffset, noLength);
+  DebugAbort(Uri? uri, int charOffset, Severity severity, StackTrace trace)
+      : message = uri != null
+            ? templateInternalProblemDebugAbort
+                .withArguments(severityTexts[severity]!, "$trace")
+                .withLocation(uri, charOffset, noLength)
+            : templateInternalProblemDebugAbort
+                .withArguments(severityTexts[severity]!, "$trace")
+                .withoutLocation();
 
   toString() => "DebugAbort: ${message.message}";
 }
@@ -42,44 +46,52 @@ class DebugAbort {
 /// ensure that there are no throws anywhere else in the codebase.
 ///
 /// Before printing the message, the string `"Internal error: "` is prepended.
-dynamic internalProblem(Message message, int charOffset, Uri uri) {
-  throw CompilerContext.current.format(
-      message.withLocation(uri, charOffset, noLength),
-      Severity.internalProblem);
+Never internalProblem(Message message, int charOffset, Uri? uri) {
+  if (uri != null) {
+    throw CompilerContext.current
+        .format(message.withLocation(uri, charOffset, noLength),
+            Severity.internalProblem)
+        .plain;
+  } else {
+    throw CompilerContext.current
+        .format(message.withoutLocation(), Severity.internalProblem)
+        .plain;
+  }
 }
 
-dynamic unimplemented(String what, int charOffset, Uri uri) {
+Never unimplemented(String what, int charOffset, Uri? uri) {
   return internalProblem(
       templateInternalProblemUnimplemented.withArguments(what),
       charOffset,
       uri);
 }
 
-dynamic unhandled(String what, String where, int charOffset, Uri uri) {
+Never unhandled(String what, String where, int charOffset, Uri? uri) {
   return internalProblem(
       templateInternalProblemUnhandled.withArguments(what, where),
       charOffset,
       uri);
 }
 
-dynamic unexpected(String expected, String actual, int charOffset, Uri uri) {
+Never unexpected(String expected, String actual, int charOffset, Uri? uri) {
   return internalProblem(
       templateInternalProblemUnexpected.withArguments(expected, actual),
       charOffset,
       uri);
 }
 
-dynamic unsupported(String operation, int charOffset, Uri uri) {
+Never unsupported(String operation, int charOffset, Uri? uri) {
   return internalProblem(
       templateInternalProblemUnsupported.withArguments(operation),
       charOffset,
       uri);
 }
 
-Uri getFileUri(TreeNode node) {
+Uri? getFileUri(TreeNode node) {
+  TreeNode? parent = node;
   do {
-    if (node is FileUriNode) return node.fileUri;
-    node = node.parent;
-  } while (node is TreeNode);
+    if (parent is FileUriNode) return parent.fileUri;
+    parent = parent!.parent;
+  } while (parent is TreeNode);
   return null;
 }

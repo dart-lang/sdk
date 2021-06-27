@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core' hide MapEntry;
+// @dart = 2.9
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
@@ -36,6 +36,7 @@ import '../messages.dart'
 
 import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -138,9 +139,10 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      Constructor referenceFrom,
+      Member referenceFrom,
       [String nativeMethodName])
-      : _constructor = new Constructor(null,
+      : _constructor = new Constructor(new FunctionNode(null),
+            name: new Name(name, compilationUnit.library),
             fileUri: compilationUnit.fileUri,
             reference: referenceFrom?.reference)
           ..startFileOffset = startCharOffset
@@ -158,6 +160,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
   @override
   Member get invokeTarget => constructor;
+
+  FunctionNode get function => _constructor.function;
 
   @override
   Iterable<Member> get exportedMembers => [constructor];
@@ -195,17 +199,19 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     f(member, BuiltMemberKind.Constructor);
   }
 
+  bool _hasBeenBuilt = false;
+
   @override
   Constructor build(SourceLibraryBuilder libraryBuilder) {
-    if (_constructor.name == null) {
-      _constructor.function = buildFunction(libraryBuilder);
-      _constructor.function.parent = _constructor;
+    if (!_hasBeenBuilt) {
+      buildFunction(libraryBuilder);
       _constructor.function.fileOffset = charOpenParenOffset;
       _constructor.function.fileEndOffset = _constructor.fileEndOffset;
       _constructor.function.typeParameters = const <TypeParameter>[];
       _constructor.isConst = isConst;
       _constructor.isExternal = isExternal;
-      _constructor.name = new Name(name, libraryBuilder.library);
+      updatePrivateMemberName(_constructor, libraryBuilder);
+      _hasBeenBuilt = true;
     }
     if (formals != null) {
       bool needsInference = false;
@@ -239,8 +245,9 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
-    super.buildOutlineExpressions(library, coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline.
@@ -257,10 +264,10 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  FunctionNode buildFunction(SourceLibraryBuilder library) {
+  void buildFunction(SourceLibraryBuilder library) {
     // According to the specification §9.3 the return type of a constructor
     // function is its enclosing class.
-    FunctionNode functionNode = super.buildFunction(library);
+    super.buildFunction(library);
     ClassBuilder enclosingClassBuilder = parent;
     Class enclosingClass = enclosingClassBuilder.cls;
     List<DartType> typeParameterTypes = <DartType>[];
@@ -270,9 +277,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, library.library));
     }
-    functionNode.returnType = new InterfaceType(
+    function.returnType = new InterfaceType(
         enclosingClass, library.nonNullable, typeParameterTypes);
-    return functionNode;
   }
 
   @override
@@ -451,10 +457,13 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder {
         super(constructor, parent);
 
   void buildOutlineExpressions(
-      LibraryBuilder libraryBuilder, CoreTypes coreTypes) {
+      LibraryBuilder libraryBuilder,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     if (_origin != null) {
       // Ensure that default value expressions have been created for [_origin].
-      _origin.buildOutlineExpressions(libraryBuilder, coreTypes);
+      _origin.buildOutlineExpressions(
+          libraryBuilder, coreTypes, delayedActionPerformers);
       _clonedFunctionNode.cloneDefaultValues();
       _clonedFunctionNode = null;
       _origin = null;

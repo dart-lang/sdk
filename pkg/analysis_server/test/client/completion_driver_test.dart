@@ -21,9 +21,9 @@ void main() {
 }
 
 abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
-  CompletionDriver driver;
-  Map<String, String> packageRoots;
-  List<CompletionSuggestion> suggestions;
+  late CompletionDriver driver;
+  Map<String, String> packageRoots = {};
+  late List<CompletionSuggestion> suggestions;
 
   String get projectName => 'project';
 
@@ -45,7 +45,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   Future<List<CompletionSuggestion>> addTestFile(String content,
-      {int offset}) async {
+      {int? offset}) async {
     driver.addTestFile(content, offset: offset);
     await getSuggestions();
     // For sanity, ensure that there are no errors recorded for project files
@@ -55,10 +55,10 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   void assertNoSuggestion({
-    @required String completion,
-    ElementKind element,
-    CompletionSuggestionKind kind,
-    String file,
+    required String completion,
+    ElementKind? element,
+    CompletionSuggestionKind? kind,
+    String? file,
   }) {
     expect(
         suggestionsWith(
@@ -71,13 +71,15 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   void assertSuggestion({
-    @required String completion,
-    ElementKind element,
-    CompletionSuggestionKind kind,
-    String file,
+    bool allowMultiple = false,
+    required String completion,
+    ElementKind? element,
+    CompletionSuggestionKind? kind,
+    String? file,
   }) {
     expect(
         suggestionWith(
+          allowMultiple: allowMultiple,
           completion: completion,
           element: element,
           kind: kind,
@@ -87,10 +89,10 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   void assertSuggestions({
-    @required String completion,
-    ElementKind element,
-    CompletionSuggestionKind kind,
-    String file,
+    required String completion,
+    ElementKind? element,
+    CompletionSuggestionKind? kind,
+    String? file,
   }) {
     expect(
         suggestionWith(
@@ -127,7 +129,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     suggestions.sort(completionComparator);
     for (var s in suggestions) {
       print(
-          '[${s.relevance}] ${s.completion} • ${s.element?.kind?.name ?? ""} ${s.kind.name} ${s.element?.location?.file ?? ""}');
+          '[${s.relevance}] ${s.completion} • ${s.element?.kind.name ?? ""} ${s.kind.name} ${s.element?.location?.file ?? ""}');
     }
   }
 
@@ -142,18 +144,18 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     );
     driver.createProject(packageRoots: packageRoots);
 
-    newFile('$projectPath/pubspec.yaml', content: '');
-    newFile('$projectPath/.packages', content: '''
+    newPubspecYamlFile(projectPath, '');
+    newDotPackagesFile(projectPath, content: '''
 project:${toUri('$projectPath/lib')}
 ''');
     // todo (pq): add logic (possibly to driver) that waits for SDK suggestions
   }
 
   SuggestionMatcher suggestionHas({
-    @required String completion,
-    ElementKind element,
-    CompletionSuggestionKind kind,
-    String file,
+    required String completion,
+    ElementKind? element,
+    CompletionSuggestionKind? kind,
+    String? file,
   }) =>
       (CompletionSuggestion s) {
         if (s.completion != completion) {
@@ -173,23 +175,26 @@ project:${toUri('$projectPath/lib')}
       };
 
   Iterable<CompletionSuggestion> suggestionsWith({
-    @required String completion,
-    ElementKind element,
-    CompletionSuggestionKind kind,
-    String file,
+    required String completion,
+    ElementKind? element,
+    CompletionSuggestionKind? kind,
+    String? file,
   }) =>
       suggestions.where(suggestionHas(
           completion: completion, element: element, kind: kind, file: file));
 
   CompletionSuggestion suggestionWith({
-    @required String completion,
-    ElementKind element,
-    CompletionSuggestionKind kind,
-    String file,
+    bool allowMultiple = false,
+    required String completion,
+    ElementKind? element,
+    CompletionSuggestionKind? kind,
+    String? file,
   }) {
     final matches = suggestionsWith(
         completion: completion, element: element, kind: kind, file: file);
-    expect(matches, hasLength(1));
+    if (!allowMultiple) {
+      expect(matches, hasLength(1));
+    }
     return matches.first;
   }
 
@@ -264,7 +269,10 @@ void main() {
 }
 ''');
 
+    // TODO(brianwilkerson) There should be a single suggestion here after we
+    //  figure out how to stop the duplication.
     assertSuggestion(
+        allowMultiple: true,
         completion: 'A',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -288,7 +296,11 @@ void main() {
   ^
 }
 ''');
+
+    // TODO(brianwilkerson) There should be a single suggestion here after we
+    //  figure out how to stop the duplication.
     assertSuggestion(
+        allowMultiple: true,
         completion: 'E.e',
         element: ElementKind.ENUM_CONSTANT,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -313,7 +325,10 @@ void main() {
 }
 ''');
 
+    // TODO(brianwilkerson) There should be a single suggestion here after we
+    //  figure out how to stop the duplication.
     assertSuggestion(
+        allowMultiple: true,
         completion: 'A.a',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -641,13 +656,15 @@ void main() {
 }
 ''');
 
+    // TODO(brianwilkerson) There should be a single suggestion here after we
+    //  figure out how to stop the duplication.
     expect(
         suggestionsWith(
             completion: 'Future.value',
             file: '/sdk/lib/async/async.dart',
             element: ElementKind.CONSTRUCTOR,
             kind: CompletionSuggestionKind.INVOCATION),
-        hasLength(1));
+        hasLength(2));
   }
 
   Future<void> test_sdk_lib_suggestions() async {

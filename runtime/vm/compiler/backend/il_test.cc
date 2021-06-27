@@ -7,7 +7,11 @@
 #include <vector>
 
 #include "platform/utils.h"
+#include "vm/compiler/backend/block_builder.h"
+#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
+#include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/backend/type_propagator.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -32,17 +36,17 @@ ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
   Definition* def2 = new PhiInstr(join, 0);
   Value* use1a = new Value(def1);
   Value* use1b = new Value(def1);
-  EXPECT(use1a->Equals(use1b));
+  EXPECT(use1a->Equals(*use1b));
   Value* use2 = new Value(def2);
-  EXPECT(!use2->Equals(use1a));
+  EXPECT(!use2->Equals(*use1a));
 
   ConstantInstr* c1 = new ConstantInstr(Bool::True());
   ConstantInstr* c2 = new ConstantInstr(Bool::True());
-  EXPECT(c1->Equals(c2));
+  EXPECT(c1->Equals(*c2));
   ConstantInstr* c3 = new ConstantInstr(Object::ZoneHandle());
   ConstantInstr* c4 = new ConstantInstr(Object::ZoneHandle());
-  EXPECT(c3->Equals(c4));
-  EXPECT(!c3->Equals(c1));
+  EXPECT(c3->Equals(*c4));
+  EXPECT(!c3->Equals(*c1));
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
@@ -166,7 +170,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
                             /*expected_stores=*/{"g"});
   RunInitializingStoresTest(root_library, "f3", CompilerPass::kJIT,
                             /*expected_stores=*/
-                            {"Closure.function"});
+                            {"Closure.function", "Closure.entry_point"});
 
   // Note that in JIT mode we lower context allocation in a way that hinders
   // removal of initializing moves so there would be some redundant stores of
@@ -175,18 +179,200 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
   std::vector<const char*> expected_stores_jit;
   std::vector<const char*> expected_stores_aot;
 
-  expected_stores_jit.insert(expected_stores_jit.end(),
-                             {"value", "Context.parent", "Context.parent",
-                              "value", "Closure.function_type_arguments",
-                              "Closure.function", "Closure.context"});
-  expected_stores_aot.insert(expected_stores_aot.end(),
-                             {"value", "Closure.function_type_arguments",
-                              "Closure.function", "Closure.context"});
+  expected_stores_jit.insert(
+      expected_stores_jit.end(),
+      {"value", "Context.parent", "Context.parent", "value",
+       "Closure.function_type_arguments", "Closure.context"});
+  expected_stores_aot.insert(
+      expected_stores_aot.end(),
+      {"value", "Closure.function_type_arguments", "Closure.context"});
 
   RunInitializingStoresTest(root_library, "f4", CompilerPass::kJIT,
                             expected_stores_jit);
   RunInitializingStoresTest(root_library, "f4", CompilerPass::kAOT,
                             expected_stores_aot);
+}
+
+// Returns |true| if compiler canonicalizes away a chain of IntConverters going
+// from |initial| representation to |intermediate| representation and then
+// back to |initial| given that initial value has range [min_value, max_value].
+bool TestIntConverterCanonicalizationRule(Thread* thread,
+                                          int64_t min_value,
+                                          int64_t max_value,
+                                          Representation initial,
+                                          Representation intermediate) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H;
+
+  // Add a variable into the scope which would provide static type for the
+  // parameter.
+  LocalVariable* v0_var =
+      new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                        String::Handle(Symbols::New(thread, "v0")),
+                        AbstractType::ZoneHandle(Type::IntType()));
+  v0_var->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+  H.flow_graph()->parsed_function().scope()->AddVariable(v0_var);
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+
+  Definition* v0;
+  ReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, initial);
+    v0->set_range(Range(RangeBoundary::FromConstant(min_value),
+                        RangeBoundary::FromConstant(max_value)));
+    auto conv1 = builder.AddDefinition(new IntConverterInstr(
+        initial, intermediate, new Value(v0), S.GetNextDeoptId()));
+    auto conv2 = builder.AddDefinition(new IntConverterInstr(
+        intermediate, initial, new Value(conv1), S.GetNextDeoptId()));
+    ret = builder.AddReturn(new Value(conv2));
+  }
+
+  H.FinishGraph();
+
+  H.flow_graph()->Canonicalize();
+  H.flow_graph()->Canonicalize();
+
+  return ret->value()->definition() == v0;
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_IntConverterCanonicalization) {
+  EXPECT(TestIntConverterCanonicalizationRule(thread, kMinInt16, kMaxInt16,
+                                              kUnboxedInt64, kUnboxedInt32));
+  EXPECT(TestIntConverterCanonicalizationRule(thread, kMinInt32, kMaxInt32,
+                                              kUnboxedInt64, kUnboxedInt32));
+  EXPECT(!TestIntConverterCanonicalizationRule(
+      thread, kMinInt32, static_cast<int64_t>(kMaxInt32) + 1, kUnboxedInt64,
+      kUnboxedInt32));
+  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxInt16,
+                                              kUnboxedInt64, kUnboxedUint32));
+  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxInt32,
+                                              kUnboxedInt64, kUnboxedUint32));
+  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxUint32,
+                                              kUnboxedInt64, kUnboxedUint32));
+  EXPECT(!TestIntConverterCanonicalizationRule(
+      thread, 0, static_cast<int64_t>(kMaxUint32) + 1, kUnboxedInt64,
+      kUnboxedUint32));
+  EXPECT(!TestIntConverterCanonicalizationRule(thread, -1, kMaxInt16,
+                                               kUnboxedInt64, kUnboxedUint32));
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_PhiCanonicalization) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H;
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+  auto b2 = H.JoinEntry();
+  auto b3 = H.TargetEntry();
+  auto b4 = H.TargetEntry();
+
+  Definition* v0;
+  ReturnInstr* ret;
+  PhiInstr* phi;
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    builder.AddInstruction(new GotoInstr(b2, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b2);
+    phi = new PhiInstr(b2, 2);
+    phi->SetInputAt(0, new Value(v0));
+    phi->SetInputAt(1, new Value(phi));
+    builder.AddPhi(phi);
+    builder.AddBranch(new StrictCompareInstr(
+                          InstructionSource(), Token::kEQ_STRICT,
+                          new Value(H.IntConstant(1)), new Value(phi),
+                          /*needs_number_check=*/false, S.GetNextDeoptId()),
+                      b3, b4);
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b3);
+    builder.AddInstruction(new GotoInstr(b2, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b4);
+    ret = builder.AddReturn(new Value(phi));
+  }
+
+  H.FinishGraph();
+
+  H.flow_graph()->Canonicalize();
+
+  EXPECT(ret->value()->definition() == v0);
+}
+
+// Regression test for issue 46018.
+ISOLATE_UNIT_TEST_CASE(IL_UnboxIntegerCanonicalization) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H;
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+  Definition* unbox;
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    Definition* index = H.IntConstant(0);
+    Definition* int_type =
+        H.flow_graph()->GetConstant(Type::Handle(Type::IntType()));
+
+    Definition* float64_array =
+        builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    Definition* int64_array =
+        builder.AddParameter(1, 1, /*with_frame=*/true, kTagged);
+
+    Definition* load_indexed = builder.AddDefinition(new LoadIndexedInstr(
+        new Value(float64_array), new Value(index),
+        /* index_unboxed */ false,
+        /* index_scale */ 8, kTypedDataFloat64ArrayCid, kAlignedAccess,
+        S.GetNextDeoptId(), InstructionSource()));
+    Definition* box = builder.AddDefinition(
+        BoxInstr::Create(kUnboxedDouble, new Value(load_indexed)));
+    Definition* cast = builder.AddDefinition(new AssertAssignableInstr(
+        InstructionSource(), new Value(box), new Value(int_type),
+        /* instantiator_type_arguments */
+        new Value(H.flow_graph()->constant_null()),
+        /* function_type_arguments */
+        new Value(H.flow_graph()->constant_null()),
+        /* dst_name */ String::Handle(String::New("not-null")),
+        S.GetNextDeoptId()));
+    unbox = builder.AddDefinition(new UnboxInt64Instr(
+        new Value(cast), S.GetNextDeoptId(), BoxInstr::kGuardInputs));
+
+    builder.AddInstruction(new StoreIndexedInstr(
+        new Value(int64_array), new Value(index), new Value(unbox),
+        kNoStoreBarrier,
+        /* index_unboxed */ false,
+        /* index_scale */ 8, kTypedDataInt64ArrayCid, kAlignedAccess,
+        S.GetNextDeoptId(), InstructionSource()));
+    builder.AddReturn(new Value(index));
+  }
+
+  H.FinishGraph();
+
+  FlowGraphTypePropagator::Propagate(H.flow_graph());
+  EXPECT(!unbox->ComputeCanDeoptimize());
+
+  H.flow_graph()->Canonicalize();
+  EXPECT(!unbox->ComputeCanDeoptimize());
+
+  H.flow_graph()->RemoveRedefinitions();
+  EXPECT(!unbox->ComputeCanDeoptimize());  // Previously this reverted to true.
 }
 
 }  // namespace dart

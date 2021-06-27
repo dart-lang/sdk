@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValue;
 
@@ -33,6 +35,8 @@ import '../scope.dart' as type;
 import '../source/outline_builder.dart' as type;
 
 class ValueKinds {
+  static const ValueKind AnnotationListOrNull =
+      const SingleValueKind<List<type.Expression>>(NullValue.Metadata);
   static const ValueKind Arguments = const SingleValueKind<type.Arguments>();
   static const ValueKind ArgumentsOrNull =
       const SingleValueKind<type.Arguments>(NullValue.Arguments);
@@ -81,6 +85,8 @@ class ValueKinds {
   static const ValueKind Token = const SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull =
       const SingleValueKind<type.Token>(NullValue.Token);
+  static const ValueKind TypeArguments =
+      const SingleValueKind<List<type.UnresolvedType>>();
   static const ValueKind TypeArgumentsOrNull =
       const SingleValueKind<List<type.UnresolvedType>>(NullValue.TypeArguments);
   static const ValueKind TypeBuilder =

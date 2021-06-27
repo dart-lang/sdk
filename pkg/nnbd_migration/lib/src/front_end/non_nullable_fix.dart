@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' show jsonDecode, JsonEncoder;
 
 import 'package:analyzer/dart/analysis/features.dart';
@@ -28,18 +29,18 @@ import 'package:yaml/yaml.dart';
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
-  static final List<HttpPreviewServer> _allServers = [];
+  static final List<HttpPreviewServer?> _allServers = [];
 
   final Version _intendedMinimumSdkVersion;
 
   /// The internet address the server should bind to.  Should be suitable for
   /// passing to HttpServer.bind, i.e. either a [String] or an
   /// [InternetAddress].
-  final Object bindAddress;
+  final Object? bindAddress;
 
   final Logger _logger;
 
-  final int preferredPort;
+  final int? preferredPort;
 
   final DartFixListener listener;
 
@@ -52,36 +53,46 @@ class NonNullableFix {
 
   /// If non-null, the path to which a machine-readable summary of migration
   /// results should be written.
-  final String summaryPath;
+  final String? summaryPath;
 
   final ResourceProvider resourceProvider;
 
   final LineInfo Function(String) _getLineInfo;
 
   /// The HTTP server that serves the preview tool.
-  HttpPreviewServer _server;
+  HttpPreviewServer? _server;
 
-  String authToken;
+  String? authToken;
 
-  InstrumentationListener instrumentationListener;
+  InstrumentationListener? instrumentationListener;
 
-  NullabilityMigrationAdapter adapter;
+  NullabilityMigrationAdapter? adapter;
 
-  NullabilityMigration migration;
+  NullabilityMigration? migration;
 
-  Future<MigrationState> Function() rerunFunction;
+  late Future<MigrationState> Function() rerunFunction;
 
   /// A list of the URLs corresponding to the included roots.
-  List<String> previewUrls;
+  List<String>? previewUrls;
+
+  /// A function which returns whether a file at a given path should be
+  /// migrated.
+  final bool Function(String?) shouldBeMigratedFunction;
+
+  /// The set of files which are being considered for migration.
+  Iterable<String>? pathsToProcess;
+
+  /// Completes when the server has been shutdown.
+  late Completer<void> serverIsShutdown;
 
   NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
-      this.bindAddress, this._logger,
+      this.bindAddress, this._logger, this.shouldBeMigratedFunction,
       {List<String> included = const [],
       this.preferredPort,
       this.summaryPath,
-      @required String sdkPath})
+      required String sdkPath})
       : includedRoot =
-            _getIncludedRoot(included, listener.server.resourceProvider),
+            _getIncludedRoot(included, listener.server!.resourceProvider),
         _intendedMinimumSdkVersion =
             _computeIntendedMinimumSdkVersion(resourceProvider, sdkPath) {
     reset();
@@ -97,23 +108,23 @@ class NonNullableFix {
       '>=$_intendedMinimumSdkVersion <3.0.0';
 
   InstrumentationListener createInstrumentationListener(
-          {MigrationSummary migrationSummary}) =>
+          {MigrationSummary? migrationSummary}) =>
       InstrumentationListener(migrationSummary: migrationSummary);
 
   Future<void> finalizeUnit(ResolvedUnitResult result) async {
-    migration.finalizeInput(result);
+    migration!.finalizeInput(result);
   }
 
   Future<MigrationState> finish() async {
-    var neededPackages = migration.finish();
+    var neededPackages = migration!.finish();
     final state = MigrationState(migration, includedRoot, listener,
-        instrumentationListener, neededPackages);
-    await state.refresh(_logger);
+        instrumentationListener, neededPackages, shouldBeMigratedFunction);
+    await state.refresh(_logger, pathsToProcess);
     return state;
   }
 
   Future<void> prepareUnit(ResolvedUnitResult result) async {
-    migration.prepareInput(result);
+    migration!.prepareInput(result);
   }
 
   /// Processes the non-source files of the package rooted at [pkgFolder].
@@ -150,7 +161,7 @@ class NonNullableFix {
   }
 
   Future<void> processUnit(ResolvedUnitResult result) async {
-    migration.processInput(result);
+    migration!.processInput(result);
   }
 
   Future<MigrationState> rerun() async {
@@ -170,8 +181,11 @@ class NonNullableFix {
   }
 
   void shutdownServer() {
-    _server?.close();
-    _server = null;
+    if (_server != null) {
+      _server!.close();
+      _server = null;
+      serverIsShutdown.complete();
+    }
   }
 
   Future<void> startPreviewServer(
@@ -179,13 +193,18 @@ class NonNullableFix {
     // This method may be called multiple times, for example during a re-run.
     // But the preview server should only be started once.
     if (_server == null) {
-      _server = HttpPreviewServer(
-          state, rerun, applyHook, bindAddress, preferredPort, _logger);
-      _server.serveHttp();
+      var wrappedApplyHookWithShutdown = () {
+        shutdownServer();
+        applyHook();
+      };
+      _server = HttpPreviewServer(state, rerun, wrappedApplyHookWithShutdown,
+          bindAddress, preferredPort, _logger);
+      _server!.serveHttp();
       _allServers.add(_server);
-      var serverHostname = await _server.boundHostname;
-      var serverPort = await _server.boundPort;
-      authToken = await _server.authToken;
+      var serverHostname = await _server!.boundHostname;
+      var serverPort = await _server!.boundPort;
+      authToken = await _server!.authToken;
+      serverIsShutdown = Completer();
 
       previewUrls = [
         // TODO(jcollins-g): Change protocol to only return a single string.
@@ -193,7 +212,7 @@ class NonNullableFix {
             scheme: 'http',
             host: serverHostname,
             port: serverPort,
-            path: state.pathMapper.map(includedRoot),
+            path: state.pathMapper!.map(includedRoot),
             queryParameters: {'authToken': authToken}).toString()
       ];
     }
@@ -258,7 +277,8 @@ class NonNullableFix {
         var edit = SourceEdit(offset, configText.length, newText);
         listener.addSourceFileEdit(
             'enable Null Safety language feature',
-            Location(packageConfigFile.path, offset, newText.length, line, 0),
+            Location(
+                packageConfigFile.path, offset, newText.length, line, 0, 0, 0),
             SourceFileEdit(packageConfigFile.path, 0, edits: [edit]));
       }
     } on FormatException catch (e) {
@@ -290,7 +310,7 @@ class NonNullableFix {
     bool packageConfigNeedsUpdate = false;
     bool packageDepsUpdated = false;
     var pubspecMap = pubspec.content;
-    YamlNode environmentOptions;
+    YamlNode? environmentOptions;
     if (pubspecMap is YamlMap) {
       environmentOptions = pubspecMap.nodes['environment'];
     }
@@ -314,7 +334,7 @@ environment:
       packageConfigNeedsUpdate = true;
     }
     if (neededPackages.isNotEmpty) {
-      YamlNode dependencies;
+      YamlNode? dependencies;
       if (pubspecMap is YamlMap) {
         dependencies = pubspecMap.nodes['dependencies'];
       }
@@ -380,16 +400,34 @@ ${depLines.join('\n')}
       VersionConstraint currentConstraint;
       if (node.value is String) {
         currentConstraint = VersionConstraint.parse(node.value as String);
-        if (currentConstraint is VersionRange &&
-            currentConstraint.min >= minimumVersion) {
-          // The current version constraint is already up to date.  Do not edit.
+        var invalidVersionMessage =
+            'The current SDK constraint in pubspec.yaml is invalid. A '
+            'minimum version, such as ">=2.7.0", is required when launching '
+            "'dart migrate'.";
+        if (currentConstraint is Version) {
+          // In this case, the constraint is an exact version, like 2.0.0.
+          _logger.stderr(invalidVersionMessage);
           return false;
+        } else if (currentConstraint is VersionRange) {
+          if (currentConstraint.min == null) {
+            _logger.stderr(invalidVersionMessage);
+            return false;
+          } else if (currentConstraint.min! >= minimumVersion) {
+            // The current version constraint is already up to date.  Do not
+            // edit.
+            return false;
+          } else {
+            // TODO(srawlins): This overwrites the current maximum version. In
+            // the uncommon situation that there is a special maximum, it should
+            // not.
+            pubspec._replaceSpan(node.span, fullVersionConstraint, listener);
+            return true;
+          }
         } else {
-          // TODO(srawlins): This overwrites the current maximum version. In
-          // the uncommon situation that there is a special maximum, it should
-          // not.
-          pubspec._replaceSpan(node.span, fullVersionConstraint, listener);
-          return true;
+          // The constraint is something different, like a union, like
+          // '>=1.0.0 <2.0.0 >=3.0.0 <4.0.0', which is not valid.
+          _logger.stderr(invalidVersionMessage);
+          return false;
         }
       } else {
         // Something is odd with the constraint we've found in pubspec.yaml;
@@ -409,7 +447,7 @@ ${depLines.join('\n')}
   static void shutdownAllServers() {
     for (var server in _allServers) {
       try {
-        server.close();
+        server!.close();
       } catch (_) {}
     }
     _allServers.clear();
@@ -430,7 +468,7 @@ ${depLines.join('\n')}
     // do so if we are sure that stable release exists.  An easy way to check
     // that is to see if the current SDK version is greater than or equal to the
     // stable release of null safety.
-    var nullSafetyStableReleaseVersion = Feature.non_nullable.releaseVersion;
+    var nullSafetyStableReleaseVersion = Feature.non_nullable.releaseVersion!;
     if (sdkVersion >= nullSafetyStableReleaseVersion) {
       // It is, so we can use it as the minimum SDK constraint.
       return nullSafetyStableReleaseVersion;
@@ -508,9 +546,9 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
 
   @override
   void reportException(
-      Source source, AstNode node, Object exception, StackTrace stackTrace) {
+      Source? source, AstNode? node, Object exception, StackTrace stackTrace) {
     listener.client.onException('''
-$exception at offset ${node.offset} in $source ($node)
+$exception at offset ${node!.offset} in $source ($node)
 
 $stackTrace''');
   }
@@ -524,8 +562,8 @@ class _YamlFile {
 
   _YamlFile._(this.path, this.textContent, this.content);
 
-  String _getName() {
-    YamlNode packageNameNode;
+  String? _getName() {
+    YamlNode? packageNameNode;
 
     if (content is YamlMap) {
       packageNameNode = (content as YamlMap).nodes['name'];
@@ -534,7 +572,7 @@ class _YamlFile {
     }
 
     if (packageNameNode is YamlScalar && packageNameNode.value is String) {
-      return packageNameNode.value as String;
+      return packageNameNode.value as String?;
     } else {
       return null;
     }
@@ -561,7 +599,7 @@ class _YamlFile {
     var edit = SourceEdit(offset, 0, content);
     listener.addSourceFileEdit(
         'enable Null Safety language feature',
-        Location(path, offset, content.length, line, 0),
+        Location(path, offset, content.length, line, 0, 0, 0),
         SourceFileEdit(path, 0, edits: [edit]));
   }
 
@@ -571,7 +609,7 @@ class _YamlFile {
     var edit = SourceEdit(offset, span.length, content);
     listener.addSourceFileEdit(
         'enable Null Safety language feature',
-        Location(path, offset, content.length, line, 0),
+        Location(path, offset, content.length, line, 0, 0, 0),
         SourceFileEdit(path, 0, edits: [edit]));
   }
 

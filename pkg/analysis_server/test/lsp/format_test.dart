@@ -20,7 +20,7 @@ void main() {
 class FormatTest extends AbstractLspAnalysisServerTest {
   Future<List<TextEdit>> expectFormattedContents(
       Uri uri, String original, String expected) async {
-    final formatEdits = await formatDocument(uri.toString());
+    final formatEdits = (await formatDocument(uri.toString()))!;
     final formattedContents = applyTextEdits(original, formatEdits);
     expect(formattedContents, equals(expected));
     return formatEdits;
@@ -29,7 +29,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   Future<List<TextEdit>> expectRangeFormattedContents(
       Uri uri, String original, String expected) async {
     final formatEdits =
-        await formatRange(uri.toString(), rangeFromMarkers(original));
+        (await formatRange(uri.toString(), rangeFromMarkers(original)))!;
     final formattedContents =
         applyTextEdits(withoutMarkers(original), formatEdits);
     expect(formattedContents, equals(expected));
@@ -94,7 +94,7 @@ ErrorOr<Pair<A, List<B>>> c(
       {},
     );
 
-    Registration registration(Method method) =>
+    Registration? registration(Method method) =>
         registrationFor(registrations, method);
 
     // By default, the formatters should have been registered.
@@ -137,7 +137,7 @@ ErrorOr<Pair<A, List<B>>> c(
       {},
     );
 
-    Registration registration(Method method) =>
+    Registration? registration(Method method) =>
         registrationFor(registrations, method);
 
     // By default, the formatters should have been registered.
@@ -179,9 +179,8 @@ ErrorOr<Pair<A, List<B>>> c(
     await initialize();
     await openFile(mainFileUri, withoutMarkers(contents));
 
-    final formatEdits = await formatOnType(
-        mainFileUri.toString(), positionFromMarker(contents), '}');
-    expect(formatEdits, isNotNull);
+    final formatEdits = (await formatOnType(
+        mainFileUri.toString(), positionFromMarker(contents), '}'))!;
     final formattedContents =
         applyTextEdits(withoutMarkers(contents), formatEdits);
     expect(formattedContents, equals(expected));

@@ -24,9 +24,9 @@ void main(List<String> rawArgs) {
 
   var driver = Driver(diagnosticPort: args.diagnosticPort);
   var stream = openInput(args);
-  StreamSubscription<Operation> subscription;
-  subscription = stream.listen((Operation op) {
-    var future = driver.perform(op);
+  late StreamSubscription<Operation?> subscription;
+  subscription = stream.listen((Operation? op) {
+    var future = driver.perform(op!);
     if (future != null) {
       logger.log(Level.FINE, 'pausing operations for ${op.runtimeType}');
       subscription.pause(future.then((_) {
@@ -61,17 +61,15 @@ const TMP_SRC_DIR_OPTION = 'tmpSrcDir';
 const VERBOSE_CMDLINE_OPTION = 'verbose';
 const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
 
-ArgParser _argParser;
+late final ArgParser argParser = () {
+  var argParser = ArgParser();
 
-ArgParser get argParser {
-  _argParser = ArgParser();
-
-  _argParser.addOption(INPUT_CMDLINE_OPTION,
+  argParser.addOption(INPUT_CMDLINE_OPTION,
       abbr: 'i',
       help: '<filePath>\n'
           'The input file specifying how this client should interact with the server.\n'
           'If the input file name is "stdin", then the instructions are read from standard input.');
-  _argParser.addMultiOption(MAP_OPTION,
+  argParser.addMultiOption(MAP_OPTION,
       abbr: 'm',
       splitCommas: false,
       help: '<oldSrcPath>,<newSrcPath>\n'
@@ -80,26 +78,26 @@ ArgParser get argParser {
           'to the target source directory <newSrcPath> used during performance testing.\n'
           'Multiple mappings can be specified.\n'
           'WARNING: The contents of the target directory will be modified');
-  _argParser.addOption(TMP_SRC_DIR_OPTION,
+  argParser.addOption(TMP_SRC_DIR_OPTION,
       abbr: 't',
       help: '<dirPath>\n'
           'The temporary directory containing source used during performance measurement.\n'
           'WARNING: The contents of the target directory will be modified');
-  _argParser.addOption(DIAGNOSTIC_PORT_OPTION,
+  argParser.addOption(DIAGNOSTIC_PORT_OPTION,
       abbr: 'd',
       help: 'localhost port on which server will provide diagnostic web pages');
-  _argParser.addFlag(VERBOSE_CMDLINE_OPTION,
+  argParser.addFlag(VERBOSE_CMDLINE_OPTION,
       abbr: 'v', help: 'Verbose logging', negatable: false);
-  _argParser.addFlag(VERY_VERBOSE_CMDLINE_OPTION,
+  argParser.addFlag(VERY_VERBOSE_CMDLINE_OPTION,
       help: 'Extra verbose logging', negatable: false);
-  _argParser.addFlag(HELP_CMDLINE_OPTION,
+  argParser.addFlag(HELP_CMDLINE_OPTION,
       abbr: 'h', help: 'Print this help information', negatable: false);
-  return _argParser;
-}
+  return argParser;
+}();
 
 /// Open and return the input stream specifying how this client
 /// should interact with the analysis server.
-Stream<Operation> openInput(PerfArgs args) {
+Stream<Operation?> openInput(PerfArgs args) {
   var logger = Logger('openInput');
   Stream<List<int>> inputRaw;
   if (args.inputPath == 'stdin') {
@@ -135,15 +133,15 @@ PerfArgs parseArgs(List<String> rawArgs) {
 
   var showHelp = args[HELP_CMDLINE_OPTION] || args.rest.isNotEmpty;
 
-  bool isMissing(key) => args[key] == null || args[key].isEmpty;
-
-  perfArgs.inputPath = args[INPUT_CMDLINE_OPTION];
-  if (isMissing(INPUT_CMDLINE_OPTION)) {
+  var inputArg = args[INPUT_CMDLINE_OPTION];
+  if (inputArg is! String || inputArg.isEmpty) {
     print('missing $INPUT_CMDLINE_OPTION argument');
     showHelp = true;
+  } else {
+    perfArgs.inputPath = inputArg;
   }
 
-  for (String pair in args[MAP_OPTION]) {
+  for (var pair in args[MAP_OPTION]) {
     if (pair is String) {
       var index = pair.indexOf(',');
       if (index != -1 && !pair.contains(',', index + 1)) {
@@ -155,18 +153,20 @@ PerfArgs parseArgs(List<String> rawArgs) {
         }
       }
     }
-    print('must specifiy $MAP_OPTION <oldSrcPath>,<newSrcPath>');
+    print('must specify $MAP_OPTION <oldSrcPath>,<newSrcPath>');
     showHelp = true;
   }
 
-  perfArgs.tmpSrcDirPath = _withTrailingSeparator(args[TMP_SRC_DIR_OPTION]);
-  if (isMissing(TMP_SRC_DIR_OPTION)) {
+  var tmpSrcDirPathArg = args[TMP_SRC_DIR_OPTION];
+  if (tmpSrcDirPathArg is! String || tmpSrcDirPathArg.isEmpty) {
     print('missing $TMP_SRC_DIR_OPTION argument');
     showHelp = true;
+  } else {
+    perfArgs.tmpSrcDirPath = _withTrailingSeparator(tmpSrcDirPathArg);
   }
 
-  String portText = args[DIAGNOSTIC_PORT_OPTION];
-  if (portText != null) {
+  var portText = args[DIAGNOSTIC_PORT_OPTION];
+  if (portText is String) {
     if (int.tryParse(portText) == null) {
       print('invalid $DIAGNOSTIC_PORT_OPTION: $portText');
       showHelp = true;
@@ -200,7 +200,7 @@ void printHelp() {
 
 /// Ensure that the given path has a trailing separator
 String _withTrailingSeparator(String dirPath) {
-  if (dirPath != null && dirPath.length > 4) {
+  if (dirPath.length > 4) {
     if (!dirPath.endsWith(path.separator)) {
       return '$dirPath${path.separator}';
     }
@@ -213,7 +213,7 @@ class PerfArgs {
   /// The file path of the instrumentation or log file
   /// used to drive performance measurement,
   /// or 'stdin' if this information should be read from standard input.
-  String inputPath;
+  late String inputPath;
 
   /// A mapping from the original source directory
   /// when the instrumentation or log file was generated
@@ -222,8 +222,8 @@ class PerfArgs {
 
   /// The temporary directory containing source used during performance
   /// measurement.
-  String tmpSrcDirPath;
+  late String tmpSrcDirPath;
 
   /// The diagnostic port for Analysis Server or `null` if none.
-  int diagnosticPort;
+  int? diagnosticPort;
 }

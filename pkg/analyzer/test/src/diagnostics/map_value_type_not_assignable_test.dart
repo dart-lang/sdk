@@ -10,12 +10,27 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapValueTypeNotAssignableTest);
+    defineReflectiveTests(MapValueTypeNotAssignableWithNoImplicitCastsTest);
+    defineReflectiveTests(MapValueTypeNotAssignableWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class MapValueTypeNotAssignableTest extends PubPackageResolutionTest
-    with MapValueTypeNotAssignableTestCases {}
+    with MapValueTypeNotAssignableTestCases {
+  test_const_intQuestion_null_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = null;
+var v = const <bool, int?>{true: a};
+''');
+  }
+
+  test_const_intQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <bool, int?>{true: null};
+''');
+  }
+}
 
 mixin MapValueTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt_dynamic() async {
@@ -81,6 +96,25 @@ var v = const <bool, int>{if (1 < 2) true: a};
 const dynamic a = 0;
 var v = const <bool, int>{true: a};
 ''');
+  }
+
+  test_const_intNull_dynamic() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 56, 1),
+    ], legacy: []);
+    await assertErrorsInCode('''
+const dynamic a = null;
+var v = const <bool, int>{true: a};
+''', errors);
+  }
+
+  test_const_intNull_value() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 32, 4),
+    ], legacy: []);
+    await assertErrorsInCode('''
+var v = const <bool, int>{true: null};
+''', errors);
   }
 
   test_const_intString_dynamic() async {
@@ -181,12 +215,6 @@ var v = <bool, int>{...{true: 1}};
 ''');
   }
 
-  test_nonConst_spread_intNum() async {
-    await assertNoErrorsInCode('''
-var v = <int, int>{...<num, num>{1: 1}};
-''');
-  }
-
   test_nonConst_spread_intString() async {
     await assertErrorsInCode('''
 var v = <bool, int>{...{true: 'a'}};
@@ -199,6 +227,72 @@ var v = <bool, int>{...{true: 'a'}};
     await assertNoErrorsInCode('''
 const dynamic a = 'a';
 var v = <bool, int>{...{true: a}};
+''');
+  }
+}
+
+@reflectiveTest
+class MapValueTypeNotAssignableWithNoImplicitCastsTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
+  test_ifElement_falseBranch_value_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, dynamic a) {
+  <int, int>{if (c) 0: 0 else 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 61, 1),
+    ]);
+  }
+
+  test_ifElement_falseBranch_value_supertype() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, num a) {
+  <int, int>{if (c) 0: 0 else 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 57, 1),
+    ]);
+  }
+
+  test_ifElement_trueBranch_value_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, dynamic a) {
+  <int, int>{if (c) 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 51, 1),
+    ]);
+  }
+
+  test_ifElement_trueBranch_value_supertype() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, num a) {
+  <int, int>{if (c) 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 47, 1),
+    ]);
+  }
+
+  test_spread_value_supertype() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(Map<dynamic, num> a) {
+  <dynamic, int>{...a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 50, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class MapValueTypeNotAssignableWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, MapValueTypeNotAssignableTestCases {
+  test_nonConst_spread_intNum() async {
+    await assertNoErrorsInCode('''
+var v = <int, int>{...<num, num>{1: 1}};
 ''');
   }
 }

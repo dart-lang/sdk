@@ -1,0 +1,8 @@
+class C<X> {
+  C();
+  factory C.foo() => new C();
+}
+
+typedef A<X extends C<X>> = C<X>;
+foo() {}
+main() {}

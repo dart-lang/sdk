@@ -5,9 +5,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dartdev/dartdev.dart';
 import 'package:dartdev/src/analytics.dart';
 import 'package:test/test.dart';
 
+import 'experiment_util.dart';
 import 'utils.dart';
 
 List<Map> extractAnalytics(ProcessResult result) {
@@ -17,9 +19,55 @@ List<Map> extractAnalytics(ProcessResult result) {
       .toList();
 }
 
-void main() {
+Future<void> main() async {
   group('DisabledAnalytics', disabledAnalyticsObject);
 
+  group('VM -> CLI --analytics flag smoke test:', () {
+    final command = DartdevRunner(['--analytics']);
+    test('--analytics', () {
+      command.runCommand(command.parse(['--analytics']));
+      expect(command.analytics is! DisabledAnalytics, true);
+    });
+
+    test('--no-analytics', () {
+      command.runCommand(command.parse(['--no-analytics']));
+      expect(command.analytics is DisabledAnalytics, true);
+    });
+
+    test('No flag', () {
+      command.runCommand(command.parse([]));
+      expect(command.analytics is! DisabledAnalytics, true);
+    });
+  });
+
+  test('Analytics control smoke test', () {
+    final p = project(logAnalytics: true);
+    var result = p.runSync(['--disable-analytics']);
+    expect(result.stdout, contains('''
+  ╔════════════════════════════════════════════════════════════════════════════╗
+  ║ Analytics reporting disabled. In order to enable it, run:                  ║
+  ║                                                                            ║
+  ║   dart --enable-analytics                                                  ║
+  ║                                                                            ║
+  ╚════════════════════════════════════════════════════════════════════════════╝
+'''));
+
+    result = p.runSync(['--enable-analytics']);
+    expect(result.stdout, contains('''
+  ╔════════════════════════════════════════════════════════════════════════════╗
+  ║ The Dart tool uses Google Analytics to report feature usage statistics     ║
+  ║ and to send basic crash reports. This data is used to help improve the     ║
+  ║ Dart platform and tools over time.                                         ║
+  ║                                                                            ║
+  ║ To disable reporting of analytics, run:                                    ║
+  ║                                                                            ║
+  ║   dart --disable-analytics                                                 ║
+  ║                                                                            ║
+  ╚════════════════════════════════════════════════════════════════════════════╝
+'''));
+  });
+
+  final experiments = await experimentsWithValidation();
   group('Sending analytics', () {
     test('help', () {
       final p = project(logAnalytics: true);
@@ -180,42 +228,47 @@ void main() {
         }
       ]);
     });
-
-    test('run --enable-experiments', () {
-      final p = project(
-          mainSrc: 'void main(List<String> args) => print(args);',
-          logAnalytics: true);
-      final result = p.runSync([
-        'run',
-        '--enable-experiment=non-nullable',
-        'lib/main.dart',
-      ]);
-      expect(extractAnalytics(result), [
-        {
-          'hitType': 'screenView',
-          'message': {'viewName': 'run'}
-        },
-        {
-          'hitType': 'event',
-          'message': {
-            'category': 'dartdev',
-            'action': 'run',
-            'label': null,
-            'value': null,
-            'cd1': '0',
-            'cd2': ' non-nullable ',
+    group('run --enable-experiments', () {
+      for (final experiment in experiments) {
+        test(experiment.name, () {
+          final p = project(mainSrc: experiment.validation, logAnalytics: true);
+          {
+            for (final no in ['', 'no-']) {
+              final result = p.runSync([
+                'run',
+                '--enable-experiment=$no${experiment.name}',
+                'lib/main.dart',
+              ]);
+              expect(extractAnalytics(result), [
+                {
+                  'hitType': 'screenView',
+                  'message': {'viewName': 'run'}
+                },
+                {
+                  'hitType': 'event',
+                  'message': {
+                    'category': 'dartdev',
+                    'action': 'run',
+                    'label': null,
+                    'value': null,
+                    'cd1': '0',
+                    'cd2': ' $no${experiment.name} ',
+                  }
+                },
+                {
+                  'hitType': 'timing',
+                  'message': {
+                    'variableName': 'run',
+                    'time': isA<int>(),
+                    'category': 'commands',
+                    'label': null
+                  }
+                }
+              ]);
+            }
           }
-        },
-        {
-          'hitType': 'timing',
-          'message': {
-            'variableName': 'run',
-            'time': isA<int>(),
-            'category': 'commands',
-            'label': null
-          }
-        }
-      ]);
+        });
+      }
     });
 
     test('compile', () {

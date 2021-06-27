@@ -29,6 +29,11 @@ namespace dart {
   V(WriteBarrierWrappers)                                                      \
   V(ArrayWriteBarrier)                                                         \
   V(AllocateArray)                                                             \
+  V(AllocateMint)                                                              \
+  V(AllocateDouble)                                                            \
+  V(AllocateFloat32x4)                                                         \
+  V(AllocateFloat64x2)                                                         \
+  V(AllocateInt32x4)                                                           \
   V(AllocateInt8Array)                                                         \
   V(AllocateUint8Array)                                                        \
   V(AllocateUint8ClampedArray)                                                 \
@@ -45,6 +50,7 @@ namespace dart {
   V(AllocateFloat64x2Array)                                                    \
   V(AllocateMintSharedWithFPURegs)                                             \
   V(AllocateMintSharedWithoutFPURegs)                                          \
+  V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(AllocateObjectParameterized)                                               \
@@ -86,6 +92,7 @@ namespace dart {
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(AssertSubtype)                                                             \
+  V(AssertAssignable)                                                          \
   V(TypeIsTopTypeForSubtyping)                                                 \
   V(TypeIsTopTypeForSubtypingNullSafe)                                         \
   V(NullIsAssignableToType)                                                    \
@@ -125,10 +132,12 @@ namespace dart {
   V(ReThrow)                                                                   \
   V(AssertBoolean)                                                             \
   V(InstanceOf)                                                                \
+  V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
   V(InstantiateTypeArgumentsMayShareFunctionTA)                                \
-  V(NoSuchMethodDispatcher)
+  V(NoSuchMethodDispatcher)                                                    \
+  V(UnknownDartCode)
 
 }  // namespace dart
 

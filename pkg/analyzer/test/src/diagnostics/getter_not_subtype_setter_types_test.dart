@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class GetterNotSubtypeSetterTypesTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class GetterNotSubtypeSetterTypesTest extends PubPackageResolutionTest {
   test_class_instance() async {
     await assertErrorsInCode('''
 class C {

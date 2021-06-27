@@ -1,3 +1,4 @@
+// @dart = 2.9
 extension E<U> on String {
   U field1 = null;
   int field2 = () { U x = null; return null; }();

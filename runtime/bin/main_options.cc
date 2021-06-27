@@ -10,6 +10,7 @@
 
 #include "bin/dartdev_isolate.h"
 #include "bin/error_exit.h"
+#include "bin/file_system_watcher.h"
 #include "bin/options.h"
 #include "bin/platform.h"
 #include "bin/utils.h"
@@ -27,14 +28,20 @@ namespace dart {
 namespace bin {
 
 // These strings must match the enum SnapshotKind in main_options.h.
-static const char* kSnapshotKindNames[] = {
+static const char* const kSnapshotKindNames[] = {
     "none",
     "kernel",
     "app-jit",
     NULL,
 };
 
+// These strings must match the enum VerbosityLevel in main_options.h.
+static const char* const kVerbosityLevelNames[] = {
+    "error", "warning", "info", "all", nullptr,
+};
+
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
+VerbosityLevel Options::verbosity_ = kAll;
 bool Options::enable_vm_service_ = false;
 
 #define OPTION_FIELD(variable) Options::variable##_
@@ -141,11 +148,15 @@ void Options::PrintUsage() {
 "  all VM options).\n"
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
+"--define=<key>=<value> or -D<key>=<value>\n"
+"  Define an environment declaration. To specify multiple declarations,\n"
+"  use multiple instances of this option.\n"
 "--observe[=<port>[/<bind-address>]]\n"
 "  The observe flag is a convenience flag used to run a program with a\n"
 "  set of options which are often useful for debugging under Observatory.\n"
 "  These options are currently:\n"
 "      --enable-vm-service[=<port>[/<bind-address>]]\n"
+"      --serve-devtools\n"
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
@@ -174,11 +185,15 @@ void Options::PrintUsage() {
 "  all VM options).\n"
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
+"--define=<key>=<value> or -D<key>=<value>\n"
+"  Define an environment declaration. To specify multiple declarations,\n"
+"  use multiple instances of this option.\n"
 "--observe[=<port>[/<bind-address>]]\n"
 "  The observe flag is a convenience flag used to run a program with a\n"
 "  set of options which are often useful for debugging under Observatory.\n"
 "  These options are currently:\n"
 "      --enable-vm-service[=<port>[/<bind-address>]]\n"
+"      --serve-devtools\n"
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
@@ -404,6 +419,7 @@ bool Options::ParseArguments(int argc,
 
   bool enable_dartdev_analytics = false;
   bool disable_dartdev_analytics = false;
+  bool serve_devtools = true;
 
   // Parse out the vm options.
   while (i < argc) {
@@ -432,6 +448,12 @@ bool Options::ParseArguments(int argc,
         // It is irelevant for the vm.
         dart_options->AddArgument("--no-analytics");
         skipVmOption = true;
+      } else if (IsOption(argv[i], "serve-devtools")) {
+        serve_devtools = true;
+        skipVmOption = true;
+      } else if (IsOption(argv[i], "no-serve-devtools")) {
+        serve_devtools = false;
+        skipVmOption = true;
       }
       if (!skipVmOption) {
         temp_vm_options.AddArgument(argv[i]);
@@ -458,7 +480,12 @@ bool Options::ParseArguments(int argc,
   SSLCertContext::set_root_certs_cache(Options::root_certs_cache());
   SSLCertContext::set_long_ssl_cert_evaluation(
       Options::long_ssl_cert_evaluation());
+  SSLCertContext::set_bypass_trusting_system_roots(
+      Options::bypass_trusting_system_roots());
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)
+
+  FileSystemWatcher::set_delayed_filewatch_callback(
+      Options::delayed_filewatch_callback());
 
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
@@ -511,7 +538,8 @@ bool Options::ParseArguments(int argc,
     // The analytics flags are a special case as we don't have a target script
     // or DartDev command but we still want to launch DartDev.
     DartDevIsolate::set_should_run_dart_dev(true);
-
+    dart_options->AddArgument(enable_dartdev_analytics ? "--enable-analytics"
+                                                       : "--disable-analytics");
     return true;
   }
 
@@ -540,7 +568,8 @@ bool Options::ParseArguments(int argc,
     while (tmp_i < argc) {
       // Check if this flag is a potentially valid VM flag. If not, we've likely
       // hit a script name and are done parsing VM flags.
-      if (!OptionProcessor::IsValidFlag(argv[tmp_i])) {
+      if (!OptionProcessor::IsValidFlag(argv[tmp_i]) &&
+          !OptionProcessor::IsValidShortFlag(argv[tmp_i])) {
         break;
       }
       OptionProcessor::TryProcess(argv[tmp_i], vm_options);
@@ -555,6 +584,16 @@ bool Options::ParseArguments(int argc,
       // run command. If 'run' is provided, it will be the first argument
       // processed in this loop.
       dart_options->AddArgument("run");
+
+      // Ensure we can enable / disable DevTools when invoking 'dart run'
+      // implicitly.
+      if (enable_vm_service_) {
+        if (serve_devtools) {
+          dart_options->AddArgument("--serve-devtools");
+        } else {
+          dart_options->AddArgument("--no-serve-devtools");
+        }
+      }
     } else {
       dart_options->AddArgument(argv[i]);
       i++;
@@ -569,7 +608,7 @@ bool Options::ParseArguments(int argc,
         run_command = true;
       }
       if (!Options::disable_dart_dev() && enable_vm_service_ && run_command) {
-        const char* dds_format_str = "--launch-dds=%s:%d";
+        const char* dds_format_str = "--launch-dds=%s\\:%d";
         size_t size =
             snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),
                      vm_service_server_port());
@@ -589,6 +628,7 @@ bool Options::ParseArguments(int argc,
       first_option = false;
     }
   }
+
   // Verify consistency of arguments.
 
   // snapshot_depfile is an alias for depfile. Passing them both is an error.

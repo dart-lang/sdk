@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -29,6 +30,7 @@ void main() {
     defineReflectiveTests(UndefinedIdentifierTest);
     defineReflectiveTests(UndefinedMethodTest);
     defineReflectiveTests(UndefinedSetterTest);
+    defineReflectiveTests(WithConfigFileTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsConstructorTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsExtensionTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsMethodTest);
@@ -504,14 +506,23 @@ class NoProducerOverlapsTest {
     // action accidentally executing data-driven fixes.
 
     final dataDrivenCodes = <String>{};
+    final bulkFixCodes = FixProcessor.lintProducerMap.entries
+        .where((e) => e.value
+            .where((generator) => generator().canBeAppliedInBulk)
+            .isNotEmpty)
+        .map((e) => e.key);
     final nonDataDrivenCodes = <String>{
-      ...BulkFixProcessor.lintProducerMap.keys,
-      ...BulkFixProcessor.nonLintProducerMap.keys.map((c) => c.uniqueName),
+      ...bulkFixCodes,
+      ...FixProcessor.nonLintProducerMap.entries
+          .where((e) => e.value
+              .where((generator) => generator().canBeAppliedInBulk)
+              .isNotEmpty)
+          .map((e) => e.key.uniqueName),
     };
 
-    for (final code in BulkFixProcessor.nonLintMultiProducerMap.keys) {
-      for (final producerFunc
-          in BulkFixProcessor.nonLintMultiProducerMap[code]) {
+    for (final entry in BulkFixProcessor.nonLintMultiProducerMap.entries) {
+      var code = entry.key;
+      for (final producerFunc in entry.value) {
         final producer = producerFunc();
         if (producer is DataDriven) {
           dataDrivenCodes.add(code.uniqueName);
@@ -939,6 +950,44 @@ void f(C a, C b) {
 }
 ''');
   }
+
+  Future<void> test_rename_removed_onlyFixOne() async {
+    setPackageContent('''
+class A {
+  void n(int x) {}
+}
+class B {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    method: 'o'
+    inClass: 'A'
+  changes:
+    - kind: 'rename'
+      newName: 'n'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(A a, B b) {
+  a.o(0);
+  b.o(1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(A a, B b) {
+  a.n(0);
+  b.o(1);
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -1009,6 +1058,67 @@ void f(C a, C b) {
   a.new = b.new = 1;
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class WithConfigFileTest extends _DataDrivenTest {
+  @override
+  bool get useConfigFiles => true;
+
+  Future<void> test_bulkApply_withConfig() async {
+    setPackageContent('''
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2021-21-01
+  bulkApply: false
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    addSource('/home/test/lib/test.config', '''
+'Rename to New':
+  bulkApply: true
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f(Old p) {}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(New p) {}
+''');
+  }
+
+  Future<void> test_bulkApply_withoutConfig() async {
+    setPackageContent('''
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2021-21-01
+  bulkApply: false
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f(Old p) {}
+''');
+    await assertNoFix();
   }
 }
 

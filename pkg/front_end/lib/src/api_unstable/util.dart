@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-bool equalLists<T>(List<T> a, List<T> b) {
+bool equalLists<T>(List<T>? a, List<T>? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   if (a.length != b.length) return false;
@@ -12,7 +12,7 @@ bool equalLists<T>(List<T> a, List<T> b) {
   return true;
 }
 
-bool equalSets<K>(Set<K> a, Set<K> b) {
+bool equalSets<K>(Set<K>? a, Set<K>? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   if (a.length != b.length) return false;
@@ -22,7 +22,7 @@ bool equalSets<K>(Set<K> a, Set<K> b) {
   return true;
 }
 
-bool equalMaps<K, V>(Map<K, V> a, Map<K, V> b) {
+bool equalMaps<K, V>(Map<K, V>? a, Map<K, V>? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   if (a.length != b.length) return false;

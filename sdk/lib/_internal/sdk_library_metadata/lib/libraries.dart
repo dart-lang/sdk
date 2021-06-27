@@ -64,10 +64,7 @@ const Map<String, LibraryInfo> libraries = const {
       maturity: Maturity.UNSTABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/developer_patch.dart"),
   "ffi": const LibraryInfo("ffi/ffi.dart",
-      categories: "Server",
-      // TODO(dacoharkes): Update maturity when we release dart:ffi.
-      // https://github.com/dart-lang/sdk/issues/34452
-      maturity: Maturity.EXPERIMENTAL),
+      categories: "Server", maturity: Maturity.STABLE),
   "html": const LibraryInfo("html/dart2js/html_dart2js.dart",
       categories: "Client",
       maturity: Maturity.WEB_STABLE,
@@ -151,6 +148,8 @@ const Map<String, LibraryInfo> libraries = const {
       documented: false,
       dart2jsPatchPath: "_internal/js_runtime/lib/internal_patch.dart"),
   "_js_helper": const LibraryInfo("_internal/js_runtime/lib/js_helper.dart",
+      categories: "", documented: false, platforms: DART2JS_PLATFORM),
+  "_late_helper": const LibraryInfo("_internal/js_runtime/lib/late_helper.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_rti": const LibraryInfo("_internal/js_runtime/lib/rti.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),

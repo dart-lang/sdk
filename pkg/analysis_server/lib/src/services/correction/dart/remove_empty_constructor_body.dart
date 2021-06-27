@@ -11,18 +11,28 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveEmptyConstructorBody extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    await builder.addDartFileEdit(file, (builder) {
-      if (node is Block && node.parent is BlockFunctionBody) {
+    var parent = node.parent;
+    if (node is Block && parent is BlockFunctionBody) {
+      await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
-          utils.getLinesRange(range.node(node.parent)),
+          utils.getLinesRange(range.node(parent)),
           ';',
         );
-      }
-    });
+      });
+    }
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

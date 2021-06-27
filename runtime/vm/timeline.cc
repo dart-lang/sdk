@@ -32,14 +32,6 @@ DEFINE_FLAG(
     false,
     "Record the timeline to the platform's tracing service if there is one");
 DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
-DEFINE_FLAG(bool,
-            trace_timeline_analysis,
-            false,
-            "Trace timeline analysis backend");
-DEFINE_FLAG(bool,
-            timing,
-            false,
-            "Dump isolate timing information from timeline.");
 DEFINE_FLAG(charp,
             timeline_dir,
             NULL,
@@ -102,7 +94,7 @@ DEFINE_FLAG(charp,
 static TimelineEventRecorder* CreateTimelineRecorder() {
   // Some flags require that we use the endless recorder.
   const bool use_endless_recorder =
-      (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
+      (FLAG_timeline_dir != NULL) || FLAG_complete_timeline;
 
   const bool use_startup_recorder = FLAG_startup_timeline;
   const bool use_systrace_recorder = FLAG_systrace_timeline;
@@ -190,7 +182,7 @@ static void FreeEnabledByDefaultTimelineStreams(
 
 // Returns true if |streams| contains |stream| or "all". Not case sensitive.
 static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
-  if ((FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline ||
+  if ((FLAG_timeline_dir != NULL) || FLAG_complete_timeline ||
       FLAG_startup_timeline) {
     return true;
   }
@@ -230,6 +222,7 @@ void Timeline::Cleanup() {
   Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
+  Timeline::Clear();
   delete recorder_;
   recorder_ = NULL;
   if (enabled_streams_ != NULL) {
@@ -1137,6 +1130,7 @@ TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
 }
 
 TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
+  MutexLocker ml(&lock_);
   // Delete all blocks.
   for (intptr_t i = 0; i < num_blocks_; i++) {
     blocks_[i].Reset();
@@ -1333,16 +1327,7 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(nullptr), tail_(nullptr), block_index_(0) {}
 
-TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
-  TimelineEventBlock* current = head_;
-  head_ = tail_ = nullptr;
-
-  while (current != nullptr) {
-    TimelineEventBlock* next = current->next();
-    delete current;
-    current = next;
-  }
-}
+TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {}
 
 #ifndef PRODUCT
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
@@ -1424,6 +1409,7 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
 #endif
 
 void TimelineEventEndlessRecorder::Clear() {
+  MutexLocker ml(&lock_);
   TimelineEventBlock* current = head_;
   while (current != NULL) {
     TimelineEventBlock* next = current->next();
@@ -1431,9 +1417,8 @@ void TimelineEventEndlessRecorder::Clear() {
     current = next;
   }
   head_ = NULL;
+  tail_ = NULL;
   block_index_ = 0;
-  OSThread* thread = OSThread::Current();
-  thread->set_timeline_block(NULL);
 }
 
 TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
@@ -1524,7 +1509,7 @@ void TimelineEventBlock::Finish() {
   in_use_ = false;
 #ifndef PRODUCT
   if (Service::timeline_stream.enabled()) {
-    ServiceEvent service_event(NULL, ServiceEvent::kTimelineEvents);
+    ServiceEvent service_event(ServiceEvent::kTimelineEvents);
     service_event.set_timeline_event_block(this);
     Service::HandleEvent(&service_event);
   }

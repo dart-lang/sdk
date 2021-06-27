@@ -9,7 +9,7 @@ import '../modifier.dart';
 import 'builder.dart';
 
 abstract class ModifierBuilder implements Builder {
-  String get name;
+  String? get name;
 
   bool get isNative;
 }
@@ -21,16 +21,17 @@ abstract class ModifierBuilderImpl extends BuilderImpl
   String get debugName;
 
   @override
-  Builder parent;
+  Builder? parent;
 
   @override
   final int charOffset;
 
   @override
-  final Uri fileUri;
+  final Uri? fileUri;
 
-  ModifierBuilderImpl(this.parent, this.charOffset, [Uri fileUri])
-      : fileUri = fileUri ?? parent?.fileUri;
+  ModifierBuilderImpl(Builder? parent, this.charOffset, [Uri? fileUri])
+      : this.fileUri = fileUri ?? parent?.fileUri,
+        this.parent = parent;
 
   @override
   bool get isConst => (modifiers & constMask) != 0;

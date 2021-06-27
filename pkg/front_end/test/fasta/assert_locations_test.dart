@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 library fasta.test.assert_locations_test;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
@@ -100,7 +102,7 @@ void main() {}
 
 /// Visitor that verifies that all [AssertStatement]s in the Kernel AST
 /// have expected spans for their conditions.
-class VerifyingVisitor extends RecursiveVisitor<Null> {
+class VerifyingVisitor extends RecursiveVisitor {
   final Test test;
 
   /// Set of names of verified [Procedure]s.

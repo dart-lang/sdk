@@ -2,13 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler, getMessageUri;
 
 export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 export '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
+    show
+        CompilerOptions,
+        InvocationMode,
+        Verbosity,
+        parseExperimentalArguments,
+        parseExperimentalFlags;
 
 export '../api_prototype/experimental_flags.dart'
     show defaultExperimentalFlags, ExperimentalFlag;
@@ -29,7 +36,7 @@ export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 
 export '../api_prototype/terminal_color_support.dart'
-    show printDiagnosticMessage;
+    show printDiagnosticMessage, enableColors;
 
 export '../base/nnbd_mode.dart' show NnbdMode;
 
@@ -45,9 +52,14 @@ export '../fasta/fasta_codes.dart'
         LocatedMessage,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
+        messageFfiLeafCallMustNotReturnHandle,
+        messageFfiLeafCallMustNotTakeHandle,
+        messageFfiPackedAnnotationAlignment,
+        messageNonPositiveArrayDimensions,
         noLength,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,
+        templateFfiExpectedConstantArg,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
@@ -55,7 +67,12 @@ export '../fasta/fasta_codes.dart'
         templateFfiFieldCyclic,
         templateFfiFieldInitializer,
         templateFfiFieldNoAnnotation,
+        templateFfiFieldNull,
         templateFfiNotStatic,
+        templateFfiPackedAnnotation,
+        templateFfiPackedNestingNonPacked,
+        templateFfiSizeAnnotation,
+        templateFfiSizeAnnotationDimensions,
         templateFfiStructGeneric,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0
+
+- Migrate to null-safety.
+
+## 0.6.0
+
+- Update to latest args, path, meta dependency.
+
+## 0.5.6
+- Fix for flutter/flutter#76313 causing issues with profiles containing
+WSRs serialized as smi-s instead of actual WSR objects.=
+
 ## 0.5.5
 - Add `deps-display-depth` (`-d`) flag for `summary` command to make the display
 depth of outputted dependency trees configurable.

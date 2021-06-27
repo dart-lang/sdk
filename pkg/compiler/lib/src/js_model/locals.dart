@@ -22,14 +22,23 @@ class GlobalLocalsMap {
   /// debugging data stream.
   static const String tag = 'global-locals-map';
 
+  /// Lookup up the key used to store a LocalsMap for a member.
+  ///
+  /// While procedures are keyed by their own entity, closures use the
+  /// enclosing member as a key. This ensures that the member and all
+  /// nested closures share the same local map.
+  MemberEntity Function(MemberEntity) _localMapKeyLookup;
+
   final Map<MemberEntity, KernelToLocalsMap> _localsMaps;
 
-  GlobalLocalsMap() : _localsMaps = {};
+  GlobalLocalsMap(this._localMapKeyLookup) : _localsMaps = {};
 
-  GlobalLocalsMap.internal(this._localsMaps);
+  GlobalLocalsMap.internal(this._localMapKeyLookup, this._localsMaps);
 
   /// Deserializes a [GlobalLocalsMap] object from [source].
-  factory GlobalLocalsMap.readFromDataSource(DataSource source) {
+  factory GlobalLocalsMap.readFromDataSource(
+      MemberEntity Function(MemberEntity) localMapKeyLookup,
+      DataSource source) {
     source.begin(tag);
     Map<MemberEntity, KernelToLocalsMap> _localsMaps = {};
     int mapCount = source.readInt();
@@ -42,7 +51,7 @@ class GlobalLocalsMap {
       }
     }
     source.end(tag);
-    return new GlobalLocalsMap.internal(_localsMaps);
+    return new GlobalLocalsMap.internal(localMapKeyLookup, _localsMaps);
   }
 
   /// Serializes this [GlobalLocalsMap] to [sink].
@@ -68,26 +77,19 @@ class GlobalLocalsMap {
 
   /// Returns the [KernelToLocalsMap] for [member].
   KernelToLocalsMap getLocalsMap(MemberEntity member) {
-    // If element is a ConstructorBodyEntity, its localsMap is the same as for
+    // If [member] is a closure call method or closure signature method, its
+    // localsMap is the same as for the enclosing member since the locals are
+    // derived from the same kernel AST.
+    MemberEntity key = _localMapKeyLookup(member);
+    // If [member] is a ConstructorBodyEntity, its localsMap is the same as for
     // ConstructorEntity, because both of these entities came from the same
     // constructor node. The entities are two separate parts because JS does not
     // have the concept of an initializer list, so the constructor (initializer
     // list) and the constructor body are implemented as two separate
     // constructor steps.
-    MemberEntity entity = member;
-    if (entity is ConstructorBodyEntity) member = entity.constructor;
-    return _localsMaps.putIfAbsent(
-        member, () => new KernelToLocalsMapImpl(member));
-  }
-
-  /// Associates [localsMap] with [member].
-  ///
-  /// Use this for sharing maps between members that share IR nodes.
-  void setLocalsMap(MemberEntity member, KernelToLocalsMap localsMap) {
-    assert(member != null, "No member provided.");
-    assert(!_localsMaps.containsKey(member),
-        "Locals map already created for $member.");
-    _localsMaps[member] = localsMap;
+    MemberEntity entity = key;
+    if (entity is ConstructorBodyEntity) key = entity.constructor;
+    return _localsMaps.putIfAbsent(key, () => new KernelToLocalsMapImpl(key));
   }
 }
 
@@ -97,10 +99,8 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   static const String tag = 'locals-map';
 
   MemberEntity _currentMember;
-  final EntityDataMap<JLocal, LocalData> _locals =
-      new EntityDataMap<JLocal, LocalData>();
-  Map<ir.VariableDeclaration, JLocal> _variableMap =
-      <ir.VariableDeclaration, JLocal>{};
+  final EntityDataMap<JLocal, LocalData> _locals = EntityDataMap();
+  Map<ir.VariableDeclaration, JLocal> _variableMap;
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
   Iterable<ir.BreakStatement> _breaksAsContinue;
 
@@ -111,22 +111,25 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     source.begin(tag);
     _currentMember = source.readMember();
     int localsCount = source.readInt();
-    for (int i = 0; i < localsCount; i++) {
-      int index = source.readInt();
-      String name = source.readStringOrNull();
-      bool isRegularParameter = source.readBool();
-      ir.VariableDeclaration node = source.readTreeNode();
-      JLocal local = new JLocal(name, currentMember,
-          isRegularParameter: isRegularParameter);
-      LocalData data = new LocalData(node);
-      _locals.registerByIndex(index, local, data);
-      _variableMap[node] = local;
+    if (localsCount > 0) {
+      _variableMap = {};
+      for (int i = 0; i < localsCount; i++) {
+        int index = source.readInt();
+        String name = source.readStringOrNull();
+        bool isRegularParameter = source.readBool();
+        ir.VariableDeclaration node = source.readTreeNode();
+        JLocal local =
+            JLocal(name, currentMember, isRegularParameter: isRegularParameter);
+        LocalData data = LocalData(node);
+        _locals.registerByIndex(index, local, data);
+        _variableMap[node] = local;
+      }
     }
     int jumpCount = source.readInt();
     if (jumpCount > 0) {
       _jumpTargetMap = {};
       for (int i = 0; i < jumpCount; i++) {
-        JJumpTarget target = new JJumpTarget.readFromDataSource(source);
+        JJumpTarget target = JJumpTarget.readFromDataSource(source);
         List<ir.TreeNode> nodes = source.readTreeNodes();
         for (ir.TreeNode node in nodes) {
           _jumpTargetMap[node] = target;
@@ -134,6 +137,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
       }
     }
     _breaksAsContinue = source.readTreeNodes();
+    if (_breaksAsContinue.isEmpty) _breaksAsContinue = const [];
     source.end(tag);
   }
 
@@ -175,7 +179,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   // TODO(johnniwinther): Compute this eagerly from the root of the member.
   void _ensureJumpMap(ir.TreeNode node) {
     if (_jumpTargetMap == null) {
-      JumpVisitor visitor = new JumpVisitor(currentMember);
+      JumpVisitor visitor = JumpVisitor(currentMember);
 
       // Find the root node for the current member.
       while (node is! ir.Member) {
@@ -260,21 +264,21 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   Local getLocalVariable(ir.VariableDeclaration node) {
-    return _variableMap.putIfAbsent(node, () {
-      JLocal local = new JLocal(node.name, currentMember,
+    final variableMap = _variableMap ??= {};
+    return variableMap.putIfAbsent(node, () {
+      JLocal local = JLocal(node.name, currentMember,
           isRegularParameter: node.parent is ir.FunctionNode);
-      _locals.register<JLocal, LocalData>(local, new LocalData(node));
+      _locals.register<JLocal, LocalData>(local, LocalData(node));
       return local;
     });
   }
 
   @override
-  Local getLocalTypeVariable(
-      ir.TypeParameterType node, JsToElementMap elementMap) {
+  Local getLocalTypeVariableEntity(TypeVariableEntity typeVariable) {
     // TODO(efortuna, johnniwinther): We're not registering the type variables
     // like we are for the variable declarations. Is that okay or do we need to
     // make TypeVariableLocal a JLocal?
-    return new TypeVariableLocal(elementMap.getTypeVariableType(node).element);
+    return TypeVariableLocal(typeVariable);
   }
 
   @override
@@ -288,13 +292,12 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 }
 
-class JumpVisitor extends ir.Visitor {
+class JumpVisitor extends ir.Visitor<void> with ir.VisitorVoidMixin {
   int jumpIndex = 0;
   int labelIndex = 0;
   final MemberEntity member;
-  final Map<ir.TreeNode, JJumpTarget> jumpTargetMap =
-      <ir.TreeNode, JJumpTarget>{};
-  final Set<ir.BreakStatement> breaksAsContinue = new Set<ir.BreakStatement>();
+  final Map<ir.TreeNode, JJumpTarget> jumpTargetMap = {};
+  final Set<ir.BreakStatement> breaksAsContinue = {};
 
   JumpVisitor(this.member);
 

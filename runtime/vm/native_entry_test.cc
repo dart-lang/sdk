@@ -62,7 +62,7 @@ void TestNonNullSmiSum(Dart_NativeArguments args) {
     Dart_Handle arg = Dart_GetNativeArgument(args, i);
     GET_NATIVE_ARGUMENT(Integer, argument, arguments->NativeArgAt(i));
     EXPECT(argument.IsInteger());                       // May be null.
-    EXPECT_EQ(Api::UnwrapHandle(arg), argument.raw());  // May be null.
+    EXPECT_EQ(Api::UnwrapHandle(arg), argument.ptr());  // May be null.
     int64_t arg_value = -1;
     if (argument.IsNull()) {
       EXPECT_ERROR(Dart_IntegerToInt64(arg, &arg_value),

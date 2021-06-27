@@ -32,9 +32,11 @@ class MyWidget extends StatelessWidget {
   final int b;
   final int c;
 
-  MyWidget({Key key, this.a}) : super(key: key);
+  MyWidget({required Key key, required this.a}) : super(key: key);
 }
 ''');
+    // TODO(brianwilkerson) The result should include `required` for the new
+    //  parameters, but I'm omitting them to match the current behavior.
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
 
@@ -43,7 +45,7 @@ class MyWidget extends StatelessWidget {
   final int b;
   final int c;
 
-  MyWidget({Key key, this.a, this.b, this.c}) : super(key: key);
+  MyWidget({required Key key, required this.a, this.b, this.c}) : super(key: key);
 }
 ''');
   }
@@ -92,7 +94,7 @@ class Test {
   final int a;
   final int b;
   final int c;
-  Test([this.c]);
+  Test([this.c = 0]);
 }
 ''');
     await assertHasFix('''
@@ -100,7 +102,7 @@ class Test {
   final int a;
   final int b;
   final int c;
-  Test(this.a, this.b, [this.c]);
+  Test(this.a, this.b, [this.c = 0]);
 }
 ''');
   }
@@ -109,7 +111,7 @@ class Test {
     await resolveTestCode('''
 class Test {
   final int a;
-  int b;
+  int b = 0;
   final int c;
   Test();
 }
@@ -117,7 +119,7 @@ class Test {
     await assertHasFix('''
 class Test {
   final int a;
-  int b;
+  int b = 0;
   final int c;
   Test(this.a, this.c);
 }

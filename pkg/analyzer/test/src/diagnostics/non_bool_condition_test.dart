@@ -10,12 +10,14 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolConditionTest);
+    defineReflectiveTests(NonBoolConditionWithNoImplicitCastsTest);
     defineReflectiveTests(NonBoolConditionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class NonBoolConditionTest extends PubPackageResolutionTest {
+class NonBoolConditionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_conditional() async {
     await assertErrorsInCode('''
 f() { return 3 ? 2 : 1; }
@@ -107,8 +109,51 @@ f() {
 }
 
 @reflectiveTest
-class NonBoolConditionWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class NonBoolConditionWithNoImplicitCastsTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
+  test_map_ifElement_condition_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(dynamic c) {
+  <int, int>{if (c) 0: 0};
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 37, 1),
+    ]);
+  }
+
+  test_map_ifElement_condition_object() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(Object c) {
+  <int, int>{if (c) 0: 0};
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 36, 1),
+    ]);
+  }
+
+  test_set_ifElement_condition_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(dynamic c) {
+  <int>{if (c) 0};
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 1),
+    ]);
+  }
+
+  test_set_ifElement_condition_object() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(Object c) {
+  <int>{if (c) 0};
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolConditionWithNullSafetyTest extends PubPackageResolutionTest {
   test_if_null() async {
     await assertErrorsInCode(r'''
 m() {

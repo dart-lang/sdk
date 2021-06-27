@@ -22,7 +22,7 @@ class LspClientConfiguration {
 
   bool get completeFunctionCalls => _settings['completeFunctionCalls'] ?? false;
   bool get enableSdkFormatter => _settings['enableSdkFormatter'] ?? true;
-  int get lineLength => _settings['lineLength'];
+  int? get lineLength => _settings['lineLength'];
 
   /// A preview flag for enabling commit characters for completions.
   ///

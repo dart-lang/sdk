@@ -143,7 +143,7 @@ DEFINE_NATIVE_ENTRY(Integer_greaterThanFromInteger, 0, 2) {
     OS::PrintErr("Integer_greaterThanFromInteger %s > %s\n", left.ToCString(),
                  right.ToCString());
   }
-  return Bool::Get(left.CompareWith(right) == 1).raw();
+  return Bool::Get(left.CompareWith(right) == 1).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 0, 2) {
@@ -155,7 +155,7 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 0, 2) {
     OS::PrintErr("Integer_equalToInteger %s == %s\n", left.ToCString(),
                  right.ToCString());
   }
-  return Bool::Get(left.CompareWith(right) == 0).raw();
+  return Bool::Get(left.CompareWith(right) == 0).ptr();
 }
 
 static IntegerPtr ParseInteger(const String& value) {
@@ -194,12 +194,12 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 0, 3) {
     const Integer& result = Integer::Handle(ParseInteger(env_value));
     if (!result.IsNull()) {
       if (result.IsSmi()) {
-        return result.raw();
+        return result.ptr();
       }
       return result.Canonicalize(thread);
     }
   }
-  return default_value.raw();
+  return default_value.ptr();
 }
 
 static IntegerPtr ShiftOperationHelper(Token::Kind kind,
@@ -224,6 +224,19 @@ DEFINE_NATIVE_ENTRY(Integer_shrFromInteger, 0, 2) {
   return ShiftOperationHelper(Token::kSHR, value, amount);
 }
 
+DEFINE_NATIVE_ENTRY(Integer_ushrFromInteger, 0, 2) {
+  const Integer& amount =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, value, arguments->NativeArgAt(1));
+  ASSERT(CheckInteger(amount));
+  ASSERT(CheckInteger(value));
+  if (FLAG_trace_intrinsified_natives) {
+    OS::PrintErr("Integer_ushrFromInteger: %s >>> %s\n", value.ToCString(),
+                 amount.ToCString());
+  }
+  return ShiftOperationHelper(Token::kUSHR, value, amount);
+}
+
 DEFINE_NATIVE_ENTRY(Integer_shlFromInteger, 0, 2) {
   const Integer& amount =
       Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -235,18 +248,6 @@ DEFINE_NATIVE_ENTRY(Integer_shlFromInteger, 0, 2) {
                  amount.ToCString());
   }
   return ShiftOperationHelper(Token::kSHL, value, amount);
-}
-
-DEFINE_NATIVE_ENTRY(Smi_bitAndFromSmi, 0, 2) {
-  const Smi& left = Smi::CheckedHandle(zone, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, right, arguments->NativeArgAt(1));
-  if (FLAG_trace_intrinsified_natives) {
-    OS::PrintErr("Smi_bitAndFromSmi %s & %s\n", left.ToCString(),
-                 right.ToCString());
-  }
-  const Smi& left_value = Smi::Cast(left);
-  const Smi& right_value = Smi::Cast(right);
-  return Smi::New(left_value.Value() & right_value.Value());
 }
 
 DEFINE_NATIVE_ENTRY(Smi_bitNegate, 0, 1) {

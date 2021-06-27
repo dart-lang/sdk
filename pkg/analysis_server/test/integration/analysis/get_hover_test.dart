@@ -19,7 +19,7 @@ void main() {
 class AnalysisGetHoverIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   /// Pathname of the file containing Dart code.
-  String pathname;
+  late String pathname;
 
   /// Dart code under test.
   final String text = r'''
@@ -53,17 +53,17 @@ main() {
   /// literal value.  [parameterRegexps] means is a set of regexps which should
   /// match the hover parameters.  [propagatedType], if specified, is the
   /// expected propagated type of the element.
-  Future<AnalysisGetHoverResult> checkHover(
+  Future<AnalysisGetHoverResult?> checkHover(
     String target,
     int length,
-    List<String> descriptionRegexps,
-    String kind,
-    List<String> staticTypeRegexps, {
+    List<String>? descriptionRegexps,
+    String? kind,
+    List<String>? staticTypeRegexps, {
     bool isLocal = false,
     bool isCore = false,
-    String docRegexp,
+    String? docRegexp,
     bool isLiteral = false,
-    List<String> parameterRegexps,
+    List<String>? parameterRegexps,
   }) {
     var offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) async {
@@ -72,7 +72,7 @@ main() {
       expect(info.offset, equals(offset));
       expect(info.length, equals(length));
       if (isCore) {
-        expect(path.basename(info.containingLibraryPath), equals('core.dart'));
+        expect(path.basename(info.containingLibraryPath!), equals('core.dart'));
         expect(info.containingLibraryName, equals('dart:core'));
       } else if (isLocal || isLiteral) {
         expect(info.containingLibraryPath, isNull);

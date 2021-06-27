@@ -4,6 +4,8 @@
 //
 // Almost valid string interpolation syntax.
 
+// @dart = 2.9
+
 main() {
   var x;
 

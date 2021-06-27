@@ -69,6 +69,9 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
   }
 
   @override
+  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
+
+  @override
   Future<bool> exists() async {
     try {
       api.Input input = await fs.inputProvider
@@ -78,6 +81,9 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
       return false;
     }
   }
+
+  @override
+  Future<bool> existsAsyncIfPossible() => exists();
 }
 
 /// Report a [message] received from the front-end, using dart2js's
@@ -115,6 +121,9 @@ void reportFrontEndMessage(
       break;
     case fe.Severity.warning:
       reporter.reportWarning(mainMessage, infos);
+      break;
+    case fe.Severity.info:
+      reporter.reportInfo(mainMessage, infos);
       break;
     default:
       throw new UnimplementedError('unhandled severity ${message.severity}');

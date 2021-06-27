@@ -502,6 +502,113 @@ void f(PointerHoverEvent event) {
   }
 
   Future<void>
+      test_gestures_VelocityTracker_unnamedConstructor_withArg_deprecated() async {
+    setPackageContent('''
+class VelocityTracker {
+  @deprecated
+  VelocityTracker([PointerDeviceKind kind = PointerDeviceKind.touch]);
+  VelocityTracker.withKind(PointerDeviceKind kind);
+}
+class PointerDeviceKind {
+  static PointerDeviceKind mouse = PointerDeviceKind();
+  static PointerDeviceKind touch = PointerDeviceKind();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Use withKind"
+    date: 2020-09-17
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'VelocityTracker'
+    oneOf:
+      - if: "pointerDeviceKind == ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+          - kind: 'addParameter'
+            index: 0
+            name: 'kind'
+            style: required_positional
+            argumentValue:
+              expression: 'PointerDeviceKind.touch'
+      - if: "pointerDeviceKind != ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+    variables:
+      pointerDeviceKind:
+        kind: 'fragment'
+        value: 'arguments[0]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker(PointerDeviceKind.mouse);
+''');
+    await assertHasFix('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker.withKind(PointerDeviceKind.mouse);
+''');
+  }
+
+  Future<void>
+      test_gestures_VelocityTracker_unnamedConstructor_withoutArg_deprecated() async {
+    setPackageContent('''
+class VelocityTracker {
+  @deprecated
+  VelocityTracker([PointerDeviceKind kind = PointerDeviceKind.touch]);
+  VelocityTracker.withKind(PointerDeviceKind kind);
+}
+class PointerDeviceKind {
+  static PointerDeviceKind touch = PointerDeviceKind();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Use withKind"
+    date: 2020-09-17
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'VelocityTracker'
+    oneOf:
+      - if: "pointerDeviceKind == ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+          - kind: 'addParameter'
+            index: 0
+            name: 'kind'
+            style: required_positional
+            argumentValue:
+              expression: 'PointerDeviceKind.touch'
+      - if: "pointerDeviceKind != ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+    variables:
+      pointerDeviceKind:
+        kind: 'fragment'
+        value: 'arguments[0]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker();
+''');
+    await assertHasFix('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker.withKind(PointerDeviceKind.touch);
+''');
+  }
+
+  Future<void>
       test_material_BottomNavigationBarItem_unnamedConstructor_deprecated() async {
     setPackageContent('''
 class BottomNavigationBarItem {
@@ -1045,7 +1152,6 @@ void f(BuildContext context) {
     await assertNoFix();
   }
 
-  @failingTest
   Future<void> test_material_Scaffold_of_wrongType() async {
     setPackageContent('''
 class Theme {
@@ -2523,6 +2629,152 @@ import '$importUri';
 
 void f(ScrollPosition position) {
   position.jumpTo(0.5);
+}
+''');
+  }
+
+  Future<void> test_widgets_Stack_overflow_clip() async {
+    setPackageContent('''
+class Stack {
+  const Stack({
+    @deprecated Overflow overflow: Overflow.clip,
+    Clip clipBehavior: Clip.hardEdge,
+    List<Widget> children: const <Widget>[]});
+}
+class Overflow {
+  static const Overflow clip = Overflow();
+  static const Overflow visible = Overflow();
+  const Overflow();
+}
+class Clip {
+  static const Clip hardEdge = Clip();
+  static const Clip none = Clip();
+  const Clip();
+}
+class Widget {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to 'clipBehavior'"
+    date: 2020-09-22
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'Stack'
+    oneOf:
+      - if: "overflow == 'Overflow.clip'"
+        changes:
+          - kind: 'addParameter'
+            index: 0
+            name: 'clipBehavior'
+            style: optional_named
+            argumentValue:
+              expression: 'Clip.hardEdge'
+              requiredIf: "overflow == 'Overflow.clip'"
+          - kind: 'removeParameter'
+            name: 'overflow'
+      - if: "overflow == 'Overflow.visible'"
+        changes:
+          - kind: 'addParameter'
+            index: 0
+            name: 'clipBehavior'
+            style: optional_named
+            argumentValue:
+              expression: 'Clip.none'
+              requiredIf: "overflow == 'Overflow.visible'"
+          - kind: 'removeParameter'
+            name: 'overflow'
+    variables:
+      overflow:
+        kind: 'fragment'
+        value: 'arguments[overflow]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  const Stack(overflow: Overflow.clip, children: []);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  const Stack(clipBehavior: Clip.hardEdge, children: []);
+}
+''');
+  }
+
+  Future<void> test_widgets_Stack_overflow_visible() async {
+    setPackageContent('''
+class Stack {
+  const Stack({
+    @deprecated Overflow overflow: Overflow.clip,
+    Clip clipBehavior: Clip.hardEdge,
+    List<Widget> children: const <Widget>[]});
+}
+class Overflow {
+  static const Overflow clip = Overflow();
+  static const Overflow visible = Overflow();
+  const Overflow();
+}
+class Clip {
+  static const Clip hardEdge = Clip();
+  static const Clip none = Clip();
+  const Clip();
+}
+class Widget {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to 'clipBehavior'"
+    date: 2020-09-22
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'Stack'
+    oneOf:
+      - if: "overflow == 'Overflow.clip'"
+        changes:
+          - kind: 'addParameter'
+            index: 0
+            name: 'clipBehavior'
+            style: optional_named
+            argumentValue:
+              expression: 'Clip.hardEdge'
+              requiredIf: "overflow == 'Overflow.clip'"
+          - kind: 'removeParameter'
+            name: 'overflow'
+      - if: "overflow == 'Overflow.visible'"
+        changes:
+          - kind: 'addParameter'
+            index: 0
+            name: 'clipBehavior'
+            style: optional_named
+            argumentValue:
+              expression: 'Clip.none'
+              requiredIf: "overflow == 'Overflow.visible'"
+          - kind: 'removeParameter'
+            name: 'overflow'
+    variables:
+      overflow:
+        kind: 'fragment'
+        value: 'arguments[overflow]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  const Stack(overflow: Overflow.visible, children: []);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  const Stack(clipBehavior: Clip.none, children: []);
 }
 ''');
   }

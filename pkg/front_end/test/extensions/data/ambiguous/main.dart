@@ -5,13 +5,13 @@
 // @dart = 2.9
 
 /*library: scope=[
- lib1.dart.AmbiguousExtension1,
- lib1.dart.AmbiguousExtension2,
- lib1.dart.UnambiguousExtension1,
- lib2.dart.AmbiguousExtension1,
- lib2.dart.AmbiguousExtension2,
- lib2.dart.UnambiguousExtension2]
-*/
+  async.dart.FutureExtensions,
+  lib1.dart.AmbiguousExtension1,
+  lib1.dart.AmbiguousExtension2,
+  lib1.dart.UnambiguousExtension1,
+  lib2.dart.AmbiguousExtension1,
+  lib2.dart.AmbiguousExtension2,
+  lib2.dart.UnambiguousExtension2]*/
 
 import 'lib1.dart';
 import 'lib2.dart';

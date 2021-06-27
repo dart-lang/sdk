@@ -174,10 +174,10 @@ class FakeFlutter {\r
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  Widget bar = Text('');
 }
 
-main(Foo foo) {
+Widget f(Foo foo) {
   return foo./*caret*/bar;
 }
 ''');
@@ -185,10 +185,10 @@ main(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  Widget bar = Text('');
 }
 
-main(Foo foo) {
+Widget f(Foo foo) {
   return widget(child: foo.bar);
 }
 ''');
@@ -199,10 +199,10 @@ main(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  Widget bar = Text('');
 }
 
-main(Foo foo) {
+Widget f(Foo foo) {
   return /*caret*/foo.bar;
 }
 ''');
@@ -210,10 +210,10 @@ main(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  Widget bar = Text('');
 }
 
-main(Foo foo) {
+Widget f(Foo foo) {
   return widget(child: foo.bar);
 }
 ''');

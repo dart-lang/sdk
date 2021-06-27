@@ -81,19 +81,17 @@ abstract class _BroadcastStreamController<T>
   // Extra state used during an [addStream] call.
   _AddStreamState<T>? _addStreamState;
 
-  /**
-   * Future returned by [close] and [done].
-   *
-   * The future is completed whenever the done event has been sent to all
-   * relevant listeners.
-   * The relevant listeners are the ones that were listening when [close] was
-   * called. When all of these have been canceled (sending the done event makes
-   * them cancel, but they can also be canceled before sending the event),
-   * this future completes.
-   *
-   * Any attempt to listen after calling [close] will throw, so there won't
-   * be any further listeners.
-   */
+  /// Future returned by [close] and [done].
+  ///
+  /// The future is completed whenever the done event has been sent to all
+  /// relevant listeners.
+  /// The relevant listeners are the ones that were listening when [close] was
+  /// called. When all of these have been canceled (sending the done event makes
+  /// them cancel, but they can also be canceled before sending the event),
+  /// this future completes.
+  ///
+  /// Any attempt to listen after calling [close] will throw, so there won't
+  /// be any further listeners.
   _Future<void>? _doneFuture;
 
   _BroadcastStreamController(this.onListen, this.onCancel)
@@ -127,28 +125,24 @@ abstract class _BroadcastStreamController<T>
 
   bool get isClosed => (_state & _STATE_CLOSED) != 0;
 
-  /**
-   * A broadcast controller is never paused.
-   *
-   * Each receiving stream may be paused individually, and they handle their
-   * own buffering.
-   */
+  /// A broadcast controller is never paused.
+  ///
+  /// Each receiving stream may be paused individually, and they handle their
+  /// own buffering.
   bool get isPaused => false;
 
-  /** Whether there are currently one or more subscribers. */
+  /// Whether there are currently one or more subscribers.
   bool get hasListener => !_isEmpty;
 
-  /**
-   * Test whether the stream has exactly one listener.
-   *
-   * Assumes that the stream has a listener (not [_isEmpty]).
-   */
+  /// Test whether the stream has exactly one listener.
+  ///
+  /// Assumes that the stream has a listener (not [_isEmpty]).
   bool get _hasOneListener {
     assert(!_isEmpty);
     return identical(_firstSubscription, _lastSubscription);
   }
 
-  /** Whether an event is being fired (sent to some, but not all, listeners). */
+  /// Whether an event is being fired (sent to some, but not all, listeners).
   bool get _isFiring => (_state & _STATE_FIRING) != 0;
 
   bool get _isAddingStream => (_state & _STATE_ADDSTREAM) != 0;
@@ -161,7 +155,7 @@ abstract class _BroadcastStreamController<T>
 
   bool get _isEmpty => _firstSubscription == null;
 
-  /** Adds subscription to linked list of active listeners. */
+  /// Adds subscription to linked list of active listeners.
   void _addListener(_BroadcastSubscription<T> subscription) {
     assert(identical(subscription._next, subscription));
     subscription._eventState = (_state & _STATE_EVENT_ID);
@@ -448,17 +442,15 @@ class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
   }
 }
 
-/**
- * Stream controller that is used by [Stream.asBroadcastStream].
- *
- * This stream controller allows incoming events while it is firing
- * other events. This is handled by delaying the events until the
- * current event is done firing, and then fire the pending events.
- *
- * This class extends [_SyncBroadcastStreamController]. Events of
- * an "asBroadcastStream" stream are always initiated by events
- * on another stream, and it is fine to forward them synchronously.
- */
+/// Stream controller that is used by [Stream.asBroadcastStream].
+///
+/// This stream controller allows incoming events while it is firing
+/// other events. This is handled by delaying the events until the
+/// current event is done firing, and then fire the pending events.
+///
+/// This class extends [_SyncBroadcastStreamController]. Events of
+/// an "asBroadcastStream" stream are always initiated by events
+/// on another stream, and it is fine to forward them synchronously.
 class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
     implements _EventDispatch<T> {
   _StreamImplEvents<T>? _pending;

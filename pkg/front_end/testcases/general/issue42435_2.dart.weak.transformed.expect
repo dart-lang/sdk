@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue42435_2.dart:3:27: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// typedef AAlias = Function<X extends A>();
+//                           ^
+// pkg/front_end/testcases/general/issue42435_2.dart:1:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef AAlias = <X extends self::A<self::A<dynamic>> = dynamic>() → dynamic;
+class A<X extends self::A<self::A::X> = self::A<dynamic>> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

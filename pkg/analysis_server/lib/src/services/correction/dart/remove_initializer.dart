@@ -11,24 +11,40 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveInitializer extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_INITIALIZER;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_INITIALIZER_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var parameter = node.thisOrAncestorOfType<DefaultFormalParameter>();
     if (parameter != null) {
       // Handle formal parameters with default values.
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(
-            range.endEnd(parameter.identifier, parameter.defaultValue));
-      });
+      var identifier = parameter.identifier;
+      var defaultValue = parameter.defaultValue;
+      if (identifier != null && defaultValue != null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(
+            range.endEnd(identifier, defaultValue),
+          );
+        });
+      }
     } else {
       // Handle variable declarations with default values.
       var variable = node.thisOrAncestorOfType<VariableDeclaration>();
-      if (variable != null) {
+      var initializer = variable?.initializer;
+      if (variable != null && initializer != null) {
         await builder.addDartFileEdit(file, (builder) {
-          builder
-              .addDeletion(range.endEnd(variable.name, variable.initializer));
+          builder.addDeletion(
+            range.endEnd(variable.name, initializer),
+          );
         });
       }
     }

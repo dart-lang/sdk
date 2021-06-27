@@ -70,7 +70,6 @@ void testBAndC(Env env) {
   Expect.isFalse(bZBound.isOriginalDeclaration);
   Expect.isFalse(cZBound.isOriginalDeclaration);
 
-  Expect.notEquals(bZBound, cZBound);
   Expect.equals(b, bZBound.originalDeclaration);
   Expect.equals(b, cZBound.originalDeclaration);
 
@@ -83,10 +82,7 @@ void testBAndC(Env env) {
   Expect.equals(c, cZ.owner);
   Expect.equals(b, bZBoundTypeVariable.owner);
   Expect.equals(b, cZBoundTypeVariable.owner);
-  Expect.equals(b, bZBoundTypeArgument.owner);
-  Expect.equals(c, cZBoundTypeArgument.owner);
 
-  Expect.notEquals(bZ, cZ);
   Expect.equals(bZ, bZBoundTypeArgument);
   Expect.equals(cZ, cZBoundTypeArgument);
   Expect.equals(bZ, bZBoundTypeVariable);
@@ -100,9 +96,6 @@ testD(Env env) {
   values.forEach((e) {
     Expect.equals(true, e is TypeVariableMirror);
   });
-  Expect.equals(#R, values.elementAt(0).simpleName);
-  Expect.equals(#S, values.elementAt(1).simpleName);
-  Expect.equals(#T, values.elementAt(2).simpleName);
 }
 
 void testE(Env env) {

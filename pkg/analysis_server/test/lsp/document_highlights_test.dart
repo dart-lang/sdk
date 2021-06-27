@@ -118,7 +118,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     if (expectedRanges.isEmpty) {
       expect(highlights, isNull);
     } else {
-      final highlightRanges = highlights.map((h) => h.range).toList();
+      final highlightRanges = highlights!.map((h) => h.range).toList();
       expect(highlightRanges, equals(expectedRanges));
     }
   }

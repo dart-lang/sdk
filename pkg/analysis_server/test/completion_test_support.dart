@@ -7,17 +7,18 @@ import 'dart:collection';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
-import 'domain_completion_test.dart';
+import 'domain_completion_util.dart';
 
 /// A base class for classes containing completion tests.
-class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
+class CompletionTestCase extends AbstractCompletionDomainTest {
   static const String CURSOR_MARKER = '!';
 
   List get suggestedCompletions => suggestions
       .map((CompletionSuggestion suggestion) => suggestion.completion)
       .toList();
 
-  void assertHasCompletion(String completion) {
+  void assertHasCompletion(String completion,
+      {ElementKind? elementKind, bool? isDeprecated}) {
     var expectedOffset = completion.indexOf(CURSOR_MARKER);
     if (expectedOffset >= 0) {
       if (completion.contains(CURSOR_MARKER, expectedOffset + 1)) {
@@ -28,8 +29,8 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
     } else {
       expectedOffset = completion.length;
     }
-    CompletionSuggestion matchingSuggestion;
-    suggestions.forEach((CompletionSuggestion suggestion) {
+    CompletionSuggestion? matchingSuggestion;
+    for (var suggestion in suggestions) {
       if (suggestion.completion == completion) {
         if (matchingSuggestion == null) {
           matchingSuggestion = suggestion;
@@ -45,12 +46,18 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
               "Expected exactly one '$completion' but found multiple:\n  $suggestedCompletions");
         }
       }
-    });
+    }
     if (matchingSuggestion == null) {
       fail("Expected '$completion' but found none:\n  $suggestedCompletions");
     }
     expect(matchingSuggestion.selectionOffset, equals(expectedOffset));
     expect(matchingSuggestion.selectionLength, equals(0));
+    if (elementKind != null) {
+      expect(matchingSuggestion.element!.kind, elementKind);
+    }
+    if (isDeprecated != null) {
+      expect(matchingSuggestion.isDeprecated, isDeprecated);
+    }
   }
 
   void assertHasNoCompletion(String completion) {
@@ -65,14 +72,14 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
   /// "already typed".
   void filterResults(String content) {
     var charsAlreadyTyped =
-        content.substring(replacementOffset, completionOffset).toLowerCase();
+        content.substring(replacementOffset!, completionOffset).toLowerCase();
     suggestions = suggestions
         .where((CompletionSuggestion suggestion) =>
             suggestion.completion.toLowerCase().startsWith(charsAlreadyTyped))
         .toList();
   }
 
-  Future runTest(LocationSpec spec, [Map<String, String> extraFiles]) {
+  Future runTest(LocationSpec spec, [Map<String, String>? extraFiles]) {
     super.setUp();
     return Future(() {
       var content = spec.source;
@@ -104,7 +111,7 @@ class LocationSpec {
   int testLocation = -1;
   List<String> positiveResults = <String>[];
   List<String> negativeResults = <String>[];
-  String source;
+  late String source;
 
   LocationSpec(this.id);
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that branch fusion correctly sets branch environment for comparisons
 // that require unboxing and does not fuse branches that can deoptimize.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation

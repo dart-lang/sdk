@@ -4,6 +4,8 @@
 //
 // VMOptions=--enable_asserts --optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 import 'regress_27671_other.dart';
 

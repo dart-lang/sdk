@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 /// Map the URI to a WebSocket URI for the VM service protocol.
 ///
 /// If the URI is already a VM Service WebSocket URI it will not be modified.
-Uri convertToWebSocketUrl({@required Uri serviceProtocolUrl}) {
+Uri convertToWebSocketUrl({required Uri serviceProtocolUrl}) {
   final isSecure = serviceProtocolUrl.isScheme('wss') ||
       serviceProtocolUrl.isScheme('https');
   final scheme = isSecure ? 'wss' : 'ws';

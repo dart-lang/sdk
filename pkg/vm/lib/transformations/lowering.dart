@@ -11,6 +11,7 @@ import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
 import 'package:vm/transformations/specializer/factory_specializer.dart';
 import 'late_var_init_transformer.dart' show LateVarInitTransformer;
+import 'list_literals_lowering.dart' show ListLiteralsLowering;
 
 /// VM-specific lowering transformations and optimizations combined into a
 /// single transformation pass.
@@ -23,11 +24,18 @@ void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
   libraries.forEach(transformer.visitLibrary);
 }
 
+void transformProcedure(Procedure procedure, CoreTypes coreTypes,
+    ClassHierarchy hierarchy, bool nullSafety) {
+  final transformer = _Lowering(coreTypes, hierarchy, nullSafety);
+  procedure.accept(transformer);
+}
+
 class _Lowering extends Transformer {
   final TypeEnvironment env;
   final bool nullSafety;
   final LateVarInitTransformer lateVarInitTransformer;
   final FactorySpecializer factorySpecializer;
+  final ListLiteralsLowering listLiteralsLowering;
 
   Member _currentMember;
   StaticTypeContext _cachedStaticTypeContext;
@@ -35,7 +43,8 @@ class _Lowering extends Transformer {
   _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, this.nullSafety)
       : env = TypeEnvironment(coreTypes, hierarchy),
         lateVarInitTransformer = LateVarInitTransformer(),
-        factorySpecializer = FactorySpecializer(coreTypes);
+        factorySpecializer = FactorySpecializer(coreTypes),
+        listLiteralsLowering = ListLiteralsLowering(coreTypes);
 
   StaticTypeContext get _staticTypeContext =>
       _cachedStaticTypeContext ??= StaticTypeContext(_currentMember, env);
@@ -75,5 +84,11 @@ class _Lowering extends Transformer {
   visitAssertBlock(AssertBlock node) {
     node.transformChildren(this);
     return lateVarInitTransformer.transformAssertBlock(node);
+  }
+
+  @override
+  visitListLiteral(ListLiteral node) {
+    node.transformChildren(this);
+    return listLiteralsLowering.transformListLiteral(node);
   }
 }

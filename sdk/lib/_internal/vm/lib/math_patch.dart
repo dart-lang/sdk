@@ -161,10 +161,14 @@ double atan(num x) => _atan(x.toDouble());
 @pragma("vm:never-inline")
 double sqrt(num x) => _sqrt(x.toDouble());
 @patch
-@pragma("vm:prefer-inline")
+@pragma("vm:recognized", "graph-intrinsic")
+@pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double exp(num x) => _exp(x.toDouble());
 @patch
-@pragma("vm:prefer-inline")
+@pragma("vm:recognized", "graph-intrinsic")
+@pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double log(num x) => _log(x.toDouble());
 
 double _atan2(double a, double b) native "Math_atan2";

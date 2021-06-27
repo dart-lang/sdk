@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToFinalTest extends PubPackageResolutionTest {
+class AssignmentToFinalTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_prefixedIdentifier_instanceField() async {
     await assertNoErrorsInCode('''
 class A {
@@ -48,6 +49,24 @@ void f(A a) {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 71, 1),
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 78, 1),
+    ]);
+  }
+
+  test_simpleIdentifier_inheritedSetter_shadowedBy_topLevelGetter() async {
+    await assertErrorsInCode('''
+class A {
+  void set foo(int _) {}
+}
+
+int get foo => 0;
+
+class B extends A {
+  void bar() {
+    foo = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 3),
     ]);
   }
 

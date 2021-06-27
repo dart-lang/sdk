@@ -7,9 +7,6 @@
 /// ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_foreign_helper';
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_embedded_names';
-
 /// ignore: IMPORT_INTERNAL_LIBRARY, UNUSED_IMPORT
 import 'dart:_interceptors';
 
@@ -26,16 +23,8 @@ jsCallEffectsAllDependsNoIndex() => JS('effects:all;depends:no-index', '#', 0);
 jsCallEffectsNoInstanceDependsNoStatic() =>
     JS('effects:no-instance;depends:no-static', '#', 0);
 
-/*member: jsEmbeddedGlobal_getTypeFromName:SideEffects(reads nothing; writes nothing)*/
-jsEmbeddedGlobal_getTypeFromName() {
-  return JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
-}
-
 /*member: jsStringConcat:SideEffects(reads nothing; writes nothing)*/
 jsStringConcat() => JS_STRING_CONCAT('a', 'b');
-
-/*member: jsGetStaticState:SideEffects(reads nothing; writes anything)*/
-jsGetStaticState() => JS_GET_STATIC_STATE();
 
 /*member: main:SideEffects(reads anything; writes anything)*/
 main() {
@@ -44,9 +33,5 @@ main() {
   jsCallEffectsAllDependsNoIndex();
   jsCallEffectsNoInstanceDependsNoStatic();
 
-  jsEmbeddedGlobal_getTypeFromName();
-
   jsStringConcat();
-
-  jsGetStaticState();
 }

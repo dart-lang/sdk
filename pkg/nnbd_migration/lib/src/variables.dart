@@ -24,7 +24,6 @@ import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
-import 'package:nnbd_migration/src/postmortem_file.dart';
 import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 /// Data structure used by [Variables.spanForUniqueIdentifier] to return an
@@ -45,43 +44,41 @@ class Variables {
 
   final TypeProvider _typeProvider;
 
-  final _conditionalDiscards = <Source, Map<int, ConditionalDiscard>>{};
+  final _conditionalDiscards = <Source?, Map<int, ConditionalDiscard>>{};
 
-  final _decoratedElementTypes = <Element, DecoratedType>{};
+  final _decoratedElementTypes = <Element?, DecoratedType?>{};
 
   final _decoratedDirectSupertypes =
-      <ClassElement, Map<ClassElement, DecoratedType>>{};
+      <ClassElement, Map<ClassElement, DecoratedType?>>{};
 
-  final _decoratedTypeAnnotations = <Source, Map<int, DecoratedType>>{};
+  final _decoratedTypeAnnotations = <Source?, Map<int, DecoratedType>>{};
 
-  final _expressionChecks = <Source, Map<int, ExpressionChecks>>{};
+  final _expressionChecks = <Source?, Map<int, ExpressionChecks>>{};
 
-  final _lateHints = <Source, Map<int, HintComment>>{};
+  final _lateHints = <Source?, Map<int, HintComment>>{};
 
-  final _nullCheckHints = <Source, Map<int, HintComment>>{};
+  final _nullCheckHints = <Source?, Map<int, HintComment>>{};
 
-  final _nullabilityHints = <Source, Map<int, HintComment>>{};
+  final _nullabilityHints = <Source?, Map<int, HintComment>>{};
 
-  final _requiredHints = <Source, Map<int, HintComment>>{};
+  final _requiredHints = <Source?, Map<int, HintComment>>{};
 
-  final _unnecessaryCasts = <Source, Set<int>>{};
+  final _unnecessaryCasts = <Source?, Set<int>>{};
 
   final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
 
-  final NullabilityMigrationInstrumentation /*?*/ instrumentation;
-
-  final PostmortemFileWriter postmortemFileWriter;
+  final NullabilityMigrationInstrumentation? instrumentation;
 
   final LineInfo Function(String) _getLineInfo;
 
   Variables(this._graph, this._typeProvider, this._getLineInfo,
-      {this.instrumentation, this.postmortemFileWriter})
+      {this.instrumentation})
       : _alreadyMigratedCodeDecorator =
             AlreadyMigratedCodeDecorator(_graph, _typeProvider, _getLineInfo);
 
   /// Given a [class_], gets the decorated type information for the superclasses
   /// it directly implements/extends/etc.
-  Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
+  Map<ClassElement, DecoratedType?> decoratedDirectSupertypes(
       ClassElement class_) {
     return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
@@ -102,18 +99,18 @@ class Variables {
 
   /// Gets the [DecoratedType] associated with the given [typeAnnotation].
   DecoratedType decoratedTypeAnnotation(
-      Source source, TypeAnnotation typeAnnotation) {
+      Source? source, TypeAnnotation typeAnnotation) {
     var annotationsInSource = _decoratedTypeAnnotations[source];
     if (annotationsInSource == null) {
-      throw StateError('No declarated type annotations in ${source.fullName}; '
+      throw StateError('No declarated type annotations in ${source!.fullName}; '
           'expected one for ${typeAnnotation.toSource()} '
           '(offset ${typeAnnotation.offset})');
     }
-    DecoratedType decoratedTypeAnnotation = annotationsInSource[
+    DecoratedType? decoratedTypeAnnotation = annotationsInSource[
         uniqueIdentifierForSpan(typeAnnotation.offset, typeAnnotation.end)];
     if (decoratedTypeAnnotation == null) {
       throw StateError('Missing declarated type annotation'
-          ' in ${source.fullName}; for ${typeAnnotation.toSource()}');
+          ' in ${source!.fullName}; for ${typeAnnotation.toSource()}');
     }
     return decoratedTypeAnnotation;
   }
@@ -129,10 +126,11 @@ class Variables {
   /// because at that point the types we are dealing with are all
   /// post-migration types, so their bounds already reflect the correct
   /// nullabilities.
-  DecoratedType decoratedTypeParameterBound(TypeParameterElement typeParameter,
+  DecoratedType? decoratedTypeParameterBound(TypeParameterElement typeParameter,
       {bool allowNullUnparentedBounds = false}) {
     var enclosingElement = typeParameter.enclosingElement;
-    var decoratedType = DecoratedTypeParameterBounds.current.get(typeParameter);
+    var decoratedType =
+        DecoratedTypeParameterBounds.current!.get(typeParameter);
     if (enclosingElement == null) {
       if (decoratedType == null && !allowNullUnparentedBounds) {
         throw StateError(
@@ -141,7 +139,7 @@ class Variables {
       }
     } else {
       if (decoratedType == null) {
-        if (_graph.isBeingMigrated(typeParameter.library.source)) {
+        if (_graph.isBeingMigrated(typeParameter.library!.source)) {
           throw StateError(
               'A decorated type for the bound of $typeParameter should '
               'have been stored by the NodeBuilder via '
@@ -154,7 +152,7 @@ class Variables {
             target);
         instrumentation?.externalDecoratedTypeParameterBound(
             typeParameter, decoratedType);
-        DecoratedTypeParameterBounds.current.put(typeParameter, decoratedType);
+        DecoratedTypeParameterBounds.current!.put(typeParameter, decoratedType);
       }
     }
     return decoratedType;
@@ -162,24 +160,24 @@ class Variables {
 
   /// Retrieves the [ExpressionChecks] object corresponding to the given
   /// [expression], if one exists; otherwise null.
-  ExpressionChecks expressionChecks(Source source, Expression expression) {
+  ExpressionChecks? expressionChecks(Source? source, Expression expression) {
     return (_expressionChecks[source] ??
         {})[uniqueIdentifierForSpan(expression.offset, expression.end)];
   }
 
-  ConditionalDiscard getConditionalDiscard(Source source, AstNode node) =>
+  ConditionalDiscard? getConditionalDiscard(Source? source, AstNode node) =>
       (_conditionalDiscards[source] ?? {})[node.offset];
 
   /// If the given [node] is preceded by a `/*late*/` hint, returns the
   /// HintComment for it; otherwise returns `null`.  See [recordLateHint].
-  HintComment getLateHint(Source source, VariableDeclarationList node) {
+  HintComment? getLateHint(Source? source, VariableDeclarationList node) {
     return (_lateHints[source] ?? {})[node.offset];
   }
 
   /// If the given [node] is followed by a `/*?*/` or /*!*/ hint, returns the
   /// HintComment for it; otherwise returns `null`.  See
   /// [recordNullabilityHint].
-  HintComment getNullabilityHint(Source source, AstNode node) {
+  HintComment? getNullabilityHint(Source? source, AstNode node) {
     assert(node is TypeAnnotation ||
         node is FunctionTypedFormalParameter ||
         (node is FieldFormalParameter && node.parameters != null));
@@ -187,40 +185,40 @@ class Variables {
         {})[uniqueIdentifierForSpan(node.offset, node.end)];
   }
 
-  /// If the given [node] is preceded by a `/*required*/` hint, returns the
-  /// HintComment for it; otherwise returns `null`.  See [recordRequiredHint].
-  HintComment getRequiredHint(Source source, FormalParameter node) {
-    return (_requiredHints[source] ?? {})[node.offset];
-  }
-
   /// If the given [expression] is followed by a null check hint (`/*!*/`),
   /// returns the HintComment for it; otherwise returns `null`.  See
   /// [recordNullCheckHint].
-  HintComment getNullCheckHint(Source source, Expression expression) {
+  HintComment? getNullCheckHint(Source? source, Expression expression) {
     return (_nullCheckHints[source] ??
         {})[(uniqueIdentifierForSpan(expression.offset, expression.end))];
+  }
+
+  /// If the given [node] is preceded by a `/*required*/` hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See [recordRequiredHint].
+  HintComment? getRequiredHint(Source? source, FormalParameter node) {
+    return (_requiredHints[source] ?? {})[node.offset];
   }
 
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).
   void recordConditionalDiscard(
-      Source source, AstNode node, ConditionalDiscard conditionalDiscard) {
+      Source? source, AstNode node, ConditionalDiscard conditionalDiscard) {
     (_conditionalDiscards[source] ??= {})[node.offset] = conditionalDiscard;
   }
 
   /// Associates a [class_] with decorated type information for the superclasses
   /// it directly implements/extends/etc.
   void recordDecoratedDirectSupertypes(ClassElement class_,
-      Map<ClassElement, DecoratedType> decoratedDirectSupertypes) {
+      Map<ClassElement, DecoratedType?> decoratedDirectSupertypes) {
     _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
   }
 
   /// Associates decorated type information with the given [element].
-  void recordDecoratedElementType(Element element, DecoratedType type) {
+  void recordDecoratedElementType(Element? element, DecoratedType? type) {
     assert(() {
       assert(element is! TypeParameterElement,
           'Use recordDecoratedTypeParameterBound instead');
-      var library = element.library;
+      var library = element!.library;
       if (library == null) {
         // No problem; the element is probably a parameter of a function type
         // expressed using new-style Function syntax.
@@ -233,20 +231,19 @@ class Variables {
   }
 
   /// Associates decorated type information with the given expression [node].
-  void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
+  void recordDecoratedExpressionType(Expression node, DecoratedType? type) {}
 
   /// Associates decorated type information with the given [type] node.
   void recordDecoratedTypeAnnotation(
-      Source source, TypeAnnotation node, DecoratedType type) {
+      Source? source, TypeAnnotation node, DecoratedType type) {
     instrumentation?.explicitTypeNullability(source, node, type.node);
     var id = uniqueIdentifierForSpan(node.offset, node.end);
     (_decoratedTypeAnnotations[source] ??= {})[id] = type;
-    postmortemFileWriter?.storeFileDecorations(source.fullName, id, type);
   }
 
   /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecksOrigin origin) {
+      Source? source, Expression expression, ExpressionChecksOrigin origin) {
     (_expressionChecks[source] ??=
             {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
         origin.checks;
@@ -254,13 +251,13 @@ class Variables {
 
   /// Records that the given [node] was preceded by a `/*late*/` hint.
   void recordLateHint(
-      Source source, VariableDeclarationList node, HintComment hint) {
+      Source? source, VariableDeclarationList node, HintComment hint) {
     (_lateHints[source] ??= {})[node.offset] = hint;
   }
 
   /// Records that the given [node] was followed by a `/*?*/` or `/*!*/` hint.
   void recordNullabilityHint(
-      Source source, AstNode node, HintComment hintComment) {
+      Source? source, AstNode node, HintComment hintComment) {
     assert(node is TypeAnnotation ||
         node is FunctionTypedFormalParameter ||
         (node is FieldFormalParameter && node.parameters != null));
@@ -268,24 +265,24 @@ class Variables {
         {})[uniqueIdentifierForSpan(node.offset, node.end)] = hintComment;
   }
 
-  /// Records that the given [node] was preceded by a `/*required*/` hint.
-  void recordRequiredHint(
-      Source source, FormalParameter node, HintComment hint) {
-    (_requiredHints[source] ??= {})[node.offset] = hint;
-  }
-
   /// Records that the given [expression] is followed by a null check hint
   /// (`/*!*/`), for later recall by [hasNullCheckHint].
   void recordNullCheckHint(
-      Source source, Expression expression, HintComment hintComment) {
+      Source? source, Expression expression, HintComment hintComment) {
     (_nullCheckHints[source] ??=
             {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
         hintComment;
   }
 
+  /// Records that the given [node] was preceded by a `/*required*/` hint.
+  void recordRequiredHint(
+      Source? source, FormalParameter node, HintComment hint) {
+    (_requiredHints[source] ??= {})[node.offset] = hint;
+  }
+
   /// Records the fact that prior to migration, an unnecessary cast existed at
   /// [node].
-  void recordUnnecessaryCast(Source source, AsExpression node) {
+  void recordUnnecessaryCast(Source? source, AsExpression node) {
     bool newlyAdded = (_unnecessaryCasts[source] ??= {})
         .add(uniqueIdentifierForSpan(node.offset, node.end));
     assert(newlyAdded);
@@ -298,10 +295,10 @@ class Variables {
   /// the nullabilities associated with nullability nodes to determine which
   /// types should be nullable and which types should not.
   DartType toFinalType(DecoratedType decoratedType) {
-    var type = decoratedType.type;
+    var type = decoratedType.type!;
     if (type.isVoid || type.isDynamic) return type;
     if (type is NeverType) {
-      if (decoratedType.node.isNullable) {
+      if (decoratedType.node!.isNullable) {
         return (_typeProvider.nullType as TypeImpl)
             .withNullability(NullabilitySuffix.none);
       } else {
@@ -311,7 +308,7 @@ class Variables {
       return (_typeProvider.nullType as TypeImpl)
           .withNullability(NullabilitySuffix.none);
     }
-    var nullabilitySuffix = decoratedType.node.isNullable
+    var nullabilitySuffix = decoratedType.node!.isNullable
         ? NullabilitySuffix.question
         : NullabilitySuffix.none;
     if (type is FunctionType) {
@@ -319,33 +316,33 @@ class Variables {
       for (int i = 0; i < type.parameters.length; i++) {
         var origParameter = type.parameters[i];
         ParameterKind parameterKind;
-        DecoratedType parameterType;
+        DecoratedType? parameterType;
         var name = origParameter.name;
         if (origParameter.isNamed) {
           // TODO(paulberry): infer ParameterKind.NAMED_REQUIRED when
           // appropriate. See https://github.com/dart-lang/sdk/issues/38596.
           parameterKind = ParameterKind.NAMED;
-          parameterType = decoratedType.namedParameters[name];
+          parameterType = decoratedType.namedParameters![name];
         } else {
           parameterKind = origParameter.isOptional
               ? ParameterKind.POSITIONAL
               : ParameterKind.REQUIRED;
-          parameterType = decoratedType.positionalParameters[i];
+          parameterType = decoratedType.positionalParameters![i];
         }
         parameters.add(ParameterElementImpl.synthetic(
-            name, toFinalType(parameterType), parameterKind));
+            name, toFinalType(parameterType!), parameterKind));
       }
       return FunctionTypeImpl(
         typeFormals: type.typeFormals,
         parameters: parameters,
-        returnType: toFinalType(decoratedType.returnType),
+        returnType: toFinalType(decoratedType.returnType!),
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
         element: type.element,
         typeArguments: [
-          for (var arg in decoratedType.typeArguments) toFinalType(arg)
+          for (var arg in decoratedType.typeArguments) toFinalType(arg!)
         ],
         nullabilitySuffix: nullabilitySuffix,
       );
@@ -364,14 +361,15 @@ class Variables {
 
   /// Queries whether, prior to migration, an unnecessary cast existed at
   /// [node].
-  bool wasUnnecessaryCast(Source source, AsExpression node) =>
+  bool wasUnnecessaryCast(Source? source, AsExpression node) =>
       (_unnecessaryCasts[source] ?? const {})
           .contains(uniqueIdentifierForSpan(node.offset, node.end));
 
   /// Creates a decorated type for the given [element], which should come from
   /// an already-migrated library (or the SDK).
   DecoratedType _createDecoratedElementType(Element element) {
-    if (_graph.isBeingMigrated(element.library.source)) {
+    if (_graph.isBeingMigrated(element.library!.source) &&
+        !_isLoadLibraryElement(element)) {
       var description;
       if (ElementTypeProvider.current is MigrationResolutionHooksImpl) {
         // Don't attempt to call toString() on element, or we will overflow.
@@ -386,7 +384,7 @@ class Variables {
 
     DecoratedType decoratedType;
     if (element is Member) {
-      assert((element as Member).isLegacy);
+      assert(element.isLegacy);
       element = element.declaration;
     }
 
@@ -395,7 +393,7 @@ class Variables {
       // case) `Function(T)`. Without this we would get `Function<T>(T)` which
       // is incorrect. This is a known issue with `.type` on typedefs in the
       // analyzer.
-      element = (element as FunctionTypeAliasElement).aliasedElement;
+      element = element.aliasedElement!;
     }
 
     var target = NullabilityNodeTarget.element(element, _getLineInfo);
@@ -428,6 +426,12 @@ class Variables {
     }
     return result;
   }
+
+  bool _isLoadLibraryElement(Element element) =>
+      element.isSynthetic &&
+      element is FunctionElement &&
+      element.enclosingElement is LibraryElement &&
+      element.name == 'loadLibrary';
 
   /// Inverts the logic of [uniqueIdentifierForSpan], producing an (offset, end)
   /// pair.
@@ -500,7 +504,7 @@ class Variables {
 }
 
 extension on TypeParameterElement {
-  DartType get preMigrationBound {
+  DartType? get preMigrationBound {
     var previousElementTypeProvider = ElementTypeProvider.current;
     try {
       ElementTypeProvider.current = const ElementTypeProvider();

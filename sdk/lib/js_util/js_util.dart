@@ -14,7 +14,8 @@ library dart.js_util;
 import 'dart:_foreign_helper' show JS;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
-import 'dart:_js_helper' show convertDartClosureToJS;
+import 'dart:_js_helper'
+    show convertDartClosureToJS, assertInterop, assertInteropArgs;
 
 /// Recursively converts a JSON-like collection to JavaScript compatible
 /// representation.
@@ -67,14 +68,28 @@ dynamic newObject() => JS('=Object', '{}');
 
 bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
 
+// All usage optimized away in a CFE transformation. Changes here will not
+// affect the generated JS.
 dynamic getProperty(Object o, Object name) =>
     JS('Object|Null', '#[#]', o, name);
 
-dynamic setProperty(Object o, Object name, Object? value) =>
-    JS('', '#[#]=#', o, name, value);
+// Some usage optimized away in a CFE transformation. If given value is a
+// function, changes here will not affect the generated JS.
+dynamic setProperty(Object o, Object name, Object? value) {
+  assertInterop(value);
+  return JS('', '#[#]=#', o, name, value);
+}
 
-dynamic callMethod(Object o, String method, List<Object?> args) =>
-    JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
+/// Unchecked version of setProperty, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _setPropertyUnchecked(Object o, Object name, Object? value) {
+  return JS('', '#[#]=#', o, name, value);
+}
+
+dynamic callMethod(Object o, String method, List<Object?> args) {
+  assertInteropArgs(args);
+  return JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
+}
 
 /// Check whether [o] is an instance of [type].
 ///
@@ -83,9 +98,11 @@ dynamic callMethod(Object o, String method, List<Object?> args) =>
 bool instanceof(Object? o, Object type) =>
     JS('bool', '# instanceof #', o, type);
 
-dynamic callConstructor(Object constr, List<Object?> arguments) {
+dynamic callConstructor(Object constr, List<Object?>? arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
+  } else {
+    assertInteropArgs(arguments);
   }
 
   if (JS('bool', '# instanceof Array', arguments)) {
@@ -142,6 +159,24 @@ dynamic callConstructor(Object constr, List<Object?> arguments) {
   //     return _wrapToDart(jsObj);
 }
 
+/// Exception for when the promise is rejected with a `null` or `undefined`
+/// value.
+///
+/// This is public to allow users to catch when the promise is rejected with
+/// `null` or `undefined` versus some other value.
+class NullRejectionException implements Exception {
+  // Indicates whether the value is `undefined` or `null`.
+  final bool isUndefined;
+
+  NullRejectionException._(this.isUndefined);
+
+  @override
+  String toString() {
+    var value = this.isUndefined ? 'undefined' : 'null';
+    return 'Promise was rejected with a value of `$value`.';
+  }
+}
+
 /// Converts a JavaScript Promise to a Dart [Future].
 ///
 /// ```dart
@@ -156,7 +191,16 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
   final completer = Completer<T>();
 
   final success = convertDartClosureToJS((r) => completer.complete(r), 1);
-  final error = convertDartClosureToJS((e) => completer.completeError(e), 1);
+  final error = convertDartClosureToJS((e) {
+    // Note that `completeError` expects a non-nullable error regardless of
+    // whether null-safety is enabled, so a `NullRejectionException` is always
+    // provided if the error is `null` or `undefined`.
+    if (e == null) {
+      return completer.completeError(
+          NullRejectionException._(JS('bool', '# === undefined', e)));
+    }
+    return completer.completeError(e);
+  }, 1);
 
   JS('', '#.then(#, #)', jsPromise, success, error);
   return completer.future;

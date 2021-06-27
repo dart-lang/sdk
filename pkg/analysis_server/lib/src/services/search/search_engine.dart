@@ -40,7 +40,7 @@ abstract class SearchEngine {
   /// If the [type] has subtypes, return the set of names of members which these
   /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
   /// return `null`.
-  Future<Set<String>> membersOfSubtypes(ClassElement type);
+  Future<Set<String>?> membersOfSubtypes(ClassElement type);
 
   /// Returns all subtypes of the given [type].
   ///
@@ -106,12 +106,4 @@ abstract class SearchMatch {
 
   /// The unit [Source] of the reference.
   Source get unitSource;
-
-  /// Return elements of [matches] which has not-null elements.
-  ///
-  /// When [SearchMatch.element] is not `null` we cache its value, so it cannot
-  /// become `null` later.
-  static List<SearchMatch> withNotNullElement(List<SearchMatch> matches) {
-    return matches.where((match) => match.element != null).toList();
-  }
 }

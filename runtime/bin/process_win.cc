@@ -96,7 +96,7 @@ class ProcessInfoList {
     MutexLocker locker(mutex_);
     HANDLE wait_handle = INVALID_HANDLE_VALUE;
     BOOL success = RegisterWaitForSingleObject(
-        &wait_handle, handle, &ExitCodeCallback, reinterpret_cast<void*>(pid),
+        &wait_handle, handle, &ExitCodeCallback, reinterpret_cast<PVOID>(pid),
         INFINITE, WT_EXECUTEONLYONCE);
     if (!success) {
       FATAL("Failed to register exit code wait operation.");
@@ -151,7 +151,7 @@ class ProcessInfoList {
     if (timed_out) {
       return;
     }
-    DWORD pid = reinterpret_cast<DWORD>(data);
+    DWORD pid = reinterpret_cast<UINT_PTR>(data);
     HANDLE handle;
     HANDLE wait_handle;
     HANDLE exit_pipe;
@@ -564,7 +564,6 @@ class ProcessStarter {
         reinterpret_cast<STARTUPINFOW*>(&startup_info), &process_info);
 
     if (result == 0) {
-      Syslog::PrintErr("CreateProcessW failed %d\n", GetLastError());
       return CleanupAndReturnError();
     }
 
@@ -1033,7 +1032,8 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
       return -1;
     }
   }
-  signal_handlers = new SignalInfo(write_fd, signal, signal_handlers);
+  signal_handlers =
+      new SignalInfo(write_fd, signal, /*oldact=*/nullptr, signal_handlers);
   return reinterpret_cast<intptr_t>(new FileHandle(fds[kReadHandle]));
 }
 

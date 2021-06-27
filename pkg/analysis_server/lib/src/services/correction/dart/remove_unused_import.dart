@@ -11,7 +11,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedImport extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_IMPORT;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_UNUSED_IMPORT_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

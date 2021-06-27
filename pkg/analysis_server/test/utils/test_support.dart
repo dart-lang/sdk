@@ -8,7 +8,6 @@
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +23,7 @@ class ExpectedContextMessage {
   final int length;
 
   /// The message text for the error.
-  final String text;
+  final String? text;
 
   ExpectedContextMessage(this.filePath, this.offset, this.length, {this.text});
 
@@ -34,7 +33,7 @@ class ExpectedContextMessage {
     return message.filePath == filePath &&
         message.offset == offset &&
         message.length == length &&
-        (text == null || message.message == text);
+        (text == null || message.messageText(includeUrl: true) == text);
   }
 }
 
@@ -52,12 +51,13 @@ class ExpectedError {
   /// The offset of the beginning of the error's region.
   final int length;
 
-  /// The message text of the error or `null` if the message should not be checked.
-  final String message;
+  /// The message text of the error or `null` if the message should not be
+  /// checked.
+  final String? message;
 
-  /// A pattern that should be contained in the error message or `null` if the message
-  /// contents should not be checked.
-  final Pattern messageContains;
+  /// A pattern that should be contained in the error message or `null` if the
+  /// message contents should not be checked.
+  final Pattern? messageContains;
 
   /// The list of context messages that are expected to be associated with the
   /// error.
@@ -80,8 +80,9 @@ class ExpectedError {
     if (message != null && error.message != message) {
       return false;
     }
+    final messageContains = this.messageContains;
     if (messageContains != null &&
-        error.message?.contains(messageContains) != true) {
+        error.message.contains(messageContains) != true) {
       return false;
     }
     var contextMessages = error.contextMessages.toList();
@@ -358,7 +359,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /// Return the line information associated with the given [source], or `null`
   /// if no line information has been associated with the source.
-  LineInfo getLineInfo(Source source) => _lineInfoMap[source];
+  LineInfo? getLineInfo(Source source) => _lineInfoMap[source];
 
   /// Return `true` if an error with the given [errorCode] has been gathered.
   bool hasError(ErrorCode errorCode) {

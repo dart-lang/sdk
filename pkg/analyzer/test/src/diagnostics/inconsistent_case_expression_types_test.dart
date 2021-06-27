@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InconsistentCaseExpressionTypesTest extends PubPackageResolutionTest {
+class InconsistentCaseExpressionTypesTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_dynamic() async {
     // Even though A.S and S have a static type of "dynamic", we should see
     // that they match 'abc', because they are constant strings.
@@ -114,7 +115,7 @@ void f(var e) {
 
 @reflectiveTest
 class InconsistentCaseExpressionTypesWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_int_none_legacy() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;

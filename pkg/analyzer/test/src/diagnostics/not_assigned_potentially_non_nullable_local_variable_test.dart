@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class NotInitializedPotentiallyNonNullableLocalVariableTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_assignment_leftExpression() async {
     await assertErrorsInCode(r'''
 void f() {

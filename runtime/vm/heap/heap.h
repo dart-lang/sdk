@@ -211,8 +211,8 @@ class Heap {
 #if !defined(HASH_IN_OBJECT_HEADER)
   // Associate an identity hashCode with an object. An non-existent hashCode
   // is equal to 0.
-  void SetHash(ObjectPtr raw_obj, intptr_t hash) {
-    SetWeakEntry(raw_obj, kIdentityHashes, hash);
+  intptr_t SetHashIfNotSet(ObjectPtr raw_obj, intptr_t hash) {
+    return SetWeakEntryIfNonExistent(raw_obj, kIdentityHashes, hash);
   }
   intptr_t GetHash(ObjectPtr raw_obj) const {
     return GetWeakEntry(raw_obj, kIdentityHashes);
@@ -251,6 +251,9 @@ class Heap {
   // Used by the GC algorithms to propagate weak entries.
   intptr_t GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const;
   void SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val);
+  intptr_t SetWeakEntryIfNonExistent(ObjectPtr raw_obj,
+                                     WeakSelector sel,
+                                     intptr_t val);
 
   WeakTable* GetWeakTable(Space space, WeakSelector selector) const {
     if (space == kNew) {
@@ -300,8 +303,9 @@ class Heap {
   void PrintMemoryUsageJSON(JSONObject* jsobj) const;
 
   // The heap map contains the sizes and class ids for the objects in each page.
-  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
-    old_space_.PrintHeapMapToJSONStream(isolate, stream);
+  void PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
+                                JSONStream* stream) {
+    old_space_.PrintHeapMapToJSONStream(isolate_group, stream);
   }
 #endif  // PRODUCT
 
@@ -427,7 +431,7 @@ class Heap {
   friend class ServiceEvent;
   friend class Scavenger;             // VerifyGC
   friend class PageSpace;             // VerifyGC
-  friend class IsolateReloadContext;  // VisitObjects
+  friend class ProgramReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
   friend class HeapIterationScope;    // VisitObjects
   friend class ProgramVisitor;        // VisitObjectsImagePages
@@ -483,11 +487,11 @@ class WritableVMIsolateScope : ThreadStackResource {
 
 class WritableCodePages : StackResource {
  public:
-  explicit WritableCodePages(Thread* thread, Isolate* isolate);
+  WritableCodePages(Thread* thread, IsolateGroup* isolate_group);
   ~WritableCodePages();
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 };
 
 #if defined(TESTING)

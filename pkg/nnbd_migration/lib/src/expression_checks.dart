@@ -19,7 +19,7 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 /// checked using an `as` expression).
 class ExpressionChecks {
   /// All nullability edges that are related to this potential check.
-  final Map<FixReasonTarget, NullabilityEdge> edges = {};
+  final Map<FixReasonTarget?, NullabilityEdge> edges = {};
 
   ExpressionChecks();
 }
@@ -36,7 +36,7 @@ class ExpressionChecksOrigin extends EdgeOrigin {
   /// package.
   final bool isSetupAssignment;
 
-  ExpressionChecksOrigin(Source source, Expression node, this.checks,
+  ExpressionChecksOrigin(Source? source, Expression? node, this.checks,
       {this.isSetupAssignment = false})
       : super(source, node);
 

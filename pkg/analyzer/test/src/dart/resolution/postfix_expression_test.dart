@@ -17,7 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class PostfixExpressionResolutionTest extends PubPackageResolutionTest {
+class PostfixExpressionResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_dec_simpleIdentifier_parameter_int() async {
     await assertNoErrorsInCode(r'''
 void f(int x) {
@@ -98,7 +99,7 @@ class B extends A {
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
-  
+
   void f() {
     this[0]++;
   }

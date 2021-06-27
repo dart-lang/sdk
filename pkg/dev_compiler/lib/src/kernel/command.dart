@@ -15,7 +15,7 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart' hide MapEntry;
+import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:path/path.dart' as p;
@@ -30,6 +30,8 @@ import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
 import 'module_metadata.dart';
+import 'module_symbols.dart';
+import 'module_symbols_collector.dart';
 import 'target.dart';
 
 const _binaryName = 'dartdevc -k';
@@ -379,6 +381,7 @@ Future<CompilerResult> _compile(List<String> args,
     kernel.BinaryPrinter(sink).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
+  String fullDillUri;
   if (argResults['experimental-output-compiled-kernel'] as bool) {
     if (outPaths.length > 1) {
       print(
@@ -395,8 +398,8 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       compiledLibraries.unbindCanonicalNames();
     }
-    var sink =
-        File(p.withoutExtension(outPaths.first) + '.full.dill').openWrite();
+    fullDillUri = p.withoutExtension(outPaths.first) + '.full.dill';
+    var sink = File(fullDillUri).openWrite();
     kernel.BinaryPrinter(sink).writeComponentFile(compiledLibraries);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
@@ -442,10 +445,13 @@ Future<CompilerResult> _compile(List<String> args,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         emitDebugMetadata: options.emitDebugMetadata,
+        emitDebugSymbols: options.emitDebugSymbols,
         jsUrl: p.toUri(output).toString(),
         mapUrl: mapUrl,
+        fullDillUri: fullDillUri,
         customScheme: options.multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
+        compiler: compiler,
         component: compiledLibraries);
 
     outFiles.add(file.writeAsString(jsCode.code));
@@ -456,6 +462,11 @@ Future<CompilerResult> _compile(List<String> args,
     if (jsCode.metadata != null) {
       outFiles.add(
           File('$output.metadata').writeAsString(json.encode(jsCode.metadata)));
+    }
+
+    if (jsCode.symbols != null) {
+      outFiles.add(
+          File('$output.symbols').writeAsString(json.encode(jsCode.symbols)));
     }
   }
 
@@ -578,9 +589,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   return CompilerResult(0);
 }
 
-// Compute code size to embed in the generated JavaScript
-// for this module.  Return `null` to indicate when size could not be properly
-// computed for this module.
+/// Compute code size to embed in the generated JavaScript for this module.
 int _computeDartSize(Component component) {
   var dartSize = 0;
   var uriToSource = component.uriToSource;
@@ -588,7 +597,11 @@ int _computeDartSize(Component component) {
     var libUri = lib.fileUri;
     var importUri = lib.importUri;
     var source = uriToSource[libUri];
-    if (source == null) return null;
+    if (source == null) {
+      // Sources that only contain external declarations have nothing to add to
+      // the sum.
+      continue;
+    }
     dartSize += source.source.length;
     for (var part in lib.parts) {
       var partUri = part.partUri;
@@ -598,7 +611,11 @@ int _computeDartSize(Component component) {
       }
       var fileUri = libUri.resolve(partUri);
       var partSource = uriToSource[fileUri];
-      if (partSource == null) return null;
+      if (partSource == null) {
+        // Sources that only contain external declarations have nothing to add
+        // to the sum.
+        continue;
+      }
       dartSize += partSource.source.length;
     }
   }
@@ -627,7 +644,13 @@ class JSCode {
   /// see: https://goto.google.com/dart-web-debugger-metadata
   final ModuleMetadata metadata;
 
-  JSCode(this.code, this.sourceMap, {this.metadata});
+  /// Module debug symbols.
+  ///
+  /// The [symbols] is a contract between compiler and the debugger,
+  /// helping the debugger map between dart and JS objects.
+  final ModuleSymbols symbols;
+
+  JSCode(this.code, this.sourceMap, {this.symbols, this.metadata});
 }
 
 /// Converts [moduleTree] to [JSCode], using [format].
@@ -638,11 +661,14 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
     bool inlineSourceMap = false,
     bool emitDebugMetadata = false,
+    bool emitDebugSymbols = false,
     String jsUrl,
     String mapUrl,
+    String fullDillUri,
     String sourceMapBase,
     String customScheme,
     String multiRootOutputPath,
+    ProgramCompiler compiler,
     Component component}) {
   var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
@@ -657,8 +683,9 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   }
 
   var tree = transformModuleFormat(format, moduleTree);
-  tree.accept(
-      js_ast.Printer(opts, printer, localNamer: js_ast.TemporaryNamer(tree)));
+  var nameListener = emitDebugSymbols ? js_ast.NameListener() : null;
+  tree.accept(js_ast.Printer(opts, printer,
+      localNamer: js_ast.TemporaryNamer(tree, nameListener)));
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
@@ -698,16 +725,47 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
       SharedCompiler.metricsLocationID, '$compileTimeStatistics');
 
   var debugMetadata = emitDebugMetadata
-      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl)
+      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl, fullDillUri)
       : null;
 
-  return JSCode(text, builtMap, metadata: debugMetadata);
+  var debugSymbols = emitDebugSymbols
+      ? _emitSymbols(compiler, nameListener.identifierNames, component)
+      : null;
+
+  return JSCode(text, builtMap, symbols: debugSymbols, metadata: debugMetadata);
+}
+
+/// Assembles symbol information describing the nodes from the AST [component]
+/// and their representation in JavaScript.
+///
+/// Uses information from the [compiler] used to compile the JS module combined
+/// with [identifierNames] that maps JavaScript identifier nodes to their actual
+/// names used when outputting the JavaScript.
+ModuleSymbols _emitSymbols(ProgramCompiler compiler,
+    Map<js_ast.Identifier, String> identifierNames, Component component) {
+  var classJsNames = <Class, String>{
+    for (var e in compiler.classIdentifiers.entries)
+      e.key: identifierNames[e.value],
+  };
+  var variableJsNames = <VariableDeclaration, String>{
+    for (var e in compiler.variableIdentifiers.entries)
+      e.key: identifierNames[e.value],
+  };
+
+  return ModuleSymbolsCollector(
+          classJsNames, compiler.memberNames, variableJsNames)
+      .collectSymbolInfo(component);
 }
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
-    String sourceMapUri, String moduleUri) {
+    String sourceMapUri, String moduleUri, String fullDillUri) {
   var metadata = ModuleMetadata(
-      program.name, loadFunctionName(program.name), sourceMapUri, moduleUri);
+      program.name,
+      loadFunctionName(program.name),
+      sourceMapUri,
+      moduleUri,
+      fullDillUri,
+      component.mode == NonNullableByDefaultCompiledMode.Strong);
 
   for (var lib in component.libraries) {
     metadata.addLibrary(LibraryMetadata(
@@ -725,8 +783,19 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   var declaredVariables = <String, String>{};
   for (var i = 0; i < args.length;) {
     var arg = args[i];
+    String rest;
+    const defineFlag = '--define';
     if (arg.startsWith('-D') && arg.length > 2) {
-      var rest = arg.substring(2);
+      rest = arg.substring(2);
+    } else if (arg.startsWith('$defineFlag=') &&
+        arg.length > defineFlag.length + 1) {
+      rest = arg.substring(defineFlag.length + 1);
+    } else if (arg == defineFlag) {
+      i++;
+      rest = args[i];
+    }
+
+    if (rest != null) {
       var eq = rest.indexOf('=');
       if (eq <= 0) {
         var kind = eq == 0 ? 'name' : 'value';

@@ -7,6 +7,7 @@
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/object.h"
 #include "vm/zone.h"
@@ -37,6 +38,7 @@ uword FindDoubleConstant(double value) {
 }
 
 void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
+  COMPILER_TIMINGS_TIMER_SCOPE(callee_graph->thread(), PrepareGraphs);
   ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
   ASSERT(callee_graph->max_block_id() > caller_graph_->max_block_id());
   ASSERT(callee_graph->max_virtual_register_number() >
@@ -50,6 +52,10 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
   // Attach the outer environment on each instruction in the callee graph.
   ASSERT(call_->env() != NULL);
   ASSERT(call_->deopt_id() != DeoptId::kNone);
+
+  auto zone = callee_graph->zone();
+  auto env = call_->env();
+
   const intptr_t outer_deopt_id = call_->deopt_id();
   // Scale the edge weights by the call count for the inlined function.
   double scale_factor = 1.0;
@@ -65,18 +71,16 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       block->AsTargetEntry()->adjust_edge_weight(scale_factor);
     }
     Instruction* instr = block;
-    if (block->env() != NULL) {
-      call_->env()->DeepCopyToOuter(callee_graph->zone(), block,
-                                    outer_deopt_id);
+    if (block->env() != nullptr) {
+      env->DeepCopyToOuter(zone, block, outer_deopt_id);
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       instr = it.Current();
       // TODO(zerny): Avoid creating unnecessary environments. Note that some
       // optimizations need deoptimization info for non-deoptable instructions,
       // eg, LICM on GOTOs.
-      if (instr->env() != NULL) {
-        call_->env()->DeepCopyToOuter(callee_graph->zone(), instr,
-                                      outer_deopt_id);
+      if (instr->env() != nullptr) {
+        env->DeepCopyToOuter(zone, instr, outer_deopt_id);
       }
     }
     if (instr->IsGoto()) {

@@ -1,0 +1,62 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:10:16: Error: Getter not found: 'foo'.
+// testFoo() => A.foo; // Ok.
+//                ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:11:25: Error: Getter not found: 'foo'.
+// testFooArgs() => A<int>.foo; // Ok.
+//                         ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:12:16: Error: Getter not found: 'new'.
+// testNew() => A.new; // Ok.
+//                ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:13:25: Error: Getter not found: 'new'.
+// testNewArgs() => A<int>.new; // Ok.
+//                         ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:15:38: Error: Getter not found: 'foo'.
+// testFooExtraArgs() => A<int, String>.foo; // Error.
+//                                      ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:16:38: Error: Getter not found: 'new'.
+// testNewExtraArgs() => A<int, String>.new; // Error.
+//                                      ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  constructor foo() → self::A<self::A::X%>
+    : super core::Object::•() {}
+  constructor •() → self::A<self::A::X%>
+    : super core::Object::•() {}
+}
+static method testFoo() → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:10:16: Error: Getter not found: 'foo'.
+testFoo() => A.foo; // Ok.
+               ^^^";
+static method testFooArgs() → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:11:25: Error: Getter not found: 'foo'.
+testFooArgs() => A<int>.foo; // Ok.
+                        ^^^";
+static method testNew() → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:12:16: Error: Getter not found: 'new'.
+testNew() => A.new; // Ok.
+               ^^^";
+static method testNewArgs() → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:13:25: Error: Getter not found: 'new'.
+testNewArgs() => A<int>.new; // Ok.
+                        ^^^";
+static method testFooExtraArgs() → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:15:38: Error: Getter not found: 'foo'.
+testFooExtraArgs() => A<int, String>.foo; // Error.
+                                     ^^^";
+static method testNewExtraArgs() → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:16:38: Error: Getter not found: 'new'.
+testNewExtraArgs() => A<int, String>.new; // Error.
+                                     ^^^";
+static method main() → dynamic {}

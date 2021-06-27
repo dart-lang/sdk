@@ -12,25 +12,40 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveDuplicateCase extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_DUPLICATE_CASE;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_DUPLICATE_CASE_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = coveredNode;
-    if (node is SwitchCase) {
-      var parent = node.parent as SwitchStatement;
-      var members = parent.members;
-      var index = members.indexOf(node);
-      await builder.addDartFileEdit(file, (builder) {
-        SourceRange deletionRange;
-        if (index > 0 && members[index - 1].statements.isNotEmpty) {
-          deletionRange = range.node(node);
-        } else {
-          deletionRange = range.startEnd(node, node.colon);
-        }
-        builder.addDeletion(utils.getLinesRange(deletionRange));
-      });
+    if (node is! SwitchCase) {
+      return;
     }
+
+    var switchStatement = node.parent;
+    if (switchStatement is! SwitchStatement) {
+      return;
+    }
+
+    var members = switchStatement.members;
+    var index = members.indexOf(node);
+    await builder.addDartFileEdit(file, (builder) {
+      SourceRange deletionRange;
+      if (index > 0 && members[index - 1].statements.isNotEmpty) {
+        deletionRange = range.node(node);
+      } else {
+        deletionRange = range.startEnd(node, node.colon);
+      }
+      builder.addDeletion(utils.getLinesRange(deletionRange));
+    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

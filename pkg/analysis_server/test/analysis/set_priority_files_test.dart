@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -70,7 +71,7 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
 
   Future<void> test_ignoredInAnalysisOptions() async {
     var sampleFile = convertPath('$projectPath/samples/sample.dart');
-    newFile('$projectPath/.analysis_options', content: r'''
+    newFile('$projectPath/${file_paths.analysisOptionsYaml}', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -82,10 +83,11 @@ analyzer:
   }
 
   Future<void> test_ignoredInAnalysisOptions_inChildContext() async {
-    newFile('$projectPath/.packages');
-    newFile('$projectPath/child/.packages');
+    newDotPackagesFile(projectPath);
+    newDotPackagesFile('$projectPath/child');
     var sampleFile = convertPath('$projectPath/child/samples/sample.dart');
-    newFile('$projectPath/child/.analysis_options', content: r'''
+    newFile('$projectPath/child/${file_paths.analysisOptionsYaml}',
+        content: r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -97,10 +99,10 @@ analyzer:
   }
 
   Future<void> test_ignoredInAnalysisOptions_inRootContext() async {
-    newFile('$projectPath/.packages');
-    newFile('$projectPath/child/.packages');
+    newDotPackagesFile(projectPath);
+    newDotPackagesFile('$projectPath/child');
     var sampleFile = convertPath('$projectPath/child/samples/sample.dart');
-    newFile('$projectPath/.analysis_options', content: r'''
+    newFile('$projectPath/${file_paths.analysisOptionsYaml}', content: r'''
 analyzer:
   exclude:
     - 'child/samples/**'
@@ -137,8 +139,7 @@ analyzer:
     var response = await _setPriorityFile(testFile);
     expect(response, isResponseSuccess('0'));
     // verify
-    var params = pluginManager.analysisSetPriorityFilesParams;
-    expect(params, isNotNull);
+    var params = pluginManager.analysisSetPriorityFilesParams!;
     expect(params.files, <String>[testFile]);
   }
 
@@ -153,7 +154,7 @@ analyzer:
   }
 
   void _verifyPriorityFiles(String path) {
-    var driver = server.getAnalysisDriver(path);
+    var driver = server.getAnalysisDriver(path)!;
     var prioritySources = driver.priorityFiles;
     expect(prioritySources, [path]);
   }

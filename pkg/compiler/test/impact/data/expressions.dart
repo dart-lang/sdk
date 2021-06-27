@@ -74,8 +74,8 @@ main() {
 testNot() => !false;
 
 /*member: testUnaryMinus:type=[
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
@@ -88,25 +88,49 @@ testConditional() => true ? null : '';
 
 /*member: testPostInc:
  dynamic=[+],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testPostInc(o) => o++;
 
 /*member: testPostDec:
  dynamic=[-],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testPostDec(o) => o--;
 
 /*member: testPreInc:
  dynamic=[+],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testPreInc(o) => ++o;
 
 /*member: testPreDec:
  dynamic=[-],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testPreDec(o) => --o;
 
@@ -229,9 +253,9 @@ testAs(dynamic o) => o as Class;
   _isObject(1),
   _isString(1),
   _isTop(1),
+  _setArrayType(2),
   findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
+  instanceType(1)],
  type=[
   as:GenericClass<int*,String*>*,
   inst:Closure,
@@ -340,13 +364,14 @@ testAsGenericDynamic(dynamic o) => o as GenericClass<dynamic, dynamic>;
  type=[inst:JSString]*/
 testThrow() => throw '';
 
-/*member: testIfNotNull:dynamic=[Object.==,foo],type=[inst:JSNull]*/
+/*member: testIfNotNull:
+ dynamic=[foo],
+ type=[inst:JSNull]
+*/
 testIfNotNull(o) => o?.foo;
 
 /*member: testTypedIfNotNull:
- dynamic=[
-  Class.==,
-  Class.field],
+ dynamic=[Class.field],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -391,13 +416,22 @@ testIfNotNull(o) => o?.foo;
 */
 testTypedIfNotNull(Class o) => o?.field;
 
-/*member: testIfNotNullSet:dynamic=[Object.==,foo=],type=[inst:JSBool,inst:JSNull]*/
+/*member: testIfNotNullSet:
+ dynamic=[foo=],
+ type=[
+  inst:JSBool,
+  inst:JSNull]
+*/
 testIfNotNullSet(o) => o?.foo = true;
 
-/*member: testIfNull:dynamic=[Object.==],type=[inst:JSBool,inst:JSNull]*/
+/*member: testIfNull:type=[
+  inst:JSBool,
+  inst:JSNull]*/
 testIfNull(o) => o ?? true;
 
-/*member: testSetIfNull:dynamic=[Object.==],type=[inst:JSBool,inst:JSNull]*/
+/*member: testSetIfNull:type=[
+  inst:JSBool,
+  inst:JSNull]*/
 testSetIfNull(o) => o ??= true;
 
 class Class {

@@ -46,13 +46,13 @@ Widget build(BuildContext context) => Icon();
 
     expect(outlineBeforeChange, isNotNull);
     expect(outlineBeforeChange.children, hasLength(1));
-    expect(outlineBeforeChange.children[0].children[0].className,
+    expect(outlineBeforeChange.children![0].children![0].className,
         equals('Container'));
 
     expect(outlineAfterChange, isNotNull);
     expect(outlineAfterChange.children, hasLength(1));
     expect(
-        outlineAfterChange.children[0].children[0].className, equals('Icon'));
+        outlineAfterChange.children![0].children![0].className, equals('Icon'));
   }
 
   Future<void> test_initial() async {
@@ -89,7 +89,7 @@ Widget build(BuildContext context) => Container(
             end: Position(line: 15, character: 0))));
     expect(outline.children, hasLength(1));
 
-    final build = outline.children[0];
+    final build = outline.children![0];
     expect(build.kind, equals('DART_ELEMENT'));
     expect(
         build.range,
@@ -101,19 +101,20 @@ Widget build(BuildContext context) => Container(
         equals(Range(
             start: Position(line: 3, character: 0),
             end: Position(line: 14, character: 6))));
-    expect(build.dartElement.kind, equals('FUNCTION'));
-    expect(build.dartElement.name, equals('build'));
-    expect(build.dartElement.parameters, equals('(BuildContext context)'));
+    final dartElement = build.dartElement!;
+    expect(dartElement.kind, equals('FUNCTION'));
+    expect(dartElement.name, equals('build'));
+    expect(dartElement.parameters, equals('(BuildContext context)'));
     expect(
-        build.dartElement.range,
+        dartElement.range,
         equals(Range(
             start: Position(line: 3, character: 7),
             end: Position(line: 3, character: 12))));
-    expect(build.dartElement.returnType, equals('Widget'));
+    expect(dartElement.returnType, equals('Widget'));
     expect(build.children, hasLength(1));
 
     final icon =
-        build.children[0].children[0].children[0].children[0].children[0];
+        build.children![0].children![0].children![0].children![0].children![0];
     expect(icon.kind, equals('NEW_INSTANCE'));
     expect(icon.className, 'Icon');
     expect(
@@ -123,10 +124,11 @@ Widget build(BuildContext context) => Container(
             end: Position(line: 8, character: 50))));
     expect(icon.codeRange, equals(icon.range));
     expect(icon.attributes, hasLength(1));
-    expect(icon.attributes[0].name, equals('icon'));
-    expect(icon.attributes[0].label, equals('Icons.ac_unit'));
+    final attributes = icon.attributes!;
+    expect(attributes[0].name, equals('icon'));
+    expect(attributes[0].label, equals('Icons.ac_unit'));
     expect(
-        icon.attributes[0].valueRange,
+        attributes[0].valueRange,
         equals(Range(
             start: Position(line: 8, character: 36),
             end: Position(line: 8, character: 49))));

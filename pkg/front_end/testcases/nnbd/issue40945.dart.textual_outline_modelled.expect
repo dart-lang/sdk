@@ -1,0 +1,7 @@
+class C {
+  dynamic get test => 3.14;
+  void set test(int v) {}
+}
+
+main() {}
+test() {}

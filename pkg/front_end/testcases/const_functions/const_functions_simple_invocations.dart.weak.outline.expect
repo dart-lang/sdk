@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int binary = self::binaryFn(2, 1);
+static const field core::int optional = self::optionalFn(2);
+static const field core::int optional1 = self::optionalFn(2, 1);
+static const field core::int named = self::namedFn(2, f: 2);
+static const field core::int named1 = self::namedFn(2);
+static const field core::int type = self::typeFn<core::int>(6);
+static const field core::String str = self::stringFn("str");
+static const field core::bool eq = self::equalFn(2, 2);
+static const field core::int negative = self::unary(2);
+static const field core::bool boolean = self::boolFn(true, false);
+static const field core::double doubleResult = self::doubleFn(2.2, 2.0);
+static const field core::int multi = self::multiFn(1);
+static const field core::int multi2 = self::multiFn(2);
+static method binaryFn(core::int a, core::int b) → core::int
+  ;
+static method optionalFn(core::int c, [core::int d]) → core::int
+  ;
+static method namedFn(core::int e, {core::int f}) → core::int
+  ;
+static method typeFn<T extends core::Object? = dynamic>(self::typeFn::T% x) → self::typeFn::T%
+  ;
+static method stringFn(core::String s) → core::String
+  ;
+static method equalFn(core::int a, core::int b) → core::bool
+  ;
+static method unary(core::int a) → core::int
+  ;
+static method boolFn(core::bool a, core::bool b) → core::bool
+  ;
+static method doubleFn(core::double a, core::double b) → core::double
+  ;
+static method multiFn(core::int a) → core::int
+  ;
+static method main() → void
+  ;

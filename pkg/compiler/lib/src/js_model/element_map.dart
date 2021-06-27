@@ -15,7 +15,6 @@ import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
-import '../js_model/closure.dart' show JRecordField;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
@@ -73,11 +72,6 @@ abstract class JsToElementMap {
 
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
-
-  /// Returns the super [MemberEntity] for a super invocation, get or set of
-  /// [name] from the member [context].
-  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
-      {bool setter: false});
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
   /// `super.noSuchMethod` invocation within [cls].
@@ -155,8 +149,8 @@ abstract class JsToElementMap {
 
   /// Make a record to ensure variables that are are declared in one scope and
   /// modified in another get their values updated correctly.
-  Map<Local, JRecordField> makeRecordContainer(
-      KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap);
+  Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
+      KernelScopeInfo info, MemberEntity member);
 
   /// Returns a provider for static types for [member].
   StaticTypeProvider getStaticTypeProvider(MemberEntity member);
@@ -168,15 +162,21 @@ abstract class KernelToTypeInferenceMap {
   AbstractValue getReturnTypeOf(FunctionEntity function);
 
   /// Returns the inferred receiver type of the dynamic [invocation].
+  // TODO(johnniwinther): Improve the type of the [invocation] once the new
+  // method invocation encoding is fully utilized.
   AbstractValue receiverTypeOfInvocation(
-      ir.MethodInvocation invocation, AbstractValueDomain abstractValueDomain);
+      ir.Expression invocation, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred receiver type of the dynamic [read].
-  AbstractValue receiverTypeOfGet(ir.PropertyGet read);
+  // TODO(johnniwinther): Improve the type of the [invocation] once the new
+  // method invocation encoding is fully utilized.
+  AbstractValue receiverTypeOfGet(ir.Expression read);
 
   /// Returns the inferred receiver type of the dynamic [write].
+  // TODO(johnniwinther): Improve the type of the [invocation] once the new
+  // method invocation encoding is fully utilized.
   AbstractValue receiverTypeOfSet(
-      ir.PropertySet write, AbstractValueDomain abstractValueDomain);
+      ir.Expression write, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of [listLiteral].
   AbstractValue typeOfListLiteral(
@@ -222,8 +222,8 @@ abstract class KernelToLocalsMap {
   /// Returns the [Local] for [node].
   Local getLocalVariable(ir.VariableDeclaration node);
 
-  Local getLocalTypeVariable(
-      ir.TypeParameterType node, JsToElementMap elementMap);
+  /// Returns the [Local] for the [typeVariable].
+  Local getLocalTypeVariableEntity(TypeVariableEntity typeVariable);
 
   /// Returns the [ir.FunctionNode] that declared [parameter].
   ir.FunctionNode getFunctionNodeForParameter(Local parameter);

@@ -257,7 +257,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// Emit the toJson() code for an empty class.
   void emitEmptyToJsonMember() {
     writeln('@override');
-    writeln('Map<String, dynamic> toJson() => <String, dynamic>{};');
+    writeln('Map<String, Object> toJson() => <String, Object>{};');
   }
 
   /// Emit a class to encapsulate an enum.
@@ -266,8 +266,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(impliedType.humanReadableName);
       });
-      if (impliedType.type != null) {
-        toHtmlVisitor.showType(null, impliedType.type);
+      var impliedTypeType = impliedType.type;
+      if (impliedTypeType != null) {
+        toHtmlVisitor.showType(null, impliedTypeType);
       }
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(disclaimer);
@@ -356,7 +357,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   void emitEnumFromJsonConstructor(
       String className, TypeEnum type, ImpliedType impliedType) {
     writeln(
-        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
+        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object? json) {');
     indent(() {
       writeln('if (json is String) {');
       indent(() {
@@ -410,8 +411,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(impliedType.humanReadableName);
       });
-      if (impliedType.type != null) {
-        toHtmlVisitor.showType(null, impliedType.type);
+      var impliedTypeType = impliedType.type;
+      if (impliedTypeType != null) {
+        toHtmlVisitor.showType(null, impliedTypeType);
       }
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(disclaimer);
@@ -437,29 +439,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         if (field.value != null) {
           continue;
         }
-        writeln('${dartType(field.type)} _${field.name};');
-        writeln();
-      }
-      for (var field in type.fields) {
-        if (field.value != null) {
-          continue;
-        }
         docComment(toHtmlVisitor.collectHtml(() {
           toHtmlVisitor.translateHtml(field.html);
         }));
-        writeln('${dartType(field.type)} get ${field.name} => _${field.name};');
-        writeln();
-        docComment(toHtmlVisitor.collectHtml(() {
-          toHtmlVisitor.translateHtml(field.html);
-        }));
-        writeln('set ${field.name}(${dartType(field.type)} value) {');
-        indent(() {
-          if (!field.optional) {
-            writeln('assert(value != null);');
-          }
-          writeln('_${field.name} = value;');
-        });
-        writeln('}');
+        writeln('${fieldDartType(field)} ${field.name};');
         writeln();
       }
       emitObjectConstructor(type, className);
@@ -503,66 +486,44 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   void emitObjectConstructor(TypeObject type, String className) {
     var args = <String>[];
     var optionalArgs = <String>[];
-    var extraInitCode = <CodegenCallback>[];
+    var initializers = <String>[];
     for (var field in type.fields) {
       if (field.value != null) {
         continue;
       }
-      var arg = '${dartType(field.type)} ${field.name}';
-      var setValueFromArg = 'this.${field.name} = ${field.name};';
       if (isOptionalConstructorArg(className, field)) {
-        optionalArgs.add(arg);
         if (!field.optional) {
-          // Optional constructor arg, but non-optional field.  If no arg is
+          optionalArgs.add('${dartType(field.type)}? ${field.name}');
+          // Optional constructor arg, but non-optional field. If no arg is
           // given, the constructor should populate with the empty list.
           var fieldType = field.type;
           if (fieldType is TypeList) {
-            extraInitCode.add(() {
-              writeln('if (${field.name} == null) {');
-              indent(() {
-                writeln(
-                    'this.${field.name} = <${dartType(fieldType.itemType)}>[];');
-              });
-              writeln('} else {');
-              indent(() {
-                writeln(setValueFromArg);
-              });
-              writeln('}');
-            });
+            var defaultValue = '<${dartType(fieldType.itemType)}>[]';
+            initializers.add('${field.name} = ${field.name} ?? $defaultValue');
           } else {
             throw Exception("Don't know how to create default field value.");
           }
         } else {
-          extraInitCode.add(() {
-            writeln(setValueFromArg);
-          });
+          optionalArgs.add('this.${field.name}');
         }
       } else {
-        args.add(arg);
-        extraInitCode.add(() {
-          writeln(setValueFromArg);
-        });
+        args.add('this.${field.name}');
       }
     }
     if (optionalArgs.isNotEmpty) {
       args.add('{${optionalArgs.join(', ')}}');
     }
     write('$className(${args.join(', ')})');
-    if (extraInitCode.isEmpty) {
+    if (initializers.isEmpty) {
       writeln(';');
     } else {
-      writeln(' {');
-      indent(() {
-        for (var callback in extraInitCode) {
-          callback();
-        }
-      });
-      writeln('}');
+      writeln(' : ${initializers.join(', ')}');
+      writeln(';');
     }
   }
 
   /// Emit the operator== code for an object class.
-  void emitObjectEqualsMember(TypeObject type, String className) {
+  void emitObjectEqualsMember(TypeObject? type, String className) {
     writeln('@override');
     writeln('bool operator ==(other) {');
     indent(() {
@@ -596,8 +557,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       String className, TypeObject type, ImpliedType impliedType) {
     var humanReadableNameString = literalString(impliedType.humanReadableName);
     if (className == 'RefactoringFeedback') {
-      writeln('factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
-          'String jsonPath, Object json, Map responseJson) {');
+      writeln('static RefactoringFeedback? fromJson(JsonDecoder jsonDecoder, '
+          'String jsonPath, Object? json, Map responseJson) {');
       indent(() {
         writeln('return refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
             'json, responseJson);');
@@ -606,8 +567,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       return;
     }
     if (className == 'RefactoringOptions') {
-      writeln('factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
-          'String jsonPath, Object json, RefactoringKind kind) {');
+      writeln('static RefactoringOptions? fromJson(JsonDecoder jsonDecoder, '
+          'String jsonPath, Object? json, RefactoringKind kind) {');
       indent(() {
         writeln('return refactoringOptionsFromJson(jsonDecoder, jsonPath, '
             'json, kind);');
@@ -616,7 +577,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       return;
     }
     writeln(
-        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
+        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object? json) {');
     indent(() {
       writeln('json ??= {};');
       writeln('if (json is Map) {');
@@ -627,12 +588,13 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           var fieldNameString = literalString(field.name);
           var fieldAccessor = 'json[$fieldNameString]';
           var jsonPath = 'jsonPath + ${literalString('.${field.name}')}';
-          if (field.value != null) {
-            var valueString = literalString(field.value);
+          var fieldValue = field.value;
+          if (fieldValue is String) {
+            var valueString = literalString(fieldValue);
             writeln('if ($fieldAccessor != $valueString) {');
             indent(() {
               writeln(
-                  "throw jsonDecoder.mismatch(jsonPath, 'equal ${field.value}', json);");
+                  "throw jsonDecoder.mismatch(jsonPath, 'equal $fieldValue', json);");
             });
             writeln('}');
             continue;
@@ -642,11 +604,11 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           } else {
             args.add(field.name);
           }
-          var fieldType = field.type;
-          var fieldDartType = dartType(fieldType);
-          writeln('$fieldDartType ${field.name};');
+          var typeStr = fieldDartType(field);
+          writeln('$typeStr ${field.name};');
           writeln('if (json.containsKey($fieldNameString)) {');
           indent(() {
+            var fieldType = field.type;
             var fromJson =
                 fromJsonCode(fieldType).asSnippet(jsonPath, fieldAccessor);
             writeln('${field.name} = $fromJson;');
@@ -677,7 +639,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /// Emit the hashCode getter for an object class.
-  void emitObjectHashCode(TypeObject type, String className) {
+  void emitObjectHashCode(TypeObject? type, String className) {
     writeln('@override');
     writeln('int get hashCode {');
     indent(() {
@@ -715,7 +677,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
               'Returns the [RefactoringProblemSeverity] with the maximal severity.')
         ]);
         writeln(
-            'static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>');
+            'static RefactoringProblemSeverity? max(RefactoringProblemSeverity? a, RefactoringProblemSeverity? b) =>');
         writeln('    maxRefactoringProblemSeverity(a, b);');
         return true;
       default:
@@ -786,7 +748,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         docComment([
           dom.Text('Returns the [FileEdit] for the given [file], maybe `null`.')
         ]);
-        writeln('SourceFileEdit getFileEdit(String file) =>');
+        writeln('SourceFileEdit? getFileEdit(String file) =>');
         writeln('    getChangeFileEdit(this, file);');
         return true;
       case 'SourceEdit':
@@ -850,19 +812,23 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// Emit the toJson() code for an object class.
   void emitToJsonMember(TypeObject type) {
     writeln('@override');
-    writeln('Map<String, dynamic> toJson() {');
+    writeln('Map<String, Object> toJson() {');
     indent(() {
-      writeln('var result = <String, dynamic>{};');
+      writeln('var result = <String, Object>{};');
       for (var field in type.fields) {
         var fieldNameString = literalString(field.name);
-        if (field.value != null) {
-          writeln('result[$fieldNameString] = ${literalString(field.value)};');
+        var fieldValue = field.value;
+        if (fieldValue is String) {
+          var valueString = literalString(fieldValue);
+          writeln('result[$fieldNameString] = $valueString;');
           continue;
         }
         var fieldToJson = toJsonCode(field.type).asSnippet(field.name);
         var populateField = 'result[$fieldNameString] = $fieldToJson;';
         if (field.optional) {
-          writeln('if (${field.name} != null) {');
+          var name = field.name;
+          writeln('var $name = this.$name;');
+          writeln('if ($name != null) {');
           indent(() {
             writeln(populateField);
           });
@@ -1019,7 +985,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
                 'Each choice in the union needs a constant value for the field ${type.field}');
           }
           var closure = fromJsonCode(choice).asClosure;
-          decoders.add('${literalString(field.value)}: $closure');
+          decoders.add('${literalString(field.value as String)}: $closure');
         } else {
           throw Exception('Union types must be unions of objects.');
         }
@@ -1108,7 +1074,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           throw Exception('Union types must be unions of objects');
         }
       }
-      return ToJsonSnippet(dartType(type), (String value) => '$value.toJson()');
+      return ToJsonSnippet(
+        dartType(type),
+        (String value) => '($value as dynamic).toJson()',
+      );
     } else if (resolvedType is TypeObject || resolvedType is TypeEnum) {
       return ToJsonSnippet(dartType(type), (String value) => '$value.toJson()');
     } else {
@@ -1173,7 +1142,7 @@ class FromJsonSnippet extends FromJsonCode {
 
   @override
   String get asClosure =>
-      '(String jsonPath, Object json) => ${callback('jsonPath', 'json')}';
+      '(String jsonPath, Object? json) => ${callback('jsonPath', 'json')}';
 
   @override
   bool get isIdentity => false;

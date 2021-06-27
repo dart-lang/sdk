@@ -1,22 +1,11 @@
-include: package:pedantic/analysis_options.1.9.0.yaml
-
-analyzer:
-  errors:
-    # Increase the severity of several hints.
-    prefer_single_quotes: warning
-    unused_import: warning
-    unnecessary_brace_in_string_interps: warning
-
-    # Ignore one pedantic lint
-    omit_local_variable_types: ignore
+include: package:lints/recommended.yaml
 
 linter:
   rules:
-    - always_declare_return_types
-    - directives_ordering
-    - overridden_fields
-    - prefer_single_quotes
-    - sort_pub_dependencies
-    - unnecessary_brace_in_string_interps
-    - unnecessary_overrides
-    - unnecessary_parenthesis
+    # Disable implementation_imports.
+    implementation_imports: false
+
+    # Enable additional rules.
+    depend_on_referenced_packages: true
+    directives_ordering: true
+    sort_pub_dependencies: true

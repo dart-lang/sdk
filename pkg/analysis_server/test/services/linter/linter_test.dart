@@ -5,7 +5,6 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:linter/src/rules.dart';
@@ -21,10 +20,12 @@ void main() {
 @reflectiveTest
 class LinterRuleOptionsValidatorTest {
   final LinterRuleOptionsValidator validator = LinterRuleOptionsValidator();
+
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
-  RecordingErrorListener recorder;
-  ErrorReporter reporter;
+  late RecordingErrorListener recorder;
+
+  late ErrorReporter reporter;
 
   List<AnalysisError> get errors => recorder.errors;
 

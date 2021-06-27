@@ -57,7 +57,7 @@ class Utils {
   }
 
   template <typename T>
-  static inline bool IsPowerOfTwo(T x) {
+  static constexpr bool IsPowerOfTwo(T x) {
     return ((x & (x - 1)) == 0) && (x != 0);
   }
 
@@ -73,13 +73,13 @@ class Utils {
   }
 
   template <typename T>
-  static inline bool IsAligned(T x, intptr_t n) {
-    ASSERT(IsPowerOfTwo(n));
+  static constexpr bool IsAligned(T x, intptr_t n) {
+    assert(IsPowerOfTwo(n));
     return (x & (n - 1)) == 0;
   }
 
   template <typename T>
-  static inline bool IsAligned(T* x, intptr_t n) {
+  static constexpr bool IsAligned(T* x, intptr_t n) {
     return IsAligned(reinterpret_cast<uword>(x), n);
   }
 
@@ -117,9 +117,36 @@ class Utils {
 #endif
   }
 
-  static int HighestBit(int64_t v);
+  // TODO(koda): Compare to flsll call/intrinsic.
+  static constexpr size_t HighestBit(int64_t v) {
+    uint64_t x = static_cast<uint64_t>((v > 0) ? v : -v);
+    uint64_t t = 0;
+    size_t r = 0;
+    if ((t = x >> 32) != 0) {
+      x = t;
+      r += 32;
+    }
+    if ((t = x >> 16) != 0) {
+      x = t;
+      r += 16;
+    }
+    if ((t = x >> 8) != 0) {
+      x = t;
+      r += 8;
+    }
+    if ((t = x >> 4) != 0) {
+      x = t;
+      r += 4;
+    }
+    if ((t = x >> 2) != 0) {
+      x = t;
+      r += 2;
+    }
+    if (x > 1) r += 1;
+    return r;
+  }
 
-  static int BitLength(int64_t value) {
+  static constexpr size_t BitLength(int64_t value) {
     // Flip bits if negative (-1 becomes 0).
     value ^= value >> (8 * sizeof(value) - 1);
     return (value == 0) ? 0 : (Utils::HighestBit(value) + 1);
@@ -290,6 +317,13 @@ class Utils {
     // Avoid undefined behavior by doing arithmetic in the unsigned type.
     using Unsigned = typename std::make_unsigned<T>::type;
     return static_cast<T>(static_cast<Unsigned>(a) * static_cast<Unsigned>(b));
+  }
+
+  template <typename T = int64_t>
+  static inline T NegWithWrapAround(T a) {
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return static_cast<T>(-static_cast<Unsigned>(a));
   }
 
   // Shifts int64_t value left. Supports any non-negative number of bits and

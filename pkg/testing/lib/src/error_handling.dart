@@ -10,7 +10,9 @@ import 'dart:io' show exitCode, stderr;
 
 import 'dart:isolate' show ReceivePort;
 
-Future<T> withErrorHandling<T>(Future<T> f()) async {
+import 'log.dart';
+
+Future<T> withErrorHandling<T>(Future<T> f(), {Logger logger}) async {
   final ReceivePort port = new ReceivePort();
   try {
     return await f();
@@ -20,6 +22,7 @@ Future<T> withErrorHandling<T>(Future<T> f()) async {
     if (trace != null) {
       stderr.writeln(trace);
     }
+    logger?.noticeFrameworkCatchError(e, trace);
     return null;
   } finally {
     port.close();

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Super initializer and super constructor body are executed in with the same

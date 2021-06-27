@@ -1,0 +1,163 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:5:7: Error: The non-abstract class 'Super' is missing implementations for these members:
+//  - Super.extendedAbstractGetter
+//  - Super.extendedAbstractMixedInAbstractGetter
+//  - Super.extendedAbstractMixedInConcreteGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Super {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:8:11: Context: 'Super.extendedAbstractGetter' is defined here.
+//   int get extendedAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:16:11: Context: 'Super.extendedAbstractMixedInAbstractGetter' is defined here.
+//   int get extendedAbstractMixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:12:11: Context: 'Super.extendedAbstractMixedInConcreteGetter' is defined here.
+//   int get extendedAbstractMixedInConcreteGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:19:7: Error: The non-abstract class 'Mixin' is missing implementations for these members:
+//  - Mixin.extendedAbstractMixedInAbstractGetter
+//  - Mixin.extendedConcreteMixedInAbstractGetter
+//  - Mixin.mixedInAbstractGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Mixin {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:30:11: Context: 'Mixin.extendedAbstractMixedInAbstractGetter' is defined here.
+//   int get extendedAbstractMixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:28:11: Context: 'Mixin.extendedConcreteMixedInAbstractGetter' is defined here.
+//   int get extendedConcreteMixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:22:11: Context: 'Mixin.mixedInAbstractGetter' is defined here.
+//   int get mixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:33:7: Error: The non-abstract class 'ClassMixin' is missing implementations for these members:
+//  - Mixin.extendedAbstractMixedInAbstractGetter
+//  - Mixin.mixedInAbstractGetter
+//  - Super.extendedAbstractGetter
+//  - Super.extendedAbstractMixedInAbstractGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ClassMixin extends Super with Mixin {}
+//       ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:30:11: Context: 'Mixin.extendedAbstractMixedInAbstractGetter' is defined here.
+//   int get extendedAbstractMixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:22:11: Context: 'Mixin.mixedInAbstractGetter' is defined here.
+//   int get mixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:8:11: Context: 'Super.extendedAbstractGetter' is defined here.
+//   int get extendedAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:16:11: Context: 'Super.extendedAbstractMixedInAbstractGetter' is defined here.
+//   int get extendedAbstractMixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:35:7: Error: The non-abstract class 'NamedMixin' is missing implementations for these members:
+//  - Mixin.extendedAbstractMixedInAbstractGetter
+//  - Mixin.mixedInAbstractGetter
+//  - Super.extendedAbstractGetter
+//  - Super.extendedAbstractMixedInAbstractGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class NamedMixin = Super with Mixin;
+//       ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:30:11: Context: 'Mixin.extendedAbstractMixedInAbstractGetter' is defined here.
+//   int get extendedAbstractMixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:22:11: Context: 'Mixin.mixedInAbstractGetter' is defined here.
+//   int get mixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:8:11: Context: 'Super.extendedAbstractGetter' is defined here.
+//   int get extendedAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_getter.dart:16:11: Context: 'Super.extendedAbstractMixedInAbstractGetter' is defined here.
+//   int get extendedAbstractMixedInAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  get extendedConcreteGetter() → core::int
+    ;
+  abstract get extendedAbstractGetter() → core::int;
+  get extendedConcreteMixedInConcreteGetter() → core::int
+    ;
+  abstract get extendedAbstractMixedInConcreteGetter() → core::int;
+  get extendedConcreteMixedInAbstractGetter() → core::int
+    ;
+  abstract get extendedAbstractMixedInAbstractGetter() → core::int;
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    ;
+  get mixedInConcreteGetter() → core::int
+    ;
+  abstract get mixedInAbstractGetter() → core::int;
+  get extendedConcreteMixedInConcreteGetter() → core::int
+    ;
+  get extendedAbstractMixedInConcreteGetter() → core::int
+    ;
+  abstract get extendedConcreteMixedInAbstractGetter() → core::int;
+  abstract get extendedAbstractMixedInAbstractGetter() → core::int;
+}
+abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_ClassMixin&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub get mixedInConcreteGetter() → core::int
+    return super.{self::Mixin::mixedInConcreteGetter};
+  mixin-super-stub get extendedConcreteMixedInConcreteGetter() → core::int
+    return super.{self::Mixin::extendedConcreteMixedInConcreteGetter};
+  mixin-super-stub get extendedAbstractMixedInConcreteGetter() → core::int
+    return super.{self::Mixin::extendedAbstractMixedInConcreteGetter};
+  abstract mixin-stub get extendedConcreteMixedInAbstractGetter() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractGetter
+  abstract mixin-stub get mixedInAbstractGetter() → core::int; -> self::Mixin::mixedInAbstractGetter
+  abstract mixin-stub get extendedAbstractMixedInAbstractGetter() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractGetter
+}
+class ClassMixin extends self::_ClassMixin&Super&Mixin {
+  synthetic constructor •() → self::ClassMixin
+    ;
+}
+class NamedMixin = self::Super with self::Mixin {
+  synthetic constructor •() → self::NamedMixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub get mixedInConcreteGetter() → core::int
+    return super.{self::Mixin::mixedInConcreteGetter};
+  mixin-super-stub get extendedConcreteMixedInConcreteGetter() → core::int
+    return super.{self::Mixin::extendedConcreteMixedInConcreteGetter};
+  mixin-super-stub get extendedAbstractMixedInConcreteGetter() → core::int
+    return super.{self::Mixin::extendedAbstractMixedInConcreteGetter};
+  abstract mixin-stub get extendedConcreteMixedInAbstractGetter() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractGetter
+  abstract mixin-stub get mixedInAbstractGetter() → core::int; -> self::Mixin::mixedInAbstractGetter
+  abstract mixin-stub get extendedAbstractMixedInAbstractGetter() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractGetter
+}
+static method main() → dynamic
+  ;

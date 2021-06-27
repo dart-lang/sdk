@@ -24,7 +24,6 @@ enum FunctionKind {
   ffiTrampoline,
   stub,
   tag,
-  signatureFunction,
   dynamicInvocationForwarder
 }
 

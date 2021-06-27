@@ -6,76 +6,19 @@
 
 main() {
   var map = new Map<int>{ "a": 1, "b": 2, "c": 3 };
-  //            ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
-  // [cfe] Expected 2 type arguments.
-  //                   ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected '(' after this.
-  //                    ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
-  //                      ^^^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
+  //        ^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.LITERAL_WITH_CLASS_AND_NEW
+  // [cfe] A map literal can't be prefixed by 'new Map'.
+  //                      ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MAP_ENTRY_NOT_IN_MAP
   //                         ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
-  //                         ^
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [cfe] Expected an identifier, but got ':'.
-  //                         ^
-  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-  // [cfe] Unexpected token ':'.
-  //                           ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
-  //                            ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
-  //                            ^
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [cfe] Expected an identifier, but got ','.
-  //                            ^
-  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-  // [cfe] Unexpected token ','.
-  //                              ^^^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
+  // [cfe] Expected ',' before this.
+  //                              ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MAP_ENTRY_NOT_IN_MAP
   //                                 ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
-  //                                 ^
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [cfe] Expected an identifier, but got ':'.
-  //                                 ^
-  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-  // [cfe] Unexpected token ':'.
-  //                                   ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
-  //                                    ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
-  //                                    ^
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [cfe] Expected an identifier, but got ','.
-  //                                    ^
-  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-  // [cfe] Unexpected token ','.
-  //                                      ^^^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
+  // [cfe] Expected ',' before this.
+  //                                      ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MAP_ENTRY_NOT_IN_MAP
   //                                         ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
-  //                                         ^
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [cfe] Expected an identifier, but got ':'.
-  //                                         ^
-  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-  // [cfe] Unexpected token ':'.
-  //                                           ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ';' after this.
+  // [cfe] Expected ',' before this.
 }

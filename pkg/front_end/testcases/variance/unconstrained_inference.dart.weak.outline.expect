@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Covariant<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Covariant<self::Covariant::T%>
+    ;
+}
+class Contravariant<contravariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Contravariant<self::Contravariant::T%>
+    ;
+}
+class Invariant<invariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Invariant<self::Invariant::T%>
+    ;
+}
+static method covariantListInfer<T extends core::Object? = dynamic>(self::Covariant<core::List<self::covariantListInfer::T%>> x) → void
+  ;
+static method contravariantListInfer<T extends core::Object? = dynamic>(self::Contravariant<core::List<self::contravariantListInfer::T%>> x) → void
+  ;
+static method invariantListInfer<T extends core::Object? = dynamic>(self::Invariant<core::List<self::invariantListInfer::T%>> x) → void
+  ;
+static method main() → dynamic
+  ;

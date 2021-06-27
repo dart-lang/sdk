@@ -133,7 +133,7 @@ void main() {
 
   Future<FlutterSetWidgetPropertyValueResult> _setValue(
     FlutterWidgetProperty property,
-    FlutterWidgetPropertyValue value,
+    FlutterWidgetPropertyValue? value,
   ) async {
     var response = await _setValueResponse(property, value);
     expect(response.error, isNull);
@@ -142,7 +142,7 @@ void main() {
 
   Future<Response> _setValueResponse(
     FlutterWidgetProperty property,
-    FlutterWidgetPropertyValue value,
+    FlutterWidgetPropertyValue? value,
   ) async {
     var request = FlutterSetWidgetPropertyValueParams(
       property.id,

@@ -21,7 +21,6 @@ import("../bin/cli_sources.gni")
 import("../bin/io_sources.gni")
 import("../configs.gni")
 import("../lib/async_sources.gni")
-import("../lib/collection_sources.gni")
 import("../lib/convert_sources.gni")
 import("../lib/core_sources.gni")
 import("../lib/developer_sources.gni")
@@ -74,7 +73,7 @@ library_for_all_configs("libdart_vm") {
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
       extra_deps = [
-        "$fuchsia_sdk_root/fidl/fuchsia.deprecatedtimezone",
+        "$fuchsia_sdk_root/fidl/fuchsia.intl",
         "$fuchsia_sdk_root/pkg/async",
         "$fuchsia_sdk_root/pkg/async-default",
         "$fuchsia_sdk_root/pkg/async-loop",
@@ -87,7 +86,7 @@ library_for_all_configs("libdart_vm") {
       ]
     } else if (using_fuchsia_sdk) {
       extra_deps = [
-        "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
+        "$fuchsia_sdk_root/fidl:fuchsia.intl",
         "$fuchsia_sdk_root/pkg:async-loop",
         "$fuchsia_sdk_root/pkg:async-loop-default",
         "$fuchsia_sdk_root/pkg:inspect",
@@ -98,9 +97,7 @@ library_for_all_configs("libdart_vm") {
       ]
     } else {
       extra_deps = [
-        # TODO(US-399): Remove time_service specific code when it is no longer
-        # necessary.
-        "//sdk/fidl/fuchsia.deprecatedtimezone",
+        "//sdk/fidl/fuchsia.intl",
         "//sdk/lib/sys/cpp",
         "//sdk/lib/sys/inspect/cpp",
         "//zircon/public/lib/fbl",
@@ -149,12 +146,11 @@ library_for_all_configs("libdart_lib") {
     }
   }
   include_dirs = [ ".." ]
-  allsources = async_runtime_cc_files + collection_runtime_cc_files +
-               core_runtime_cc_files + developer_runtime_cc_files +
-               internal_runtime_cc_files + isolate_runtime_cc_files +
-               math_runtime_cc_files + mirrors_runtime_cc_files +
-               typed_data_runtime_cc_files + vmservice_runtime_cc_files +
-               ffi_runtime_cc_files
+  allsources = async_runtime_cc_files + core_runtime_cc_files +
+               developer_runtime_cc_files + internal_runtime_cc_files +
+               isolate_runtime_cc_files + math_runtime_cc_files +
+               mirrors_runtime_cc_files + typed_data_runtime_cc_files +
+               vmservice_runtime_cc_files + ffi_runtime_cc_files
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
 }
@@ -183,7 +179,6 @@ template("gen_vm_platform") {
     args += [
       "-Ddart.vm.product=$is_product_flag",
       "-Ddart.isVM=true",
-      "--enable-experiment=non-nullable",
       "--nnbd-agnostic",
     ]
     if (defined(invoker.exclude_source) && invoker.exclude_source) {

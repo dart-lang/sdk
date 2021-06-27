@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // If a constant constructor contains an initializer, or an initializing
 // formal, for a final field which itself has an initializer at its
 // declaration, then a compile-time error should be reported regardless of

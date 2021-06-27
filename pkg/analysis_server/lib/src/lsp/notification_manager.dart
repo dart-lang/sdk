@@ -10,7 +10,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:path/path.dart';
 
 class LspNotificationManager extends AbstractNotificationManager {
@@ -19,7 +18,8 @@ class LspNotificationManager extends AbstractNotificationManager {
 
   /// The analysis server, used to fetch LineInfo in order to map plugin
   /// data structures to LSP structures.
-  LspAnalysisServer server;
+  late LspAnalysisServer
+      server; // Set externally immediately after construction
 
   LspNotificationManager(this.channel, Context pathContext)
       : super(pathContext);
@@ -29,7 +29,13 @@ class LspNotificationManager extends AbstractNotificationManager {
   void sendAnalysisErrors(
       String filePath, List<protocol.AnalysisError> errors) {
     final diagnostics = errors
-        .map((error) => pluginToDiagnostic(server.getLineInfo, error))
+        .map((error) => pluginToDiagnostic(
+              // We should never return errors for a file we can't get a
+              // LineInfo for
+              (path) => server.getLineInfo(path)!,
+              error,
+              supportedTags: server.clientCapabilities?.diagnosticTags,
+            ))
         .toList();
 
     final params = PublishDiagnosticsParams(

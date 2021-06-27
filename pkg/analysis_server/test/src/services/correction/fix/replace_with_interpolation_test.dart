@@ -124,14 +124,6 @@ var c = 'a$b';
 ''');
   }
 
-  Future<void> test_stringLiteral_variable_raw_single_notMulti() async {
-    await resolveTestCode('''
-var b = 'b';
-var c = r'a' + b;
-''');
-    await assertNoFix();
-  }
-
   Future<void> test_stringLiteral_variable_withEscapes() async {
     await resolveTestCode(r'''
 var b = 'b';
@@ -154,6 +146,19 @@ var c = '${a}bc';
 ''');
   }
 
+  Future<void> test_variable_stringInterpolation_runTogether_letter() async {
+    await resolveTestCode(r'''
+String f(String s) {
+  return s + 'and $s';
+}
+''');
+    await assertHasFix(r'''
+String f(String s) {
+  return '${s}and $s';
+}
+''');
+  }
+
   Future<void> test_variable_stringLiteral_noRuntogther() async {
     await resolveTestCode('''
 var a = 'a';
@@ -165,7 +170,20 @@ var c = '$a b';
 ''');
   }
 
-  Future<void> test_variable_stringLiteral_runtogther() async {
+  Future<void> test_variable_stringLiteral_runTogether_digit() async {
+    await resolveTestCode('''
+String f(String s) {
+  return s + '1';
+}
+''');
+    await assertHasFix(r'''
+String f(String s) {
+  return '${s}1';
+}
+''');
+  }
+
+  Future<void> test_variable_stringLiteral_runTogether_variable() async {
     await resolveTestCode('''
 var a = 'a';
 var c = a + 'b';

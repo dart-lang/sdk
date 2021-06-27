@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/old_version.dart:7:11: Error: Can't create typedef from non-function type.
+// typedef A = int;
+//           ^
+//
+import self as self;
+
+typedef A = invalid-type;
+static method main() → void {}

@@ -1,0 +1,32 @@
+class A<T> {
+  const A();
+}
+
+class B<S, T> {
+  const B();
+}
+
+class C<T extends num> {
+  const C();
+}
+
+class D<S extends num, T extends S> {
+  const D();
+}
+
+@A()
+@A<int>()
+@B()
+@B<int, String>()
+@C()
+@C<num>()
+@C<int>()
+@D()
+@D<num, num>()
+@D<num, int>()
+main() {}
+@A<int, num>()
+@B<int>()
+@C<String>()
+@D<int, num>()
+test() {}

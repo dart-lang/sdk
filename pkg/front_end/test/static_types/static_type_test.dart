@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
-    show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
@@ -102,12 +101,24 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   }
 
   @override
+  String computeMemberValue(Id id, Member node) {
+    if (node is Procedure && node.function.futureValueType != null) {
+      return 'futureValueType=${typeToText(node.function.futureValueType)}';
+    }
+    return null;
+  }
+
+  @override
   String computeNodeValue(Id id, TreeNode node) {
     if (isSkippedExpression(node)) {
       return null;
     }
     if (node is Expression) {
       DartType type = node.getStaticType(_staticTypeContext);
+      if (node is FunctionExpression && node.function.futureValueType != null) {
+        return '${typeToText(type)},'
+            'futureValueType=${typeToText(node.function.futureValueType)}';
+      }
       return typeToText(type);
     } else if (node is Arguments) {
       if (node.types.isNotEmpty) {
@@ -118,6 +129,10 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
         DartType type = _staticTypeContext.typeEnvironment.forInElementType(
             node, node.iterable.getStaticType(_staticTypeContext));
         return typeToText(type);
+      }
+    } else if (node is FunctionDeclaration) {
+      if (node.function.futureValueType != null) {
+        return 'futureValueType=${typeToText(node.function.futureValueType)}';
       }
     }
     return null;

@@ -21,7 +21,7 @@ class RenameProcessor {
   RenameProcessor(this.workspace, this.change, this.newName);
 
   /// Add the edit that updates the [element] declaration.
-  void addDeclarationEdit(Element element) {
+  void addDeclarationEdit(Element? element) {
     if (element != null && workspace.containsElement(element)) {
       var edit = newSourceEdit_range(range.elementName(element), newName);
       doSourceChange_addElementEdit(change, element, edit);
@@ -58,9 +58,9 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   final String elementKindName;
   @override
   final String oldName;
-  SourceChange change;
+  late SourceChange change;
 
-  String newName;
+  late String newName;
 
   RenameRefactoringImpl(this.workspace, Element element)
       : searchEngine = workspace.searchEngine,
@@ -73,7 +73,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   @override
   Future<RefactoringStatus> checkInitialConditions() {
     var result = RefactoringStatus();
-    if (element.source.isInSystemLibrary) {
+    if (element.source!.isInSystemLibrary) {
       var message = format(
           "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
           getElementKindName(element),

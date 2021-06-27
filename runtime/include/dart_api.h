@@ -475,7 +475,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  *
  * Requires there to be a current isolate.
  *
- * \param object An object.
+ * \param object An object with identity.
  * \param peer A pointer to a native object or NULL.  This value is
  *   provided to callback when it is invoked.
  * \param external_allocation_size The number of externally allocated
@@ -531,7 +531,7 @@ DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
  *
  * Requires there to be a current isolate.
  *
- * \param object An object.
+ * \param object An object with identity.
  * \param peer A pointer to a native object or NULL.  This value is
  *   provided to callback when it is invoked.
  * \param external_allocation_size The number of externally allocated
@@ -588,12 +588,6 @@ DART_EXPORT void Dart_UpdateFinalizableExternalSize(
  */
 DART_EXPORT const char* Dart_VersionString();
 
-typedef struct {
-  const char* library_uri;
-  const char* class_name;
-  const char* function_name;
-} Dart_QualifiedFunctionName;
-
 /**
  * Isolate specific flags are set when creating a new isolate using the
  * Dart_IsolateFlags structure.
@@ -610,7 +604,6 @@ typedef struct {
   bool use_field_guards;
   bool use_osr;
   bool obfuscate;
-  Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;
   bool copy_parent_code;
   bool null_safety;
@@ -3048,6 +3041,13 @@ typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
  */
 typedef const uint8_t* (*Dart_NativeEntrySymbol)(Dart_NativeFunction nf);
 
+/**
+ * FFI Native C function pointer resolver callback.
+ *
+ * See Dart_SetFfiNativeResolver.
+ */
+typedef void* (*Dart_FfiNativeResolver)(const char* name);
+
 /*
  * ===========
  * Environment
@@ -3109,6 +3109,22 @@ Dart_GetNativeResolver(Dart_Handle library, Dart_NativeEntryResolver* resolver);
  */
 DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
                                              Dart_NativeEntrySymbol* resolver);
+
+/**
+ * Sets the callback used to resolve FFI native functions for a library.
+ * The resolved functions are expected to be a C function pointer of the
+ * correct signature (as specified in the `@FfiNative<NFT>()` function
+ * annotation in Dart code).
+ *
+ * NOTE: This is an experimental feature and might change in the future.
+ *
+ * \param library A library.
+ * \param resolver A native function resolver.
+ *
+ * \return A valid handle if the native resolver was set successfully.
+ */
+DART_EXPORT Dart_Handle
+Dart_SetFfiNativeResolver(Dart_Handle library, Dart_FfiNativeResolver resolver);
 
 /*
  * =====================
@@ -3532,6 +3548,13 @@ typedef struct {
   intptr_t kernel_size;
 } Dart_KernelCompilationResult;
 
+typedef enum {
+  Dart_KernelCompilationVerbosityLevel_Error = 0,
+  Dart_KernelCompilationVerbosityLevel_Warning,
+  Dart_KernelCompilationVerbosityLevel_Info,
+  Dart_KernelCompilationVerbosityLevel_All,
+} Dart_KernelCompilationVerbosityLevel;
+
 DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
 DART_EXPORT bool Dart_KernelIsolateIsRunning();
 DART_EXPORT Dart_Port Dart_KernelPort();
@@ -3543,6 +3566,13 @@ DART_EXPORT Dart_Port Dart_KernelPort();
  * `vm_platform_strong.dill`). The VM does not take ownership of this memory.
  *
  * \param platform_kernel_size The length of the platform_kernel buffer.
+ *
+ * \param snapshot_compile Set to `true` when the compilation is for a snapshot.
+ * This is used by the frontend to determine if compilation related information
+ * should be printed to console (e.g., null safety mode).
+ *
+ * \param verbosity Specifies the logging behavior of the kernel compilation
+ * service.
  *
  * \return Returns the result of the compilation.
  *
@@ -3561,7 +3591,9 @@ Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      const intptr_t platform_kernel_size,
                      bool incremental_compile,
-                     const char* package_config);
+                     bool snapshot_compile,
+                     const char* package_config,
+                     Dart_KernelCompilationVerbosityLevel verbosity);
 
 typedef struct {
   const char* uri;
@@ -3657,58 +3689,6 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
  *         otherwise.
  */
 DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port, char** error);
-
-/*
- * ====================
- * Compilation Feedback
- * ====================
- */
-
-/**
- * Record all functions which have been compiled in the current isolate.
- *
- * \param buffer Returns a pointer to a buffer containing the trace.
- *   This buffer is scope allocated and is only valid  until the next call to
- *   Dart_ExitScope.
- * \param size Returns the size of the buffer.
- * \return Returns an valid handle upon success.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_SaveCompilationTrace(uint8_t** buffer, intptr_t* buffer_length);
-
-/**
- * Compile all functions from data from Dart_SaveCompilationTrace. Unlike JIT
- * feedback, this data is fuzzy: loading does not need to happen in the exact
- * program that was saved, the saver and loader do not need to agree on checked
- * mode versus production mode or debug/release/product.
- *
- * \return Returns an error handle if a compilation error was encountered.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length);
-
-/**
- * Record runtime feedback for the current isolate, including type feedback
- * and usage counters.
- *
- * \param buffer Returns a pointer to a buffer containing the trace.
- *   This buffer is scope allocated and is only valid  until the next call to
- *   Dart_ExitScope.
- * \param size Returns the size of the buffer.
- * \return Returns an valid handle upon success.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_SaveTypeFeedback(uint8_t** buffer, intptr_t* buffer_length);
-
-/**
- * Compile functions using data from Dart_SaveTypeFeedback. The data must from a
- * VM with the same version and compiler flags.
- *
- * \return Returns an error handle if a compilation error was encountered or a
- *   version mismatch is detected.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_LoadTypeFeedback(uint8_t* buffer, intptr_t buffer_length);
 
 /*
  * ==============

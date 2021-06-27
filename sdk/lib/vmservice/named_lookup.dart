@@ -4,7 +4,7 @@
 
 part of dart._vmservice;
 
-/// Set like containes which automatically generated String ids for its items
+/// Set like contains which automatically generated String ids for its items
 class NamedLookup<E extends Object> extends Object with IterableMixin<E> {
   final IdGenerator _generator;
   final _elements = <String, E>{};

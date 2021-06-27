@@ -29,16 +29,18 @@ abstract class DartCompletionContributor {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartCompletionRequest extends CompletionRequest {
+  CompletionPreference get completionPreference;
+
   /// Return the type imposed on the target's `containingNode` based on its
   /// context, or `null` if the context does not impose any type.
-  DartType get contextType;
+  DartType? get contextType;
 
   /// Return the object used to resolve macros in Dartdoc comments.
   DartdocDirectiveInfo get dartdocDirectiveInfo;
 
   /// Return the expression to the right of the "dot" or "dot dot",
   /// or `null` if this is not a "dot" completion (e.g. `foo.b`).
-  Expression get dotTarget;
+  Expression? get dotTarget;
 
   /// Return the object used to compute the values of the features used to
   /// compute relevance scores for suggestions.
@@ -57,13 +59,13 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// Return the library element which contains the unit in which the completion
   /// is occurring. This may return `null` if the library cannot be determined
   /// (e.g. unlinked part file).
-  LibraryElement get libraryElement;
+  LibraryElement? get libraryElement;
 
   /// The source for the library containing the completion request.
   /// This may be different from the source in which the completion is requested
   /// if the completion is being requested in a part file.
   /// This may be `null` if the library for a part file cannot be determined.
-  Source get librarySource;
+  Source? get librarySource;
 
   /// Answer the [DartType] for Object in dart:core
   DartType get objectType;
@@ -71,6 +73,10 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// The [OpType] which describes which types of suggestions would fit the
   /// request.
   OpType get opType;
+
+  /// The source range that represents the region of text that should be
+  /// replaced when a suggestion is selected.
+  SourceRange get replacementRange;
 
   /// Return the [SourceFactory] of the request.
   SourceFactory get sourceFactory;

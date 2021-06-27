@@ -8,6 +8,7 @@ import 'package:js_ast/js_ast.dart';
 import 'package:js_ast/src/characters.dart' as charCodes;
 import 'package:js_ast/src/precedence.dart';
 
+import '../js_backend/deferred_holder_expression.dart';
 import '../js_backend/string_reference.dart';
 import '../js_backend/type_reference.dart';
 import '../js_emitter/metadata_collector.dart';
@@ -63,6 +64,9 @@ class SizeEstimator implements NodeVisitor {
       // Worst case we have to inline the string so size of string + 2 bytes for
       // quotes.
       return "'${node.constant.toDartString()}'";
+    } else if (node is DeferredHolderExpression) {
+      // 1 byte holder + dot + nameSizeEstimate
+      return '#.$nameSizeEstimate';
     } else {
       throw UnsupportedError('$node type is not supported');
     }
@@ -444,7 +448,7 @@ class SizeEstimator implements NodeVisitor {
         // ({a: 2, b: 3}.toString()).
         (newAtStatementBegin &&
             (node is NamedFunction ||
-                node is Fun ||
+                node is FunctionExpression ||
                 node is ObjectInitializer));
     if (needsParentheses) {
       inForInit = false;
@@ -745,24 +749,24 @@ class SizeEstimator implements NodeVisitor {
   }
 
   bool isValidJavaScriptId(String field) {
-    if (field.length < 3) return false;
+    if (field.length == 0) return false;
     // Ignore the leading and trailing string-delimiter.
-    for (int i = 1; i < field.length - 1; i++) {
+    for (int i = 0; i < field.length; i++) {
       // TODO(floitsch): allow more characters.
       int charCode = field.codeUnitAt(i);
       if (!(charCodes.$a <= charCode && charCode <= charCodes.$z ||
           charCodes.$A <= charCode && charCode <= charCodes.$Z ||
           charCode == charCodes.$$ ||
           charCode == charCodes.$_ ||
-          i != 1 && isDigit(charCode))) {
+          i > 0 && isDigit(charCode))) {
         return false;
       }
     }
     // TODO(floitsch): normally we should also check that the field is not a
     // reserved word.  We don't generate fields with reserved word names except
     // for 'super'.
-    if (field == '"super"') return false;
-    if (field == '"catch"') return false;
+    if (field == 'super') return false;
+    if (field == 'catch') return false;
     return true;
   }
 
@@ -772,16 +776,17 @@ class SizeEstimator implements NodeVisitor {
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     Node selector = access.selector;
     if (selector is LiteralString) {
-      String fieldWithQuotes = literalStringToString(selector);
-      if (isValidJavaScriptId(fieldWithQuotes)) {
+      String field = literalStringToString(selector);
+      if (isValidJavaScriptId(field)) {
         if (access.receiver is LiteralNumber) {
           // We can eliminate the space in some cases, but for simplicity we
           // always assume it is necessary.
           out(' '); // ' '
         }
 
-        // '.${fieldWithQuotes.substring(1, fieldWithQuotes.length - 1)}'
-        out('.${fieldWithQuotes.substring(1, fieldWithQuotes.length - 1)}');
+        // '.${field}'
+        out('.');
+        out(field);
         return;
       }
     } else if (selector is Name) {
@@ -816,6 +821,45 @@ class SizeEstimator implements NodeVisitor {
   }
 
   @override
+  void visitArrowFunction(ArrowFunction fun) {
+    VarCollector vars = new VarCollector();
+    vars.visitArrowFunction(fun);
+    arrowFunctionOut(fun, vars);
+  }
+
+  int arrowFunctionOut(ArrowFunction fun, VarCollector vars) {
+    // TODO: support static, get/set, async, and generators.
+    if (fun.params.length == 1 && fun.params.first is VariableReference) {
+      visitNestedExpression(fun.params.single, ASSIGNMENT,
+          newInForInit: false, newAtStatementBegin: false);
+    } else {
+      out("(");
+      if (fun.params != null) {
+        visitCommaSeparated(fun.params, PRIMARY,
+            newInForInit: false, newAtStatementBegin: false);
+      }
+      out(")");
+    }
+    out("=>");
+    int closingPosition;
+    Node body = fun.body;
+    if (body is Block) {
+      closingPosition = blockOut(body);
+    } else {
+      // Object initializers require parentheses to disambiguate
+      // AssignmentExpression from FunctionBody. See:
+      // https://tc39.github.io/ecma262/#sec-arrow-function-definitions
+      bool needsParens = body is ObjectInitializer;
+      if (needsParens) out("(");
+      visitNestedExpression(body, ASSIGNMENT,
+          newInForInit: false, newAtStatementBegin: false);
+      if (needsParens) out(")");
+      closingPosition = charCount - 1;
+    }
+    return closingPosition;
+  }
+
+  @override
   visitDeferredExpression(DeferredExpression node) {
     if (node.isFinalized) {
       // Continue printing with the expression value.
@@ -823,6 +867,16 @@ class SizeEstimator implements NodeVisitor {
       node.value.accept(this);
     } else {
       out(sizeEstimate(node));
+    }
+  }
+
+  @override
+  visitDeferredStatement(DeferredStatement node) {
+    if (node.isFinalized) {
+      // Continue printing with the statement value.
+      node.statement.accept(this);
+    } else {
+      sizeEstimate(node);
     }
   }
 
@@ -861,7 +915,9 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitLiteralString(LiteralString node) {
+    out('"');
     out(literalStringToString(node));
+    out('"');
   }
 
   @override
@@ -872,8 +928,6 @@ class SizeEstimator implements NodeVisitor {
   @override
   visitName(Name node) {
     // For simplicity and stability we use a constant name size estimate.
-    // In production this is:
-    // '${options.renamerForNames(node)}'
     out(sizeEstimate(node));
   }
 
@@ -952,14 +1006,44 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitProperty(Property node) {
+    propertyNameOut(node);
+    out(':'); // ':'
+    visitNestedExpression(node.value, ASSIGNMENT,
+        newInForInit: false, newAtStatementBegin: false);
+  }
+
+  @override
+  void visitMethodDefinition(MethodDefinition node) {
+    propertyNameOut(node);
+    VarCollector vars = new VarCollector();
+    vars.visitMethodDefinition(node);
+    methodOut(node, vars);
+  }
+
+  int methodOut(MethodDefinition node, VarCollector vars) {
+    // TODO: support static, get/set, async, and generators.
+    Fun fun = node.function;
+    out("(");
+    if (fun.params != null) {
+      visitCommaSeparated(fun.params, PRIMARY,
+          newInForInit: false, newAtStatementBegin: false);
+    }
+    out(")");
+    int closingPosition = blockOut(fun.body);
+    return closingPosition;
+  }
+
+  void propertyNameOut(Property node) {
     Node name = node.name;
     if (name is LiteralString) {
       String text = literalStringToString(name);
       if (isValidJavaScriptId(text)) {
-        // '${text.substring(1, text.length - 1)}
-        out('${text.substring(1, text.length - 1)}');
+        out(text);
       } else {
-        out(text); // '$text'
+        // Approximation to `_handleString(text)`.
+        out('"');
+        out(text);
+        out('"');
       }
     } else if (name is Name) {
       node.name.accept(this);
@@ -970,9 +1054,6 @@ class SizeEstimator implements NodeVisitor {
       LiteralNumber nameNumber = node.name;
       out(nameNumber.value); // '${nameNumber.value}'
     }
-    out(':'); // ':'
-    visitNestedExpression(node.value, ASSIGNMENT,
-        newInForInit: false, newAtStatementBegin: false);
   }
 
   @override
@@ -982,21 +1063,7 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitLiteralExpression(LiteralExpression node) {
-    String template = node.template;
-    List<Expression> inputs = node.inputs;
-
-    List<String> parts = template.split('#');
-    int inputsLength = inputs == null ? 0 : inputs.length;
-    if (parts.length != inputsLength + 1) {
-      throw UnsupportedError('Wrong number of arguments for JS: $template');
-    }
-    // Code that uses JS must take care of operator precedences, and
-    // put parenthesis if needed.
-    out(parts[0]); // '${parts[0]}'
-    for (int i = 0; i < inputsLength; i++) {
-      visit(inputs[i]);
-      out(parts[i + 1]); // '${parts[i + 1]}'
-    }
+    out(node.template); // '${node.template}'
   }
 
   @override

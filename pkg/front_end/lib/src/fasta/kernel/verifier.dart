@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.verifier;
+// @dart = 2.9
 
-import 'dart:core' hide MapEntry;
+library fasta.verifier;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/target/targets.dart';
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
@@ -29,24 +30,29 @@ import '../fasta_codes.dart'
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'redirecting_factory_body.dart'
-    show RedirectingFactoryBody, getRedirectingFactoryBody;
+    show
+        RedirectingFactoryBody,
+        getRedirectingFactoryBody,
+        isRedirectingFactory;
 
-List<LocatedMessage> verifyComponent(Component component,
+List<LocatedMessage> verifyComponent(Component component, Target target,
     {bool isOutline, bool afterConst, bool skipPlatform: false}) {
   FastaVerifyingVisitor verifier =
-      new FastaVerifyingVisitor(isOutline, afterConst, skipPlatform);
+      new FastaVerifyingVisitor(target, isOutline, afterConst, skipPlatform);
   component.accept(verifier);
   return verifier.errors;
 }
 
 class FastaVerifyingVisitor extends VerifyingVisitor {
+  final Target target;
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
   Uri fileUri;
   final List<TreeNode> treeNodeStack = <TreeNode>[];
   final bool skipPlatform;
 
-  FastaVerifyingVisitor(bool isOutline, bool afterConst, this.skipPlatform)
+  FastaVerifyingVisitor(
+      this.target, bool isOutline, bool afterConst, this.skipPlatform)
       : super(isOutline: isOutline, afterConst: afterConst);
 
   /// Invoked by all visit methods if the visited node is a [TreeNode].
@@ -111,9 +117,9 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   TreeNode get localContext {
     TreeNode result = getSameLibraryLastSeenTreeNode(withLocation: true);
     if (result == null &&
-        currentClassOrMember != null &&
-        _isInSameLibrary(currentLibrary, currentClassOrMember)) {
-      result = currentClassOrMember;
+        currentClassOrExtensionOrMember != null &&
+        _isInSameLibrary(currentLibrary, currentClassOrExtensionOrMember)) {
+      result = currentClassOrExtensionOrMember;
     }
     return result;
   }
@@ -172,7 +178,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   @override
   problem(TreeNode node, String details, {TreeNode context, TreeNode origin}) {
-    node ??= (context ?? currentClassOrMember);
+    node ??= (context ?? currentClassOrExtensionOrMember);
     int offset = node?.fileOffset ?? -1;
     Uri file = node?.location?.file ?? fileUri;
     Uri uri = file == null ? null : file;
@@ -220,7 +226,11 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   @override
   void visitLibrary(Library node) {
     // Issue(http://dartbug.com/32530)
-    if (skipPlatform && node.importUri.scheme == 'dart') {
+    // 'dart:test' is used in the unit tests and isn't an actual part of the
+    // platform.
+    if (skipPlatform &&
+        node.importUri.scheme == 'dart' &&
+        node.importUri.path != 'test') {
       return;
     }
 
@@ -241,6 +251,14 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   @override
+  void visitExtension(Extension node) {
+    enterTreeNode(node);
+    fileUri = checkLocation(node, node.name, node.fileUri);
+    super.visitExtension(node);
+    exitTreeNode(node);
+  }
+
+  @override
   void visitField(Field node) {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
@@ -252,6 +270,22 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   void visitProcedure(Procedure node) {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
+
+    // TODO(dmitryas): Investigate why some redirecting factory bodies retain
+    // the shape, but aren't of the RedirectingFactoryBody type.
+    bool hasBody = isRedirectingFactory(node) ||
+        RedirectingFactoryBody.hasRedirectingFactoryBodyShape(node);
+    bool hasFlag = node.isRedirectingFactoryConstructor;
+    if (hasBody != hasFlag) {
+      String hasBodyString = hasBody ? "has" : "doesn't have";
+      String hasFlagString = hasFlag ? "has" : "doesn't have";
+      problem(
+          node,
+          "Procedure '${node.name}' ${hasBodyString} a body "
+          "of a redirecting factory, but ${hasFlagString} the "
+          "'isRedirectingFactoryConstructor' bit set.");
+    }
+
     super.visitProcedure(node);
     exitTreeNode(node);
   }
@@ -395,6 +429,39 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (target.supportsNewMethodInvocationEncoding) {
+      problem(
+          node,
+          "New method invocation encoding is supported, "
+          "but found a MethodInvocation.");
+    }
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPropertyGet(PropertyGet node) {
+    if (target.supportsNewMethodInvocationEncoding) {
+      problem(
+          node,
+          "New method invocation encoding is supported, "
+          "but found a PropertyGet.");
+    }
+    super.visitPropertyGet(node);
+  }
+
+  @override
+  void visitPropertySet(PropertySet node) {
+    if (target.supportsNewMethodInvocationEncoding) {
+      problem(
+          node,
+          "New method invocation encoding is supported, "
+          "but found a PropertySet.");
+    }
+    super.visitPropertySet(node);
+  }
+
+  @override
   void defaultTreeNode(TreeNode node) {
     enterTreeNode(node);
     super.defaultTreeNode(node);
@@ -414,7 +481,11 @@ class FastaVerifyGetStaticType extends VerifyGetStaticType {
 
   @override
   visitLibrary(Library node) {
-    if (skipPlatform && node.importUri.scheme == 'dart') {
+    // 'dart:test' is used in the unit tests and isn't an actual part of the
+    // platform.
+    if (skipPlatform &&
+        node.importUri.scheme == 'dart' &&
+        node.importUri.path != "test") {
       return;
     }
 

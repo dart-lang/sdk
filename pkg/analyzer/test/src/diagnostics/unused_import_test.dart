@@ -34,7 +34,7 @@ class A {}
     await assertErrorsInCode(r'''
 import 'lib1.dart';
 import 'lib1.dart' as one;
-one.A a;
+one.A a = one.A();
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
@@ -50,8 +50,8 @@ class B {}
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' as one;
 import 'lib2.dart' as one;
-one.A a;
-one.B b;
+one.A a = one.A();
+one.B b = one.B();
 ''');
   }
 
@@ -68,8 +68,8 @@ export 'lib2.dart';
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' as one;
 import 'lib3.dart' as one;
-one.A a;
-one.B b;
+one.A a = one.A();
+one.B b = one.B();
 ''');
   }
 
@@ -83,7 +83,7 @@ class B {}
     await assertErrorsInCode(r'''
 import 'lib1.dart' as one;
 import 'lib2.dart' as one;
-one.A a;
+one.A a = one.A();
 ''', [
       error(HintCode.UNUSED_IMPORT, 34, 11),
     ]);
@@ -125,19 +125,29 @@ class A {
 class One {}
 topLevelFunction() {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'lib1.dart' hide topLevelFunction;
 import 'lib1.dart' as one show topLevelFunction;
 import 'lib1.dart' as two show topLevelFunction;
 class A {
-  static void x() {
-    One o;
+  static void x(One o) {
     one.topLevelFunction();
     two.topLevelFunction();
   }
 }
+''');
+  }
+
+  test_as_systemLibrary() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class File {}
+''');
+    await assertErrorsInCode(r'''
+import 'dart:io' as prefix;
+import 'a.dart' as prefix;
+prefix.File? f;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 178, 1),
+      error(HintCode.UNUSED_IMPORT, 7, 9),
     ]);
   }
 
@@ -157,7 +167,7 @@ class Two {}
 ''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart';
-Two two;
+Two two = Two();
 ''');
   }
 
@@ -175,7 +185,7 @@ class Three {}
 ''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart';
-Three three;
+Three? three;
 ''');
   }
 
@@ -194,7 +204,7 @@ class Three {}
 ''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart';
-Two two;
+Two? two;
 ''');
   }
 
@@ -368,7 +378,7 @@ class A {}
     await assertErrorsInCode(r'''
 import 'lib1.dart';
 import 'lib1.dart' hide A;
-A a;
+A? a;
 ''', [
       error(HintCode.UNUSED_IMPORT, 27, 11),
     ]);
@@ -426,9 +436,22 @@ class B {}
     await assertErrorsInCode(r'''
 import 'lib1.dart' show A;
 import 'lib1.dart' show B;
-A a;
+A a = A();
 ''', [
       error(HintCode.UNUSED_IMPORT, 34, 11),
+    ]);
+  }
+
+  test_systemLibrary() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+class File {}
+''');
+    await assertErrorsInCode(r'''
+import 'dart:io';
+import 'lib1.dart';
+File? f;
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 9),
     ]);
   }
 

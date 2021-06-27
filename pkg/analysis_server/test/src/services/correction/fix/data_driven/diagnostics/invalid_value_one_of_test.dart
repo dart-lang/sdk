@@ -44,13 +44,13 @@ transforms:
     - kind: 'addTypeParameter'
       index: 0
       name: 'T'
-      argumentValue: 
+      argumentValue:
         expression: ''
         variables:
           x:
             kind: 'invalid'
 ''', [
-      error(TransformSetErrorCode.invalidValueOneOf, 280, 9),
+      error(TransformSetErrorCode.invalidValueOneOf, 279, 9),
     ]);
   }
 }

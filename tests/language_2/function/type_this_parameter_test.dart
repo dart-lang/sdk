@@ -4,6 +4,8 @@
 // Check that function types are accepted for constructor arguments that
 // initialize fields.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

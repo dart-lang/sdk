@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Check that const getters are not allowed.
 
 import 'package:expect/expect.dart';
@@ -17,7 +19,7 @@ class C {
 }
 
 const
-// [error line 19, column 1, length 5]
+// [error line 21, column 1, length 5]
 // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 // [cfe] Can't have modifier 'const' here.
 get y => 2;

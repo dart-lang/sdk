@@ -424,8 +424,6 @@ class FunctionViewElement extends CustomElement implements Renderable {
         return 'stub';
       case M.FunctionKind.tag:
         return 'tag';
-      case M.FunctionKind.signatureFunction:
-        return 'signature function';
       case M.FunctionKind.dynamicInvocationForwarder:
         return 'dynamic invocation forwarder';
     }

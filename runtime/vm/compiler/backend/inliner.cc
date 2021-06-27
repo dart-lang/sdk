@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/compiler_pass.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
@@ -83,7 +84,6 @@ DECLARE_FLAG(bool, print_flow_graph_optimized);
 
 // Quick access to the current zone.
 #define Z (zone())
-#define I (isolate())
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
@@ -111,7 +111,7 @@ static bool IsSmiValue(Value* val, intptr_t* int_val) {
 static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
   while (env != NULL) {
-    if (function.raw() == env->function().raw()) {
+    if (function.ptr() == env->function().ptr()) {
       return true;
     }
     env = env->outer();
@@ -421,11 +421,11 @@ class CallSites : public ValueObject {
         if (current->IsPolymorphicInstanceCall()) {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
-          target = instance_call->targets().FirstTarget().raw();
+          target = instance_call->targets().FirstTarget().ptr();
           call = instance_call;
         } else if (current->IsStaticCall()) {
           StaticCallInstr* static_call = current->AsStaticCall();
-          target = static_call->function().raw();
+          target = static_call->function().ptr();
           call = static_call;
         } else if (current->IsClosureCall()) {
           // TODO(srdjan): Add data for closure calls.
@@ -441,6 +441,7 @@ class CallSites : public ValueObject {
   void FindCallSites(FlowGraph* graph,
                      intptr_t depth,
                      GrowableArray<InlinedInfo>* inlined_info) {
+    COMPILER_TIMINGS_TIMER_SCOPE(graph->thread(), FindCallSites);
     ASSERT(graph != NULL);
     if (depth > inlining_depth_threshold_) {
       if (FLAG_print_inlining_tree) {
@@ -608,7 +609,7 @@ class PolymorphicInliner : public ValueObject {
 
   TargetEntryInstr* BuildDecisionGraph();
 
-  Isolate* isolate() const;
+  IsolateGroup* isolate_group() const;
   Zone* zone() const;
   intptr_t AllocateBlockId() const;
   inline bool trace_inlining() const;
@@ -762,7 +763,6 @@ class CallSiteInliner : public ValueObject {
   FlowGraph* caller_graph() const { return caller_graph_; }
 
   Thread* thread() const { return caller_graph_->thread(); }
-  Isolate* isolate() const { return caller_graph_->isolate(); }
   Zone* zone() const { return caller_graph_->zone(); }
 
   bool trace_inlining() const { return inliner_->trace_inlining(); }
@@ -893,6 +893,24 @@ class CallSiteInliner : public ValueObject {
                    const Array& argument_names,
                    InlinedCallData* call_data,
                    bool stricter_heuristic) {
+    Timer timer;
+    if (thread()->compiler_timings() != nullptr) {
+      timer.Start();
+    }
+    const bool success = TryInliningImpl(function, argument_names, call_data,
+                                         stricter_heuristic);
+    if (thread()->compiler_timings() != nullptr) {
+      timer.Stop();
+      thread()->compiler_timings()->RecordInliningStatsByOutcome(success,
+                                                                 timer);
+    }
+    return success;
+  }
+
+  bool TryInliningImpl(const Function& function,
+                       const Array& argument_names,
+                       InlinedCallData* call_data,
+                       bool stricter_heuristic) {
     if (trace_inlining()) {
       String& name = String::Handle(function.QualifiedUserVisibleName());
       THR_Print("  => %s (deopt count %d)\n", name.ToCString(),
@@ -1002,12 +1020,9 @@ class CallSiteInliner : public ValueObject {
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new (Z) ZoneGrowableArray<const ICData*>();
         const bool clone_ic_data = Compiler::IsBackgroundCompilation();
+        ASSERT(CompilerState::Current().is_aot() ||
+               function.ic_data_array() != Array::null());
         function.RestoreICDataMap(ic_data_array, clone_ic_data);
-        if (Compiler::IsBackgroundCompilation() &&
-            (function.ic_data_array() == Array::null())) {
-          Compiler::AbortBackgroundCompilation(DeoptId::kNone,
-                                               "ICData cleared while inlining");
-        }
 
         // Parse the callee function.
         bool in_cache;
@@ -1035,8 +1050,8 @@ class CallSiteInliner : public ValueObject {
         } else if (PolymorphicInstanceCallInstr* instr =
                        call_data->call->AsPolymorphicInstanceCall()) {
           entry_kind = instr->entry_kind();
-        } else if (ClosureCallInstr* instr = call_data->call->AsClosureCall()) {
-          entry_kind = instr->entry_kind();
+        } else if (call_data->call->IsClosureCall()) {
+          // Closure functions only have one entry point.
         }
         kernel::FlowGraphBuilder builder(
             parsed_function, ic_data_array, /* not building var desc */ NULL,
@@ -1045,6 +1060,7 @@ class CallSiteInliner : public ValueObject {
             caller_graph_->max_block_id() + 1,
             entry_kind == Code::EntryKind::kUnchecked);
         {
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
           callee_graph = builder.BuildGraph();
 #if defined(DEBUG)
           // The inlining IDs of instructions in the callee graph are unset
@@ -1056,6 +1072,10 @@ class CallSiteInliner : public ValueObject {
 #endif
           CalleeGraphValidator::Validate(callee_graph);
         }
+
+        {
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), PopulateWithICData);
+
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
         if (CompilerState::Current().is_aot()) {
           callee_graph->PopulateWithICData(parsed_function->function());
@@ -1067,6 +1087,7 @@ class CallSiteInliner : public ValueObject {
         // manually here.
         if (!CompilerState::Current().is_aot() && function.is_intrinsic()) {
           callee_graph->PopulateWithICData(parsed_function->function());
+        }
         }
 
         // The parameter stubs are a copy of the actual arguments providing
@@ -1132,6 +1153,7 @@ class CallSiteInliner : public ValueObject {
 
         {
           // Compute SSA on the callee graph, catching bailouts.
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), ComputeSSA);
           callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                    param_stubs);
 #if defined(DEBUG)
@@ -1201,46 +1223,54 @@ class CallSiteInliner : public ValueObject {
                                            &call_site_count);
 
         // Use heuristics do decide if this call should be inlined.
-        InliningDecision decision =
-            ShouldWeInline(function, instruction_count, call_site_count);
-        if (!decision.value) {
-          // If size is larger than all thresholds, don't consider it again.
-          if ((instruction_count > FLAG_inlining_size_threshold) &&
-              (call_site_count > FLAG_inlining_callee_call_sites_threshold)) {
-            function.set_is_inlinable(false);
-          }
-          TRACE_INLINING(
-              THR_Print("     Bailout: heuristics (%s) with "
-                        "code size:  %" Pd ", "
-                        "call sites: %" Pd ", "
-                        "inlining depth of callee: %d, "
-                        "const args: %" Pd "\n",
-                        decision.reason, instruction_count, call_site_count,
-                        function.inlining_depth(), constants_count));
-          PRINT_INLINING_TREE("Heuristic fail", &call_data->caller, &function,
-                              call_data->call);
-          return false;
-        }
-
-        // If requested, a stricter heuristic is applied to this inlining. This
-        // heuristic always scans the method (rather than possibly reusing
-        // cached results) to make sure all specializations are accounted for.
-        // TODO(ajcbik): with the now better bookkeeping, explore removing this
-        if (stricter_heuristic) {
-          if (!IsSmallLeaf(callee_graph)) {
+        {
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), MakeInliningDecision);
+          InliningDecision decision =
+              ShouldWeInline(function, instruction_count, call_site_count);
+          if (!decision.value) {
+            // If size is larger than all thresholds, don't consider it again.
+            if ((instruction_count > FLAG_inlining_size_threshold) &&
+                (call_site_count > FLAG_inlining_callee_call_sites_threshold)) {
+              function.set_is_inlinable(false);
+            }
             TRACE_INLINING(
-                THR_Print("     Bailout: heuristics (no small leaf)\n"));
-            PRINT_INLINING_TREE("Heuristic fail (no small leaf)",
-                                &call_data->caller, &function, call_data->call);
+                THR_Print("     Bailout: heuristics (%s) with "
+                          "code size:  %" Pd ", "
+                          "call sites: %" Pd ", "
+                          "inlining depth of callee: %d, "
+                          "const args: %" Pd "\n",
+                          decision.reason, instruction_count, call_site_count,
+                          function.inlining_depth(), constants_count));
+            PRINT_INLINING_TREE("Heuristic fail", &call_data->caller, &function,
+                                call_data->call);
             return false;
+          }
+
+          // If requested, a stricter heuristic is applied to this inlining.
+          // This heuristic always scans the method (rather than possibly
+          // reusing cached results) to make sure all specializations are
+          // accounted for.
+          // TODO(ajcbik): with the now better bookkeeping, explore removing
+          // this
+          if (stricter_heuristic) {
+            if (!IsSmallLeaf(callee_graph)) {
+              TRACE_INLINING(
+                  THR_Print("     Bailout: heuristics (no small leaf)\n"));
+              PRINT_INLINING_TREE("Heuristic fail (no small leaf)",
+                                  &call_data->caller, &function,
+                                  call_data->call);
+              return false;
+            }
           }
         }
 
         // Inline dispatcher methods regardless of the current depth.
-        const intptr_t depth =
-            function.IsDispatcherOrImplicitAccessor() ? 0 : inlining_depth_;
-        collected_call_sites_->FindCallSites(callee_graph, depth,
-                                             &inlined_info_);
+        {
+          const intptr_t depth =
+              function.IsDispatcherOrImplicitAccessor() ? 0 : inlining_depth_;
+          collected_call_sites_->FindCallSites(callee_graph, depth,
+                                               &inlined_info_);
+        }
 
         // Add the function to the cache.
         if (!in_cache) {
@@ -1267,9 +1297,12 @@ class CallSiteInliner : public ValueObject {
               callee_guarded_fields[i]);
         }
 
-        FlowGraphInliner::SetInliningId(
-            callee_graph, inliner_->NextInlineId(callee_graph->function(),
-                                                 call_data->call->source()));
+        {
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), SetInliningId);
+          FlowGraphInliner::SetInliningId(
+              callee_graph, inliner_->NextInlineId(callee_graph->function(),
+                                                   call_data->call->source()));
+        }
         TRACE_INLINING(THR_Print("     Success\n"));
         TRACE_INLINING(THR_Print(
             "       with reason %s, code size %" Pd ", call sites: %" Pd "\n",
@@ -1281,7 +1314,7 @@ class CallSiteInliner : public ValueObject {
 
         if (error.IsLanguageError() &&
             (LanguageError::Cast(error).kind() == Report::kBailout)) {
-          if (error.raw() == Object::background_compilation_error().raw()) {
+          if (error.ptr() == Object::background_compilation_error().ptr()) {
             // Fall through to exit the compilation, and retry it later.
           } else {
             TRACE_INLINING(
@@ -1338,7 +1371,7 @@ class CallSiteInliner : public ValueObject {
         continue;
       }
       if ((info.inlined_depth == depth) &&
-          (info.caller->raw() == caller.raw()) &&
+          (info.caller->ptr() == caller.ptr()) &&
           !Contains(call_instructions_printed, info.call_instr->GetDeoptId())) {
         for (int t = 0; t < depth; t++) {
           THR_Print("  ");
@@ -1357,7 +1390,7 @@ class CallSiteInliner : public ValueObject {
         continue;
       }
       if ((info.inlined_depth == depth) &&
-          (info.caller->raw() == caller.raw()) &&
+          (info.caller->ptr() == caller.ptr()) &&
           !Contains(call_instructions_printed, info.call_instr->GetDeoptId())) {
         for (int t = 0; t < depth; t++) {
           THR_Print("  ");
@@ -1370,6 +1403,7 @@ class CallSiteInliner : public ValueObject {
   }
 
   void InlineCall(InlinedCallData* call_data) {
+    COMPILER_TIMINGS_TIMER_SCOPE(thread(), InlineCall);
     FlowGraph* callee_graph = call_data->callee_graph;
     auto callee_function_entry = callee_graph->graph_entry()->normal_entry();
 
@@ -1396,7 +1430,7 @@ class CallSiteInliner : public ValueObject {
     // TODO(zerny): Use a hash map for the cache.
     for (intptr_t i = 0; i < function_cache_.length(); ++i) {
       ParsedFunction* parsed_function = function_cache_[i];
-      if (parsed_function->function().raw() == function.raw()) {
+      if (parsed_function->function().ptr() == function.ptr()) {
         *in_cache = true;
         return parsed_function;
       }
@@ -1478,11 +1512,8 @@ class CallSiteInliner : public ValueObject {
       Function& target = Function::ZoneHandle();
       Definition* receiver =
           call->Receiver()->definition()->OriginalDefinition();
-      if (AllocateObjectInstr* alloc = receiver->AsAllocateObject()) {
-        if (!alloc->closure_function().IsNull()) {
-          target = alloc->closure_function().raw();
-          ASSERT(alloc->cls().IsClosureClass());
-        }
+      if (const auto* alloc = receiver->AsAllocateClosure()) {
+        target = alloc->known_function().ptr();
       } else if (ConstantInstr* constant = receiver->AsConstant()) {
         if (constant->value().IsClosure()) {
           target = Closure::Cast(constant->value()).function();
@@ -1663,8 +1694,8 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       exit_collector_(new (Z) InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function) {}
 
-Isolate* PolymorphicInliner::isolate() const {
-  return owner_->caller_graph()->isolate();
+IsolateGroup* PolymorphicInliner::isolate_group() const {
+  return owner_->caller_graph()->isolate_group();
 }
 
 Zone* PolymorphicInliner::zone() const {
@@ -1686,7 +1717,7 @@ intptr_t PolymorphicInliner::AllocateBlockId() const {
 //   * JoinEntry: the inlined body is shared and this is a subsequent variant.
 bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
   for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
-    if ((target.raw() == inlined_variants_.TargetAt(i)->target->raw()) &&
+    if ((target.ptr() == inlined_variants_.TargetAt(i)->target->ptr()) &&
         !target.is_polymorphic_target()) {
       // The call target is shared with a previous inlined variant.  Share
       // the graph.  This requires a join block at the entry, and edge-split
@@ -1743,7 +1774,7 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
   for (intptr_t i = 0; i < non_inlined_variants_->length(); ++i) {
-    if (target.raw() == non_inlined_variants_->TargetAt(i)->target->raw()) {
+    if (target.ptr() == non_inlined_variants_->TargetAt(i)->target->ptr()) {
       return true;
     }
   }
@@ -1768,7 +1799,7 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
       Array::ZoneHandle(Z, call_->GetArgumentsDescriptor());
   InlinedCallData call_data(call_, arguments_descriptor, call_->FirstArgIndex(),
                             &arguments, caller_function_);
-  Function& target = Function::ZoneHandle(zone(), target_info.target->raw());
+  Function& target = Function::ZoneHandle(zone(), target_info.target->ptr());
   if (!owner_->TryInlining(target, call_->argument_names(), &call_data,
                            false)) {
     return false;
@@ -1850,6 +1881,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
 // If not all variants are inlined, we add a PolymorphicInstanceCall
 // instruction to handle the non-inlined variants.
 TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
+  COMPILER_TIMINGS_TIMER_SCOPE(owner_->thread(), BuildDecisionGraph);
   const intptr_t try_idx = call_->GetBlock()->try_index();
 
   // Start with a fresh target entry.
@@ -2209,6 +2241,7 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph,
                                         bool force,
                                         intptr_t* instruction_count,
                                         intptr_t* call_site_count) {
+  COMPILER_TIMINGS_TIMER_SCOPE(flow_graph->thread(), CollectGraphInfo);
   const Function& function = flow_graph->function();
   // For OSR, don't even bother.
   if (flow_graph->IsCompiledForOsr()) {
@@ -2257,22 +2290,28 @@ void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
 // Use function name to determine if inlineable operator.
 // Add names as necessary.
 static bool IsInlineableOperator(const Function& function) {
-  return (function.name() == Symbols::IndexToken().raw()) ||
-         (function.name() == Symbols::AssignIndexToken().raw()) ||
-         (function.name() == Symbols::Plus().raw()) ||
-         (function.name() == Symbols::Minus().raw());
+  return (function.name() == Symbols::IndexToken().ptr()) ||
+         (function.name() == Symbols::AssignIndexToken().ptr()) ||
+         (function.name() == Symbols::Plus().ptr()) ||
+         (function.name() == Symbols::Minus().ptr());
 }
 
 bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
+  Thread* thread = dart::Thread::Current();
+  COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();
-  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
-                             function, Symbols::vm_prefer_inline(), &options);
+  return Library::FindPragma(thread, /*only_core=*/false, function,
+                             Symbols::vm_prefer_inline(),
+                             /*multiple=*/false, &options);
 }
 
 bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
+  Thread* thread = dart::Thread::Current();
+  COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();
-  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
-                             function, Symbols::vm_never_inline(), &options);
+  return Library::FindPragma(thread, /*only_core=*/false, function,
+                             Symbols::vm_never_inline(),
+                             /*multiple=*/false, &options);
 }
 
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
@@ -2282,11 +2321,12 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
     return true;
   }
 
+  COMPILER_TIMINGS_TIMER_SCOPE(dart::Thread::Current(), MakeInliningDecision);
   // We don't want to inline DIFs for recognized methods because we would rather
   // replace them with inline FG before inlining introduces any superfluous
   // AssertAssignable instructions.
   if (function.IsDispatcherOrImplicitAccessor() &&
-      !(function.kind() == FunctionLayout::kDynamicInvocationForwarder &&
+      !(function.kind() == UntaggedFunction::kDynamicInvocationForwarder &&
         function.IsRecognized())) {
     // Smaller or same size as the call.
     return true;
@@ -2299,7 +2339,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
 
   if (function.IsGetterFunction() || function.IsSetterFunction() ||
       IsInlineableOperator(function) ||
-      (function.kind() == FunctionLayout::kConstructor)) {
+      (function.kind() == UntaggedFunction::kConstructor)) {
     const intptr_t count = function.optimized_instruction_count();
     if ((count != 0) && (count < FLAG_inline_getters_setters_smaller_than)) {
       return true;
@@ -2370,6 +2410,7 @@ intptr_t FlowGraphInliner::NextInlineId(const Function& function,
   ASSERT(source.token_pos.IsReal() || source.token_pos.IsSynthetic() ||
          source.token_pos.IsNoSource());
   RELEASE_ASSERT(!function.IsNull());
+  ASSERT(FunctionType::Handle(function.signature()).IsFinalized());
   inline_id_to_function_->Add(&function);
   inline_id_to_token_pos_->Add(source.token_pos);
   caller_inline_id_->Add(source.inlining_id);
@@ -2385,17 +2426,6 @@ static bool ShouldInlineSimd() {
 
 static bool CanUnboxDouble() {
   return FlowGraphCompiler::SupportsUnboxedDoubles();
-}
-
-static bool ShouldInlineInt64ArrayOps() {
-  return FlowGraphCompiler::SupportsUnboxedInt64();
-}
-
-static bool CanUnboxInt32() {
-  // Int32/Uint32 can be unboxed if it fits into a smi or the platform
-  // supports unboxed mints.
-  return (compiler::target::kSmiBits >= 32) ||
-         FlowGraphCompiler::SupportsUnboxedInt64();
 }
 
 // Quick access to the current one.
@@ -2625,8 +2655,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
           source, new (Z) Value(stored_value), new (Z) Value(dst_type),
           new (Z) Value(type_args), new (Z) Value(function_type_args),
           Symbols::Value(), call->deopt_id());
-      cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
-                                    FlowGraph::kValue);
+      cursor = flow_graph->AppendSpeculativeTo(cursor, assert_value,
+                                               call->env(), FlowGraph::kValue);
     }
   }
 
@@ -2763,31 +2793,6 @@ static bool InlineDoubleTestOp(FlowGraph* flow_graph,
   return true;
 }
 
-static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
-                                   Instruction* call,
-                                   Definition* receiver,
-                                   GraphEntryInstr* graph_entry,
-                                   FunctionEntryInstr** entry,
-                                   Instruction** last,
-                                   Definition** result) {
-  Definition* left = receiver;
-  Definition* right = call->ArgumentAt(1);
-
-  *entry =
-      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                                 call->GetBlock()->try_index(), DeoptId::kNone);
-  (*entry)->InheritDeoptTarget(Z, call);
-  // Right arguments is known to be smi: other._bitAndFromSmi(this);
-  BinarySmiOpInstr* smi_op =
-      new (Z) BinarySmiOpInstr(Token::kBIT_AND, new (Z) Value(left),
-                               new (Z) Value(right), call->deopt_id());
-  flow_graph->AppendTo(*entry, smi_op, call->env(), FlowGraph::kValue);
-  *last = smi_op;
-  *result = smi_op->AsDefinition();
-
-  return true;
-}
-
 static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
                                       const Slot& field,
                                       StoreBarrierType store_barrier_type,
@@ -2889,7 +2894,6 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-
 
   // Generates a template for the load, either a dynamic conditional
   // that dispatches on external and internal storage, or a single
@@ -3658,7 +3662,9 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     Definition** result,
     SpeculativeInliningPolicy* policy,
     FlowGraphInliner::ExactnessInfo* exactness) {
-  if (receiver_cid == kNeverCid) {
+  COMPILER_TIMINGS_TIMER_SCOPE(flow_graph->thread(), InlineRecognizedMethod);
+
+  if (receiver_cid == kSentinelCid) {
     // Receiver was defined in dead code and was replaced by the sentinel.
     // Original receiver cid is lost, so don't try to inline recognized
     // methods.
@@ -3700,16 +3706,10 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                               call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kInt64ArrayGetIndexed:
     case MethodRecognizer::kUint64ArrayGetIndexed:
-      if (!ShouldInlineInt64ArrayOps()) {
-        return false;
-      }
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kClassIDgetID:
@@ -3760,9 +3760,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     }
     case MethodRecognizer::kInt64ArraySetIndexed:
     case MethodRecognizer::kUint64ArraySetIndexed:
-      if (!ShouldInlineInt64ArrayOps()) {
-        return false;
-      }
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
                               /* value_check = */ NULL, exactness, graph_entry,
                               entry, last, result);
@@ -3811,30 +3808,18 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                                      kTypedDataUint16ArrayCid, graph_entry,
                                      entry, last, result);
     case MethodRecognizer::kByteArrayBaseGetInt32:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
                                      kTypedDataInt32ArrayCid, graph_entry,
                                      entry, last, result);
     case MethodRecognizer::kByteArrayBaseGetUint32:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
                                      kTypedDataUint32ArrayCid, graph_entry,
                                      entry, last, result);
     case MethodRecognizer::kByteArrayBaseGetInt64:
-      if (!ShouldInlineInt64ArrayOps()) {
-        return false;
-      }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
                                      kTypedDataInt64ArrayCid, graph_entry,
                                      entry, last, result);
     case MethodRecognizer::kByteArrayBaseGetUint64:
-      if (!ShouldInlineInt64ArrayOps()) {
-        return false;
-      }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
                                      kTypedDataUint64ArrayCid, graph_entry,
                                      entry, last, result);
@@ -3891,16 +3876,10 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                                       receiver_cid, kTypedDataUint32ArrayCid,
                                       graph_entry, entry, last, result);
     case MethodRecognizer::kByteArrayBaseSetInt64:
-      if (!ShouldInlineInt64ArrayOps()) {
-        return false;
-      }
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataInt64ArrayCid,
                                       graph_entry, entry, last, result);
     case MethodRecognizer::kByteArrayBaseSetUint64:
-      if (!ShouldInlineInt64ArrayOps()) {
-        return false;
-      }
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataUint64ArrayCid,
                                       graph_entry, entry, last, result);
@@ -3969,9 +3948,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return InlineGrowableArraySetter(
           flow_graph, Slot::GrowableObjectArray_length(), kNoStoreBarrier, call,
           receiver, graph_entry, entry, last, result);
-    case MethodRecognizer::kSmi_bitAndFromSmi:
-      return InlineSmiBitAndFromSmi(flow_graph, call, receiver, graph_entry,
-                                    entry, last, result);
 
     case MethodRecognizer::kFloat32x4Abs:
     case MethodRecognizer::kFloat32x4Clamp:
@@ -4054,6 +4030,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kMathAcos:
     case MethodRecognizer::kMathAtan:
     case MethodRecognizer::kMathAtan2:
+    case MethodRecognizer::kMathExp:
+    case MethodRecognizer::kMathLog:
       return InlineMathCFunction(flow_graph, call, kind, graph_entry, entry,
                                  last, result);
 
@@ -4128,9 +4106,11 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
         type = Type::Double();
       } else if (IsIntegerClassId(receiver_cid)) {
         type = Type::IntType();
+      } else if (IsTypeClassId(receiver_cid)) {
+        type = Type::DartTypeType();
       } else if (receiver_cid != kClosureCid) {
         const Class& cls = Class::Handle(
-            Z, flow_graph->isolate()->class_table()->At(receiver_cid));
+            Z, flow_graph->isolate_group()->class_table()->At(receiver_cid));
         if (!cls.IsGeneric()) {
           type = cls.DeclarationType();
         }

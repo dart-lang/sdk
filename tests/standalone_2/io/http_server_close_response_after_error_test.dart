@@ -8,6 +8,8 @@
 // VMOptions=--short_socket_read --short_socket_write
 // OtherResources=http_server_close_response_after_error_client.dart
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 

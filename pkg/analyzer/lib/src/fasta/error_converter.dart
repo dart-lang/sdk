@@ -13,17 +13,17 @@ import 'package:analyzer/src/error/codes.dart';
 /// error.
 class FastaErrorReporter {
   /// The underlying error reporter to which errors are reported.
-  final ErrorReporter errorReporter;
+  final ErrorReporter? errorReporter;
 
   /// Initialize a newly created error reporter to report errors to the given
   /// [errorReporter].
   FastaErrorReporter(this.errorReporter);
 
   void reportByCode(
-      String analyzerCode, int offset, int length, Message message) {
+      String? analyzerCode, int offset, int length, Message message) {
     Map<String, dynamic> arguments = message.arguments;
 
-    String lexeme() => (arguments['token'] as Token).lexeme;
+    String lexeme() => (arguments['lexeme'] as Token).lexeme;
 
     switch (analyzerCode) {
       case "ASYNC_FOR_IN_WRONG_CONTEXT":
@@ -347,11 +347,15 @@ class FastaErrorReporter {
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
     int index = code.index;
-    if (index != null && index > 0 && index < fastaAnalyzerErrorCodes.length) {
-      ErrorCode errorCode = fastaAnalyzerErrorCodes[index];
+    if (index > 0 && index < fastaAnalyzerErrorCodes.length) {
+      var errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
-        errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
-            offset, length, errorCode, message.message, message.tip));
+        errorReporter!.reportError(AnalysisError.withNamedArguments(
+            errorReporter!.source,
+            offset,
+            length,
+            errorCode,
+            message.arguments));
         return;
       }
     }
@@ -359,7 +363,7 @@ class FastaErrorReporter {
   }
 
   void reportScannerError(
-      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      ScannerErrorCode errorCode, int offset, List<Object?>? arguments) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
     errorReporter?.reportErrorForOffset(errorCode, offset, length, arguments);
@@ -368,8 +372,8 @@ class FastaErrorReporter {
   void _reportByCode(
       ErrorCode errorCode, Message message, int offset, int length) {
     if (errorReporter != null) {
-      errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
-          offset, length, errorCode, message.message, null));
+      errorReporter!.reportError(AnalysisError.withNamedArguments(
+          errorReporter!.source, offset, length, errorCode, message.arguments));
     }
   }
 }

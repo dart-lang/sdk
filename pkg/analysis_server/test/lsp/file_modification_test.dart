@@ -143,7 +143,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  String _getOverlay(String path) {
+  String? _getOverlay(String path) {
     if (server.resourceProvider.hasOverlay(path)) {
       return server.resourceProvider.getFile(path).readAsStringSync();
     }

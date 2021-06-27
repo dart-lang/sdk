@@ -13,6 +13,8 @@
 
 namespace dart {
 
+#if defined(DART_PRECOMPILER)
+
 class Dwarf;
 class ElfWriteStream;
 class Section;
@@ -32,7 +34,7 @@ class Elf : public ZoneAllocated {
 
   Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf = nullptr);
 
-  static constexpr intptr_t kPageSize = 4096;
+  static constexpr intptr_t kPageSize = 16 * KB;
   static constexpr uword kNoSectionStart = 0;
 
   bool IsStripped() const { return dwarf_ == nullptr; }
@@ -107,6 +109,8 @@ class Elf : public ZoneAllocated {
   void FinalizeProgramTable();
   void ComputeFileOffsets();
 
+  void FinalizeEhFrame();
+
   void WriteHeader(ElfWriteStream* stream);
   void WriteSectionTable(ElfWriteStream* stream);
   void WriteProgramTable(ElfWriteStream* stream);
@@ -148,6 +152,8 @@ class Elf : public ZoneAllocated {
   intptr_t program_table_file_offset_ = -1;
   intptr_t program_table_file_size_ = -1;
 };
+
+#endif  // DART_PRECOMPILER
 
 }  // namespace dart
 

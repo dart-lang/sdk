@@ -108,7 +108,7 @@ class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''', <String>[
       '1+void',
       '1-null',
       '2+Arrays',
-      '2-void',
+      '2+void',
       '2-null'
     ]);
 
@@ -1466,6 +1466,9 @@ f() { var vvv = 42; return !1 }''', <String>['1+vvv']);
 class num{}class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sun!4flower() {x!Xc = y!Yc = MA!1 }}''',
         <String>['1+MAX_D', 'X+xc', 'Y+yc', '2+num', '3+num', '4+Sunflower']);
 
+    buildTests('testCompletion_staticField_withoutVarOrFinal', '''
+class num{}class Sunflower {static n!1}''', <String>['1+num']);
+
     buildTests('testCompletion_super_superType', '''
 class A {
   var fa;
@@ -1479,9 +1482,7 @@ class B extends A {
   }
 }''', <String>['1+fa', '1-fb', '1+ma', '1-mb']);
 
-    buildTests(
-        'testCompletion_superConstructorInvocation_noNamePrefix',
-        '''
+    buildTests('testCompletion_superConstructorInvocation_noNamePrefix', '''
 class A {
   A.fooA();
   A.fooB();
@@ -1489,13 +1490,9 @@ class A {
 }
 class B extends A {
   B() : super.!1
-}''',
-        <String>['1+fooA', '1+fooB', '1+bar'],
-        failingTests: '1');
+}''', <String>['1+fooA', '1+fooB', '1+bar']);
 
-    buildTests(
-        'testCompletion_superConstructorInvocation_withNamePrefix',
-        '''
+    buildTests('testCompletion_superConstructorInvocation_withNamePrefix', '''
 class A {
   A.fooA();
   A.fooB();
@@ -1503,9 +1500,7 @@ class A {
 }
 class B extends A {
   B() : super.f!1
-}''',
-        <String>['1+fooA', '1+fooB', '1-bar'],
-        failingTests: '1');
+}''', <String>['1+fooA', '1+fooB', '1-bar']);
 
     buildTests(
         'testCompletion_this_bad_inConstructorInitializer',
@@ -2348,9 +2343,7 @@ main() {
         <String>['1+HttpServer', '1-HttpClient'],
         failingTests: '1');
 
-    buildTests(
-        'test038',
-        '''
+    buildTests('test038', '''
 class X {
   x(){}
 }
@@ -2364,9 +2357,7 @@ class A<Z extends X> {
     ay.!1y;
     az.!2x;
   }
-}''',
-        <String>['1+y', '1-x', '2+x', '2-y'],
-        failingTests: '2');
+}''', <String>['1+y', '1-x', '2+x', '2-y']);
 
     // test analysis of untyped fields and top-level vars
     buildTests(
@@ -2417,7 +2408,7 @@ class A<Z extends X> {
   /// expected to fail.  This should be used to mark known completion bugs that
   /// have not yet been fixed.
   void buildTests(String baseName, String originalSource, List<String> results,
-      {Map<String, String> extraFiles, String failingTests = ''}) {
+      {Map<String, String>? extraFiles, String failingTests = ''}) {
     var completionTests = LocationSpec.from(originalSource, results);
     completionTests.sort((LocationSpec first, LocationSpec second) {
       return first.id.compareTo(second.id);
@@ -2444,9 +2435,10 @@ class A<Z extends X> {
         ++expectedFailCount;
         test('$testName (expected failure $expectedFailCount)', () {
           var test = CompletionTestCase();
-          return Future(() => test.runTest(spec, extraFiles)).then((_) {
-            fail('Test passed - expected to fail.');
-          }, onError: (_) {});
+          expect(
+            () => test.runTest(spec, extraFiles),
+            throwsA(anything),
+          );
         });
       } else {
         ++expectedPassCount;

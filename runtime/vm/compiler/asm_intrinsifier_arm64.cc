@@ -59,25 +59,26 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
 
   // Try allocating in new space.
   const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, R0, R1);
+  __ TryAllocate(cls, normal_ir_body, Assembler::kFarJump, R0, R1);
 
   // Store backing array object in growable array object.
   __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
   // R0 is new, no barrier needed.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       R0, FieldAddress(R0, target::GrowableObjectArray::data_offset()), R1);
 
   // R0: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ ldr(R1, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       R0,
       FieldAddress(R0, target::GrowableObjectArray::type_arguments_offset()),
       R1);
 
   // Set the length field in the growable array object to 0.
   __ LoadImmediate(R1, 0);
-  __ str(R1, FieldAddress(R0, target::GrowableObjectArray::length_offset()));
+  __ StoreCompressedIntoObjectNoBarrier(
+      R0, FieldAddress(R0, target::GrowableObjectArray::length_offset()), R1);
   __ ret();  // Returns the newly allocated object in R0.
 
   __ Bind(normal_ir_body);
@@ -92,216 +93,6 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ BranchIfNotSmi(TMP, not_smi);
 }
 
-void AsmIntrinsifier::Integer_addFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);  // Checks two smis.
-  __ adds(R0, R0, Operand(R1));                      // Adds.
-  __ b(normal_ir_body, VS);  // Fall-through on overflow.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
-  Integer_addFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_subFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ subs(R0, R0, Operand(R1));  // Subtract.
-  __ b(normal_ir_body, VS);      // Fall-through on overflow.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ subs(R0, R1, Operand(R0));  // Subtract.
-  __ b(normal_ir_body, VS);      // Fall-through on overflow.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_mulFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);  // checks two smis
-  __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
-
-  __ mul(TMP, R0, R1);
-  __ smulh(TMP2, R0, R1);
-  // TMP: result bits 64..127.
-  __ cmp(TMP2, Operand(TMP, ASR, 63));
-  __ b(normal_ir_body, NE);
-  __ mov(R0, TMP);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
-  Integer_mulFromInteger(assembler, normal_ir_body);
-}
-
-// Optimizations:
-// - result is 0 if:
-//   - left is 0
-//   - left equals right
-// - result is left if
-//   - left > 0 && left < right
-// R1: Tagged left (dividend).
-// R0: Tagged right (divisor).
-// Returns:
-//   R1: Untagged fallthrough result (remainder to be adjusted), or
-//   R0: Tagged return result (remainder).
-static void EmitRemainderOperation(Assembler* assembler) {
-  Label return_zero, modulo;
-  const Register left = R1;
-  const Register right = R0;
-  const Register result = R1;
-  const Register tmp = R2;
-  ASSERT(left == result);
-
-  // Check for quick zero results.
-  __ CompareRegisters(left, ZR);
-  __ b(&return_zero, EQ);
-  __ CompareRegisters(left, right);
-  __ b(&return_zero, EQ);
-
-  // Check if result should be left.
-  __ CompareRegisters(left, ZR);
-  __ b(&modulo, LT);
-  // left is positive.
-  __ CompareRegisters(left, right);
-  // left is less than right, result is left.
-  __ b(&modulo, GT);
-  __ mov(R0, left);
-  __ ret();
-
-  __ Bind(&return_zero);
-  __ mov(R0, ZR);
-  __ ret();
-
-  __ Bind(&modulo);
-  // result <- left - right * (left / right)
-  __ SmiUntag(left);
-  __ SmiUntag(right);
-
-  __ sdiv(tmp, left, right);
-  __ msub(result, right, tmp, left);  // result <- left - right * tmp
-}
-
-// Implementation:
-//  res = left % right;
-//  if (res < 0) {
-//    if (right < 0) {
-//      res = res - right;
-//    } else {
-//      res = res + right;
-//    }
-//  }
-void AsmIntrinsifier::Integer_moduloFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  // Check to see if we have integer division
-  Label neg_remainder, fall_through;
-  __ ldr(R1, Address(SP, +0 * target::kWordSize));
-  __ ldr(R0, Address(SP, +1 * target::kWordSize));
-  __ orr(TMP, R0, Operand(R1));
-  __ BranchIfNotSmi(TMP, normal_ir_body);
-  // R1: Tagged left (dividend).
-  // R0: Tagged right (divisor).
-  // Check if modulo by zero -> exception thrown in main function.
-  __ CompareRegisters(R0, ZR);
-  __ b(normal_ir_body, EQ);
-  EmitRemainderOperation(assembler);
-  // Untagged right in R0. Untagged remainder result in R1.
-
-  __ CompareRegisters(R1, ZR);
-  __ b(&neg_remainder, LT);
-  __ SmiTag(R0, R1);  // Tag and move result to R0.
-  __ ret();
-
-  __ Bind(&neg_remainder);
-  // Result is negative, adjust it.
-  __ CompareRegisters(R0, ZR);
-  __ sub(TMP, R1, Operand(R0));
-  __ add(TMP2, R1, Operand(R0));
-  __ csel(R0, TMP2, TMP, GE);
-  __ SmiTag(R0);
-  __ ret();
-
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_truncDivide(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  // Check to see if we have integer division
-
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ CompareRegisters(R0, ZR);
-  __ b(normal_ir_body, EQ);  // If b is 0, fall through.
-
-  __ SmiUntag(R0);
-  __ SmiUntag(R1);
-
-  __ sdiv(R0, R1, R0);
-
-  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
-  // cannot tag the result.
-  __ CompareImmediate(R0, 0x4000000000000000);
-  __ b(normal_ir_body, EQ);
-  __ SmiTag(R0);  // Not equal. Okay to tag and return.
-  __ ret();       // Return.
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_negate(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  __ ldr(R0, Address(SP, +0 * target::kWordSize));  // Grab first argument.
-  __ BranchIfNotSmi(R0, normal_ir_body);
-  __ negs(R0, R0);
-  __ b(normal_ir_body, VS);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitAndFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);  // Checks two smis.
-  __ and_(R0, R0, Operand(R1));
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitAnd(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitOrFromInteger(Assembler* assembler,
-                                               Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);  // Checks two smis.
-  __ orr(R0, R0, Operand(R1));
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitOr(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  Integer_bitOrFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXorFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);  // Checks two smis.
-  __ eor(R0, R0, Operand(R1));
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXor(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitXorFromInteger(assembler, normal_ir_body);
-}
-
 void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
@@ -311,19 +102,20 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   const Register result = R0;
 
   TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ CompareImmediate(right, target::ToRawSmi(target::kSmiBits));
+  __ CompareImmediate(right, target::ToRawSmi(target::kSmiBits),
+                      compiler::kObjectBytes);
   __ b(normal_ir_body, CS);
 
   // Left is not a constant.
   // Check if count too large for handling it inlined.
   __ SmiUntag(TMP, right);  // SmiUntag right into TMP.
   // Overflow test (preserve left, right, and TMP);
-  __ lslv(temp, left, TMP);
-  __ asrv(TMP2, temp, TMP);
-  __ CompareRegisters(left, TMP2);
+  __ lslv(temp, left, TMP, kObjectBytes);
+  __ asrv(TMP2, temp, TMP, kObjectBytes);
+  __ cmp(left, Operand(TMP2), kObjectBytes);
   __ b(normal_ir_body, NE);  // Overflow.
   // Shift for result now we know there is no overflow.
-  __ lslv(result, left, TMP);
+  __ lslv(result, left, TMP, kObjectBytes);
   __ ret();
   __ Bind(normal_ir_body);
 }
@@ -334,7 +126,7 @@ static void CompareIntegers(Assembler* assembler,
   Label true_label;
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // R0 contains the right argument, R1 the left.
-  __ CompareRegisters(R1, R0);
+  __ CompareObjectRegisters(R1, R0);
   __ LoadObject(R0, CastHandle<Object>(FalseObject()));
   __ LoadObject(TMP, CastHandle<Object>(TrueObject()));
   __ csel(R0, TMP, R0, true_condition);
@@ -342,14 +134,9 @@ static void CompareIntegers(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_greaterThanFromInt(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  CompareIntegers(assembler, normal_ir_body, LT);
-}
-
 void AsmIntrinsifier::Integer_lessThan(Assembler* assembler,
                                        Label* normal_ir_body) {
-  Integer_greaterThanFromInt(assembler, normal_ir_body);
+  CompareIntegers(assembler, normal_ir_body, LT);
 }
 
 void AsmIntrinsifier::Integer_greaterThan(Assembler* assembler,
@@ -375,7 +162,7 @@ void AsmIntrinsifier::Integer_equalToInteger(Assembler* assembler,
   // For integer receiver '===' check first.
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ ldr(R1, Address(SP, 1 * target::kWordSize));
-  __ cmp(R0, Operand(R1));
+  __ CompareObjectRegisters(R0, R1);
   __ b(&true_label, EQ);
 
   __ orr(R2, R0, Operand(R1));
@@ -424,50 +211,23 @@ void AsmIntrinsifier::Integer_equal(Assembler* assembler,
   Integer_equalToInteger(assembler, normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_sar(Assembler* assembler, Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  // Shift amount in R0. Value to shift in R1.
-
-  // Fall through if shift amount is negative.
-  __ SmiUntag(R0);
-  __ CompareRegisters(R0, ZR);
-  __ b(normal_ir_body, LT);
-
-  // If shift amount is bigger than 63, set to 63.
-  __ LoadImmediate(TMP, 0x3F);
-  __ CompareRegisters(R0, TMP);
-  __ csel(R0, TMP, R0, GT);
-  __ SmiUntag(R1);
-  __ asrv(R0, R1, R0);
-  __ SmiTag(R0);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Smi_bitNegate(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ mvn(R0, R0);
-  __ andi(R0, R0, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
-  __ ret();
-}
-
 void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
                                     Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ SmiUntag(R0);
   // XOR with sign bit to complement bits if value is negative.
+#if !defined(DART_COMPRESSED_POINTERS)
   __ eor(R0, R0, Operand(R0, ASR, 63));
   __ clz(R0, R0);
   __ LoadImmediate(R1, 64);
+#else
+  __ eorw(R0, R0, Operand(R0, ASR, 31));
+  __ clzw(R0, R0);
+  __ LoadImmediate(R1, 32);
+#endif
   __ sub(R0, R1, Operand(R0));
   __ SmiTag(R0);
   __ ret();
-}
-
-void AsmIntrinsifier::Smi_bitAndFromSmi(Assembler* assembler,
-                                        Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
 }
 
 void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
@@ -476,10 +236,16 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
 
   // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
   __ ldp(R2, R3, Address(SP, 2 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R2, R2, Operand(2));  // x_used > 0, Smi. R2 = x_used + 1, round up.
   __ AsrImmediate(R2, R2, 2);  // R2 = num of digit pairs to read.
   // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
   __ ldp(R4, R5, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R5, R5);
+#endif
   __ SmiUntag(R5);
   // R0 = n ~/ (2*_DIGIT_BITS)
   __ AsrImmediate(R0, R5, 6);
@@ -520,10 +286,16 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
 
   // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
   __ ldp(R2, R3, Address(SP, 2 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R2, R2, Operand(2));  // x_used > 0, Smi. R2 = x_used + 1, round up.
   __ AsrImmediate(R2, R2, 2);  // R2 = num of digit pairs to read.
   // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
   __ ldp(R4, R5, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R5, R5);
+#endif
   __ SmiUntag(R5);
   // R0 = n ~/ (2*_DIGIT_BITS)
   __ AsrImmediate(R0, R5, 6);
@@ -569,6 +341,9 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
 
   // R2 = used, R3 = digits
   __ ldp(R2, R3, Address(SP, 3 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R2, R2, Operand(2));  // used > 0, Smi. R2 = used + 1, round up.
   __ add(R2, ZR, Operand(R2, ASR, 2));  // R2 = num of digit pairs to process.
   // R3 = &digits[0]
@@ -576,6 +351,9 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
 
   // R4 = a_used, R5 = a_digits
   __ ldp(R4, R5, Address(SP, 1 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R4, R4);
+#endif
   __ add(R4, R4, Operand(2));  // a_used > 0, Smi. R4 = a_used + 1, round up.
   __ add(R4, ZR, Operand(R4, ASR, 2));  // R4 = num of digit pairs to process.
   // R5 = &a_digits[0]
@@ -635,6 +413,9 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
 
   // R2 = used, R3 = digits
   __ ldp(R2, R3, Address(SP, 3 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R2, R2, Operand(2));  // used > 0, Smi. R2 = used + 1, round up.
   __ add(R2, ZR, Operand(R2, ASR, 2));  // R2 = num of digit pairs to process.
   // R3 = &digits[0]
@@ -642,6 +423,9 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
 
   // R4 = a_used, R5 = a_digits
   __ ldp(R4, R5, Address(SP, 1 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R4, R4);
+#endif
   __ add(R4, R4, Operand(2));  // a_used > 0, Smi. R4 = a_used + 1, round up.
   __ add(R4, ZR, Operand(R4, ASR, 2));  // R4 = num of digit pairs to process.
   // R5 = &a_digits[0]
@@ -721,6 +505,9 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // R3 = x, no_op if x == 0
   // R0 = xi as Smi, R1 = x_digits.
   __ ldp(R0, R1, Address(SP, 5 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R3, FieldAddress(R1, target::TypedData::data_offset()));
   __ tst(R3, Operand(R3));
@@ -728,6 +515,9 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
 
   // R6 = (SmiUntag(n) + 1)/2, no_op if n == 0
   __ ldr(R6, Address(SP, 0 * target::kWordSize));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R6, R6);
+#endif
   __ add(R6, R6, Operand(2));
   __ adds(R6, ZR, Operand(R6, ASR, 2));  // SmiUntag(R6) and set cc.
   __ b(&done, EQ);
@@ -735,12 +525,18 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // R4 = mip = &m_digits[i >> 1]
   // R0 = i as Smi, R1 = m_digits.
   __ ldp(R0, R1, Address(SP, 3 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R4, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
 
   // R5 = ajp = &a_digits[j >> 1]
   // R0 = j as Smi, R1 = a_digits.
   __ ldp(R0, R1, Address(SP, 1 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R5, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
 
@@ -829,6 +625,9 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   // R4 = xip = &x_digits[i >> 1]
   // R2 = i as Smi, R3 = x_digits
   __ ldp(R2, R3, Address(SP, 2 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R3, R3, Operand(R2, LSL, 1));
   __ add(R4, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
 
@@ -856,6 +655,9 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
 
   // int n = (used - i + 1)/2 - 1
   __ ldr(R0, Address(SP, 0 * target::kWordSize));  // used is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ sub(R8, R0, Operand(R2));
   __ add(R8, R8, Operand(2));
   __ movn(R0, Immediate(1), 0);          // R0 = ~1 = -2.
@@ -968,6 +770,9 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   // R2 = dh = digits[(i >> 1) - 1 .. i >> 1]
   // R0 = i as Smi, R1 = digits
   __ ldp(R0, R1, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R2, FieldAddress(
                  R1, target::TypedData::data_offset() - kBytesPerBigIntDigit));
@@ -1114,6 +919,9 @@ void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
   // R2 = digits[i >> 1 .. (i >> 1) + 1]
   // R0 = i as Smi, R1 = digits
   __ ldp(R0, R1, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R2, FieldAddress(R1, target::TypedData::data_offset()));
 
@@ -1230,7 +1038,7 @@ static void DoubleArithmeticOperations(Assembler* assembler,
       UNREACHABLE();
   }
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
 
@@ -1271,7 +1079,7 @@ void AsmIntrinsifier::Double_mulFromInteger(Assembler* assembler,
   __ LoadDFieldFromOffset(V0, R0, target::Double::value_offset());
   __ fmuld(V0, V0, V1);
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(normal_ir_body);
@@ -1283,9 +1091,13 @@ void AsmIntrinsifier::DoubleFromInteger(Assembler* assembler,
   __ BranchIfNotSmi(R0, normal_ir_body);
   // Is Smi.
   __ SmiUntag(R0);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ scvtfdx(V0, R0);
+#else
+  __ scvtfdw(V0, R0);
+#endif
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(normal_ir_body);
@@ -1356,11 +1168,20 @@ void AsmIntrinsifier::DoubleToInteger(Assembler* assembler,
   __ fcmpd(V0, V0);
   __ b(normal_ir_body, VS);
 
-  __ fcvtzds(R0, V0);
+  __ fcvtzdsx(R0, V0);
+
+#if !defined(DART_COMPRESSED_POINTERS)
   // Overflow is signaled with minint.
   // Check for overflow and that it fits into Smi.
   __ CompareImmediate(R0, 0xC000000000000000);
   __ b(normal_ir_body, MI);
+#else
+  // Overflow is signaled with minint.
+  // Check for overflow and that it fits into Smi.
+  __ AsrImmediate(TMP, R0, 30);
+  __ cmp(TMP, Operand(R0, ASR, 63));
+  __ b(normal_ir_body, NE);
+#endif
   __ SmiTag(R0);
   __ ret();
   __ Bind(normal_ir_body);
@@ -1378,17 +1199,24 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ fcmpd(V0, V0);
   __ b(&double_hash, VS);
 
+#if !defined(DART_COMPRESSED_POINTERS)
   // Convert double value to signed 64-bit int in R0 and back to a
   // double value in V1.
-  __ fcvtzds(R0, V0);
+  __ fcvtzdsx(R0, V0);
   __ scvtfdx(V1, R0);
+#else
+  // Convert double value to signed 32-bit int in R0 and back to a
+  // double value in V1.
+  __ fcvtzdsw(R0, V0);
+  __ scvtfdw(V1, R0);
+#endif
 
   // Tag the int as a Smi, making sure that it fits; this checks for
   // overflow in the conversion from double to int. Conversion
   // overflow is signalled by fcvt through clamping R0 to either
   // INT64_MAX or INT64_MIN (saturation).
   ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
-  __ adds(R0, R0, Operand(R0));
+  __ adds(R0, R0, Operand(R0), kObjectBytes);
   __ b(normal_ir_body, VS);
 
   // Compare the two double values. If they are equal, we return the
@@ -1417,7 +1245,7 @@ void AsmIntrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(&double_op);
   __ fsqrtd(V0, V1);
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(&is_smi);
@@ -1438,7 +1266,8 @@ void AsmIntrinsifier::Random_nextState(Assembler* assembler,
   // Receiver.
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   // Field '_state'.
-  __ ldr(R1, FieldAddress(R0, LookupFieldOffsetInBytes(state_field)));
+  __ LoadCompressed(R1,
+                    FieldAddress(R0, LookupFieldOffsetInBytes(state_field)));
 
   // Addresses of _state[0].
   const int64_t disp =
@@ -1461,7 +1290,7 @@ void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ ldr(R1, Address(SP, 1 * target::kWordSize));
-  __ cmp(R0, Operand(R1));
+  __ CompareObjectRegisters(R0, R1);
   __ LoadObject(R0, CastHandle<Object>(FalseObject()));
   __ LoadObject(TMP, CastHandle<Object>(TrueObject()));
   __ csel(R0, TMP, R0, EQ);
@@ -1513,10 +1342,26 @@ static void JumpIfNotString(Assembler* assembler,
              kIfNotInRange, target);
 }
 
+static void JumpIfType(Assembler* assembler,
+                       Register cid,
+                       Register tmp,
+                       Label* target) {
+  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfInRange,
+             target);
+}
+
+static void JumpIfNotType(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfNotInRange,
+             target);
+}
+
 // Return type quickly for simple types (not parameterized and not signature).
 void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
                                         Label* normal_ir_body) {
-  Label use_declaration_type, not_double, not_integer;
+  Label use_declaration_type, not_double, not_integer, not_string;
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
 
@@ -1529,23 +1374,30 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ CompareImmediate(R1, kDoubleCid);
   __ b(&not_double, NE);
 
-  __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadIsolateGroup(R0);
+  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::double_type_offset());
   __ ret();
 
   __ Bind(&not_double);
   JumpIfNotInteger(assembler, R1, R0, &not_integer);
-  __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadIsolateGroup(R0);
+  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::int_type_offset());
   __ ret();
 
   __ Bind(&not_integer);
-  JumpIfNotString(assembler, R1, R0, &use_declaration_type);
-  __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  JumpIfNotString(assembler, R1, R0, &not_string);
+  __ LoadIsolateGroup(R0);
+  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::string_type_offset());
+  __ ret();
+
+  __ Bind(&not_string);
+  JumpIfNotType(assembler, R1, R0, &use_declaration_type);
+  __ LoadIsolateGroup(R0);
+  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
+  __ LoadFromOffset(R0, R0, target::ObjectStore::type_type_offset());
   __ ret();
 
   __ Bind(&use_declaration_type);
@@ -1557,7 +1409,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 
-  __ ldr(R0, FieldAddress(R2, target::Class::declaration_type_offset()));
+  __ LoadCompressed(R0,
+                    FieldAddress(R2, target::Class::declaration_type_offset()));
   __ CompareObject(R0, NullObject());
   __ b(normal_ir_body, EQ);
   __ ret();
@@ -1567,15 +1420,19 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
 // Compares cid1 and cid2 to see if they're syntactically equivalent. If this
 // can be determined by this fast path, it jumps to either equal or not_equal,
-// otherwise it jumps to normal_ir_body. May clobber cid1, cid2, and scratch.
+// if equal but belonging to a generic class, it falls through with the scratch
+// register containing host_type_arguments_field_offset_in_words,
+// otherwise it jumps to normal_ir_body. May clobber scratch.
 static void EquivalentClassIds(Assembler* assembler,
                                Label* normal_ir_body,
                                Label* equal,
                                Label* not_equal,
                                Register cid1,
                                Register cid2,
-                               Register scratch) {
-  Label different_cids, not_integer;
+                               Register scratch,
+                               bool testing_instance_cids) {
+  Label different_cids, equal_cids_but_generic, not_integer,
+      not_integer_or_string;
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ CompareImmediate(cid1, kClosureCid);
@@ -1592,14 +1449,16 @@ static void EquivalentClassIds(Assembler* assembler,
   // Otherwise fall through into the runtime to handle comparison.
   __ LoadClassById(scratch, cid1);
   __ ldr(scratch,
-         FieldAddress(scratch, target::Class::num_type_arguments_offset(),
-                      kTwoBytes),
-         kTwoBytes);
-  __ cbnz(normal_ir_body, scratch);
+         FieldAddress(
+             scratch,
+             target::Class::host_type_arguments_field_offset_in_words_offset()),
+         kFourBytes);
+  __ CompareImmediate(scratch, target::Class::kNoTypeArguments);
+  __ b(&equal_cids_but_generic, NE);
   __ b(equal);
 
   // Class ids are different. Check if we are comparing two string types (with
-  // different representations) or two integer types.
+  // different representations) or two integer types or two type types.
   __ Bind(&different_cids);
   __ CompareImmediate(cid1, kNumPredefinedCids);
   __ b(not_equal, HI);
@@ -1608,33 +1467,56 @@ static void EquivalentClassIds(Assembler* assembler,
   JumpIfNotInteger(assembler, cid1, scratch, &not_integer);
 
   // First type is an integer. Check if the second is an integer too.
-  // Otherwise types are unequiv because only integers have the same runtime
-  // type as other integers.
   JumpIfInteger(assembler, cid2, scratch, equal);
+  // Integer types are only equivalent to other integer types.
   __ b(not_equal);
 
   __ Bind(&not_integer);
-  // Check if the first type is String. If it is not then types are not
-  // equivalent because they have different class ids and they are not strings
-  // or integers.
-  JumpIfNotString(assembler, cid1, scratch, not_equal);
+  // Check if both are String types.
+  JumpIfNotString(assembler, cid1, scratch,
+                  testing_instance_cids ? &not_integer_or_string : not_equal);
+
   // First type is String. Check if the second is a string too.
   JumpIfString(assembler, cid2, scratch, equal);
   // String types are only equivalent to other String types.
-  // Fall-through to the not equal case.
   __ b(not_equal);
+
+  if (testing_instance_cids) {
+    __ Bind(&not_integer_or_string);
+    // Check if the first type is a Type. If it is not then types are not
+    // equivalent because they have different class ids and they are not String
+    // or integer or Type.
+    JumpIfNotType(assembler, cid1, scratch, not_equal);
+
+    // First type is a Type. Check if the second is a Type too.
+    JumpIfType(assembler, cid2, scratch, equal);
+    // Type types are only equivalent to other Type types.
+    __ b(not_equal);
+  }
+
+  // The caller must compare the type arguments.
+  __ Bind(&equal_cids_but_generic);
 }
 
 void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  __ ldr(R0, Address(SP, 0 * target::kWordSize));
+  __ ldp(R0, R1, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+  __ LoadClassIdMayBeSmi(R2, R1);
   __ LoadClassIdMayBeSmi(R1, R0);
 
-  __ ldr(R0, Address(SP, 1 * target::kWordSize));
-  __ LoadClassIdMayBeSmi(R2, R0);
-
   Label equal, not_equal;
-  EquivalentClassIds(assembler, normal_ir_body, &equal, &not_equal, R1, R2, R0);
+  EquivalentClassIds(assembler, normal_ir_body, &equal, &not_equal, R1, R2, R0,
+                     /* testing_instance_cids = */ true);
+
+  // Compare type arguments, host_type_arguments_field_offset_in_words in R0.
+  __ ldp(R1, R2, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+  __ AddImmediate(R1, -kHeapObjectTag);
+  __ ldr(R1, Address(R1, R0, UXTX, Address::Scaled), kObjectBytes);
+  __ AddImmediate(R2, -kHeapObjectTag);
+  __ ldr(R2, Address(R2, R0, UXTX, Address::Scaled), kObjectBytes);
+  __ CompareObjectRegisters(R1, R2);
+  __ b(normal_ir_body, NE);
+  // Fall through to equal case if type arguments are equal.
 
   __ Bind(&equal);
   __ LoadObject(R0, CastHandle<Object>(TrueObject()));
@@ -1662,7 +1544,7 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
 void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
                                        Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::Type::hash_offset()));
+  __ LoadCompressed(R0, FieldAddress(R0, target::Type::hash_offset()));
   __ cbz(normal_ir_body, R0);
   __ ret();
   // Hash not yet computed.
@@ -1674,7 +1556,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   Label equal, not_equal, equiv_cids, check_legacy;
 
   __ ldp(R1, R2, Address(SP, 0 * target::kWordSize, Address::PairOffset));
-  __ cmp(R1, Operand(R2));
+  __ CompareObjectRegisters(R1, R2);
   __ b(&equal, EQ);
 
   // R1 might not be a Type object, so check that first (R2 should be though,
@@ -1684,12 +1566,22 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ b(normal_ir_body, NE);
 
   // Check if types are syntactically equal.
-  __ ldr(R3, FieldAddress(R1, target::Type::type_class_id_offset()));
+  __ LoadCompressedSmi(R3,
+                       FieldAddress(R1, target::Type::type_class_id_offset()));
   __ SmiUntag(R3);
-  __ ldr(R4, FieldAddress(R2, target::Type::type_class_id_offset()));
+  __ LoadCompressedSmi(R4,
+                       FieldAddress(R2, target::Type::type_class_id_offset()));
   __ SmiUntag(R4);
+  // We are not testing instance cids, but type class cids of Type instances.
   EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, R3, R4,
-                     R0);
+                     R0, /* testing_instance_cids = */ false);
+
+  // Compare type arguments in Type instances.
+  __ LoadCompressed(R3, FieldAddress(R1, target::Type::arguments_offset()));
+  __ LoadCompressed(R4, FieldAddress(R2, target::Type::arguments_offset()));
+  __ CompareObjectRegisters(R3, R4);
+  __ b(normal_ir_body, NE);
+  // Fall through to check nullability if type arguments are equal.
 
   // Check nullability.
   __ Bind(&equiv_cids);
@@ -1723,6 +1615,28 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+                                               Label* normal_ir_body) {
+  __ ldr(R0, Address(SP, 0 * target::kWordSize));
+  __ LoadCompressed(R0, FieldAddress(R0, target::FunctionType::hash_offset()));
+  __ cbz(normal_ir_body, R0);
+  __ ret();
+  // Hash not yet computed.
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+                                            Label* normal_ir_body) {
+  __ ldp(R1, R2, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+  __ CompareObjectRegisters(R1, R2);
+  __ b(normal_ir_body, NE);
+
+  __ LoadObject(R0, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  __ Bind(normal_ir_body);
+}
+
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
@@ -1732,20 +1646,28 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
   __ ret();
 }
 
-void AsmIntrinsifier::Object_setHash(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  __ ldr(R0, Address(SP, 1 * target::kWordSize));  // Object.
-  __ ldr(R1, Address(SP, 0 * target::kWordSize));  // Value.
+void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
+                                                Label* normal_ir_body) {
+  __ ldp(/*Value=*/R1, /*Object=*/R0, Address(SP, 0, Address::PairOffset));
   // R0: Untagged address of header word (ldxr/stxr do not support offsets).
   __ sub(R0, R0, Operand(kHeapObjectTag));
   __ SmiUntag(R1);
-  __ LslImmediate(R1, R1, target::ObjectLayout::kHashTagPos);
-  Label retry;
+  __ LslImmediate(R3, R1, target::UntaggedObject::kHashTagPos);
+
+  Label retry, already_set_in_r4;
   __ Bind(&retry);
   __ ldxr(R2, R0, kEightBytes);
-  __ orr(R2, R2, Operand(R1));
+  __ LsrImmediate(R4, R2, target::UntaggedObject::kHashTagPos);
+  __ cbnz(&already_set_in_r4, R4);
+  __ orr(R2, R2, Operand(R3));
   __ stxr(R4, R2, R0, kEightBytes);
   __ cbnz(&retry, R4);
+  // Fall-through with R1 containing new hash value (untagged).
+  __ SmiTag(R0, R1);
+  __ ret();
+  __ Bind(&already_set_in_r4);
+  __ clrex();
+  __ SmiTag(R0, R4);
   __ ret();
 }
 
@@ -1755,10 +1677,11 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
                                             Label* return_true,
                                             Label* return_false) {
   __ SmiUntag(R1);
-  __ ldr(R8, FieldAddress(R0, target::String::length_offset()));  // this.length
+  __ LoadCompressedSmi(
+      R8, FieldAddress(R0, target::String::length_offset()));  // this.length
   __ SmiUntag(R8);
-  __ ldr(R9,
-         FieldAddress(R2, target::String::length_offset()));  // other.length
+  __ LoadCompressedSmi(
+      R9, FieldAddress(R2, target::String::length_offset()));  // other.length
   __ SmiUntag(R9);
 
   // if (other.length == 0) return true;
@@ -1865,7 +1788,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ ldr(R0, Address(SP, 1 * target::kWordSize));  // String.
   __ BranchIfNotSmi(R1, normal_ir_body);           // Index is not a Smi.
   // Range check.
-  __ ldr(R2, FieldAddress(R0, target::String::length_offset()));
+  __ LoadCompressedSmi(R2, FieldAddress(R0, target::String::length_offset()));
   __ cmp(R1, Operand(R2));
   __ b(normal_ir_body, CS);  // Runtime throws exception.
 
@@ -1887,7 +1810,12 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ b(normal_ir_body, NE);
   ASSERT(kSmiTagShift == 1);
   __ AddImmediate(R0, target::TwoByteString::data_offset() - kHeapObjectTag);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ ldr(R1, Address(R0, R1), kUnsignedTwoBytes);
+#else
+  // Upper half of a compressed Smi is garbage.
+  __ ldr(R1, Address(R0, R1, SXTW, Address::Unscaled), kUnsignedTwoBytes);
+#endif
   __ CompareImmediate(R1, target::Symbols::kNumberOfOneCharCodeSymbols);
   __ b(normal_ir_body, GE);
   __ ldr(R0, Address(THR, target::Thread::predefined_symbols_address_offset()));
@@ -1902,8 +1830,8 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
 void AsmIntrinsifier::StringBaseIsEmpty(Assembler* assembler,
                                         Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::String::length_offset()));
-  __ cmp(R0, Operand(target::ToRawSmi(0)));
+  __ LoadCompressedSmi(R0, FieldAddress(R0, target::String::length_offset()));
+  __ cmp(R0, Operand(target::ToRawSmi(0)), kObjectBytes);
   __ LoadObject(R0, CastHandle<Object>(TrueObject()));
   __ LoadObject(TMP, CastHandle<Object>(FalseObject()));
   __ csel(R0, TMP, R0, NE);
@@ -1921,7 +1849,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ ret();  // Return if already computed.
 
   __ Bind(&compute_hash);
-  __ ldr(R2, FieldAddress(R1, target::String::length_offset()));
+  __ LoadCompressedSmi(R2, FieldAddress(R1, target::String::length_offset()));
   __ SmiUntag(R2);
 
   Label done;
@@ -1971,7 +1899,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 
   // R1: Untagged address of header word (ldxr/stxr do not support offsets).
   __ sub(R1, R1, Operand(kHeapObjectTag));
-  __ LslImmediate(R0, R0, target::ObjectLayout::kHashTagPos);
+  __ LslImmediate(R0, R0, target::UntaggedObject::kHashTagPos);
   Label retry;
   __ Bind(&retry);
   __ ldxr(R2, R1, kEightBytes);
@@ -1979,7 +1907,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ stxr(R4, R2, R1, kEightBytes);
   __ cbnz(&retry, R4);
 
-  __ LsrImmediate(R0, R0, target::ObjectLayout::kHashTagPos);
+  __ LsrImmediate(R0, R0, target::UntaggedObject::kHashTagPos);
   __ SmiTag(R0);
   __ ret();
 }
@@ -2038,10 +1966,10 @@ static void TryAllocateString(Assembler* assembler,
   // R1: new object end address.
   // R2: allocation size.
   {
-    const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
 
-    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
     __ LslImmediate(R2, R2, shift);
     __ csel(R2, R2, ZR, LS);
 
@@ -2056,7 +1984,7 @@ static void TryAllocateString(Assembler* assembler,
   }
 
   // Set the length field using the saved length (R6).
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       R0, FieldAddress(R0, target::String::length_offset()), R6);
   __ b(ok);
 }
@@ -2143,7 +2071,12 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
   __ SmiUntag(R2);
   __ AddImmediate(R3, R0,
                   target::TwoByteString::data_offset() - kHeapObjectTag);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ str(R2, Address(R3, R1), kUnsignedTwoBytes);
+#else
+  // Upper half of a compressed Smi is garbage.
+  __ str(R2, Address(R3, R1, SXTW, Address::Unscaled), kUnsignedTwoBytes);
+#endif
   __ ret();
 }
 
@@ -2152,6 +2085,9 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
   Label ok;
 
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
 
   __ Bind(&ok);
@@ -2165,6 +2101,9 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
   Label ok;
 
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body);
 
   __ Bind(&ok);
@@ -2182,7 +2121,7 @@ static void StringEquality(Assembler* assembler,
   __ ldr(R1, Address(SP, 0 * target::kWordSize));  // Other.
 
   // Are identical?
-  __ cmp(R0, Operand(R1));
+  __ CompareObjectRegisters(R0, R1);
   __ b(&is_true, EQ);
 
   // Is other OneByteString?
@@ -2191,9 +2130,9 @@ static void StringEquality(Assembler* assembler,
   __ b(normal_ir_body, NE);
 
   // Have same length?
-  __ ldr(R2, FieldAddress(R0, target::String::length_offset()));
-  __ ldr(R3, FieldAddress(R1, target::String::length_offset()));
-  __ cmp(R2, Operand(R3));
+  __ LoadCompressedSmi(R2, FieldAddress(R0, target::String::length_offset()));
+  __ LoadCompressedSmi(R3, FieldAddress(R1, target::String::length_offset()));
+  __ CompareObjectRegisters(R2, R3);
   __ b(&is_false, NE);
 
   // Check contents, no fall-through possible.
@@ -2268,36 +2207,23 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ ldr(R1, Address(SP, kStringParamOffset));
   __ LoadClassId(R1, R1);
   __ AddImmediate(R1, -kOneByteStringCid);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ add(R1, R2, Operand(R1, LSL, target::kWordSizeLog2));
-  __ ldr(R0, FieldAddress(R1, target::RegExp::function_offset(kOneByteStringCid,
-                                                              sticky)));
+#else
+  __ add(R1, R2, Operand(R1, LSL, target::kWordSizeLog2 - 1));
+#endif
+  __ LoadCompressed(R0, FieldAddress(R1, target::RegExp::function_offset(
+                                             kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.
   __ eor(R5, R5, Operand(R5));
 
   // Tail-call the function.
-  __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
+  __ LoadCompressed(CODE_REG,
+                    FieldAddress(R0, target::Function::code_offset()));
   __ ldr(R1, FieldAddress(R0, target::Function::entry_point_offset()));
   __ br(R1);
-}
-
-// On stack: user tag (+0).
-void AsmIntrinsifier::UserTag_makeCurrent(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  // R1: Isolate.
-  __ LoadIsolate(R1);
-  // R0: Current user tag.
-  __ ldr(R0, Address(R1, target::Isolate::current_tag_offset()));
-  // R2: UserTag.
-  __ ldr(R2, Address(SP, +0 * target::kWordSize));
-  // Set target::Isolate::current_tag_.
-  __ str(R2, Address(R1, target::Isolate::current_tag_offset()));
-  // R2: UserTag's tag.
-  __ ldr(R2, FieldAddress(R2, target::UserTag::tag_offset()));
-  // Set target::Isolate::user_tag_.
-  __ str(R2, Address(R1, target::Isolate::user_tag_offset()));
-  __ ret();
 }
 
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,

@@ -9,7 +9,7 @@ extension ExtendObject on Object {
   bool operator ^(Object other) => true;
   int operator ~/(Object other) => 0;
   int operator >>(Object other) => 1;
-  // int operator >>>(Object other) => 2; // Requires triple-shift.
+  int operator >>>(Object other) => 2;
   int operator <<(Object other) => 0;
   int operator +(Object other) => 0;
   double operator -() => 1.0;
@@ -39,7 +39,7 @@ var runtimeExtensionCalls = <Object>[
   b ^ b,
   i ~/ i,
   i >> i,
-  // i >>> i, // Requries triple-shift.
+  i >>> i,
   i << i,
   i + i,
   -i,

@@ -1,0 +1,8 @@
+S+0 Struct(size: 12)
+S+12 Struct(size: 12)
+S+24 Struct(size: 12)
+S+36 Struct(size: 12)
+S+48 Struct(size: 12)
+S+60 Struct(size: 12)
+=>
+(eax, edx) int64

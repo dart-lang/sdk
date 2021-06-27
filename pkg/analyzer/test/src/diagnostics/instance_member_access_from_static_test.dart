@@ -61,6 +61,35 @@ class A {
     ]);
   }
 
+  test_class_thisGetter_fromMethod_functionExpression() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+
+  static void bar() {
+    () => foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 63, 3),
+    ]);
+  }
+
+  test_class_thisGetter_fromMethod_functionExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+
+  static void bar() {
+    // ignore:unused_local_variable
+    var x = () => foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 107, 3),
+    ]);
+  }
+
   test_class_thisMethod_fromMethod() async {
     await assertErrorsInCode(r'''
 class A {

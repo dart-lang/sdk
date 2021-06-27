@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class Interface {
   String method(num i);
 }
@@ -19,5 +20,9 @@ class C with A, B {}
 abstract class D implements Interface, Interface2 {}
 
 class E with A, D {}
+
+abstract class F implements Interface {}
+
+class G with A, F {}
 
 main() {}

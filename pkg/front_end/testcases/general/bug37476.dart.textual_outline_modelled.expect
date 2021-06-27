@@ -1,3 +1,4 @@
+// @dart = 2.9
 A<num> a = new A<int>();
 B<num> b = new B<int>();
 

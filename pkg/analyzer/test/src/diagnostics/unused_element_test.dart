@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class UnusedElementTest extends PubPackageResolutionTest {
+class UnusedElementTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   bool get enableUnusedElement => true;
 
@@ -707,6 +708,78 @@ extension _A on String {
 }
 void main() {
   "hello" - 3;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_binaryOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  int operator -(int other) => other;
+}
+void f(A<int> a) {
+  a - 3;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_indexEqOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  void operator []=(int index, T value) {
+}}
+void f(A<int> a) {
+  a[0] = 1;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_indexOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  A<T> operator [](int index) => throw 0;
+}
+void f(A<int> a) {
+  a[0];
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_method() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  A<T> foo() => throw 0;
+}
+void f(A<int> a) {
+  a.foo();
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_postfixOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  A<T> operator -(int i) => throw 0;
+}
+void f(A<int> a) {
+  a--;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_prefixOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  T operator ~() => throw 0;
+}
+void f(A<int> a) {
+  ~a;
 }
 ''');
   }
@@ -1526,11 +1599,58 @@ int _a = 7;
       error(HintCode.UNUSED_ELEMENT, 34, 2),
     ]);
   }
+
+  test_typeAlias_functionType_isUsed_isExpression() async {
+    await assertNoErrorsInCode(r'''
+typedef _F = void Function();
+main(f) {
+  if (f is _F) {
+    print('F');
+  }
+}
+''');
+  }
+
+  test_typeAlias_functionType_isUsed_reference() async {
+    await assertNoErrorsInCode(r'''
+typedef _F = void Function();
+main(_F f) {
+}
+''');
+  }
+
+  test_typeAlias_functionType_isUsed_typeArgument() async {
+    await assertNoErrorsInCode(r'''
+typedef _F = void Function();
+main() {
+  var v = new List<_F>();
+  print(v);
+}
+''');
+  }
+
+  test_typeAlias_functionType_isUsed_variableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+typedef _F = void Function();
+class A {
+  _F f;
+}
+''');
+  }
+
+  test_typeAlias_functionType_notUsed_noReference() async {
+    await assertErrorsInCode(r'''
+typedef _F = void Function();
+main() {
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 8, 2),
+    ]);
+  }
 }
 
 @reflectiveTest
-class UnusedElementWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class UnusedElementWithNullSafetyTest extends PubPackageResolutionTest {
   test_optionalParameter_isUsed_overrideRequiredNamed() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -1541,5 +1661,41 @@ class B implements A {
 }
 f() => A()._m(a: 0);
 ''');
+  }
+
+  test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
+    await assertNoErrorsInCode(r'''
+typedef _A = List<int>;
+
+void f(a) {
+  a is _A;
+}
+''');
+  }
+
+  test_typeAlias_interfaceType_isUsed_typeName_parameter() async {
+    await assertNoErrorsInCode(r'''
+typedef _A = List<int>;
+
+void f(_A a) {}
+''');
+  }
+
+  test_typeAlias_interfaceType_isUsed_typeName_typeArgument() async {
+    await assertNoErrorsInCode(r'''
+typedef _A = List<int>;
+
+void f() {
+  Map<_A, int>();
+}
+''');
+  }
+
+  test_typeAlias_interfaceType_notUsed() async {
+    await assertErrorsInCode(r'''
+typedef _A = List<int>;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 8, 2),
+    ]);
   }
 }

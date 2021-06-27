@@ -23,7 +23,7 @@ class Assumptions {
   }
 
   void _removeAssumption(TypeParameter a, TypeParameter b) {
-    TypeParameter assumption = _assumptionMap.remove(a);
+    TypeParameter? assumption = _assumptionMap.remove(a);
     assert(identical(assumption, b));
   }
 

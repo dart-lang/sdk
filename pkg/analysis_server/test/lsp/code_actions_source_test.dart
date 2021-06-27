@@ -41,8 +41,7 @@ int minified(int x, int y) => min(x, y);
             withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent,
         expectDocumentChanges: true);
@@ -70,8 +69,7 @@ int minified(int x, int y) => min(x, y);
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent);
   }
@@ -114,18 +112,35 @@ int minified(int x, int y) => min(x, y);
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     final command = codeAction.map(
       (command) => command,
-      (codeAction) => codeAction.command,
+      (codeAction) => codeAction.command!,
     );
 
     final commandResponse = await executeCommand(command);
     // Invalid code returns an empty success() response to avoid triggering
     // errors in the editor if run automatically on every save.
     expect(commandResponse, isNull);
+  }
+
+  Future<void> test_filtersCorrectly() async {
+    newFile(mainFilePath, content: '');
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final ofKind = (CodeActionKind kind) => getCodeActions(
+          mainFileUri.toString(),
+          kinds: [kind],
+        );
+
+    expect(await ofKind(CodeActionKind.Source), hasLength(2));
+    expect(await ofKind(CodeActionKind.SourceOrganizeImports), hasLength(1));
+    expect(await ofKind(DartCodeActionKind.SortMembers), hasLength(1));
+    expect(await ofKind(CodeActionKind('source.foo')), isEmpty);
+    expect(await ofKind(CodeActionKind.Refactor), isEmpty);
   }
 
   Future<void> test_noEdits() async {
@@ -142,12 +157,11 @@ int minified(int x, int y) => min(x, y);
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     final command = codeAction.map(
       (command) => command,
-      (codeAction) => codeAction.command,
+      (codeAction) => codeAction.command!,
     );
 
     // Execute the command and it should return without needing us to process
@@ -197,8 +211,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
             withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent,
         expectDocumentChanges: true);
@@ -219,8 +232,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent);
   }
@@ -266,15 +278,14 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     final command = codeAction.map(
       (command) => command,
-      (codeAction) => codeAction.command,
+      (codeAction) => codeAction.command!,
     );
 
-    final commandResponse = handleExpectedRequest<Object,
+    final commandResponse = handleExpectedRequest<Object?,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
@@ -300,12 +311,11 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     final command = codeAction.map(
       (command) => command,
-      (codeAction) => codeAction.command,
+      (codeAction) => codeAction.command!,
     );
 
     // Ensure the request returned an error (error repsonses are thrown by

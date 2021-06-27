@@ -53,7 +53,7 @@ String getTopLevelName(NamedNode n) {
   if (n is Class) return n.name;
   if (n is Typedef) return n.name;
   if (n is Field) return n.name.text;
-  return n.canonicalName?.name;
+  return n.reference.canonicalName?.name;
 }
 
 /// Given an annotated [node] and a [test] function, returns the first matching
@@ -135,6 +135,7 @@ bool isOperatorMethodName(String name) {
     case '&':
     case '>>':
     case '<<':
+    case '>>>':
     case '+':
     case 'unary-':
     case '-':
@@ -332,6 +333,9 @@ class LabelContinueFinder extends StatementVisitor<void> {
     visit(node.body);
     visit(node.finalizer);
   }
+
+  @override
+  void defaultStatement(Statement node) {}
 }
 
 /// Ensures that all of the known DartType implementors are handled.
@@ -341,8 +345,7 @@ class LabelContinueFinder extends StatementVisitor<void> {
 /// object of DartType. It doesn't introduce a run-time overhead in production
 /// code if used in an assert.
 bool isKnownDartTypeImplementor(DartType t) {
-  return t is BottomType ||
-      t is DynamicType ||
+  return t is DynamicType ||
       t is FunctionType ||
       t is FutureOrType ||
       t is InterfaceType ||
@@ -353,3 +356,28 @@ bool isKnownDartTypeImplementor(DartType t) {
       t is TypedefType ||
       t is VoidType;
 }
+
+/// Whether [member] is declared native, as in:
+///
+///    void foo() native;
+///
+/// This syntax is only allowed in sdk libraries and native tests.
+bool isNative(Member member) =>
+    // The CFE represents `native` members with the `external` bit and with an
+    // internal @ExternalName annotation as a marker.
+    member.isExternal && member.annotations.any(_isNativeMarkerAnnotation);
+
+bool _isNativeMarkerAnnotation(Expression annotation) {
+  if (annotation is ConstantExpression) {
+    var constant = annotation.constant;
+    if (constant is InstanceConstant &&
+        constant.classNode.name == 'ExternalName' &&
+        _isDartInternal(constant.classNode.enclosingLibrary.importUri)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool _isDartInternal(Uri uri) =>
+    uri.scheme == 'dart' && uri.path == '_internal';

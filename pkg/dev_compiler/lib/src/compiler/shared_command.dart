@@ -92,6 +92,13 @@ class SharedCompilerOptions {
   /// the browser.
   final bool emitDebugMetadata;
 
+  /// Whether to emit the debug symbols
+  ///
+  /// Debugger uses this information about to construct mapping between
+  /// dart and js objecys that otherwise requires expensive communication with
+  /// the browser.
+  final bool emitDebugSymbols;
+
   final Map<String, String> summaryModules;
 
   final List<ModuleFormat> moduleFormats;
@@ -123,6 +130,7 @@ class SharedCompilerOptions {
       this.enableAsserts = true,
       this.replCompile = false,
       this.emitDebugMetadata = false,
+      this.emitDebugSymbols = false,
       this.emitFullCompiledKernel = false,
       this.summaryModules = const {},
       this.moduleFormats = const [],
@@ -140,6 +148,7 @@ class SharedCompilerOptions {
             enableAsserts: args['enable-asserts'] as bool,
             replCompile: args['repl-compile'] as bool,
             emitDebugMetadata: args['experimental-emit-debug-metadata'] as bool,
+            emitDebugSymbols: args['emit-debug-symbols'] as bool,
             emitFullCompiledKernel:
                 args['experimental-output-compiled-kernel'] as bool,
             summaryModules:
@@ -193,6 +202,11 @@ class SharedCompilerOptions {
       ..addFlag('experimental-emit-debug-metadata',
           help: 'Experimental option for compiler development.\n'
               'Output a metadata file for debug tools next to the .js output.',
+          defaultsTo: false,
+          hide: true)
+      ..addFlag('emit-debug-symbols',
+          help: 'Experimental option for compiler development.\n'
+              'Output a symbols file for debug tools next to the .js output.',
           defaultsTo: false,
           hide: true)
       ..addFlag('experimental-output-compiled-kernel',

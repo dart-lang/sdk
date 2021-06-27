@@ -78,5 +78,10 @@ var tests = <IsolateTest>[
   resumeIsolate
 ];
 
-main([args = const <String>[]]) => runIsolateTests(args, tests,
-    testeeConcurrent: testMain, extraArgs: extraDebuggingArgs);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'async_single_step_exception_test.dart',
+      testeeConcurrent: testMain,
+      extraArgs: extraDebuggingArgs,
+    );

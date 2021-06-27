@@ -1,0 +1,5 @@
+// @dart = 2.13
+class A<X extends G<num>> {}
+
+typedef G<X> = void Function<Y extends X>();
+main() {}

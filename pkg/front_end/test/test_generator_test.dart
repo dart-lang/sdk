@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show exitCode, File, stdout;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
@@ -13,10 +15,11 @@ import 'package:kernel/binary/ast_to_binary.dart';
 
 import 'package:kernel/kernel.dart' show Component;
 
-import 'incremental_load_from_dill_suite.dart' as helper;
+import 'incremental_suite.dart' as helper;
 
 main() async {
-  TestCompiler compiler = await TestCompiler.initialize();
+  CompilerAndOptions compilerAndOptions = TestCompiler.initialize();
+  TestCompiler compiler = compilerAndOptions.compiler;
   bool hasNewline = true;
   int numErrors = 0;
   List<String> errorSource = [];
@@ -29,6 +32,7 @@ main() async {
         String source = outerContext
             .generate(innerContext.generate(expression.generate("")));
         String compileResult = await compiler.compile(source);
+        compilerAndOptions.options.skipPlatformVerification = true;
         if (compileResult != "") {
           if (!hasNewline) print("");
           hasNewline = true;
@@ -120,13 +124,13 @@ class TestCompiler {
     return sb.toString();
   }
 
-  static Future<TestCompiler> initialize() async {
+  static CompilerAndOptions initialize() {
     final Uri base = Uri.parse("org-dartlang-test:///");
     final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
     Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
     final List<int> sdkSummaryData =
-        await new File.fromUri(platformUri).readAsBytes();
+        new File.fromUri(platformUri).readAsBytesSync();
     MemoryFileSystem fs = new MemoryFileSystem(base);
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
 
@@ -167,8 +171,10 @@ class TestCompiler {
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, testUri);
 
-    return new TestCompiler._(testUri, fs, formattedErrors, formattedWarnings,
-        formattedErrorsCodes, formattedWarningsCodes, compiler);
+    return new CompilerAndOptions(
+        new TestCompiler._(testUri, fs, formattedErrors, formattedWarnings,
+            formattedErrorsCodes, formattedWarningsCodes, compiler),
+        options);
   }
 }
 
@@ -225,4 +231,11 @@ class Generator {
   String generate(String plug) {
     return "// @dart = 2.9\n${beforePlug}${plug}${afterPlug}";
   }
+}
+
+class CompilerAndOptions {
+  final TestCompiler compiler;
+  final CompilerOptions options;
+
+  CompilerAndOptions(this.compiler, this.options);
 }

@@ -19,14 +19,40 @@ class MustCallSuperVerifier {
     if (node.isStatic || node.isAbstract) {
       return;
     }
-    ExecutableElement overridden =
-        _findOverriddenMemberWithMustCallSuper(node.declaredElement);
-    if (overridden != null && _hasConcreteSuperMethod(node.declaredElement)) {
-      _SuperCallVerifier verifier = _SuperCallVerifier(overridden.name);
-      node.accept(verifier);
-      if (!verifier.superIsCalled) {
-        _errorReporter.reportErrorForNode(HintCode.MUST_CALL_SUPER, node.name,
-            [overridden.enclosingElement.name]);
+    var element = node.declaredElement!;
+    var overridden = _findOverriddenMemberWithMustCallSuper(element);
+    if (overridden == null) {
+      return;
+    }
+
+    if (element is MethodElement && _hasConcreteSuperMethod(element)) {
+      _verifySuperIsCalled(
+          node, overridden.name, overridden.enclosingElement.name);
+      return;
+    }
+
+    var enclosingElement = element.enclosingElement as ClassElement;
+    if (element is PropertyAccessorElement && element.isGetter) {
+      var inheritedConcreteGetter = enclosingElement
+          .lookUpInheritedConcreteGetter(element.name, element.library);
+      if (inheritedConcreteGetter != null) {
+        _verifySuperIsCalled(
+            node, overridden.name, overridden.enclosingElement.name);
+      }
+      return;
+    }
+
+    if (element is PropertyAccessorElement && element.isSetter) {
+      var inheritedConcreteSetter = enclosingElement
+          .lookUpInheritedConcreteSetter(element.name, element.library);
+      if (inheritedConcreteSetter != null) {
+        var name = overridden.name;
+        // For a setter, give the name without the trailing '=' to the verifier,
+        // in order to check against property access.
+        if (name.endsWith('=')) {
+          name = name.substring(0, name.length - 1);
+        }
+        _verifySuperIsCalled(node, name, overridden.enclosingElement.name);
       }
     }
   }
@@ -39,31 +65,37 @@ class MustCallSuperVerifier {
   /// `@mustCallSuper`.
   ///
   /// [1]: https://pub.dev/documentation/meta/latest/meta/mustCallSuper-constant.html
-  ExecutableElement _findOverriddenMemberWithMustCallSuper(
+  ExecutableElement? _findOverriddenMemberWithMustCallSuper(
       ExecutableElement element) {
     //Element member = node.declaredElement;
     if (element.enclosingElement is! ClassElement) {
       return null;
     }
-    ClassElement classElement = element.enclosingElement;
+    var classElement = element.enclosingElement as ClassElement;
     String name = element.name;
 
     // Walk up the type hierarchy from [classElement], ignoring direct
     // interfaces.
-    Queue<ClassElement> superclasses =
+    Queue<ClassElement?> superclasses =
         Queue.of(classElement.mixins.map((i) => i.element))
           ..addAll(classElement.superclassConstraints.map((i) => i.element))
           ..add(classElement.supertype?.element);
     var visitedClasses = <ClassElement>{};
     while (superclasses.isNotEmpty) {
-      ClassElement ancestor = superclasses.removeFirst();
+      var ancestor = superclasses.removeFirst();
       if (ancestor == null || !visitedClasses.add(ancestor)) {
         continue;
       }
-      ExecutableElement member = ancestor.getMethod(name) ??
+      var member = ancestor.getMethod(name) ??
           ancestor.getGetter(name) ??
           ancestor.getSetter(name);
       if (member is MethodElement && member.hasMustCallSuper) {
+        return member;
+      }
+      if (member is PropertyAccessorElement && member.hasMustCallSuper) {
+        // TODO(srawlins): What about a field annotated with `@mustCallSuper`?
+        // This might seem a legitimate case, but is not called out in the
+        // documentation of [mustCallSuper].
         return member;
       }
       superclasses
@@ -75,8 +107,8 @@ class MustCallSuperVerifier {
   }
 
   /// Returns whether [node] overrides a concrete method.
-  bool _hasConcreteSuperMethod(MethodElement element) {
-    ClassElement classElement = element.enclosingElement;
+  bool _hasConcreteSuperMethod(ExecutableElement element) {
+    var classElement = element.enclosingElement as ClassElement;
     String name = element.name;
 
     bool isConcrete(ClassElement element) =>
@@ -90,12 +122,24 @@ class MustCallSuperVerifier {
         .any(isConcrete)) {
       return true;
     }
-    if (classElement.supertype != null &&
-        isConcrete(classElement.supertype.element)) {
+
+    var supertype = classElement.supertype;
+    if (supertype != null && isConcrete(supertype.element)) {
       return true;
     }
 
     return false;
+  }
+
+  void _verifySuperIsCalled(MethodDeclaration node, String methodName,
+      String? overriddenEnclosingName) {
+    _SuperCallVerifier verifier = _SuperCallVerifier(methodName);
+    node.accept(verifier);
+    if (!verifier.superIsCalled) {
+      _errorReporter.reportErrorForNode(
+          HintCode.MUST_CALL_SUPER, node.name, [overriddenEnclosingName]);
+    }
+    return;
   }
 }
 
@@ -108,9 +152,22 @@ class _SuperCallVerifier extends RecursiveAstVisitor<void> {
   _SuperCallVerifier(this.name);
 
   @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    var lhs = node.leftHandSide;
+    if (lhs is PropertyAccess) {
+      if (lhs.target is SuperExpression && lhs.propertyName.name == name) {
+        superIsCalled = true;
+        return;
+      }
+    }
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
   void visitBinaryExpression(BinaryExpression node) {
     if (node.leftOperand is SuperExpression && node.operator.lexeme == name) {
       superIsCalled = true;
+      return;
     }
     super.visitBinaryExpression(node);
   }
@@ -119,7 +176,17 @@ class _SuperCallVerifier extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     if (node.target is SuperExpression && node.methodName.name == name) {
       superIsCalled = true;
+      return;
     }
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    if (node.target is SuperExpression && node.propertyName.name == name) {
+      superIsCalled = true;
+      return;
+    }
+    super.visitPropertyAccess(node);
   }
 }

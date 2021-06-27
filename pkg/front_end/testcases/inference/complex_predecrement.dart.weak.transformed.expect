@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::List<core::int*>* foo = core::_GrowableList::_literal3<core::int*>(1, 2, 3);
+  core::print(let final core::List<core::int*>* #t1 = foo in let final core::int* #t2 = 0 in let final core::int* #t3 = #t1.{core::List::[]}(#t2){(core::int*) →* core::int*}.{core::num::-}(1){(core::num*) →* core::int*} in let final void #t4 = #t1.{core::List::[]=}(#t2, #t3){(core::int*, core::int*) →* void} in #t3);
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///complex_predecrement.dart:10:75 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///complex_predecrement.dart:10:75 -> IntConstant(0)
+Extra constant evaluation: evaluated: 16, effectively constant: 2

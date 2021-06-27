@@ -17,8 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNullValueTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidUseOfNullValueTest extends PubPackageResolutionTest {
   test_as() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -124,7 +123,7 @@ m(bool cond) {
 
 @reflectiveTest
 class UncheckedUseOfNullableValueInsideExtensionTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_indexExpression_nonNullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -161,8 +160,10 @@ extension E on A? {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 126, 4),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 154, 4),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          130, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          158, 1),
     ]);
   }
 
@@ -202,8 +203,10 @@ extension E on A? {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 3),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 79, 4),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          68, 3),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          84, 3),
     ]);
   }
 
@@ -233,7 +236,8 @@ extension E on A? {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 78, 4),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          77, 1),
     ]);
   }
 
@@ -277,8 +281,10 @@ extension E on A? {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 93, 3),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 102, 4),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          93, 3),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          107, 3),
     ]);
   }
 
@@ -322,15 +328,16 @@ extension E on A? {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 93, 3),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 106, 4),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          93, 3),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          111, 3),
     ]);
   }
 }
 
 @reflectiveTest
-class UncheckedUseOfNullableValueTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class UncheckedUseOfNullableValueTest extends PubPackageResolutionTest {
   test_and_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -347,7 +354,8 @@ m() {
   if(x && true) {}
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          22, 1),
     ]);
   }
 
@@ -376,7 +384,8 @@ m() {
   assert(x);
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          26, 1),
     ]);
   }
 
@@ -397,7 +406,9 @@ m(B b) {
   b.a.x = 2;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 100, 3),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          104, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
 
     assertAssignment(
@@ -482,7 +493,8 @@ m(B b) {
   b.a.y += 0;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 109, 5),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          115, 2),
     ]);
 
     assertAssignment(
@@ -536,7 +548,9 @@ m(B b) {
   b.a.x += 2;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 3),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          105, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
 
     assertAssignment(
@@ -580,7 +594,8 @@ m(int x, int? y) {
   y += 0;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 31, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          33, 2),
     ]);
     var assignment1 = findNode.assignment('x +=');
     var assignment2 = findNode.assignment('y +=');
@@ -651,7 +666,8 @@ m() {
   x..[0] = 1;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          27, 1),
     ]);
   }
 
@@ -671,7 +687,8 @@ m() {
   x..abs();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21, 3),
     ]);
   }
 
@@ -691,7 +708,8 @@ m() {
   x..isEven;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          21, 6),
     ]);
   }
 
@@ -732,7 +750,8 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 33, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+          33, 1),
     ]);
   }
 
@@ -746,7 +765,8 @@ m(int? x) {
   x.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 58, 1),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          60, 3),
     ]);
   }
 
@@ -766,7 +786,8 @@ m() {
   if (x) {}
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          23, 1),
     ]);
   }
 
@@ -786,7 +807,8 @@ m() {
   x[0];
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          20, 1),
     ]);
   }
 
@@ -806,7 +828,18 @@ m() {
   x();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 23, 1),
+    ]);
+  }
+
+  test_invoke_dynamicFunctionType_nullable2() async {
+    await assertErrorsInCode(r'''
+void f<F extends Function>(List<F?> funcList) {
+  funcList[0]();
+}
+''', [
+      error(
+          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 50, 11),
     ]);
   }
 
@@ -826,7 +859,7 @@ m() {
   x();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 25, 1),
+      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 25, 1),
     ]);
   }
 
@@ -882,7 +915,8 @@ m() {
   x.isEven;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          20, 6),
     ]);
     assertSimpleIdentifier(
       findNode.simple('isEven'),
@@ -907,7 +941,8 @@ m() {
   (x).isEven;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 3),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          22, 6),
     ]);
   }
 
@@ -926,7 +961,8 @@ m<T extends int?>(T x) {
   x.isEven;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          29, 6),
     ]);
   }
 
@@ -936,7 +972,7 @@ m<T extends Function>(List<T?> x) {
   x.first();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 38, 7),
+      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 38, 7),
     ]);
   }
 
@@ -982,7 +1018,8 @@ m() {
   x.round();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          20, 5),
     ]);
   }
 
@@ -996,7 +1033,8 @@ m(int? x) {
   x.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 54, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          56, 3),
     ]);
   }
 
@@ -1031,7 +1069,8 @@ m(Function? x) {
   x.call();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21, 4),
     ]);
   }
 
@@ -1054,17 +1093,20 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          20, 2),
     ]);
   }
 
   test_not_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   bool x = true;
   if(!x) {}
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 32, 2),
+    ]);
   }
 
   test_not_nullable() async {
@@ -1074,7 +1116,8 @@ m() {
   if(!x) {}
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          23, 1),
     ]);
   }
 
@@ -1131,7 +1174,10 @@ m() {
   x - 3;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(
+          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          20,
+          1),
     ]);
   }
 
@@ -1151,7 +1197,10 @@ m() {
   x + 3;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(
+          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          20,
+          1),
     ]);
   }
 
@@ -1174,7 +1223,8 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          19, 2),
     ]);
   }
 
@@ -1192,7 +1242,8 @@ m(int? x) {
   x++;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 14, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          15, 2),
     ]);
   }
 
@@ -1208,7 +1259,8 @@ m(A? x) {
   x++;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 77, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          78, 2),
     ]);
   }
 
@@ -1231,7 +1283,8 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 20, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          18, 2),
     ]);
   }
 
@@ -1249,7 +1302,8 @@ m(int? x) {
   ++x;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 16, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          14, 2),
     ]);
   }
 
@@ -1272,7 +1326,8 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          18, 1),
     ]);
   }
 
@@ -1288,17 +1343,20 @@ m(A? x) {
   -x;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 73, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          72, 1),
     ]);
   }
 
   test_or_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   bool x = true;
   if(x || false) {}
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 33, 5),
+    ]);
   }
 
   test_or_nullable() async {
@@ -1308,7 +1366,8 @@ m() {
   if(x || false) {}
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          22, 1),
     ]);
   }
 
@@ -1326,7 +1385,8 @@ m(int? x) {
   x += 1;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 14, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          16, 2),
     ]);
   }
 
@@ -1342,7 +1402,8 @@ m(A? a) {
   a.x; // 2
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 66, 1),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          68, 1),
     ]);
     var propertyAccess1 = findNode.propertyAccess('a?.x; // 1');
     var propertyAccess2 = findNode.prefixed('a.x; // 2');
@@ -1373,7 +1434,9 @@ m(B b) {
   b.a.x; // 2
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 3),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          105, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
     var propertyAccess2 = findNode.propertyAccess('b.a.x; // 2');
@@ -1404,7 +1467,8 @@ m(B? b) {
   b.a.x; // 2
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 1),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          103, 1),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1440,7 +1504,9 @@ m(C c) {
   c.b.a.x; // 2
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 142, 5),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          148, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1476,12 +1542,14 @@ m(C c) {
   c.b.a.x; // 2
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 148, 3),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          152, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 101, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
-    PropertyAccess propertyAccess1t = propertyAccess1.target;
-    PropertyAccess propertyAccess2t = propertyAccess1.target;
+    var propertyAccess1t = propertyAccess1.target as PropertyAccess;
+    var propertyAccess2t = propertyAccess1.target as PropertyAccess;
     assertType(propertyAccess1t.target, 'B?');
     assertType(propertyAccess2t.target, 'B?');
     assertType(propertyAccess1t, 'A');
@@ -1510,7 +1578,8 @@ m() {
   [...list];
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 4),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD, 26,
+          4),
     ]);
   }
 
@@ -1530,7 +1599,8 @@ m() {
   x ? 0 : 1;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          19, 1),
     ]);
   }
 
@@ -1550,5 +1620,40 @@ m(bool cond) {
   cond ? 0 : x;
 }
 ''');
+  }
+
+  test_tripleShift_nullable() async {
+    await assertErrorsInCode(r'''
+m(String? s) {
+  s?.length >>> 2;
+}
+''', [
+      error(
+          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          27,
+          3),
+    ]);
+  }
+
+  test_yieldEach_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+m() sync* {
+  List<int> x = [];
+  yield* x;
+}
+''');
+  }
+
+  test_yieldEach_nullable() async {
+    await assertErrorsInCode(r'''
+m() sync* {
+  List<int>? x;
+  yield* x;
+}
+''', [
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 37, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+          37, 1),
+    ]);
   }
 }

@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method test1(Never n1, Never? n2, Null n3) → dynamic
+  ;
+static method test2<N1 extends Never, N2 extends Never?, N3 extends Null>(self::test2::N1 n1, self::test2::N2% n2, self::test2::N3% n3) → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -13,7 +13,7 @@
 namespace dart {
 
 // Quick access to the current isolate and zone.
-#define I (isolate())
+#define IG (isolate_group())
 #define Z (zone())
 
 static void RefineUseTypes(Definition* instr) {
@@ -111,16 +111,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   const Token::Kind op_kind = call->token_kind();
-  if (FLAG_guess_icdata_cid) {
-    if (CompilerState::Current().is_aot()) {
-      // In precompiler speculate that both sides of bitwise operation
-      // are Smi-s.
-      if (Token::IsBinaryBitwiseOperator(op_kind) &&
-          call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
-        class_ids[0] = kSmiCid;
-        class_ids[1] = kSmiCid;
-      }
-    }
+  if (FLAG_guess_icdata_cid && !CompilerState::Current().is_aot()) {
     if (Token::IsRelationalOperator(op_kind) ||
         Token::IsEqualityOperator(op_kind) ||
         Token::IsBinaryOperator(op_kind)) {
@@ -149,8 +140,13 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   if (all_cids_known) {
+    const intptr_t receiver_cid = class_ids[0];
+    if (receiver_cid == kSentinelCid) {
+      // Unreachable call.
+      return false;
+    }
     const Class& receiver_class =
-        Class::Handle(Z, isolate()->class_table()->At(class_ids[0]));
+        Class::Handle(Z, IG->class_table()->At(receiver_cid));
     if (!receiver_class.is_finalized()) {
       // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
       // cause class finalization, since callee's receiver class may not be
@@ -401,8 +397,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                        call->source()),
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
-  } else if (binary_feedback.OperandsAreSmiOrMint() &&
-             FlowGraphCompiler::SupportsUnboxedInt64()) {
+  } else if (binary_feedback.OperandsAreSmiOrMint()) {
     cid = kMintCid;
   } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
     // Use double comparison.
@@ -477,8 +472,7 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                        call->source()),
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
-  } else if (binary_feedback.OperandsAreSmiOrMint() &&
-             FlowGraphCompiler::SupportsUnboxedInt64()) {
+  } else if (binary_feedback.OperandsAreSmiOrMint()) {
     cid = kMintCid;
   } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
     // Use double comparison.
@@ -525,8 +519,7 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
             call->ic_data()->HasDeoptReason(ICData::kDeoptBinarySmiOp)
                 ? kMintCid
                 : kSmiCid;
-      } else if (binary_feedback.OperandsAreSmiOrMint() &&
-                 FlowGraphCompiler::SupportsUnboxedInt64()) {
+      } else if (binary_feedback.OperandsAreSmiOrMint()) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
         if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinaryInt64Op))
@@ -571,10 +564,11 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         return false;
       }
       break;
-    case Token::kSHR:
     case Token::kSHL:
+    case Token::kSHR:
+    case Token::kUSHR:
       if (binary_feedback.OperandsAre(kSmiCid)) {
-        // Left shift may overflow from smi into mint or big ints.
+        // Left shift may overflow from smi into mint.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
         if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
@@ -637,8 +631,8 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                             call->deopt_id(), call->source());
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
-    if (!FlowGraphCompiler::SupportsUnboxedInt64()) return false;
-    if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+    if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
+        (op_kind == Token::kUSHR)) {
       SpeculativeShiftInt64OpInstr* shift_op = new (Z)
           SpeculativeShiftInt64OpInstr(op_kind, new (Z) Value(left),
                                        new (Z) Value(right), call->deopt_id());
@@ -713,8 +707,7 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     unary_op = new (Z)
         UnarySmiOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if ((op_kind == Token::kBIT_NOT) &&
-             call->Targets().ReceiverIsSmiOrMint() &&
-             FlowGraphCompiler::SupportsUnboxedInt64()) {
+             call->Targets().ReceiverIsSmiOrMint()) {
     unary_op = new (Z)
         UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (call->Targets().ReceiverIs(kDoubleCid) &&
@@ -744,8 +737,8 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
     field = field.CloneFromOriginal();
   }
 
-  switch (flow_graph()->CheckForInstanceCall(call,
-                                             FunctionLayout::kImplicitGetter)) {
+  switch (flow_graph()->CheckForInstanceCall(
+      call, UntaggedFunction::kImplicitGetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(call->Receiver(), call->function_name(), call->deopt_id(),
                    call->env(), call);
@@ -801,8 +794,11 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != FunctionLayout::kImplicitSetter) {
+  if (target.kind() != UntaggedFunction::kImplicitSetter) {
     // Non-implicit setter are inlined like normal method calls.
+    return false;
+  }
+  if (!CompilerState::Current().is_aot() && !target.WasCompiled()) {
     return false;
   }
   Field& field = Field::ZoneHandle(Z, target.accessor_field());
@@ -811,8 +807,8 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     field = field.CloneFromOriginal();
   }
 
-  switch (flow_graph()->CheckForInstanceCall(instr,
-                                             FunctionLayout::kImplicitSetter)) {
+  switch (flow_graph()->CheckForInstanceCall(
+      instr, UntaggedFunction::kImplicitSetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(instr->Receiver(), instr->function_name(), instr->deopt_id(),
                    instr->env(), instr);
@@ -839,17 +835,17 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     }
   }
 
-  if (I->use_field_guards()) {
+  if (IG->use_field_guards()) {
     if (field.guarded_cid() != kDynamicCid) {
-      InsertBefore(instr,
-                   new (Z)
-                       GuardFieldClassInstr(new (Z) Value(instr->ArgumentAt(1)),
-                                            field, instr->deopt_id()),
-                   instr->env(), FlowGraph::kEffect);
+      InsertSpeculativeBefore(
+          instr,
+          new (Z) GuardFieldClassInstr(new (Z) Value(instr->ArgumentAt(1)),
+                                       field, instr->deopt_id()),
+          instr->env(), FlowGraph::kEffect);
     }
 
     if (field.needs_length_check()) {
-      InsertBefore(
+      InsertSpeculativeBefore(
           instr,
           new (Z) GuardFieldLengthInstr(new (Z) Value(instr->ArgumentAt(1)),
                                         field, instr->deopt_id()),
@@ -857,11 +853,11 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     }
 
     if (field.static_type_exactness_state().NeedsFieldGuard()) {
-      InsertBefore(instr,
-                   new (Z)
-                       GuardFieldTypeInstr(new (Z) Value(instr->ArgumentAt(1)),
-                                           field, instr->deopt_id()),
-                   instr->env(), FlowGraph::kEffect);
+      InsertSpeculativeBefore(
+          instr,
+          new (Z) GuardFieldTypeInstr(new (Z) Value(instr->ArgumentAt(1)),
+                                      field, instr->deopt_id()),
+          instr->env(), FlowGraph::kEffect);
     }
   }
 
@@ -900,20 +896,19 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
           instantiator_type_args = new (Z) LoadFieldInstr(
               new (Z) Value(instr->ArgumentAt(0)),
               Slot::GetTypeArgumentsSlotFor(thread(), owner), instr->source());
-          InsertBefore(instr, instantiator_type_args, instr->env(),
-                       FlowGraph::kValue);
+          InsertSpeculativeBefore(instr, instantiator_type_args, instr->env(),
+                                  FlowGraph::kValue);
         }
       }
 
-      InsertBefore(
-          instr,
-          new (Z) AssertAssignableInstr(
-              instr->source(), new (Z) Value(instr->ArgumentAt(1)),
-              new (Z) Value(flow_graph_->GetConstant(dst_type)),
-              new (Z) Value(instantiator_type_args),
-              new (Z) Value(function_type_args),
-              String::ZoneHandle(zone(), field.name()), instr->deopt_id()),
-          instr->env(), FlowGraph::kEffect);
+      auto assert_assignable = new (Z) AssertAssignableInstr(
+          instr->source(), new (Z) Value(instr->ArgumentAt(1)),
+          new (Z) Value(flow_graph_->GetConstant(dst_type)),
+          new (Z) Value(instantiator_type_args),
+          new (Z) Value(function_type_args),
+          String::ZoneHandle(zone(), field.name()), instr->deopt_id());
+      InsertSpeculativeBefore(instr, assert_assignable, instr->env(),
+                              FlowGraph::kEffect);
     }
   }
 
@@ -962,9 +957,12 @@ bool CallSpecializer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != FunctionLayout::kImplicitGetter) {
+  if (target.kind() != UntaggedFunction::kImplicitGetter) {
     // Non-implicit getters are inlined like normal methods by conventional
     // inlining in FlowGraphInliner.
+    return false;
+  }
+  if (!CompilerState::Current().is_aot() && !target.WasCompiled()) {
     return false;
   }
   return TryInlineImplicitInstanceGetter(call);
@@ -1096,7 +1094,7 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
     }
   }
 
-  const ClassTable& class_table = *isolate()->class_table();
+  const ClassTable& class_table = *IG->class_table();
   Bool& prev = Bool::Handle(Z);
   Class& cls = Class::Handle(Z);
 
@@ -1126,14 +1124,14 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
     if (prev.IsNull()) {
-      prev = Bool::Get(is_subtype).raw();
+      prev = Bool::Get(is_subtype).ptr();
     } else {
       if (is_subtype != prev.value()) {
         results_differ = true;
       }
     }
   }
-  return results_differ ? Bool::null() : prev.raw();
+  return results_differ ? Bool::null() : prev.ptr();
 }
 
 // Returns true if checking against this type is a direct class id comparison.
@@ -1155,7 +1153,7 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
   if (!type_class.IsPrivate()) {
     // In AOT mode we can't use CHA deoptimizations.
     ASSERT(!CompilerState::Current().is_aot() || !FLAG_use_cha_deopt);
-    if (FLAG_use_cha_deopt || isolate()->all_classes_finalized()) {
+    if (FLAG_use_cha_deopt || isolate_group()->all_classes_finalized()) {
       if (FLAG_trace_cha) {
         THR_Print(
             "  **(CHA) Typecheck as class equality since no "
@@ -1265,12 +1263,12 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     instantiator_type_args = flow_graph()->constant_null();
     function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
-    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
+    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).ptr();
   } else {
     ASSERT(call->ArgumentCount() == 4);
     instantiator_type_args = call->ArgumentAt(1);
     function_type_args = call->ArgumentAt(2);
-    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
+    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).ptr();
   }
 
   if (TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
@@ -1454,7 +1452,7 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
     ZoneGrowableArray<intptr_t>* results,
     const AbstractType& type) {
   ASSERT(results->length() >= 2);  // At least on entry.
-  const ClassTable& class_table = *Isolate::Current()->class_table();
+  const ClassTable& class_table = *IsolateGroup::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const bool smi_is_subtype =
@@ -1561,10 +1559,10 @@ void TypedDataSpecializer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
-  const bool is_length_getter = call->Selector() == Symbols::GetLength().raw();
-  const bool is_index_get = call->Selector() == Symbols::IndexToken().raw();
+  const bool is_length_getter = call->Selector() == Symbols::GetLength().ptr();
+  const bool is_index_get = call->Selector() == Symbols::IndexToken().ptr();
   const bool is_index_set =
-      call->Selector() == Symbols::AssignIndexToken().raw();
+      call->Selector() == Symbols::AssignIndexToken().ptr();
 
   if (is_length_getter || is_index_get || is_index_set) {
     EnsureIsInitialized();

@@ -1,0 +1,24 @@
+main = main::main;
+library from "package:example/a.dart" as a {
+
+  static field dart.core::bool* example = true;
+  static method a() → dynamic {}
+}
+library from "package:foo/foo.dart" as foo {
+additionalExports = (a::example,
+  a::a,
+  a::example)
+
+  export "package:example/a.dart";
+
+  static field dart.core::bool* foo = true;
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:foo/foo.dart";
+
+  static method main() → dynamic {
+    dart.core::print("hello");
+    a::a();
+  }
+}

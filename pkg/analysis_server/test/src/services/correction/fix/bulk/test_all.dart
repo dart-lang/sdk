@@ -9,9 +9,11 @@ import 'add_const_test.dart' as add_const;
 import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
 import 'add_override_test.dart' as add_override;
+import 'add_required_test.dart' as add_required;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
+import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_map_from_iterable_to_for_literal_test.dart'
     as convert_map_from_iterable_to_for_literal;
 import 'convert_to_contains_test.dart' as convert_to_contains;
@@ -20,9 +22,11 @@ import 'convert_to_generic_function_syntax_test.dart'
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_if_null_test.dart' as convert_to_if_null;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
+import 'convert_to_is_not_test.dart' as convert_to_is_not;
 import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
+import 'convert_to_package_import_test.dart' as convert_to_package_import;
 import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_strings_test.dart'
@@ -32,6 +36,7 @@ import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'create_method_test.dart' as create_method;
 import 'data_driven_test.dart' as data_driven;
 import 'inline_invocation_test.dart' as inline_invocation;
+import 'inline_typedef_test.dart' as inline_typedef;
 import 'make_final_test.dart' as make_final;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
@@ -41,15 +46,19 @@ import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
+import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion;
 import 'remove_operator_test.dart' as remove_operator;
+import 'remove_question_mark_test.dart' as remove_question_mark;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
+import 'remove_unnecessary_string_interpolation_test.dart'
+    as remove_unnecessary_string_interpolation;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
@@ -71,17 +80,21 @@ void main() {
     add_const.main();
     add_diagnostic_property_reference.main();
     add_override.main();
+    add_required.main();
     bulk_fix_processor.main();
     convert_documentation_into_line.main();
+    convert_for_each_to_for_loop.main();
     convert_map_from_iterable_to_for_literal.main();
     convert_to_contains.main();
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
     convert_to_if_null.main();
     convert_to_int_literal.main();
+    convert_to_is_not.main();
     convert_to_list_literal.main();
     convert_to_map_literal.main();
     convert_to_null_aware.main();
+    convert_to_package_import.main();
     convert_to_relative_import.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_strings.main();
@@ -90,6 +103,7 @@ void main() {
     create_method.main();
     data_driven.main();
     inline_invocation.main();
+    inline_typedef.main();
     make_final.main();
     remove_argument.main();
     remove_await.main();
@@ -99,14 +113,17 @@ void main() {
     remove_empty_constructor_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
+    remove_if_null_operator.main();
     remove_interpolation_braces.main();
     remove_method_declaration.main();
     remove_non_null_assertion.main();
     remove_operator.main();
+    remove_question_mark.main();
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
+    remove_unnecessary_string_interpolation.main();
     rename_to_camel_case.main();
     replace_with_conditional_assignment.main();
     replace_colon_with_equals.main();

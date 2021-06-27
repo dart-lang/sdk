@@ -1,0 +1,5 @@
+class A<X> {}
+
+A<Y> foo<Y>(Y y) => throw 42;
+test() {}
+main() {}

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 extension AstNodeExtensions on AstNode {
@@ -43,6 +44,8 @@ extension AstNodeExtensions on AstNode {
       var parent = body.parent;
       if (parent is ConstructorDeclaration || parent is MethodDeclaration) {
         return true;
+      } else if (parent == null) {
+        return false;
       }
       node = parent;
     }
@@ -58,6 +61,38 @@ extension AstNodeExtensions on AstNode {
   bool get inSwitch => thisOrAncestorOfType<SwitchStatement>() != null;
 
   bool get inWhileLoop => thisOrAncestorOfType<WhileStatement>() != null;
+
+  /// Return the [IfStatement] associated with `this`.
+  IfStatement? get enclosingIfStatement {
+    for (var node in withParents) {
+      if (node is IfStatement) {
+        return node;
+      } else if (node is! Expression) {
+        return null;
+      }
+    }
+  }
+
+  /// Return this node and all its parents.
+  Iterable<AstNode> get withParents sync* {
+    var current = this;
+    while (true) {
+      yield current;
+      var parent = current.parent;
+      if (parent == null) {
+        break;
+      }
+      current = parent;
+    }
+  }
+}
+
+extension CompilationUnitExtension on CompilationUnit {
+  /// Is `true` if library being analyzed is non-nullable by default.
+  ///
+  /// Will return false if the AST structure has not been resolved.
+  bool get isNonNullableByDefault =>
+      declaredElement?.library.isNonNullableByDefault ?? false;
 }
 
 extension ExpressionExtensions on Expression {
@@ -86,4 +121,20 @@ extension FunctionBodyExtensions on FunctionBody {
   bool get isEmpty =>
       this is EmptyFunctionBody ||
       (this is BlockFunctionBody && beginToken.isSynthetic);
+}
+
+extension MethodDeclarationExtension on MethodDeclaration {
+  Token? get propertyKeywordGet {
+    final propertyKeyword = this.propertyKeyword;
+    return propertyKeyword != null && propertyKeyword.keyword == Keyword.GET
+        ? propertyKeyword
+        : null;
+  }
+}
+
+extension VariableDeclarationListExtension on VariableDeclarationList {
+  Token? get finalKeyword {
+    final keyword = this.keyword;
+    return keyword != null && keyword.keyword == Keyword.FINAL ? keyword : null;
+  }
 }

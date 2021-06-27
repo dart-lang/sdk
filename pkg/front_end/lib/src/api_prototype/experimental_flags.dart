@@ -31,7 +31,7 @@ class AllowedExperimentalFlags {
 
   /// Return the set of enabled experiments for the package with the [name],
   /// e.g. "path", possibly `null`.
-  Set<ExperimentalFlag> forPackage(String name) {
+  Set<ExperimentalFlag>? forPackage(String name) {
     return packageExperiments[name];
   }
 
@@ -51,16 +51,16 @@ class AllowedExperimentalFlags {
 /// If [flag] is marked as expired in [expiredExperimentalFlags], the value from
 /// [defaultExperimentalFlags] is always returned.
 bool isExperimentEnabled(ExperimentalFlag flag,
-    {Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting}) {
+    {Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
+    Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
   assert(expiredExperimentalFlags.containsKey(flag),
       "No expired value for $flag.");
-  if (expiredExperimentalFlags[flag]) {
-    return defaultExperimentalFlags[flag];
+  if (expiredExperimentalFlags[flag]!) {
+    return defaultExperimentalFlags[flag]!;
   }
-  bool enabled;
+  bool? enabled;
   if (explicitExperimentalFlags != null) {
     enabled = explicitExperimentalFlags[flag];
   }
@@ -68,7 +68,7 @@ bool isExperimentEnabled(ExperimentalFlag flag,
     enabled ??= defaultExperimentFlagsForTesting[flag];
   }
   enabled ??= defaultExperimentalFlags[flag];
-  return enabled;
+  return enabled!;
 }
 
 /// Returns `true` if [flag] is enabled in the library with the [canonicalUri]
@@ -88,17 +88,17 @@ bool isExperimentEnabled(ExperimentalFlag flag,
 /// defines the identity of a library, for instance `dart:core`, `package:foo`,
 /// or `file:///path/dir/file.dart`.
 bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
-    {Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting,
-    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    AllowedExperimentalFlags allowedExperimentalFlags}) {
+    {Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
+    Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
+    AllowedExperimentalFlags? allowedExperimentalFlags}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
   assert(expiredExperimentalFlags.containsKey(flag),
       "No expired value for $flag.");
-  if (expiredExperimentalFlags[flag]) {
-    return defaultExperimentalFlags[flag];
+  if (expiredExperimentalFlags[flag]!) {
+    return defaultExperimentalFlags[flag]!;
   }
-  bool enabled;
+  bool? enabled;
   if (explicitExperimentalFlags != null) {
     enabled = explicitExperimentalFlags[flag];
   }
@@ -106,9 +106,9 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
     enabled ??= defaultExperimentFlagsForTesting[flag];
   }
   enabled ??= defaultExperimentalFlags[flag];
-  if (!enabled) {
+  if (!enabled!) {
     allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
-    Set<ExperimentalFlag> allowedFlags;
+    Set<ExperimentalFlag>? allowedFlags;
     if (canonicalUri.scheme == 'dart') {
       allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
     } else if (canonicalUri.scheme == 'package') {
@@ -132,13 +132,13 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
 /// [canonicalUri].
 Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
     Uri canonicalUri, Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    {AllowedExperimentalFlags allowedExperimentalFlags,
-    Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting,
-    Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting,
-    Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting}) {
+    {AllowedExperimentalFlags? allowedExperimentalFlags,
+    Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
+    Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting,
+    Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting}) {
   allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
 
-  Set<ExperimentalFlag> allowedFlags;
+  Set<ExperimentalFlag>? allowedFlags;
   if (canonicalUri.scheme == 'dart') {
     allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
   } else if (canonicalUri.scheme == 'package') {
@@ -151,8 +151,8 @@ Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
     }
     allowedFlags = allowedExperimentalFlags.forPackage(packageName);
   }
-  Version version;
-  bool enabledByDefault;
+  Version? version;
+  bool? enabledByDefault;
   if (defaultExperimentFlagsForTesting != null) {
     enabledByDefault = defaultExperimentFlagsForTesting[flag];
   }
@@ -160,7 +160,7 @@ Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
 
   bool enabledExplicitly = explicitExperimentalFlags[flag] ?? false;
 
-  if (!enabledByDefault ||
+  if (!enabledByDefault! ||
       enabledExplicitly ||
       (allowedFlags != null && allowedFlags.contains(flag))) {
     // If the feature is not enabled by default or is enabled by the allowed
@@ -178,5 +178,73 @@ Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
     version ??= experimentEnabledVersion[flag];
   }
   assert(version != null, "No version for enabling $flag in $canonicalUri.");
-  return version;
+  return version!;
+}
+
+bool isExperimentEnabledInLibraryByVersion(
+    ExperimentalFlag flag, Uri canonicalUri, Version version,
+    {Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
+    required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+    AllowedExperimentalFlags? allowedExperimentalFlags,
+    Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting,
+    Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting}) {
+  assert(defaultExperimentalFlags.containsKey(flag),
+      "No default value for $flag.");
+  assert(expiredExperimentalFlags.containsKey(flag),
+      "No expired value for $flag.");
+  if (expiredExperimentalFlags[flag]!) {
+    return defaultExperimentalFlags[flag]!;
+  }
+
+  bool? enabledByDefault;
+  if (defaultExperimentFlagsForTesting != null) {
+    enabledByDefault = defaultExperimentFlagsForTesting[flag];
+  }
+  enabledByDefault ??= defaultExperimentalFlags[flag];
+
+  bool enabledExplicitly = explicitExperimentalFlags[flag] ?? false;
+
+  allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
+
+  Set<ExperimentalFlag>? allowedFlags;
+  bool enabledByAllowed = false;
+  if (canonicalUri.scheme == 'dart') {
+    allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
+  } else if (canonicalUri.scheme == 'package') {
+    int index = canonicalUri.path.indexOf('/');
+    String packageName;
+    if (index >= 0) {
+      packageName = canonicalUri.path.substring(0, index);
+    } else {
+      packageName = canonicalUri.path;
+    }
+    allowedFlags = allowedExperimentalFlags.forPackage(packageName);
+  }
+  if (allowedFlags != null) {
+    enabledByAllowed = allowedFlags.contains(flag);
+  }
+
+  if (enabledByDefault! || enabledExplicitly || enabledByAllowed) {
+    // The feature is enabled depending on the library language version.
+    Version? enabledVersion;
+    if (!enabledByDefault || enabledExplicitly || enabledByAllowed) {
+      // If the feature is not enabled by default or is enabled by the allowed
+      // list, use the experiment release version.
+      if (experimentReleasedVersionForTesting != null) {
+        enabledVersion = experimentReleasedVersionForTesting[flag]!;
+      }
+      enabledVersion ??= experimentReleasedVersion[flag];
+    } else {
+      // If the feature is enabled by default and is not enabled by the allowed
+      // list use the enabled version.
+      if (experimentEnabledVersionForTesting != null) {
+        enabledVersion = experimentEnabledVersionForTesting[flag];
+      }
+      enabledVersion ??= experimentEnabledVersion[flag];
+    }
+    return version >= enabledVersion!;
+  } else {
+    // The feature is not enabled, regardless of library language version.
+    return false;
+  }
 }

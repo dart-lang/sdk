@@ -46,19 +46,34 @@ class _LibraryVirtualFieldModel {
   /// Private classes that can be extended outside of this library.
   ///
   /// Normally private classes cannot be accessed outside this library, however,
-  /// this can happen if they are extended by a public class, for example:
+  /// this can happen if they are extended by a public class or exposed by a
+  /// public typedef, for example:
   ///
   ///     class _A { int x = 42; }
   ///     class _B { int x = 42; }
+  ///     class _C { int x = 42; }
   ///
-  ///     // _A is now effectively public for the purpose of overrides.
-  ///     class C extends _A {}
+  ///     // _A and _B are now effectively public for the purpose of overrides.
+  ///     class D extends _A {}
+  ///     typedef E = _B;
   ///
-  /// The class _A must treat is "x" as virtual, however _B does not.
+  /// The classes _A and _B must treat is "x" as virtual, however _C does not.
   final _extensiblePrivateClasses = HashSet<Class>();
 
   _LibraryVirtualFieldModel.build(Library library) {
     var allClasses = library.classes;
+
+    for (var typedef in library.typedefs) {
+      // Ignore private typedefs.
+      if (typedef.name.startsWith('_')) continue;
+
+      var type = typedef.type;
+      if (type is InterfaceType && type.classNode.name.startsWith('_')) {
+        // Public typedefs of private classes expose those classes for
+        // extension.
+        _extensiblePrivateClasses.add(type.classNode);
+      }
+    }
 
     // The set of public types is our initial extensible type set.
     // From there, visit all immediate private types in this library, and so on
@@ -260,7 +275,7 @@ class ClassPropertyModel {
           fieldModel.isVirtual(field) ||
           field.isCovariant ||
           field.isGenericCovariantImpl) {
-        virtualFields[field] = js_ast.TemporaryId(name);
+        virtualFields[field] = js_ast.TemporaryId(js_ast.toJSIdentifier(name));
       }
     }
   }

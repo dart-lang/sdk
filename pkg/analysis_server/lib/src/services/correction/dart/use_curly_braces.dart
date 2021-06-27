@@ -16,7 +16,16 @@ class UseCurlyBraces extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.USE_CURLY_BRACES;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_CURLY_BRACES;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.ADD_CURLY_BRACES_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -32,9 +41,12 @@ class UseCurlyBraces extends CorrectionProducer {
     } else if (parent is ForStatement) {
       return _forStatement(builder, parent);
     } else if (statement is IfStatement) {
-      if (statement.elseKeyword != null &&
-          range.token(statement.elseKeyword).contains(selectionOffset)) {
-        return _ifStatement(builder, statement, statement.elseStatement);
+      var elseKeyword = statement.elseKeyword;
+      var elseStatement = statement.elseStatement;
+      if (elseKeyword != null &&
+          elseStatement != null &&
+          range.token(elseKeyword).contains(selectionOffset)) {
+        return _ifStatement(builder, statement, elseStatement);
       } else {
         return _ifStatement(builder, statement, null);
       }
@@ -83,21 +95,22 @@ class UseCurlyBraces extends CorrectionProducer {
   }
 
   Future<void> _ifStatement(
-      ChangeBuilder builder, IfStatement node, Statement thenOrElse) async {
+      ChangeBuilder builder, IfStatement node, Statement? thenOrElse) async {
     var prefix = utils.getLinePrefix(node.offset);
     var indent = prefix + utils.getIndent(1);
 
     await builder.addDartFileEdit(file, (builder) {
       var thenStatement = node.thenStatement;
+      var elseKeyword = node.elseKeyword;
       if (thenStatement is! Block &&
           (thenOrElse == null || thenOrElse == thenStatement)) {
         builder.addSimpleReplacement(
           range.endStart(node.rightParenthesis, thenStatement),
           ' {$eol$indent',
         );
-        if (node.elseKeyword != null) {
+        if (elseKeyword != null) {
           builder.addSimpleReplacement(
-            range.endStart(thenStatement, node.elseKeyword),
+            range.endStart(thenStatement, elseKeyword),
             '$eol$prefix} ',
           );
         } else {
@@ -106,11 +119,12 @@ class UseCurlyBraces extends CorrectionProducer {
       }
 
       var elseStatement = node.elseStatement;
-      if (elseStatement != null &&
+      if (elseKeyword != null &&
+          elseStatement != null &&
           elseStatement is! Block &&
           (thenOrElse == null || thenOrElse == elseStatement)) {
         builder.addSimpleReplacement(
-          range.endStart(node.elseKeyword, elseStatement),
+          range.endStart(elseKeyword, elseStatement),
           ' {$eol$indent',
         );
         builder.addSimpleInsertion(elseStatement.end, '$eol$prefix}');

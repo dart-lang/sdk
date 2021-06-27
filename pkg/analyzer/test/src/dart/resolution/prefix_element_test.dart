@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -63,20 +61,20 @@ import 'b.dart' as prefix;
     var aImport = findElement.importFind('package:test/a.dart');
     var bImport = findElement.importFind('package:test/b.dart');
 
-    _assertMultiplyDefinedElement(
+    expect(
       scope.lookup('foo').getter,
-      [
+      multiplyDefinedElementMatcher([
         aImport.topGet('foo'),
         bImport.topGet('foo'),
-      ],
+      ]),
     );
 
-    _assertMultiplyDefinedElement(
+    expect(
       scope.lookup('foo').setter,
-      [
+      multiplyDefinedElementMatcher([
         aImport.topSet('foo'),
         bImport.topSet('foo'),
-      ],
+      ]),
     );
   }
 
@@ -249,12 +247,5 @@ import 'dart:math' as math show sin;
     assertElementNull(
       scope.lookup('cos').getter,
     );
-  }
-
-  void _assertMultiplyDefinedElement(
-    MultiplyDefinedElementImpl element,
-    List<Element> expected,
-  ) {
-    expect(element.conflictingElements, unorderedEquals(expected));
   }
 }

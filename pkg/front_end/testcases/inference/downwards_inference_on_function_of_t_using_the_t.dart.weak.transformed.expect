@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  {
+    function f<T extends core::Object* = dynamic>(T* x) → T*
+      return null;
+    <T extends core::Object* = dynamic>(T*) →* T* v1 = f;
+    v1 = <S extends core::Object* = dynamic>(S* x) → S* => x;
+  }
+  {
+    function f<T extends core::Object* = dynamic>(T* x) → core::List<T*>*
+      return null;
+    <T extends core::Object* = dynamic>(T*) →* core::List<T*>* v2 = f;
+    v2 = <S extends core::Object* = dynamic>(S* x) → core::List<S*>* => core::_GrowableList::_literal1<S*>(x);
+    core::Iterable<core::int*>* r = v2<core::int*>(42){(core::int*) →* core::List<core::int*>*};
+    core::Iterable<core::String*>* s = v2<core::String*>("hello"){(core::String*) →* core::List<core::String*>*};
+    core::Iterable<core::List<core::int*>*>* t = v2<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) →* core::List<core::List<core::int*>*>*};
+    core::Iterable<core::num*>* u = v2<core::num*>(42){(core::num*) →* core::List<core::num*>*};
+    core::Iterable<core::num*>* v = v2<core::num*>(42){(core::num*) →* core::List<core::num*>*};
+  }
+}

@@ -24,7 +24,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Perform Refactor';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+  Future<ErrorOr<void>> handle(List<dynamic>? arguments,
       ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
@@ -45,39 +45,42 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
 
     String kind = arguments[0];
     String path = arguments[1];
-    int docVersion = arguments[2];
+    int? docVersion = arguments[2];
     int offset = arguments[3];
     int length = arguments[4];
-    Map<String, dynamic> options = arguments[5];
+    Map<String, dynamic>? options = arguments[5];
 
     final result = await requireResolvedUnit(path);
     return result.mapResult((result) async {
-      return _getRefactoring(
-              RefactoringKind(kind), result, offset, length, options)
-          .mapResult((refactoring) async {
+      final refactoring = await _getRefactoring(
+          RefactoringKind(kind), result, offset, length, options);
+      return refactoring.mapResult((refactoring) async {
         // If the token we were given is not cancellable, replace it with one that
         // is for the rest of this request, as a future refactor may need to cancel
         // this request.
-        if (cancellationToken is! CancelableToken) {
-          cancellationToken = CancelableToken();
-        }
-        _manager.begin(cancellationToken);
+        // The original token should be kept and also checked for cancellation.
+        final cancelableToken = cancellationToken is CancelableToken
+            ? cancellationToken
+            : CancelableToken();
+        _manager.begin(cancelableToken);
 
         try {
           reporter.begin('Refactoring…');
           final status = await refactoring.checkAllConditions();
 
           if (status.hasError) {
-            return error(ServerErrorCodes.RefactorFailed, status.message);
+            return error(ServerErrorCodes.RefactorFailed, status.message!);
           }
 
-          if (cancellationToken.isCancellationRequested) {
+          if (cancellationToken.isCancellationRequested ||
+              cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
           }
 
           final change = await refactoring.createChange();
 
-          if (cancellationToken.isCancellationRequested) {
+          if (cancellationToken.isCancellationRequested ||
+              cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
           }
 
@@ -87,36 +90,58 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
             return fileModifiedError;
           }
 
-          final edit = createWorkspaceEdit(server, change.edits);
+          final edit = createWorkspaceEdit(server, change);
           return await sendWorkspaceEditToClient(edit);
         } on InconsistentAnalysisException {
           return fileModifiedError;
         } finally {
-          _manager.end(cancellationToken);
+          _manager.end(cancelableToken);
           reporter.end();
         }
       });
     });
   }
 
-  ErrorOr<Refactoring> _getRefactoring(
+  Future<ErrorOr<Refactoring>> _getRefactoring(
     RefactoringKind kind,
     ResolvedUnitResult result,
     int offset,
     int length,
-    Map<String, dynamic> options,
-  ) {
+    Map<String, dynamic>? options,
+  ) async {
     switch (kind) {
       case RefactoringKind.EXTRACT_METHOD:
         final refactor = ExtractMethodRefactoring(
             server.searchEngine, result, offset, length);
-        // TODO(dantup): For now we don't have a good way to prompt the user
-        // for a method name so we just use a placeholder and expect them to
-        // rename (this is what C#/Omnisharp does), but there's an open request
-        // to handle this better.
-        // https://github.com/microsoft/language-server-protocol/issues/764
-        refactor.name =
-            (options != null ? options['name'] : null) ?? 'newMethod';
+
+        var preferredName = options != null ? options['name'] : null;
+        // checkInitialConditions will populate names with suggestions.
+        if (preferredName == null) {
+          await refactor.checkInitialConditions();
+          if (refactor.names.isNotEmpty) {
+            preferredName = refactor.names.first;
+          }
+        }
+        refactor.name = preferredName ?? 'newMethod';
+
+        // Defaults to true, but may be surprising if users didn't have an option
+        // to opt in.
+        refactor.extractAll = false;
+        return success(refactor);
+
+      case RefactoringKind.EXTRACT_LOCAL_VARIABLE:
+        final refactor = ExtractLocalRefactoring(result, offset, length);
+
+        var preferredName = options != null ? options['name'] : null;
+        // checkInitialConditions will populate names with suggestions.
+        if (preferredName == null) {
+          await refactor.checkInitialConditions();
+          if (refactor.names.isNotEmpty) {
+            preferredName = refactor.names.first;
+          }
+        }
+        refactor.name = preferredName ?? 'newVariable';
+
         // Defaults to true, but may be surprising if users didn't have an option
         // to opt in.
         refactor.extractAll = false;
@@ -134,6 +159,16 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
             (options != null ? options['name'] : null) ?? 'NewWidget';
         return success(refactor);
 
+      case RefactoringKind.INLINE_LOCAL_VARIABLE:
+        final refactor =
+            InlineLocalRefactoring(server.searchEngine, result, offset);
+        return success(refactor);
+
+      case RefactoringKind.INLINE_METHOD:
+        final refactor =
+            InlineMethodRefactoring(server.searchEngine, result, offset);
+        return success(refactor);
+
       default:
         return error(ServerErrorCodes.InvalidCommandArguments,
             'Unknown RefactoringKind $kind was supplied to $commandName');
@@ -144,7 +179,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
 /// Manages a running refactor to help ensure only one refactor runs at a time.
 class _RefactorManager {
   /// The cancellation token for the current in-progress refactor (or null).
-  CancelableToken _currentRefactoringCancellationToken;
+  CancelableToken? _currentRefactoringCancellationToken;
 
   /// Begins a new refactor, cancelling any other in-progress refactors.
   void begin(CancelableToken cancelToken) {

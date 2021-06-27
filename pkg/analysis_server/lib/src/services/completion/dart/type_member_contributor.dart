@@ -20,13 +20,6 @@ class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
-    var containingLibrary = request.libraryElement;
-    // Gracefully degrade if the library could not be determined, such as with a
-    // detached part file or source change.
-    if (containingLibrary == null) {
-      return;
-    }
-
     // Recompute the target because resolution might have changed it.
     var expression = request.dotTarget;
     if (expression == null ||
@@ -47,7 +40,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
 
     // Determine the target expression's type.
-    var type = expression.staticType;
+    var type = expression.staticType?.resolveToBound(request.objectType);
     if (type == null || type.isDynamic) {
       // If the expression does not provide a good type, then attempt to get a
       // better type from the element.
@@ -71,13 +64,13 @@ class TypeMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    List<InterfaceType> mixins;
-    List<InterfaceType> superclassConstraints;
+    List<InterfaceType>? mixins;
+    List<InterfaceType>? superclassConstraints;
     if (expression is SuperExpression && type is InterfaceType) {
       // Suggest members from superclass if target is "super".
-      mixins = (type as InterfaceType).mixins;
-      superclassConstraints = (type as InterfaceType).superclassConstraints;
-      type = (type as InterfaceType).superclass;
+      mixins = type.mixins;
+      superclassConstraints = type.superclassConstraints;
+      type = type.superclass;
     }
     if (type is FunctionType) {
       builder.suggestFunctionCall();
@@ -104,7 +97,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   /// The best type for the found declaration, or `null` if no declaration found
   /// or failed to determine a type.
-  DartType typeFound;
+  DartType? typeFound;
 
   /// Construct a new instance to search for a declaration.
   _LocalBestTypeVisitor(this.targetName, int offset) : super(offset);
@@ -138,7 +131,10 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
     if (declaration.name.name == targetName) {
       var typeName = declaration.returnType;
       if (typeName != null) {
-        typeFound = typeName.type;
+        var type = typeName.type;
+        if (type != null) {
+          typeFound = type;
+        }
       }
       finished();
     }
@@ -149,7 +145,10 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
     if (declaration.name.name == targetName) {
       var typeName = declaration.returnType;
       if (typeName != null) {
-        typeFound = typeName.type;
+        var type = typeName.type;
+        if (type != null) {
+          typeFound = type;
+        }
       }
       finished();
     }
@@ -160,7 +159,10 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
     if (declaration.name.name == targetName) {
       var typeName = declaration.functionType?.returnType;
       if (typeName != null) {
-        typeFound = typeName.type;
+        var type = typeName.type;
+        if (type != null) {
+          typeFound = type;
+        }
       }
       finished();
     }
@@ -175,7 +177,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
+  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
     if (name.name == targetName) {
       var element = name.staticElement as VariableElement;
       typeFound = element.type;
@@ -188,14 +190,17 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
     if (declaration.name.name == targetName) {
       var typeName = declaration.returnType;
       if (typeName != null) {
-        typeFound = typeName.type;
+        var type = typeName.type;
+        if (type != null) {
+          typeFound = type;
+        }
       }
       finished();
     }
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation type) {
+  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {
     if (name.name == targetName) {
       // Type provided by the element in computeFull above.
       finished();
@@ -223,7 +228,8 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
   /// If the 'dot' completion is a super expression, then [containingMethodName]
   /// is the name of the method in which the completion is requested.
   void buildSuggestions(InterfaceType type,
-      {List<InterfaceType> mixins, List<InterfaceType> superclassConstraints}) {
+      {List<InterfaceType>? mixins,
+      List<InterfaceType>? superclassConstraints}) {
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
@@ -284,8 +290,9 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
       // superclass, then the mixins.  This will ensure that they are visited
       // in the reverse order.
       typesToVisit.addAll(nextType.interfaces);
-      if (nextType.superclass != null) {
-        typesToVisit.add(nextType.superclass);
+      var superclass = nextType.superclass;
+      if (superclass != null) {
+        typesToVisit.add(superclass);
       }
       typesToVisit.addAll(nextType.superclassConstraints);
       typesToVisit.addAll(nextType.mixins);

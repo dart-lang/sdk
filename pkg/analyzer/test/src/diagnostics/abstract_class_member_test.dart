@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class AbstractClassMemberTest extends PubPackageResolutionTest {
+class AbstractClassMemberTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_abstract_field_dynamic() async {
     await assertErrorsInCode(
         '''

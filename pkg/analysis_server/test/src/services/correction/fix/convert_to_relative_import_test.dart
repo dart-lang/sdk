@@ -31,12 +31,12 @@ class C {}
     testFile = convertPath('/home/test/lib/src/test.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
-C c;
+C? c;
 ''');
 
     await assertHasFix('''
 import '../foo.dart';
-C c;
+C? c;
 ''');
   }
 
@@ -72,12 +72,12 @@ class C {}
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestCode('''
 import "package:test/foo.dart";
-C c;
+C? c;
 ''');
 
     await assertHasFix('''
 import "foo.dart";
-C c;
+C? c;
 ''');
   }
 
@@ -88,12 +88,12 @@ class C {}
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
-C c;
+C? c;
 ''');
 
     await assertHasFix('''
 import 'foo.dart';
-C c;
+C? c;
 ''');
   }
 
@@ -104,12 +104,12 @@ class C {}
     testFile = convertPath('/home/test/lib/test.dart');
     await resolveTestCode('''
 import 'package:test/baz/foo.dart';
-C c;
+C? c;
 ''');
 
     await assertHasFix('''
 import 'baz/foo.dart';
-C c;
+C? c;
 ''');
   }
 }

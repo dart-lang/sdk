@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,7 +18,7 @@ void main() {
 
 @reflectiveTest
 class ClosingLabelsComputerTest extends AbstractContextTest {
-  String sourcePath;
+  late String sourcePath;
 
   @override
   void setUp() {
@@ -364,7 +365,7 @@ void myMethod() {
   /// Compares provided closing labels with expected
   /// labels extracted from the comments in the provided content.
   void _compareLabels(List<ClosingLabel> labels, String content,
-      {int expectedLabelCount}) {
+      {int? expectedLabelCount}) {
     // Require the test pass us the expected count to guard
     // against expected annotations being mistyped and not
     // extracted by the regex.
@@ -383,11 +384,11 @@ void myMethod() {
     expectedLabels.forEach((m) {
       var i = m.group(1);
       // Find the end marker.
-      var endMatch = RegExp('/\\*$i:(.+?)\\*/').firstMatch(content);
+      var endMatch = RegExp('/\\*$i:(.+?)\\*/').firstMatch(content)!;
 
       var expectedStart = m.end;
       var expectedLength = endMatch.start - expectedStart;
-      var expectedLabel = endMatch.group(1);
+      var expectedLabel = endMatch.group(1)!;
 
       expect(labels,
           contains(ClosingLabel(expectedStart, expectedLength, expectedLabel)));
@@ -396,8 +397,9 @@ void myMethod() {
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    var result = await session.getResolvedUnit(sourcePath);
-    var computer = DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
+    var result =
+        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
+    var computer = DartUnitClosingLabelsComputer(result.lineInfo, result.unit!);
     return computer.compute();
   }
 }

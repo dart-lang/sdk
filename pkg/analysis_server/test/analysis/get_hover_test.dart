@@ -11,24 +11,53 @@ import '../mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisHoverBazelTest);
     defineReflectiveTests(AnalysisHoverTest);
   });
 }
 
 @reflectiveTest
+class AnalysisHoverBazelTest extends AbstractAnalysisTest {
+  Future<void> test_bazel_notOwnedUri() async {
+    newFile('/workspace/WORKSPACE');
+    projectPath = newFolder('/workspace').path;
+    testFile = convertPath('/workspace/dart/my/lib/test.dart');
+
+    newFile(
+      '/workspace/bazel-genfiles/dart/my/lib/test.dart',
+      content: '// generated',
+    );
+
+    createProject();
+
+    addTestFile('''
+class A {}
+''');
+
+    var request = AnalysisGetHoverParams(testFile, 0).toRequest('0');
+    var response = await waitResponse(request);
+    expect(response.error, isNotNull);
+  }
+}
+
+@reflectiveTest
 class AnalysisHoverTest extends AbstractAnalysisTest {
-  Future<HoverInformation> prepareHover(String search) {
-    var offset = findOffset(search);
-    return prepareHoverAt(offset);
+  Future<HoverInformation> prepareHover(String search) async {
+    return (await prepareHoverOrNull(search))!;
   }
 
-  Future<HoverInformation> prepareHoverAt(int offset) async {
+  Future<HoverInformation?> prepareHoverAt(int offset) async {
     await waitForTasksFinished();
     var request = AnalysisGetHoverParams(testFile, offset).toRequest('0');
     var response = await waitResponse(request);
     var result = AnalysisGetHoverResult.fromResponse(response);
     var hovers = result.hovers;
     return hovers.isNotEmpty ? hovers.first : null;
+  }
+
+  Future<HoverInformation?> prepareHoverOrNull(String search) {
+    var offset = findOffset(search);
+    return prepareHoverAt(offset);
   }
 
   @override
@@ -333,6 +362,22 @@ extension E on A {}
     expect(hover.propagatedType, isNull);
   }
 
+  Future<void> test_function_multilineElementDescription() async {
+    // Functions with at least 3 params will have element descriptions formatted
+    // across multiple lines.
+    addTestFile('''
+List<String> fff(int a, [String b = 'b', String c = 'c']) {
+}
+''');
+    var hover = await prepareHover('fff(int a');
+    expect(hover.elementDescription, '''
+List<String> fff(
+  int a, [
+  String b = 'b',
+  String c = 'c',
+])''');
+  }
+
   Future<void> test_function_topLevel_declaration() async {
     addTestFile('''
 library my.library;
@@ -634,7 +679,7 @@ main() {
   // nothing
 }
 ''');
-    var hover = await prepareHover('nothing');
+    var hover = await prepareHoverOrNull('nothing');
     expect(hover, isNull);
   }
 
@@ -828,5 +873,60 @@ main(B b) {
     expect(hover.dartdoc, '''pgetting''');
     expect(hover.elementDescription, 'void set foo(int x)');
     expect(hover.elementKind, 'setter');
+  }
+
+  Future<void> test_simpleIdentifier_typedef_functionType() async {
+    addTestFile('''
+typedef A = void Function(int);
+''');
+    var hover = await prepareHover('A');
+    _assertHover(
+      hover,
+      elementDescription: 'typedef A = void Function(int )',
+      elementKind: 'type alias',
+    );
+  }
+
+  Future<void> test_simpleIdentifier_typedef_interfaceType() async {
+    addTestFile('''
+typedef A = Map<int, String>;
+''');
+    var hover = await prepareHover('A');
+    _assertHover(
+      hover,
+      elementDescription: 'typedef A = Map<int, String>',
+      elementKind: 'type alias',
+    );
+  }
+
+  Future<void> test_simpleIdentifier_typedef_legacy() async {
+    addTestFile('''
+typedef void A(int a);
+''');
+    var hover = await prepareHover('A');
+    _assertHover(
+      hover,
+      elementDescription: 'typedef A = void Function(int a)',
+      elementKind: 'type alias',
+    );
+  }
+
+  void _assertHover(
+    HoverInformation hover, {
+    String? containingLibraryPath,
+    String? containingLibraryName,
+    required String elementDescription,
+    required String elementKind,
+    bool isDeprecated = false,
+  }) {
+    containingLibraryName ??= 'bin/test.dart';
+    expect(hover.containingLibraryName, containingLibraryName);
+
+    containingLibraryPath ??= testFile;
+    expect(hover.containingLibraryPath, containingLibraryPath);
+
+    expect(hover.elementDescription, elementDescription);
+    expect(hover.elementKind, elementKind);
+    expect(hover.isDeprecated, isDeprecated);
   }
 }

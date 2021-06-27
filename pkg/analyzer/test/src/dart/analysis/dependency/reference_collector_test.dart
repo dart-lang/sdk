@@ -1507,7 +1507,7 @@ class C {
     var library = await buildTestLibrary(a, r'''
 class C {
   var f;
-  
+
   C.test() : f = x;
 }
 ''');
@@ -1567,7 +1567,7 @@ class C extends A {
     var library = await buildTestLibrary(a, r'''
 class C extends A {
   C.test() : this.named(x);
-  
+
   C.named(a);
 }
 ''');
@@ -1579,7 +1579,7 @@ class C extends A {
     var library = await buildTestLibrary(a, r'''
 class C extends A {
   C.test() : this(x);
-  
+
   C(a);
 }
 ''');
@@ -2246,8 +2246,8 @@ void test() {}
 
 class _Base extends BaseDependencyTest {
   void _assertApi(Library library, String name, NodeKind kind,
-      {String memberOf,
-      String typeParameterOf,
+      {String? memberOf,
+      String? typeParameterOf,
       List<String> unprefixed = const [],
       Map<String, List<String>> prefixed = const {},
       List<String> superPrefixed = const [],
@@ -2295,8 +2295,8 @@ class _Base extends BaseDependencyTest {
   }
 
   void _assertImpl(Library library, String name, NodeKind kind,
-      {String memberOf,
-      String typeParameterOf,
+      {String? memberOf,
+      String? typeParameterOf,
       List<String> unprefixed = const [],
       Map<String, List<String>> prefixed = const {},
       List<String> superPrefixed = const [],

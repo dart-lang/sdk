@@ -1,0 +1,81 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic {
+  mai::C1<<T extends core::Object? = dynamic>(T%) → T%> c1 = new mai::C1::•<<T extends core::Object? = dynamic>(T%) → T%>();
+  mai::C1<<T extends core::Object? = dynamic>(T%) → T%> c2 = new mai::C1::•<<T extends core::Object? = dynamic>(T%) → T%>();
+  mai::C2<<T extends core::Object? = dynamic>() → void> c3 = new mai::C2::•<<T extends core::Object? = dynamic>() → void>();
+  mai::C2<<T extends core::Object? = dynamic>() → void> c4 = new mai::C2::•<<int extends core::Object? = dynamic>() → void>();
+  mai::C3<<T extends core::Object? = dynamic>() → T%> c5 = new mai::C3::•<<T extends core::Object? = dynamic>() → T%>();
+  mai::C3<<T extends core::Object? = dynamic>() → T%> c6 = new mai::C3::•<<T extends core::Object? = dynamic>() → T%>();
+  mai::C4<<T extends core::Object? = dynamic>(T%) → void> c7 = new mai::C4::•<<T extends core::Object? = dynamic>(T%) → void>();
+  mai::C4<<T extends core::Object? = dynamic>(T%) → void> c8 = new mai::C4::•<<T extends core::Object? = dynamic>(T%) → void>();
+  mai::C5<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> c9 = new mai::C5::•<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T>();
+  mai::C5<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> c10 = new mai::C5::•<<T extends <S extends core::Object? = dynamic>(S%) → S%>(T) → T>();
+  mai::C6<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> c11 = new mai::C6::•<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%>();
+  mai::C6<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> c12 = new mai::C6::•<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S%, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%>();
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+typedef exp1 = <T extends core::Object? = dynamic>(T%) → T%;
+typedef exp2 = <T extends core::Object? = dynamic>() → void;
+typedef exp3 = <T extends core::Object? = dynamic>() → T%;
+typedef exp4 = <T extends core::Object? = dynamic>(T%) → void;
+typedef exp5 = <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T;
+typedef exp6 = <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%;
+class C1<X extends <T extends core::Object? = dynamic>(T%) → T%> extends core::Object {
+  constructor •() → mai::C1<mai::C1::X>
+    : super core::Object::•() {
+    mai::expect(#C1, mai::C1::X);
+  }
+}
+class C2<X extends <T extends core::Object? = dynamic>() → void> extends core::Object {
+  constructor •() → mai::C2<mai::C2::X>
+    : super core::Object::•() {
+    mai::expect(#C2, mai::C2::X);
+  }
+}
+class C3<X extends <T extends core::Object? = dynamic>() → T%> extends core::Object {
+  constructor •() → mai::C3<mai::C3::X>
+    : super core::Object::•() {
+    mai::expect(#C3, mai::C3::X);
+  }
+}
+class C4<X extends <T extends core::Object? = dynamic>(T%) → void> extends core::Object {
+  constructor •() → mai::C4<mai::C4::X>
+    : super core::Object::•() {
+    mai::expect(#C4, mai::C4::X);
+  }
+}
+class C5<X extends <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> extends core::Object {
+  constructor •() → mai::C5<mai::C5::X>
+    : super core::Object::•() {
+    mai::expect(#C5, mai::C5::X);
+  }
+}
+class C6<X extends <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> extends core::Object {
+  constructor •() → mai::C6<mai::C6::X>
+    : super core::Object::•() {
+    mai::expect(#C6, mai::C6::X);
+  }
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(<T extends core::Object? = dynamic>(T%) → T%)
+  #C2 = TypeLiteralConstant(<T extends core::Object? = dynamic>() → void)
+  #C3 = TypeLiteralConstant(<T extends core::Object? = dynamic>() → T%)
+  #C4 = TypeLiteralConstant(<T extends core::Object? = dynamic>(T%) → void)
+  #C5 = TypeLiteralConstant(<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T)
+  #C6 = TypeLiteralConstant(<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%)
+}

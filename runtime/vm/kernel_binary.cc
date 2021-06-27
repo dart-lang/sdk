@@ -75,7 +75,7 @@ TypedDataPtr Reader::ReadLineStartsData(intptr_t line_start_count) {
     }
   }
 
-  return line_starts_data.raw();
+  return line_starts_data.ptr();
 }
 
 const char* kKernelInvalidFilesize =
@@ -144,9 +144,9 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
 
   std::unique_ptr<Program> program(new Program());
   program->binary_version_ = formatVersion;
-  program->typed_data_ = reader->typed_data();
-  program->kernel_data_ = reader->buffer();
-  program->kernel_data_size_ = reader->size();
+  program->binary_.typed_data = reader->typed_data();
+  program->binary_.kernel_data = reader->buffer();
+  program->binary_.kernel_data_size = reader->size();
 
   // Dill files can be concatenated (e.g. cat a.dill b.dill > c.dill). Find out
   // if this dill contains more than one program.
@@ -171,17 +171,21 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   program->library_count_ = reader->ReadFromIndexNoReset(
       reader->size_, LibraryCountFieldCountFromEnd, 1, 0);
   intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffset41Plus;
+      SourceTableFieldCountFromFirstLibraryOffset;
   program->source_table_offset_ = reader->ReadFromIndexNoReset(
       reader->size_,
       LibraryCountFieldCountFromEnd + 1 + program->library_count_ + 1 +
           count_from_first_library_offset,
       1, 0);
+  program->constant_table_offset_ = reader->ReadUInt32();
+  reader->ReadUInt32();  // offset for constant table index.
   program->name_table_offset_ = reader->ReadUInt32();
   program->metadata_payloads_offset_ = reader->ReadUInt32();
   program->metadata_mappings_offset_ = reader->ReadUInt32();
   program->string_table_offset_ = reader->ReadUInt32();
-  program->constant_table_offset_ = reader->ReadUInt32();
+  // The below includes any 8-bit alignment; denotes the end of the previous
+  // block.
+  program->component_index_offset_ = reader->ReadUInt32();
 
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
   NNBDCompiledMode compilation_mode =
@@ -194,26 +198,26 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
 std::unique_ptr<Program> Program::ReadFromFile(
     const char* script_uri, const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   if (script_uri == NULL) {
     return nullptr;
   }
-  if (!isolate->HasTagHandler()) {
+  if (!isolate_group->HasTagHandler()) {
     return nullptr;
   }
   std::unique_ptr<kernel::Program> kernel_program;
 
   const String& uri = String::Handle(String::New(script_uri));
-  const Object& ret = Object::Handle(
-      isolate->CallTagHandler(Dart_kKernelTag, Object::null_object(), uri));
+  const Object& ret = Object::Handle(isolate_group->CallTagHandler(
+      Dart_kKernelTag, Object::null_object(), uri));
   if (ret.IsExternalTypedData()) {
     const auto& typed_data = ExternalTypedData::Handle(
-        thread->zone(), ExternalTypedData::RawCast(ret.raw()));
+        thread->zone(), ExternalTypedData::RawCast(ret.ptr()));
     kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     return kernel_program;
   } else if (error != nullptr) {
     Api::Scope api_scope(thread);
-    Dart_Handle retval = Api::NewHandle(thread, ret.raw());
+    Dart_Handle retval = Api::NewHandle(thread, ret.ptr());
     {
       TransitionVMToNative transition(thread);
       *error = Dart_GetError(retval);

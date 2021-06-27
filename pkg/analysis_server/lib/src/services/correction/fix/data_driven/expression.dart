@@ -21,7 +21,7 @@ class BinaryExpression extends Expression {
   BinaryExpression(this.leftOperand, this.operator, this.rightOperand);
 
   @override
-  Object evaluateIn(TemplateContext context) {
+  Object? evaluateIn(TemplateContext context) {
     switch (operator) {
       case Operator.and:
         var left = leftOperand.evaluateIn(context);
@@ -39,14 +39,17 @@ class BinaryExpression extends Expression {
         var right = rightOperand.evaluateIn(context);
         return left != right;
     }
-    return null;
   }
+
+  @override
+  String toString() => '$leftOperand ${operator.displayName} $rightOperand';
 }
 
 /// An expression.
 abstract class Expression {
-  /// Return the result of evaluating this expression.
-  Object evaluateIn(TemplateContext context);
+  /// Return the result of evaluating this expression, or `null` if the
+  /// expression can't be evaluated in the given [context].
+  Object? evaluateIn(TemplateContext context);
 }
 
 /// A literal string.
@@ -61,6 +64,9 @@ class LiteralString extends Expression {
   String evaluateIn(TemplateContext context) {
     return value;
   }
+
+  @override
+  String toString() => '"$value"';
 }
 
 /// An operator used in a binary expression.
@@ -82,5 +88,21 @@ class VariableReference extends Expression {
   @override
   String evaluateIn(TemplateContext context) {
     return generator.evaluateIn(context);
+  }
+
+  @override
+  String toString() => '{$generator}';
+}
+
+extension on Operator {
+  String get displayName {
+    switch (this) {
+      case Operator.and:
+        return '&&';
+      case Operator.equal:
+        return '==';
+      case Operator.notEqual:
+        return '!=';
+    }
   }
 }

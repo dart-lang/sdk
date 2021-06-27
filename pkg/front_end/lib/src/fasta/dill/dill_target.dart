@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.dill_target;
 
 import 'package:front_end/src/fasta/builder/library_builder.dart'
@@ -14,6 +16,8 @@ import 'package:kernel/target/targets.dart' show Target;
 import '../builder/class_builder.dart';
 
 import '../problems.dart' show unsupported;
+
+import '../source/source_library_builder.dart' show LanguageVersion;
 
 import '../target_implementation.dart' show TargetImplementation;
 
@@ -64,6 +68,7 @@ class DillTarget extends TargetImplementation {
       Uri uri,
       Uri fileUri,
       Uri packageUri,
+      LanguageVersion packageLanguageVersion,
       LibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner) {

@@ -105,10 +105,10 @@ class SourceReport {
 
     static Value ValueOf(Pair kv) { return kv; }
 
-    static inline intptr_t Hashcode(Key key) { return key->key->Hash(); }
+    static inline uword Hash(Key key) { return key->key->Hash(); }
 
     static inline bool IsKeyEqual(Pair kv, Key key) {
-      return kv->script->raw() == key->script->raw();
+      return kv->script->ptr() == key->script->ptr();
     }
   };
 

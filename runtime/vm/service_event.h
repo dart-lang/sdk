@@ -14,6 +14,7 @@ class ActivationFrame;
 class Breakpoint;
 class Instance;
 class Isolate;
+class IsolateGroup;
 class Object;
 class StreamInfo;
 class String;
@@ -43,6 +44,7 @@ class ServiceEvent {
     kBreakpointAdded,
     kBreakpointResolved,
     kBreakpointRemoved,
+    kBreakpointUpdated,
     kInspect,
     kDebuggerSettingsUpdate,
 
@@ -57,6 +59,8 @@ class ServiceEvent {
     kTimelineEvents,
     // Sent when SetVMTimelineFlags is called.
     kTimelineStreamSubscriptionsUpdate,
+
+    kUserTagChanged,
 
     kIllegal,
   };
@@ -77,9 +81,12 @@ class ServiceEvent {
     const String* event_data;
   };
 
+  explicit ServiceEvent(EventKind event_kind);
+  ServiceEvent(IsolateGroup* isolate_group, EventKind event_kind);
   ServiceEvent(Isolate* isolate, EventKind event_kind);
 
   Isolate* isolate() const { return isolate_; }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
 
   // Used by the C embedding api.
   Dart_Port isolate_id() const { return isolate_->main_port(); }
@@ -106,6 +113,14 @@ class ServiceEvent {
   const char* flag_new_value() const { return flag_new_value_; }
   void set_flag_new_value(const char* value) { flag_new_value_ = value; }
 
+  const char* previous_tag() const { return previous_tag_; }
+  void set_previous_tag(const char* previous_tag) {
+    previous_tag_ = previous_tag;
+  }
+
+  const char* updated_tag() const { return updated_tag_; }
+  void set_updated_tag(const char* updated_tag) { updated_tag_ = updated_tag; }
+
   const char* embedder_kind() const { return embedder_kind_; }
 
   const char* KindAsCString() const;
@@ -124,7 +139,8 @@ class ServiceEvent {
   Breakpoint* breakpoint() const { return breakpoint_; }
   void set_breakpoint(Breakpoint* bpt) {
     ASSERT(kind() == kPauseBreakpoint || kind() == kBreakpointAdded ||
-           kind() == kBreakpointResolved || kind() == kBreakpointRemoved);
+           kind() == kBreakpointResolved || kind() == kBreakpointRemoved ||
+           kind() == kBreakpointUpdated);
     breakpoint_ = bpt;
   }
 
@@ -202,10 +218,17 @@ class ServiceEvent {
   void PrintJSONHeader(JSONObject* jsobj) const;
 
  private:
+  ServiceEvent(IsolateGroup* isolate_group,
+               Isolate* isolate,
+               EventKind event_kind);
+
   Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   EventKind kind_;
   const char* flag_name_;
   const char* flag_new_value_;
+  const char* previous_tag_;
+  const char* updated_tag_;
   const char* embedder_kind_;
   const char* embedder_stream_id_;
   Breakpoint* breakpoint_;

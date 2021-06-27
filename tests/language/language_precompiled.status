@@ -37,7 +37,6 @@ unsorted/cyclic_type_test/*: Skip
 vm/no_such_args_error_message_vm_test: Skip
 vm/no_such_method_error_message_callable_vm_test: Skip
 vm/no_such_method_error_message_vm_test: Skip
-vm/regress_28325_test: Skip
 
 [ $runtime == dart_precompiled && ($mode == product || $minified) ]
 stack_trace/rethrow_error_test: SkipByDesign # obfuscation/minification and instruction deduplication cause names of frames to be mangled (expected)

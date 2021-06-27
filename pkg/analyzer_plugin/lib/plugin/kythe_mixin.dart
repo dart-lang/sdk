@@ -21,8 +21,6 @@ mixin DartEntryMixin implements EntryMixin {
   @override
   Future<EntryRequest> getEntryRequest(
       KytheGetKytheEntriesParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var path = parameters.file;
     var result = await getResolvedUnitResult(path);
     return DartEntryRequestImpl(resourceProvider, result);
@@ -48,8 +46,6 @@ mixin EntryMixin implements ServerPlugin {
   @override
   Future<KytheGetKytheEntriesResult> handleKytheGetKytheEntries(
       KytheGetKytheEntriesParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var path = parameters.file;
     var request = await getEntryRequest(parameters);
     var generator = EntryGenerator(getEntryContributors(path));

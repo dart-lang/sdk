@@ -90,7 +90,7 @@ main() {
 ''');
   }
 
-  Future<void> test_constructor() async {
+  Future<void> test_constructor_factory() async {
     await resolveTestCode('''
 class A {
   A.named();
@@ -107,6 +107,19 @@ class A {
   factory A() => A.named();
 }
 ''');
+  }
+
+  Future<void> test_constructor_generative() async {
+    await resolveTestCode('''
+class A {
+  int x = 0;
+
+  A() {
+    x = 3;
+  }
+}
+''');
+    await assertNoAssistAt('A()');
   }
 
   Future<void> test_function_onBlock() async {

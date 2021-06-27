@@ -16,14 +16,13 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptions;
+    show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:meta/meta.dart';
 
 var counterLinkedLibraries = 0;
 var counterLoadedLibraries = 0;
@@ -39,12 +38,11 @@ var timerLoad2 = Stopwatch();
 class LibraryContext {
   static const _maxLinkedDataInBytes = 64 * 1024 * 1024;
 
-  final int id = fileObjectId++;
   final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
   final AnalysisSessionImpl analysisSession;
-  final SummaryDataStore externalSummaries;
+  final SummaryDataStore? externalSummaries;
   final SummaryDataStore store = SummaryDataStore([]);
 
   /// The size of the linked data that is loaded by this context.
@@ -52,19 +50,18 @@ class LibraryContext {
   /// We use it as an approximation for the heap size of elements.
   final int _linkedDataInBytes = 0;
 
-  AnalysisContextImpl analysisContext;
-  LinkedElementFactory elementFactory;
+  late final AnalysisContextImpl analysisContext;
+  late LinkedElementFactory elementFactory;
 
   LibraryContext({
-    @required this.testView,
-    @required AnalysisSessionImpl session,
-    @required PerformanceLog logger,
-    @required ByteStore byteStore,
-    @required AnalysisOptions analysisOptions,
-    @required DeclaredVariables declaredVariables,
-    @required SourceFactory sourceFactory,
-    @required this.externalSummaries,
-    @required FileState targetLibrary,
+    required this.testView,
+    required AnalysisSessionImpl session,
+    required PerformanceLog logger,
+    required ByteStore byteStore,
+    required AnalysisOptionsImpl analysisOptions,
+    required DeclaredVariables declaredVariables,
+    required SourceFactory sourceFactory,
+    required this.externalSummaries,
   })  : logger = logger,
         byteStore = byteStore,
         analysisSession = session {
@@ -73,7 +70,6 @@ class LibraryContext {
     analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);
 
     _createElementFactory();
-    load2(targetLibrary);
   }
 
   /// Computes a [CompilationUnitElement] for the given library/unit pair.
@@ -82,18 +78,14 @@ class LibraryContext {
         .getChild(library.uriStr)
         .getChild('@unit')
         .getChild(unit.uriStr);
-    return elementFactory.elementOfReference(reference);
+    var element = elementFactory.elementOfReference(reference);
+    return element as CompilationUnitElement;
   }
 
   /// Get the [LibraryElement] for the given library.
-  LibraryElement getLibraryElement(FileState library) {
-    return elementFactory.libraryOfUri(library.uriStr);
-  }
-
-  /// Return `true` if the given [uri] is known to be a library.
-  bool isLibraryUri(Uri uri) {
-    String uriStr = uri.toString();
-    return elementFactory.isLibraryUri(uriStr);
+  LibraryElement getLibraryElement(Uri uri) {
+    _createElementFactoryTypeProvider();
+    return elementFactory.libraryOfUri2('$uri');
   }
 
   /// Load data required to access elements of the given [targetLibrary].
@@ -107,37 +99,25 @@ class LibraryContext {
     var bytesGet = 0;
     var bytesPut = 0;
 
-    var thisLoadLogBuffer = StringBuffer();
-
-    void loadBundle(LibraryCycle cycle, String debugPrefix) {
+    void loadBundle(LibraryCycle cycle) {
       if (cycle.libraries.isEmpty ||
           elementFactory.hasLibrary(cycle.libraries.first.uriStr)) {
         return;
       }
 
-      thisLoadLogBuffer.writeln('$debugPrefix$cycle');
-
       librariesTotal += cycle.libraries.length;
 
-      if (cycle.isUnresolvedFile) {
-        return;
-      }
+      cycle.directDependencies.forEach(loadBundle);
 
-      cycle.directDependencies.forEach(
-        (e) => loadBundle(e, '$debugPrefix  '),
-      );
-
-      var uriToLibrary_uriToUnitAstBytes = <String, Map<String, Uint8List>>{};
+      var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
-        var uriToUnitAstBytes = <String, Uint8List>{};
-        uriToLibrary_uriToUnitAstBytes[library.uriStr] = uriToUnitAstBytes;
         for (var file in library.libraryFiles) {
-          uriToUnitAstBytes[file.uriStr] = file.getAstBytes();
+          unitsInformativeBytes[file.uri] = file.getInformativeBytes();
         }
       }
 
-      var resolutionKey = cycle.transitiveSignature + '.linked_bundle';
-      var resolutionBytes = byteStore.get(resolutionKey);
+      var resolutionKey = cycle.transitiveSignature! + '.linked_bundle';
+      var resolutionBytes = byteStore.get(resolutionKey) as Uint8List?;
 
       if (resolutionBytes == null) {
         librariesLinkedTimer.start();
@@ -151,7 +131,6 @@ class LibraryContext {
         var inputLibraries = <link2.LinkInputLibrary>[];
         for (var libraryFile in cycle.libraries) {
           var librarySource = libraryFile.source;
-          if (librarySource == null) continue;
 
           var inputUnits = <link2.LinkInputUnit>[];
           var partIndex = -1;
@@ -159,7 +138,7 @@ class LibraryContext {
             var isSynthetic = !file.exists;
             var unit = file.parse();
 
-            String partUriStr;
+            String? partUriStr;
             if (partIndex >= 0) {
               partUriStr = libraryFile.unlinked2.parts[partIndex];
             }
@@ -167,53 +146,21 @@ class LibraryContext {
 
             inputUnits.add(
               link2.LinkInputUnit(
-                partUriStr,
-                file.source,
-                isSynthetic,
-                unit,
+                // TODO(scheglov) bad, group part data
+                partDirectiveIndex: partIndex - 1,
+                partUriStr: partUriStr,
+                source: file.source,
+                isSynthetic: isSynthetic,
+                unit: unit,
               ),
             );
-
-            // TODO(scheglov) remove after fixing linking issues
-            {
-              var existingLibraryReference =
-                  elementFactory.rootReference[libraryFile.uriStr];
-              if (existingLibraryReference != null) {
-                var existingElement = existingLibraryReference.element;
-                if (existingElement != null) {
-                  var buffer = StringBuffer();
-
-                  buffer.writeln('[The library is already loaded]');
-                  buffer.writeln();
-
-                  var existingSource = existingElement?.source;
-                  buffer.writeln('[oldUri: ${existingSource.uri}]');
-                  buffer.writeln('[oldPath: ${existingSource.fullName}]');
-                  buffer.writeln('[newUri: ${libraryFile.uriStr}]');
-                  buffer.writeln('[newPath: ${libraryFile.path}]');
-                  buffer.writeln('[cycle: $cycle]');
-                  buffer.writeln();
-
-                  buffer.writeln('Bundles loaded in this load2() invocation:');
-                  buffer.writeln(thisLoadLogBuffer);
-                  buffer.writeln();
-
-                  var libraryRefs = elementFactory.rootReference.children;
-                  var libraryUriList = libraryRefs.map((e) => e.name).toList();
-                  buffer.writeln('[elementFactory.libraries: $libraryUriList]');
-
-                  throw CaughtExceptionWithFiles(
-                    'Cycle loading state error',
-                    StackTrace.current,
-                    {'status': buffer.toString()},
-                  );
-                }
-              }
-            }
           }
 
           inputLibraries.add(
-            link2.LinkInputLibrary(librarySource, inputUnits),
+            link2.LinkInputLibrary(
+              source: librarySource,
+              units: inputUnits,
+            ),
           );
         }
         inputsTimer.stop();
@@ -236,24 +183,26 @@ class LibraryContext {
         counterUnlinkedLinkedBytes += resolutionBytes.length;
 
         librariesLinkedTimer.stop();
+        // TODO(scheglov) Uncomment to keep linking elements.
+        // return;
       } else {
         // TODO(scheglov) Take / clear parsed units in files.
         bytesGet += resolutionBytes.length;
         librariesLoaded += cycle.libraries.length;
       }
 
-      elementFactory.addLibraries(
-        createLibraryReadersWithAstBytes(
+      elementFactory.addBundle(
+        BundleReader(
           elementFactory: elementFactory,
+          unitsInformativeBytes: unitsInformativeBytes,
           resolutionBytes: resolutionBytes,
-          uriToLibrary_uriToUnitAstBytes: uriToLibrary_uriToUnitAstBytes,
         ),
       );
     }
 
     logger.run('Prepare linked bundles', () {
       var libraryCycle = targetLibrary.libraryCycle;
-      loadBundle(libraryCycle, '');
+      loadBundle(libraryCycle);
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
         '[librariesLoaded: $librariesLoaded]'
@@ -288,12 +237,12 @@ class LibraryContext {
       Reference.root(),
     );
     if (externalSummaries != null) {
-      for (var bundle in externalSummaries.bundles) {
+      for (var bundle in externalSummaries!.bundles) {
         elementFactory.addBundle(
           BundleReader(
             elementFactory: elementFactory,
-            astBytes: bundle.astBytes,
             resolutionBytes: bundle.resolutionBytes,
+            unitsInformativeBytes: {},
           ),
         );
       }
@@ -302,9 +251,9 @@ class LibraryContext {
 
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
-    if (analysisContext.typeProviderNonNullableByDefault == null) {
-      var dartCore = elementFactory.libraryOfUri('dart:core');
-      var dartAsync = elementFactory.libraryOfUri('dart:async');
+    if (!analysisContext.hasTypeProvider) {
+      var dartCore = elementFactory.libraryOfUri2('dart:core');
+      var dartAsync = elementFactory.libraryOfUri2('dart:async');
       elementFactory.createTypeProviders(dartCore, dartAsync);
     }
   }
@@ -312,8 +261,7 @@ class LibraryContext {
   /// The [exception] was caught during the [cycle] linking.
   ///
   /// Throw another exception that wraps the given one, with more information.
-  @alwaysThrows
-  void _throwLibraryCycleLinkException(
+  Never _throwLibraryCycleLinkException(
     LibraryCycle cycle,
     Object exception,
     StackTrace stackTrace,

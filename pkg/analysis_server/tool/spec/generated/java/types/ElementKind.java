@@ -61,6 +61,8 @@ public class ElementKind {
 
   public static final String TOP_LEVEL_VARIABLE = "TOP_LEVEL_VARIABLE";
 
+  public static final String TYPE_ALIAS = "TYPE_ALIAS";
+
   public static final String TYPE_PARAMETER = "TYPE_PARAMETER";
 
   public static final String UNIT_TEST_GROUP = "UNIT_TEST_GROUP";

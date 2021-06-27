@@ -6,6 +6,8 @@
 //
 // SharedObjects=ffi_test_functions
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
@@ -48,30 +50,28 @@ void testSizeOf() {
 }
 
 void testAllocate() {
-  final p = allocate<Struct8BytesNestedInt>();
+  final p = calloc<Struct8BytesNestedInt>();
   Expect.type<Pointer<Struct8BytesNestedInt>>(p);
   print(p);
-  free(p);
+  calloc.free(p);
 }
 
 /// Test that reading does not segfault, even uninitialized.
 void testRead() {
   print("read");
-  final p = allocate<Struct8BytesNestedInt>();
+  final p = calloc<Struct8BytesNestedInt>();
   print(p);
   print(p.ref.runtimeType);
-  print(p.ref.addressOf);
-  print(p.ref.addressOf.address);
+  print(p.address);
   print(p.ref.a0.runtimeType);
-  print(p.ref.a0.addressOf);
   print(p.ref.a0.a0);
-  free(p);
+  calloc.free(p);
   print("read");
 }
 
 void testWrite() {
   print("write");
-  final p = allocate<Struct8BytesNestedInt>(count: 2);
+  final p = calloc<Struct8BytesNestedInt>(2);
   p[0].a0.a0 = 12;
   p[0].a0.a1 = 13;
   p[0].a1.a0 = 14;
@@ -88,18 +88,18 @@ void testWrite() {
   Expect.equals(17, p[1].a0.a1);
   Expect.equals(18, p[1].a1.a0);
   Expect.equals(19, p[1].a1.a1);
-  free(p);
+  calloc.free(p);
   print("written");
 }
 
 void testCopy() {
   print("copy");
-  final p = allocate<Struct8BytesNestedInt>();
+  final p = calloc<Struct8BytesNestedInt>();
   p.ref.a0.a0 = 12;
   p.ref.a0.a1 = 13;
   p.ref.a1 = p.ref.a0;
   Expect.equals(12, p.ref.a1.a0);
   Expect.equals(13, p.ref.a1.a1);
-  free(p);
+  calloc.free(p);
   print("copied");
 }

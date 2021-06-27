@@ -8,7 +8,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-// FrameLayout structure captures configuration specific properties of the
+// UntaggedFrame structure captures configuration specific properties of the
 // frame layout used by the runtime system and compiler.
 //
 // Runtime system uses runtime_frame_layout defined in stack_frame.h.
@@ -19,7 +19,7 @@ namespace dart {
 // Forward declarations.
 class LocalVariable;
 
-struct FrameLayout {
+struct UntaggedFrame {
   // The offset (in words) from FP to the first object.
   int first_object_from_fp;
 

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 
@@ -16,12 +17,12 @@ import '../../../generated/test_support.dart';
 /// syntactic errors.
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
-      String invalidCode, List<ErrorCode> errorCodes, String validCode,
-      {CompilationUnit Function(CompilationUnit unit)
+      String invalidCode, List<ErrorCode>? errorCodes, String validCode,
+      {CompilationUnitImpl Function(CompilationUnitImpl unit)?
           adjustValidUnitBeforeComparison,
-      List<ErrorCode> expectedErrorsInValidCode,
-      FeatureSet featureSet}) {
-    CompilationUnit validUnit;
+      List<ErrorCode>? expectedErrorsInValidCode,
+      FeatureSet? featureSet}) {
+    CompilationUnitImpl validUnit;
 
     // Assert that the valid code is indeed valid.
     try {
@@ -39,7 +40,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
 
     // Compare the structures before asserting valid errors.
     GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
-    CompilationUnit invalidUnit =
+    var invalidUnit =
         parseCompilationUnit2(invalidCode, listener, featureSet: featureSet);
     validateTokenStream(invalidUnit.beginToken);
     if (adjustValidUnitBeforeComparison != null) {
@@ -57,7 +58,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
 
   void validateTokenStream(Token token) {
     while (!token.isEof) {
-      Token next = token.next;
+      Token next = token.next!;
       expect(token.end, lessThanOrEqualTo(next.offset));
       if (next.isSynthetic) {
         if (const [')', ']', '}'].contains(next.lexeme)) {
@@ -86,7 +87,7 @@ class ResultComparator extends AstComparator {
   }
 
   @override
-  bool failIfNotNull(Object first, Object second) {
+  bool failIfNotNull(Object? first, Object? second) {
     if (second != null) {
       StringBuffer buffer = StringBuffer();
       buffer.write('Expected null; found a ');
@@ -100,7 +101,7 @@ class ResultComparator extends AstComparator {
   }
 
   @override
-  bool failIsNull(Object first, Object second) {
+  bool failIsNull(Object first, Object? second) {
     StringBuffer buffer = StringBuffer();
     buffer.write('Expected a ');
     buffer.write(first.runtimeType);
@@ -127,7 +128,7 @@ class ResultComparator extends AstComparator {
   /// Overridden to allow the valid code to contain an explicit identifier where
   /// a synthetic identifier is expected to be inserted by recovery.
   @override
-  bool isEqualNodes(AstNode first, AstNode second) {
+  bool isEqualNodes(AstNode? first, AstNode? second) {
     if (first is SimpleIdentifier && second is SimpleIdentifier) {
       if (first.isSynthetic && second.name == '_s_') {
         return true;
@@ -143,7 +144,7 @@ class ResultComparator extends AstComparator {
       (first.isSynthetic && first.type == second.type) ||
       (first.length == second.length && first.lexeme == second.lexeme);
 
-  void _safelyWriteNodePath(StringBuffer buffer, AstNode node) {
+  void _safelyWriteNodePath(StringBuffer buffer, AstNode? node) {
     buffer.write('  path: ');
     if (node == null) {
       buffer.write(' null');
@@ -153,7 +154,7 @@ class ResultComparator extends AstComparator {
   }
 
   void _writeNodePath(StringBuffer buffer, AstNode node) {
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent != null) {
       _writeNodePath(buffer, parent);
       buffer.write(', ');

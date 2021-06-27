@@ -21,8 +21,8 @@ void main() {
 
 @reflectiveTest
 class CiderFixesComputerTest extends CiderServiceTest {
-  _CorrectionContext _correctionContext;
-  List<CiderErrorFixes> _errorsFixes;
+  late _CorrectionContext _correctionContext;
+  late List<CiderErrorFixes> _errorsFixes;
 
   void assertHasFix(FixKind kind, String expected) {
     var fix = _getFix(kind);
@@ -35,6 +35,20 @@ class CiderFixesComputerTest extends CiderServiceTest {
       fileEdits.single.edits,
     );
     expect(resultContent, expected);
+  }
+
+  Future<void> test_cachedResolvedFiles() async {
+    await _compute(r'''
+var a = 0^ var b = 1
+''');
+
+    // Only the first fix is applied.
+    assertHasFix(DartFixKind.INSERT_SEMICOLON, r'''
+var a = 0; var b = 1
+''');
+
+    // The file was resolved only once, even though we have 2 errors.
+    expect(fileResolver.testView!.resolvedFiles, [convertPath(testPath)]);
   }
 
   Future<void> test_createMethod() async {
@@ -76,7 +90,7 @@ var v = 0;
       fileResolver,
     ).compute(
       convertPath(testPath),
-      _correctionContext.offset,
+      _correctionContext.line,
     );
   }
 
@@ -105,8 +119,8 @@ var v = 0;
     _correctionContext = _CorrectionContext(
       content,
       offset,
-      location.lineNumber - 1,
-      location.columnNumber - 1,
+      location.lineNumber,
+      location.columnNumber,
     );
   }
 }

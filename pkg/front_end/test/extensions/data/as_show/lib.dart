@@ -4,7 +4,9 @@
 
 // @dart = 2.9
 
-/*library: scope=[Extension1]*/
+/*library: scope=[
+  Extension1,
+  async.dart.FutureExtensions]*/
 
 /*class: Extension1:
  builder-name=Extension1,

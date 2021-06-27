@@ -54,7 +54,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
             // Quoted empty string
             visitSimpleStringLiteral(uri);
           } else {
-            var data = request.sourceContents;
+            var data = request.sourceContents!;
             if (end == data.length) {
               var ch = data[end - 1];
               if (ch != '"' && ch != "'") {
@@ -66,7 +66,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
           }
         }
       } else if (offset == start && offset == end) {
-        var data = request.sourceContents;
+        var data = request.sourceContents!;
         if (end == data.length) {
           var ch = data[end - 1];
           if (ch == '"' || ch == "'") {
@@ -100,7 +100,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
   void _addDartSuggestions() {
     builder.suggestUri('dart:');
     var factory = request.sourceFactory;
-    for (var lib in factory.dartSdk.sdkLibraries) {
+    for (var lib in factory.dartSdk!.sdkLibraries) {
       if (!lib.isInternal && !lib.isImplementation) {
         if (!lib.shortName.startsWith('dart:_')) {
           builder.suggestUri(lib.shortName);
@@ -115,7 +115,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
     var source = request.source;
 
     String parentUri;
-    if ((partialUri.endsWith('/'))) {
+    if (partialUri.endsWith('/')) {
       parentUri = partialUri;
     } else {
       parentUri = posix.dirname(partialUri);
@@ -156,7 +156,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
     if (dir is Folder) {
       try {
         for (var child in dir.getChildren()) {
-          String completion;
+          String? completion;
           if (child is Folder) {
             if (!child.shortName.startsWith('.')) {
               completion = '$uriPrefix${child.shortName}/';
@@ -213,7 +213,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
     }
   }
 
-  String _extractPartialUri(SimpleStringLiteral node) {
+  String? _extractPartialUri(SimpleStringLiteral node) {
     if (request.offset < node.contentsOffset) {
       return null;
     }

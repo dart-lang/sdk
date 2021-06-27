@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue38253.dart:9:1: Error: Expected ';' after this.
+// }
+// ^
+//
+// pkg/front_end/testcases/general/issue38253.dart:6:3: Error: 'g' isn't a type.
+//   g f(){
+//   ^
+//
+import self as self;
+
+static field () →* Null a;
+static method main() → dynamic
+  ;

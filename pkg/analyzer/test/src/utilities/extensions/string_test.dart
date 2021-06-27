@@ -8,12 +8,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ListOfStringExtensionTest);
+    defineReflectiveTests(IterableOfStringExtensionTest);
   });
 }
 
 @reflectiveTest
-class ListOfStringExtensionTest {
+class IterableOfStringExtensionTest {
   void test_commaSeparatedWithAnd_five() {
     expect(<String>['a', 'b', 'c', 'd', 'e'].commaSeparatedWithAnd,
         'a, b, c, d, and e');
@@ -27,12 +27,19 @@ class ListOfStringExtensionTest {
     expect(<String>['a', 'b', 'c'].commaSeparatedWithAnd, 'a, b, and c');
   }
 
+  void test_commaSeparatedWithAnd_three_iterable() {
+    expect(
+      <String>['a', 'b', 'c'].reversed.commaSeparatedWithAnd,
+      'c, b, and a',
+    );
+  }
+
   void test_commaSeparatedWithAnd_two() {
     expect(<String>['a', 'b'].commaSeparatedWithAnd, 'a and b');
   }
 
   void test_commaSeparatedWithAnd_zero() {
-    expect(<String>[].commaSeparatedWithOr, isEmpty);
+    expect(<String>[].commaSeparatedWithAnd, isEmpty);
   }
 
   void test_commaSeparatedWithOr_five() {
@@ -54,5 +61,22 @@ class ListOfStringExtensionTest {
 
   void test_commaSeparatedWithOr_zero() {
     expect(<String>[].commaSeparatedWithOr, isEmpty);
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_one() {
+    expect(<String>['a'].quotedAndCommaSeparatedWithAnd, "'a'");
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_three() {
+    expect(<String>['a', 'b', 'c'].quotedAndCommaSeparatedWithAnd,
+        "'a', 'b', and 'c'");
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_two() {
+    expect(<String>['a', 'b'].quotedAndCommaSeparatedWithAnd, "'a' and 'b'");
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_zero() {
+    expect(<String>[].quotedAndCommaSeparatedWithAnd, isEmpty);
   }
 }

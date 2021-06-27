@@ -1,0 +1,36 @@
+class A<X> {}
+
+typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+foo1a(F<A<dynamic>, A<Never>> x) {}
+foo1b(F x) {}
+foo2a<X extends F<A<dynamic>, A<Never>>>() {}
+foo2b<X extends F>() {}
+
+class Foo3a<X extends F<A<dynamic>, A<Never>>> {}
+
+class Foo3b<X extends F> {}
+
+F<A<dynamic>, A<Never>> foo4a() => throw 42;
+F foo4b() => throw 42;
+foo5a({required F<A<dynamic>, A<Never>> x}) {}
+foo5b({required F x}) {}
+foo6a() {}
+foo6b() {}
+foo7a([F<A<dynamic>, A<Never>>? x]) {}
+foo7b([F? x]) {}
+
+class B<X extends int> {}
+
+bar1(B<num> x) {}
+bar2<X extends B<num>>() {}
+
+class Bar3<X extends B<num>> {}
+
+B<num> bar4() => throw 42;
+bar5({required B<num> x}) {}
+bar6() {}
+bar7([B<num>? x]) {}
+
+class Bar8 extends B<dynamic> {}
+
+main() {}

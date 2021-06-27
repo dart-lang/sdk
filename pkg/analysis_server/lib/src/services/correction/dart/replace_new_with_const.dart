@@ -11,16 +11,28 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceNewWithConst extends CorrectionProducer {
   @override
+  // TODO(brianwilkerson) This fix can produce changes that are inconsistent
+  //  with the `unnecessary_const` lint. Fix it and then enable it for both
+  //  uses.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_NEW_WITH_CONST;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_NEW_WITH_CONST_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is ConstructorName) {
-      node = node.parent;
+    AstNode? targetNode = node;
+    if (targetNode is ConstructorName) {
+      targetNode = targetNode.parent;
     }
-    if (node is InstanceCreationExpression) {
-      final keyword = node.keyword;
+    if (targetNode is InstanceCreationExpression) {
+      final keyword = targetNode.keyword;
       if (keyword != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(range.token(keyword), 'const');

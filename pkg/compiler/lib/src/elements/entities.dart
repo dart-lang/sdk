@@ -291,6 +291,12 @@ class ParameterStructure {
   static const ParameterStructure zeroArguments =
       ParameterStructure._(0, 0, [], {}, 0);
 
+  static const ParameterStructure oneArgument =
+      ParameterStructure._(1, 1, [], {}, 0);
+
+  static const ParameterStructure twoArguments =
+      ParameterStructure._(2, 2, [], {}, 0);
+
   static const List<ParameterStructure> _simple = [
     ParameterStructure._(0, 0, [], {}, 0),
     ParameterStructure._(1, 1, [], {}, 0),

@@ -20,7 +20,9 @@ testExpression(String expression, [String expect = ""]) {
 
 testError(String expression, [String expect = ""]) {
   bool doCheck(exception) {
-    Expect.isTrue(exception.toString().contains(expect));
+    final exceptionText = '$exception';
+    Expect.isTrue(exceptionText.contains(expect),
+        'Missing "$expect" in "$exceptionText"');
     return true;
   }
 
@@ -65,9 +67,9 @@ void main() {
   // String literal with \n.
   testExpression(r'var x = "\n"');
   // String literal with escaped quote.
-  testExpression(r'var x = "\""');
+  testExpression(r'''var x = "\""''', r"""var x = '"'""");
   // *No clever escapes.
-  testError(r'var x = "\x42"', 'escapes are not allowed in literals');
+  testError(r'var x = "\x42"', 'Hex escapes not supported');
   // Operator new.
   testExpression('new Foo()');
   // New with dotted access.
@@ -168,7 +170,7 @@ void main() {
   testExpression("x << y + 1");
   testExpression("x <<= y + 1");
   // Array initializers.
-  testExpression("x = ['foo', 'bar', x[4]]");
+  testExpression('x = ["foo", "bar", x[4]]');
   testExpression("[]");
   testError("[42 42]");
   testExpression('beebop([1, 2, 3])');
@@ -190,4 +192,40 @@ void main() {
   // Stacked assignment.
   testExpression("a = b = c");
   testExpression("var a = b = c");
+  // Arrow functions.
+  testExpression("(x) => x", "x => x");
+  testExpression("(x, y) => {\n  return x + y;\n}");
+  testExpression("() => 42");
+  testExpression('() => ({foo: "bar"})');
+  testExpression("() => {}", """
+() => {
+}""");
+  testExpression("(() => 1)()");
+  testExpression("((x) => x)(y)", "(x => x)(y)");
+  testExpression("(() => {x = 1;})()", """
+(() => {
+  x = 1;
+})()""");
+  // Arrow functions with operators.
+  testExpression("a = (b) => c", "a = b => c");
+  testExpression("a = ((b) => b)(c)", "a = (b => b)(c)");
+  testExpression("(x) => (y) => z + y", "x => y => z + y");
+  testExpression("!((x) => (y) => x + y)", "!(x => y => x + y)");
+  testExpression("(x) => !((y) => x + y)", "x => !(y => x + y)");
+  testExpression("(x) => (y) => !(x + y)", "x => y => !(x + y)");
+  testExpression("((x) => (y) => x + y) && z", "(x => y => x + y) && z");
+  testExpression("(x) => (((y) => x + y) && z)", "x => (y => x + y) && z");
+  testExpression("(x) => (y) => ((x + y) && z)", "x => y => x + y && z");
+  testExpression("z && ((x) => (y) => x + y)", "z && (x => y => x + y)");
+  testExpression("(x) => (z && ((y) => x + y))", "x => z && (y => x + y)");
+  testExpression("(x) => (y) => (z && x + y)", "x => y => z && x + y");
+  testExpression("(x) => (y) => ((z && x) + y)", "x => y => (z && x) + y");
+  // Methods.
+  testExpression("{ foo() {}, bar() {}, }", """
+{
+  foo() {
+  },
+  bar() {
+  }
+}""");
 }

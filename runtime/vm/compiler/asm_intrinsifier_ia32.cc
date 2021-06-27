@@ -93,220 +93,6 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ j(NOT_ZERO, not_smi, Assembler::kNearJump);
 }
 
-void AsmIntrinsifier::Integer_addFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ addl(EAX, Address(ESP, +2 * target::kWordSize));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
-  Integer_addFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_subFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ subl(EAX, Address(ESP, +2 * target::kWordSize));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, EAX);
-  __ movl(EAX, Address(ESP, +2 * target::kWordSize));
-  __ subl(EAX, EBX);
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_mulFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
-  __ SmiUntag(EAX);
-  __ imull(EAX, Address(ESP, +2 * target::kWordSize));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
-  Integer_mulFromInteger(assembler, normal_ir_body);
-}
-
-// Optimizations:
-// - result is 0 if:
-//   - left is 0
-//   - left equals right
-// - result is left if
-//   - left > 0 && left < right
-// EAX: Tagged left (dividend).
-// EBX: Tagged right (divisor).
-// Returns:
-//   EDX: Untagged fallthrough result (remainder to be adjusted), or
-//   EAX: Tagged return result (remainder).
-static void EmitRemainderOperation(Assembler* assembler) {
-  Label return_zero, modulo;
-  // Check for quick zero results.
-  __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &return_zero, Assembler::kNearJump);
-  __ cmpl(EAX, EBX);
-  __ j(EQUAL, &return_zero, Assembler::kNearJump);
-
-  // Check if result equals left.
-  __ cmpl(EAX, Immediate(0));
-  __ j(LESS, &modulo, Assembler::kNearJump);
-  // left is positive.
-  __ cmpl(EAX, EBX);
-  __ j(GREATER, &modulo, Assembler::kNearJump);
-  // left is less than right, result is left (EAX).
-  __ ret();
-
-  __ Bind(&return_zero);
-  __ xorl(EAX, EAX);
-  __ ret();
-
-  __ Bind(&modulo);
-  __ SmiUntag(EBX);
-  __ SmiUntag(EAX);
-  __ cdq();
-  __ idivl(EBX);
-}
-
-// Implementation:
-//  res = left % right;
-//  if (res < 0) {
-//    if (right < 0) {
-//      res = res - right;
-//    } else {
-//      res = res + right;
-//    }
-//  }
-void AsmIntrinsifier::Integer_moduloFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  Label subtract;
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
-  // EAX: Tagged left (dividend).
-  // EBX: Tagged right (divisor).
-  // Check if modulo by zero -> exception thrown in main function.
-  __ cmpl(EBX, Immediate(0));
-  __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
-  EmitRemainderOperation(assembler);
-  // Untagged remainder result in EDX.
-  Label done;
-  __ movl(EAX, EDX);
-  __ cmpl(EAX, Immediate(0));
-  __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
-  // Result is negative, adjust it.
-  __ cmpl(EBX, Immediate(0));
-  __ j(LESS, &subtract, Assembler::kNearJump);
-  __ addl(EAX, EBX);
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&subtract);
-  __ subl(EAX, EBX);
-
-  __ Bind(&done);
-  // The remainder of two smis is always a smi, no overflow check needed.
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_truncDivide(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  // EAX: right argument (divisor)
-  __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
-  __ movl(EBX, EAX);
-  __ SmiUntag(EBX);
-  __ movl(EAX,
-          Address(ESP, +2 * target::kWordSize));  // Left argument (dividend).
-  __ SmiUntag(EAX);
-  __ pushl(EDX);  // Preserve EDX in case of 'fall_through'.
-  __ cdq();
-  __ idivl(EBX);
-  __ popl(EDX);
-  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
-  // cannot tag the result.
-  __ cmpl(EAX, Immediate(0x40000000));
-  __ j(EQUAL, normal_ir_body);
-  __ SmiTag(EAX);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_negate(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, normal_ir_body, Assembler::kNearJump);  // Non-smi value.
-  __ negl(EAX);
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitAndFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
-  __ andl(EAX, EBX);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitAnd(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitOrFromInteger(Assembler* assembler,
-                                               Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
-  __ orl(EAX, EBX);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitOr(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  Integer_bitOrFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXorFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
-  __ xorl(EAX, EBX);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXor(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitXorFromInteger(assembler, normal_ir_body);
-}
-
 void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
@@ -438,14 +224,9 @@ static void CompareIntegers(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_greaterThanFromInt(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  CompareIntegers(assembler, normal_ir_body, LESS);
-}
-
 void AsmIntrinsifier::Integer_lessThan(Assembler* assembler,
                                        Label* normal_ir_body) {
-  Integer_greaterThanFromInt(assembler, normal_ir_body);
+  CompareIntegers(assembler, normal_ir_body, LESS);
 }
 
 void AsmIntrinsifier::Integer_greaterThan(Assembler* assembler,
@@ -520,40 +301,7 @@ void AsmIntrinsifier::Integer_equal(Assembler* assembler,
   Integer_equalToInteger(assembler, normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_sar(Assembler* assembler, Label* normal_ir_body) {
-  Label shift_count_ok;
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  // Can destroy ECX since we are not falling through.
-  const Immediate& count_limit = Immediate(0x1F);
-  // Check that the count is not larger than what the hardware can handle.
-  // For shifting right a Smi the result is the same for all numbers
-  // >= count_limit.
-  __ SmiUntag(EAX);
-  // Negative counts throw exception.
-  __ cmpl(EAX, Immediate(0));
-  __ j(LESS, normal_ir_body, Assembler::kNearJump);
-  __ cmpl(EAX, count_limit);
-  __ j(LESS_EQUAL, &shift_count_ok, Assembler::kNearJump);
-  __ movl(EAX, count_limit);
-  __ Bind(&shift_count_ok);
-  __ movl(ECX, EAX);  // Shift amount must be in ECX.
-  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // Value.
-  __ SmiUntag(EAX);                                    // Value.
-  __ sarl(EAX, ECX);
-  __ SmiTag(EAX);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 // Argument is Smi (receiver).
-void AsmIntrinsifier::Smi_bitNegate(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // Receiver.
-  __ notl(EAX);
-  __ andl(EAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
-  __ ret();
-}
-
 void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
                                     Label* normal_ir_body) {
   ASSERT(kSmiTagShift == 1);
@@ -568,11 +316,6 @@ void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
   __ bsrl(EAX, EAX);
   __ SmiTag(EAX);
   __ ret();
-}
-
-void AsmIntrinsifier::Smi_bitAndFromSmi(Assembler* assembler,
-                                        Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
 }
 
 void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
@@ -1538,10 +1281,18 @@ static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
              kIfNotInRange, target);
 }
 
+static void JumpIfType(Assembler* assembler, Register cid, Label* target) {
+  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfInRange, target);
+}
+
+static void JumpIfNotType(Assembler* assembler, Register cid, Label* target) {
+  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfNotInRange, target);
+}
+
 // Return type quickly for simple types (not parameterized and not signature).
 void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
                                         Label* normal_ir_body) {
-  Label use_declaration_type, not_double, not_integer;
+  Label use_declaration_type, not_double, not_integer, not_string;
   __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   __ LoadClassIdMayBeSmi(EDI, EAX);
 
@@ -1555,8 +1306,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ cmpl(EDI, Immediate(kDoubleCid));
   __ j(NOT_EQUAL, &not_double);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::double_type_offset()));
   __ ret();
 
@@ -1565,8 +1316,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ movl(EAX, EDI);
   JumpIfNotInteger(assembler, EAX, &not_integer);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::int_type_offset()));
   __ ret();
 
@@ -1574,14 +1325,24 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   // If object is a string (one byte, two byte or external variants) return
   // string type.
   __ movl(EAX, EDI);
-  JumpIfNotString(assembler, EAX, &use_declaration_type);
+  JumpIfNotString(assembler, EAX, &not_string);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::string_type_offset()));
   __ ret();
 
-  // Object is neither double, nor integer, nor string.
+  __ Bind(&not_string);
+  // If object is a type or function type, return Dart type.
+  __ movl(EAX, EDI);
+  JumpIfNotType(assembler, EAX, &use_declaration_type);
+
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
+  __ movl(EAX, Address(EAX, target::ObjectStore::type_type_offset()));
+  __ ret();
+
+  // Object is neither double, nor integer, nor string, nor type.
   __ Bind(&use_declaration_type);
   __ LoadClassById(EBX, EDI);
   __ movzxw(EDI, FieldAddress(EBX, target::Class::num_type_arguments_offset()));
@@ -1597,15 +1358,19 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
 // Compares cid1 and cid2 to see if they're syntactically equivalent. If this
 // can be determined by this fast path, it jumps to either equal or not_equal,
-// otherwise it jumps to normal_ir_body. May clobber cid1, cid2, and scratch.
+// if equal but belonging to a generic class, it falls through with the scratch
+// register containing host_type_arguments_field_offset_in_words,
+// otherwise it jumps to normal_ir_body. May clobber scratch.
 static void EquivalentClassIds(Assembler* assembler,
                                Label* normal_ir_body,
                                Label* equal,
                                Label* not_equal,
                                Register cid1,
                                Register cid2,
-                               Register scratch) {
-  Label different_cids, not_integer;
+                               Register scratch,
+                               bool testing_instance_cids) {
+  Label different_cids, equal_cids_but_generic, not_integer,
+      not_integer_or_string;
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ cmpl(cid1, Immediate(kClosureCid));
@@ -1621,14 +1386,17 @@ static void EquivalentClassIds(Assembler* assembler,
   // Check if there are no type arguments. In this case we can return true.
   // Otherwise fall through into the runtime to handle comparison.
   __ LoadClassById(scratch, cid1);
-  __ movzxw(scratch,
-            FieldAddress(scratch, target::Class::num_type_arguments_offset()));
-  __ cmpl(scratch, Immediate(0));
-  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
+  __ movl(
+      scratch,
+      FieldAddress(
+          scratch,
+          target::Class::host_type_arguments_field_offset_in_words_offset()));
+  __ cmpl(scratch, Immediate(target::Class::kNoTypeArguments));
+  __ j(NOT_EQUAL, &equal_cids_but_generic, Assembler::kNearJump);
   __ jmp(equal);
 
   // Class ids are different. Check if we are comparing two string types (with
-  // different representations) or two integer types.
+  // different representations) or two integer types or two type types.
   __ Bind(&different_cids);
   __ cmpl(cid1, Immediate(kNumPredefinedCids));
   __ j(ABOVE_EQUAL, not_equal);
@@ -1638,20 +1406,35 @@ static void EquivalentClassIds(Assembler* assembler,
   JumpIfNotInteger(assembler, scratch, &not_integer);
 
   // First type is an integer. Check if the second is an integer too.
-  // Otherwise types are unequiv because only integers have the same runtime
-  // type as other integers.
   JumpIfInteger(assembler, cid2, equal);
+  // Integer types are only equivalent to other integer types.
   __ jmp(not_equal);
 
   __ Bind(&not_integer);
-  // Check if the first type is String. If it is not then types are not
-  // equivalent because they have different class ids and they are not strings
-  // or integers.
-  JumpIfNotString(assembler, cid1, not_equal);
-  // First type is String. Check if the second is a string too.
+  // Check if both are String types.
+  JumpIfNotString(assembler, cid1,
+                  testing_instance_cids ? &not_integer_or_string : not_equal);
+
+  // First type is a String. Check if the second is a String too.
   JumpIfString(assembler, cid2, equal);
   // String types are only equivalent to other String types.
   __ jmp(not_equal);
+
+  if (testing_instance_cids) {
+    __ Bind(&not_integer_or_string);
+    // Check if the first type is a Type. If it is not then types are not
+    // equivalent because they have different class ids and they are not String
+    // or integer or Type.
+    JumpIfNotType(assembler, cid1, not_equal);
+
+    // First type is a Type. Check if the second is a Type too.
+    JumpIfType(assembler, cid2, equal);
+    // Type types are only equivalent to other Type types.
+    __ jmp(not_equal);
+  }
+
+  // The caller must compare the type arguments.
+  __ Bind(&equal_cids_but_generic);
 }
 
 void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
@@ -1664,7 +1447,16 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
 
   Label equal, not_equal;
   EquivalentClassIds(assembler, normal_ir_body, &equal, &not_equal, EDI, EBX,
-                     EAX);
+                     EAX, /* testing_instance_cids = */ true);
+
+  // Compare type arguments, host_type_arguments_field_offset_in_words in EAX.
+  __ movl(EDI, Address(ESP, +1 * target::kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
+  __ movl(EDI, FieldAddress(EDI, EAX, TIMES_4, 0));
+  __ movl(EBX, FieldAddress(EBX, EAX, TIMES_4, 0));
+  __ cmpl(EDI, EBX);
+  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
+  // Fall through to equal case if type arguments are equal.
 
   __ Bind(&equal);
   __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
@@ -1719,8 +1511,16 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ SmiUntag(ECX);
   __ movl(EDX, FieldAddress(EBX, target::Type::type_class_id_offset()));
   __ SmiUntag(EDX);
+  // We are not testing instance cids, but type class cids of Type instances.
   EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, ECX,
-                     EDX, EAX);
+                     EDX, EAX, /* testing_instance_cids = */ false);
+
+  // Compare type arguments in Type instances.
+  __ movl(ECX, FieldAddress(EDI, target::Type::arguments_offset()));
+  __ movl(EDX, FieldAddress(EBX, target::Type::arguments_offset()));
+  __ cmpl(ECX, EDX);
+  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
+  // Fall through to check nullability if type arguments are equal.
 
   // Check nullability.
   __ Bind(&equiv_cids);
@@ -1752,6 +1552,30 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+                                               Label* normal_ir_body) {
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // FunctionType object.
+  __ movl(EAX, FieldAddress(EAX, target::FunctionType::hash_offset()));
+  __ testl(EAX, EAX);
+  __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
+  __ ret();
+  __ Bind(normal_ir_body);
+  // Hash not yet computed.
+}
+
+void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+                                            Label* normal_ir_body) {
+  __ movl(EDI, Address(ESP, +1 * target::kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
+  __ cmpl(EDI, EBX);
+  __ j(NOT_EQUAL, normal_ir_body);
+
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  __ Bind(normal_ir_body);
+}
+
 // bool _substringMatches(int start, String other)
 void AsmIntrinsifier::StringBaseSubstringMatches(Assembler* assembler,
                                                  Label* normal_ir_body) {
@@ -1763,8 +1587,8 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
   UNREACHABLE();
 }
 
-void AsmIntrinsifier::Object_setHash(Assembler* assembler,
-                                     Label* normal_ir_body) {
+void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
+                                                Label* normal_ir_body) {
   UNREACHABLE();
 }
 
@@ -1954,9 +1778,9 @@ static void TryAllocateString(Assembler* assembler,
   // EDI: allocation size.
   {
     Label size_tag_overflow, done;
-    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 
@@ -2183,24 +2007,6 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
 
   // Tail-call the function.
   __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
-}
-
-// On stack: user tag (+1), return-address (+0).
-void AsmIntrinsifier::UserTag_makeCurrent(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  // EDI: Isolate.
-  __ LoadIsolate(EDI);
-  // EAX: Current user tag.
-  __ movl(EAX, Address(EDI, target::Isolate::current_tag_offset()));
-  // EAX: UserTag.
-  __ movl(EBX, Address(ESP, +1 * target::kWordSize));
-  // Set target::Isolate::current_tag_.
-  __ movl(Address(EDI, target::Isolate::current_tag_offset()), EBX);
-  // EAX: UserTag's tag.
-  __ movl(EBX, FieldAddress(EBX, target::UserTag::tag_offset()));
-  // Set target::Isolate::user_tag_.
-  __ movl(Address(EDI, target::Isolate::user_tag_offset()), EBX);
-  __ ret();
 }
 
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,

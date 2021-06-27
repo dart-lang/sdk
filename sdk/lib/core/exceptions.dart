@@ -6,23 +6,21 @@ part of dart.core;
 
 // Exceptions are thrown either by the VM or from Dart code.
 
-/**
- * A marker interface implemented by all core library exceptions.
- *
- * An [Exception] is intended to convey information to the user about a failure,
- * so that the error can be addressed programmatically. It is intended to be
- * caught, and it should contain useful data fields.
- *
- * Creating instances of [Exception] directly with `Exception("message")`
- * is discouraged in library code since it doesn't give users a precise
- * type they can catch. It may be reasonable to use instances of this
- * class in tests or during development.
- */
+/// A marker interface implemented by all core library exceptions.
+///
+/// An [Exception] is intended to convey information to the user about a failure,
+/// so that the error can be addressed programmatically. It is intended to be
+/// caught, and it should contain useful data fields.
+///
+/// Creating instances of [Exception] directly with `Exception("message")`
+/// is discouraged in library code since it doesn't give users a precise
+/// type they can catch. It may be reasonable to use instances of this
+/// class in tests or during development.
 abstract class Exception {
   factory Exception([var message]) => _Exception(message);
 }
 
-/** Default implementation of [Exception] which carries a message. */
+/// Default implementation of [Exception] which carries a message.
 class _Exception implements Exception {
   final dynamic message;
 
@@ -35,65 +33,53 @@ class _Exception implements Exception {
   }
 }
 
-/**
- * Exception thrown when a string or some other data does not have an expected
- * format and cannot be parsed or processed.
- */
+/// Exception thrown when a string or some other data does not have an expected
+/// format and cannot be parsed or processed.
 class FormatException implements Exception {
-  /**
-   * A message describing the format error.
-   */
+  /// A message describing the format error.
   final String message;
 
-  /**
-   * The actual source input which caused the error.
-   *
-   * This is usually a [String], but can be other types too.
-   * If it is a string, parts of it may be included in the [toString] message.
-   *
-   * The source is `null` if omitted or unknown.
-   */
+  /// The actual source input which caused the error.
+  ///
+  /// This is usually a [String], but can be other types too.
+  /// If it is a string, parts of it may be included in the [toString] message.
+  ///
+  /// The source is `null` if omitted or unknown.
   final dynamic source;
 
-  /**
-   * The offset in [source] where the error was detected.
-   *
-   * A zero-based offset into the source that marks the format error causing
-   * this exception to be created. If `source` is a string, this should be a
-   * string index in the range `0 <= offset <= source.length`.
-   *
-   * If input is a string, the [toString] method may represent this offset as
-   * a line and character position. The offset should be inside the string,
-   * or at the end of the string.
-   *
-   * May be omitted. If present, [source] should also be present if possible.
-   */
+  /// The offset in [source] where the error was detected.
+  ///
+  /// A zero-based offset into the source that marks the format error causing
+  /// this exception to be created. If `source` is a string, this should be a
+  /// string index in the range `0 <= offset <= source.length`.
+  ///
+  /// If input is a string, the [toString] method may represent this offset as
+  /// a line and character position. The offset should be inside the string,
+  /// or at the end of the string.
+  ///
+  /// May be omitted. If present, [source] should also be present if possible.
   final int? offset;
 
-  /**
-   * Creates a new FormatException with an optional error [message].
-   *
-   * Optionally also supply the actual [source] with the incorrect format,
-   * and the [offset] in the format where a problem was detected.
-   */
+  /// Creates a new `FormatException` with an optional error [message].
+  ///
+  /// Optionally also supply the actual [source] with the incorrect format,
+  /// and the [offset] in the format where a problem was detected.
   @pragma("vm:entry-point")
   const FormatException([this.message = "", this.source, this.offset]);
 
-  /**
-   * Returns a description of the format exception.
-   *
-   * The description always contains the [message].
-   *
-   * If [source] is present and is a string, the description will contain
-   * (at least a part of) the source.
-   * If [offset] is also provided, the part of the source included will
-   * contain that offset, and the offset will be marked.
-   *
-   * If the source is a string and it contains a line break before offset,
-   * only the line containing offset will be included, and its line number
-   * will also be part of the description. Line and character offsets are
-   * 1-based.
-   */
+  /// Returns a description of the format exception.
+  ///
+  /// The description always contains the [message].
+  ///
+  /// If [source] is present and is a string, the description will contain
+  /// (at least a part of) the source.
+  /// If [offset] is also provided, the part of the source included will
+  /// contain that offset, and the offset will be marked.
+  ///
+  /// If the source is a string and it contains a line break before offset,
+  /// only the line containing offset will be included, and its line number
+  /// will also be part of the description. Line and character offsets are
+  /// 1-based.
   String toString() {
     String report = "FormatException";
     Object? message = this.message;
@@ -179,6 +165,8 @@ class FormatException implements Exception {
 }
 
 // Exception thrown when doing integer division with a zero divisor.
+// TODO(30743): Should be removed, and division by zero should just throw an
+// [ArgumentError].
 class IntegerDivisionByZeroException implements Exception {
   @pragma("vm:entry-point")
   const IntegerDivisionByZeroException();

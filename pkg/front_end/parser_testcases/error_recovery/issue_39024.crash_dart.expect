@@ -8,13 +8,19 @@ parser/error_recovery/issue_39024.crash:1:7: Expected an identifier, but got ''.
 n<S e(
       ^...
 
+WARNING: Reporting at eof --- see below for details.
+
 parser/error_recovery/issue_39024.crash:1:7: A function declaration needs an explicit list of parameters.
 n<S e(
       ^...
 
+WARNING: Reporting at eof --- see below for details.
+
 parser/error_recovery/issue_39024.crash:1:7: Expected a function body, but got ''.
 n<S e(
       ^...
+
+WARNING: Reporting at eof --- see below for details.
 
 parser/error_recovery/issue_39024.crash:1:6: Can't find ')' to match '('.
 n<S e(
@@ -37,19 +43,22 @@ beginCompilationUnit(n)
         handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], S, S)
       endTypeArguments(1, <, >)
       handleType(n, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {token: }], , )
+      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+      // WARNING: Reporting at eof for .
       handleIdentifier(, topLevelFunctionDeclaration)
       handleNoTypeVariables()
       handleRecoverableError(MissingFunctionParameters, , )
+      // WARNING: Reporting at eof for .
       beginFormalParameters((, MemberKind.TopLevelMethod)
       endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
       handleAsyncModifier(null, null)
-      handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got ''., null, {token: }], , )
+      handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got ''., null, {lexeme: }], , )
+      // WARNING: Reporting at eof for .
       handleInvalidFunctionBody({)
     endTopLevelMethod(n, null, })
   endTopLevelDeclaration()
   handleErrorToken(UnmatchedToken(())
-  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), token: (}], UnmatchedToken((), UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), lexeme: (}], UnmatchedToken((), UnmatchedToken(())
   handleErrorToken(UnmatchedToken(<))
-  handleRecoverableError(Message[UnmatchedToken, Can't find '>' to match '<'., null, {string: >, token: <}], UnmatchedToken(<), UnmatchedToken(<))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '>' to match '<'., null, {string: >, lexeme: <}], UnmatchedToken(<), UnmatchedToken(<))
 endCompilationUnit(1, )

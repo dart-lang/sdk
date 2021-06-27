@@ -61,7 +61,8 @@ Thread::~Thread() {
 Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
       stack_limit_(0),
-      write_barrier_mask_(ObjectLayout::kGenerationalBarrierMask),
+      write_barrier_mask_(UntaggedObject::kGenerationalBarrierMask),
+      heap_base_(0),
       isolate_(NULL),
       dispatch_table_array_(NULL),
       saved_stack_limit_(0),
@@ -176,6 +177,8 @@ static const struct ALIGN16 {
 } float_zerow_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
 
 void Thread::InitVMConstants() {
+  heap_base_ = Object::null()->heap_base();
+
 #define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
   ASSERT((init_expr)->IsOldObject());
   CACHED_VM_OBJECTS_LIST(ASSERT_VM_HEAP)
@@ -227,11 +230,11 @@ void Thread::clear_pending_functions() {
 }
 
 void Thread::set_active_exception(const Object& value) {
-  active_exception_ = value.raw();
+  active_exception_ = value.ptr();
 }
 
 void Thread::set_active_stacktrace(const Object& value) {
-  active_stacktrace_ = value.raw();
+  active_stacktrace_ = value.ptr();
 }
 
 ErrorPtr Thread::sticky_error() const {
@@ -240,7 +243,7 @@ ErrorPtr Thread::sticky_error() const {
 
 void Thread::set_sticky_error(const Error& value) {
   ASSERT(!value.IsNull());
-  sticky_error_ = value.raw();
+  sticky_error_ = value.ptr();
 }
 
 void Thread::ClearStickyError() {
@@ -272,9 +275,16 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
   }
 }
 
-bool Thread::EnterIsolate(Isolate* isolate) {
+bool Thread::EnterIsolate(Isolate* isolate, bool is_nested_reenter) {
   const bool kIsMutatorThread = true;
-  Thread* thread = isolate->ScheduleThread(kIsMutatorThread);
+  const bool kBypassSafepoint = false;
+
+  is_nested_reenter = is_nested_reenter ||
+                      (isolate->mutator_thread() != nullptr &&
+                       isolate->mutator_thread()->top_exit_frame_info() != 0);
+
+  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, is_nested_reenter,
+                                           kBypassSafepoint);
   if (thread != NULL) {
     ASSERT(thread->store_buffer_block_ == NULL);
     ASSERT(thread->isolate() == isolate);
@@ -285,7 +295,7 @@ bool Thread::EnterIsolate(Isolate* isolate) {
   return false;
 }
 
-void Thread::ExitIsolate() {
+void Thread::ExitIsolate(bool is_nested_exit) {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   ASSERT(thread->IsMutatorThread());
@@ -299,7 +309,12 @@ void Thread::ExitIsolate() {
   thread->set_vm_tag(isolate->is_runnable() ? VMTag::kIdleTagId
                                             : VMTag::kLoadWaitTagId);
   const bool kIsMutatorThread = true;
-  isolate->UnscheduleThread(thread, kIsMutatorThread);
+  const bool kBypassSafepoint = false;
+  is_nested_exit =
+      is_nested_exit || (isolate->mutator_thread() != nullptr &&
+                         isolate->mutator_thread()->top_exit_frame_info() != 0);
+  isolate->UnscheduleThread(thread, kIsMutatorThread, is_nested_exit,
+                            kBypassSafepoint);
 }
 
 bool Thread::EnterIsolateAsHelper(Isolate* isolate,
@@ -307,7 +322,9 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
                                   bool bypass_safepoint) {
   ASSERT(kind != kMutatorTask);
   const bool kIsMutatorThread = false;
-  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, bypass_safepoint);
+  const bool kIsNestedReenter = false;
+  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, kIsNestedReenter,
+                                           bypass_safepoint);
   if (thread != NULL) {
     ASSERT(!thread->IsMutatorThread());
     ASSERT(thread->isolate() == isolate);
@@ -330,7 +347,9 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   const bool kIsMutatorThread = false;
-  isolate->UnscheduleThread(thread, kIsMutatorThread, bypass_safepoint);
+  const bool kIsNestedExit = false;
+  isolate->UnscheduleThread(thread, kIsMutatorThread, kIsNestedExit,
+                            bypass_safepoint);
 }
 
 bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
@@ -573,14 +592,14 @@ void Thread::DeferredMarkingStackAddObject(ObjectPtr obj) {
 void Thread::MarkingStackRelease() {
   MarkingStackBlock* block = marking_stack_block_;
   marking_stack_block_ = NULL;
-  write_barrier_mask_ = ObjectLayout::kGenerationalBarrierMask;
+  write_barrier_mask_ = UntaggedObject::kGenerationalBarrierMask;
   isolate_group()->marking_stack()->PushBlock(block);
 }
 
 void Thread::MarkingStackAcquire() {
   marking_stack_block_ = isolate_group()->marking_stack()->PopEmptyBlock();
-  write_barrier_mask_ = ObjectLayout::kGenerationalBarrierMask |
-                        ObjectLayout::kIncrementalBarrierMask;
+  write_barrier_mask_ = UntaggedObject::kGenerationalBarrierMask |
+                        UntaggedObject::kIncrementalBarrierMask;
 }
 
 void Thread::DeferredMarkingStackRelease() {
@@ -710,17 +729,17 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
         continue;
 
       // Dart code won't store into canonical instances.
-      if (obj->ptr()->IsCanonical()) continue;
+      if (obj->untag()->IsCanonical()) continue;
 
       // Objects in the VM isolate heap are immutable and won't be
       // stored into. Check this condition last because there's no bit
       // in the header for it.
-      if (obj->ptr()->InVMIsolateHeap()) continue;
+      if (obj->untag()->InVMIsolateHeap()) continue;
 
       switch (op_) {
         case Thread::RestoreWriteBarrierInvariantOp::kAddToRememberedSet:
-          if (!obj->ptr()->IsRemembered()) {
-            obj->ptr()->AddToRememberedSet(current_);
+          if (!obj->untag()->IsRemembered()) {
+            obj->untag()->AddToRememberedSet(current_);
           }
           if (current_->is_marking()) {
             current_->DeferredMarkingStackAddObject(obj);
@@ -732,6 +751,12 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
           break;
       }
     }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    UNREACHABLE();  // Stack slots are not compressed.
   }
 
  private:
@@ -791,7 +816,7 @@ bool Thread::CanLoadFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
-  if (object.raw() == expr) {                                                  \
+  if (object.ptr() == expr) {                                                  \
     return true;                                                               \
   }
     CACHED_VM_STUBS_LIST(CHECK_OBJECT)
@@ -801,7 +826,7 @@ bool Thread::CanLoadFromThread(const Object& object) {
   // For non [Code] objects we check if the object equals to any of the cached
   // non-stub entries.
 #define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
-  if (object.raw() == expr) {                                                  \
+  if (object.ptr() == expr) {                                                  \
     return true;                                                               \
   }
   CACHED_NON_VM_STUB_LIST(CHECK_OBJECT)
@@ -815,8 +840,8 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->ptr()->InVMIsolateHeap());                                    \
-  if (object.raw() == expr) {                                                  \
+  ASSERT((expr)->untag()->InVMIsolateHeap());                                  \
+  if (object.ptr() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }
     CACHED_VM_STUBS_LIST(COMPUTE_OFFSET)
@@ -826,7 +851,7 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // For non [Code] objects we check if the object equals to any of the cached
   // non-stub entries.
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  if (object.raw() == expr) {                                                  \
+  if (object.ptr() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }
   CACHED_NON_VM_STUB_LIST(COMPUTE_OFFSET)
@@ -1113,8 +1138,8 @@ void Thread::SetFfiCallbackStackReturn(int32_t callback_id,
       for (intptr_t i = 0; i < capacity; i++) {
         new_array.SetUint8(i, array.GetUint8(i));
       }
-      array ^= new_array.raw();
-      ffi_callback_stack_return_ = new_array.raw();
+      array ^= new_array.ptr();
+      ffi_callback_stack_return_ = new_array.ptr();
     }
   }
 
@@ -1138,10 +1163,11 @@ void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {
   }
 
   if (entry != 0) {
-    ObjectPtr* const code_array =
+    CompressedObjectPtr* const code_array =
         Array::DataOf(GrowableObjectArray::NoSafepointData(array));
     // RawCast allocates handles in ASSERTs.
-    const CodePtr code = static_cast<CodePtr>(code_array[callback_id]);
+    const CodePtr code = static_cast<CodePtr>(
+        code_array[callback_id].Decompress(array.heap_base()));
     if (!Code::ContainsInstructionAt(code, entry)) {
       FATAL("Cannot invoke callback on incorrect isolate.");
     }

@@ -19,20 +19,27 @@ class ConvertToExpressionFunctionBody extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_INTO_EXPRESSION_BODY;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_INTO_EXPRESSION_BODY_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     // prepare current body
     var body = getEnclosingFunctionBody();
     if (body is! BlockFunctionBody || body.isGenerator) {
       return;
     }
+    var parent = body.parent;
+    if (parent is ConstructorDeclaration && parent.factoryKeyword == null) {
+      return;
+    }
     // prepare return statement
-    List<Statement> statements = (body as BlockFunctionBody).block.statements;
+    List<Statement> statements = body.block.statements;
     if (statements.length != 1) {
       return;
     }
     var onlyStatement = statements.first;
     // prepare returned expression
-    Expression returnExpression;
+    Expression? returnExpression;
     if (onlyStatement is ReturnStatement) {
       returnExpression = onlyStatement.expression;
     } else if (onlyStatement is ExpressionStatement) {
@@ -48,15 +55,17 @@ class ConvertToExpressionFunctionBody extends CorrectionProducer {
       return;
     }
 
+    final returnExpression_final = returnExpression;
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(body), (builder) {
         if (body.isAsynchronous) {
           builder.write('async ');
         }
         builder.write('=> ');
-        builder.write(utils.getNodeText(returnExpression));
-        if (body.parent is! FunctionExpression ||
-            body.parent.parent is FunctionDeclaration) {
+        builder.write(utils.getNodeText(returnExpression_final));
+        var parent = body.parent;
+        if (parent is! FunctionExpression ||
+            parent.parent is FunctionDeclaration) {
           builder.write(';');
         }
       });

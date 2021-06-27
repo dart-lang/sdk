@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateGetter extends CorrectionProducer {
-  String _getterName;
+  String _getterName = '';
 
   @override
   List<Object> get fixArguments => [_getterName];
@@ -22,16 +22,16 @@ class CreateGetter extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! SimpleIdentifier) {
+    var nameNode = node;
+    if (nameNode is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier nameNode = node;
     _getterName = nameNode.name;
     if (!nameNode.inGetterContext()) {
       return;
     }
     // prepare target
-    Expression target;
+    Expression? target;
     {
       var nameParent = nameNode.parent;
       if (nameParent is PrefixedIdentifier) {
@@ -42,7 +42,7 @@ class CreateGetter extends CorrectionProducer {
     }
     // prepare target element
     var staticModifier = false;
-    Element targetElement;
+    Element? targetElement;
     if (target is ExtensionOverride) {
       targetElement = target.staticElement;
     } else if (target is Identifier &&
@@ -70,7 +70,11 @@ class CreateGetter extends CorrectionProducer {
       }
       staticModifier = inStaticContext;
     }
-    if (targetElement.librarySource.isInSystemLibrary) {
+    if (targetElement == null) {
+      return;
+    }
+    var targetSource = targetElement.source;
+    if (targetSource == null || targetSource.isInSystemLibrary) {
       return;
     }
     // prepare target declaration
@@ -79,16 +83,26 @@ class CreateGetter extends CorrectionProducer {
     if (targetDeclarationResult == null) {
       return;
     }
-    if (targetDeclarationResult.node is! ClassOrMixinDeclaration &&
-        targetDeclarationResult.node is! ExtensionDeclaration) {
+    var targetNode = targetDeclarationResult.node;
+    if (targetNode is CompilationUnitMember) {
+      if (targetDeclarationResult.node is! ClassOrMixinDeclaration &&
+          targetDeclarationResult.node is! ExtensionDeclaration) {
+        return;
+      }
+    } else {
       return;
     }
-    CompilationUnitMember targetNode = targetDeclarationResult.node;
     // prepare location
-    var targetLocation = CorrectionUtils(targetDeclarationResult.resolvedUnit)
-        .prepareNewGetterLocation(targetNode);
+    var resolvedUnit = targetDeclarationResult.resolvedUnit;
+    if (resolvedUnit == null) {
+      return;
+    }
+    var targetLocation =
+        CorrectionUtils(resolvedUnit).prepareNewGetterLocation(targetNode);
+    if (targetLocation == null) {
+      return;
+    }
     // build method source
-    var targetSource = targetElement.source;
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.addInsertion(targetLocation.offset, (builder) {
@@ -98,7 +112,7 @@ class CreateGetter extends CorrectionProducer {
         builder.writeGetterDeclaration(_getterName,
             isStatic: staticModifier,
             nameGroupName: 'NAME',
-            returnType: fieldType,
+            returnType: fieldType ?? typeProvider.dynamicType,
             returnTypeGroupName: 'TYPE');
         builder.write(targetLocation.suffix);
       });

@@ -12,7 +12,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
 class FormatOnTypeHandler
-    extends MessageHandler<DocumentOnTypeFormattingParams, List<TextEdit>> {
+    extends MessageHandler<DocumentOnTypeFormattingParams, List<TextEdit>?> {
   FormatOnTypeHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_onTypeFormatting;
@@ -21,15 +21,15 @@ class FormatOnTypeHandler
   LspJsonHandler<DocumentOnTypeFormattingParams> get jsonHandler =>
       DocumentOnTypeFormattingParams.jsonHandler;
 
-  ErrorOr<List<TextEdit>> formatFile(String path) {
+  ErrorOr<List<TextEdit>?> formatFile(String path) {
     final file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
 
     final result = server.getParsedUnit(path);
-    if (result.state != ResultState.VALID || result.errors.isNotEmpty) {
-      return success();
+    if (result?.state != ResultState.VALID || result!.errors.isNotEmpty) {
+      return success(null);
     }
 
     return generateEditsForFormatting(
@@ -37,7 +37,7 @@ class FormatOnTypeHandler
   }
 
   @override
-  Future<ErrorOr<List<TextEdit>>> handle(
+  Future<ErrorOr<List<TextEdit>?>> handle(
       DocumentOnTypeFormattingParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);

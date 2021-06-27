@@ -77,7 +77,7 @@ ${superMember} is a ${_memberKind(superMember)}
         final DartType superType = setterType(host, superMember);
         final bool isCovariant = ownMember is Field
             ? ownMember.isCovariant
-            : ownMember.function.positionalParameters[0].isCovariant;
+            : ownMember.function!.positionalParameters[0].isCovariant;
         if (!_isValidParameterOverride(isCovariant, ownType, superType)) {
           if (isCovariant) {
             return failures.reportInvalidOverride(ownMember, superMember, '''
@@ -99,7 +99,8 @@ ${ownType} is not a subtype of ${superType}
         }
       }
     } else {
-      final String msg = _checkFunctionOverride(host, ownMember, superMember);
+      final String? msg =
+          _checkFunctionOverride(host, ownMember, superMember as Procedure);
       if (msg != null) {
         return failures.reportInvalidOverride(ownMember, superMember, msg);
       }
@@ -109,6 +110,12 @@ ${ownType} is not a subtype of ${superType}
   /// Check if [subtype] is subtype of [supertype] after applying
   /// type parameter [substitution].
   bool _isSubtypeOf(DartType subtype, DartType supertype) {
+    // TODO(dmitryas): Remove this when ExtensionType is in ast.dart.
+    if (!_isKnownDartTypeImplementation(subtype) ||
+        !_isKnownDartTypeImplementation(supertype)) {
+      return true;
+    }
+
     if (subtype is InvalidType || supertype is InvalidType) {
       return true;
     }
@@ -120,7 +127,7 @@ ${ownType} is not a subtype of ${superType}
 
   Substitution _makeSubstitutionForMember(Class host, Member member) {
     final Supertype hostType =
-        hierarchy.getClassAsInstanceOf(host, member.enclosingClass);
+        hierarchy.getClassAsInstanceOf(host, member.enclosingClass!)!;
     return Substitution.fromSupertype(hostType);
   }
 
@@ -129,11 +136,10 @@ ${ownType} is not a subtype of ${superType}
   ///
   /// Note: this function is a copy of [SubtypeTester._isFunctionSubtypeOf]
   /// but it additionally accounts for parameter covariance.
-  String _checkFunctionOverride(
-      Class host, Member ownMember, Member superMember) {
-    if (ownMember is Procedure &&
-        (ownMember.isMemberSignature ||
-            (ownMember.isForwardingStub && !ownMember.isForwardingSemiStub))) {
+  String? _checkFunctionOverride(
+      Class host, Procedure ownMember, Procedure superMember) {
+    if (ownMember.isMemberSignature ||
+        (ownMember.isForwardingStub && !ownMember.isForwardingSemiStub)) {
       // Synthesized members are not obligated to override super members.
       return null;
     }
@@ -214,7 +220,7 @@ super method declares ${superParameter.type}
             ownFunction.namedParameters,
             key: (v) => v.name);
     for (VariableDeclaration superParameter in superFunction.namedParameters) {
-      final VariableDeclaration ownParameter =
+      final VariableDeclaration? ownParameter =
           ownParameters[superParameter.name];
       if (ownParameter == null) {
         return 'override is missing ${superParameter.name} parameter';
@@ -271,24 +277,18 @@ super method declares ${superParameter.type}
     if (receiver is InvalidType) {
       return;
     }
-    if (receiver is BottomType) {
-      return;
-    }
     if (receiver is NeverType &&
         receiver.nullability == Nullability.nonNullable) {
       return;
     }
 
-    // Permit any invocation on Function type.
-    if (receiver == environment.coreTypes.functionLegacyRawType &&
-        where is InvocationExpression &&
-        where.name.text == 'call') {
-      return;
-    }
-
-    if (receiver is FunctionType &&
-        where is InvocationExpression &&
-        where.name.text == 'call') {
+    // Permit any invocation or tear-off of `call` on Function type.
+    if ((receiver == environment.coreTypes.functionLegacyRawType ||
+                receiver == environment.coreTypes.functionNonNullableRawType ||
+                receiver is FunctionType) &&
+            (where is InvocationExpression && where.name.text == 'call') ||
+        (where is PropertyGet && where.name.text == 'call') ||
+        where is FunctionTearOff) {
       return;
     }
 
@@ -299,4 +299,17 @@ super method declares ${superParameter.type}
   void fail(TreeNode where, String message) {
     failures.reportFailure(where, message);
   }
+}
+
+bool _isKnownDartTypeImplementation(DartType type) {
+  return type is DynamicType ||
+      type is FunctionType ||
+      type is FutureOrType ||
+      type is InterfaceType ||
+      type is InvalidType ||
+      type is NeverType ||
+      type is NullType ||
+      type is TypeParameterType ||
+      type is TypedefType ||
+      type is VoidType;
 }

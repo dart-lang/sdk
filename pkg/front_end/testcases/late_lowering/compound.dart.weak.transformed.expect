@@ -19,10 +19,10 @@ static method main() → dynamic {
     #local1#isSet = true;
     return #local1 = #t1;
   }
-  #local1#set.call(0);
-  self::expect(0, #local1#get.call());
-  #local1#set.call(#local1#get.call().{core::num::+}(2));
-  self::expect(2, #local1#get.call());
+  #local1#set(0){(core::int) → dynamic};
+  self::expect(0, #local1#get(){() → core::int});
+  #local1#set(#local1#get(){() → core::int}.{core::num::+}(2){(core::num) → core::int}){(core::int) → dynamic};
+  self::expect(2, #local1#get(){() → core::int});
   lowered core::int? #local2;
   lowered core::bool #local2#isSet = false;
   function #local2#get() → core::int {
@@ -36,9 +36,9 @@ static method main() → dynamic {
     #local2#isSet = true;
     return #local2 = #t2;
   }
-  self::expect(1, #local2#get.call());
-  #local2#set.call(#local2#get.call().{core::num::+}(2));
-  self::expect(3, #local2#get.call());
+  self::expect(1, #local2#get(){() → core::int});
+  #local2#set(#local2#get(){() → core::int}.{core::num::+}(2){(core::num) → core::int}){(core::int) → dynamic};
+  self::expect(3, #local2#get(){() → core::int});
 }
 static method error() → dynamic {
   lowered final core::int? #local;
@@ -52,11 +52,11 @@ static method error() → dynamic {
       #local#isSet = true;
       return #local = #t3;
     }
-  #local#set.call((let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
+  #local#set((let final Never #t4 = invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
   local += 0;
-  ^^^^^" in #local#get.call()).{core::num::+}(0));
+  ^^^^^" in #local#get(){() → core::int}).{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }

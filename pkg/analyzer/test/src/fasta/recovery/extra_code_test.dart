@@ -64,9 +64,8 @@ int get g(x) => 0;
         codes: [ParserErrorCode.GETTER_WITH_PARAMETERS]);
     validateTokenStream(unit.beginToken);
 
-    FunctionDeclaration g = unit.declarations.first;
-    var parameters = g.functionExpression.parameters;
-    expect(parameters, isNotNull);
+    var g = unit.declarations.first as FunctionDeclaration;
+    var parameters = g.functionExpression.parameters!;
     expect(parameters.parameters, hasLength(1));
   }
 

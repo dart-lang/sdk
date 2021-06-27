@@ -388,10 +388,13 @@ class Assembler : public AssemblerBase {
   // Unconditional jump to a given address in memory.
   void Jump(const Address& address) { Branch(address); }
 
-  void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadField(Register dst, const FieldAddress& address) override {
+    ldr(dst, address);
+  }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset);
   }
+  void LoadCompressed(Register dest, const Address& slot) { ldr(dest, slot); }
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     StoreToOffset(src, base, offset);
   }
@@ -406,6 +409,12 @@ class Assembler : public AssemblerBase {
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
+  }
+  void CompareWithCompressedFieldFromOffset(Register value,
+                                            Register base,
+                                            int32_t offset) {
+    LoadCompressedFieldFromOffset(TMP, base, offset);
+    cmp(value, Operand(TMP));
   }
 
   void CompareWithMemoryValue(Register value, Address address) {
@@ -566,6 +575,18 @@ class Assembler : public AssemblerBase {
 
   void dmb();
 
+  // Media instructions.
+  void sbfx(Register rd,
+            Register rn,
+            int32_t lsb,
+            int32_t width,
+            Condition cond = AL);
+  void ubfx(Register rd,
+            Register rn,
+            int32_t lsb,
+            int32_t width,
+            Condition cond = AL);
+
   // Emit code to transition between generated and native modes.
   //
   // These require that CSP and SP are equal and aligned and require two scratch
@@ -578,8 +599,8 @@ class Assembler : public AssemblerBase {
   void TransitionNativeToGenerated(Register scratch0,
                                    Register scratch1,
                                    bool exit_safepoint);
-  void EnterSafepoint(Register scratch0, Register scratch1);
-  void ExitSafepoint(Register scratch0, Register scratch1);
+  void EnterFullSafepoint(Register scratch0, Register scratch1);
+  void ExitFullSafepoint(Register scratch0, Register scratch1);
 
   // Miscellaneous instructions.
   void clrex();
@@ -826,6 +847,7 @@ class Assembler : public AssemblerBase {
   void SetupGlobalPoolAndDispatchTable();
 
   void LoadIsolate(Register rd);
+  void LoadIsolateGroup(Register dst);
 
   // Load word from pool from the given index using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.
@@ -847,11 +869,6 @@ class Assembler : public AssemblerBase {
   }
   void CompareObject(Register rn, const Object& object);
 
-  enum CanBeSmi {
-    kValueIsNotSmi,
-    kValueCanBeSmi,
-  };
-
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
   // if the value can be proven either Smi or old-and-premarked, its NoBarrier
@@ -860,7 +877,7 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
   void StoreIntoArray(Register object,
                       Register slot,
                       Register value,
@@ -872,7 +889,7 @@ class Assembler : public AssemblerBase {
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value);
+                                Register value) override;
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
@@ -917,9 +934,22 @@ class Assembler : public AssemblerBase {
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+  void EnsureHasClassIdInDEBUG(intptr_t cid,
+                               Register src,
+                               Register scratch,
+                               bool can_be_null = false) override;
 
   intptr_t FindImmediate(int32_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
+  void LoadFromOffset(Register reg,
+                      const Address& address,
+                      OperandSize type,
+                      Condition cond);
+  void LoadFromOffset(Register reg,
+                      const Address& address,
+                      OperandSize type = kFourBytes) override {
+    LoadFromOffset(reg, address, type, AL);
+  }
   void LoadFromOffset(Register reg,
                       Register base,
                       int32_t offset,
@@ -928,26 +958,60 @@ class Assembler : public AssemblerBase {
   void LoadFieldFromOffset(Register reg,
                            Register base,
                            int32_t offset,
-                           OperandSize type = kFourBytes,
-                           Condition cond = AL) {
+                           OperandSize sz = kFourBytes) override {
+    LoadFieldFromOffset(reg, base, offset, sz, AL);
+  }
+  void LoadFieldFromOffset(Register reg,
+                           Register base,
+                           int32_t offset,
+                           OperandSize type,
+                           Condition cond) {
     LoadFromOffset(reg, base, offset - kHeapObjectTag, type, cond);
+  }
+  void LoadCompressedFieldFromOffset(Register reg,
+                                     Register base,
+                                     int32_t offset) override {
+    LoadCompressedFieldFromOffset(reg, base, offset, kFourBytes, AL);
+  }
+  void LoadCompressedFieldFromOffset(Register reg,
+                                     Register base,
+                                     int32_t offset,
+                                     OperandSize type,
+                                     Condition cond = AL) {
+    LoadFieldFromOffset(reg, base, offset, type, cond);
   }
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
   // [index] is a Smi, otherwise TIMES_WORD_SIZE if unboxed.
-  void LoadIndexedPayload(Register reg,
+  void LoadIndexedPayload(Register dst,
                           Register base,
                           int32_t payload_start,
                           Register index,
                           ScaleFactor scale,
                           OperandSize type = kFourBytes) {
-    add(reg, base, Operand(index, LSL, scale));
-    LoadFromOffset(reg, reg, payload_start - kHeapObjectTag, type);
+    add(dst, base, Operand(index, LSL, scale));
+    LoadFromOffset(dst, dst, payload_start - kHeapObjectTag, type);
+  }
+  void LoadIndexedCompressed(Register dst,
+                             Register base,
+                             int32_t offset,
+                             Register index) {
+    add(dst, base, Operand(index, LSL, TIMES_COMPRESSED_WORD_SIZE));
+    LoadCompressedFieldFromOffset(dst, dst, offset);
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);
   void CompareToStack(Register src, intptr_t depth);
 
+  void StoreToOffset(Register reg,
+                     const Address& address,
+                     OperandSize type,
+                     Condition cond);
+  void StoreToOffset(Register reg,
+                     const Address& address,
+                     OperandSize type = kFourBytes) override {
+    StoreToOffset(reg, address, type, AL);
+  }
   void StoreToOffset(Register reg,
                      Register base,
                      int32_t offset,
@@ -1018,6 +1082,9 @@ class Assembler : public AssemblerBase {
   void PopNativeCalleeSavedRegisters();
 
   void CompareRegisters(Register rn, Register rm) { cmp(rn, Operand(rm)); }
+  void CompareObjectRegisters(Register rn, Register rm) {
+    CompareRegisters(rn, rm);
+  }
   // Branches to the given label if the condition holds.
   // [distance] is ignored on ARM.
   void BranchIf(Condition condition,
@@ -1032,7 +1099,34 @@ class Assembler : public AssemblerBase {
     b(label, ZERO);
   }
 
-  void MoveRegister(Register rd, Register rm, Condition cond = AL);
+  void MoveRegister(Register rd, Register rm, Condition cond) {
+    ExtendValue(rd, rm, kFourBytes, cond);
+  }
+  void MoveRegister(Register rd, Register rm) override {
+    MoveRegister(rd, rm, AL);
+  }
+  void MoveAndSmiTagRegister(Register rd, Register rm, Condition cond) {
+    ExtendAndSmiTagValue(rd, rm, kFourBytes, cond);
+  }
+  void MoveAndSmiTagRegister(Register rd, Register rm) override {
+    MoveAndSmiTagRegister(rd, rm, AL);
+  }
+  void ExtendValue(Register rd, Register rm, OperandSize sz, Condition cond);
+  void ExtendValue(Register rd, Register rm, OperandSize sz) override {
+    ExtendValue(rd, rm, sz, AL);
+  }
+  void ExtendAndSmiTagValue(Register rd,
+                            Register rm,
+                            OperandSize sz,
+                            Condition cond) {
+    ExtendValue(rd, rm, sz, cond);
+    SmiTag(rd, cond);
+  }
+  void ExtendAndSmiTagValue(Register rd,
+                            Register rm,
+                            OperandSize sz = kFourBytes) override {
+    ExtendAndSmiTagValue(rd, rm, sz, AL);
+  }
 
   // Convenience shift instructions. Use mov instruction with shifter operand
   // for variants setting the status flags.
@@ -1071,17 +1165,14 @@ class Assembler : public AssemblerBase {
   void Vsqrtqs(QRegister qd, QRegister qm, QRegister temp);
   void Vdivqs(QRegister qd, QRegister qn, QRegister qm);
 
-  void SmiTag(Register reg, Condition cond = AL) {
-    Lsl(reg, reg, Operand(kSmiTagSize), cond);
-  }
+  void SmiTag(Register reg, Condition cond) { SmiTag(reg, reg, cond); }
+  void SmiTag(Register reg) override { SmiTag(reg, AL); }
 
   void SmiTag(Register dst, Register src, Condition cond = AL) {
     Lsl(dst, src, Operand(kSmiTagSize), cond);
   }
 
-  void SmiUntag(Register reg, Condition cond = AL) {
-    Asr(reg, reg, Operand(kSmiTagSize), cond);
-  }
+  void SmiUntag(Register reg, Condition cond = AL) { SmiUntag(reg, reg, cond); }
 
   void SmiUntag(Register dst, Register src, Condition cond = AL) {
     Asr(dst, src, Operand(kSmiTagSize), cond);
@@ -1218,6 +1309,13 @@ class Assembler : public AssemblerBase {
                                      Register array,
                                      Register index);
 
+  void LoadCompressedFieldAddressForRegOffset(Register address,
+                                              Register instance,
+                                              Register offset_in_words_as_smi) {
+    return LoadFieldAddressForRegOffset(address, instance,
+                                        offset_in_words_as_smi);
+  }
+
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,
                                     Register offset_in_words_as_smi);
@@ -1232,14 +1330,12 @@ class Assembler : public AssemblerBase {
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(Register stats_addr_reg, Label* trace);
 
-  // Inlined allocation of an instance of class 'cls', code has no runtime
-  // calls. Jump to 'failure' if the instance cannot be allocated here.
-  // Allocated instance is returned in 'instance_reg'.
-  // Only the tags field of the object is initialized.
-  void TryAllocate(const Class& cls,
-                   Label* failure,
-                   Register instance_reg,
-                   Register temp_reg);
+  void TryAllocateObject(intptr_t cid,
+                         intptr_t instance_size,
+                         Label* failure,
+                         JumpDistance distance,
+                         Register instance_reg,
+                         Register temp_reg) override;
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
@@ -1254,7 +1350,7 @@ class Assembler : public AssemblerBase {
   // before the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // information) is stored in [UntaggedCode::static_calls_target_table_]: an
   // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)

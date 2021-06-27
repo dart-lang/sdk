@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -16,7 +17,16 @@ class ConvertToListLiteral extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_LIST_LITERAL;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_LIST_LITERAL;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_LIST_LITERAL_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -24,9 +34,14 @@ class ConvertToListLiteral extends CorrectionProducer {
     // Ensure that this is the default constructor defined on `List`.
     //
     var creation = node.thisOrAncestorOfType<InstanceCreationExpression>();
-    if (creation == null ||
-        node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.listElement ||
+    if (creation == null) {
+      return;
+    }
+
+    var type = creation.staticType;
+    if (node.offset > creation.argumentList.offset ||
+        type is! InterfaceType ||
+        type.element != typeProvider.listElement ||
         creation.constructorName.name != null ||
         creation.argumentList.arguments.isNotEmpty) {
       return;

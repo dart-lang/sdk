@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test is a multi-test with three positive tests. "01" pass on dart2js,
 // "02" pass on the VM, and "none" is the correct behavior.
 // The goal is to remove all "01" and "02" lines.

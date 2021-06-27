@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingParameterNamed extends CorrectionProducer {
-  String _parameterName;
+  String _parameterName = '';
 
   @override
   List<Object> get fixArguments => [_parameterName];
@@ -21,26 +21,27 @@ class AddMissingParameterNamed extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // Prepare the name of the missing parameter.
-    if (this.node is! SimpleIdentifier) {
+    final node = this.node;
+    if (node is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier node = this.node;
     _parameterName = node.name;
 
     // We expect that the node is part of a NamedExpression.
-    if (node.parent?.parent is! NamedExpression) {
+    var namedExpression = node.parent?.parent;
+    if (namedExpression is! NamedExpression) {
       return;
     }
-    NamedExpression namedExpression = node.parent.parent;
 
     // We should be in an ArgumentList.
-    if (namedExpression.parent is! ArgumentList) {
+    var argumentList = namedExpression.parent;
+    if (argumentList is! ArgumentList) {
       return;
     }
-    var argumentList = namedExpression.parent;
 
     // Prepare the invoked element.
-    var context = ExecutableParameters(sessionHelper, argumentList.parent);
+    var context =
+        ExecutableParameters.forInvocation(sessionHelper, argumentList.parent);
     if (context == null) {
       return;
     }
@@ -50,7 +51,7 @@ class AddMissingParameterNamed extends CorrectionProducer {
       return;
     }
 
-    Future<void> addParameter(int offset, String prefix, String suffix) async {
+    Future<void> addParameter(int? offset, String prefix, String suffix) async {
       if (offset != null) {
         await builder.addDartFileEdit(context.file, (builder) {
           builder.addInsertion(offset, (builder) {
@@ -71,7 +72,7 @@ class AddMissingParameterNamed extends CorrectionProducer {
       await addParameter(prevNode?.end, ', {', '}');
     } else {
       var parameterList = await context.getParameterList();
-      await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
+      await addParameter(parameterList?.leftParenthesis.end, '{', '}');
     }
   }
 

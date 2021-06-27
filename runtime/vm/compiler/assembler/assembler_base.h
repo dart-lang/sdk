@@ -25,6 +25,7 @@ DECLARE_FLAG(bool, use_far_branches);
 #endif
 
 class MemoryRegion;
+class Slot;
 
 namespace compiler {
 
@@ -191,12 +192,27 @@ enum OperandSize {
   kRegList,
   // 64-bit ARM specific constants.
   kQWord,
+
+#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+  kObjectBytes = kEightBytes,
+#else
+  kObjectBytes = kFourBytes,
+#endif
 };
+
+// For declaring default sizes in AssemblerBase.
+#if defined(TARGET_ARCH_IS_64_BIT)
+constexpr OperandSize kWordBytes = kEightBytes;
+#else
+constexpr OperandSize kWordBytes = kFourBytes;
+#endif
 
 // Forward declarations.
 class Assembler;
 class AssemblerFixup;
 class AssemblerBuffer;
+class Address;
+class FieldAddress;
 
 class Label : public ZoneAllocated {
  public:
@@ -546,6 +562,146 @@ class AssemblerBase : public StackResource {
   static bool EmittingComments();
 
   virtual void Breakpoint() = 0;
+
+  virtual void SmiTag(Register r) = 0;
+
+  // Extends a value of size sz in src to a value of size kWordBytes in dst.
+  // That is, bits in the source register that are not part of the sz-sized
+  // value are ignored, and if sz is signed, then the value is sign extended.
+  //
+  // Produces no instructions if dst and src are the same and sz is kWordBytes.
+  virtual void ExtendValue(Register dst, Register src, OperandSize sz) = 0;
+
+  // Extends a value of size sz in src to a tagged Smi value in dst.
+  // That is, bits in the source register that are not part of the sz-sized
+  // value are ignored, and if sz is signed, then the value is sign extended.
+  virtual void ExtendAndSmiTagValue(Register dst,
+                                    Register src,
+                                    OperandSize sz) {
+    ExtendValue(dst, src, sz);
+    SmiTag(dst);
+  }
+
+  // Move the contents of src into dst.
+  //
+  // Produces no instructions if dst and src are the same.
+  virtual void MoveRegister(Register dst, Register src) {
+    ExtendValue(dst, src, kWordBytes);
+  }
+
+  // Move the contents of src into dst and tag the value in dst as a Smi.
+  virtual void MoveAndSmiTagRegister(Register dst, Register src) {
+    ExtendAndSmiTagValue(dst, src, kWordBytes);
+  }
+
+  // Inlined allocation in new space of an instance of an object whose instance
+  // size is known at compile time with class ID 'cid'. The generated code has
+  // no runtime calls. Jump to 'failure' if the instance cannot be allocated
+  // here and should be done via runtime call instead.
+  //
+  // ObjectPtr to allocated instance is returned in 'instance_reg'.
+  //
+  // WARNING: The caller is responsible for initializing all GC-visible fields
+  // of the object other than the tags field, which is initialized here.
+  virtual void TryAllocateObject(intptr_t cid,
+                                 intptr_t instance_size,
+                                 Label* failure,
+                                 JumpDistance distance,
+                                 Register instance_reg,
+                                 Register temp) = 0;
+
+  // An alternative version of TryAllocateObject that takes a Class object
+  // and passes the class id and instance size to TryAllocateObject along with
+  // the other arguments.
+  void TryAllocate(const Class& cls,
+                   Label* failure,
+                   JumpDistance distance,
+                   Register instance_reg,
+                   Register temp) {
+    TryAllocateObject(target::Class::GetId(cls),
+                      target::Class::GetInstanceSize(cls), failure, distance,
+                      instance_reg, temp);
+  }
+
+  virtual void LoadFromOffset(Register dst,
+                              const Address& address,
+                              OperandSize sz = kWordBytes) = 0;
+  // Does not use write barriers, use StoreIntoObject instead for boxed fields.
+  virtual void StoreToOffset(Register src,
+                             const Address& address,
+                             OperandSize sz = kWordBytes) = 0;
+  enum CanBeSmi {
+    kValueCanBeSmi,
+    kValueIsNotSmi,
+  };
+
+  virtual void LoadField(Register dst, const FieldAddress& address) = 0;
+  virtual void LoadFieldFromOffset(Register reg,
+                                   Register base,
+                                   int32_t offset,
+                                   OperandSize = kWordBytes) = 0;
+  void LoadFromSlot(Register dst, Register base, const Slot& slot);
+
+  virtual void StoreIntoObject(
+      Register object,      // Object we are storing into.
+      const Address& dest,  // Where we are storing into.
+      Register value,       // Value we are storing.
+      CanBeSmi can_be_smi = kValueCanBeSmi) = 0;
+  virtual void StoreIntoObjectNoBarrier(
+      Register object,      // Object we are storing into.
+      const Address& dest,  // Where we are storing into.
+      Register value) = 0;  // Value we are storing.
+  // For native unboxed slots, both methods are the same, as no write barrier
+  // is needed.
+  void StoreToSlot(Register src, Register base, const Slot& slot);
+  void StoreToSlotNoBarrier(Register src, Register base, const Slot& slot);
+
+  // Install pure virtual methods if using compressed pointers, to ensure that
+  // these methods are overridden. If there are no compressed pointers, forward
+  // to the uncompressed version.
+#if defined(DART_COMPRESSED_POINTERS)
+  virtual void LoadCompressedField(Register dst,
+                                   const FieldAddress& address) = 0;
+  virtual void LoadCompressedFieldFromOffset(Register dst,
+                                             Register base,
+                                             int32_t offset) = 0;
+  virtual void StoreCompressedIntoObject(
+      Register object,      // Object we are storing into.
+      const Address& dest,  // Where we are storing into.
+      Register value,       // Value we are storing.
+      CanBeSmi can_be_smi = kValueCanBeSmi) = 0;
+  virtual void StoreCompressedIntoObjectNoBarrier(
+      Register object,      // Object we are storing into.
+      const Address& dest,  // Where we are storing into.
+      Register value) = 0;  // Value we are storing.
+#else
+  virtual void LoadCompressedField(Register dst, const FieldAddress& address) {
+    LoadField(dst, address);
+  }
+  virtual void LoadCompressedFieldFromOffset(Register dst,
+                                             Register base,
+                                             int32_t offset) {
+    LoadFieldFromOffset(dst, base, offset);
+  }
+  virtual void StoreCompressedIntoObject(
+      Register object,      // Object we are storing into.
+      const Address& dest,  // Where we are storing into.
+      Register value,       // Value we are storing.
+      CanBeSmi can_be_smi = kValueCanBeSmi) {
+    StoreIntoObject(object, dest, value, can_be_smi);
+  }
+  virtual void StoreCompressedIntoObjectNoBarrier(
+      Register object,      // Object we are storing into.
+      const Address& dest,  // Where we are storing into.
+      Register value) {     // Value we are storing.
+    StoreIntoObjectNoBarrier(object, dest, value);
+  }
+#endif  // defined(DART_COMPRESSED_POINTERS)
+
+  virtual void EnsureHasClassIdInDEBUG(intptr_t cid,
+                                       Register src,
+                                       Register scratch,
+                                       bool can_be_null = false) = 0;
 
   intptr_t InsertAlignedRelocation(BSS::Relocation reloc);
 

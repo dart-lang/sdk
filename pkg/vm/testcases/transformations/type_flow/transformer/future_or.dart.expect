@@ -18,7 +18,7 @@ class B extends self::A {
 static field dynamic usedObject;
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
 static method use(dynamic object) → void {
-  [@vm.inferred-type.metadata=!? (receiver not int)] self::usedObject.{core::Object::==}(null) ?{dynamic} self::usedObject = object : null;
+  self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }
 static method foo1_a1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] dynamic x) → void {
   self::use(x);
@@ -57,7 +57,7 @@ static method foo2([@vm.inferred-type.metadata=dart.async::_Future?] asy::Future
   self::foo2_a4(a4);
 }
 static method getDynamic() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
+  return self::unknown();
 static method main(core::List<core::String*>* args) → dynamic {
   self::foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] asy::Future::value<self::B*>(new self::B::•()), new self::B::•(), [@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] asy::Future::value<self::B*>(new self::B::•()), new self::B::•());
   self::foo2(self::getDynamic() as{TypeError,ForDynamic} asy::Future<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} self::A*, self::getDynamic() as{TypeError,ForDynamic} FutureOr<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} FutureOr<self::A*>*);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // A debug break is not valid Dart syntax unless --enable-debug-break.
 
 test(i) {

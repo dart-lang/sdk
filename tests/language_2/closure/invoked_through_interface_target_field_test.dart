@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Note: this test expects a compile error (getter overrides a method), but it
 // contains more code than necessary to provoke the compile error.  The reason
 // for the extra code is to document the complications that would arise if we

@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -13,6 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../src/plugin/plugin_manager_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -22,7 +24,7 @@ void main() {
 
 @reflectiveTest
 class AssistsTest extends AbstractAnalysisTest {
-  List<SourceChange> changes;
+  late List<SourceChange> changes;
 
   Future<void> prepareAssists(String search, [int length = 0]) async {
     var offset = findOffset(search);
@@ -44,7 +46,8 @@ class AssistsTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_fromPlugins() async {
-    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c',
+        TestNotificationManager(), InstrumentationService.NULL_SERVICE);
     var message = 'From a plugin';
     var change = plugin.PrioritizedSourceChange(
         5,

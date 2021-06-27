@@ -35,7 +35,7 @@ namespace dart {
       return Api::NewError("%s expects argument '%s' to be of type %s.",       \
                            CURRENT_FUNC, #param, #type);                       \
     }                                                                          \
-    var ^= tmp.raw();                                                          \
+    var ^= tmp.ptr();                                                          \
   } while (0)
 
 #define CHECK_AND_CAST(type, var, param)                                       \
@@ -88,8 +88,7 @@ DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
   Isolate* I = T->isolate();
   CHECK_DEBUGGER(I);
   CHECK_NOT_NULL(trace);
-  *trace =
-      reinterpret_cast<Dart_StackTrace>(I->debugger()->CurrentStackTrace());
+  *trace = reinterpret_cast<Dart_StackTrace>(DebuggerStackTrace::Collect());
   return Api::Success();
 }
 
@@ -106,9 +105,8 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
     if (dart_stacktrace.IsNull()) {
       *trace = NULL;
     } else {
-      Isolate* I = T->isolate();
       *trace = reinterpret_cast<Dart_StackTrace>(
-          I->debugger()->StackTraceFrom(dart_stacktrace));
+          DebuggerStackTrace::From(dart_stacktrace));
     }
     return Api::Success();
   } else {
@@ -151,7 +149,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
     UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
 
     Debugger* debugger = I->debugger();
-    bpt = debugger->SetBreakpointAtLine(script_url, line_number);
+    bpt = debugger->SetBreakpointAtLineCol(script_url, line_number, -1);
     if (bpt == NULL) {
       return Api::NewError("%s: could not set breakpoint at line %" Pd
                            " in '%s'",

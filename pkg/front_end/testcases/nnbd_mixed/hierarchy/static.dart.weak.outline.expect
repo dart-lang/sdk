@@ -1,0 +1,195 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:58:15: Error: Can't declare a member that conflicts with an inherited one.
+//   static void extendedInstanceDeclaredStaticMethod() {}
+//               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:7:8: Context: This is the inherited member.
+//   void extendedInstanceDeclaredStaticMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:67:18: Error: Can't declare a member that conflicts with an inherited one.
+//   static int get extendedInstanceSetterDeclaredStaticGetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:16:12: Context: This is the inherited member.
+//   void set extendedInstanceSetterDeclaredStaticGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:70:15: Error: Can't declare a member that conflicts with an inherited one.
+//   static void mixedInInstanceDeclaredStaticMethod() {}
+//               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:27:8: Context: This is the inherited member.
+//   void mixedInInstanceDeclaredStaticMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:73:15: Error: Can't declare a member that conflicts with an inherited one.
+//   static void implementedInstanceDeclaredStaticMethod() {}
+//               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:38:8: Context: This is the inherited member.
+//   void implementedInstanceDeclaredStaticMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:82:18: Error: Can't declare a member that conflicts with an inherited one.
+//   static int get implementedInstanceSetterDeclaredStaticGetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:47:12: Context: This is the inherited member.
+//   void set implementedInstanceSetterDeclaredStaticGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:61:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set extendedInstanceDeclaredStaticSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:10:12: Context: This is the inherited member.
+//   void set extendedInstanceDeclaredStaticSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:64:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set extendedInstanceGetterDeclaredStaticSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:13:11: Context: This is the inherited member.
+//   int get extendedInstanceGetterDeclaredStaticSetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:76:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set implementedInstanceDeclaredStaticSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:41:12: Context: This is the inherited member.
+//   void set implementedInstanceDeclaredStaticSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:79:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set implementedInstanceGetterDeclaredStaticSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:44:11: Context: This is the inherited member.
+//   int get implementedInstanceGetterDeclaredStaticSetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  static method extendedStaticDeclaredInstanceMethod() → void
+    ;
+  method extendedInstanceDeclaredStaticMethod() → void
+    ;
+  static set extendedStaticDeclaredInstanceSetter(core::int value) → void
+    ;
+  set extendedInstanceDeclaredStaticSetter(core::int value) → void
+    ;
+  static get extendedStaticGetterDeclaredInstanceSetter() → core::int
+    ;
+  get extendedInstanceGetterDeclaredStaticSetter() → core::int
+    ;
+  static set extendedStaticSetterDeclaredInstanceGetter(core::int value) → void
+    ;
+  set extendedInstanceSetterDeclaredStaticGetter(core::int value) → void
+    ;
+  static method extendedStaticMixedInInstanceMethod() → void
+    ;
+  method extendedInstanceMixedInStaticMethod() → void
+    ;
+  static method extendedStaticImplementedInstanceMethod() → void
+    ;
+  method extendedInstanceImplementedStaticMethod() → void
+    ;
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    ;
+  static method mixedInStaticDeclaredInstanceMethod() → void
+    ;
+  method mixedInInstanceDeclaredStaticMethod() → void
+    ;
+  static method mixedInStaticImplementedInstanceMethod() → void
+    ;
+  method mixedInInstanceImplementedStaticMethod() → void
+    ;
+  method extendedStaticMixedInInstanceMethod() → void
+    ;
+  static method extendedInstanceMixedInStaticMethod() → void
+    ;
+}
+class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    ;
+  static method implementedStaticDeclaredInstanceMethod() → void
+    ;
+  method implementedInstanceDeclaredStaticMethod() → void
+    ;
+  static set implementedStaticDeclaredInstanceSetter(core::int value) → void
+    ;
+  set implementedInstanceDeclaredStaticSetter(core::int value) → void
+    ;
+  static get implementedStaticGetterDeclaredInstanceSetter() → core::int
+    ;
+  get implementedInstanceGetterDeclaredStaticSetter() → core::int
+    ;
+  static set implementedStaticSetterDeclaredInstanceGetter(core::int value) → void
+    ;
+  set implementedInstanceSetterDeclaredStaticGetter(core::int value) → void
+    ;
+  method extendedStaticImplementedInstanceMethod() → void
+    ;
+  static method extendedInstanceImplementedStaticMethod() → void
+    ;
+  method mixedInStaticImplementedInstanceMethod() → void
+    ;
+  static method mixedInInstanceImplementedStaticMethod() → void
+    ;
+}
+abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInInstanceDeclaredStaticMethod() → void
+    return super.{self::Mixin::mixedInInstanceDeclaredStaticMethod}();
+  mixin-super-stub method mixedInInstanceImplementedStaticMethod() → void
+    return super.{self::Mixin::mixedInInstanceImplementedStaticMethod}();
+  mixin-super-stub method extendedStaticMixedInInstanceMethod() → void
+    return super.{self::Mixin::extendedStaticMixedInInstanceMethod}();
+}
+abstract class Class extends self::_Class&Super&Mixin implements self::Interface {
+  synthetic constructor •() → self::Class
+    ;
+  method extendedStaticDeclaredInstanceMethod() → void
+    ;
+  static method extendedInstanceDeclaredStaticMethod() → void
+    ;
+  set extendedStaticDeclaredInstanceSetter(core::int value) → void
+    ;
+  static set extendedInstanceDeclaredStaticSetter(core::int value) → void
+    ;
+  set extendedStaticGetterDeclaredInstanceSetter(core::int value) → void
+    ;
+  static set extendedInstanceGetterDeclaredStaticSetter(core::int value) → void
+    ;
+  get extendedStaticSetterDeclaredInstanceGetter() → core::int
+    ;
+  static get extendedInstanceSetterDeclaredStaticGetter() → core::int
+    ;
+  method mixedInStaticDeclaredInstanceMethod() → void
+    ;
+  static method mixedInInstanceDeclaredStaticMethod() → void
+    ;
+  method implementedStaticDeclaredInstanceMethod() → void
+    ;
+  static method implementedInstanceDeclaredStaticMethod() → void
+    ;
+  set implementedStaticDeclaredInstanceSetter(core::int value) → void
+    ;
+  static set implementedInstanceDeclaredStaticSetter(core::int value) → void
+    ;
+  set implementedStaticGetterDeclaredInstanceSetter(core::int value) → void
+    ;
+  static set implementedInstanceGetterDeclaredStaticSetter(core::int value) → void
+    ;
+  get implementedStaticSetterDeclaredInstanceGetter() → core::int
+    ;
+  static get implementedInstanceSetterDeclaredStaticGetter() → core::int
+    ;
+}
+static method main() → dynamic
+  ;

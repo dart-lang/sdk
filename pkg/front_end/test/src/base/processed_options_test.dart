@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -36,9 +38,12 @@ class ProcessedOptionsTest {
 
   Component _mockOutline;
 
-  Component get mockSummary => _mockOutline ??= new Component(
-      libraries: [new Library(Uri.parse('org-dartlang-test:///a/b.dart'))])
-    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
+  Component get mockSummary => _mockOutline ??= new Component(libraries: [
+        new Library(Uri.parse('org-dartlang-test:///a/b.dart'),
+            fileUri: Uri.parse('org-dartlang-test:///a/b.dart'))
+      ])
+        ..setMainMethodAndMode(
+            null, false, NonNullableByDefaultCompiledMode.Weak);
 
   test_compileSdk_false() {
     for (var value in [false, true]) {

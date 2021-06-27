@@ -19,6 +19,9 @@ class ReplaceWithNullAwareTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
 
+  @override
+  String? get testPackageLanguageVersion => '2.9';
+
   Future<void> test_chain() async {
     await resolveTestCode('''
 main(x) {

@@ -194,9 +194,6 @@ external DART_CLOSURE_TO_JS(Function function);
 /// https://code.google.com/p/v8/wiki/JavaScriptStackTraceApi.
 external RAW_DART_FUNCTION_REF(Function function);
 
-/// Sets the current static state to [staticState].
-external void JS_SET_STATIC_STATE(staticState);
-
 /// Returns the interceptor for class [type].  The interceptor is the type's
 /// constructor's `prototype` property.  [type] will typically be the class, not
 /// an interface, e.g. `JS_INTERCEPTOR_CONSTANT(JSInt)`, not
@@ -212,9 +209,6 @@ external getInterceptor(object);
 ///
 /// Calls are replaced with a [HLoadType] SSA instruction.
 external Object getJSArrayInteropRti();
-
-/// Returns the object corresponding to Namer.staticStateHolder.
-external JS_GET_STATIC_STATE();
 
 /// Returns the JS name for [name] from the Namer.
 external String JS_GET_NAME(JsGetName name);

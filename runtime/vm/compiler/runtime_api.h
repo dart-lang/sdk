@@ -40,7 +40,7 @@ class RuntimeEntry;
 class Zone;
 
 #define DO(clazz)                                                              \
-  class clazz##Layout;                                                         \
+  class Untagged##clazz;                                                       \
   class clazz;
 CLASS_LIST_FOR_HANDLES(DO)
 #undef DO
@@ -114,6 +114,10 @@ const Type& IntType();
 const Class& GrowableObjectArrayClass();
 const Class& MintClass();
 const Class& DoubleClass();
+const Class& Float32x4Class();
+const Class& Float64x2Class();
+const Class& Int32x4Class();
+const Class& ClosureClass();
 const Array& OneArgArgumentsDescriptor();
 
 template <typename To, typename From>
@@ -127,8 +131,9 @@ bool IsSameObject(const Object& a, const Object& b);
 // Returns true if [a] and [b] represent the same type (are equal).
 bool IsEqualType(const AbstractType& a, const AbstractType& b);
 
-// Returns true if [type] is the "int" type.
-bool IsIntType(const AbstractType& type);
+// Returns true if [type] is a subtype of the "int" type (_Smi, _Mint, int or
+// _IntegerImplementation).
+bool IsSubtypeOfInt(const AbstractType& type);
 
 // Returns true if [type] is the "double" type.
 bool IsDoubleType(const AbstractType& type);
@@ -293,6 +298,14 @@ static_assert(dart::kWordSize >= kWordSize,
               "Host word size smaller than target word size");
 #endif
 
+#if defined(DART_COMPRESSED_POINTERS)
+static constexpr int kCompressedWordSize = kInt32Size;
+static constexpr int kCompressedWordSizeLog2 = kInt32SizeLog2;
+#else
+static constexpr int kCompressedWordSize = kWordSize;
+static constexpr int kCompressedWordSizeLog2 = kWordSizeLog2;
+#endif
+
 static constexpr word kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
 static constexpr word kBitsPerWord = 1 << kBitsPerWordLog2;
 
@@ -303,7 +316,11 @@ constexpr word kWordMin = -(static_cast<uword>(1) << (kBitsPerWord - 1));
 constexpr uword kUwordMax = static_cast<word>(-1);
 
 // The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
+#if !defined(DART_COMPRESSED_POINTERS)
 constexpr int kSmiBits = kBitsPerWord - 2;
+#else
+constexpr int kSmiBits = 30;
+#endif
 constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
 constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
 
@@ -326,7 +343,7 @@ enum ParameterFlags {
 // calculate both the parameter flag index in the parameter names array and
 // which bit to check, kNumParameterFlagsPerElement should be a power of two.
 static constexpr intptr_t kNumParameterFlagsPerElementLog2 =
-    kBitsPerWordLog2 - kNumParameterFlags;
+    kBitsPerWordLog2 - 1 - kNumParameterFlags;
 static constexpr intptr_t kNumParameterFlagsPerElement =
     1 << kNumParameterFlagsPerElementLog2;
 static_assert(kNumParameterFlagsPerElement <= kSmiBits,
@@ -336,7 +353,7 @@ inline intptr_t RoundedAllocationSize(intptr_t size) {
   return Utils::RoundUp(size, kObjectAlignment);
 }
 // Information about frame_layout that compiler should be targeting.
-extern FrameLayout frame_layout;
+extern UntaggedFrame frame_layout;
 
 constexpr intptr_t kIntSpillFactor = sizeof(int64_t) / kWordSize;
 constexpr intptr_t kDoubleSpillFactor = sizeof(double) / kWordSize;
@@ -396,6 +413,8 @@ bool CanEmbedAsRawPointerInGeneratedCode(const dart::Object& obj);
 word ToRawPointer(const dart::Object& a);
 #endif  // defined(TARGET_ARCH_IA32)
 
+bool WillAllocateNewOrRememberedObject(intptr_t instance_size);
+
 bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables);
 
 bool WillAllocateNewOrRememberedArray(intptr_t length);
@@ -406,7 +425,7 @@ bool WillAllocateNewOrRememberedArray(intptr_t length);
 // Currently we use the same names for classes, constants and getters to make
 // migration easier.
 
-class ObjectLayout : public AllStatic {
+class UntaggedObject : public AllStatic {
  public:
   static const word kCardRememberedBit;
   static const word kOldAndNotRememberedBit;
@@ -424,7 +443,7 @@ class ObjectLayout : public AllStatic {
   static bool IsTypedDataClassId(intptr_t cid);
 };
 
-class AbstractTypeLayout : public AllStatic {
+class UntaggedAbstractType : public AllStatic {
  public:
   static const word kTypeStateFinalizedInstantiated;
 };
@@ -440,6 +459,7 @@ class ObjectPool : public AllStatic {
  public:
   // Return offset to the element with the given [index] in the object pool.
   static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -448,13 +468,11 @@ class Class : public AllStatic {
  public:
   static word host_type_arguments_field_offset_in_words_offset();
 
-  static word target_type_arguments_field_offset_in_words_offset();
-
   static word declaration_type_offset();
 
   static word super_type_offset();
 
-  // The offset of the ObjectLayout::num_type_arguments_ field in bytes.
+  // The offset of the UntaggedObject::num_type_arguments_ field in bytes.
   static word num_type_arguments_offset();
 
   // The value used if no type arguments vector is present.
@@ -469,6 +487,10 @@ class Class : public AllStatic {
 
   // Return instance size for the given class on the target.
   static uword GetInstanceSize(const dart::Class& handle);
+
+  // Return whether objects of the class on the target contain compressed
+  // pointers.
+  static bool HasCompressedPointers(const dart::Class& handle);
 
   // Returns the number of type arguments.
   static intptr_t NumTypeArguments(const dart::Class& klass);
@@ -485,7 +507,8 @@ class Class : public AllStatic {
 
 class Instance : public AllStatic {
  public:
-  // Returns the offset to the first field of [RawInstance].
+  // Returns the offset to the first field of [UntaggedInstance].
+  // Returns the offset to the first field of [UntaggedInstance].
   static word first_field_offset();
   static word DataOffsetFor(intptr_t cid);
   static word ElementSizeFor(intptr_t cid);
@@ -500,9 +523,7 @@ class Function : public AllStatic {
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
   static word kind_tag_offset();
   static word packed_fields_offset();
-  static word parameter_names_offset();
-  static word parameter_types_offset();
-  static word type_parameters_offset();
+  static word signature_offset();
   static word usage_counter_offset();
   static word InstanceSize();
   static word NextFieldOffset();
@@ -560,6 +581,7 @@ class Array : public AllStatic {
   static word length_offset();
   static word element_offset(intptr_t index);
   static intptr_t index_at_offset(intptr_t offset_in_bytes);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 
@@ -591,7 +613,9 @@ class TypedDataBase : public PointerBase {
 class TypedData : public AllStatic {
  public:
   static word data_offset();
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word lengthInBytes);
   static word NextFieldOffset();
 };
 
@@ -643,7 +667,7 @@ class ArgumentsDescriptor : public AllStatic {
 
 class LocalHandle : public AllStatic {
  public:
-  static word raw_offset();
+  static word ptr_offset();
 };
 
 class Pointer : public PointerBase {
@@ -656,6 +680,8 @@ class Pointer : public PointerBase {
 class AbstractType : public AllStatic {
  public:
   static word type_test_stub_entry_point_offset();
+  static word InstanceSize();
+  static word NextFieldOffset();
 };
 
 class Type : public AllStatic {
@@ -663,8 +689,20 @@ class Type : public AllStatic {
   static word hash_offset();
   static word type_state_offset();
   static word arguments_offset();
-  static word signature_offset();
   static word type_class_id_offset();
+  static word nullability_offset();
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
+class FunctionType : public AllStatic {
+ public:
+  static word hash_offset();
+  static word type_state_offset();
+  static word packed_fields_offset();
+  static word parameter_names_offset();
+  static word parameter_types_offset();
+  static word type_parameters_offset();
   static word nullability_offset();
   static word InstanceSize();
   static word NextFieldOffset();
@@ -679,9 +717,9 @@ class TypeRef : public AllStatic {
 
 class Nullability : public AllStatic {
  public:
-  static const int8_t kNullable;
-  static const int8_t kNonNullable;
-  static const int8_t kLegacy;
+  static const uint8_t kNullable;
+  static const uint8_t kNonNullable;
+  static const uint8_t kLegacy;
 };
 
 class Double : public AllStatic {
@@ -712,15 +750,23 @@ class String : public AllStatic {
 class OneByteString : public AllStatic {
  public:
   static word data_offset();
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
+
+ private:
+  static word element_offset(intptr_t index);
 };
 
 class TwoByteString : public AllStatic {
  public:
   static word data_offset();
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
+
+ private:
+  static word element_offset(intptr_t index);
 };
 
 class ExternalOneByteString : public AllStatic {
@@ -765,12 +811,6 @@ class DynamicLibrary : public AllStatic {
 };
 
 class PatchClass : public AllStatic {
- public:
-  static word InstanceSize();
-  static word NextFieldOffset();
-};
-
-class SignatureData : public AllStatic {
  public:
   static word InstanceSize();
   static word NextFieldOffset();
@@ -838,11 +878,21 @@ class LocalVarDescriptors : public AllStatic {
 
 class ExceptionHandlers : public AllStatic {
  public:
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
 
 class ContextScope : public AllStatic {
+ public:
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
+class Sentinel : public AllStatic {
  public:
   static word InstanceSize();
   static word NextFieldOffset();
@@ -890,7 +940,6 @@ class TypeParameter : public AllStatic {
  public:
   static word bound_offset();
   static word flags_offset();
-  static word name_offset();
   static word InstanceSize();
   static word NextFieldOffset();
   static word parameterized_class_id_offset();
@@ -1011,10 +1060,12 @@ class Thread : public AllStatic {
   static word top_offset();
   static word end_offset();
   static word isolate_offset();
+  static word isolate_group_offset();
   static word field_table_values_offset();
   static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
   static word write_barrier_mask_offset();
+  static word heap_base_offset();
   static word switchable_call_miss_entry_offset();
   static word write_barrier_wrappers_thread_offset(Register regno);
   static word array_write_barrier_entry_point_offset();
@@ -1029,9 +1080,8 @@ class Thread : public AllStatic {
   static uword vm_tag_dart_id();
 
   static word safepoint_state_offset();
-  static uword safepoint_state_unacquired();
-  static uword safepoint_state_acquired();
-  static intptr_t safepoint_state_inside_bit();
+  static uword full_safepoint_state_unacquired();
+  static uword full_safepoint_state_acquired();
 
   static word execution_state_offset();
   static uword vm_execution_state();
@@ -1125,20 +1175,25 @@ class ObjectStore : public AllStatic {
   static word double_type_offset();
   static word int_type_offset();
   static word string_type_offset();
+  static word type_type_offset();
 };
 
 class Isolate : public AllStatic {
  public:
-  static word cached_object_store_offset();
   static word default_tag_offset();
   static word current_tag_offset();
   static word user_tag_offset();
-  static word cached_class_table_table_offset();
-  static word shared_class_table_offset();
   static word ic_miss_code_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
 #endif  // !defined(PRODUCT)
+};
+
+class IsolateGroup : public AllStatic {
+ public:
+  static word object_store_offset();
+  static word shared_class_table_offset();
+  static word cached_class_table_table_offset();
 };
 
 class SharedClassTable : public AllStatic {
@@ -1163,6 +1218,17 @@ class InstructionsSection : public AllStatic {
   static word InstanceSize();
   static word InstanceSize(word payload_size);
   static word NextFieldOffset();
+};
+
+class InstructionsTable : public AllStatic {
+ public:
+  static word HeaderSize();
+  static word InstanceSize();
+  static word InstanceSize(intptr_t length);
+  static word NextFieldOffset();
+
+ private:
+  static word element_offset(intptr_t index);
 };
 
 class Instructions : public AllStatic {
@@ -1190,8 +1256,13 @@ class Code : public AllStatic {
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
   static word saved_instructions_offset();
   static word owner_offset();
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(intptr_t length);
   static word NextFieldOffset();
+
+ private:
+  static word element_offset(intptr_t index);
 };
 
 class WeakSerializationReference : public AllStatic {
@@ -1205,7 +1276,7 @@ class SubtypeTestCache : public AllStatic {
   static word cache_offset();
 
   static const word kTestEntryLength;
-  static const word kInstanceClassIdOrFunction;
+  static const word kInstanceCidOrSignature;
   static const word kDestinationType;
   static const word kInstanceTypeArguments;
   static const word kInstantiatorTypeArguments;
@@ -1228,8 +1299,8 @@ class Context : public AllStatic {
   static word header_size();
   static word parent_offset();
   static word num_variables_offset();
-  static word variable_offset(word i);
-  static word InstanceSize(word n);
+  static word variable_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -1238,6 +1309,7 @@ class Closure : public AllStatic {
  public:
   static word context_offset();
   static word delayed_type_arguments_offset();
+  static word entry_point_offset();
   static word function_offset();
   static word function_type_arguments_offset();
   static word instantiator_type_arguments_offset();
@@ -1248,8 +1320,7 @@ class Closure : public AllStatic {
 
 class ClosureData : public AllStatic {
  public:
-  static word default_type_arguments_offset();
-  static word default_type_arguments_info_offset();
+  static word default_type_arguments_kind_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -1318,6 +1389,16 @@ class Field : public AllStatic {
   static word NextFieldOffset();
 };
 
+class TypeParameters : public AllStatic {
+ public:
+  static word names_offset();
+  static word flags_offset();
+  static word bounds_offset();
+  static word defaults_offset();
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
 class TypeArguments : public AllStatic {
  public:
   static word instantiations_offset();
@@ -1325,6 +1406,7 @@ class TypeArguments : public AllStatic {
   static word nullability_offset();
   static word type_at_offset(intptr_t i);
   static word types_offset();
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 

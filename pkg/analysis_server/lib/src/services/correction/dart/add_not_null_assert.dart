@@ -18,53 +18,63 @@ class AddNotNullAssert extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final identifier = node;
-    if (identifier is SimpleIdentifier) {
-      if (identifier.parent is FormalParameter) {
-        final exp = identifier.parent.thisOrAncestorMatching(
-            (node) => node is FunctionExpression || node is MethodDeclaration);
-        FunctionBody body;
-        if (exp is FunctionExpression) {
-          body = exp.body;
-        } else if (exp is MethodDeclaration) {
-          body = exp.body;
-        }
-        if (body is BlockFunctionBody) {
-          var blockBody = body;
-          // Check for an obvious pre-existing assertion.
-          for (var statement in blockBody.block.statements) {
-            if (statement is AssertStatement) {
-              final condition = statement.condition;
-              if (condition is BinaryExpression) {
-                final leftOperand = condition.leftOperand;
-                if (leftOperand is SimpleIdentifier) {
-                  if (leftOperand.staticElement == identifier.staticElement &&
-                      condition.operator.type == TokenType.BANG_EQ &&
-                      condition.rightOperand is NullLiteral) {
-                    return;
-                  }
-                }
+    if (identifier is! SimpleIdentifier) {
+      return;
+    }
+
+    var formalParameter = identifier.parent;
+    if (formalParameter is! FormalParameter) {
+      return;
+    }
+
+    final executable = formalParameter.thisOrAncestorMatching(
+        (node) => node is FunctionExpression || node is MethodDeclaration);
+    if (executable == null) {
+      return;
+    }
+
+    FunctionBody? body;
+    if (executable is FunctionExpression) {
+      body = executable.body;
+    } else if (executable is MethodDeclaration) {
+      body = executable.body;
+    }
+
+    if (body is BlockFunctionBody) {
+      // Check for an obvious pre-existing assertion.
+      for (var statement in body.block.statements) {
+        if (statement is AssertStatement) {
+          final condition = statement.condition;
+          if (condition is BinaryExpression) {
+            final leftOperand = condition.leftOperand;
+            if (leftOperand is SimpleIdentifier) {
+              if (leftOperand.staticElement == identifier.staticElement &&
+                  condition.operator.type == TokenType.BANG_EQ &&
+                  condition.rightOperand is NullLiteral) {
+                return;
               }
             }
           }
-
-          await builder.addDartFileEdit(file, (builder) {
-            final id = identifier.name;
-            final prefix = utils.getNodePrefix(exp);
-            final indent = utils.getIndent(1);
-            // todo (pq): follow-ups:
-            // 1. if the end token is on the same line as the body
-            // we should add an `eol` before the assert as well.
-            // 2. also, consider asking the block for the list of statements and
-            // adding the statement to the beginning of the list, special casing
-            // when there are no statements (or when there's a single statement
-            // and the whole block is on the same line).
-            var offset = min(utils.getLineNext(blockBody.beginToken.offset),
-                blockBody.endToken.offset);
-            builder.addSimpleInsertion(
-                offset, '$prefix${indent}assert($id != null);$eol');
-          });
         }
       }
+
+      final body_final = body;
+      await builder.addDartFileEdit(file, (builder) {
+        final id = identifier.name;
+        final prefix = utils.getNodePrefix(executable);
+        final indent = utils.getIndent(1);
+        // todo (pq): follow-ups:
+        // 1. if the end token is on the same line as the body
+        // we should add an `eol` before the assert as well.
+        // 2. also, consider asking the block for the list of statements and
+        // adding the statement to the beginning of the list, special casing
+        // when there are no statements (or when there's a single statement
+        // and the whole block is on the same line).
+        var offset = min(utils.getLineNext(body_final.beginToken.offset),
+            body_final.endToken.offset);
+        builder.addSimpleInsertion(
+            offset, '$prefix${indent}assert($id != null);$eol');
+      });
     }
   }
 

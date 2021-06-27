@@ -5,6 +5,8 @@
 // constants to original environment.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 h(x, y) => x == y;
 
 g(y, [x0 = 0, x1 = 1, x2 = 2, x3 = 3]) => y + x0 + x1 + x2 + x3;

@@ -11,8 +11,8 @@ import 'common/test_helper.dart';
 
 void main() {
   group('DDS', () {
-    Process process;
-    DartDevelopmentService dds;
+    late Process process;
+    late DartDevelopmentService dds;
 
     setUp(() async {
       process =
@@ -20,10 +20,8 @@ void main() {
     });
 
     tearDown(() async {
-      await dds?.shutdown();
-      process?.kill();
-      dds = null;
-      process = null;
+      await dds.shutdown();
+      process.kill();
     });
 
     test('evaluate invokes client provided compileExpression RPC', () async {
@@ -42,9 +40,10 @@ void main() {
         throw 'error';
       });
       final vm = await service.getVM();
-      final isolate = await service.getIsolate(vm.isolates.first.id);
+      final isolate = await service.getIsolate(vm.isolates!.first.id!);
       try {
-        await service.evaluate(isolate.id, isolate.libraries.first.id, '1 + 1');
+        await service.evaluate(
+            isolate.id!, isolate.libraries!.first.id!, '1 + 1');
       } catch (_) {
         // ignore error
       }
@@ -68,11 +67,13 @@ void main() {
         throw 'error';
       });
       final vm = await service.getVM();
-      final isolate = await service.getIsolate(vm.isolates.first.id);
-      await service.resume(isolate.id);
+      final isolate = await service.getIsolate(vm.isolates!.first.id!);
+      await service.resume(isolate.id!);
       try {
-        await service.evaluateInFrame(isolate.id, 0, '1 + 1');
-      } catch (_) {
+        await service.evaluateInFrame(isolate.id!, 0, '1 + 1');
+      } catch (e, st) {
+        print(e);
+        print(st);
         // ignore error
       }
       expect(invokedCompileExpression, true);

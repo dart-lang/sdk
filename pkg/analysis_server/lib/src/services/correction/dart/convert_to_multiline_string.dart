@@ -9,18 +9,18 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-class ConvertToMutilineString extends CorrectionProducer {
+class ConvertToMultilineString extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_MULTILINE_STRING;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is InterpolationElement) {
-      node = (node as InterpolationElement).parent;
+    var targetNode = node;
+    if (targetNode is InterpolationElement) {
+      targetNode = targetNode.parent!;
     }
-    if (node is SingleStringLiteral) {
-      var literal = node;
+    if (targetNode is SingleStringLiteral) {
+      var literal = targetNode;
       if (!literal.isSynthetic && !literal.isMultiline) {
         await builder.addDartFileEdit(file, (builder) {
           var newQuote = literal.isSingleQuoted ? "'''" : '"""';
@@ -40,5 +40,5 @@ class ConvertToMutilineString extends CorrectionProducer {
   }
 
   /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertToMutilineString newInstance() => ConvertToMutilineString();
+  static ConvertToMultilineString newInstance() => ConvertToMultilineString();
 }

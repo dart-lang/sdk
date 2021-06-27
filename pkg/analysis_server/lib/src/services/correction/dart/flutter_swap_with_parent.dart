@@ -15,7 +15,7 @@ class FlutterSwapWithParent extends FlutterParentAndChild {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var child = flutter.identifyNewExpression(node);
-    if (!flutter.isWidgetCreation(child)) {
+    if (child == null || !flutter.isWidgetCreation(child)) {
       return;
     }
 

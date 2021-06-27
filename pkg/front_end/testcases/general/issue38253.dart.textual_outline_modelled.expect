@@ -1,0 +1,6 @@
+main() {}
+var a = () {
+  g f() {
+    return;
+  }
+};

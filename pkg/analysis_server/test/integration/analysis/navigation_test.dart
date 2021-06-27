@@ -58,22 +58,19 @@ part of foo;
     sendAnalysisSetSubscriptions({
       AnalysisService.NAVIGATION: [pathname1]
     });
-    List<NavigationRegion> regions;
-    List<NavigationTarget> targets;
-    List<String> targetFiles;
-    onAnalysisNavigation.listen((AnalysisNavigationParams params) {
-      expect(params.file, equals(pathname1));
-      regions = params.regions;
-      targets = params.targets;
-      targetFiles = params.files;
-    });
-
-    await analysisFinished;
 
     // There should be a single error, due to the fact that 'dart:async' is not
     // used.
+    await analysisFinished;
     expect(currentAnalysisErrors[pathname1], hasLength(1));
     expect(currentAnalysisErrors[pathname2], isEmpty);
+
+    var params = await onAnalysisNavigation.first;
+    expect(params.file, equals(pathname1));
+    var regions = params.regions;
+    var targets = params.targets;
+    var targetFiles = params.files;
+
     NavigationTarget findTargetElement(int index) {
       for (var region in regions) {
         if (region.offset <= index && index < region.offset + region.length) {
@@ -119,14 +116,14 @@ part of foo;
     checkLocal('function(() => localVariable.field)',
         'function(FunctionTypeAlias parameter)', ElementKind.FUNCTION);
     checkLocal('FunctionTypeAlias parameter', 'FunctionTypeAlias();',
-        ElementKind.FUNCTION_TYPE_ALIAS);
-    checkLocal('field)', 'field = (', ElementKind.GETTER);
+        ElementKind.TYPE_ALIAS);
+    checkLocal('field)', 'field = (', ElementKind.FIELD);
     checkRemote("'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
     checkLocal(
         'localVariable.field', 'localVariable =', ElementKind.LOCAL_VARIABLE);
     checkLocal('method();', 'method() {', ElementKind.METHOD);
     checkLocal('parameter());', 'parameter) {', ElementKind.PARAMETER);
-    checkLocal('field = 1', 'field = (', ElementKind.SETTER);
+    checkLocal('field = 1', 'field = (', ElementKind.FIELD);
     checkLocal('topLevelVariable = 0;', 'topLevelVariable = 0;',
         ElementKind.TOP_LEVEL_VARIABLE);
     checkLocal('TypeParameter field = (', 'TypeParameter>',

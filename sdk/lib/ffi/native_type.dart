@@ -12,6 +12,12 @@ abstract class NativeType {
   const NativeType();
 }
 
+/// [Opaque]'s subtypes represent opaque types in C.
+///
+/// [Opaque]'s subtypes are not constructible in the Dart code and serve purely
+/// as markers in type signatures.
+abstract class Opaque extends NativeType {}
+
 /// [_NativeInteger]'s subtypes represent a native integer in C.
 ///
 /// [_NativeInteger]'s subtypes are not constructible in the Dart code and serve

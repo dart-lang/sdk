@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -18,13 +17,13 @@ CompilationUnit parseText(
   String text,
   FeatureSet featureSet,
 ) {
-  featureSet ??= FeatureSet.forTesting(sdkVersion: '2.3.0');
   CharSequenceReader reader = CharSequenceReader(text);
-  Scanner scanner = Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
-    ..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    );
+  Scanner scanner =
+      Scanner(_SourceMock.instance, reader, AnalysisErrorListener.NULL_LISTENER)
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
   Token token = scanner.tokenize();
   // Pass the feature set from the scanner to the parser
   // because the scanner may have detected a language version comment
@@ -34,14 +33,20 @@ CompilationUnit parseText(
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: scanner.featureSet,
   );
-  CompilationUnit unit = parser.parseCompilationUnit(token);
+  var unit = parser.parseCompilationUnit(token);
   unit.lineInfo = LineInfo(scanner.lineStarts);
 
-  var unitImpl = unit as CompilationUnitImpl;
-  unitImpl.languageVersion = LibraryLanguageVersion(
+  unit.languageVersion = LibraryLanguageVersion(
     package: ExperimentStatus.currentVersion,
     override: null,
   );
 
   return unit;
+}
+
+class _SourceMock implements Source {
+  static final Source instance = _SourceMock();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

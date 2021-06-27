@@ -107,7 +107,7 @@ class B implements A {
   Future<void> test_checkFinalConditions_OK_noShadow() async {
     await indexTestUnit('''
 class A {
-  int newName;
+  int newName = 0;
 }
 class B {
   test() {}
@@ -128,7 +128,7 @@ class C extends A {
   Future<void> test_checkFinalConditions_OK_noShadow_nullVisibleRange() async {
     await indexTestUnit('''
 class A {
-  int foo;
+  int foo = 0;
 
   A(this.foo);
 }
@@ -161,7 +161,7 @@ class A {
 library my.lib;
 import 'test.dart';
 
-main(A a) {
+void f(A a) {
   a.test();
 }
 ''');
@@ -184,7 +184,7 @@ class A {
     await indexUnit('/home/test/lib/lib.dart', '''
 import 'test.dart';
 
-main(A a) {
+void f(A a) {
   print(a.foo);
 }
 ''');
@@ -342,7 +342,7 @@ class B extends A {
   Future<void> test_checkFinalConditions_shadowsSuper_FieldElement() async {
     await indexTestUnit('''
 class A {
-  int newName; // marker
+  int newName = 0; // marker
 }
 class B extends A {
   test() {}
@@ -359,7 +359,7 @@ class C extends B {
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed method will shadow field 'A.newName'.",
-        expectedContextSearch: 'newName; // marker');
+        expectedContextSearch: 'newName = 0; // marker');
   }
 
   Future<void> test_checkFinalConditions_shadowsSuper_MethodElement() async {
@@ -435,15 +435,10 @@ class A {
   Future<void> test_checkNewName_FieldElement() async {
     await indexTestUnit('''
 class A {
-  int test;
+  int test = 0;
 }
 ''');
-    createRenameRefactoringAtString('test;');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Field name must not be null.');
+    createRenameRefactoringAtString('test = 0;');
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -456,11 +451,6 @@ class A {
 }
 ''');
     createRenameRefactoringAtString('test() {}');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Method name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -480,7 +470,7 @@ class A {
   Future<void> test_createChange_FieldElement() async {
     await indexTestUnit('''
 class A {
-  int test; // marker
+  int test = 0; // marker
   main() {
     print(test);
     test = 1;
@@ -507,7 +497,7 @@ main() {
 }
 ''');
     // configure refactoring
-    createRenameRefactoringAtString('test; // marker');
+    createRenameRefactoringAtString('test = 0; // marker');
     expect(refactoring.refactoringName, 'Rename Field');
     expect(refactoring.elementKindName, 'field');
     expect(refactoring.oldName, 'test');
@@ -515,7 +505,7 @@ main() {
     // validate change
     return assertSuccessfulRefactoring('''
 class A {
-  int newName; // marker
+  int newName = 0; // marker
   main() {
     print(newName);
     newName = 1;
@@ -618,13 +608,13 @@ main() {
     await indexTestUnit('''
 typedef F(a);
 class A {
-  F test;
+  final F test;
+  A(this.test);
   main() {
     test(1);
   }
 }
-main() {
-  A a = new A();
+void f(A a) {
   a.test(2);
 }
 ''');
@@ -637,13 +627,13 @@ main() {
     return assertSuccessfulRefactoring('''
 typedef F(a);
 class A {
-  F newName;
+  final F newName;
+  A(this.newName);
   main() {
     newName(1);
   }
 }
-main() {
-  A a = new A();
+void f(A a) {
   a.newName(2);
 }
 ''');
@@ -850,7 +840,7 @@ class B extends A {
   void test() {}
 }
 
-main(A a, B b) {
+void f(A a, B b) {
   a.test();
   b.test();
 }
@@ -865,7 +855,7 @@ class B extends A {
   void newName() {}
 }
 
-main(A a, B b) {
+void f(A a, B b) {
   a.newName();
   b.newName();
 }
@@ -896,7 +886,7 @@ class A {
   void test() {}
 }
 
-main(A a) {
+void f(A a) {
   a.test();
 }
 ''');
@@ -912,7 +902,7 @@ class A {
   void newName() {}
 }
 
-main(A a) {
+void f(A a) {
   a.newName();
 }
 ''');
@@ -1035,8 +1025,9 @@ main() {
     await indexTestUnit('''
 class A<Test> {
   Test field;
-  List<Test> items;
-  Test method(Test p) => null;
+  List<Test> items = [];
+  A(this.field);
+  Test method(Test p) => field;
 }
 ''');
     // configure refactoring
@@ -1049,8 +1040,9 @@ class A<Test> {
     return assertSuccessfulRefactoring('''
 class A<NewName> {
   NewName field;
-  List<NewName> items;
-  NewName method(NewName p) => null;
+  List<NewName> items = [];
+  A(this.field);
+  NewName method(NewName p) => field;
 }
 ''');
   }

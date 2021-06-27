@@ -14,8 +14,6 @@ class A {
 class C extends Object with A {
 //    ^
 // [cfe] Applying the mixin 'A' to 'Object' introduces an erroneous override of 'noSuchMethod'.
-//    ^
-// [cfe] Class 'Object with A' inherits multiple members named 'noSuchMethod' with incompatible signatures.
 //                          ^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
   test() {

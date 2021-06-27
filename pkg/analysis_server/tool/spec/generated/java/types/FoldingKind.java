@@ -21,6 +21,8 @@ public class FoldingKind {
 
   public static final String CLASS_BODY = "CLASS_BODY";
 
+  public static final String COMMENT = "COMMENT";
+
   public static final String DIRECTIVES = "DIRECTIVES";
 
   public static final String DOCUMENTATION_COMMENT = "DOCUMENTATION_COMMENT";
@@ -32,5 +34,7 @@ public class FoldingKind {
   public static final String INVOCATION = "INVOCATION";
 
   public static final String LITERAL = "LITERAL";
+
+  public static final String PARAMETERS = "PARAMETERS";
 
 }

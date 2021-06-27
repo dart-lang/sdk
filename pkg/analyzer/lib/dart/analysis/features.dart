@@ -16,12 +16,21 @@ abstract class Feature {
   /// Feature information for non-nullability by default.
   static final non_nullable = ExperimentalFeatures.non_nullable;
 
+  /// Feature information for constructor tear-offs.
+  static final constructor_tearoffs = ExperimentalFeatures.constructor_tearoffs;
+
   /// Feature information for control flow collections.
   static final control_flow_collections =
       ExperimentalFeatures.control_flow_collections;
 
   /// Feature information for extension methods.
   static final extension_methods = ExperimentalFeatures.extension_methods;
+
+  /// Feature information for extension types.
+  static final extension_types = ExperimentalFeatures.extension_types;
+
+  /// Feature information for generic metadata.
+  static final generic_metadata = ExperimentalFeatures.generic_metadata;
 
   /// Feature information for spread collections.
   static final spread_collections = ExperimentalFeatures.spread_collections;
@@ -43,11 +52,11 @@ abstract class Feature {
   /// experimental flag that may be used to enable it.  Otherwise `null`.
   ///
   /// Should be `null` if [status] is `current` or `abandoned`.
-  String get experimentalFlag;
+  String? get experimentalFlag;
 
   /// If [status] is not `future`, the first language version in which this
   /// feature was enabled by default.  Otherwise `null`.
-  Version get releaseVersion;
+  Version? get releaseVersion;
 
   /// The status of the feature.
   FeatureStatus get status;
@@ -75,8 +84,8 @@ abstract class FeatureSet {
   /// Computes the set of features implied by the given set of experimental
   /// enable flags.
   factory FeatureSet.fromEnableFlags2({
-    @required Version sdkLanguageVersion,
-    @required List<String> flags,
+    required Version sdkLanguageVersion,
+    required List<String> flags,
   }) = ExperimentStatus.fromStrings2;
 
   /// Computes the set of features for the latest language version known

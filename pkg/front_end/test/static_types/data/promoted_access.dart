@@ -13,9 +13,9 @@ class Class<T> {
       /*cfe.T & Class<dynamic>*/
       /*cfe:nnbd.T! & Class<dynamic>!*/
       o. /*invoke: dynamic*/ method(/*Null*/ null);
-      /*cfe.T & Class<dynamic>*/ /*cfe:nnbd.T! & Class<dynamic>!*/ o
+      /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T! & Class<dynamic>!|dynamic*/ o
           ?. /*invoke: dynamic*/ method(/*Null*/ null);
-      /*cfe.T & Class<dynamic>*/ /*cfe:nnbd.T! & Class<dynamic>!*/ o
+      /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T! & Class<dynamic>!|dynamic*/ o
           ?. /*dynamic*/ property;
     }
   }
@@ -26,9 +26,9 @@ method<T>(T o) {
     /*cfe.T & Class<dynamic>*/
     /*cfe:nnbd.T! & Class<dynamic>!*/
     o. /*invoke: dynamic*/ method(/*Null*/ null);
-    /*cfe.T & Class<dynamic>*/ /*cfe:nnbd.T! & Class<dynamic>!*/ o
+    /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T! & Class<dynamic>!|dynamic*/ o
         ?. /*invoke: dynamic*/ method(/*Null*/ null);
-    /*cfe.T & Class<dynamic>*/ /*cfe:nnbd.T! & Class<dynamic>!*/ o
+    /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T! & Class<dynamic>!|dynamic*/ o
         ?. /*dynamic*/ property;
   }
 }

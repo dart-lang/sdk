@@ -6,8 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/src/server/driver.dart' show Driver;
 import 'package:analysis_server_client/protocol.dart'
     show EditBulkFixesResult, ResponseDecoder;
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import 'core.dart';
@@ -16,10 +18,15 @@ import 'utils.dart';
 
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
-  AnalysisServer(this.sdkPath, this.directory);
+  AnalysisServer(
+    this.sdkPath,
+    this.analysisRoots, {
+    @required this.commandName,
+  });
 
   final Directory sdkPath;
-  final Directory directory;
+  final List<FileSystemEntity> analysisRoots;
+  final String commandName;
 
   Process _process;
 
@@ -64,6 +71,8 @@ class AnalysisServer {
   Future<void> start() async {
     final List<String> command = <String>[
       sdk.analysisServerSnapshot,
+      '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
+      '--${Driver.CLIENT_ID}=dart-$commandName',
       '--disable-server-feature-completion',
       '--disable-server-feature-search',
       '--sdk',
@@ -98,10 +107,10 @@ class AnalysisServer {
     //
     // The call to absolute.resolveSymbolicLinksSync() canonicalizes the path to
     // be passed to the analysis server.
-    var dirPath = trimEnd(
-      directory.absolute.resolveSymbolicLinksSync(),
-      path.context.separator,
-    );
+    List<String> analysisRootPaths = analysisRoots.map((root) {
+      return trimEnd(
+          root.absolute.resolveSymbolicLinksSync(), path.context.separator);
+    }).toList();
 
     onAnalyzing.listen((bool isAnalyzing) {
       if (isAnalyzing && _analysisFinished.isCompleted) {
@@ -115,7 +124,7 @@ class AnalysisServer {
 
     // ignore: unawaited_futures
     _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
-      'included': [dirPath],
+      'included': analysisRootPaths,
       'excluded': <String>[]
     });
   }
@@ -125,9 +134,11 @@ class AnalysisServer {
         .then((response) => response['version']);
   }
 
-  Future<EditBulkFixesResult> requestBulkFixes(String filePath) {
+  Future<EditBulkFixesResult> requestBulkFixes(
+      String filePath, bool inTestMode) {
     return _sendCommand('edit.bulkFixes', params: <String, dynamic>{
       'included': [path.canonicalize(filePath)],
+      'inTestMode': inTestMode
     }).then((result) {
       return EditBulkFixesResult.fromJson(
           ResponseDecoder(null), 'result', result);
@@ -249,6 +260,10 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   String get correction => json['correction'] as String;
 
+  int get endColumn => json['location']['endColumn'] as int;
+
+  int get endLine => json['location']['endLine'] as int;
+
   String get file => json['location']['file'] as String;
 
   int get startLine => json['location']['startLine'] as int;
@@ -258,8 +273,6 @@ class AnalysisError implements Comparable<AnalysisError> {
   int get offset => json['location']['offset'] as int;
 
   int get length => json['location']['length'] as int;
-
-  String get messageSentenceFragment => trimEnd(message, '.');
 
   String get url => json['url'] as String;
 
@@ -296,7 +309,7 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   @override
   String toString() => '${severity.toLowerCase()} • '
-      '$messageSentenceFragment at $file:$startLine:$startColumn • '
+      '$message • $file:$startLine:$startColumn • '
       '($code)';
 }
 
@@ -307,11 +320,19 @@ class DiagnosticMessage {
 
   int get column => json['location']['startColumn'] as int;
 
+  int get endColumn => json['location']['endColumn'] as int;
+
+  int get endLine => json['location']['endLine'] as int;
+
   String get filePath => json['location']['file'] as String;
+
+  int get length => json['location']['length'] as int;
 
   int get line => json['location']['startLine'] as int;
 
   String get message => json['message'] as String;
+
+  int get offset => json['location']['offset'] as int;
 }
 
 class FileAnalysisErrors {

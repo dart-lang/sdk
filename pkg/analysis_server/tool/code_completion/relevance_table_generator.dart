@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
@@ -19,13 +20,13 @@ import 'package:analyzer/dart/element/element.dart'
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
 
 /// Compute metrics to determine whether they should be used to compute a
 /// relevance score for completion suggestions.
@@ -34,31 +35,54 @@ Future<void> main(List<String> args) async {
   var result = parser.parse(args);
 
   if (validArguments(parser, result)) {
+    var provider = PhysicalResourceProvider.INSTANCE;
+    var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
+
+    void writeRelevanceTable(RelevanceData data, {String suffix = ''}) {
+      var generatedFilePath = provider.pathContext.join(
+          packageRoot,
+          'analysis_server',
+          'lib',
+          'src',
+          'services',
+          'completion',
+          'dart',
+          'relevance_tables$suffix.g.dart');
+      var generatedFile = provider.getFile(generatedFilePath);
+
+      var buffer = StringBuffer();
+      var writer = RelevanceTableWriter(buffer);
+      writer.write(data);
+      generatedFile.writeAsStringSync(buffer.toString());
+      DartFormat.formatFile(io.File(generatedFile.path));
+    }
+
+    if (result.wasParsed('reduceDir')) {
+      var data = RelevanceData();
+      var dir = provider.getFolder(result['reduceDir']);
+      var suffix = result.rest.isNotEmpty ? result.rest[0] : '';
+      for (var child in dir.getChildren()) {
+        if (child is File) {
+          var newData = RelevanceData.fromJson(child.readAsStringSync());
+          data.addData(newData);
+        }
+      }
+      writeRelevanceTable(data, suffix: suffix);
+      return;
+    }
+
     var rootPath = result.rest[0];
     print('Analyzing root: "$rootPath"');
 
-    var provider = PhysicalResourceProvider.INSTANCE;
-    var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
-    var generatedFilePath = provider.pathContext.join(
-        packageRoot,
-        'analysis_server',
-        'lib',
-        'src',
-        'services',
-        'completion',
-        'dart',
-        'relevance_tables.g.dart');
-    var generatedFile = provider.getFile(generatedFilePath);
-
     var computer = RelevanceMetricsComputer();
-    var stopwatch = Stopwatch();
-    stopwatch.start();
+    var stopwatch = Stopwatch()..start();
     await computer.compute(rootPath, verbose: result['verbose']);
-    var buffer = StringBuffer();
-    var writer = RelevanceTableWriter(buffer);
-    writer.write(computer.data);
-    generatedFile.writeAsStringSync(buffer.toString());
-    DartFormat.formatFile(io.File(generatedFile.path));
+    if (result.wasParsed('mapFile')) {
+      var mapFile = provider.getFile(result['mapFile'] as String);
+      mapFile.writeAsStringSync(computer.data.toJson());
+    } else {
+      writeRelevanceTable(computer.data);
+    }
     stopwatch.stop();
 
     var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -73,6 +97,18 @@ ArgParser createArgParser() {
     'help',
     abbr: 'h',
     help: 'Print this help message.',
+    negatable: false,
+  );
+  parser.addOption(
+    'mapFile',
+    help: 'The absolute path of the file to which the relevance data will be '
+        'written. Using this option will prevent the relevance table from '
+        'being written.',
+  );
+  parser.addOption(
+    'reduceDir',
+    help: 'The absolute path of the directory from which the relevance data '
+        'will be read.',
   );
   parser.addFlag(
     'verbose',
@@ -84,7 +120,7 @@ ArgParser createArgParser() {
 }
 
 /// Print usage information for this tool.
-void printUsage(ArgParser parser, {String error}) {
+void printUsage(ArgParser parser, {String? error}) {
   if (error != null) {
     print(error);
     print('');
@@ -102,17 +138,34 @@ bool validArguments(ArgParser parser, ArgResults result) {
   if (result.wasParsed('help')) {
     printUsage(parser);
     return false;
+  } else if (result.wasParsed('reduceDir')) {
+    return validateDir(parser, result['reduceDir']);
   } else if (result.rest.length != 1) {
     printUsage(parser, error: 'No package path specified.');
     return false;
   }
-  var rootPath = result.rest[0];
-  if (!PhysicalResourceProvider.INSTANCE.pathContext.isAbsolute(rootPath)) {
-    printUsage(parser, error: 'The package path must be an absolute path.');
+  if (result.wasParsed('mapFile')) {
+    var mapFilePath = result['mapFile'];
+    if (mapFilePath is! String ||
+        !PhysicalResourceProvider.INSTANCE.pathContext
+            .isAbsolute(mapFilePath)) {
+      printUsage(parser,
+          error: 'The path "$mapFilePath" must be an absolute path.');
+      return false;
+    }
+  }
+  return validateDir(parser, result.rest[0]);
+}
+
+/// Return `true` if the [dirPath] is an absolute path to a directory that
+/// exists.
+bool validateDir(ArgParser parser, String dirPath) {
+  if (!PhysicalResourceProvider.INSTANCE.pathContext.isAbsolute(dirPath)) {
+    printUsage(parser, error: 'The path "$dirPath" must be an absolute path.');
     return false;
   }
-  if (!io.Directory(rootPath).existsSync()) {
-    printUsage(parser, error: 'The directory "$rootPath" does not exist.');
+  if (!io.Directory(dirPath).existsSync()) {
+    printUsage(parser, error: 'The directory "$dirPath" does not exist.');
     return false;
   }
   return true;
@@ -126,9 +179,38 @@ class RelevanceData {
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
 
-  /// Add the data from the given relevance [data] to this set of data.
-  void addDataFrom(RelevanceData data) {
-    _addToMap(byKind, data.byKind);
+  /// Initialize a newly created set of relevance data based on the content of
+  /// the JSON encoded string.
+  RelevanceData.fromJson(String encoded) {
+    var map = json.decode(encoded) as Map<String, dynamic>;
+    for (var contextEntry in map.entries) {
+      var contextMap = byKind.putIfAbsent(contextEntry.key, () => {});
+      for (var kindEntry
+          in (contextEntry.value as Map<String, dynamic>).entries) {
+        _Kind kind;
+        var key = kindEntry.key;
+        if (key.startsWith('e')) {
+          kind = _ElementKind(ElementKind(key.substring(1)));
+        } else if (key.startsWith('k')) {
+          kind = _Keyword(Keyword.keywords[key.substring(1)]!);
+        } else {
+          throw StateError('Invalid initial character in unique key "$key"');
+        }
+        contextMap[kind] = int.parse(kindEntry.value as String);
+      }
+    }
+  }
+
+  /// Add the data from the given relevance [data] to this set of relevance
+  /// data.
+  void addData(RelevanceData data) {
+    for (var contextEntry in data.byKind.entries) {
+      var contextMap = byKind.putIfAbsent(contextEntry.key, () => {});
+      for (var kindEntry in contextEntry.value.entries) {
+        var kind = kindEntry.key;
+        contextMap[kind] = (contextMap[kind] ?? 0) + kindEntry.value;
+      }
+    }
   }
 
   /// Record that an element of the given [kind] was found in the given
@@ -146,15 +228,17 @@ class RelevanceData {
     contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
-  /// Add the data in the [source] map to the [target] map.
-  void _addToMap<K>(Map<K, Map<K, int>> target, Map<K, Map<K, int>> source) {
-    for (var outerEntry in source.entries) {
-      var innerTarget = target.putIfAbsent(outerEntry.key, () => {});
-      for (var innerEntry in outerEntry.value.entries) {
-        var innerKey = innerEntry.key;
-        innerTarget[innerKey] = (innerTarget[innerKey] ?? 0) + innerEntry.value;
+  /// Convert this data to a JSON encoded format.
+  String toJson() {
+    var map = <String, Map<String, String>>{};
+    for (var contextEntry in byKind.entries) {
+      var kindMap = <String, String>{};
+      for (var kindEntry in contextEntry.value.entries) {
+        kindMap[kindEntry.key.uniqueKey] = kindEntry.value.toString();
       }
+      map[contextEntry.key] = kindMap;
     }
+    return json.encode(map);
   }
 }
 
@@ -211,21 +295,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   final RelevanceData data;
 
   /// The compilation unit in which data is currently being collected.
-  CompilationUnit unit;
+  late CompilationUnit unit;
 
-  InheritanceManager3 inheritanceManager = InheritanceManager3();
+  late InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// The library containing the compilation unit being visited.
-  LibraryElement enclosingLibrary;
+  late LibraryElement enclosingLibrary;
 
   /// The type provider associated with the current compilation unit.
-  TypeProvider typeProvider;
+  late TypeProvider typeProvider;
 
   /// The type system associated with the current compilation unit.
-  TypeSystem typeSystem;
+  late TypeSystem typeSystem;
 
   /// The object used to compute the values of features.
-  FeatureComputer featureComputer;
+  late FeatureComputer featureComputer;
 
   /// Initialize a newly created collector to add data points to the given
   /// [data].
@@ -233,7 +317,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Initialize this collector prior to visiting the unit in the [result].
   void initializeFrom(ResolvedUnitResult result) {
-    unit = result.unit;
+    unit = result.unit!;
   }
 
   @override
@@ -381,10 +465,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitClassTypeAlias(ClassTypeAlias node) {
     _recordDataForNode('ClassTypeAlias_superclass', node.superclass);
     var context = 'superclass';
-    if (node.withClause != null) {
-      _recordKeyword('ClassTypeAlias_$context', node.withClause);
-      context = 'with';
-    }
+    _recordKeyword('ClassTypeAlias_$context', node.withClause);
+    context = 'with';
     _recordKeyword('ClassTypeAlias_$context', node.implementsClause);
     super.visitClassTypeAlias(node);
   }
@@ -403,7 +485,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    enclosingLibrary = node.declaredElement.library;
+    enclosingLibrary = node.declaredElement!.library;
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
     inheritanceManager = InheritanceManager3();
@@ -418,12 +500,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: declarationKeywords);
     }
     super.visitCompilationUnit(node);
-
-    featureComputer = null;
-    inheritanceManager = null;
-    typeSystem = null;
-    typeProvider = null;
-    enclosingLibrary = null;
   }
 
   @override
@@ -707,7 +783,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    _recordDataForNode('GenericTypeAlias_functionType', node.functionType,
+    _recordDataForNode('GenericTypeAlias_type', node.functionType,
         allowedKeywords: [Keyword.FUNCTION]);
     super.visitGenericTypeAlias(node);
   }
@@ -752,12 +828,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     var context = 'uri';
-    if (node.deferredKeyword != null) {
-      data.recordKeyword('ImportDirective_$context', node.deferredKeyword.type);
+    var deferredKeyword = node.deferredKeyword;
+    if (deferredKeyword != null) {
+      data.recordKeyword('ImportDirective_$context', deferredKeyword.keyword!);
       context = 'deferred';
     }
-    if (node.asKeyword != null) {
-      data.recordKeyword('ImportDirective_$context', node.asKeyword.type);
+    var asKeyword = node.asKeyword;
+    if (asKeyword != null) {
+      data.recordKeyword('ImportDirective_$context', asKeyword.keyword!);
       context = 'prefix';
     }
     if (node.configurations.isNotEmpty) {
@@ -1105,8 +1183,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: [Keyword.ON]);
       context = 'catch';
     }
-    if (node.finallyKeyword != null) {
-      data.recordKeyword('TryStatement_$context', node.finallyKeyword.type);
+    var finallyKeyword = node.finallyKeyword;
+    if (finallyKeyword != null) {
+      data.recordKeyword('TryStatement_$context', finallyKeyword.keyword!);
     }
     super.visitTryStatement(node);
   }
@@ -1141,7 +1220,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var keywords = node.parent.parent is FieldDeclaration
+    var keywords = node.parent?.parent is FieldDeclaration
         ? [Keyword.COVARIANT, ...expressionKeywords]
         : expressionKeywords;
     _recordDataForNode('VariableDeclaration_initializer', node.initializer,
@@ -1222,7 +1301,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the first child of the [node] that is neither a comment nor an
   /// annotation.
-  SyntacticEntity _firstChild(AstNode node) {
+  SyntacticEntity? _firstChild(AstNode node) {
     var children = node.childEntities.toList();
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -1235,14 +1314,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the element associated with the left-most identifier that is a
   /// child of the [node].
-  Element _leftMostElement(AstNode node) =>
+  Element? _leftMostElement(AstNode node) =>
       _leftMostIdentifier(node)?.staticElement;
 
   /// Return the left-most child of the [node] if it is a simple identifier, or
   /// `null` if the left-most child is not a simple identifier. Comments and
   /// annotations are ignored for this purpose.
-  SimpleIdentifier _leftMostIdentifier(AstNode node) {
-    var currentNode = node;
+  SimpleIdentifier? _leftMostIdentifier(AstNode node) {
+    AstNode? currentNode = node;
     while (currentNode != null && currentNode is! SimpleIdentifier) {
       var firstChild = _firstChild(currentNode);
       if (firstChild is AstNode) {
@@ -1251,18 +1330,19 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         currentNode = null;
       }
     }
-    if (currentNode is SimpleIdentifier && currentNode.inDeclarationContext()) {
-      return null;
+    if (currentNode is SimpleIdentifier &&
+        !currentNode.inDeclarationContext()) {
+      return currentNode;
     }
-    return currentNode;
+    return null;
   }
 
   /// Return the element kind of the element associated with the left-most
   /// identifier that is a child of the [node].
-  ElementKind _leftMostKind(AstNode node) {
+  ElementKind? _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
       return featureComputer
-          .computeElementKind(node.constructorName.staticElement);
+          .computeElementKind(node.constructorName.staticElement!);
     }
     var element = _leftMostElement(node);
     if (element == null) {
@@ -1271,17 +1351,17 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element is ClassElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
-        element = parent.element;
+        element = parent.element!;
       }
     }
     return featureComputer.computeElementKind(element);
   }
 
   /// Return the left-most token that is a child of the [node].
-  Token _leftMostToken(AstNode node) {
-    SyntacticEntity entity = node;
+  Token? _leftMostToken(AstNode node) {
+    SyntacticEntity? entity = node;
     while (entity is AstNode) {
-      entity = _firstChild(entity as AstNode);
+      entity = _firstChild(entity);
     }
     if (entity is Token) {
       return entity;
@@ -1291,7 +1371,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record information about the given [node] occurring in the given
   /// [context].
-  void _recordDataForNode(String context, AstNode node,
+  void _recordDataForNode(String context, AstNode? node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
     _recordKeyword(context, node, allowedKeywords: allowedKeywords);
@@ -1299,7 +1379,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record the element kind of the element associated with the left-most
   /// identifier that is a child of the [node] in the given [context].
-  void _recordElementKind(String context, AstNode node) {
+  void _recordElementKind(String context, AstNode? node) {
     if (node != null) {
       var kind = _leftMostKind(node);
       if (kind != null) {
@@ -1315,18 +1395,18 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// If the left-most token of the [node] is a keyword, then record that it
   /// occurred in the given [context].
-  void _recordKeyword(String context, AstNode node,
+  void _recordKeyword(String context, AstNode? node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     if (node != null) {
       var token = _leftMostToken(node);
-      if (token.isKeyword) {
-        var keyword = token.type;
+      if (token != null && token.isKeyword) {
+        var keyword = token.keyword!;
         if (keyword == Keyword.NEW) {
           // We don't suggest `new`, so we don't care about the frequency with
           // which it is used.
           return;
-        } else if (token.keyword.isBuiltInOrPseudo &&
-            !allowedKeywords.contains(token.keyword)) {
+        } else if (keyword.isBuiltInOrPseudo &&
+            !allowedKeywords.contains(keyword)) {
           // These keywords can be used as identifiers, so determine whether
           // it is being used as a keyword or an identifier.
           return;
@@ -1349,7 +1429,7 @@ class RelevanceMetricsComputer {
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
-  Future<void> compute(String rootPath, {@required bool verbose}) async {
+  Future<void> compute(String rootPath, {required bool verbose}) async {
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -1366,7 +1446,7 @@ class RelevanceMetricsComputer {
   /// output if [verbose] is `true`.
   Future<void> _computeInContext(
       ContextRoot root, RelevanceDataCollector collector,
-      {@required bool verbose}) async {
+      {required bool verbose}) async {
     // Create a new collection to avoid consuming large quantities of memory.
     final collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
@@ -1374,21 +1454,16 @@ class RelevanceMetricsComputer {
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (AnalysisEngine.isDartFileName(filePath)) {
+      if (file_paths.isDart(pathContext, filePath)) {
         try {
           var resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+              await context.currentSession.getResolvedUnit2(filePath);
           //
           // Check for errors that cause the file to be skipped.
           //
-          if (resolvedUnitResult == null) {
-            print('File $filePath skipped because resolved unit was null.');
-            if (verbose) {
-              print('');
-            }
-            continue;
-          } else if (resolvedUnitResult.state != ResultState.VALID) {
+          if (resolvedUnitResult is! ResolvedUnitResult) {
             print('File $filePath skipped because it could not be analyzed.');
             if (verbose) {
               print('');
@@ -1409,7 +1484,7 @@ class RelevanceMetricsComputer {
           }
 
           collector.initializeFrom(resolvedUnitResult);
-          resolvedUnitResult.unit.accept(collector);
+          resolvedUnitResult.unit!.accept(collector);
         } catch (exception, stacktrace) {
           print('Exception caught analyzing: "$filePath"');
           print(exception);
@@ -1441,20 +1516,21 @@ class RelevanceTableWriter {
     writeFileHeader();
     writeElementKindTable(data);
     writeKeywordTable(data);
+    writeFileFooter();
   }
 
   void writeElementKindTable(RelevanceData data) {
     sink.writeln();
     sink.write('''
-/// A table keyed by completion location and element kind whose values are the
-/// ranges of the relevance of those element kinds in those locations.
-const elementKindRelevance = {
+const defaultElementKindRelevance = {
 ''');
 
     var byKind = data.byKind;
-    var completionLocations = byKind.keys.toList()..sort();
-    for (var completionLocation in completionLocations) {
-      var counts = byKind[completionLocation];
+    var entries = byKind.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
+    for (var entry in entries) {
+      var completionLocation = entry.key;
+      var counts = entry.value;
       if (_hasElementKind(counts)) {
         var totalCount = _totalCount(counts);
         // TODO(brianwilkerson) If two element kinds have the same count they
@@ -1488,12 +1564,26 @@ const elementKindRelevance = {
     sink.writeln('};');
   }
 
+  void writeFileFooter() {
+    sink.write('''
+/// A table keyed by completion location and element kind whose values are the
+/// ranges of the relevance of those element kinds in those locations.
+Map<String, Map<ElementKind, ProbabilityRange>> elementKindRelevance =
+    defaultElementKindRelevance;
+
+/// A table keyed by completion location and keyword whose values are the
+/// ranges of the relevance of those keywords in those locations.
+Map<String, Map<String, ProbabilityRange>> keywordRelevance =
+    defaultKeywordRelevance;
+''');
+  }
+
   void writeFileHeader() {
     sink.write('''
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
+
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/completion_metrics/relevance_table_generator.dart",
@@ -1508,15 +1598,15 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
   void writeKeywordTable(RelevanceData data) {
     sink.writeln();
     sink.write('''
-/// A table keyed by completion location and keyword whose values are the
-/// ranges of the relevance of those keywords in those locations.
-const keywordRelevance = {
+const defaultKeywordRelevance = {
 ''');
 
     var byKind = data.byKind;
-    var completionLocations = byKind.keys.toList()..sort();
-    for (var completionLocation in completionLocations) {
-      var counts = byKind[completionLocation];
+    var entries = byKind.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
+    for (var entry in entries) {
+      var completionLocation = entry.key;
+      var counts = entry.value;
       if (_hasKeyword(counts)) {
         var totalCount = _totalCount(counts);
         // TODO(brianwilkerson) If two keywords have the same count they ought to
@@ -1590,6 +1680,9 @@ class _ElementKind extends _Kind {
       instances.putIfAbsent(elementKind, () => _ElementKind._(elementKind));
 
   _ElementKind._(this.elementKind);
+
+  @override
+  String get uniqueKey => 'e${elementKind.name}';
 }
 
 /// A wrapper for a keyword to allow keywords and element kinds to be used as
@@ -1603,8 +1696,15 @@ class _Keyword extends _Kind {
       instances.putIfAbsent(keyword, () => _Keyword._(keyword));
 
   _Keyword._(this.keyword);
+
+  @override
+  String get uniqueKey => 'k${keyword.lexeme}';
 }
 
 /// A superclass for [_ElementKind] and [_Keyword] to allow keywords and element
 /// kinds to be used as keys in a single table.
-class _Kind {}
+abstract class _Kind {
+  /// Return the unique key used when representing an instance of a subclass in
+  /// a JSON format.
+  String get uniqueKey;
+}

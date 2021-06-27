@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
+import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -37,6 +38,15 @@ class ToSourceVisitor2Test {
         "@A.c()",
         AstTestFactory.annotation2(AstTestFactory.identifier3("A"),
             AstTestFactory.identifier3("c"), AstTestFactory.argumentList()));
+  }
+
+  void test_visitAnnotation_constructor_generic() {
+    _assertSource(
+        "@A<T>.c()",
+        AstTestFactory.annotation2(AstTestFactory.identifier3("A"),
+            AstTestFactory.identifier3("c"), AstTestFactory.argumentList(),
+            typeArguments: AstTestFactory.typeArgumentList2(
+                [AstTestFactory.typeName4('T')])));
   }
 
   void test_visitArgumentList() {
@@ -555,7 +565,7 @@ class ToSourceVisitor2Test {
             AstTestFactory.identifier3("C"),
             null,
             AstTestFactory.formalParameterList(),
-            null,
+            [],
             AstTestFactory.blockFunctionBody2()));
   }
 
@@ -563,7 +573,7 @@ class ToSourceVisitor2Test {
     _assertSource(
         "external C();",
         AstTestFactory.constructorDeclaration(AstTestFactory.identifier3("C"),
-            null, AstTestFactory.formalParameterList(), null));
+            null, AstTestFactory.formalParameterList(), []));
   }
 
   void test_visitConstructorDeclaration_minimal() {
@@ -575,7 +585,7 @@ class ToSourceVisitor2Test {
             AstTestFactory.identifier3("C"),
             null,
             AstTestFactory.formalParameterList(),
-            null,
+            [],
             AstTestFactory.blockFunctionBody2()));
   }
 
@@ -609,7 +619,7 @@ class ToSourceVisitor2Test {
               AstTestFactory.simpleFormalParameter(Keyword.VAR, "a"),
               AstTestFactory.simpleFormalParameter(Keyword.VAR, "b")
             ]),
-            null,
+            [],
             AstTestFactory.blockFunctionBody2()));
   }
 
@@ -622,7 +632,7 @@ class ToSourceVisitor2Test {
             AstTestFactory.identifier3("C"),
             "m",
             AstTestFactory.formalParameterList(),
-            null,
+            [],
             AstTestFactory.blockFunctionBody2()));
   }
 
@@ -649,7 +659,7 @@ class ToSourceVisitor2Test {
         AstTestFactory.identifier3("C"),
         null,
         AstTestFactory.formalParameterList(),
-        null,
+        [],
         AstTestFactory.blockFunctionBody2());
     declaration.metadata.add(
         AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
@@ -820,7 +830,9 @@ class ToSourceVisitor2Test {
     _assertSource(
         'extension E on C {}',
         AstTestFactory.extensionDeclaration(
-            name: 'E', extendedType: AstTestFactory.typeName4('C')));
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            isExtensionTypeDeclaration: false));
   }
 
   void test_visitExtensionDeclaration_multipleMember() {
@@ -834,7 +846,8 @@ class ToSourceVisitor2Test {
                   [AstTestFactory.variableDeclaration('a')]),
               AstTestFactory.fieldDeclaration2(
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
-            ]));
+            ],
+            isExtensionTypeDeclaration: false));
   }
 
   void test_visitExtensionDeclaration_parameters() {
@@ -843,7 +856,8 @@ class ToSourceVisitor2Test {
         AstTestFactory.extensionDeclaration(
             name: 'E',
             typeParameters: AstTestFactory.typeParameterList(['T']),
-            extendedType: AstTestFactory.typeName4('C')));
+            extendedType: AstTestFactory.typeName4('C'),
+            isExtensionTypeDeclaration: false));
   }
 
   void test_visitExtensionDeclaration_singleMember() {
@@ -855,7 +869,8 @@ class ToSourceVisitor2Test {
             members: [
               AstTestFactory.fieldDeclaration2(
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
-            ]));
+            ],
+            isExtensionTypeDeclaration: false));
   }
 
   void test_visitExtensionOverride_prefixedName_noTypeArgs() {
@@ -896,6 +911,53 @@ class ToSourceVisitor2Test {
                 [AstTestFactory.typeName4('A')]),
             argumentList: AstTestFactory.argumentList(
                 [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionTypeDeclaration_empty() {
+    _assertSource(
+        'extension type E on C {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionTypeDeclaration_multipleMember() {
+    _assertSource(
+        'extension type E on C {var a; var b;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
+                  [AstTestFactory.variableDeclaration('a')]),
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
+            ],
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionTypeDeclaration_parameters() {
+    _assertSource(
+        'extension type E<T> on C {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            typeParameters: AstTestFactory.typeParameterList(['T']),
+            extendedType: AstTestFactory.typeName4('C'),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionTypeDeclaration_singleMember() {
+    _assertSource(
+        'extension type E on C {var a;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
+            ],
+            isExtensionTypeDeclaration: true));
   }
 
   void test_visitFieldDeclaration_abstract() {
@@ -988,7 +1050,7 @@ class ToSourceVisitor2Test {
 
   void test_visitFieldFormalParameter_type_covariant() {
     var expected = AstTestFactory.fieldFormalParameter(
-        null, AstTestFactory.typeName4("A"), "a") as FieldFormalParameterImpl;
+        null, AstTestFactory.typeName4("A"), "a");
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant A this.a", expected);
@@ -999,6 +1061,7 @@ class ToSourceVisitor2Test {
         'var e in l',
         astFactory.forEachPartsWithDeclaration(
             loopVariable: AstTestFactory.declaredIdentifier3('e'),
+            inKeyword: Tokens.in_(),
             iterable: AstTestFactory.identifier3('l')));
   }
 
@@ -1007,6 +1070,7 @@ class ToSourceVisitor2Test {
         'e in l',
         astFactory.forEachPartsWithIdentifier(
             identifier: AstTestFactory.identifier3('e'),
+            inKeyword: Tokens.in_(),
             iterable: AstTestFactory.identifier3('l')));
   }
 
@@ -1051,12 +1115,17 @@ class ToSourceVisitor2Test {
 
   void test_visitForElement() {
     _assertSource(
-        'for (e in l) 0',
-        astFactory.forElement(
-            forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3('e'),
-                iterable: AstTestFactory.identifier3('l')),
-            body: AstTestFactory.integer(0)));
+      'for (e in l) 0',
+      astFactory.forElement(
+          forKeyword: Tokens.for_(),
+          leftParenthesis: Tokens.openParenthesis(),
+          forLoopParts: astFactory.forEachPartsWithIdentifier(
+              identifier: AstTestFactory.identifier3('e'),
+              inKeyword: Tokens.in_(),
+              iterable: AstTestFactory.identifier3('l')),
+          rightParenthesis: Tokens.closeParenthesis(),
+          body: AstTestFactory.integer(0)),
+    );
   }
 
   void test_visitFormalParameterList_empty() {
@@ -1070,6 +1139,24 @@ class ToSourceVisitor2Test {
           AstTestFactory.namedFormalParameter(
               AstTestFactory.simpleFormalParameter3("a"),
               AstTestFactory.integer(0))
+        ]));
+  }
+
+  void test_visitFormalParameterList_namedRequired() {
+    _assertSource(
+        "({required a, required A b})",
+        AstTestFactory.formalParameterList([
+          AstTestFactory.namedFormalParameter(
+              AstTestFactory.simpleFormalParameter3("a")
+                ..requiredKeyword =
+                    TokenFactory.tokenFromKeyword(Keyword.REQUIRED),
+              null),
+          AstTestFactory.namedFormalParameter(
+              AstTestFactory.simpleFormalParameter2(
+                  null, AstTestFactory.typeName4('A'), "b")
+                ..requiredKeyword =
+                    TokenFactory.tokenFromKeyword(Keyword.REQUIRED),
+              null),
         ]));
   }
 
@@ -1235,7 +1322,9 @@ class ToSourceVisitor2Test {
         astFactory.forPartsWithDeclarations(
             variables: AstTestFactory.variableDeclarationList2(
                 Keyword.VAR, [AstTestFactory.variableDeclaration('v')]),
+            leftSeparator: Tokens.semicolon(),
             condition: AstTestFactory.identifier3('b'),
+            rightSeparator: Tokens.semicolon(),
             updaters: [AstTestFactory.identifier3('u')]));
   }
 
@@ -1244,19 +1333,26 @@ class ToSourceVisitor2Test {
         'v; b; u',
         astFactory.forPartsWithExpression(
             initialization: AstTestFactory.identifier3('v'),
+            leftSeparator: Tokens.semicolon(),
             condition: AstTestFactory.identifier3('b'),
+            rightSeparator: Tokens.semicolon(),
             updaters: [AstTestFactory.identifier3('u')]));
   }
 
   void test_visitForStatement() {
     _assertSource(
-        'for (e in l) s;',
-        astFactory.forStatement(
-            forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3('e'),
-                iterable: AstTestFactory.identifier3('l')),
-            body: AstTestFactory.expressionStatement(
-                AstTestFactory.identifier3('s'))));
+      'for (e in l) s;',
+      astFactory.forStatement(
+          forKeyword: Tokens.for_(),
+          leftParenthesis: Tokens.openParenthesis(),
+          forLoopParts: astFactory.forEachPartsWithIdentifier(
+              identifier: AstTestFactory.identifier3('e'),
+              inKeyword: Tokens.in_(),
+              iterable: AstTestFactory.identifier3('l')),
+          rightParenthesis: Tokens.closeParenthesis(),
+          body: AstTestFactory.expressionStatement(
+              AstTestFactory.identifier3('s'))),
+    );
   }
 
   void test_visitForStatement_c() {
@@ -1379,14 +1475,12 @@ class ToSourceVisitor2Test {
   }
 
   void test_visitFunctionDeclaration_external() {
-    FunctionDeclaration functionDeclaration =
-        AstTestFactory.functionDeclaration(
-            null,
-            null,
-            "f",
-            AstTestFactory.functionExpression2(
-                AstTestFactory.formalParameterList(),
-                AstTestFactory.emptyFunctionBody()));
+    var functionDeclaration = AstTestFactory.functionDeclaration(
+        null,
+        null,
+        "f",
+        AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
+            AstTestFactory.emptyFunctionBody()));
     functionDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     _assertSource("external f();", functionDeclaration);
@@ -1463,7 +1557,7 @@ class ToSourceVisitor2Test {
             null,
             "f",
             AstTestFactory.functionExpression3(
-                AstTestFactory.typeParameterList(['E']),
+                AstTestFactory.typeParameterList2(['E']),
                 AstTestFactory.formalParameterList(),
                 AstTestFactory.blockFunctionBody2())));
   }
@@ -1491,7 +1585,7 @@ class ToSourceVisitor2Test {
     _assertSource(
         "<E>() {}",
         AstTestFactory.functionExpression3(
-            AstTestFactory.typeParameterList(['E']),
+            AstTestFactory.typeParameterList2(['E']),
             AstTestFactory.formalParameterList(),
             AstTestFactory.blockFunctionBody2()));
   }
@@ -1571,7 +1665,7 @@ class ToSourceVisitor2Test {
 
   void test_visitFunctionTypedFormalParameter_type_covariant() {
     var expected = AstTestFactory.functionTypedFormalParameter(
-        AstTestFactory.typeName4("T"), "f") as FunctionTypedFormalParameterImpl;
+        AstTestFactory.typeName4("T"), "f");
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant T f()", expected);
@@ -1592,7 +1686,7 @@ class ToSourceVisitor2Test {
         "int Function<T>(T)",
         AstTestFactory.genericFunctionType(
             AstTestFactory.typeName4("int"),
-            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.typeParameterList2(['T']),
             AstTestFactory.formalParameterList([
               AstTestFactory.simpleFormalParameter4(
                   AstTestFactory.typeName4("T"), null)
@@ -1604,7 +1698,7 @@ class ToSourceVisitor2Test {
         "int Function<T>(T)?",
         AstTestFactory.genericFunctionType(
             AstTestFactory.typeName4("int"),
-            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.typeParameterList2(['T']),
             AstTestFactory.formalParameterList([
               AstTestFactory.simpleFormalParameter4(
                   AstTestFactory.typeName4("T"), null)
@@ -1617,10 +1711,10 @@ class ToSourceVisitor2Test {
         "typedef X<S> = S Function<T>(T)",
         AstTestFactory.genericTypeAlias(
             'X',
-            AstTestFactory.typeParameterList(['S']),
+            AstTestFactory.typeParameterList2(['S']),
             AstTestFactory.genericFunctionType(
                 AstTestFactory.typeName4("S"),
-                AstTestFactory.typeParameterList(['T']),
+                AstTestFactory.typeParameterList2(['T']),
                 AstTestFactory.formalParameterList([
                   AstTestFactory.simpleFormalParameter4(
                       AstTestFactory.typeName4("T"), null)
@@ -1631,8 +1725,12 @@ class ToSourceVisitor2Test {
     _assertSource(
         'if (b) 1 else 0',
         astFactory.ifElement(
+            ifKeyword: Tokens.if_(),
+            leftParenthesis: Tokens.openParenthesis(),
             condition: AstTestFactory.identifier3('b'),
+            rightParenthesis: Tokens.closeParenthesis(),
             thenElement: AstTestFactory.integer(1),
+            elseKeyword: Tokens.else_(),
             elseElement: AstTestFactory.integer(0)));
   }
 
@@ -1640,7 +1738,10 @@ class ToSourceVisitor2Test {
     _assertSource(
         'if (b) 1',
         astFactory.ifElement(
+            ifKeyword: Tokens.if_(),
+            leftParenthesis: Tokens.openParenthesis(),
             condition: AstTestFactory.identifier3('b'),
+            rightParenthesis: Tokens.closeParenthesis(),
             thenElement: AstTestFactory.integer(1)));
   }
 
@@ -1869,24 +1970,35 @@ class ToSourceVisitor2Test {
         astFactory.listLiteral(
             null,
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
-            null,
+            Tokens.openSquareBracket(),
             [
               AstTestFactory.integer(0),
               astFactory.forElement(
+                  forKeyword: Tokens.for_(),
+                  leftParenthesis: Tokens.openParenthesis(),
                   forLoopParts: astFactory.forEachPartsWithIdentifier(
                       identifier: AstTestFactory.identifier3('e'),
+                      inKeyword: Tokens.in_(),
                       iterable: AstTestFactory.identifier3('l')),
+                  rightParenthesis: Tokens.closeParenthesis(),
                   body: AstTestFactory.integer(0)),
               astFactory.ifElement(
+                  ifKeyword: Tokens.if_(),
+                  leftParenthesis: Tokens.openParenthesis(),
                   condition: AstTestFactory.identifier3('b'),
+                  rightParenthesis: Tokens.closeParenthesis(),
                   thenElement: AstTestFactory.integer(1)),
               astFactory.spreadElement(
                   spreadOperator: TokenFactory.tokenFromType(
                       TokenType.PERIOD_PERIOD_PERIOD),
                   expression: astFactory.listLiteral(
-                      null, null, null, [AstTestFactory.integer(0)], null))
+                      null,
+                      null,
+                      Tokens.openSquareBracket(),
+                      [AstTestFactory.integer(0)],
+                      Tokens.closeSquareBracket()))
             ],
-            null));
+            Tokens.closeSquareBracket()));
   }
 
   void test_visitListLiteral_const() {
@@ -1910,8 +2022,12 @@ class ToSourceVisitor2Test {
   void test_visitListLiteral_withConst_withoutTypeArgs() {
     _assertSource(
         'const [0]',
-        astFactory.listLiteral(TokenFactory.tokenFromKeyword(Keyword.CONST),
-            null, null, [AstTestFactory.integer(0)], null));
+        astFactory.listLiteral(
+            TokenFactory.tokenFromKeyword(Keyword.CONST),
+            null,
+            Tokens.openSquareBracket(),
+            [AstTestFactory.integer(0)],
+            Tokens.closeSquareBracket()));
   }
 
   void test_visitListLiteral_withConst_withTypeArgs() {
@@ -1920,16 +2036,16 @@ class ToSourceVisitor2Test {
         astFactory.listLiteral(
             TokenFactory.tokenFromKeyword(Keyword.CONST),
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
-            null,
+            Tokens.openSquareBracket(),
             [AstTestFactory.integer(0)],
-            null));
+            Tokens.closeSquareBracket()));
   }
 
   void test_visitListLiteral_withoutConst_withoutTypeArgs() {
     _assertSource(
         '[0]',
-        astFactory.listLiteral(
-            null, null, null, [AstTestFactory.integer(0)], null));
+        astFactory.listLiteral(null, null, Tokens.openSquareBracket(),
+            [AstTestFactory.integer(0)], Tokens.closeSquareBracket()));
   }
 
   void test_visitListLiteral_withoutConst_withTypeArgs() {
@@ -1938,9 +2054,9 @@ class ToSourceVisitor2Test {
         astFactory.listLiteral(
             null,
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
-            null,
+            Tokens.openSquareBracket(),
             [AstTestFactory.integer(0)],
-            null));
+            Tokens.closeSquareBracket()));
   }
 
   void test_visitMapLiteral_const() {
@@ -2171,7 +2287,7 @@ class ToSourceVisitor2Test {
     _assertSource(
         "t?.m()",
         AstTestFactory.methodInvocation(AstTestFactory.identifier3("t"), "m",
-            null, TokenType.QUESTION_PERIOD));
+            [], TokenType.QUESTION_PERIOD));
   }
 
   void test_visitMethodInvocation_noTarget() {
@@ -2233,11 +2349,16 @@ class ToSourceVisitor2Test {
     _assertSource("@deprecated part 'a.dart';", directive);
   }
 
-  void test_visitPartOfDirective() {
-    _assertSource(
-        "part of l;",
-        AstTestFactory.partOfDirective(
-            AstTestFactory.libraryIdentifier2(["l"])));
+  void test_visitPartOfDirective_name() {
+    var unit = parseString(content: 'part of l;').unit;
+    var directive = unit.directives[0] as PartOfDirective;
+    _assertSource("part of l;", directive);
+  }
+
+  void test_visitPartOfDirective_uri() {
+    var unit = parseString(content: "part of 'a.dart';").unit;
+    var directive = unit.directives[0] as PartOfDirective;
+    _assertSource("part of 'a.dart';", directive);
   }
 
   void test_visitPartOfDirective_withMetadata() {
@@ -2324,122 +2445,192 @@ class ToSourceVisitor2Test {
 
   void test_visitSetOrMapLiteral_map_complex() {
     _assertSource(
-        "<String, String>{'a' : 'b', for (c in d) 'e' : 'f', if (g) 'h' : 'i', ...{'j' : 'k'}}",
-        astFactory.setOrMapLiteral(
-            typeArguments: AstTestFactory.typeArgumentList([
-              AstTestFactory.typeName4('String'),
-              AstTestFactory.typeName4('String')
-            ]),
-            elements: [
-              AstTestFactory.mapLiteralEntry3('a', 'b'),
-              astFactory.forElement(
-                  forLoopParts: astFactory.forEachPartsWithIdentifier(
-                      identifier: AstTestFactory.identifier3('c'),
-                      iterable: AstTestFactory.identifier3('d')),
-                  body: AstTestFactory.mapLiteralEntry3('e', 'f')),
-              astFactory.ifElement(
-                  condition: AstTestFactory.identifier3('g'),
-                  thenElement: AstTestFactory.mapLiteralEntry3('h', 'i')),
-              astFactory.spreadElement(
-                  spreadOperator: TokenFactory.tokenFromType(
-                      TokenType.PERIOD_PERIOD_PERIOD),
-                  expression: astFactory.setOrMapLiteral(
-                      elements: [AstTestFactory.mapLiteralEntry3('j', 'k')]))
-            ]));
+      "<String, String>{'a' : 'b', for (c in d) 'e' : 'f', if (g) 'h' : 'i', ...{'j' : 'k'}}",
+      astFactory.setOrMapLiteral(
+        leftBracket: Tokens.openCurlyBracket(),
+        typeArguments: AstTestFactory.typeArgumentList([
+          AstTestFactory.typeName4('String'),
+          AstTestFactory.typeName4('String')
+        ]),
+        elements: [
+          AstTestFactory.mapLiteralEntry3('a', 'b'),
+          astFactory.forElement(
+              forKeyword: Tokens.for_(),
+              leftParenthesis: Tokens.openParenthesis(),
+              forLoopParts: astFactory.forEachPartsWithIdentifier(
+                identifier: AstTestFactory.identifier3('c'),
+                inKeyword: Tokens.in_(),
+                iterable: AstTestFactory.identifier3('d'),
+              ),
+              rightParenthesis: Tokens.closeParenthesis(),
+              body: AstTestFactory.mapLiteralEntry3('e', 'f')),
+          astFactory.ifElement(
+            ifKeyword: Tokens.if_(),
+            leftParenthesis: Tokens.openParenthesis(),
+            condition: AstTestFactory.identifier3('g'),
+            rightParenthesis: Tokens.closeParenthesis(),
+            thenElement: AstTestFactory.mapLiteralEntry3('h', 'i'),
+          ),
+          astFactory.spreadElement(
+            spreadOperator:
+                TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD),
+            expression: astFactory.setOrMapLiteral(
+              leftBracket: Tokens.openCurlyBracket(),
+              elements: [AstTestFactory.mapLiteralEntry3('j', 'k')],
+              rightBracket: Tokens.closeCurlyBracket(),
+            ),
+          )
+        ],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSetOrMapLiteral_map_withConst_withoutTypeArgs() {
     _assertSource(
-        "const {'a' : 'b'}",
-        astFactory.setOrMapLiteral(
-            constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
-            elements: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
+      "const {'a' : 'b'}",
+      astFactory.setOrMapLiteral(
+        leftBracket: Tokens.openCurlyBracket(),
+        constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+        elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSetOrMapLiteral_map_withConst_withTypeArgs() {
     _assertSource(
-        "const <String, String>{'a' : 'b'}",
-        astFactory.setOrMapLiteral(
-            constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
-            typeArguments: AstTestFactory.typeArgumentList([
-              AstTestFactory.typeName4('String'),
-              AstTestFactory.typeName4('String')
-            ]),
-            elements: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
+      "const <String, String>{'a' : 'b'}",
+      astFactory.setOrMapLiteral(
+        constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+        typeArguments: AstTestFactory.typeArgumentList([
+          AstTestFactory.typeName4('String'),
+          AstTestFactory.typeName4('String')
+        ]),
+        leftBracket: Tokens.openCurlyBracket(),
+        elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSetOrMapLiteral_map_withoutConst_withoutTypeArgs() {
     _assertSource(
-        "{'a' : 'b'}",
-        astFactory.setOrMapLiteral(
-            elements: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
+      "{'a' : 'b'}",
+      astFactory.setOrMapLiteral(
+        leftBracket: Tokens.openCurlyBracket(),
+        elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSetOrMapLiteral_map_withoutConst_withTypeArgs() {
     _assertSource(
-        "<String, String>{'a' : 'b'}",
-        astFactory.setOrMapLiteral(
-            typeArguments: AstTestFactory.typeArgumentList([
-              AstTestFactory.typeName4('String'),
-              AstTestFactory.typeName4('String')
-            ]),
-            elements: [AstTestFactory.mapLiteralEntry3('a', 'b')]));
+      "<String, String>{'a' : 'b'}",
+      astFactory.setOrMapLiteral(
+        typeArguments: AstTestFactory.typeArgumentList([
+          AstTestFactory.typeName4('String'),
+          AstTestFactory.typeName4('String')
+        ]),
+        leftBracket: Tokens.openCurlyBracket(),
+        elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSetOrMapLiteral_set_complex() {
     _assertSource(
-        '<int>{0, for (e in l) 0, if (b) 1, ...[0]}',
-        astFactory.setOrMapLiteral(
-            typeArguments: AstTestFactory.typeArgumentList(
-                [AstTestFactory.typeName4('int')]),
-            elements: [
-              AstTestFactory.integer(0),
-              astFactory.forElement(
-                  forLoopParts: astFactory.forEachPartsWithIdentifier(
-                      identifier: AstTestFactory.identifier3('e'),
-                      iterable: AstTestFactory.identifier3('l')),
-                  body: AstTestFactory.integer(0)),
-              astFactory.ifElement(
-                  condition: AstTestFactory.identifier3('b'),
-                  thenElement: AstTestFactory.integer(1)),
-              astFactory.spreadElement(
-                  spreadOperator: TokenFactory.tokenFromType(
-                      TokenType.PERIOD_PERIOD_PERIOD),
-                  expression: astFactory.listLiteral(
-                      null, null, null, [AstTestFactory.integer(0)], null))
-            ]));
+      '<int>{0, for (e in l) 0, if (b) 1, ...[0]}',
+      astFactory.setOrMapLiteral(
+        typeArguments:
+            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
+        leftBracket: Tokens.openCurlyBracket(),
+        elements: [
+          AstTestFactory.integer(0),
+          astFactory.forElement(
+              forKeyword: Tokens.for_(),
+              leftParenthesis: Tokens.openParenthesis(),
+              forLoopParts: astFactory.forEachPartsWithIdentifier(
+                identifier: AstTestFactory.identifier3('e'),
+                inKeyword: Tokens.in_(),
+                iterable: AstTestFactory.identifier3('l'),
+              ),
+              rightParenthesis: Tokens.closeParenthesis(),
+              body: AstTestFactory.integer(0)),
+          astFactory.ifElement(
+            ifKeyword: Tokens.if_(),
+            leftParenthesis: Tokens.openParenthesis(),
+            condition: AstTestFactory.identifier3('b'),
+            rightParenthesis: Tokens.closeParenthesis(),
+            thenElement: AstTestFactory.integer(1),
+          ),
+          astFactory.spreadElement(
+            spreadOperator:
+                TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD),
+            expression: astFactory.listLiteral(
+              null,
+              null,
+              Tokens.openSquareBracket(),
+              [AstTestFactory.integer(0)],
+              Tokens.closeSquareBracket(),
+            ),
+          )
+        ],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSetOrMapLiteral_set_withConst_withoutTypeArgs() {
     _assertSource(
-        'const {0}',
-        astFactory.setOrMapLiteral(
-            constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
-            elements: [AstTestFactory.integer(0)]));
+      'const {0}',
+      astFactory.setOrMapLiteral(
+        constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+        leftBracket: Tokens.openCurlyBracket(),
+        elements: [AstTestFactory.integer(0)],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSetOrMapLiteral_set_withConst_withTypeArgs() {
     _assertSource(
-        'const <int>{0}',
-        astFactory.setOrMapLiteral(
-            constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
-            typeArguments: AstTestFactory.typeArgumentList(
-                [AstTestFactory.typeName4('int')]),
-            elements: [AstTestFactory.integer(0)]));
+      'const <int>{0}',
+      astFactory.setOrMapLiteral(
+        constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+        typeArguments:
+            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
+        leftBracket: Tokens.openCurlyBracket(),
+        elements: [AstTestFactory.integer(0)],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSetOrMapLiteral_set_withoutConst_withoutTypeArgs() {
-    _assertSource('{0}',
-        astFactory.setOrMapLiteral(elements: [AstTestFactory.integer(0)]));
+    _assertSource(
+      '{0}',
+      astFactory.setOrMapLiteral(
+        leftBracket: Tokens.openCurlyBracket(),
+        elements: [AstTestFactory.integer(0)],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSetOrMapLiteral_set_withoutConst_withTypeArgs() {
     _assertSource(
-        '<int>{0}',
-        astFactory.setOrMapLiteral(
-            typeArguments: AstTestFactory.typeArgumentList(
-                [AstTestFactory.typeName4('int')]),
-            elements: [AstTestFactory.integer(0)]));
+      '<int>{0}',
+      astFactory.setOrMapLiteral(
+        typeArguments:
+            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
+        leftBracket: Tokens.openCurlyBracket(),
+        elements: [AstTestFactory.integer(0)],
+        rightBracket: Tokens.closeCurlyBracket(),
+      ),
+    );
   }
 
   void test_visitSimpleFormalParameter_annotation() {
@@ -2471,7 +2662,7 @@ class ToSourceVisitor2Test {
 
   void test_visitSimpleFormalParameter_type_covariant() {
     var expected = AstTestFactory.simpleFormalParameter4(
-        AstTestFactory.typeName4("A"), "a") as SimpleFormalParameterImpl;
+        AstTestFactory.typeName4("A"), "a");
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant A a", expected);
@@ -2492,7 +2683,11 @@ class ToSourceVisitor2Test {
             spreadOperator:
                 TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD),
             expression: astFactory.listLiteral(
-                null, null, null, [AstTestFactory.integer(0)], null)));
+                null,
+                null,
+                Tokens.openSquareBracket(),
+                [AstTestFactory.integer(0)],
+                Tokens.closeSquareBracket())));
   }
 
   @failingTest
@@ -2505,7 +2700,11 @@ class ToSourceVisitor2Test {
             spreadOperator:
                 TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD),
             expression: astFactory.listLiteral(
-                null, null, null, [AstTestFactory.integer(0)], null)));
+                null,
+                null,
+                Tokens.openSquareBracket(),
+                [AstTestFactory.integer(0)],
+                Tokens.closeSquareBracket())));
   }
 
   void test_visitStringInterpolation() {
@@ -2674,13 +2873,13 @@ class ToSourceVisitor2Test {
   void test_visitTypeArgumentList_multiple() {
     _assertSource(
         "<E, F>",
-        AstTestFactory.typeArgumentList(
+        AstTestFactory.typeArgumentList2(
             [AstTestFactory.typeName4("E"), AstTestFactory.typeName4("F")]));
   }
 
   void test_visitTypeArgumentList_single() {
     _assertSource("<E>",
-        AstTestFactory.typeArgumentList([AstTestFactory.typeName4("E")]));
+        AstTestFactory.typeArgumentList2([AstTestFactory.typeName4("E")]));
   }
 
   void test_visitTypeName_multipleArgs() {
@@ -2745,11 +2944,11 @@ class ToSourceVisitor2Test {
   }
 
   void test_visitTypeParameterList_multiple() {
-    _assertSource("<E, F>", AstTestFactory.typeParameterList(["E", "F"]));
+    _assertSource("<E, F>", AstTestFactory.typeParameterList2(["E", "F"]));
   }
 
   void test_visitTypeParameterList_single() {
-    _assertSource("<E>", AstTestFactory.typeParameterList(["E"]));
+    _assertSource("<E>", AstTestFactory.typeParameterList2(["E"]));
   }
 
   void test_visitVariableDeclaration_initialized() {

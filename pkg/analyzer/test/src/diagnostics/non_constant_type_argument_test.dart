@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantTypeArgumentTest);
+    defineReflectiveTests(NonConstantTypeArgumentWarningTest);
   });
 }
 
@@ -27,5 +28,50 @@ class C<R extends int Function(int)> {
 ''', [
       error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 147, 1),
     ]);
+  }
+}
+
+@reflectiveTest
+class NonConstantTypeArgumentWarningTest extends PubPackageResolutionTest {
+  test_ref_class() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+class MyStruct extends Struct {
+  @Uint8()
+  int myField;
+}
+
+void main() {
+  final pointer = Pointer<MyStruct>.fromAddress(0);
+  pointer.ref.myField = 1;
+}
+''');
+  }
+
+  test_ref_class_cascade() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+class MyStruct extends Struct {
+  @Uint8()
+  int myField;
+}
+
+void main() {
+  final pointer = Pointer<MyStruct>.fromAddress(0)
+    ..ref.myField = 1;
+  print(pointer);
+}
+''');
+  }
+
+  test_ref_typeParameter() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+T genericRef<T extends Struct>(Pointer<T> p) =>
+    p.ref;
+''', [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 72, 5)]);
   }
 }

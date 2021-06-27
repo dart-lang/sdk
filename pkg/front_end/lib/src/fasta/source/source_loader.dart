@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.source_loader;
 
 import 'dart:convert' show utf8;
@@ -23,13 +25,11 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart'
     show
         Arguments,
         AsyncMarker,
-        BottomType,
         Class,
         Component,
         DartType,
@@ -38,6 +38,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Library,
         LibraryDependency,
+        NeverType,
         Nullability,
         Procedure,
         ProcedureKind,
@@ -57,6 +58,7 @@ import 'package:kernel/type_environment.dart';
 
 import 'package:package_config/package_config.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../../api_prototype/file_system.dart';
 
 import '../../base/common.dart';
@@ -65,10 +67,12 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../../base/nnbd_mode.dart';
 
-import '../denylisted_classes.dart' show denylistedCoreClasses;
+import '../denylisted_classes.dart'
+    show denylistedCoreClasses, denylistedTypedDataClasses;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
@@ -76,6 +80,8 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/never_type_declaration_builder.dart';
+import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
@@ -107,6 +113,8 @@ import '../source/stack_listener_impl.dart' show offsetForToken;
 import '../type_inference/type_inference_engine.dart';
 
 import '../type_inference/type_inferrer.dart';
+
+import '../util/helpers.dart';
 
 import 'diet_listener.dart' show DietListener;
 
@@ -198,24 +206,24 @@ class SourceLoader extends Loader {
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
-    Uri uri = library.fileUri;
+    Uri fileUri = library.fileUri;
 
     // Lookup the file URI in the cache.
-    List<int> bytes = sourceBytes[uri];
+    List<int> bytes = sourceBytes[fileUri];
 
     if (bytes == null) {
       // Error recovery.
-      if (uri.scheme == untranslatableUriScheme) {
+      if (fileUri.scheme == untranslatableUriScheme) {
         Message message =
             templateUntranslatableUri.withArguments(library.importUri);
         library.addProblemAtAccessors(message);
         bytes = synthesizeSourceForMissingFile(library.importUri, null);
-      } else if (!uri.hasScheme) {
+      } else if (!fileUri.hasScheme) {
         return internalProblem(
-            templateInternalProblemUriMissingScheme.withArguments(uri),
+            templateInternalProblemUriMissingScheme.withArguments(fileUri),
             -1,
             library.importUri);
-      } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
+      } else if (fileUri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
         library.addProblemAtAccessors(messageExpectedUri);
         bytes = synthesizeSourceForMissingFile(library.importUri, null);
       }
@@ -223,7 +231,7 @@ class SourceLoader extends Loader {
         Uint8List zeroTerminatedBytes = new Uint8List(bytes.length + 1);
         zeroTerminatedBytes.setRange(0, bytes.length, bytes);
         bytes = zeroTerminatedBytes;
-        sourceBytes[uri] = bytes;
+        sourceBytes[fileUri] = bytes;
       }
     }
 
@@ -232,30 +240,44 @@ class SourceLoader extends Loader {
       // system.
       List<int> rawBytes;
       try {
-        rawBytes = await fileSystem.entityForUri(uri).readAsBytes();
+        rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
       } on FileSystemException catch (e) {
-        Message message = templateCantReadFile.withArguments(uri, e.message);
+        Message message =
+            templateCantReadFile.withArguments(fileUri, e.message);
         library.addProblemAtAccessors(message);
         rawBytes = synthesizeSourceForMissingFile(library.importUri, message);
       }
       Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
       zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
       bytes = zeroTerminatedBytes;
-      sourceBytes[uri] = bytes;
+      sourceBytes[fileUri] = bytes;
       byteCount += rawBytes.length;
     }
 
     ScannerResult result = scan(bytes,
         includeComments: includeComments,
         configuration: new ScannerConfiguration(
-            enableTripleShift: library.enableTripleShiftInLibrary,
-            enableExtensionMethods: library.enableExtensionMethodsInLibrary,
-            enableNonNullable: library.enableNonNullableInLibrary),
+            enableTripleShift: target.isExperimentEnabledInLibraryByVersion(
+                ExperimentalFlag.tripleShift,
+                library.importUri,
+                library.packageLanguageVersion.version),
+            enableExtensionMethods:
+                target.isExperimentEnabledInLibraryByVersion(
+                    ExperimentalFlag.extensionMethods,
+                    library.importUri,
+                    library.packageLanguageVersion.version),
+            enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
+                    ExperimentalFlag.nonNullable,
+                    library.importUri,
+                    library.packageLanguageVersion.version) &&
+                !SourceLibraryBuilder.isOptOutTest(library.importUri)),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {
-        library.setLanguageVersion(new Version(version.major, version.minor),
-            offset: version.offset, length: version.length, explicit: true);
+        library.registerExplicitLanguageVersion(
+            new Version(version.major, version.minor),
+            offset: version.offset,
+            length: version.length);
       }
       scanner.configuration = new ScannerConfiguration(
           enableTripleShift: library.enableTripleShiftInLibrary,
@@ -288,7 +310,7 @@ class SourceLoader extends Loader {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
         library.addProblem(error.assertionMessage, offsetForToken(token),
-            lengthForToken(token), uri);
+            lengthForToken(token), fileUri);
       }
       token = token.next;
     }
@@ -473,15 +495,15 @@ class SourceLoader extends Loader {
 
   // TODO(johnniwinther,jensj): Handle expression in extensions?
   Future<Expression> buildExpression(
-      SourceLibraryBuilder library,
+      SourceLibraryBuilder libraryBuilder,
       String enclosingClass,
       bool isClassInstanceMember,
       FunctionNode parameters) async {
-    Token token = await tokenize(library, suppressLexicalErrors: false);
+    Token token = await tokenize(libraryBuilder, suppressLexicalErrors: false);
     if (token == null) return null;
-    DietListener dietListener = createDietListener(library);
+    DietListener dietListener = createDietListener(libraryBuilder);
 
-    Builder parent = library;
+    Builder parent = libraryBuilder;
     if (enclosingClass != null) {
       Builder cls = dietListener.memberScope.lookup(enclosingClass, -1, null);
       if (cls is ClassBuilder) {
@@ -501,7 +523,7 @@ class SourceLoader extends Loader {
         null,
         null,
         ProcedureKind.Method,
-        library,
+        libraryBuilder,
         0,
         0,
         -1,
@@ -509,7 +531,12 @@ class SourceLoader extends Loader {
         null,
         null,
         AsyncMarker.Sync,
-        /* isExtensionInstanceMember = */ false)
+        new ProcedureNameScheme(
+            isExtensionMember: false,
+            isStatic: true,
+            libraryReference: libraryBuilder.library.reference),
+        isInstanceMember: false,
+        isExtensionMember: false)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
@@ -552,18 +579,18 @@ class SourceLoader extends Loader {
     }
     ticker.logMs("Resolved parts");
 
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         library.applyPatches();
       }
-    });
+    }
     ticker.logMs("Applied patches");
   }
 
   void computeLibraryScopes() {
     Set<LibraryBuilder> exporters = new Set<LibraryBuilder>();
     Set<LibraryBuilder> exportees = new Set<LibraryBuilder>();
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
         sourceLibrary.buildInitialScopes();
@@ -574,7 +601,7 @@ class SourceLoader extends Loader {
           exporters.add(exporter.exporter);
         }
       }
-    });
+    }
     Set<SourceLibraryBuilder> both = new Set<SourceLibraryBuilder>();
     for (LibraryBuilder exported in exportees) {
       if (exporters.contains(exported)) {
@@ -597,12 +624,12 @@ class SourceLoader extends Loader {
         }
       }
     } while (wasChanged);
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
         sourceLibrary.addImportsToScope();
       }
-    });
+    }
     for (LibraryBuilder exportee in exportees) {
       // TODO(ahe): Change how we track exporters. Currently, when a library
       // (exporter) exports another library (exportee) we add a reference to
@@ -640,94 +667,94 @@ class SourceLoader extends Loader {
 
   void resolveTypes() {
     int typeCount = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
         typeCount += sourceLibrary.resolveTypes();
       }
-    });
+    }
     ticker.logMs("Resolved $typeCount types");
   }
 
   void finishDeferredLoadTearoffs() {
     int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         count += library.finishDeferredLoadTearoffs();
       }
-    });
+    }
     ticker.logMs("Finished deferred load tearoffs $count");
   }
 
   void finishNoSuchMethodForwarders() {
     int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         count += library.finishForwarders();
       }
-    });
+    }
     ticker.logMs("Finished forwarders for $count procedures");
   }
 
   void resolveConstructors() {
     int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         count += library.resolveConstructors(null);
       }
-    });
+    }
     ticker.logMs("Resolved $count constructors");
   }
 
   void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         count += library.finishTypeVariables(object, dynamicType);
       }
-    });
+    }
     ticker.logMs("Resolved $count type-variable bounds");
   }
 
   void computeVariances() {
     int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         count += library.computeVariances();
       }
-    });
+    }
     ticker.logMs("Computed variances of $count type variables");
   }
 
   void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         count += library.computeDefaultTypes(
             dynamicType, nullType, bottomType, objectClass);
       }
-    });
+    }
     ticker.logMs("Computed default types for $count type variables");
   }
 
   void finishNativeMethods() {
     int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         count += library.finishNativeMethods();
       }
-    });
+    }
     ticker.logMs("Finished $count native methods");
   }
 
   void finishPatchMethods() {
     int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         count += library.finishPatchMethods();
       }
-    });
+    }
     ticker.logMs("Finished $count patch methods");
   }
 
@@ -778,6 +805,14 @@ class SourceLoader extends Loader {
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
       denyListedClasses.add(coreLibrary
           .lookupLocalMember(denylistedCoreClasses[i], required: true));
+    }
+    if (typedDataLibrary != null) {
+      for (int i = 0; i < denylistedTypedDataClasses.length; i++) {
+        // Allow the member to not exist. If it doesn't, nobody can extend it.
+        Builder member = typedDataLibrary
+            .lookupLocalMember(denylistedTypedDataClasses[i], required: false);
+        if (member != null) denyListedClasses.add(member);
+      }
     }
 
     // Sort the classes topologically.
@@ -900,7 +935,10 @@ class SourceLoader extends Loader {
         if (builder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = builder;
           NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+              isUsedAsClass: true,
+              usedAsClassCharOffset: namedBuilder.charOffset,
+              usedAsClassFileUri: namedBuilder.fileUri);
           if (builder is! ClassBuilder) {
             cls.addProblem(
                 templateIllegalMixin.withArguments(builder.fullNameForErrors),
@@ -949,7 +987,7 @@ class SourceLoader extends Loader {
 
   /// Builds the core AST structure needed for the outline of the component.
   void buildComponent() {
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
         Library target = sourceLibrary.build(coreLibrary);
@@ -962,14 +1000,14 @@ class SourceLoader extends Loader {
           libraries.add(target);
         }
       }
-    });
+    }
     ticker.logMs("Built component");
   }
 
   Component computeFullComponent() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
-    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
+    for (LibraryBuilder libraryBuilder in builders.values) {
       if (!libraryBuilder.isPatch &&
           (libraryBuilder.loader == this ||
               libraryBuilder.importUri.scheme == "dart" ||
@@ -978,7 +1016,7 @@ class SourceLoader extends Loader {
           workList.add(libraryBuilder.library);
         }
       }
-    });
+    }
     while (workList.isNotEmpty) {
       Library library = workList.removeLast();
       for (LibraryDependency dependency in library.dependencies) {
@@ -1035,11 +1073,11 @@ class SourceLoader extends Loader {
     // bodies are correct.  It's valid to use the non-nullable types on the
     // left-hand side in both opt-in and opt-out code.
     futureOfBottom = new InterfaceType(coreTypes.futureClass,
-        Nullability.nonNullable, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const NeverType.nonNullable()]);
     iterableOfBottom = new InterfaceType(coreTypes.iterableClass,
-        Nullability.nonNullable, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const NeverType.nonNullable()]);
     streamOfBottom = new InterfaceType(coreTypes.streamClass,
-        Nullability.nonNullable, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const NeverType.nonNullable()]);
 
     ticker.logMs("Computed core types");
   }
@@ -1054,14 +1092,14 @@ class SourceLoader extends Loader {
   }
 
   void checkTypes() {
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in builders.values) {
       if (library is SourceLibraryBuilder) {
         if (library.loader == this) {
           library
               .checkTypesInOutline(typeInferenceEngine.typeSchemaEnvironment);
         }
       }
-    });
+    }
     ticker.logMs("Checked type arguments of supers against the bounds");
   }
 
@@ -1132,22 +1170,41 @@ class SourceLoader extends Loader {
   }
 
   void buildOutlineExpressions(CoreTypes coreTypes) {
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    List<DelayedActionPerformer> delayedActionPerformers =
+        <DelayedActionPerformer>[];
+    for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         library.buildOutlineExpressions();
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
           Builder declaration = iterator.current;
           if (declaration is ClassBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes);
+            declaration.buildOutlineExpressions(
+                library, coreTypes, delayedActionPerformers);
           } else if (declaration is ExtensionBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes);
+            declaration.buildOutlineExpressions(
+                library, coreTypes, delayedActionPerformers);
           } else if (declaration is MemberBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes);
+            declaration.buildOutlineExpressions(
+                library, coreTypes, delayedActionPerformers);
+          } else if (declaration is TypeAliasBuilder) {
+            declaration.buildOutlineExpressions(
+                library, coreTypes, delayedActionPerformers);
+          } else {
+            assert(
+                declaration is PrefixBuilder ||
+                    declaration is DynamicTypeDeclarationBuilder ||
+                    declaration is NeverTypeDeclarationBuilder,
+                "Unexpected builder in library: ${declaration} "
+                "(${declaration.runtimeType}");
           }
         }
       }
-    });
+    }
+    for (DelayedActionPerformer delayedActionPerformer
+        in delayedActionPerformers) {
+      delayedActionPerformer.performDelayedActions();
+    }
     ticker.logMs("Build outline expressions");
   }
 
@@ -1268,7 +1325,7 @@ class SourceLoader extends Loader {
   void checkMainMethods() {
     DartType listOfString;
 
-    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
+    for (LibraryBuilder libraryBuilder in builders.values) {
       if (libraryBuilder.loader == this &&
           libraryBuilder.isNonNullableByDefault) {
         Builder mainBuilder =
@@ -1390,7 +1447,7 @@ class SourceLoader extends Loader {
           }
         }
       }
-    });
+    }
   }
 
   void releaseAncillaryResources() {
@@ -1464,10 +1521,18 @@ class List<E> extends Iterable<E> {
 }
 
 class _GrowableList<E> {
-  factory _GrowableList() => null;
+  factory _GrowableList(int length) => null;
   factory _GrowableList.empty() => null;
   factory _GrowableList.filled() => null;
   factory _GrowableList.generate(int length, E generator(int index)) => null;
+  factory _GrowableList._literal1(E e0) => null;
+  factory _GrowableList._literal2(E e0, E e1) => null;
+  factory _GrowableList._literal3(E e0, E e1, E e2) => null;
+  factory _GrowableList._literal4(E e0, E e1, E e2, E e3) => null;
+  factory _GrowableList._literal5(E e0, E e1, E e2, E e3, E e4) => null;
+  factory _GrowableList._literal6(E e0, E e1, E e2, E e3, E e4, E e5) => null;
+  factory _GrowableList._literal7(E e0, E e1, E e2, E e3, E e4, E e5, E e6) => null;
+  factory _GrowableList._literal8(E e0, E e1, E e2, E e3, E e4, E e5, E e6, E e7) => null;
 }
 
 class _List<E> {
@@ -1513,6 +1578,9 @@ class Object {
   bool operator==(dynamic) {}
 }
 
+abstract class Enum {
+}
+
 class String {}
 
 class Symbol {}
@@ -1521,7 +1589,7 @@ class Set<E> {
   factory Set() = Set<E>._fake;
   external factory Set._fake();
   external factory Set.of();
-  void add(E element) {}
+  bool add(E element) {}
   void addAll(Iterable<E> iterable) {}
 }
 

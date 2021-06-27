@@ -25,7 +25,7 @@ class ClassTable;
 class Isolate;
 class IsolateGroup;
 class IsolateGroupReloadContext;
-class IsolateReloadContext;
+class ProgramReloadContext;
 class JSONArray;
 class JSONObject;
 class JSONStream;
@@ -125,6 +125,20 @@ class SharedClassTable {
     trace_allocation_table_.load()[cid] = trace ? 1 : 0;
   }
   bool TraceAllocationFor(intptr_t cid);
+  void SetCollectInstancesFor(intptr_t cid, bool trace) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    if (trace) {
+      trace_allocation_table_.load()[cid] |= 2;
+    } else {
+      trace_allocation_table_.load()[cid] &= ~2;
+    }
+  }
+  bool CollectInstancesFor(intptr_t cid) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    return (trace_allocation_table_.load()[cid] & 2) != 0;
+  }
 #endif  // !defined(PRODUCT)
 
   void CopyBeforeHotReload(intptr_t** copy, intptr_t* copy_num_cids) {
@@ -144,7 +158,7 @@ class SharedClassTable {
   }
 
   void ResetBeforeHotReload() {
-    // The [IsolateReloadContext] is now source-of-truth for GC.
+    // The [ProgramReloadContext] is now source-of-truth for GC.
     auto table = table_.load();
     for (intptr_t i = 0; i < top_; i++) {
       // Don't use memset, which changes this from a relaxed atomic operation
@@ -156,7 +170,7 @@ class SharedClassTable {
   void ResetAfterHotReload(intptr_t* old_table,
                            intptr_t num_old_cids,
                            bool is_rollback) {
-    // The [IsolateReloadContext] is no longer source-of-truth for GC after we
+    // The [ProgramReloadContext] is no longer source-of-truth for GC after we
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids);
@@ -216,8 +230,6 @@ class SharedClassTable {
   friend class Scavenger;
   friend class ScavengerWeakVisitor;
 
-  static bool ShouldUpdateSizeForClassId(intptr_t cid);
-
 #ifndef PRODUCT
   // Copy-on-write is used for trace_allocation_table_, with old copies stored
   // in old_tables_.
@@ -259,7 +271,7 @@ class ClassTable {
                            ClassPtr** tlc_copy,
                            intptr_t* copy_num_cids,
                            intptr_t* copy_num_tlc_cids) {
-    // The [IsolateReloadContext] will need to maintain a copy of the old class
+    // The [ProgramReloadContext] will need to maintain a copy of the old class
     // table until instances have been morphed.
     const intptr_t num_cids = NumCids();
     const intptr_t num_tlc_cids = NumTopLevelCids();
@@ -298,7 +310,7 @@ class ClassTable {
                            intptr_t num_old_cids,
                            intptr_t num_old_tlc_cids,
                            bool is_rollback) {
-    // The [IsolateReloadContext] is no longer source-of-truth for GC after we
+    // The [ProgramReloadContext] is no longer source-of-truth for GC after we
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids, num_old_tlc_cids);
@@ -420,7 +432,7 @@ class ClassTable {
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                                    const char* name,
                                                    char** error);
-  friend class Isolate;  // for table()
+  friend class IsolateGroup;  // for table()
   static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
   static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
 

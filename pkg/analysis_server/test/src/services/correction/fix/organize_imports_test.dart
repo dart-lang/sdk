@@ -30,14 +30,14 @@ import 'dart:io';
 
 import 'dart:async';
 
-void main(Stream<String> args) { }
+void f(Stream<String> args) { }
 ''');
     await assertHasFix('''
 //ignore_for_file: unused_import
 import 'dart:async';
 import 'dart:io';
 
-void main(Stream<String> args) { }
+void f(Stream<String> args) { }
 ''');
   }
 }

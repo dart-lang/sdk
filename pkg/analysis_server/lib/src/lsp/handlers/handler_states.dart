@@ -29,6 +29,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_select_range.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_semantic_tokens.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
@@ -46,7 +47,7 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
   FailureStateMessageHandler(LspAnalysisServer server) : super(server);
 
   @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     return error(
         ErrorCodes.InternalError,
         'An unrecoverable error occurred and the server cannot process messages',
@@ -103,7 +104,9 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(WorkspaceDidChangeConfigurationMessageHandler(server));
     registerHandler(ReanalyzeHandler(server));
     registerHandler(WillRenameFilesHandler(server));
-    registerHandler(SemanticTokensHandler(server));
+    registerHandler(SelectionRangeHandler(server));
+    registerHandler(SemanticTokensFullHandler(server));
+    registerHandler(SemanticTokensRangeHandler(server));
   }
 }
 
@@ -123,12 +126,12 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  ErrorOr<void> handleUnknownMessage(IncomingMessage message) {
+  ErrorOr<Object?> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService
           .logInfo('Ignoring ${message.method} message while initializing');
-      return success();
+      return success(null);
     }
     return error(
         ErrorCodes.ServerNotInitialized,
@@ -143,12 +146,12 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService
           .logInfo('Ignoring ${message.method} message while shutting down');
-      return success();
+      return success(null);
     }
     return error(ErrorCodes.InvalidRequest,
         'Unable to handle ${message.method} after shutdown request');
@@ -163,12 +166,12 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService
           .logInfo('Ignoring ${message.method} message while uninitialized');
-      return success();
+      return success(null);
     }
     return error(ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before client has sent initialize request');

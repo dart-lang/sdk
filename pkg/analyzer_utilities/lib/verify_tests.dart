@@ -18,7 +18,7 @@ class VerifyTests {
   final String testDirPath;
 
   /// Paths to exclude from analysis completely.
-  final List<String> excludedPaths;
+  final List<String>? excludedPaths;
 
   VerifyTests(this.testDirPath, {this.excludedPaths});
 
@@ -66,7 +66,7 @@ class VerifyTests {
   void _buildTestsIn(
       AnalysisSession session, String testDirPath, Folder directory) {
     var testFileNames = <String>[];
-    File testAllFile;
+    File? testAllFile;
     var children = directory.getChildren();
     children
         .sort((first, second) => first.shortName.compareTo(second.shortName));
@@ -103,14 +103,18 @@ class VerifyTests {
       if (isOkForTestAllToBeMissing(directory)) {
         fail('Found "test_all.dart" in $relativePath but did not expect one');
       }
-      var result = session.getParsedUnit(testAllFile.path);
-      if (result.state != ResultState.VALID) {
+      var result = session.getParsedUnit2(testAllFile.path);
+      if (result is! ParsedUnitResult) {
         fail('Could not parse ${testAllFile.path}');
       }
       var importedFiles = <String>[];
       for (var directive in result.unit.directives) {
         if (directive is ImportDirective) {
-          importedFiles.add(directive.uri.stringValue);
+          var uri = directive.uri.stringValue;
+          if (uri == null) {
+            fail('Invalid URI: $directive');
+          }
+          importedFiles.add(uri);
         }
       }
       var missingFiles = <String>[];

@@ -1761,7 +1761,6 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}',
         '--packages=${package_config.path}',
         '--target=dartdevc',
-        '--enable-experiment=non-nullable',
         file.path,
       ];
 
@@ -1915,7 +1914,6 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${package_config.path}',
-        '--enable-experiment=non-nullable',
       ];
 
       final StreamController<List<int>> streamController =
@@ -1981,12 +1979,14 @@ class BarState extends State<FizzWidget> {
       var manifestFile = File('${dillFile.path}.json');
       var sourceMapsFile = File('${dillFile.path}.map');
       var metadataFile = File('${dillFile.path}.metadata');
+      var symbolsFile = File('${dillFile.path}.symbols');
 
       expect(dillFile.existsSync(), false);
       expect(sourceFile.existsSync(), false);
       expect(manifestFile.existsSync(), false);
       expect(sourceMapsFile.existsSync(), false);
       expect(metadataFile.existsSync(), false);
+      expect(symbolsFile.existsSync(), false);
 
       final List<String> args = <String>[
         '--sdk-root=${sdkRoot.toFilePath()}',
@@ -1996,7 +1996,7 @@ class BarState extends State<FizzWidget> {
         '--target=dartdevc',
         '--packages=${package_config.path}',
         '--experimental-emit-debug-metadata',
-        '--enable-experiment=non-nullable',
+        '--emit-debug-symbols',
       ];
 
       final StreamController<List<int>> streamController =
@@ -2025,6 +2025,7 @@ class BarState extends State<FizzWidget> {
         expect(manifestFile.existsSync(), equals(true));
         expect(sourceMapsFile.existsSync(), equals(true));
         expect(metadataFile.existsSync(), equals(true));
+        expect(symbolsFile.existsSync(), equals(true));
         expect(result.filename, dillFile.path);
         streamController.add('accept\n'.codeUnits);
         outputParser.expectSources = false;
@@ -2243,7 +2244,6 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${package_config.path}',
-        '--enable-experiment=non-nullable',
       ];
 
       final StreamController<List<int>> streamController =
@@ -2362,7 +2362,6 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${package_config.path}',
-        '--enable-experiment=non-nullable'
       ];
 
       final StreamController<List<int>> streamController =

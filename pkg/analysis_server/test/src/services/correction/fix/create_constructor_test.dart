@@ -80,10 +80,23 @@ class A {
 ''', target: a);
   }
 
+  Future<void> test_inPart_partOfName_noLibrary() async {
+    await resolveTestCode('''
+part of my_lib;
+
+class A {}
+
+void f() {
+  A(0);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_insteadOfSyntheticDefault() async {
     await resolveTestCode('''
 class A {
-  int field;
+  int field = 0;
 
   method() {}
 }
@@ -93,7 +106,7 @@ main() {
 ''');
     await assertHasFix('''
 class A {
-  int field;
+  int field = 0;
 
   A(int i, double d);
 

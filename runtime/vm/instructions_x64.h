@@ -110,8 +110,8 @@ class SetFramePointerPattern
 // callq *[rip+offset]
 class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
  public:
-  static const intptr_t kLowerCallingRange = -(DART_UINT64_C(1) << 31);
-  static const intptr_t kUpperCallingRange = (DART_UINT64_C(1) << 31) - 1;
+  static constexpr intptr_t kLowerCallingRange = -(DART_UINT64_C(1) << 31);
+  static constexpr intptr_t kUpperCallingRange = (DART_UINT64_C(1) << 31) - 1;
 
   explicit PcRelativeCallPattern(uword pc) : InstructionPattern(pc) {}
 
@@ -169,11 +169,11 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
            kLengthInBytes;
   }
 
-  void set_distance(int32_t distance) {
+  void set_distance(intptr_t distance) {
     // [distance] is relative to the start of the instruction, x64 considers the
     // offset relative to next PC.
     StoreUnaligned(reinterpret_cast<int32_t*>(pattern_start_ + 1),
-                   distance - kLengthInBytes);
+                   static_cast<int32_t>(distance - kLengthInBytes));
   }
 
   bool IsValid() const {
@@ -187,8 +187,8 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
 
 class PcRelativeTailCallPattern : public PcRelativeTrampolineJumpPattern {
  public:
-  static const intptr_t kLowerCallingRange = -(1ul << 31) + kLengthInBytes;
-  static const intptr_t kUpperCallingRange = (1ul << 31) - 1;
+  static constexpr intptr_t kLowerCallingRange = -(DART_INT64_C(1) << 31) + kLengthInBytes;
+  static constexpr intptr_t kUpperCallingRange = (DART_INT64_C(1) << 31) - 1;
 
   explicit PcRelativeTailCallPattern(uword pc)
       : PcRelativeTrampolineJumpPattern(pc) {}

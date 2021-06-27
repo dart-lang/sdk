@@ -4,6 +4,8 @@
 //
 // Dart test program for testing file I/O.
 
+// @dart = 2.9
+
 // OtherResources=empty_file
 // OtherResources=file_test.txt
 // OtherResources=fixed_length_file

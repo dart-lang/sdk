@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -42,11 +41,6 @@ class A {
 ''');
     createRenameRefactoringAtString('test() {}');
     expect(refactoring.oldName, 'test');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Constructor name must not be null.');
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
@@ -97,6 +91,7 @@ class A {
 
   Future<void> test_createChange_add() async {
     await indexTestUnit('''
+/// Documentation for [new A]
 class A {
   A() {} // marker
   factory A._() = A;
@@ -116,6 +111,7 @@ main() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
+/// Documentation for [new A.newName]
 class A {
   A.newName() {} // marker
   factory A._() = A.newName;
@@ -131,7 +127,9 @@ main() {
 
   Future<void> test_createChange_add_toSynthetic() async {
     await indexTestUnit('''
+/// Documentation for [new A]
 class A {
+  int field = 0;
 }
 class B extends A {
   B() : super() {}
@@ -148,7 +146,10 @@ main() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
+/// Documentation for [new A.newName]
 class A {
+  int field = 0;
+
   A.newName();
 }
 class B extends A {
@@ -162,6 +163,7 @@ main() {
 
   Future<void> test_createChange_change() async {
     await indexTestUnit('''
+/// Documentation for [A.test] and [new A.test]
 class A {
   A.test() {} // marker
   factory A._() = A.test;
@@ -181,6 +183,7 @@ main() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
+/// Documentation for [A.newName] and [new A.newName]
 class A {
   A.newName() {} // marker
   factory A._() = A.newName;
@@ -194,8 +197,38 @@ main() {
 ''');
   }
 
+  Future<void> test_createChange_lint_sortConstructorsFirst() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await indexTestUnit('''
+class A {
+  int field = 0;
+}
+main() {
+  new A();
+}
+''');
+    // configure refactoring
+    _createConstructorInvocationRefactoring('new A();');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+
+  int field = 0;
+}
+main() {
+  new A.newName();
+}
+''');
+  }
+
   Future<void> test_createChange_remove() async {
     await indexTestUnit('''
+/// Documentation for [A.test] and [new A.test]
 class A {
   A.test() {} // marker
   factory A._() = A.test;
@@ -215,6 +248,7 @@ main() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
+/// Documentation for [A] and [new A]
 class A {
   A() {} // marker
   factory A._() = A;
@@ -231,19 +265,19 @@ main() {
   Future<void> test_newInstance_nullElement() async {
     await indexTestUnit('');
     var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
-    var refactoring = RenameRefactoring(workspace, testAnalysisResult, null);
+    var refactoring =
+        RenameRefactoring.create(workspace, testAnalysisResult, null);
     expect(refactoring, isNull);
   }
 
   void _createConstructorDeclarationRefactoring(String search) {
-    ConstructorElement element = findNodeElementAtString(
-        search, (node) => node is ConstructorDeclaration);
+    var element = findNode.constructor(search).declaredElement;
     createRenameRefactoringForElement(element);
   }
 
   void _createConstructorInvocationRefactoring(String search) {
-    ConstructorElement element = findNodeElementAtString(
-        search, (node) => node is InstanceCreationExpression);
+    var instanceCreation = findNode.instanceCreation(search);
+    var element = instanceCreation.constructorName.staticElement;
     createRenameRefactoringForElement(element);
   }
 }

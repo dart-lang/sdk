@@ -16,23 +16,23 @@ class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
 
   final Element _pivotElement;
-  LibraryElement _pivotLibrary;
-  ElementKind _pivotKind;
-  String _pivotName;
-  bool _pivotFieldFinal;
-  ClassElement _pivotClass;
+  final LibraryElement _pivotLibrary;
+  final ElementKind _pivotKind;
+  final String? _pivotName;
+  late bool _pivotFieldFinal;
+  ClassElement? _pivotClass;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
   final List<ClassElement> _itemClassElements = <ClassElement>[];
   final Map<Element, TypeHierarchyItem> _elementItemMap =
       HashMap<Element, TypeHierarchyItem>();
 
-  TypeHierarchyComputer(this._searchEngine, this._pivotElement) {
-    _pivotLibrary = _pivotElement.library;
-    _pivotKind = _pivotElement.kind;
-    _pivotName = _pivotElement.name;
+  TypeHierarchyComputer(this._searchEngine, this._pivotElement)
+      : _pivotLibrary = _pivotElement.library!,
+        _pivotKind = _pivotElement.kind,
+        _pivotName = _pivotElement.name {
     // try to find enclosing ClassElement
-    var element = _pivotElement;
+    Element? element = _pivotElement;
     if (_pivotElement is FieldElement) {
       _pivotFieldFinal = (_pivotElement as FieldElement).isFinal;
       element = _pivotElement.enclosingElement;
@@ -45,20 +45,24 @@ class TypeHierarchyComputer {
     }
   }
 
+  bool get _isNonNullableByDefault => _pivotLibrary.isNonNullableByDefault;
+
   /// Returns the computed type hierarchy, maybe `null`.
-  Future<List<TypeHierarchyItem>> compute() async {
-    if (_pivotClass != null) {
-      _createSuperItem(_pivotClass, null);
-      await _createSubclasses(_items[0], 0, _pivotClass);
+  Future<List<TypeHierarchyItem>?> compute() async {
+    var pivotClass = _pivotClass;
+    if (pivotClass != null) {
+      _createSuperItem(pivotClass, null);
+      await _createSubclasses(_items[0], 0, pivotClass);
       return _items;
     }
     return null;
   }
 
   /// Returns the computed super type only type hierarchy, maybe `null`.
-  List<TypeHierarchyItem> computeSuper() {
-    if (_pivotClass != null) {
-      _createSuperItem(_pivotClass, null);
+  List<TypeHierarchyItem>? computeSuper() {
+    var pivotClass = _pivotClass;
+    if (pivotClass != null) {
+      _createSuperItem(pivotClass, null);
       return _items;
     }
     return null;
@@ -78,9 +82,12 @@ class TypeHierarchyComputer {
       }
       // create a subclass item
       var subMemberElement = _findMemberElement(subElement);
-      subItem = TypeHierarchyItem(convertElement(subElement),
-          memberElement: subMemberElement != null
-              ? convertElement(subMemberElement)
+      var subMemberElementDeclared = subMemberElement?.nonSynthetic;
+      subItem = TypeHierarchyItem(
+          convertElement(subElement, withNullability: _isNonNullableByDefault),
+          memberElement: subMemberElementDeclared != null
+              ? convertElement(subMemberElementDeclared,
+                  withNullability: _isNonNullableByDefault)
               : null,
           superclass: itemId);
       var subItemId = _items.length;
@@ -101,27 +108,34 @@ class TypeHierarchyComputer {
   }
 
   int _createSuperItem(
-      ClassElement classElement, List<DartType> typeArguments) {
+      ClassElement classElement, List<DartType>? typeArguments) {
     // check for recursion
-    var item = _elementItemMap[classElement];
-    if (item != null) {
-      return _items.indexOf(item);
+    var cachedItem = _elementItemMap[classElement];
+    if (cachedItem != null) {
+      return _items.indexOf(cachedItem);
     }
     // create an empty item now
+    TypeHierarchyItem item;
     int itemId;
     {
-      String displayName;
+      String? displayName;
       if (typeArguments != null && typeArguments.isNotEmpty) {
         var typeArgumentsStr = typeArguments
-            .map((type) => type.getDisplayString(withNullability: false))
+            .map((type) =>
+                type.getDisplayString(withNullability: _isNonNullableByDefault))
             .join(', ');
         displayName = classElement.displayName + '<' + typeArgumentsStr + '>';
       }
       var memberElement = _findMemberElement(classElement);
-      item = TypeHierarchyItem(convertElement(classElement),
+      var memberElementDeclared = memberElement?.nonSynthetic;
+      item = TypeHierarchyItem(
+          convertElement(classElement,
+              withNullability: _isNonNullableByDefault),
           displayName: displayName,
-          memberElement:
-              memberElement != null ? convertElement(memberElement) : null);
+          memberElement: memberElementDeclared != null
+              ? convertElement(memberElementDeclared,
+                  withNullability: _isNonNullableByDefault)
+              : null);
       _elementItemMap[classElement] = item;
       itemId = _items.length;
       _items.add(item);
@@ -151,19 +165,23 @@ class TypeHierarchyComputer {
     return itemId;
   }
 
-  ExecutableElement _findMemberElement(ClassElement clazz) {
-    ExecutableElement result;
+  ExecutableElement? _findMemberElement(ClassElement clazz) {
+    var pivotName = _pivotName;
+    if (pivotName == null) {
+      return null;
+    }
+    ExecutableElement? result;
     // try to find in the class itself
     if (_pivotKind == ElementKind.METHOD) {
-      result = clazz.getMethod(_pivotName);
+      result = clazz.getMethod(pivotName);
     } else if (_pivotKind == ElementKind.GETTER) {
-      result = clazz.getGetter(_pivotName);
+      result = clazz.getGetter(pivotName);
     } else if (_pivotKind == ElementKind.SETTER) {
-      result = clazz.getSetter(_pivotName);
+      result = clazz.getSetter(pivotName);
     } else if (_pivotKind == ElementKind.FIELD) {
-      result = clazz.getGetter(_pivotName);
+      result = clazz.getGetter(pivotName);
       if (result == null && !_pivotFieldFinal) {
-        result = clazz.getSetter(_pivotName);
+        result = clazz.getSetter(pivotName);
       }
     }
     if (result != null && result.isAccessibleIn(_pivotLibrary)) {
@@ -173,15 +191,15 @@ class TypeHierarchyComputer {
     for (var mixin in clazz.mixins.reversed) {
       var mixinElement = mixin.element;
       if (_pivotKind == ElementKind.METHOD) {
-        result = mixinElement.lookUpMethod(_pivotName, _pivotLibrary);
+        result = mixinElement.lookUpMethod(pivotName, _pivotLibrary);
       } else if (_pivotKind == ElementKind.GETTER) {
-        result = mixinElement.lookUpGetter(_pivotName, _pivotLibrary);
+        result = mixinElement.lookUpGetter(pivotName, _pivotLibrary);
       } else if (_pivotKind == ElementKind.SETTER) {
-        result = mixinElement.lookUpSetter(_pivotName, _pivotLibrary);
+        result = mixinElement.lookUpSetter(pivotName, _pivotLibrary);
       } else if (_pivotKind == ElementKind.FIELD) {
-        result = mixinElement.lookUpGetter(_pivotName, _pivotLibrary);
+        result = mixinElement.lookUpGetter(pivotName, _pivotLibrary);
         if (result == null && !_pivotFieldFinal) {
-          result = mixinElement.lookUpSetter(_pivotName, _pivotLibrary);
+          result = mixinElement.lookUpSetter(pivotName, _pivotLibrary);
         }
       }
       if (result == _pivotElement) {

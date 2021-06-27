@@ -65,8 +65,8 @@ final _appDir =
 final _client = http.Client();
 
 final _homeDir = Platform.isWindows
-    ? Platform.environment['LOCALAPPDATA']
-    : Platform.environment['HOME'];
+    ? Platform.environment['LOCALAPPDATA']!
+    : Platform.environment['HOME']!;
 
 final _package_config = path.join('.dart_tool', 'package_config.json');
 
@@ -91,8 +91,9 @@ Future<CloneResult> _clone(String repo) async {
 
 Future<String> _getBody(String url) async => (await _getResponse(url)).body;
 
-Future<http.Response> _getResponse(String url) async => _client
-    .get(url, headers: const {'User-Agent': 'dart.pkg.completion_metrics'});
+Future<http.Response> _getResponse(String url) async =>
+    _client.get(Uri.parse(url),
+        headers: const {'User-Agent': 'dart.pkg.completion_metrics'});
 
 bool _hasPubspec(FileSystemEntity f) =>
     f is Directory && File(path.join(f.path, 'pubspec.yaml')).existsSync();
@@ -140,7 +141,13 @@ class RepoList {
     final entries = doc.querySelectorAll('entry');
     for (var entry in entries) {
       final link = entry.querySelector('link');
+      if (link == null) {
+        continue;
+      }
       final href = link.attributes['href'];
+      if (href == null) {
+        continue;
+      }
       final body = await _getBody(href);
       final doc = parse(body);
       final links = doc.querySelectorAll('a');

@@ -62,13 +62,13 @@ main() {
 
   Future<void> test_function_hasNamed() async {
     await resolveTestCode('''
-test({int a}) {}
+test({int a = 0}) {}
 main() {
   test(1);
 }
 ''');
     await assertHasFix('''
-test(int i, {int a}) {}
+test(int i, {int a = 0}) {}
 main() {
   test(1);
 }
@@ -103,6 +103,17 @@ main() {
   test(1);
 }
 ''');
+  }
+
+  Future<void> test_function_hasZero_partOfName_noLibrary() async {
+    await resolveTestCode('''
+part of my_lib;
+test() {}
+main() {
+  test(1);
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_method_hasOne() async {
@@ -147,7 +158,7 @@ class A {
 @reflectiveTest
 class AddMissingParameterRequiredTest_Workspace
     extends AddMissingParameterRequiredTest {
-  ChangeWorkspace _workspace;
+  ChangeWorkspace? _workspace;
 
   @override
   ChangeWorkspace get workspace {

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A computer for [CompilationUnit] folding.
@@ -14,7 +13,7 @@ class DartUnitFoldingComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
 
-  Directive _firstDirective, _lastDirective;
+  Directive? _firstDirective, _lastDirective;
   final List<FoldingRegion> _foldingRegions = [];
 
   DartUnitFoldingComputer(this._lineInfo, this._unit);
@@ -32,14 +31,17 @@ class DartUnitFoldingComputer {
     //     if (cond) { [...] } else { [...] }
     //
     // So these types of blocks should have their folding regions end at the
-    // end of the preceeding statement.
+    // end of the preceding statement.
 
     final start = block.leftBracket.end;
-    if (block.endToken.precedingComments != null) {
+    Token? comment = block.endToken.precedingComments;
+    if (comment != null) {
+      var lastComment = comment;
       // If there are comments before the end token, use the last of those.
-      var lastComment = block.endToken.precedingComments;
-      while (lastComment.next != null) {
-        lastComment = lastComment.next;
+      var nextComment = lastComment.next;
+      while (nextComment != null) {
+        lastComment = nextComment;
+        nextComment = nextComment.next;
       }
       _addRegion(start, lastComment.end, FoldingKind.BLOCK);
     } else if (block.statements.isNotEmpty) {
@@ -50,57 +52,110 @@ class DartUnitFoldingComputer {
 
   /// Returns a list of folding regions, not `null`.
   List<FoldingRegion> compute() {
-    _addFileHeaderRegion();
     _unit.accept(_DartUnitFoldingComputerVisitor(this));
 
-    if (_firstDirective != null &&
-        _lastDirective != null &&
-        _firstDirective != _lastDirective) {
+    var firstDirective = _firstDirective;
+    var lastDirective = _lastDirective;
+    if (firstDirective != null &&
+        lastDirective != null &&
+        firstDirective != lastDirective) {
       _foldingRegions.add(FoldingRegion(
           FoldingKind.DIRECTIVES,
-          _firstDirective.keyword.end,
-          _lastDirective.end - _firstDirective.keyword.end));
+          firstDirective.keyword.end,
+          lastDirective.end - firstDirective.keyword.end));
     }
+
+    _addCommentRegions();
 
     return _foldingRegions;
   }
 
-  void _addFileHeaderRegion() {
-    var firstToken = _unit.beginToken;
-    while (firstToken?.type == TokenType.SCRIPT_TAG) {
-      firstToken = firstToken.next;
+  /// Create a folding region for the provided comment, reading forwards if
+  /// necessary.
+  ///
+  /// If [mayBeFileHeader] is true, the token will be considered a file header
+  /// if comment is a single-line-comment and there is a blank line or another
+  /// comment type after it.
+  ///
+  /// Returns the next comment to be processed or null if there are no more
+  /// comments to process in the chain.
+  Token? _addCommentRegion(Token commentToken, {bool mayBeFileHeader = false}) {
+    int offset, end;
+    var isFileHeader = false;
+    Token? nextComment;
+
+    if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
+      // Multiline comments already span all of their lines but the folding
+      // region should start at the end of the first line.
+      offset = commentToken.offset + (commentToken.eolOffset ?? 0);
+      end = commentToken.end;
+      nextComment = commentToken.next;
+    } else {
+      // Single line comments need grouping together explicitly but should
+      // only group if the prefix is the same and up to any blank line.
+      final isTripleSlash = commentToken.isTripleSlash;
+      // Track the last comment that belongs to this folding region.
+      var lastComment = commentToken;
+      var current = lastComment.next;
+      while (current != null &&
+          current.type == lastComment.type &&
+          current.isTripleSlash == isTripleSlash &&
+          !_hasBlankLineBetween(lastComment.end, current.offset)) {
+        lastComment = current;
+        current = current.next;
+      }
+
+      // For single line comments we prefer to start the range at the end of
+      // first token so the first line is still visible when the range is
+      // collapsed.
+      offset = commentToken.end;
+      end = lastComment.end;
+      nextComment = lastComment.next;
+
+      // Single line comments are file headers if they're followed by a different
+      // comment type of there's a blank line between them and the first token.
+      isFileHeader = mayBeFileHeader &&
+          (nextComment != null ||
+              _hasBlankLineBetween(end, _unit.beginToken.offset));
     }
 
-    final Token firstComment = firstToken?.precedingComments;
-    if (firstComment == null ||
-        firstComment.type != TokenType.SINGLE_LINE_COMMENT) {
-      return;
+    final kind = isFileHeader
+        ? FoldingKind.FILE_HEADER
+        : (commentToken.lexeme.startsWith('///') ||
+                commentToken.lexeme.startsWith('/**'))
+            ? FoldingKind.DOCUMENTATION_COMMENT
+            : FoldingKind.COMMENT;
+
+    _addRegion(offset, end, kind);
+
+    return nextComment;
+  }
+
+  void _addCommentRegions() {
+    Token? token = _unit.beginToken;
+    if (token.type == TokenType.SCRIPT_TAG) {
+      token = token.next;
     }
-
-    // Walk through the comments looking for a blank line to signal the end of
-    // the file header.
-    var lastComment = firstComment;
-    while (lastComment.next != null) {
-      lastComment = lastComment.next;
-
-      // If we ran out of tokens, use the original token as starting position.
-      final hasBlankLine =
-          _hasBlankLineBetween(lastComment, lastComment.next ?? firstToken);
-
-      // Also considered non-single-line-comments as the end
-      final nextCommentIsDifferentType = lastComment.next != null &&
-          lastComment.next.type != TokenType.SINGLE_LINE_COMMENT;
-
-      if (hasBlankLine || nextCommentIsDifferentType) {
-        _addRegion(firstComment.end, lastComment.end, FoldingKind.FILE_HEADER);
+    var isFirstToken = true;
+    while (token != null) {
+      Token? commentToken = token.precedingComments;
+      while (commentToken != null) {
+        commentToken =
+            _addCommentRegion(commentToken, mayBeFileHeader: isFirstToken);
+      }
+      isFirstToken = false;
+      // Only exit the loop when hitting EOF *after* processing the token as
+      // the EOF token may have preceeding comments.
+      if (token.type == TokenType.EOF) {
         break;
       }
+      token = token.next;
     }
   }
 
   void _addRegion(int startOffset, int endOffset, FoldingKind kind) {
-    final CharacterLocation start = _lineInfo.getLocation(startOffset);
-    final CharacterLocation end = _lineInfo.getLocation(endOffset);
+    var start = _lineInfo.getLocation(startOffset);
+    var end = _lineInfo.getLocation(endOffset);
 
     if (start.lineNumber != end.lineNumber) {
       _foldingRegions
@@ -115,9 +170,9 @@ class DartUnitFoldingComputer {
     }
   }
 
-  bool _hasBlankLineBetween(Token first, Token second) {
-    final CharacterLocation firstLoc = _lineInfo.getLocation(first.end);
-    final CharacterLocation secondLoc = _lineInfo.getLocation(second.offset);
+  bool _hasBlankLineBetween(int offset, int end) {
+    var firstLoc = _lineInfo.getLocation(offset);
+    var secondLoc = _lineInfo.getLocation(end);
     return secondLoc.lineNumber - firstLoc.lineNumber > 1;
   }
 
@@ -163,15 +218,6 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitComment(Comment node) {
-    if (node.isDocumentation) {
-      _computer._addRegion(
-          node.offset, node.end, FoldingKind.DOCUMENTATION_COMMENT);
-    }
-    super.visitComment(node);
-  }
-
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     super.visitConstructorDeclaration(node);
@@ -179,10 +225,19 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    if (node.body is Block) {
-      _computer.addRegionForConditionalBlock(node.body);
+    var body = node.body;
+    if (body is Block) {
+      _computer.addRegionForConditionalBlock(body);
     }
     super.visitDoStatement(node);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    _computer._addRegionForAnnotations(node.metadata);
+    _computer._addRegion(
+        node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
+    super.visitEnumDeclaration(node);
   }
 
   @override
@@ -206,6 +261,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFormalParameterList(FormalParameterList node) {
+    _computer._addRegion(node.leftParenthesis.end, node.rightParenthesis.offset,
+        FoldingKind.PARAMETERS);
+    super.visitFormalParameterList(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     super.visitFunctionDeclaration(node);
@@ -220,11 +282,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    if (node.thenStatement is Block) {
-      _computer.addRegionForConditionalBlock(node.thenStatement);
+    var thenStatement = node.thenStatement;
+    if (thenStatement is Block) {
+      _computer.addRegionForConditionalBlock(thenStatement);
     }
-    if (node.elseStatement is Block) {
-      _computer.addRegionForConditionalBlock(node.elseStatement);
+    var elseStatement = node.elseStatement;
+    if (elseStatement is Block) {
+      _computer.addRegionForConditionalBlock(elseStatement);
     }
     super.visitIfStatement(node);
   }
@@ -298,9 +362,24 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    if (node.body is Block) {
-      _computer.addRegionForConditionalBlock(node.body);
+    var body = node.body;
+    if (body is Block) {
+      _computer.addRegionForConditionalBlock(body);
     }
     super.visitWhileStatement(node);
   }
+}
+
+extension _CommentTokenExtensions on Token {
+  static final _newlinePattern = RegExp(r'[\r\n]');
+
+  /// Return the offset of the first eol character or `null` if no newlines were
+  /// found.
+  int? get eolOffset {
+    final offset = lexeme.indexOf(_newlinePattern);
+    return offset != -1 ? offset : null;
+  }
+
+  /// Return `true` if this comment is a triple-slash single line comment.
+  bool get isTripleSlash => lexeme.startsWith('///');
 }

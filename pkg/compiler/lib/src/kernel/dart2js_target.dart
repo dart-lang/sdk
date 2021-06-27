@@ -9,6 +9,7 @@ library compiler.src.kernel.dart2js_target;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -16,6 +17,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 
+import '../options.dart';
 import 'invocation_mirror_constants.dart';
 import 'transformations/lowering.dart' as lowering show transformLibraries;
 
@@ -33,26 +35,41 @@ const Iterable<String> _allowedDartSchemePaths = const <String>[
   'web_sql'
 ];
 
-bool maybeEnableNative(Uri uri) {
-  bool allowedTestLibrary() {
-    String scriptName = uri.path;
-    return scriptName
-            .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
-        scriptName.contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
-        scriptName.contains('generated_tests/dart2js/native/native_test') ||
-        scriptName.contains(RegExp(r'(?<!generated_)tests/dart2js_2/native')) ||
-        scriptName
-            .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
-        scriptName.contains('generated_tests/dart2js_2/native/native_test');
-  }
+List<Pattern> _allowedNativeTestPatterns = [
+  RegExp(r'(?<!generated_)tests/web/native'),
+  RegExp(r'(?<!generated_)tests/web/internal'),
+  'generated_tests/web/native/native_test',
+  RegExp(r'(?<!generated_)tests/web_2/native'),
+  RegExp(r'(?<!generated_)tests/web_2/internal'),
+  'generated_tests/web_2/native/native_test',
+];
 
+bool allowedNativeTest(Uri uri) {
+  String path = uri.path;
+  return _allowedNativeTestPatterns.any((pattern) => path.contains(pattern));
+}
+
+bool maybeEnableNative(Uri uri) {
   bool allowedDartLibrary() {
     if (uri.scheme != 'dart') return false;
     return _allowedDartSchemePaths.contains(uri.path);
   }
 
-  return allowedTestLibrary() || allowedDartLibrary();
+  return allowedNativeTest(uri) || allowedDartLibrary();
 }
+
+int _foldLateLowerings(List<int> lowerings) =>
+    lowerings.fold(LateLowering.none, (a, b) => a | b);
+
+/// Late lowerings which the frontend performs for dart2js.
+const List<int> _allEnabledLateLowerings = [
+  LateLowering.uninitializedNonFinalInstanceField,
+  LateLowering.uninitializedFinalInstanceField,
+  LateLowering.initializedNonFinalInstanceField,
+  LateLowering.initializedFinalInstanceField,
+];
+
+final int _enabledLateLowerings = _foldLateLowerings(_allEnabledLateLowerings);
 
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
@@ -61,16 +78,23 @@ class Dart2jsTarget extends Target {
   @override
   final String name;
 
-  Dart2jsTarget(this.name, this.flags);
+  final CompilerOptions options;
+
+  Map<String, ir.Class> _nativeClasses;
+
+  Dart2jsTarget(this.name, this.flags, {this.options});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  int get enabledLateLowerings => LateLowering.all;
+  int get enabledLateLowerings =>
+      (options != null && options.experimentLateInstanceVariables)
+          ? LateLowering.none
+          : _enabledLateLowerings;
 
   @override
-  bool get supportsLateLoweringSentinel => false;
+  bool get supportsLateLoweringSentinel => true;
 
   @override
   bool get useStaticFieldLowering => false;
@@ -81,21 +105,28 @@ class Dart2jsTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => false;
+  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
 
   @override
   List<String> get extraIndexedLibraries => const [
+        'dart:_foreign_helper',
         'dart:_interceptors',
         'dart:_js_helper',
+        'dart:_late_helper',
+        'dart:js',
+        'dart:js_util'
       ];
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
-      uri.scheme == 'dart' &&
-      (uri.path == 'core' || uri.path == '_interceptors');
+      uri.isScheme('dart') &&
+      (uri.path == 'core' ||
+          uri.path == 'typed_data' ||
+          uri.path == '_interceptors' ||
+          uri.path == '_native_typed_data');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
@@ -122,14 +153,19 @@ class Dart2jsTarget extends Target {
       ReferenceFromIndex referenceFromIndex,
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier}) {
+    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
+      // TODO (rileyporter): Merge js_util optimizations with other lowerings
+      // in the single pass in `transformations/lowering.dart`.
+      jsUtilOptimizer.visitLibrary(library);
       JsInteropChecks(
               coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+              _nativeClasses)
           .visitLibrary(library);
     }
-    lowering.transformLibraries(
-        libraries, coreTypes, hierarchy, flags.enableNullSafety);
+    lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
   }
 
@@ -159,9 +195,9 @@ class Dart2jsTarget extends Target {
           new ir.ListLiteral(
               arguments.types.map((t) => new ir.TypeLiteral(t)).toList()),
           new ir.ListLiteral(arguments.positional)..fileOffset = offset,
-          new ir.MapLiteral(new List<ir.MapEntry>.from(
+          new ir.MapLiteral(new List<ir.MapLiteralEntry>.from(
               arguments.named.map((ir.NamedExpression arg) {
-            return new ir.MapEntry(
+            return new ir.MapLiteralEntry(
                 new ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
                 arg.value)
               ..fileOffset = arg.fileOffset;
@@ -206,6 +242,7 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',
+    'dart:_late_helper',
     'dart:_native_typed_data',
     'dart:async',
     'dart:collection',
@@ -228,6 +265,7 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',
+    'dart:_late_helper',
     'dart:_native_typed_data',
     'dart:async',
     'dart:collection',

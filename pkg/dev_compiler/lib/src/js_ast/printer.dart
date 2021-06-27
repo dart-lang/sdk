@@ -7,7 +7,7 @@
 // ignore_for_file: slash_for_doc_comments, unnecessary_const
 // ignore_for_file: always_declare_return_types, prefer_single_quotes
 // ignore_for_file: prefer_collection_literals, omit_local_variable_types
-// ignore_for_file: prefer_generic_function_type_aliases, prefer_final_fields
+// ignore_for_file: prefer_final_fields
 // ignore_for_file: use_function_type_syntax_for_parameters
 
 part of js_ast;
@@ -1355,21 +1355,7 @@ class Printer implements NodeVisitor {
 
   @override
   visitLiteralExpression(LiteralExpression node) {
-    String template = node.template;
-    List<Expression> inputs = node.inputs;
-
-    List<String> parts = template.split('#');
-    int inputsLength = inputs == null ? 0 : inputs.length;
-    if (parts.length != inputsLength + 1) {
-      context.error('Wrong number of arguments for JS: $template');
-    }
-    // Code that uses JS must take care of operator precedences, and
-    // put parenthesis if needed.
-    out(parts[0]);
-    for (int i = 0; i < inputsLength; i++) {
-      visit(inputs[i]);
-      out(parts[i + 1]);
-    }
+    out(node.template);
   }
 
   @override

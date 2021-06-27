@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.target_implementation;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -15,14 +17,13 @@ import '../base/processed_options.dart' show ProcessedOptions;
 import 'builder/class_builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
+import 'source/source_library_builder.dart' show LanguageVersion;
 
 import 'compiler_context.dart' show CompilerContext;
 
 import 'loader.dart' show Loader;
 
 import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
-
-import 'rewrite_severity.dart' show rewriteSeverity;
 
 import 'target.dart' show Target;
 
@@ -66,6 +67,12 @@ abstract class TargetImplementation extends Target {
     return _options.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
+  bool isExperimentEnabledInLibraryByVersion(
+      ExperimentalFlag flag, Uri importUri, Version version) {
+    return _options.isExperimentEnabledInLibraryByVersion(
+        flag, importUri, version);
+  }
+
   /// Returns `true` if the [flag] is enabled by default.
   bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
     return _options.isExperimentEnabledByDefault(flag);
@@ -100,10 +107,15 @@ abstract class TargetImplementation extends Target {
   /// For libraries with a 'package:' [importUri], the package path must match
   /// the path in the [importUri]. For libraries with a 'dart:' [importUri] the
   /// [packageUri] must be `null`.
+  ///
+  /// [packageLanguageVersion] is the language version defined by the package
+  /// which the library belongs to, or the current sdk version if the library
+  /// doesn't belong to a package.
   LibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
       Uri packageUri,
+      LanguageVersion packageLanguageVersion,
       covariant LibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner);
@@ -188,11 +200,6 @@ abstract class TargetImplementation extends Target {
         severity,
         messageContext,
         involvedFiles: involvedFiles);
-  }
-
-  Severity fixSeverity(Severity severity, Message message, Uri fileUri) {
-    severity ??= message.code.severity;
-    return rewriteSeverity(severity, message.code, fileUri);
   }
 
   String get currentSdkVersionString {

@@ -11,17 +11,27 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnnecessaryCast extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CAST;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CAST_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (coveredNode is! AsExpression) {
+    var asExpression = coveredNode;
+    if (asExpression is! AsExpression) {
       return;
     }
-    var asExpression = coveredNode as AsExpression;
-    var expression = asExpression.expression;
+
     // remove 'as T' from 'e as T'
     await builder.addDartFileEdit(file, (builder) {
+      var expression = asExpression.expression;
       builder.addDeletion(range.endEnd(expression, asExpression));
       builder.removeEnclosingParentheses(asExpression);
     });

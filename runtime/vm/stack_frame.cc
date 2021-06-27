@@ -26,7 +26,7 @@
 
 namespace dart {
 
-const FrameLayout invalid_frame_layout = {
+const UntaggedFrame invalid_frame_layout = {
     /*.first_object_from_fp = */ -1,
     /*.last_fixed_object_from_fp = */ -1,
     /*.param_end_from_fp = */ -1,
@@ -38,7 +38,7 @@ const FrameLayout invalid_frame_layout = {
     /*.exit_link_slot_from_entry_fp = */ -1,
 };
 
-const FrameLayout default_frame_layout = {
+const UntaggedFrame default_frame_layout = {
     /*.first_object_from_fp = */ kFirstObjectSlotFromFp,
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp,
     /*.param_end_from_fp = */ kParamEndSlotFromFp,
@@ -49,7 +49,7 @@ const FrameLayout default_frame_layout = {
     /*.code_from_fp = */ kPcMarkerSlotFromFp,
     /*.exit_link_slot_from_entry_fp = */ kExitLinkSlotFromEntryFp,
 };
-const FrameLayout bare_instructions_frame_layout = {
+const UntaggedFrame bare_instructions_frame_layout = {
     /*.first_object_from_pc =*/kFirstObjectSlotFromFp,  // No saved PP slot.
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp +
         2,  // No saved CODE, PP slots
@@ -67,19 +67,19 @@ const FrameLayout bare_instructions_frame_layout = {
 namespace compiler {
 
 namespace target {
-FrameLayout frame_layout = invalid_frame_layout;
+UntaggedFrame frame_layout = invalid_frame_layout;
 }
 
 }  // namespace compiler
 
-FrameLayout runtime_frame_layout = invalid_frame_layout;
+UntaggedFrame runtime_frame_layout = invalid_frame_layout;
 
-int FrameLayout::FrameSlotForVariable(const LocalVariable* variable) const {
+int UntaggedFrame::FrameSlotForVariable(const LocalVariable* variable) const {
   ASSERT(!variable->is_captured());
   return this->FrameSlotForVariableIndex(variable->index().value());
 }
 
-int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
+int UntaggedFrame::FrameSlotForVariableIndex(int variable_index) const {
   // Variable indices are:
   //    [1, 2, ..., M] for the M parameters.
   //    [0, -1, -2, ... -(N-1)] for the N [LocalVariable]s
@@ -88,7 +88,7 @@ int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
                              : (variable_index + param_end_from_fp);
 }
 
-void FrameLayout::Init() {
+void UntaggedFrame::Init() {
   // By default we use frames with CODE_REG/PP in the frame.
   compiler::target::frame_layout = default_frame_layout;
   runtime_frame_layout = default_frame_layout;
@@ -105,17 +105,13 @@ void FrameLayout::Init() {
 }
 
 bool StackFrame::IsBareInstructionsDartFrame() const {
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    return false;
+  }
   NoSafepointScope no_safepoint;
 
   Code code;
   code = ReversePc::Lookup(this->isolate_group(), pc(),
-                           /*is_return_address=*/true);
-  if (!code.IsNull()) {
-    auto const cid = code.OwnerClassId();
-    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
-    return cid == kFunctionCid;
-  }
-  code = ReversePc::Lookup(Dart::vm_isolate()->group(), pc(),
                            /*is_return_address=*/true);
   if (!code.IsNull()) {
     auto const cid = code.OwnerClassId();
@@ -127,17 +123,13 @@ bool StackFrame::IsBareInstructionsDartFrame() const {
 }
 
 bool StackFrame::IsBareInstructionsStubFrame() const {
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    return false;
+  }
   NoSafepointScope no_safepoint;
 
   Code code;
   code = ReversePc::Lookup(this->isolate_group(), pc(),
-                           /*is_return_address=*/true);
-  if (!code.IsNull()) {
-    auto const cid = code.OwnerClassId();
-    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
-    return cid == kNullCid || cid == kClassCid;
-  }
-  code = ReversePc::Lookup(Dart::vm_isolate()->group(), pc(),
                            /*is_return_address=*/true);
   if (!code.IsNull()) {
     auto const cid = code.OwnerClassId();
@@ -225,9 +217,13 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // helper functions to the raw object interface.
   NoSafepointScope no_safepoint;
   Code code;
+  CompressedStackMaps maps;
+  uword code_start;
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    code = GetCodeObject();
+    maps = ReversePc::FindCompressedStackMaps(isolate_group(), pc(),
+                                              /*is_return_address=*/true,
+                                              &code_start);
   } else {
     ObjectPtr pc_marker = *(reinterpret_cast<ObjectPtr*>(
         fp() + (runtime_frame_layout.code_from_fp * kWordSize)));
@@ -236,30 +232,23 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     visitor->VisitPointer(&pc_marker);
     if (pc_marker->IsHeapObject() && (pc_marker->GetClassId() == kCodeCid)) {
       code ^= pc_marker;
+      code_start = code.PayloadStart();
+      maps = code.compressed_stackmaps();
+      ASSERT(!maps.IsNull());
     } else {
       ASSERT(pc_marker == Object::null());
     }
   }
 
-  if (!code.IsNull()) {
+  if (!maps.IsNull()) {
     // Optimized frames have a stack map. We need to visit the frame based
     // on the stack map.
-    CompressedStackMaps maps;
-    maps = code.compressed_stackmaps();
     CompressedStackMaps global_table;
 
-    // The GC does not have an active isolate, only an active isolate group,
-    // yet the global compressed stack map table is only stored in the object
-    // store. It has the same contents for all isolates, so we just pick the
-    // one from the first isolate here.
-    // TODO(dartbug.com/36097): Avoid having this per-isolate and instead store
-    // it per isolate group.
-    auto isolate = isolate_group()->isolates_.First();
-
-    global_table = isolate->object_store()->canonicalized_stack_map_entries();
+    global_table =
+        isolate_group()->object_store()->canonicalized_stack_map_entries();
     CompressedStackMaps::Iterator it(maps, global_table);
-    const uword start = code.PayloadStart();
-    const uint32_t pc_offset = pc() - start;
+    const uint32_t pc_offset = pc() - code_start;
     if (it.Find(pc_offset)) {
       ObjectPtr* first = reinterpret_cast<ObjectPtr*>(sp());
       ObjectPtr* last = reinterpret_cast<ObjectPtr*>(
@@ -312,8 +301,14 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     // unoptimized code, code with no stack map information at all, or the entry
     // to an osr function. In each of these cases, all stack slots contain
     // tagged pointers, so fall through.
-    ASSERT(!code.is_optimized() || maps.IsNull() ||
-           (pc_offset == code.EntryPoint() - code.PayloadStart()));
+#if defined(DEBUG)
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      ASSERT(IsStubFrame());
+    } else {
+      ASSERT(!code.is_optimized() ||
+             (pc_offset == code.EntryPoint() - code.PayloadStart()));
+    }
+#endif  // defined(DEBUG)
   }
 
   // For normal unoptimized Dart frames and Stub frames each slot
@@ -328,7 +323,10 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 FunctionPtr StackFrame::LookupDartFunction() const {
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {
-    return code.function();
+    const Object& owner = Object::Handle(code.owner());
+    if (owner.IsFunction()) {
+      return Function::Cast(owner).ptr();
+    }
   }
   return Function::null();
 }
@@ -352,17 +350,11 @@ CodePtr StackFrame::LookupDartCode() const {
 CodePtr StackFrame::GetCodeObject() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    NoSafepointScope no_safepoint;
     CodePtr code = ReversePc::Lookup(isolate_group(), pc(),
                                      /*is_return_address=*/true);
-    if (code != Code::null()) {
-      return code;
-    }
-    code = ReversePc::Lookup(Dart::vm_isolate()->group(), pc(),
-                             /*is_return_address=*/true);
-    if (code != Code::null()) {
-      return code;
-    }
-    UNREACHABLE();
+    ASSERT(code != Code::null());
+    return code;
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -408,7 +400,7 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
 
   intptr_t try_index = -1;
   uword pc_offset = pc() - code.PayloadStart();
-  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     const intptr_t current_try_index = iter.TryIndex();
     if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
@@ -437,7 +429,7 @@ TokenPosition StackFrame::GetTokenPos() const {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(!descriptors.IsNull());
-  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return TokenPosition(iter.TokenPos());
@@ -532,6 +524,19 @@ StackFrameIterator::StackFrameIterator(uword fp,
   frames_.fp_ = fp;
   frames_.sp_ = sp;
   frames_.pc_ = pc;
+  frames_.Unpoison();
+}
+
+StackFrameIterator::StackFrameIterator(const StackFrameIterator& orig)
+    : validate_(orig.validate_),
+      entry_(orig.thread_),
+      exit_(orig.thread_),
+      frames_(orig.thread_),
+      current_frame_(nullptr),
+      thread_(orig.thread_) {
+  frames_.fp_ = orig.frames_.fp_;
+  frames_.sp_ = orig.frames_.sp_;
+  frames_.pc_ = orig.frames_.pc_;
   frames_.Unpoison();
 }
 
@@ -653,7 +658,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     : index_(0),
       num_materializations_(0),
       dest_frame_size_(0),
-      code_(Code::Handle(code.raw())),
+      code_(Code::Handle(code.ptr())),
       deopt_info_(TypedData::Handle()),
       function_(Function::Handle()),
       pc_(pc),

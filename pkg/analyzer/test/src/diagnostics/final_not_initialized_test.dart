@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class FinalNotInitializedTest extends PubPackageResolutionTest {
+class FinalNotInitializedTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_class_instanceField_final_factoryConstructor_only() async {
     await assertNoErrorsInCode('''
 class A {
@@ -83,8 +83,7 @@ mixin M {
 }
 
 @reflectiveTest
-class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest {
   test_field_abstract() async {
     await assertNoErrorsInCode('''
 abstract class A {

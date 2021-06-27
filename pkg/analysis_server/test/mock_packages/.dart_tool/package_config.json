@@ -1,0 +1,35 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "flutter",
+      "rootUri": "../flutter",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "meta",
+      "rootUri": "../meta",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "pedantic",
+      "rootUri": "../pedantic",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "ui",
+      "rootUri": "../ui",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "vector_math",
+      "rootUri": "../vector_math",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    }
+  ]
+}

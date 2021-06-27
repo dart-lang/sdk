@@ -71,18 +71,18 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
 
   final Map<String, List<AnalysisError>> filesErrors = {};
 
-  String completionId;
-  int completionOffset;
-  int replacementOffset;
-  int replacementLength;
+  late String completionId;
+  late int completionOffset;
+  late int replacementOffset;
+  late int replacementLength;
 
   CompletionDriver({
-    @required this.supportsAvailableSuggestions,
-    AnalysisServerOptions serverOptions,
-    @required MemoryResourceProvider resourceProvider,
-    @required String projectPath,
-    @required String testFilePath,
-  })  : _resourceProvider = resourceProvider,
+    required this.supportsAvailableSuggestions,
+    AnalysisServerOptions? serverOptions,
+    required MemoryResourceProvider resourceProvider,
+    required String projectPath,
+    required String testFilePath,
+  })   : _resourceProvider = resourceProvider,
         super(
             serverOptions: serverOptions ?? AnalysisServerOptions(),
             projectPath: resourceProvider.convertPath(projectPath),
@@ -93,7 +93,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   MemoryResourceProvider get resourceProvider => _resourceProvider;
 
   @override
-  String addTestFile(String content, {int offset}) {
+  String addTestFile(String content, {int? offset}) {
     completionOffset = content.indexOf('^');
     if (offset != null) {
       expect(completionOffset, -1, reason: 'cannot supply offset and ^');
@@ -108,7 +108,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   }
 
   @override
-  void createProject({Map<String, String> packageRoots}) {
+  void createProject({Map<String, String>? packageRoots}) {
     super.createProject(packageRoots: packageRoots);
     if (supportsAvailableSuggestions) {
       var request = CompletionSetSubscriptionsParams(
@@ -131,7 +131,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   }
 
   @override
-  File newFile(String path, String content, [int stamp]) => resourceProvider
+  File newFile(String path, String content, [int? stamp]) => resourceProvider
       .newFile(resourceProvider.convertPath(path), content, stamp);
 
   @override
@@ -188,12 +188,12 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       var importedSets = <IncludedSuggestionSet>[];
       var notImportedSets = <IncludedSuggestionSet>[];
 
-      for (var set in params.includedSuggestionSets) {
+      for (var set in params.includedSuggestionSets!) {
         var id = set.id;
         while (!idToSetMap.containsKey(id)) {
           await Future.delayed(const Duration(milliseconds: 1));
         }
-        var suggestionSet = idToSetMap[id];
+        var suggestionSet = idToSetMap[id]!;
         if (importedLibraryUris.contains(suggestionSet.uri)) {
           importedSets.add(set);
         } else {
@@ -210,7 +210,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       void addSuggestion(
           AvailableSuggestion suggestion, IncludedSuggestionSet includeSet) {
         var kind = suggestion.element.kind;
-        if (!includedKinds.contains(kind)) {
+        if (!includedKinds!.contains(kind)) {
           return;
         }
         var completionSuggestion =
@@ -227,7 +227,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
           '${s.declaringLibraryUri}:${s.element.kind}:${s.label}';
 
       for (var includeSet in importedSets) {
-        var set = idToSetMap[includeSet.id];
+        var set = idToSetMap[includeSet.id]!;
         for (var suggestion in set.items) {
           if (seenElements.add(suggestionId(suggestion))) {
             addSuggestion(suggestion, includeSet);
@@ -236,7 +236,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       }
 
       for (var includeSet in notImportedSets) {
-        var set = idToSetMap[includeSet.id];
+        var set = idToSetMap[includeSet.id]!;
         for (var suggestion in set.items) {
           if (!seenElements.contains(suggestionId(suggestion))) {
             addSuggestion(suggestion, includeSet);
@@ -250,11 +250,11 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       var params = CompletionAvailableSuggestionsParams.fromNotification(
         notification,
       );
-      for (var set in params.changedLibraries) {
+      for (var set in params.changedLibraries!) {
         idToSetMap[set.id] = set;
         uriToSetMap[set.uri] = set;
       }
-      for (var id in params.removedLibraries) {
+      for (var id in params.removedLibraries!) {
         var set = idToSetMap.remove(id);
         uriToSetMap.remove(set?.uri);
       }

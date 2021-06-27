@@ -80,7 +80,6 @@ class TypeTestingStubGenerator {
       HierarchyInfo* hi,
       const Type& type,
       const Class& type_class,
-      const TypeArguments& type_parameters,
       const TypeArguments& type_arguments);
 
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
@@ -88,7 +87,6 @@ class TypeTestingStubGenerator {
       HierarchyInfo* hi,
       const Type& type,
       const Class& type_class,
-      const TypeArguments& type_parameters,
       const TypeArguments& type_arguments,
       const Register class_id_reg,
       const Register instance_type_args_reg);
@@ -193,17 +191,7 @@ class TypeArgumentClassFinder {
  private:
   bool FindClassFromType(const AbstractType& type) {
     if (type.IsTypeParameter()) {
-      const TypeParameter& parameter = TypeParameter::Cast(type);
-      if (!parameter.IsClassTypeParameter()) {
-        return false;
-      }
-      if (klass_.IsNull()) {
-        klass_ = parameter.parameterized_class();
-      } else {
-        // Dart has no support for nested classes.
-        ASSERT(klass_.raw() == parameter.parameterized_class());
-      }
-      return true;
+      return false;
     } else if (type.IsFunctionType()) {
       // No support for function types yet.
       return false;
@@ -250,8 +238,8 @@ class TypeArgumentInstantiator {
       const Class& klass,
       const TypeArguments& type_arguments,
       const TypeArguments& instantiator_type_arguments) {
-    instantiator_type_arguments_ = instantiator_type_arguments.raw();
-    return InstantiateTypeArguments(klass, type_arguments).raw();
+    instantiator_type_arguments_ = instantiator_type_arguments.ptr();
+    return InstantiateTypeArguments(klass, type_arguments).ptr();
   }
 
  private:
@@ -297,7 +285,7 @@ class TypeUsageInfo : public ThreadStackResource {
 
     static Key KeyOf(Pair kv) { return kv; }
     static Value ValueOf(Pair kv) { return kv; }
-    static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+    static inline uword Hash(Key key) { return key->Hash(); }
   };
 
   class TypeSetTrait : public ObjectSetTrait<const AbstractType> {
@@ -312,7 +300,7 @@ class TypeUsageInfo : public ThreadStackResource {
    public:
     static inline bool IsKeyEqual(const TypeArguments* pair,
                                   const TypeArguments* key) {
-      return pair->raw() == key->raw();
+      return pair->ptr() == key->ptr();
     }
   };
 
@@ -320,7 +308,7 @@ class TypeUsageInfo : public ThreadStackResource {
    public:
     static inline bool IsKeyEqual(const TypeParameter* pair,
                                   const TypeParameter* key) {
-      return pair->raw() == key->raw();
+      return pair->ptr() == key->ptr();
     }
   };
 

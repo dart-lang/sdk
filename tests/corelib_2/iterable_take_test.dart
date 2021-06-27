@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {
@@ -224,4 +226,15 @@ main() {
   Expect.throwsRangeError(() => list3.map((x) => x).skip(-1));
   Expect.throwsRangeError(() => set1.map((x) => x).skip(-1));
   Expect.throwsRangeError(() => set2.map((x) => x).skip(-1));
+
+  Expect.throws(() => list1.take(null));
+  Expect.throws(() => list2.take(null));
+  Expect.throws(() => list3.take(null));
+  Expect.throws(() => set1.take(null));
+  Expect.throws(() => set2.take(null));
+  Expect.throws(() => list1.map((x) => x).take(null));
+  Expect.throws(() => list2.map((x) => x).take(null));
+  Expect.throws(() => list3.map((x) => x).take(null));
+  Expect.throws(() => set1.map((x) => x).take(null));
+  Expect.throws(() => set2.map((x) => x).take(null));
 }

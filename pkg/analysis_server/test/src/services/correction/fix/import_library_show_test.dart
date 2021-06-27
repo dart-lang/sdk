@@ -19,6 +19,98 @@ class ImportLibraryShowTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_SHOW;
 
+  Future<void> test_extension_notShown_getter() async {
+    addSource('/home/test/lib/lib.dart', '''
+class C {}
+extension E on String {
+  int get m => 0;
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart' show C;
+
+void f(String s, C c) {
+  s.m;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show C, E;
+
+void f(String s, C c) {
+  s.m;
+}
+''');
+  }
+
+  Future<void> test_extension_notShown_method() async {
+    addSource('/home/test/lib/lib.dart', '''
+class C {}
+extension E on String {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart' show C;
+
+void f(String s, C c) {
+  s.m();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show C, E;
+
+void f(String s, C c) {
+  s.m();
+}
+''');
+  }
+
+  Future<void> test_extension_notShown_operator() async {
+    addSource('/home/test/lib/lib.dart', '''
+class C {}
+extension E on String {
+  String operator -(String other) => this;
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart' show C;
+
+void f(String s, C c) {
+  s - '2';
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show C, E;
+
+void f(String s, C c) {
+  s - '2';
+}
+''');
+  }
+
+  Future<void> test_extension_notShown_setter() async {
+    addSource('/home/test/lib/lib.dart', '''
+class C {}
+extension E on String {
+  set m(int v) {}
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart' show C;
+
+void f(String s, C c) {
+  s.m = 2;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show C, E;
+
+void f(String s, C c) {
+  s.m = 2;
+}
+''');
+  }
+
   Future<void> test_override_samePackage() async {
     addSource('/home/test/lib/lib.dart', '''
 class A {}
@@ -48,7 +140,7 @@ class B {}
     await resolveTestCode(r'''
 import 'lib.dart' show A;
 main() {
-  A a;
+  A? a;
   B b;
   print('$a $b');
 }
@@ -56,7 +148,7 @@ main() {
     await assertHasFix(r'''
 import 'lib.dart' show A, B;
 main() {
-  A a;
+  A? a;
   B b;
   print('$a $b');
 }
@@ -67,16 +159,16 @@ main() {
     await resolveTestCode(r'''
 import 'dart:collection' show HashMap;
 main() {
-  HashMap s = null;
-  LinkedHashMap f = null;
+  HashMap? s = null;
+  LinkedHashMap? f = null;
   print('$s $f');
 }
 ''');
     await assertHasFix(r'''
 import 'dart:collection' show HashMap, LinkedHashMap;
 main() {
-  HashMap s = null;
-  LinkedHashMap f = null;
+  HashMap? s = null;
+  LinkedHashMap? f = null;
   print('$s $f');
 }
 ''');

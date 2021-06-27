@@ -7,16 +7,16 @@
 /*prod.class: global#Map:deps=[Class],needsArgs*/
 /*spec.class: global#Map:deps=[Class],explicit=[Map,Map<Object?,Object?>],indirect,needsArgs*/
 
-/*prod.class: global#LinkedHashMap:deps=[Map],needsArgs*/
+/*prod.class: global#LinkedHashMap:deps=[Map],implicit=[LinkedHashMap.K],needsArgs*/
 /*spec.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
 
 /*prod.class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
-/*spec.class: global#JsLinkedHashMap:deps=[LinkedHashMap],direct,explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],needsArgs*/
+/*spec.class: global#JsLinkedHashMap:deps=[LinkedHashMap],direct,explicit=[JsLinkedHashMap,JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],needsArgs*/
 
 /*prod.class: global#double:*/
 /*spec.class: global#double:implicit=[double]*/
 
-/*class: global#JSDouble:*/
+/*class: global#JSNumNotInt:*/
 
 main() {
   var c = new Class<double, int>();

@@ -1,0 +1,34 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method doTest([@vm.inferred-type.metadata=#lib::X] self::Z a) → void {
+    core::print([@vm.direct-call.metadata=#lib::Base.appName] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "x")] a.{self::Z::appName}{core::String?});
+  }
+}
+class Z extends core::Object {
+  constructor •() → self::Z
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  abstract get /*isLegacy*/ appName() → core::String?;
+}
+class X extends self::Base implements self::Z {
+  synthetic constructor •() → self::X
+    : super self::Base::•()
+    ;
+}
+abstract class Base extends core::Object {
+  synthetic constructor •() → self::Base
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get appName() → core::String
+    return "x";
+}
+static method main() → void {
+  new self::Z::•();
+  [@vm.direct-call.metadata=#lib::A.doTest] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::doTest}(new self::X::•()){(self::Z) → void};
+}

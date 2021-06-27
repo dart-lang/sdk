@@ -15,6 +15,8 @@ import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_late_test.dart' as add_late;
 import 'add_missing_enum_case_clauses_test.dart'
     as add_missing_enum_case_clauses;
+import 'add_missing_enum_like_case_clauses_test.dart'
+    as add_missing_enum_like_case_clauses;
 import 'add_missing_parameter_named_test.dart' as add_missing_parameter_named;
 import 'add_missing_parameter_positional_test.dart'
     as add_missing_parameter_positional;
@@ -43,6 +45,7 @@ import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
+import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
@@ -54,6 +57,7 @@ import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
+import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
@@ -80,7 +84,10 @@ import 'create_no_such_method_test.dart' as create_no_such_method;
 import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
+import 'fix_in_file_test.dart' as fix_in_file;
+import 'fix_processor_map_test.dart' as fix_processor_map;
 import 'fix_test.dart' as fix;
+import 'ignore_diagnostic_test.dart' as ignore_error;
 import 'import_async_test.dart' as import_async;
 import 'import_library_prefix_test.dart' as import_library_prefix;
 import 'import_library_project_test.dart' as import_library_project;
@@ -122,12 +129,17 @@ import 'remove_parameters_in_getter_declaration_test.dart'
 import 'remove_parentheses_in_getter_invocation_test.dart'
     as remove_parentheses_in_getter_invocation;
 import 'remove_question_mark_test.dart' as remove_question_mark;
+import 'remove_returned_value_test.dart' as remove_returned_value;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
+import 'remove_unnecessary_parentheses_test.dart'
+    as remove_unnecessary_parentheses;
+import 'remove_unnecessary_string_interpolation_test.dart'
+    as remove_unnecessary_string_interpolation;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
 import 'remove_unused_catch_stack_test.dart' as remove_unused_catch_stack;
 import 'remove_unused_element_test.dart' as remove_unused_element;
@@ -141,6 +153,7 @@ import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
+import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
@@ -182,6 +195,7 @@ void main() {
     add_field_formal_parameters.main();
     add_late.main();
     add_missing_enum_case_clauses.main();
+    add_missing_enum_like_case_clauses.main();
     add_missing_parameter_named.main();
     add_missing_parameter_positional.main();
     add_missing_parameter_required.main();
@@ -204,6 +218,7 @@ void main() {
     convert_documentation_into_line.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
+    convert_for_each_to_for_loop.main();
     convert_into_expression_body.main();
     convert_to_contains.main();
     convert_to_for_element.main();
@@ -215,6 +230,7 @@ void main() {
     convert_to_map_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
+    convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
     convert_to_relative_import.main();
@@ -239,6 +255,9 @@ void main() {
     data_driven.main();
     extend_class_for_mixin.main();
     fix.main();
+    fix_in_file.main();
+    fix_processor_map.main();
+    ignore_error.main();
     import_async.main();
     import_library_prefix.main();
     import_library_project.main();
@@ -277,12 +296,15 @@ void main() {
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();
     remove_question_mark.main();
+    remove_returned_value.main();
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();
     remove_unnecessary_cast.main();
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
+    remove_unnecessary_parentheses.main();
+    remove_unnecessary_string_interpolation.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
     remove_unused_element.main();
@@ -296,6 +318,7 @@ void main() {
     replace_cascade_with_dot.main();
     replace_colon_with_equals.main();
     replace_final_with_const.main();
+    replace_final_with_var.main();
     replace_new_with_const.main();
     replace_null_with_closure.main();
     replace_return_type_future.main();

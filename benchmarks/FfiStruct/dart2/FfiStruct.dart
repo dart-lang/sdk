@@ -52,9 +52,9 @@ class FieldLoadStore extends BenchmarkBase {
   FieldLoadStore() : super('FfiStruct.FieldLoadStore');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {

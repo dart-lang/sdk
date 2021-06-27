@@ -53,5 +53,10 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_F),
 ];
 
-main([args = const <String>[]]) => runIsolateTests(args, tests,
-    testeeConcurrent: testMain, extraArgs: extraDebuggingArgs);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'async_step_out_test.dart',
+      testeeConcurrent: testMain,
+      extraArgs: extraDebuggingArgs,
+    );

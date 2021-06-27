@@ -1,0 +1,30 @@
+abstract class AbstractClass extends Super implements Interface1, Interface2 {}
+
+abstract class Super {
+  abstract covariant int extendedAbstractCovariantField;
+  abstract covariant int extendedAbstractCovariantImplementedField;
+  abstract int extendedAbstractImplementedCovariantField;
+  covariant int extendedConcreteCovariantField = 0;
+  covariant int extendedConcreteCovariantImplementedField = 0;
+  int extendedConcreteImplementedCovariantField = 0;
+}
+
+class ConcreteClass extends Super implements Interface1, Interface2 {}
+
+class ConcreteSub extends AbstractClass {}
+
+class Interface1 {
+  covariant int extendedAbstractImplementedCovariantField = 0;
+  covariant int extendedConcreteImplementedCovariantField = 0;
+  covariant int implementsMultipleCovariantField1 = 0;
+  int extendedAbstractCovariantImplementedField = 0;
+  int extendedConcreteCovariantImplementedField = 0;
+  int implementsMultipleCovariantField2 = 0;
+}
+
+class Interface2 {
+  covariant int implementsMultipleCovariantField2 = 0;
+  int implementsMultipleCovariantField1 = 0;
+}
+
+main() {}

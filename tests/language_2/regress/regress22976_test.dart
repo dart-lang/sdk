@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for issue 22976.
 
 class A<T> {}
@@ -9,7 +11,7 @@ class A<T> {}
 class B<T> implements A<T> {}
 
 class C<S, T> implements B<S>, A<T> {}
-// [error line 11, column 1, length 38]
+// [error line 13, column 7, length 1]
 // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
 //    ^
 // [cfe] 'C' can't implement both 'A<S>' and 'A<T>'
@@ -21,6 +23,5 @@ main() {
   A<int> a1 = c2;
   //          ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  //          ^
   // [cfe] A value of type 'C<String, int>' can't be assigned to a variable of type 'A<int>'.
 }

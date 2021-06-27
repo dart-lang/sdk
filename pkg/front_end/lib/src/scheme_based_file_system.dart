@@ -12,7 +12,7 @@ class SchemeBasedFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    FileSystem delegate = fileSystemByScheme[uri.scheme];
+    FileSystem? delegate = fileSystemByScheme[uri.scheme];
     if (delegate == null) {
       throw new FileSystemException(
           uri,

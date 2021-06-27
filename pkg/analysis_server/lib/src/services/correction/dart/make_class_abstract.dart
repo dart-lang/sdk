@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class MakeClassAbstract extends CorrectionProducer {
-  String _className;
+  String _className = '';
 
   @override
   List<Object> get fixArguments => [_className];

@@ -24,9 +24,10 @@ testStartError() {
       environment: {"PATH": ""});
   processFuture
       .then((p) => Expect.fail('got process despite start error'))
-      .catchError((error) {
+      .catchError((error, stackTrace) {
     Expect.isTrue(error is ProcessException);
     Expect.equals(ENOENT, error.errorCode, error.toString());
+    Expect.notEquals(stackTrace.toString(), '');
   });
 }
 

@@ -38,7 +38,7 @@ main() {
   Future<void> test_multipleVariables() async {
     await resolveTestCode('''
 main() {
-  String a, b = 42;
+  String a, b = '';
   print('\$a \$b');
 }
 ''');

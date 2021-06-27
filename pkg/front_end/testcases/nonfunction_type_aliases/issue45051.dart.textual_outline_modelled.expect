@@ -1,0 +1,12 @@
+class A {
+  factory A() = BAlias;
+  factory A.named() = BAlias.named;
+}
+
+class B implements A {
+  B();
+  B.named();
+}
+
+main() {}
+typedef BAlias = B;

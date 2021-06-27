@@ -32,8 +32,7 @@ class ChangeTest {
     change.addEdit('/a.dart', 0, edit2);
     expect(change.edits, hasLength(1));
     {
-      var fileEdit = change.getFileEdit('/a.dart');
-      expect(fileEdit, isNotNull);
+      var fileEdit = change.getFileEdit('/a.dart')!;
       expect(fileEdit.edits, unorderedEquals([edit1, edit2]));
     }
   }

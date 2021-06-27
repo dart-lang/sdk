@@ -50,7 +50,7 @@ const c = true & false;
 class A {
   const A();
 }
-const a = A();
+const A? a = A();
 const c = a == null;
 ''', to: '^2.2.2');
   }
@@ -87,7 +87,7 @@ var s = <int>{};
   }
 
   Future<void> testUpdate(
-      {String content, String from = '^2.0.0', String to}) async {
+      {String? content, String from = '^2.0.0', required String to}) async {
     updateTestPubspecFile('''
 environment:
   sdk: $from

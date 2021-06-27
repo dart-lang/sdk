@@ -11,11 +11,11 @@ part of dart.convert;
 /// does not allow invalid characters and requires padding.
 ///
 /// Examples:
-///
-///     var encoded = base64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
-///                                  0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
-///     var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
-///
+/// ```dart
+/// var encoded = base64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+///                              0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
+/// var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
+/// ```
 /// The top-level [base64Encode] and [base64Decode] functions may be used
 /// instead if a local variable shadows the [base64] constant.
 const Base64Codec base64 = Base64Codec();
@@ -27,10 +27,11 @@ const Base64Codec base64 = Base64Codec();
 /// does not allow invalid characters and requires padding.
 ///
 /// Examples:
-///
-///     var encoded = base64Url.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
-///                                     0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
-///     var decoded = base64Url.decode("YmzDpWLDpnJncsO4ZAo=");
+/// ```dart
+/// var encoded = base64Url.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+///                                 0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
+/// var decoded = base64Url.decode("YmzDpWLDpnJncsO4ZAo=");
+/// ```
 const Base64Codec base64Url = Base64Codec.urlSafe();
 
 /// Encodes [bytes] using [base64](https://tools.ietf.org/html/rfc4648) encoding.
@@ -95,10 +96,6 @@ class Base64Codec extends Codec<List<int>, String> {
   /// * Validate that the length is correct (a multiple of four).
   String normalize(String source, [int start = 0, int? end]) {
     end = RangeError.checkValidRange(start, end, source.length);
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (end == null) {
-      throw RangeError("Invalid range");
-    }
     const percent = 0x25;
     const equals = 0x3d;
     StringBuffer? buffer;
@@ -406,10 +403,6 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
     if (buffer == null || buffer.length < bufferLength) {
       bufferCache = buffer = Uint8List(bufferLength);
     }
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (buffer == null) {
-      throw "unreachable";
-    }
     // Return a view of the buffer, so it has the requested length.
     return Uint8List.view(buffer.buffer, buffer.offsetInBytes, bufferLength);
   }
@@ -489,10 +482,6 @@ class Base64Decoder extends Converter<String, List<int>> {
   /// The [Uint8List.buffer] may be larger than the decoded bytes.
   Uint8List convert(String input, [int start = 0, int? end]) {
     end = RangeError.checkValidRange(start, end, input.length);
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (end == null) {
-      throw RangeError("Invalid range");
-    }
     if (start == end) return Uint8List(0);
     var decoder = _Base64Decoder();
     var buffer = decoder.decode(input, start, end)!;

@@ -10,8 +10,6 @@ import 'analysis.dart';
 import 'table_selector_assigner.dart';
 import 'types.dart';
 import 'utils.dart';
-import '../protobuf_aware_treeshaker/transformer.dart'
-    show excludePositionalParametersFromSignatureShaking;
 import '../../metadata/procedure_attributes.dart';
 
 /// Transform parameters from optional to required when they are always passed,
@@ -125,11 +123,6 @@ class _ProcedureInfo {
   int callCount = 0;
   bool eligible = true;
 
-  /// Whether positional parameters can be eliminated from this member. Some
-  /// protobuf methods require these parameters to be preserved for the
-  /// protobuf-aware tree shaker to function.
-  bool canEliminatePositional = true;
-
   _ParameterInfo ensurePositional(int i) {
     if (positional.length <= i) {
       assert(positional.length == i);
@@ -178,8 +171,7 @@ class _ParameterInfo {
   bool get isNeverPassed => passCount == 0;
 
   bool get canBeEliminated =>
-      (!isUsed || (isNeverPassed || isConstant && !isChecked) && !isWritten) &&
-      (isNamed || info.canEliminatePositional);
+      (!isUsed || (isNeverPassed || isConstant && !isChecked) && !isWritten);
 
   void observeParameter(
       Member member, VariableDeclaration param, SignatureShaker shaker) {
@@ -206,7 +198,7 @@ class _ParameterInfo {
   }
 }
 
-class _Collect extends RecursiveVisitor<void> {
+class _Collect extends RecursiveVisitor {
   final SignatureShaker shaker;
 
   /// Parameters of the current function.
@@ -241,12 +233,9 @@ class _Collect extends RecursiveVisitor<void> {
         shaker.typeFlowAnalysis.nativeCodeOracle
             .isMemberReferencedFromNativeCode(member) ||
         shaker.typeFlowAnalysis.nativeCodeOracle.isRecognized(member) ||
-        getExternalName(member) != null) {
+        getExternalName(member) != null ||
+        member.name.text == '==') {
       info.eligible = false;
-    }
-
-    if (excludePositionalParametersFromSignatureShaking(member)) {
-      info.canEliminatePositional = false;
     }
   }
 
@@ -308,9 +297,9 @@ class _Collect extends RecursiveVisitor<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
+  void visitInstanceInvocation(InstanceInvocation node) {
     collectCall(node.interfaceTarget, node.arguments);
-    super.visitMethodInvocation(node);
+    super.visitInstanceInvocation(node);
   }
 
   @override
@@ -344,7 +333,7 @@ class _Collect extends RecursiveVisitor<void> {
   }
 }
 
-class _Transform extends RecursiveVisitor<void> {
+class _Transform extends RecursiveVisitor {
   final SignatureShaker shaker;
 
   StaticTypeContext typeContext;
@@ -510,6 +499,12 @@ class _Transform extends RecursiveVisitor<void> {
     super.visitProcedure(node);
   }
 
+  @override
+  void visitField(Field node) {
+    typeContext = StaticTypeContext(node, shaker.typeFlowAnalysis.environment);
+    super.visitField(node);
+  }
+
   static void forEachArgumentRev(Arguments args, _ProcedureInfo info,
       void Function(Expression, _ParameterInfo) fun) {
     for (int i = args.named.length - 1; i >= 0; i--) {
@@ -639,8 +634,8 @@ class _Transform extends RecursiveVisitor<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
+  void visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
     transformCall(node.interfaceTarget, node, node.receiver, node.arguments);
   }
 

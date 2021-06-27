@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AbstractFieldInitializerTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class AbstractFieldInitializerTest extends PubPackageResolutionTest {
   test_abstract_field_final_initializer() async {
     await assertErrorsInCode('''
 abstract class A {

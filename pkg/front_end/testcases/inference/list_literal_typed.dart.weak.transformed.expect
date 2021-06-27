@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<core::int*>* a = core::_GrowableList::•<core::int*>(0);
+static field core::List<core::double*>* b = core::_GrowableList::_literal3<core::double*>(1.0, 2.0, 3.0);
+static field core::List<core::List<core::int*>*>* c = core::_GrowableList::•<core::List<core::int*>*>(0);
+static field core::List<dynamic>* d = core::_GrowableList::_literal3<dynamic>(1, 2.0, false);
+static method main() → dynamic {
+  core::List<core::int*>* a = core::_GrowableList::•<core::int*>(0);
+  core::List<core::double*>* b = core::_GrowableList::_literal3<core::double*>(1.0, 2.0, 3.0);
+  core::List<core::List<core::int*>*>* c = core::_GrowableList::•<core::List<core::int*>*>(0);
+  core::List<dynamic>* d = core::_GrowableList::_literal3<dynamic>(1, 2.0, false);
+}

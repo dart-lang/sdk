@@ -195,42 +195,50 @@ class BuildSearchResult {
 /// Locates the build number of the [commit] on the [builder], or throws an
 /// exception if the builder hasn't built the commit.
 Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
-  var requestUrl = Uri.parse(
-      "https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1/search"
-      "?bucket=luci.dart.ci.sandbox"
-      "&tag=builder%3A$builder"
-      "&tag=buildset%3Acommit%2Fgit%2F$commit"
-      "&fields=builds(status%2Ctags%2Curl)");
+  var requestBody = jsonEncode({
+    "fields": "builds.*.status,builds.*.number",
+    "predicate": {
+      "builder": {
+        "project": "dart",
+        "bucket": "ci.sandbox",
+        "builder": builder
+      },
+      "tags": [
+        {
+          "key": "buildset",
+          "value": "commit/gitiles/dart.googlesource.com/sdk/+/$commit"
+        }
+      ]
+    }
+  });
+  var requestUrl = Uri.https(
+      "cr-buildbucket.appspot.com", "prpc/buildbucket.v2.Builds/SearchBuilds");
   var client = HttpClient();
-  var request = await client.getUrl(requestUrl);
+  var request = await client.postUrl(requestUrl);
+  request.headers.add(HttpHeaders.acceptHeader, ContentType.json.mimeType);
+  request.headers.add(HttpHeaders.contentTypeHeader, ContentType.json.mimeType);
+  request.write(requestBody);
   var response = await request.close();
-  var object = await response
-      .cast<List<int>>()
-      .transform(const Utf8Decoder())
-      .transform(const JsonDecoder())
-      .first as Map<String, dynamic>;
+  var responseString = await const Utf8Decoder().bind(response).join();
   client.close();
+  // Remove XSSI protection prefix )]}'\n before parsing the response.
+  var object = jsonDecode(responseString.substring(5)) as Map<String, dynamic>;
   var builds = object["builds"] as List<dynamic>;
   if (builds == null || builds.isEmpty) {
     throw NoResultsForCommitException(
         "Builder $builder hasn't built commit $commit");
   }
   var build = builds.last;
-  var tags = (build["tags"] as List).cast<String>();
-  var buildAddressTag =
-      tags.firstWhere((tag) => tag.startsWith("build_address:"));
-  var buildAddress = buildAddressTag.substring("build_address:".length);
-  var buildNumber = int.parse(buildAddress.split("/").last);
-  if (build["status"] != "COMPLETED") {
-    throw NoResultsForCommitException(
-        "Build $buildAddress isn't completed yet");
+  var buildNumber = build["number"] as int;
+  if (!{"SUCCESS", "FAILURE"}.contains(build["status"])) {
+    throw NoResultsForCommitException("Build $buildNumber isn't completed yet");
   }
   var resultsPath = buildFileCloudPath(builder, "$buildNumber", "results.json");
   var flakyPath = buildFileCloudPath(builder, "$buildNumber", "flaky.json");
   if (await lsGsutil(resultsPath) == null ||
       await lsGsutil(flakyPath) == null) {
     throw NoResultsForCommitException(
-        "Build $buildAddress did not upload results");
+        "Build $buildNumber did not upload results");
   }
   return BuildSearchResult(buildNumber, commit);
 }
@@ -474,7 +482,7 @@ Future<void> runTests(List<String> args) async {
     print("Running tests");
     print("".padLeft(80, "="));
     await runProcessInheritStdio(
-        "python",
+        "python3",
         [
           "tools/test.py",
           "--named-configuration=${configurationsToRun.join(",")}",
@@ -599,7 +607,7 @@ Future<void> deflake(Directory outDirectory, List<String> configurations,
     ];
 
     await runProcessInheritStdio(
-        "python", ["tools/test.py", ...deflakeArguments],
+        "python3", ["tools/test.py", ...deflakeArguments],
         runInShell: Platform.isWindows);
     deflakingResultsPaths.add("${deflakeDirectory.path}/results.json");
   }

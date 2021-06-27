@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Platform, exit;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
@@ -10,7 +12,7 @@ import 'package:kernel/text/ast_to_text.dart' show componentToString;
 
 import 'package:kernel/kernel.dart' show Component;
 
-import '../incremental_load_from_dill_suite.dart' show normalCompileToBytes;
+import '../incremental_suite.dart' show normalCompileToBytes;
 
 main() async {
   List<int> bytes = await normalCompileToBytes(

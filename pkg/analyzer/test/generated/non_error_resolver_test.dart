@@ -13,8 +13,9 @@ import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonErrorResolverTest);
     defineReflectiveTests(NonConstantValueInInitializer);
+    defineReflectiveTests(NonErrorResolverTest);
+    defineReflectiveTests(NonErrorResolverWithoutNullSafetyTest);
   });
 }
 
@@ -22,6 +23,7 @@ main() {
 class NonConstantValueInInitializer extends PubPackageResolutionTest {
   test_intLiteralInDoubleContext_const_exact() async {
     await assertNoErrorsInCode(r'''
+// @dart = 2.9
 const double x = 0;
 class C {
   const C(double y) : assert(y is double), assert(x is double);
@@ -41,6 +43,7 @@ void main() {
 
   test_isCheckInConstAssert() async {
     await assertNoErrorsInCode(r'''
+// @dart = 2.9
 class C {
   const C() : assert(1 is int);
 }
@@ -53,7 +56,93 @@ void main() {
 }
 
 @reflectiveTest
-class NonErrorResolverTest extends PubPackageResolutionTest {
+class NonErrorResolverTest extends PubPackageResolutionTest
+    with NonErrorResolverTestCases {
+  test_await_flattened() async {
+    await assertNoErrorsInCode('''
+Future<Future<int>>? ffi() => null;
+f() async {
+  Future<int>? b = await ffi();
+  b;
+}
+''');
+  }
+
+  test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
+    await assertErrorsInCode(r'''
+class A {
+  static get x => 0;
+  static set x(int p) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 23, 1),
+    ]);
+  }
+
+  test_const_constructor_with_named_generic_parameter() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  const C({required T t});
+}
+const c = const C(t: 1);
+''');
+  }
+
+  test_inconsistentMethodInheritance_accessors_typeParameters1() async {
+    await assertNoErrorsInCode(r'''
+abstract class A<E> {
+  E? get x;
+}
+abstract class B<E> {
+  E? get x;
+}
+class C<E> implements A<E>, B<E> {
+  E? get x => null;
+}
+''');
+  }
+
+  test_inconsistentMethodInheritance_accessors_typeParameters2() async {
+    await assertNoErrorsInCode(r'''
+abstract class A<E> {
+  E? get x {return null;}
+}
+class B<E> {
+  E? get x {return null;}
+}
+class C<E> extends A<E> implements B<E> {}
+''');
+  }
+
+  test_inconsistentMethodInheritance_accessors_typeParameters_diamond() async {
+    await assertNoErrorsInCode(r'''
+abstract class F<E> extends B<E> {}
+class D<E> extends F<E> {
+  external E? get g;
+}
+abstract class C<E> {
+  E? get g;
+}
+abstract class B<E> implements C<E> {
+  E? get g { return null; }
+}
+class A<E> extends B<E> implements D<E> {
+}
+''');
+  }
+
+  test_typedef_not_function() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+typedef F = int;
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+F f = 0;
+''');
+  }
+}
+
+mixin NonErrorResolverTestCases on PubPackageResolutionTest {
   test_ambiguousExport() async {
     newFile("$testPackageLibPath/lib1.dart", content: r'''
 library lib1;
@@ -255,13 +344,16 @@ class Widget { }
 
 class MaterialPageRoute {
   final Widget Function() builder;
-  const MaterialPageRoute({this.builder});
+  const MaterialPageRoute({this.builder = f});
 }
 
+Widget f() => Widget();
+
 void main() {
-  print(MaterialPageRoute(
-      builder: () { return Widget(); }
-  ));
+  MaterialPageRoute(builder: () {
+      return Widget();
+    },
+  );
 }
 ''');
   }
@@ -269,7 +361,7 @@ void main() {
   test_argumentTypeNotAssignable_typedef_local() async {
     await assertNoErrorsInCode(r'''
 typedef A(int p1, String p2);
-A getA() => null;
+A getA() => (int p1, String p2) {};
 f() {
   A a = getA();
   a(1, '2');
@@ -291,7 +383,7 @@ f(A a) {
 f() async {
   assert(false, await g());
 }
-Future<String> g() => null;
+Future<String> g() => Future.value('');
 ''');
   }
 
@@ -341,32 +433,30 @@ f() {
     // In the code below, the type of (() => f()) has a return type which is
     // a class, and that class is inferred from the return type of the typedef
     // F.
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 class C {}
 typedef C F();
-F f;
+F f = () => C();
 main() {
   F f2 = (() => f());
+  f2;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 2),
-    ]);
+''');
   }
 
   test_assignability_function_expr_rettype_from_typedef_typedef() async {
     // In the code below, the type of (() => f()) has a return type which is
     // a typedef, and that typedef is inferred from the return type of the
     // typedef F.
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 typedef G F();
 typedef G();
-F f;
+F f = () => () => {};
 main() {
   F f2 = (() => f());
+  f2;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 2),
-    ]);
+''');
   }
 
   test_assignmentToFinal_prefixNegate() async {
@@ -400,7 +490,7 @@ class A {
   set x(v) {}
 }
 class B {
-  static A a;
+  static A a = A();
 }
 main() {
   B.a.x = 0;
@@ -462,7 +552,7 @@ main() {
   Future<int> futureInt = createFutureInt();
   futureInt.then((int i) => print(i));
 }
-Future<int> f() => null;
+Future<int> f() => Future.value(0);
 ''');
   }
 
@@ -592,26 +682,14 @@ f(list) async* {
     ]);
   }
 
-  test_await_flattened() async {
-    await assertErrorsInCode('''
-Future<Future<int>> ffi() => null;
-f() async {
-  Future<int> b = await ffi();
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
-    ]);
-  }
-
   test_await_simple() async {
-    await assertErrorsInCode('''
-Future<int> fi() => null;
+    await assertNoErrorsInCode('''
+Future<int> fi() => Future.value(0);
 f() async {
   int a = await fi();
+  a;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-    ]);
+''');
   }
 
   test_awaitInWrongContext_async() async {
@@ -646,7 +724,7 @@ class A {
   test_bug_24539_getter() async {
     await assertNoErrorsInCode('''
 class C<T> {
-  List<Foo> get x => null;
+  List<Foo> get x => [];
 }
 
 typedef Foo(param);
@@ -683,8 +761,8 @@ class C = D with E;
 class D {}
 class E {}
 ''');
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement.getType('C');
+    CompilationUnit unit = result.unit!;
+    ClassElement classC = unit.declaredElement!.getType('C')!;
     expect(classC.documentationComment, isNotNull);
   }
 
@@ -723,24 +801,6 @@ class A {
 A.x() {}
 set x(_) {}
 }
-''');
-  }
-
-  test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  static get x => 0;
-  static set x(int p) {}
-}
-''');
-  }
-
-  test_const_constructor_with_named_generic_parameter() async {
-    await assertNoErrorsInCode('''
-class C<T> {
-  const C({T t});
-}
-const c = const C(t: 1);
 ''');
   }
 
@@ -817,7 +877,7 @@ class A {
   test_constConstructorWithNonFinalField_static() async {
     await assertNoErrorsInCode(r'''
 class A {
-  static int x;
+  static int x = 0;
   const A();
 }
 ''');
@@ -905,10 +965,6 @@ class B {
   const B.c3(String p) : v = p == 0;
   const B.c4(String p) : v = p == 0.0;
   const B.c5(String p) : v = p == '';
-  const B.n1(num p) : v = p == null;
-  const B.n2(num p) : v = null == p;
-  const B.n3(Object p) : v = p == null;
-  const B.n4(Object p) : v = null == p;
 }
 ''');
   }
@@ -932,10 +988,6 @@ class B {
   const B.c3(String p) : v = p != 0;
   const B.c4(String p) : v = p != 0.0;
   const B.c5(String p) : v = p != '';
-  const B.n1(num p) : v = p != null;
-  const B.n2(num p) : v = null != p;
-  const B.n3(Object p) : v = p != null;
-  const B.n4(Object p) : v = null != p;
 }
 ''');
   }
@@ -1116,7 +1168,7 @@ f(Function a) {
   test_extraPositionalArguments_typedef_local() async {
     await assertNoErrorsInCode(r'''
 typedef A(p1, p2);
-A getA() => null;
+A getA() => (p1, p2) {};
 f() {
   A a = getA();
   a(1, 2);
@@ -1138,8 +1190,9 @@ f(A a) {
 class C {
   final Function field;
 
-  C({String this.field(int value)});
+  C({String this.field(int value) = f});
 }
+String f(int value) => '';
 ''');
   }
 
@@ -1158,8 +1211,9 @@ class C {
 class C {
   final Object Function(int, double) field;
 
-  C({String Function(num, Object) this.field});
+  C({String Function(num, Object) this.field = f});
 }
+String f(num a, Object b) => '';
 ''');
   }
 
@@ -1193,8 +1247,8 @@ class A {
   test_fieldInitializerOutsideConstructor_defaultParameters() async {
     await assertNoErrorsInCode(r'''
 class A {
-  int x;
-  A([this.x]) {}
+  int x = 0;
+  A([this.x = 1]) {}
 }
 ''');
   }
@@ -1322,67 +1376,9 @@ typedef int f(@app int app);
 ''');
   }
 
-  test_functionWithoutCall() async {
-    await assertNoErrorsInCode(r'''
-abstract class A implements Function {
-}
-class B implements A {
-  void call() {}
-}
-class C extends A {
-  void call() {}
-}
-class D extends C {
-}
-''');
-  }
-
-  test_functionWithoutCall_doesNotImplementFunction() async {
-    await assertNoErrorsInCode("class A {}");
-  }
-
-  test_functionWithoutCall_staticCallMethod() async {
-    await assertNoErrorsInCode(r'''
-class A { }
-class B extends A {
-  static call() { }
-}
-''');
-  }
-
-  test_functionWithoutCall_withNoSuchMethod() async {
-    // 16078
-    await assertNoErrorsInCode(r'''
-class A implements Function {
-  noSuchMethod(inv) {
-    return 42;
-  }
-}
-''');
-  }
-
-  test_functionWithoutCall_withNoSuchMethod_mixin() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  noSuchMethod(inv) {}
-}
-class B extends Object with A implements Function {
-}
-''');
-  }
-
-  test_functionWithoutCall_withNoSuchMethod_superclass() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  noSuchMethod(inv) {}
-}
-class B extends A implements Function {
-}
-''');
-  }
-
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
     await assertNoErrorsInCode('''
+// @dart = 2.9
 typedef Foo<S> = S Function<T>(T x);
 
 main(Object p) {
@@ -1400,6 +1396,7 @@ main(Object p) {
 
   test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
     await assertNoErrorsInCode('''
+// @dart = 2.9
 typedef Foo = T Function<T>(T x);
 
 main(Object p) {
@@ -1421,7 +1418,7 @@ void test1() {
 }
 
 class A {
-  Foo f;
+  Foo f = <T>(T x) => 0;
   void test() {
     f<String>("hello");
   }
@@ -1439,7 +1436,7 @@ void test1() {
 }
 
 class A {
-  Foo<int> f;
+  Foo<int> f = <T>(T x) => 0;
   void test() {
     f<String>("hello");
   }
@@ -1457,24 +1454,12 @@ void test1() {
 }
 
 class A {
-  Foo f;
+  Foo f = <T>(T x) {};
   void test() {
     f<String>("hello");
   }
 }
 ''');
-  }
-
-  test_genericTypeAlias_invalidGenericFunctionType() async {
-    // There is a parse error, but no crashes.
-    await assertErrorsInCode('''
-typedef F = int;
-main(p) {
-  p is F;
-}
-''', [
-      error(ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, 10, 1),
-    ]);
   }
 
   test_genericTypeAlias_noTypeParameters() async {
@@ -1538,7 +1523,7 @@ class A {}
     await assertNoErrorsInCode(r'''
 library lib;
 import 'part.dart';
-A a;
+A a = A();
 ''');
   }
 
@@ -1549,7 +1534,7 @@ class A {}
     await assertNoErrorsInCode(r'''
 library lib;
 import 'part.dart';
-A a;
+A a = A();
 ''');
   }
 
@@ -1569,49 +1554,6 @@ import 'lib2.dart' as path;
 main() {
   math.test1();
   path.test2();
-}
-''');
-  }
-
-  test_inconsistentMethodInheritance_accessors_typeParameter2() async {
-    await assertNoErrorsInCode(r'''
-abstract class A<E> {
-  E get x {return null;}
-}
-class B<E> {
-  E get x {return null;}
-}
-class C<E> extends A<E> implements B<E> {}
-''');
-  }
-
-  test_inconsistentMethodInheritance_accessors_typeParameters1() async {
-    await assertNoErrorsInCode(r'''
-abstract class A<E> {
-  E get x;
-}
-abstract class B<E> {
-  E get x;
-}
-class C<E> implements A<E>, B<E> {
-  E get x => null;
-}
-''');
-  }
-
-  test_inconsistentMethodInheritance_accessors_typeParameters_diamond() async {
-    await assertNoErrorsInCode(r'''
-abstract class F<E> extends B<E> {}
-class D<E> extends F<E> {
-  external E get g;
-}
-abstract class C<E> {
-  E get g;
-}
-abstract class B<E> implements C<E> {
-  E get g { return null; }
-}
-class A<E> extends B<E> implements D<E> {
 }
 ''');
   }
@@ -1668,8 +1610,8 @@ mixin M<T> on A<T> {}
 
 class C extends A<B> with M {}
 ''');
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement.getType('C');
+    CompilationUnit unit = result.unit!;
+    ClassElement classC = unit.declaredElement!.getType('C')!;
     expect(classC.mixins, hasLength(1));
     assertType(classC.mixins[0], 'M<B>');
   }
@@ -1690,8 +1632,8 @@ class C extends A<int Function(String)> with M {}
         1,
       ),
     ]);
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement.getType('C');
+    CompilationUnit unit = result.unit!;
+    ClassElement classC = unit.declaredElement!.getType('C')!;
     expect(classC.mixins, hasLength(1));
     assertType(classC.mixins[0], 'M<int, String>');
   }
@@ -1706,8 +1648,8 @@ mixin M<T> on A<List<T>> {}
 
 class C extends A<List<B>> with M {}
 ''');
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement.getType('C');
+    CompilationUnit unit = result.unit!;
+    ClassElement classC = unit.declaredElement!.getType('C')!;
     expect(classC.mixins, hasLength(1));
     assertType(classC.mixins[0], 'M<B>');
   }
@@ -1963,10 +1905,10 @@ class A {
   test_invalidMethodOverrideNamedParamType() async {
     await assertNoErrorsInCode(r'''
 class A {
-  m({int a}) {}
+  m({int a = 1}) {}
 }
 class B implements A {
-  m({int a, int b}) {}
+  m({int a = 1, int b = 2}) {}
 }
 ''');
   }
@@ -2153,7 +2095,7 @@ void main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 93, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
     ]);
-    var z = result.unit.declaredElement.topLevelVariables
+    var z = result.unit!.declaredElement!.topLevelVariables
         .where((e) => e.name == 'z')
         .single;
     assertType(z.type, 'List<String>');
@@ -2333,7 +2275,7 @@ class A<T> {}
 class B<T> = Object with A<T>;
 class C = Object with B;
 ''');
-    var bReference = result.unit.declaredElement.getType('C').mixins[0];
+    var bReference = result.unit!.declaredElement!.getType('C')!.mixins[0];
     assertTypeDynamic(bReference.typeArguments[0]);
   }
 
@@ -2343,14 +2285,16 @@ class C = Object with B;
     // B's superclass is "Object with A1<T>".  So mixin type inference succeeds
     // (since C's base class implements A1<int>), and "with B" is interpreted as
     // "with B<int>".
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A1<T> {}
 class A2<T> {}
 class B<T> = Object with A1<T>, A2<T>;
 class Base implements A1<int> {}
 class C = Base with B;
-''');
-    var bReference = result.unit.declaredElement.getType('C').mixins[0];
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 122, 1),
+    ]);
+    var bReference = result.unit!.declaredElement!.getType('C')!.mixins[0];
     assertType(bReference.typeArguments[0], 'int');
   }
 
@@ -2373,27 +2317,26 @@ class B extends Object with A {}
   }
 
   test_mixinInference_with_actual_mixins() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 class I<X> {}
 
 mixin M0<T> on I<T> {}
 
 mixin M1<T> on I<T> {
-  T foo() => null;
+  T foo(T a) => a;
 }
 
 class A = I<int> with M0, M1;
 
 void main () {
-  var x = new A().foo();
+  var x = new A().foo(0);
+  x;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 135, 1),
-    ]);
-    var main = result.unit.declarations.last as FunctionDeclaration;
+''');
+    var main = result.unit!.declarations.last as FunctionDeclaration;
     var mainBody = main.functionExpression.body as BlockFunctionBody;
     var xDecl = mainBody.block.statements[0] as VariableDeclarationStatement;
-    var xElem = xDecl.variables.variables[0].declaredElement;
+    var xElem = xDecl.variables.variables[0].declaredElement!;
     assertType(xElem.type, 'int');
   }
 
@@ -2423,15 +2366,18 @@ class Foo {
   const factory Foo.foo() native 'Foo_Foo_foo';
 }
 ''', [
+      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 20),
       error(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 47, 6),
     ]);
   }
 
   test_nativeFunctionBodyInNonSDKCode_function() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart-ext:x';
 int m(a) native 'string';
-''');
+''', [
+      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 20),
+    ]);
   }
 
   test_newWithAbstractClass_factory() async {
@@ -2858,25 +2804,25 @@ import 'b.dart';
 @B.named8()
 main() {}
 ''');
-    expect(result.unit.declarations, hasLength(1));
-    final mainDecl = result.unit.declarations[0];
+    expect(result.unit!.declarations, hasLength(1));
+    final mainDecl = result.unit!.declarations[0];
     expect(mainDecl.metadata, hasLength(8));
     mainDecl.metadata.forEach((metadata) {
-      final value = metadata.elementAnnotation.computeConstantValue();
+      final value = metadata.elementAnnotation!.computeConstantValue()!;
       expect(value, isNotNull);
       assertType(value.type, 'B');
-      final unbounded = value.getField('unbounded');
-      final bounded = value.getField('bounded');
+      final unbounded = value.getField('unbounded')!;
+      final bounded = value.getField('bounded')!;
       if (!unbounded.isNull) {
         expect(bounded.isNull, true);
         assertType(unbounded.type, 'Unbounded<dynamic>');
-        expect(unbounded.type.typeArguments, hasLength(1));
-        expect(unbounded.type.typeArguments[0].isDynamic, isTrue);
+        expect(unbounded.type!.typeArguments, hasLength(1));
+        expect(unbounded.type!.typeArguments[0].isDynamic, isTrue);
       } else {
         expect(unbounded.isNull, true);
         assertType(bounded.type, 'Bounded<String>');
-        expect(bounded.type.typeArguments, hasLength(1));
-        assertType(bounded.type.typeArguments[0], 'String');
+        expect(bounded.type!.typeArguments, hasLength(1));
+        assertType(bounded.type!.typeArguments[0], 'String');
       }
     });
   }
@@ -2924,11 +2870,11 @@ h(x) {}
     await assertNoErrorsInCode(r'''
 f() {
   var c = new C();
-  c<String>().codeUnits;
+  c<String>('').codeUnits;
 }
 
 class C {
-  T call<T>() => null;
+  T call<T>(T a) => a;
 }
 ''');
   }
@@ -2997,7 +2943,7 @@ f(A a) {
   test_regress34906() async {
     await assertNoErrorsInCode(r'''
 typedef G<X, Y extends Function(X)> = X Function(Function(Y));
-G<dynamic, Function(Null)> superBoundedG;
+f(G<dynamic, Function(Null)> superBoundedG) {}
 ''');
   }
 
@@ -3036,16 +2982,6 @@ class A<T extends void Function(T)>{}
 ''');
   }
 
-  test_typedef_not_function() async {
-    newFile('$testPackageLibPath/a.dart', content: '''
-typedef F = int;
-''');
-    await assertNoErrorsInCode('''
-import 'a.dart';
-F f;
-''');
-  }
-
   test_typePromotion_booleanAnd_useInRight() async {
     await assertNoErrorsInCode(r'''
 main(Object p) {
@@ -3059,20 +2995,6 @@ main(Object p) {
 callMe(f()) { f(); }
 main(Object p) {
   (p is String) && callMe(() { p.length; });
-}
-''');
-  }
-
-  test_typePromotion_conditional_issue14655() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {}
-class C extends B {
-  mc() {}
-}
-print(_) {}
-main(A p) {
-  (p is C) && (print(() => p) && (p is B)) ? p.mc() : p = null;
 }
 ''');
   }
@@ -3093,50 +3015,6 @@ main(Object p) {
 ''');
   }
 
-  test_typePromotion_functionType_arg_ignoreIfNotMoreSpecific() async {
-    await assertNoErrorsInCode(r'''
-typedef FuncB(B b);
-typedef FuncA(A a);
-class A {}
-class B {}
-main(FuncA f) {
-  if (f is FuncB) {
-    f(new A());
-  }
-}
-''');
-  }
-
-  test_typePromotion_functionType_return_ignoreIfNotMoreSpecific() async {
-    await assertErrorsInCode(r'''
-class A {}
-typedef FuncAtoDyn(A a);
-typedef FuncDynToDyn(x);
-main(FuncAtoDyn f) {
-  if (f is FuncDynToDyn) {
-    A a = f(new A());
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 115, 1),
-    ]);
-  }
-
-  test_typePromotion_functionType_return_voidToDynamic() async {
-    await assertErrorsInCode(r'''
-typedef FuncDynToDyn(x);
-typedef void FuncDynToVoid(x);
-class A {}
-main(FuncDynToVoid f) {
-  if (f is FuncDynToDyn) {
-    A a = f(null);
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
-    ]);
-  }
-
   test_typePromotion_if_accessedInClosure_noAssignment() async {
     await assertNoErrorsInCode(r'''
 callMe(f()) { f(); }
@@ -3145,23 +3023,6 @@ main(Object p) {
     callMe(() {
       p.length;
     });
-  }
-}
-''');
-  }
-
-  test_typePromotion_if_extends_moreSpecific() async {
-    await assertNoErrorsInCode(r'''
-class V {}
-class VP extends V {}
-class A<T> {}
-class B<S> extends A<S> {
-  var b;
-}
-
-main(A<V> p) {
-  if (p is B<VP>) {
-    p.b;
   }
 }
 ''');
@@ -3186,23 +3047,6 @@ main(Object p, Object p2) {
     p.length;
   }
 }''');
-  }
-
-  test_typePromotion_if_implements_moreSpecific() async {
-    await assertNoErrorsInCode(r'''
-class V {}
-class VP extends V {}
-class A<T> {}
-class B<S> implements A<S> {
-  var b;
-}
-
-main(A<V> p) {
-  if (p is B<VP>) {
-    p.b;
-  }
-}
-''');
   }
 
   test_typePromotion_if_inClosure_assignedAfter_inSameFunction() async {
@@ -3244,6 +3088,7 @@ main(Object p) {
 
   test_typePromotion_if_is_and_subThenSuper() async {
     await assertNoErrorsInCode(r'''
+// @dart = 2.9
 class A {
   var a;
 }
@@ -3367,6 +3212,147 @@ class B extends A {
 import 'dart:core' as core;
 
 core.dynamic dynamicVariable;
+''');
+  }
+}
+
+@reflectiveTest
+class NonErrorResolverWithoutNullSafetyTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, NonErrorResolverTestCases {
+  test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static get x => 0;
+  static set x(int p) {}
+}
+''');
+  }
+
+  test_constEvalTypeBoolNumString_equal_null() async {
+    await assertNoErrorsInCode(r'''
+class B {
+  final v;
+  const B.n1(num p) : v = p == null;
+  const B.n2(num p) : v = null == p;
+  const B.n3(Object p) : v = p == null;
+  const B.n4(Object p) : v = null == p;
+}
+''');
+  }
+
+  test_constEvalTypeBoolNumString_notEqual_null() async {
+    await assertNoErrorsInCode('''
+class B {
+  final v;
+  const B.n1(num p) : v = p != null;
+  const B.n2(num p) : v = null != p;
+  const B.n3(Object p) : v = p != null;
+  const B.n4(Object p) : v = null != p;
+}
+''');
+  }
+
+  test_genericTypeAlias_invalidGenericFunctionType() async {
+    // There is a parse error, but no crashes.
+    await assertErrorsInCode('''
+typedef F = int;
+main(p) {
+  p is F;
+}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
+    ]);
+  }
+
+  test_typePromotion_conditional_issue14655() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+class C extends B {
+  mc() {}
+}
+print(_) {}
+main(A p) {
+  (p is C) && (print(() => p) && (p is B)) ? p.mc() : p = null;
+}
+''');
+  }
+
+  test_typePromotion_functionType_arg_ignoreIfNotMoreSpecific() async {
+    await assertNoErrorsInCode(r'''
+typedef FuncB(B b);
+typedef FuncA(A a);
+class A {}
+class B {}
+main(FuncA f) {
+  if (f is FuncB) {
+    f(new A());
+  }
+}
+''');
+  }
+
+  test_typePromotion_functionType_return_ignoreIfNotMoreSpecific() async {
+    await assertErrorsInCode(r'''
+class A {}
+typedef FuncAtoDyn(A a);
+typedef FuncDynToDyn(x);
+main(FuncAtoDyn f) {
+  if (f is FuncDynToDyn) {
+    A a = f(new A());
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 115, 1),
+    ]);
+  }
+
+  test_typePromotion_functionType_return_voidToDynamic() async {
+    await assertErrorsInCode(r'''
+typedef FuncDynToDyn(x);
+typedef void FuncDynToVoid(x);
+class A {}
+main(FuncDynToVoid f) {
+  if (f is FuncDynToDyn) {
+    A a = f(null);
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+    ]);
+  }
+
+  test_typePromotion_if_extends_moreSpecific() async {
+    await assertNoErrorsInCode(r'''
+class V {}
+class VP extends V {}
+class A<T> {}
+class B<S> extends A<S> {
+  var b;
+}
+
+main(A<V> p) {
+  if (p is B<VP>) {
+    p.b;
+  }
+}
+''');
+  }
+
+  test_typePromotion_if_implements_moreSpecific() async {
+    await assertNoErrorsInCode(r'''
+class V {}
+class VP extends V {}
+class A<T> {}
+class B<S> implements A<S> {
+  var b;
+}
+
+main(A<V> p) {
+  if (p is B<VP>) {
+    p.b;
+  }
+}
 ''');
   }
 }

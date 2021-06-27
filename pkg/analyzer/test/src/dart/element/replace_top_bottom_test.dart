@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -36,6 +36,10 @@ class ReplaceTopBottomLegacyTest extends AbstractTypeSystemTest {
     _check(dynamicNone, 'Null*');
     _check(voidNone, 'Null*');
 
+    _check(listStar(objectStar), 'List<Null*>*');
+    _check(listStar(dynamicNone), 'List<Null*>*');
+    _check(listStar(voidNone), 'List<Null*>*');
+
     _check(futureOrStar(objectStar), 'Null*');
     _check(futureOrStar(dynamicNone), 'Null*');
     _check(futureOrStar(voidNone), 'Null*');
@@ -53,22 +57,21 @@ class ReplaceTopBottomLegacyTest extends AbstractTypeSystemTest {
       typeStr: 'int* Function(int* Function(Object*)*)*',
     );
 
+    _check(intStar, 'int*');
     _check(listStar(intStar), 'List<int*>*');
   }
 
-  void _check(DartType type, String expectedStr, {String typeStr}) {
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-      if (typeStr != null) {
-        expect(_typeString(type), typeStr);
-      }
+  void _check(DartType type, String expectedStr, {String? typeStr}) {
+    if (typeStr != null) {
+      expect(_typeString(type), typeStr);
+    }
 
-      var result = typeSystem.replaceTopAndBottom(type);
-      var resultStr = _typeString(result);
-      expect(resultStr, expectedStr);
-    });
+    var result = typeSystem.replaceTopAndBottom(type);
+    var resultStr = _typeString(result);
+    expect(resultStr, expectedStr);
   }
 
-  String _typeString(TypeImpl type) {
+  String _typeString(DartType type) {
     return type.getDisplayString(withNullability: true);
   }
 }
@@ -98,11 +101,16 @@ class ReplaceTopBottomNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
     );
   }
 
-  test_covariant_top() {
+  test_notContravariant_covariant_top() {
     _check(objectQuestion, 'Never');
     _check(objectStar, 'Never');
     _check(dynamicNone, 'Never');
     _check(voidNone, 'Never');
+
+    _check(listNone(objectQuestion), 'List<Never>');
+    _check(listNone(objectStar), 'List<Never>');
+    _check(listNone(dynamicNone), 'List<Never>');
+    _check(listNone(voidNone), 'List<Never>');
 
     _check(futureOrNone(objectQuestion), 'Never');
     _check(futureOrNone(objectStar), 'Never');
@@ -122,25 +130,46 @@ class ReplaceTopBottomNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
       typeStr: 'int Function(int Function(Object?))',
     );
 
+    _check(intNone, 'int');
+    _check(intQuestion, 'int?');
+
     _check(listNone(intNone), 'List<int>');
     _check(listNone(intQuestion), 'List<int?>');
     _check(listQuestion(intNone), 'List<int>?');
     _check(listQuestion(intQuestion), 'List<int?>?');
   }
 
-  void _check(DartType type, String expectedStr, {String typeStr}) {
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-      if (typeStr != null) {
-        expect(_typeString(type), typeStr);
-      }
+  test_notContravariant_invariant() {
+    // typedef F<T> = T Function(T);
+    var T = typeParameter('T', variance: Variance.invariant);
+    var T_none = typeParameterTypeNone(T);
+    var F = typeAlias(
+      name: 'F',
+      typeParameters: [T],
+      aliasedType: functionTypeNone(
+        returnType: T_none,
+        parameters: [requiredParameter(type: T_none)],
+      ),
+    );
 
-      var result = typeSystem.replaceTopAndBottom(type);
-      var resultStr = _typeString(result);
-      expect(resultStr, expectedStr);
-    });
+    var F_dynamic = F.instantiate(
+      typeArguments: [dynamicNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    _check(F_dynamic, 'Never Function(Never)');
   }
 
-  String _typeString(TypeImpl type) {
+  void _check(DartType type, String expectedStr, {String? typeStr}) {
+    if (typeStr != null) {
+      expect(_typeString(type), typeStr);
+    }
+
+    var result = typeSystem.replaceTopAndBottom(type);
+    var resultStr = _typeString(result);
+    expect(resultStr, expectedStr);
+  }
+
+  String _typeString(DartType type) {
     return type.getDisplayString(withNullability: true);
   }
 }

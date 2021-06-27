@@ -11,7 +11,7 @@ class SdkConstraintVerifierTest extends PubPackageResolutionTest {
   /// Verify that the [expectedErrors] are produced if the [source] is analyzed
   /// in a context that specifies the minimum SDK version to be [version].
   Future<void> verifyVersion(String version, String source,
-      {List<ExpectedError> expectedErrors}) async {
+      {List<ExpectedError>? expectedErrors}) async {
     writeTestPackagePubspecYamlFile(
       PubspecYamlFileConfig(
         sdkVersion: '>=$version',

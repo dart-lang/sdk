@@ -19,8 +19,6 @@ part of dart.collection;
 /// must define a stable equivalence relation on the keys (reflexive,
 /// symmetric, transitive, and consistent over time), and that `hashCode`
 /// must be the same for objects that are considered equal by `==`.
-///
-/// The map allows `null` as a key.
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered hash-table based [Map].
   ///
@@ -41,10 +39,10 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// [K] instance.
   ///
   /// Example:
-  ///
-  ///     new LinkedHashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
-  ///                                hashCode: (int e) => e % 5)
-  ///
+  /// ```dart
+  /// LinkedHashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
+  ///                        hashCode: (int e) => e % 5)
+  /// ```
   /// This example map does not need an `isValidKey` function to be passed.
   /// The default function accepts only `int` values, which can safely be
   /// passed to both the `equals` and `hashCode` functions.
@@ -74,9 +72,10 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered identity-based map.
   ///
   /// Effectively a shorthand for:
-  ///
-  ///     new LinkedHashMap<K, V>(equals: identical,
-  ///                             hashCode: identityHashCode)
+  /// ```dart
+  /// LinkedHashMap<K, V>(equals: identical,
+  ///                     hashCode: identityHashCode)
+  /// ```
   external factory LinkedHashMap.identity();
 
   /// Creates a [LinkedHashMap] that contains all key value pairs of [other].

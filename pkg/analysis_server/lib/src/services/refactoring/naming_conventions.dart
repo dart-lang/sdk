@@ -20,7 +20,7 @@ RefactoringStatus validateClassName(String name) {
 /// - WARNING if the name is discouraged;
 /// - FATAL if the name is illegal.
 RefactoringStatus validateConstructorName(String name) {
-  if (name != null && name.isEmpty) {
+  if (name.isEmpty) {
     return RefactoringStatus();
   }
   return _validateLowerCamelCase(name, 'Constructor', allowBuiltIn: true);
@@ -46,16 +46,8 @@ RefactoringStatus validateFunctionName(String name) {
 /// - OK if the name is valid;
 /// - WARNING if the name is discouraged;
 /// - FATAL if the name is illegal.
-RefactoringStatus validateFunctionTypeAliasName(String name) {
-  return _validateUpperCamelCase(name, 'Function type alias');
-}
-
-/// Returns the [RefactoringStatus] with severity:
-/// - OK if the name is valid;
-/// - WARNING if the name is discouraged;
-/// - FATAL if the name is illegal.
 RefactoringStatus validateImportPrefixName(String name) {
-  if (name != null && name.isEmpty) {
+  if (name.isEmpty) {
     return RefactoringStatus();
   }
   return _validateLowerCamelCase(name, 'Import prefix');
@@ -74,10 +66,6 @@ RefactoringStatus validateLabelName(String name) {
 /// - WARNING if the name is discouraged;
 /// - FATAL if the name is illegal.
 RefactoringStatus validateLibraryName(String name) {
-  // null
-  if (name == null) {
-    return RefactoringStatus.fatal('Library name must not be null.');
-  }
   // blank
   if (isBlank(name)) {
     return RefactoringStatus.fatal('Library name must not be blank.');
@@ -118,6 +106,14 @@ RefactoringStatus validateMethodName(String name) {
 /// - FATAL if the name is illegal.
 RefactoringStatus validateParameterName(String name) {
   return _validateLowerCamelCase(name, 'Parameter', allowBuiltIn: true);
+}
+
+/// Returns the [RefactoringStatus] with severity:
+/// - OK if the name is valid;
+/// - WARNING if the name is discouraged;
+/// - FATAL if the name is illegal.
+RefactoringStatus validateTypeAliasName(String name) {
+  return _validateUpperCamelCase(name, 'Type alias');
 }
 
 /// Returns the [RefactoringStatus] with severity:
@@ -183,11 +179,6 @@ RefactoringStatus _validateIdentifier(
 RefactoringStatus _validateLowerCamelCase(String identifier, String desc,
     {bool allowBuiltIn = false}) {
   desc += ' name';
-  // null
-  if (identifier == null) {
-    var message = '$desc must not be null.';
-    return RefactoringStatus.fatal(message);
-  }
   // is not identifier
   var status = _validateIdentifier(
       identifier, desc, 'a lowercase letter or underscore',
@@ -215,11 +206,6 @@ RefactoringStatus _validateLowerCamelCase(String identifier, String desc,
 /// Validate the given identifier, which should be upper camel case.
 RefactoringStatus _validateUpperCamelCase(String identifier, String desc) {
   desc += ' name';
-  // null
-  if (identifier == null) {
-    var message = '$desc must not be null.';
-    return RefactoringStatus.fatal(message);
-  }
   // is not identifier
   var status = _validateIdentifier(
       identifier, desc, 'an uppercase letter or underscore');

@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidOverrideTest extends PubPackageResolutionTest {
+class InvalidOverrideTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_getter_returnType() async {
     await assertErrorsInCode('''
 class A {
@@ -87,8 +88,37 @@ class B	extends A {
   int add();
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 52, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3),
+    ]);
+  }
+
+  test_method_abstractOverridesConcreteInMixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  int add(int a, int b) => a + b;
+}
+class A with M {
+  int add();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 3),
+    ]);
+  }
+
+  test_method_abstractOverridesConcreteViaMixin() async {
+    await assertErrorsInCode('''
+class A {
+  int add(int a, int b) => a + b;
+}
+mixin M {
+  int add();
+}
+class B	extends A with M {}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 77, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1),
     ]);
   }
 
@@ -560,8 +590,7 @@ class B implements I<int>, J<String> {
 }
 
 @reflectiveTest
-class InvalidOverrideWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidOverrideWithNullSafetyTest extends PubPackageResolutionTest {
   test_abstract_field_covariant_inheritance() async {
     await assertNoErrorsInCode('''
 abstract class A {

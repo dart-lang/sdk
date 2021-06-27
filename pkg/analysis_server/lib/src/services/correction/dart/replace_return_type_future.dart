@@ -16,7 +16,10 @@ class ReplaceReturnTypeFuture extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // prepare the existing type
     var typeName = node.thisOrAncestorOfType<TypeAnnotation>();
-    var typeProvider = this.typeProvider;
+    if (typeName == null) {
+      return;
+    }
+
     await builder.addDartFileEdit(file, (builder) {
       builder.replaceTypeWithFuture(typeName, typeProvider);
     });

@@ -18,9 +18,9 @@ class ExtensionDeclaresFieldTest extends PubPackageResolutionTest {
   test_multiple() async {
     await assertErrorsInCode('''
 extension E on String {
-  String one, two, three;
+  String? one, two, three;
 }
-''', [error(ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 33, 3)]);
+''', [error(ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 3)]);
   }
 
   test_none() async {
@@ -32,9 +32,9 @@ extension E on String {}
   test_one() async {
     await assertErrorsInCode('''
 extension E on String {
-  String s;
+  String? s;
 }
-''', [error(ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 33, 1)]);
+''', [error(ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 1)]);
   }
 
   test_static() async {

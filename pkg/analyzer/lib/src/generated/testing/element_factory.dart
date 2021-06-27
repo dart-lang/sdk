@@ -2,27 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:meta/meta.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 
 /// The class `ElementFactory` defines utility methods used to create elements
@@ -31,8 +26,8 @@ import 'package:path/path.dart';
 /// provided information, has been created.
 class ElementFactory {
   /// The element representing the class 'Object'.
-  static ClassElementImpl _objectElement;
-  static InterfaceType _objectType;
+  static ClassElementImpl? _objectElement;
+  static InterfaceType? _objectType;
 
   static ClassElementImpl get object {
     return _objectElement ??= classElement("Object", null);
@@ -46,8 +41,8 @@ class ElementFactory {
   }
 
   static ClassElementImpl classElement(
-      String typeName, InterfaceType superclassType,
-      [List<String> parameterNames]) {
+      String typeName, InterfaceType? superclassType,
+      [List<String>? parameterNames]) {
     ClassElementImpl element = ClassElementImpl(typeName, 0);
     element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
@@ -58,14 +53,14 @@ class ElementFactory {
   }
 
   static ClassElementImpl classElement2(String typeName,
-          [List<String> parameterNames]) =>
+          [List<String>? parameterNames]) =>
       classElement(typeName, objectType, parameterNames);
 
   static ClassElementImpl classElement3({
-    @required String name,
-    List<TypeParameterElement> typeParameters,
+    required String name,
+    List<TypeParameterElement>? typeParameters,
     List<String> typeParameterNames = const [],
-    InterfaceType supertype,
+    InterfaceType? supertype,
     List<InterfaceType> mixins = const [],
     List<InterfaceType> interfaces = const [],
   }) {
@@ -83,7 +78,7 @@ class ElementFactory {
 
   static ClassElementImpl classTypeAlias(
       String typeName, InterfaceType superclassType,
-      [List<String> parameterNames]) {
+      [List<String>? parameterNames]) {
     ClassElementImpl element =
         classElement(typeName, superclassType, parameterNames);
     element.isMixinApplication = true;
@@ -91,11 +86,11 @@ class ElementFactory {
   }
 
   static ClassElementImpl classTypeAlias2(String typeName,
-          [List<String> parameterNames]) =>
+          [List<String>? parameterNames]) =>
       classTypeAlias(typeName, objectType, parameterNames);
 
   static CompilationUnitElementImpl compilationUnit(String fileName,
-      [Source librarySource]) {
+      [Source? librarySource]) {
     Source source =
         NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
     CompilationUnitElementImpl unit = CompilationUnitElementImpl();
@@ -109,8 +104,8 @@ class ElementFactory {
       ConstLocalVariableElementImpl(name, 0);
 
   static ConstructorElementImpl constructorElement(
-      ClassElement definingClass, String name, bool isConst,
-      [List<DartType> argumentTypes]) {
+      ClassElement definingClass, String? name, bool isConst,
+      [List<DartType> argumentTypes = const []]) {
     ConstructorElementImpl constructor = name == null
         ? ConstructorElementImpl("", -1)
         : ConstructorElementImpl(name, 0);
@@ -124,20 +119,7 @@ class ElementFactory {
     }
     constructor.isSynthetic = name == null;
     constructor.isConst = isConst;
-    if (argumentTypes != null) {
-      int count = argumentTypes.length;
-      List<ParameterElement> parameters =
-          List<ParameterElement>.filled(count, null);
-      for (int i = 0; i < count; i++) {
-        ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
-        parameter.type = argumentTypes[i];
-        parameter.parameterKind = ParameterKind.REQUIRED;
-        parameters[i] = parameter;
-      }
-      constructor.parameters = parameters;
-    } else {
-      constructor.parameters = <ParameterElement>[];
-    }
+    constructor.parameters = _requiredParameters(argumentTypes);
     constructor.enclosingElement = definingClass;
     if (!constructor.isSynthetic) {
       constructor.constantInitializers = <ConstructorInitializer>[];
@@ -146,79 +128,9 @@ class ElementFactory {
   }
 
   static ConstructorElementImpl constructorElement2(
-          ClassElement definingClass, String name,
-          [List<DartType> argumentTypes]) =>
+          ClassElement definingClass, String? name,
+          [List<DartType> argumentTypes = const []]) =>
       constructorElement(definingClass, name, false, argumentTypes);
-
-  @deprecated
-  static EnumElementImpl enumElement(TypeProvider typeProvider, String enumName,
-      [List<String> constantNames]) {
-    var typeSystem = TypeSystemImpl(
-      implicitCasts: false,
-      isNonNullableByDefault: false,
-      strictInference: false,
-      typeProvider: typeProvider,
-    );
-    //
-    // Build the enum.
-    //
-    EnumElementImpl enumElement = EnumElementImpl(enumName, -1);
-    var enumType = enumElement.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    ) as InterfaceTypeImpl;
-    //
-    // Populate the fields.
-    //
-    List<FieldElement> fields = <FieldElement>[];
-    InterfaceType intType = typeProvider.intType;
-    InterfaceType stringType = typeProvider.stringType;
-    String indexFieldName = "index";
-    FieldElementImpl indexField = FieldElementImpl(indexFieldName, -1);
-    indexField.isFinal = true;
-    indexField.type = intType;
-    fields.add(indexField);
-    String nameFieldName = "_name";
-    FieldElementImpl nameField = FieldElementImpl(nameFieldName, -1);
-    nameField.isFinal = true;
-    nameField.type = stringType;
-    fields.add(nameField);
-    FieldElementImpl valuesField = FieldElementImpl("values", -1);
-    valuesField.isStatic = true;
-    valuesField.isConst = true;
-    valuesField.type = typeProvider.listType2(enumType);
-    fields.add(valuesField);
-    //
-    // Build the enum constants.
-    //
-    if (constantNames != null) {
-      int constantCount = constantNames.length;
-      for (int i = 0; i < constantCount; i++) {
-        String constantName = constantNames[i];
-        FieldElementImpl constantElement =
-            ConstFieldElementImpl(constantName, -1);
-        constantElement.isStatic = true;
-        constantElement.isConst = true;
-        constantElement.type = enumType;
-        Map<String, DartObjectImpl> fieldMap =
-            HashMap<String, DartObjectImpl>();
-        fieldMap[indexFieldName] =
-            DartObjectImpl(typeSystem, intType, IntState(i));
-        fieldMap[nameFieldName] =
-            DartObjectImpl(typeSystem, stringType, StringState(constantName));
-        DartObjectImpl value =
-            DartObjectImpl(typeSystem, enumType, GenericState(fieldMap));
-        constantElement.evaluationResult = EvaluationResultImpl(value);
-        fields.add(constantElement);
-      }
-    }
-    //
-    // Finish building the enum.
-    //
-    enumElement.fields = fields;
-    // Client code isn't allowed to invoke the constructor, so we do not model it.
-    return enumElement;
-  }
 
   static ExportElementImpl exportFor(LibraryElement exportedLibrary,
       [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
@@ -228,13 +140,9 @@ class ElementFactory {
     return spec;
   }
 
-  static ExtensionElementImpl extensionElement(
-          [String name, DartType extendedType]) =>
-      ExtensionElementImpl(name, -1)..extendedType = extendedType;
-
   static FieldElementImpl fieldElement(
       String name, bool isStatic, bool isFinal, bool isConst, DartType type,
-      {Expression initializer}) {
+      {Expression? initializer}) {
     FieldElementImpl field =
         isConst ? ConstFieldElementImpl(name, 0) : FieldElementImpl(name, 0);
     field.isConst = isConst;
@@ -280,7 +188,7 @@ class ElementFactory {
   }
 
   static ImportElementImpl importFor(
-      LibraryElement importedLibrary, PrefixElement prefix,
+      LibraryElement importedLibrary, PrefixElement? prefix,
       [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
     ImportElementImpl spec = ImportElementImpl(0);
     spec.importedLibrary = importedLibrary;
@@ -295,7 +203,7 @@ class ElementFactory {
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library = LibraryElementImpl(
       context,
-      AnalysisSessionImpl(null),
+      _MockAnalysisSession(),
       libraryName,
       0,
       libraryName.length,
@@ -315,22 +223,9 @@ class ElementFactory {
       LocalVariableElementImpl(name, 0);
 
   static MethodElementImpl methodElement(String methodName, DartType returnType,
-      [List<DartType> argumentTypes]) {
+      [List<DartType> argumentTypes = const []]) {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
-    if (argumentTypes == null) {
-      method.parameters = const <ParameterElement>[];
-    } else {
-      int count = argumentTypes.length;
-      List<ParameterElement> parameters =
-          List<ParameterElement>.filled(count, null);
-      for (int i = 0; i < count; i++) {
-        ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
-        parameter.type = argumentTypes[i];
-        parameter.parameterKind = ParameterKind.REQUIRED;
-        parameters[i] = parameter;
-      }
-      method.parameters = parameters;
-    }
+    method.parameters = _requiredParameters(argumentTypes);
     method.returnType = returnType;
     return method;
   }
@@ -348,8 +243,8 @@ class ElementFactory {
   }
 
   static MixinElementImpl mixinElement({
-    @required String name,
-    List<TypeParameterElement> typeParameters,
+    required String name,
+    List<TypeParameterElement>? typeParameters,
     List<String> typeParameterNames = const [],
     List<InterfaceType> constraints = const [],
     List<InterfaceType> interfaces = const [],
@@ -378,17 +273,6 @@ class ElementFactory {
     ParameterElementImpl parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
-    return parameter;
-  }
-
-  static ParameterElementImpl namedParameter3(String name,
-      {DartType type, Expression initializer, String initializerCode}) {
-    DefaultParameterElementImpl parameter =
-        DefaultParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.NAMED;
-    parameter.type = type;
-    parameter.constantInitializer = initializer;
-    parameter.defaultValueCode = initializerCode;
     return parameter;
   }
 
@@ -447,7 +331,7 @@ class ElementFactory {
       TopLevelVariableElementImpl(name.name, name.offset);
 
   static TopLevelVariableElementImpl topLevelVariableElement2(String name) =>
-      topLevelVariableElement3(name, false, false, null);
+      topLevelVariableElement3(name, false, false, DynamicTypeImpl.instance);
 
   static TopLevelVariableElementImpl topLevelVariableElement3(
       String name, bool isConst, bool isFinal, DartType type) {
@@ -456,11 +340,10 @@ class ElementFactory {
       ConstTopLevelVariableElementImpl constant =
           ConstTopLevelVariableElementImpl(name, -1);
       var typeElement = type.element as ClassElement;
-      InstanceCreationExpression initializer =
-          AstTestFactory.instanceCreationExpression2(
-              Keyword.CONST, AstTestFactory.typeName(typeElement));
+      var initializer = AstTestFactory.instanceCreationExpression2(
+          Keyword.CONST, AstTestFactory.typeName(typeElement));
       if (type is InterfaceType) {
-        ConstructorElement element = typeElement.unnamedConstructor;
+        var element = typeElement.unnamedConstructor;
         initializer.constructorName.staticElement = element;
       }
       constant.constantInitializer = initializer;
@@ -484,23 +367,30 @@ class ElementFactory {
   }
 
   static List<TypeParameterElement> typeParameters(List<String> names) {
-    int count = names.length;
-    if (count == 0) {
-      return const <TypeParameterElement>[];
-    }
-    List<TypeParameterElementImpl> typeParameters =
-        List<TypeParameterElementImpl>.filled(count, null);
-    for (int i = 0; i < count; i++) {
-      typeParameters[i] = typeParameterWithType(names[i]);
-    }
-    return typeParameters;
+    return names.map((name) => typeParameterWithType(name)).toList();
   }
 
   static TypeParameterElementImpl typeParameterWithType(String name,
-      [DartType bound, Variance variance]) {
+      [DartType? bound, Variance? variance]) {
     TypeParameterElementImpl typeParameter = typeParameterElement(name);
     typeParameter.bound = bound;
     typeParameter.variance = variance;
     return typeParameter;
   }
+
+  static List<ParameterElementImpl> _requiredParameters(
+      List<DartType> argumentTypes) {
+    var parameters = argumentTypes.mapIndexed((index, type) {
+      var parameter = ParameterElementImpl("a$index", index);
+      parameter.type = type;
+      parameter.parameterKind = ParameterKind.REQUIRED;
+      return parameter;
+    }).toList();
+    return parameters;
+  }
+}
+
+class _MockAnalysisSession implements AnalysisSessionImpl {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

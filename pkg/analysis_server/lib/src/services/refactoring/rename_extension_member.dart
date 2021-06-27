@@ -23,11 +23,12 @@ import 'package:analyzer/src/generated/source.dart';
 /// A [Refactoring] for renaming extension member [Element]s.
 class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSessionHelper sessionHelper;
+  final ExtensionElement extensionElement;
 
-  _ExtensionMemberValidator _validator;
+  late _ExtensionMemberValidator _validator;
 
-  RenameExtensionMemberRefactoringImpl(
-      RefactoringWorkspace workspace, AnalysisSession session, Element element)
+  RenameExtensionMemberRefactoringImpl(RefactoringWorkspace workspace,
+      AnalysisSession session, this.extensionElement, Element element)
       : sessionHelper = AnalysisSessionHelper(session),
         super(workspace, element);
 
@@ -45,7 +46,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     _validator = _ExtensionMemberValidator.forRename(
-        searchEngine, sessionHelper, element, newName);
+        searchEngine, sessionHelper, extensionElement, element, newName);
     return _validator.validate();
   }
 
@@ -103,11 +104,10 @@ class _ExtensionMemberValidator {
   final RefactoringStatus result = RefactoringStatus();
   final List<SearchMatch> references = <SearchMatch>[];
 
-  _ExtensionMemberValidator.forRename(
-      this.searchEngine, this.sessionHelper, this.element, this.name)
+  _ExtensionMemberValidator.forRename(this.searchEngine, this.sessionHelper,
+      this.elementExtension, this.element, this.name)
       : isRename = true,
-        library = element.library,
-        elementExtension = element.enclosingElement,
+        library = elementExtension.library,
         elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {
@@ -146,17 +146,28 @@ class _ExtensionMemberValidator {
     return result;
   }
 
-  Future<_MatchShadowedByLocal> _getShadowingLocalElement() async {
+  Future<_MatchShadowedByLocal?> _getShadowingLocalElement() async {
     var localElementMap = <CompilationUnitElement, List<LocalElement>>{};
     var visibleRangeMap = <LocalElement, SourceRange>{};
 
     Future<List<LocalElement>> getLocalElements(Element element) async {
       var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
+      if (unitElement == null) {
+        return const [];
+      }
+
       var localElements = localElementMap[unitElement];
 
       if (localElements == null) {
         var result = await sessionHelper.getResolvedUnitByElement(element);
+        if (result == null) {
+          return const [];
+        }
+
         var unit = result.unit;
+        if (unit == null) {
+          return const [];
+        }
 
         var collector = _LocalElementsCollector(name);
         unit.accept(collector);

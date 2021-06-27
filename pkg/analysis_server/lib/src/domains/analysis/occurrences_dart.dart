@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -15,7 +16,8 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   unit.accept(visitor);
   visitor.elementsOffsets.forEach((engineElement, offsets) {
     var length = engineElement.nameLength;
-    var serverElement = protocol.convertElement(engineElement);
+    var serverElement = protocol.convertElement(engineElement,
+        withNullability: unit.isNonNullableByDefault);
     var occurrences = protocol.Occurrences(serverElement, offsets, length);
     collector.addOccurrences(occurrences);
   });
@@ -34,25 +36,25 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addOccurrence(Element element, int offset) {
-    element = _canonicalizeElement(element);
-    if (element == null || element == DynamicElementImpl.instance) {
+    var canonicalElement = _canonicalizeElement(element);
+    if (canonicalElement == null || element == DynamicElementImpl.instance) {
       return;
     }
-    var offsets = elementsOffsets[element];
+    var offsets = elementsOffsets[canonicalElement];
     if (offsets == null) {
       offsets = <int>[];
-      elementsOffsets[element] = offsets;
+      elementsOffsets[canonicalElement] = offsets;
     }
     offsets.add(offset);
   }
 
-  Element _canonicalizeElement(Element element) {
-    if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+  Element? _canonicalizeElement(Element element) {
+    Element? canonicalElement = element;
+    if (canonicalElement is FieldFormalParameterElement) {
+      canonicalElement = canonicalElement.field;
+    } else if (canonicalElement is PropertyAccessorElement) {
+      canonicalElement = canonicalElement.variable;
     }
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
-    return element?.declaration;
+    return canonicalElement?.declaration;
   }
 }

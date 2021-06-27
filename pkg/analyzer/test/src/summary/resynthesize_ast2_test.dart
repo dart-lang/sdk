@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -15,43 +14,55 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'element_text.dart';
 import 'resynthesize_common.dart';
 import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ResynthesizeAst2Test);
+    // defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
+}
+
+@reflectiveTest
+class ApplyCheckElementTextReplacements {
+  test_applyReplacements() {
+    applyCheckElementTextReplacements();
+  }
 }
 
 @reflectiveTest
 class ResynthesizeAst2Test extends AbstractResynthesizeTest
     with ResynthesizeTestCases {
   /// The shared SDK bundle, computed once and shared among test invocations.
-  static _SdkBundle _sdkBundle;
+  static _SdkBundle? _sdkBundle;
 
   _SdkBundle get sdkBundle {
     if (_sdkBundle != null) {
-      return _sdkBundle;
+      return _sdkBundle!;
     }
 
     var featureSet = FeatureSet.latestLanguageVersion();
     var inputLibraries = <LinkInputLibrary>[];
     for (var sdkLibrary in sdk.sdkLibraries) {
-      var source = sourceFactory.resolveUri(null, sdkLibrary.shortName);
+      var source = sourceFactory.resolveUri(null, sdkLibrary.shortName)!;
       var text = getFile(source.fullName).readAsStringSync();
       var unit = parseText(text, featureSet);
 
       var inputUnits = <LinkInputUnit>[];
       _addLibraryUnits(source, unit, inputUnits, featureSet);
       inputLibraries.add(
-        LinkInputLibrary(source, inputUnits),
+        LinkInputLibrary(
+          source: source,
+          units: inputUnits,
+        ),
       );
     }
 
@@ -70,7 +81,6 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var sdkLinkResult = link(elementFactory, inputLibraries, true);
 
     return _sdkBundle = _SdkBundle(
-      astBytes: sdkLinkResult.astBytes,
       resolutionBytes: sdkLinkResult.resolutionBytes,
     );
   }
@@ -82,6 +92,14 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
 
     var inputLibraries = <LinkInputLibrary>[];
     _addNonDartLibraries({}, inputLibraries, source);
+
+    var unitsInformativeBytes = <Uri, Uint8List>{};
+    for (var inputLibrary in inputLibraries) {
+      for (var inputUnit in inputLibrary.units) {
+        var informativeBytes = writeUnitInformative(inputUnit.unit);
+        unitsInformativeBytes[inputUnit.uri] = informativeBytes;
+      }
+    }
 
     var analysisContext = AnalysisContextImpl(
       SynchronousSession(
@@ -99,26 +117,23 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     elementFactory.addBundle(
       BundleReader(
         elementFactory: elementFactory,
-        astBytes: sdkBundle.astBytes,
+        unitsInformativeBytes: {},
         resolutionBytes: sdkBundle.resolutionBytes,
       ),
     );
 
-    var linkResult = NullSafetyUnderstandingFlag.enableNullSafetyTypes(
-      () {
-        return link(elementFactory, inputLibraries, true);
-      },
-    );
+    var linkResult = link(elementFactory, inputLibraries, true);
 
+    // TODO(scheglov) Remove to keep linking elements.
     elementFactory.addBundle(
       BundleReader(
         elementFactory: elementFactory,
-        astBytes: linkResult.astBytes,
+        unitsInformativeBytes: unitsInformativeBytes,
         resolutionBytes: linkResult.resolutionBytes,
       ),
     );
 
-    return elementFactory.libraryOfUri('${source.uri}');
+    return elementFactory.libraryOfUri('${source.uri}')!;
   }
 
   void setUp() {
@@ -132,10 +147,18 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     FeatureSet featureSet,
   ) {
     units.add(
-      LinkInputUnit(null, definingSource, false, definingUnit),
+      LinkInputUnit(
+        partDirectiveIndex: null,
+        source: definingSource,
+        isSynthetic: false,
+        unit: definingUnit,
+      ),
     );
+
+    var partDirectiveIndex = -1;
     for (var directive in definingUnit.directives) {
       if (directive is PartDirective) {
+        ++partDirectiveIndex;
         var relativeUriStr = directive.uri.stringValue;
 
         var partSource = sourceFactory.resolveUri(
@@ -147,12 +170,13 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
           var text = _readSafely(partSource.fullName);
           var unit = parseText(text, featureSet);
           units.add(
-            LinkInputUnit(relativeUriStr, partSource, false, unit),
-          );
-        } else {
-          var unit = parseText('', featureSet);
-          units.add(
-            LinkInputUnit(relativeUriStr, partSource, false, unit),
+            LinkInputUnit(
+              partDirectiveIndex: partDirectiveIndex,
+              partUriStr: relativeUriStr,
+              source: partSource,
+              isSynthetic: false,
+              unit: unit,
+            ),
           );
         }
       }
@@ -162,7 +186,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
   void _addNonDartLibraries(
     Set<Source> addedLibraries,
     List<LinkInputLibrary> libraries,
-    Source source,
+    Source? source,
   ) {
     if (source == null ||
         source.uri.isScheme('dart') ||
@@ -176,7 +200,10 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var units = <LinkInputUnit>[];
     _addLibraryUnits(source, unit, units, featureSet);
     libraries.add(
-      LinkInputLibrary(source, units),
+      LinkInputLibrary(
+        source: source,
+        units: units,
+      ),
     );
 
     void addRelativeUriStr(StringLiteral uriNode) {
@@ -217,11 +244,9 @@ class _AnalysisSessionForLinking implements AnalysisSessionImpl {
 }
 
 class _SdkBundle {
-  final Uint8List astBytes;
   final Uint8List resolutionBytes;
 
   _SdkBundle({
-    @required this.astBytes,
-    @required this.resolutionBytes,
+    required this.resolutionBytes,
   });
 }

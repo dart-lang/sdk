@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:kernel/ast.dart';
 import 'package:test/test.dart';
@@ -119,7 +121,7 @@ class IncludesTypeParametersCovariantlyTest {
   }
 
   void test_interface_type() {
-    Class cls = new Class(name: 'C', typeParameters: [T, U]);
+    Class cls = new Class(name: 'C', typeParameters: [T, U], fileUri: dummyUri);
     expect(
         check(
             new InterfaceType(cls, Nullability.legacy, [tpt(T), tpt(U)]), [T]),
@@ -185,7 +187,7 @@ class IncludesTypeParametersCovariantlyTest {
     // typedef U F<T, U>(T x);
     var typedefNode = new Typedef(
         'F', new FunctionType([tpt(T)], tpt(U), Nullability.legacy),
-        typeParameters: [T, U]);
+        typeParameters: [T, U], fileUri: dummyUri);
     expect(
         check(
             new TypedefType(typedefNode, Nullability.legacy,

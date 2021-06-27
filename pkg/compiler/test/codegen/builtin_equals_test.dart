@@ -27,7 +27,9 @@ main() {
 
       RegExp regexp = new RegExp('==');
       Iterator<Match> matches = regexp.allMatches(generated).iterator;
-      checkNumberOfMatches(matches, 4);
+      // `s == null` and `null == s` now both encoded as `s == null` allowing
+      // the second to be optimized away.
+      checkNumberOfMatches(matches, 3);
     });
   }
 

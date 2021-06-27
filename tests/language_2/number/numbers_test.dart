@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test number types.
 
+// @dart = 2.9
+
 library NumbersTest.dart;
 
 import "package:expect/expect.dart";

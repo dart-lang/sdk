@@ -29,7 +29,7 @@ main(List<String> arguments) async {
   String url = options.rest[0];
   String data;
   if (url.startsWith("http://") || url.startsWith("https://")) {
-    data = (await http.get(url)).body;
+    data = (await http.get(Uri.parse(url))).body;
   } else {
     data = new File(url).readAsStringSync();
   }

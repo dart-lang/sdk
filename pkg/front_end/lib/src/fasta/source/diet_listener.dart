@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.diet_listener;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -16,17 +18,7 @@ import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:kernel/ast.dart'
-    show
-        AsyncMarker,
-        Expression,
-        InterfaceType,
-        Library,
-        LibraryDependency,
-        LibraryPart,
-        TreeNode,
-        TypeParameter,
-        VariableDeclaration;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -275,12 +267,12 @@ class DietListener extends StackListenerImpl {
 
     if (equals == null) pop(); // endToken
     Object name = pop();
-    Token metadata = pop();
+    // Metadata is handled in [SourceTypeAliasBuilder.buildOutlineExpressions].
+    pop(); // metadata
     checkEmpty(typedefKeyword.charOffset);
     if (name is ParserRecovery) return;
 
     TypeAliasBuilder typedefBuilder = lookupBuilder(typedefKeyword, null, name);
-    parseMetadata(typedefBuilder, metadata, typedefBuilder.typedef);
     if (typedefBuilder is TypeAliasBuilder) {
       TypeBuilder type = typedefBuilder.type;
       if (type is FunctionTypeBuilder) {
@@ -641,6 +633,11 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleConstFactory(Token constKeyword) {
+    debugEvent("ConstFactory");
+  }
+
+  @override
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBody");
   }
@@ -914,8 +911,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token extensionKeyword, Token typeKeyword,
+      Token onKeyword, Token endToken) {
     debugEvent("endExtensionDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }
@@ -1109,7 +1106,7 @@ class DietListener extends StackListenerImpl {
   /// If the [metadata] is not `null`, return the parsed metadata [Expression]s.
   /// Otherwise, return `null`.
   List<Expression> parseMetadata(
-      ModifierBuilder builder, Token metadata, TreeNode parent) {
+      ModifierBuilder builder, Token metadata, Annotatable parent) {
     if (metadata != null) {
       StackListenerImpl listener = createListener(builder, memberScope,
           isDeclarationInstanceMember: false);

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.transform_set_literals;
+// @dart = 2.9
 
-import 'dart:core' hide MapEntry;
+library fasta.transform_set_literals;
 
 import 'package:kernel/ast.dart';
 
@@ -13,8 +13,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/legacy_erasure.dart' show legacyErasure;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
-
-import 'package:kernel/visitor.dart' show Transformer;
 
 import '../source/source_loader.dart' show SourceLoader;
 

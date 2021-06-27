@@ -414,13 +414,11 @@ class TestUtils {
   static void deleteTempSnapshotDirectory(TestConfiguration configuration) {
     if (configuration.compiler == Compiler.dartk ||
         configuration.compiler == Compiler.dartkp) {
-      var checked = configuration.isChecked ? '-checked' : '';
-      var minified = configuration.isMinified ? '-minified' : '';
-      var csp = configuration.isCsp ? '-csp' : '';
-      var sdk = configuration.useSdk ? '-sdk' : '';
-      var dirName = "${configuration.compiler.name}$checked$minified$csp$sdk";
-      var generatedPath =
-          configuration.buildDirectory + "/generated_compilations/$dirName";
+      var generatedPath = [
+        configuration.buildDirectory,
+        "generated_compilations",
+        configuration.configuration.name
+      ].join('/');
       if (FileSystemEntity.isDirectorySync(generatedPath)) {
         TestUtils.deleteDirectory(generatedPath);
       }

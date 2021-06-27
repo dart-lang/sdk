@@ -28,7 +28,7 @@ class Class3 {
 }
 
 class Class4 {
-  /*spec.member: Class4.method6:direct,explicit=[method6.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
+  /*spec.member: Class4.method6:direct,explicit=[method6.T*],needsArgs*/
   num method6<T>(num n, T t) => null;
 }
 
@@ -38,7 +38,7 @@ num method7<T>(T n) => null;
 /*member: method8:*/
 T method8<T>(num n) => null;
 
-/*spec.member: method9:direct,explicit=[method9.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
+/*spec.member: method9:direct,explicit=[method9.T*],needsArgs*/
 num method9<T>(num n, T t) => null;
 
 @pragma('dart2js:noInline')

@@ -23,7 +23,7 @@ class ServerDomainHandler implements RequestHandler {
   }
 
   @override
-  Response handleRequest(Request request) {
+  Response? handleRequest(Request request) {
     try {
       var requestName = request.method;
       if (requestName == SERVER_REQUEST_GET_VERSION) {

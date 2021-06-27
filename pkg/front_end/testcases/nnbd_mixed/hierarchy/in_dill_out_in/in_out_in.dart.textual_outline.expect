@@ -1,0 +1,20 @@
+import 'in_out_in_lib1.dart';
+import 'in_out_in_lib2.dart';
+
+class Class extends LegacyClass implements SuperQ {
+  test() {}
+}
+
+class ClassQ extends LegacyClassQ implements Super {
+  test() {}
+}
+
+class ClassMixedIn extends LegacyMixedIn implements SuperQ {
+  test() {}
+}
+
+class ClassMixedInQ extends LegacyMixedInQ implements Super {
+  test() {}
+}
+
+main() {}

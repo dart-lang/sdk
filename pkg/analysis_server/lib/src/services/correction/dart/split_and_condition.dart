@@ -18,10 +18,10 @@ class SplitAndCondition extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // check that user invokes quick assist on binary expression
-    if (node is! BinaryExpression) {
+    var binaryExpression = node;
+    if (binaryExpression is! BinaryExpression) {
       return;
     }
-    var binaryExpression = node as BinaryExpression;
     // prepare operator position
     if (!isOperatorSelected(binaryExpression)) {
       return;
@@ -31,11 +31,10 @@ class SplitAndCondition extends CorrectionProducer {
       return;
     }
     // prepare "if"
-    var statement = node.thisOrAncestorOfType<Statement>();
-    if (statement is! IfStatement) {
+    var ifStatement = node.thisOrAncestorOfType<Statement>();
+    if (ifStatement is! IfStatement) {
       return;
     }
-    var ifStatement = statement as IfStatement;
     // no support "else"
     if (ifStatement.elseStatement != null) {
       return;

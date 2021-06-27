@@ -21,7 +21,7 @@ class VariableNameContributor extends DartCompletionContributor {
     if (opType.includeVarNameSuggestions) {
       // Resolution not needed for this completion.
 
-      var node = request.target.containingNode;
+      AstNode? node = request.target.containingNode;
       var offset = request.target.offset;
 
       // Use the refined node.
@@ -29,7 +29,7 @@ class VariableNameContributor extends DartCompletionContributor {
         node = CompletionTarget.findFormalParameter(node, offset);
       }
 
-      String strName;
+      String? strName;
       if (node is ExpressionStatement) {
         var expression = node.expression;
         if (expression is Identifier) {
@@ -81,13 +81,13 @@ class VariableNameContributor extends DartCompletionContributor {
   /// Given some [name], add a suggestion with the name (unless the name is
   /// `null` or empty).
   void _createNameSuggestion(SuggestionBuilder builder, String name) {
-    if (name != null && name.isNotEmpty) {
+    if (name.isNotEmpty) {
       builder.suggestName(name);
     }
   }
 
   /// Convert some [Identifier] to its [String] name.
-  String _getStringName(Identifier id) {
+  String? _getStringName(Identifier? id) {
     if (id == null) {
       return null;
     }
@@ -99,7 +99,7 @@ class VariableNameContributor extends DartCompletionContributor {
     return id.name;
   }
 
-  static Identifier _formalParameterTypeIdentifier(FormalParameter node) {
+  static Identifier? _formalParameterTypeIdentifier(FormalParameter node) {
     if (node is SimpleFormalParameter) {
       var type = node.type;
       if (type != null) {
@@ -110,7 +110,7 @@ class VariableNameContributor extends DartCompletionContributor {
     return null;
   }
 
-  static Identifier _typeAnnotationIdentifier(TypeAnnotation type) {
+  static Identifier? _typeAnnotationIdentifier(TypeAnnotation? type) {
     if (type is TypeName) {
       return type.name;
     }

@@ -6,7 +6,7 @@
 
 part of 'syntactic_errors.dart';
 
-final fastaAnalyzerErrorCodes = <ErrorCode>[
+final fastaAnalyzerErrorCodes = <ErrorCode?>[
   null,
   _EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
   _CONTINUE_OUTSIDE_OF_LOOP,
@@ -121,6 +121,10 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _ANNOTATION_ON_TYPE_ARGUMENT,
   _BINARY_OPERATOR_WRITTEN_OUT,
   _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
+  _ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED,
+  _LITERAL_WITH_CLASS_AND_NEW,
+  _LITERAL_WITH_CLASS,
+  _LITERAL_WITH_NEW,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -148,7 +152,11 @@ const ParserErrorCode _ANNOTATION_ON_TYPE_ARGUMENT = ParserErrorCode(
 
 const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = ParserErrorCode(
     'ANNOTATION_WITH_TYPE_ARGUMENTS',
-    r"An annotation (metadata) can't use type arguments.");
+    r"An annotation can't use type arguments.");
+
+const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED =
+    ParserErrorCode('ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED',
+        r"An annotation with type arguments must be followed by an argument list.");
 
 const ParserErrorCode _BINARY_OPERATOR_WRITTEN_OUT = ParserErrorCode(
     'BINARY_OPERATOR_WRITTEN_OUT',
@@ -468,6 +476,20 @@ const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = ParserErrorCode(
     r"The library directive must appear before all other directives.",
     correction:
         "Try moving the library directive before any other directives.");
+
+const ParserErrorCode _LITERAL_WITH_CLASS = ParserErrorCode(
+    'LITERAL_WITH_CLASS',
+    r"The name of the class '#lexeme' can't be included in a #string literal.",
+    correction: "Try removing '#lexeme'");
+
+const ParserErrorCode _LITERAL_WITH_CLASS_AND_NEW = ParserErrorCode(
+    'LITERAL_WITH_CLASS_AND_NEW',
+    r"Neither 'new' nor the name of the class '#lexeme' can be included in a #string literal.",
+    correction: "Try removing 'new' and '#lexeme'");
+
+const ParserErrorCode _LITERAL_WITH_NEW = ParserErrorCode(
+    'LITERAL_WITH_NEW', r"A literal can't use 'new'.",
+    correction: "Try removing 'new'");
 
 const ParserErrorCode _MEMBER_WITH_CLASS_NAME = ParserErrorCode(
     'MEMBER_WITH_CLASS_NAME',

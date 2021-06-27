@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::List<core::String*>* whereWasI = core::_GrowableList::•<core::String*>(0);
+  core::int* outer = 1;
+  core::int* inner = 0;
+  #L1:
+  switch(outer) {
+    #L2:
+    case #C1:
+      {
+        whereWasI.{core::List::add}("outer 0"){(core::String*) →* void};
+        break #L1;
+      }
+    #L3:
+    case #C2:
+      {
+        (() → Null {
+          switch(inner) {
+            #L4:
+            case #C1:
+              {
+                whereWasI.{core::List::add}("inner 0"){(core::String*) →* void};
+                continue #L5;
+              }
+            #L5:
+            case #C2:
+              {
+                whereWasI.{core::List::add}("inner 1"){(core::String*) →* void};
+              }
+          }
+        })(){() →* Null};
+      }
+  }
+  if(!(whereWasI.{core::List::length}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} 2) || !(whereWasI.{core::List::[]}(0){(core::int*) →* core::String*} =={core::String::==}{(core::Object*) →* core::bool*} "inner 0") || !(whereWasI.{core::List::[]}(1){(core::int*) →* core::String*} =={core::String::==}{(core::Object*) →* core::bool*} "inner 1")) {
+    throw "Unexpected path.";
+  }
+  core::print(whereWasI);
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+}

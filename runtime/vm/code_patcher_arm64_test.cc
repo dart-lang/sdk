@@ -28,9 +28,10 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
       Library::Handle(), class_name, script, TokenPosition::kNoSource));
   const String& function_name =
       String::Handle(Symbols::New(thread, "callerFunction"));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   const Function& function = Function::Handle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, owner_class, TokenPosition::kNoSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, owner_class, TokenPosition::kNoSource));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
   const intptr_t kTypeArgsLen = 0;

@@ -11,7 +11,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 
 class DocumentHighlightsHandler extends MessageHandler<
-    TextDocumentPositionParams, List<DocumentHighlight>> {
+    TextDocumentPositionParams, List<DocumentHighlight>?> {
   DocumentHighlightsHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_documentHighlight;
@@ -21,7 +21,7 @@ class DocumentHighlightsHandler extends MessageHandler<
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<DocumentHighlight>>> handle(
+  Future<ErrorOr<List<DocumentHighlight>?>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
@@ -34,7 +34,7 @@ class DocumentHighlightsHandler extends MessageHandler<
 
     return offset.mapResult((requestedOffset) {
       final collector = OccurrencesCollectorImpl();
-      addDartOccurrences(collector, unit.result.unit);
+      addDartOccurrences(collector, unit.result.unit!);
 
       // Find an occurrence that has an instance that spans the position.
       for (final occurrence in collector.allOccurrences) {

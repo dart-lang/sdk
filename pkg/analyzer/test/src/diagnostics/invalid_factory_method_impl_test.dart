@@ -66,7 +66,7 @@ import 'package:meta/meta.dart';
 class Stateful {
   @factory
   State createState() {
-    return null;
+    return State();
   }
 }
 class State { }
@@ -89,7 +89,7 @@ class State { }
 import 'package:meta/meta.dart';
 class Stateful {
   @factory
-  State createState() => null;
+  State createState() => State();
 }
 class State { }
 ''');

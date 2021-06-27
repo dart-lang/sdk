@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -19,14 +20,14 @@ void main() {
 
 @reflectiveTest
 class ImportElementsComputerTest extends AbstractContextTest {
-  String path;
-  String originalContent;
-  ImportElementsComputer computer;
-  SourceFileEdit sourceFileEdit;
+  late String path;
+  late String originalContent;
+  late ImportElementsComputer computer;
+  late SourceFileEdit? sourceFileEdit;
 
   void assertChanges(String expectedContent) {
     var resultCode =
-        SourceEdit.applySequence(originalContent, sourceFileEdit.edits);
+        SourceEdit.applySequence(originalContent, sourceFileEdit!.edits);
     expect(resultCode, expectedContent);
   }
 
@@ -49,7 +50,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   Future<void> createBuilder(String content) async {
     originalContent = content;
     newFile(path, content: content);
-    var result = await session.getResolvedUnit(path);
+    var result = await session.getResolvedUnit2(path) as ResolvedUnitResult;
     computer = ImportElementsComputer(resourceProvider, result);
   }
 

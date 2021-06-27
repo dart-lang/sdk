@@ -1,3 +1,4 @@
+// @dart = 2.9
 class C<T> {
   C<T> instanceMethod() {}
   const C();

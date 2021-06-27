@@ -25,7 +25,7 @@
    Class.two_fields(this.field_
     , this.field_
     //     ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_MULTIPLE_TIMES
+    // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_FIELD_FORMAL_PARAMETER
     // [cfe] 'field_' was already initialized by this constructor.
     //     ^
     // [cfe] Duplicated parameter name 'field_'.

@@ -33,7 +33,8 @@ main() {
   Expect.equals(x.b, 0);
 
   var y = new A.f(42, 43);
-  //             ^^^^^^^^
+  //                  ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //             ^^^^^^^^
   // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 }

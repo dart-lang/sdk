@@ -9,6 +9,11 @@ abstract class _C1&Object&B extends core::Object implements mix::B /*isAnonymous
   const synthetic constructor •() → self::_C1&Object&B*
     : super core::Object::•()
     ;
+  get /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ a() → core::List<(core::int) → core::int>
+    return core::_GrowableList::•<(core::int) → core::int>(0);
+  set /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ a(core::List<(core::int) → core::int> _) → void {}
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ m((core::int) → core::int x) → (core::int) → core::int
+    return x;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -19,19 +24,11 @@ abstract class _C1&Object&B extends core::Object implements mix::B /*isAnonymous
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  get /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
-  set /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ a(core::List<(core::int) → core::int> _) → void {}
-  method /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ m((core::int) → core::int x) → (core::int) → core::int
-    return x;
 }
 class C1 extends self::_C1&Object&B {
   synthetic constructor •() → self::C1*
     : super self::_C1&Object&B::•()
     ;
-  abstract member-signature get a() → core::List<(core::int*) →* core::int*>*; -> mix::B::a
-  abstract member-signature set a(core::List<(core::int*) →* core::int*>* _) → void; -> mix::B::a
-  abstract member-signature method m((core::int*) →* core::int* x) → (core::int*) →* core::int*; -> mix::B::m
 }
 static method main() → dynamic {}
 
@@ -47,7 +44,7 @@ class B extends core::Object {
     : super core::Object::•()
     ;
   get a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
+    return core::_GrowableList::•<(core::int) → core::int>(0);
   set a(core::List<(core::int) → core::int> _) → void {}
   method m((core::int) → core::int x) → (core::int) → core::int
     return x;
@@ -57,7 +54,7 @@ class Bq extends core::Object {
     : super core::Object::•()
     ;
   get a() → core::List<(core::int?) → core::int?>
-    return <(core::int?) → core::int?>[];
+    return core::_GrowableList::•<(core::int?) → core::int?>(0);
   set a(core::List<(core::int?) → core::int?> _) → void {}
   method m((core::int?) → core::int? x) → (core::int?) → core::int?
     return x;
@@ -66,9 +63,9 @@ class DiBq1 extends self::C1 implements mix::Bq {
   synthetic constructor •() → mix::DiBq1
     : super self::C1::•()
     ;
-  abstract member-signature get a() → core::List<(core::int?) → core::int?>; -> mix::B::a
-  abstract member-signature set a(core::List<(core::int?) → core::int?> _) → void; -> mix::B::a
-  abstract member-signature method m((core::int?) → core::int? x) → (core::int?) → core::int?; -> mix::B::m
+  abstract member-signature get a() → core::List<(core::int?) → core::int?>; -> self::_C1&Object&B::a
+  abstract member-signature set a(core::List<(core::int?) → core::int?> _) → void; -> self::_C1&Object&B::a
+  abstract member-signature method m((core::int?) → core::int? x) → (core::int?) → core::int?; -> self::_C1&Object&B::m
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf

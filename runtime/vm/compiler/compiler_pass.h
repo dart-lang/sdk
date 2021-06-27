@@ -12,6 +12,7 @@
 #include <initializer_list>
 
 #include "vm/growable_array.h"
+#include "vm/timer.h"
 #include "vm/token_position.h"
 #include "vm/zone.h"
 
@@ -44,9 +45,7 @@ namespace dart {
   V(OptimizeTypedDataAccesses)                                                 \
   V(RangeAnalysis)                                                             \
   V(ReorderBlocks)                                                             \
-  V(RoundTripSerialization)                                                    \
   V(SelectRepresentations)                                                     \
-  V(SerializeGraph)                                                            \
   V(SetOuterInliningId)                                                        \
   V(TryCatchOptimization)                                                      \
   V(TryOptimizePatterns)                                                       \
@@ -112,7 +111,7 @@ class CompilerPass {
   static constexpr intptr_t kNumPasses = 0 COMPILER_PASS_LIST(ADD_ONE);
 #undef ADD_ONE
 
-  CompilerPass(Id id, const char* name) : name_(name), flags_(0) {
+  CompilerPass(Id id, const char* name) : id_(id), name_(name), flags_(0) {
     ASSERT(passes_[id] == NULL);
     passes_[id] = this;
 
@@ -135,6 +134,7 @@ class CompilerPass {
 
   intptr_t flags() const { return flags_; }
   const char* name() const { return name_; }
+  Id id() const { return id_; }
 
   bool IsFlagSet(Flag flag) const { return (flags() & flag) != 0; }
 
@@ -189,6 +189,7 @@ class CompilerPass {
 
   static CompilerPass* passes_[];
 
+  Id id_;
   const char* name_;
   intptr_t flags_;
 };

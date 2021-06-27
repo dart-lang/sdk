@@ -44,7 +44,7 @@ class ServiceExtensionRegistry {
   ///
   /// The result of this function should not be stored, because clients may
   /// shut down at any time.
-  VmServerConnection clientFor(String extension) =>
+  VmServerConnection? clientFor(String extension) =>
       _extensionToConnection[extension];
 
   /// All of the currently registered extensions

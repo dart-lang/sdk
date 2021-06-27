@@ -23,6 +23,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerContext,
         CompilerOptions,
         CompilerResult,
+        InvocationMode,
         DiagnosticMessage,
         DiagnosticMessageHandler,
         ExperimentalFlag,
@@ -32,6 +33,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         ProcessedOptions,
         Severity,
         StandardFileSystem,
+        Verbosity,
         getMessageUri,
         kernelForProgram,
         parseExperimentalArguments,
@@ -55,8 +57,6 @@ import 'transformations/mixin_deduplication.dart' as mixin_deduplication
     show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
     as no_dynamic_invocations_annotator show transformComponent;
-import 'transformations/protobuf_aware_treeshaker/transformer.dart'
-    as protobuf_tree_shaker;
 import 'transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 import 'transformations/obfuscation_prohibitions_annotator.dart'
@@ -65,6 +65,7 @@ import 'transformations/call_site_annotator.dart' as call_site_annotator;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
 import 'transformations/deferred_loading.dart' as deferred_loading;
+import 'transformations/to_string_transformer.dart' as to_string_transformer;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -104,9 +105,6 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
       defaultsTo: true);
-  args.addFlag('protobuf-tree-shaker',
-      help: 'Enable protobuf tree shaker transformation in AOT mode.',
-      defaultsTo: false);
   args.addFlag('protobuf-tree-shaker-v2',
       help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false);
   args.addMultiOption('define',
@@ -132,6 +130,20 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false);
+  args.addMultiOption(
+    'delete-tostring-package-uri',
+    help: 'Replaces implementations of `toString` with `super.toString()` for '
+        'specified package',
+    valueHelp: 'dart:ui',
+    defaultsTo: const <String>[],
+  );
+  args.addOption('invocation-modes',
+      help: 'Provides information to the front end about how it is invoked.',
+      defaultsTo: '');
+  args.addOption('verbosity',
+      help: 'Sets the verbosity level used for filtering messages during '
+          'compilation.',
+      defaultsTo: Verbosity.defaultValue);
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -174,7 +186,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
   final bool nullSafety = options['sound-null-safety'];
-  final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String manifestFilename = options['manifest'];
@@ -217,7 +228,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
 
-  final errorPrinter = new ErrorPrinter();
+  final verbosity = Verbosity.parseArgument(options['verbosity']);
+  final errorPrinter = new ErrorPrinter(verbosity);
   final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
@@ -232,7 +244,10 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
-    ..embedSourceText = embedSources;
+    ..embedSourceText = embedSources
+    ..invocationModes =
+        InvocationMode.parseArguments(options['invocation-modes'])
+    ..verbosity = verbosity;
 
   if (nullSafety == null &&
       compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
@@ -251,11 +266,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final results = await compileToKernel(mainUri, compilerOptions,
       includePlatform: additionalDills.isNotEmpty,
+      deleteToStringPackageUris: options['delete-tostring-package-uri'],
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
       enableAsserts: enableAsserts,
-      useProtobufTreeShaker: useProtobufTreeShaker,
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
@@ -318,11 +333,11 @@ class KernelCompilationResults {
 Future<KernelCompilationResults> compileToKernel(
     Uri source, CompilerOptions options,
     {bool includePlatform: false,
+    List<String> deleteToStringPackageUris: const <String>[],
     bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
     bool enableAsserts: true,
-    bool useProtobufTreeShaker: false,
     bool useProtobufTreeShakerV2: false,
     bool minimalKernel: false,
     bool treeShakeWriteOnlyFields: false,
@@ -349,6 +364,11 @@ Future<KernelCompilationResults> compileToKernel(
       compilerResult?.loadedComponents, compilerResult?.sdkComponent,
       includePlatform: includePlatform);
 
+  if (deleteToStringPackageUris.isNotEmpty && component != null) {
+    to_string_transformer.transformComponent(
+        component, deleteToStringPackageUris);
+  }
+
   // Run global transformations only if component is correct.
   if ((aot || minimalKernel) && component != null) {
     await runGlobalTransformations(
@@ -356,7 +376,6 @@ Future<KernelCompilationResults> compileToKernel(
         component,
         useGlobalTypeFlowAnalysis,
         enableAsserts,
-        useProtobufTreeShaker,
         useProtobufTreeShakerV2,
         errorDetector,
         minimalKernel: minimalKernel,
@@ -414,7 +433,6 @@ Future runGlobalTransformations(
     Component component,
     bool useGlobalTypeFlowAnalysis,
     bool enableAsserts,
-    bool useProtobufTreeShaker,
     bool useProtobufTreeShakerV2,
     ErrorDetector errorDetector,
     {bool minimalKernel: false,
@@ -435,10 +453,6 @@ Future runGlobalTransformations(
   // before type flow analysis so TFA won't take unreachable code into account.
   unreachable_code_elimination.transformComponent(component, enableAsserts);
 
-  if (useProtobufTreeShaker && useProtobufTreeShakerV2) {
-    throw 'Cannot use both versions of protobuf tree shaker';
-  }
-
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,
         treeShakeSignatures: !minimalKernel,
@@ -447,19 +461,6 @@ Future runGlobalTransformations(
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
-  }
-
-  if (useProtobufTreeShaker) {
-    if (!useGlobalTypeFlowAnalysis) {
-      throw 'Protobuf tree shaker requires type flow analysis (--tfa)';
-    }
-
-    protobuf_tree_shaker.removeUnusedProtoReferences(
-        component, coreTypes, null);
-
-    globalTypeFlow.transformComponent(target, coreTypes, component,
-        treeShakeSignatures: !minimalKernel,
-        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
   }
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
@@ -510,10 +511,11 @@ class ErrorDetector {
 }
 
 class ErrorPrinter {
+  final Verbosity verbosity;
   final DiagnosticMessageHandler previousErrorHandler;
   final compilationMessages = <Uri, List<DiagnosticMessage>>{};
 
-  ErrorPrinter({this.previousErrorHandler});
+  ErrorPrinter(this.verbosity, {this.previousErrorHandler});
 
   void call(DiagnosticMessage message) {
     final sourceUri = getMessageUri(message);
@@ -523,10 +525,23 @@ class ErrorPrinter {
 
   void printCompilationMessages() {
     final sortedUris = compilationMessages.keys.toList()
-      ..sort((a, b) => '$a'.compareTo('$b'));
+      ..sort((a, b) {
+        // Sort messages without a corresponding uri before the location based
+        // messages, since these related to the whole compilation.
+        if (a != null && b != null) {
+          return '$a'.compareTo('$b');
+        } else if (a != null) {
+          return 1;
+        } else if (b != null) {
+          return -1;
+        }
+        return 0;
+      });
     for (final Uri sourceUri in sortedUris) {
       for (final DiagnosticMessage message in compilationMessages[sourceUri]) {
-        printDiagnosticMessage(message, print);
+        if (Verbosity.shouldPrint(verbosity, message)) {
+          printDiagnosticMessage(message, print);
+        }
       }
     }
   }

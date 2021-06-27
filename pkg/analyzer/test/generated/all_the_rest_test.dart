@@ -8,18 +8,14 @@ import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'test_support.dart';
-
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ContentCacheTest);
     defineReflectiveTests(DartUriResolverTest);
     defineReflectiveTests(ErrorSeverityTest);
     defineReflectiveTests(FileBasedSourceTest);
@@ -29,27 +25,8 @@ main() {
 }
 
 @reflectiveTest
-class ContentCacheTest {
-  test_setContents() async {
-    Source source = TestSource();
-    ContentCache cache = ContentCache();
-    expect(cache.getContents(source), isNull);
-    expect(cache.getModificationStamp(source), isNull);
-    String contents = "library lib;";
-    expect(cache.setContents(source, contents), isNull);
-    expect(cache.getContents(source), contents);
-    expect(cache.getModificationStamp(source), isNotNull);
-    expect(cache.setContents(source, contents), contents);
-    expect(cache.setContents(source, null), contents);
-    expect(cache.getContents(source), isNull);
-    expect(cache.getModificationStamp(source), isNull);
-    expect(cache.setContents(source, null), isNull);
-  }
-}
-
-@reflectiveTest
 class DartUriResolverTest extends _SimpleDartSdkTest {
-  DartUriResolver resolver;
+  late final DartUriResolver resolver;
 
   @override
   setUp() {
@@ -68,37 +45,36 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
   }
 
   void test_resolve_dart_library() {
-    Source source = resolver.resolveAbsolute(Uri.parse('dart:core'));
+    var source = resolver.resolveAbsolute(Uri.parse('dart:core'));
     expect(source, isNotNull);
   }
 
   void test_resolve_dart_nonExistingLibrary() {
-    Source result = resolver.resolveAbsolute(Uri.parse("dart:cor"));
+    var result = resolver.resolveAbsolute(Uri.parse("dart:cor"));
     expect(result, isNull);
   }
 
   void test_resolve_dart_part() {
-    Source source = resolver.resolveAbsolute(Uri.parse('dart:core/int.dart'));
+    var source = resolver.resolveAbsolute(Uri.parse('dart:core/int.dart'));
     expect(source, isNotNull);
   }
 
   void test_resolve_nonDart() {
-    Source result =
-        resolver.resolveAbsolute(Uri.parse("package:some/file.dart"));
+    var result = resolver.resolveAbsolute(Uri.parse("package:some/file.dart"));
     expect(result, isNull);
   }
 
   void test_restoreAbsolute_library() {
     _SourceMock source = _SourceMock();
     source.uri = toUri('/sdk/lib/core/core.dart');
-    Uri dartUri = resolver.restoreAbsolute(source);
+    var dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core');
   }
 
   void test_restoreAbsolute_part() {
     _SourceMock source = _SourceMock();
     source.uri = toUri('/sdk/lib/core/int.dart');
-    Uri dartUri = resolver.restoreAbsolute(source);
+    var dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core/int.dart');
   }
 }
@@ -164,7 +140,7 @@ class FileBasedSourceTest {
   test_equals_false_null() async {
     JavaFile file = FileUtilities2.createFile("/does/not/exist1.dart");
     FileBasedSource source1 = FileBasedSource(file);
-    expect(source1 == null, isFalse);
+    expect(source1, isNotNull);
   }
 
   test_equals_true() async {
@@ -201,13 +177,13 @@ class FileBasedSourceTest {
     UriResolver resolver = DartUriResolver(sdk);
     SourceFactory factory = SourceFactory([resolver]);
     // resolve dart:core
-    Source result = resolver.resolveAbsolute(Uri.parse("dart:core"));
+    var result = resolver.resolveAbsolute(Uri.parse("dart:core"));
     expect(result, isNotNull);
-    expect(result.isInSystemLibrary, isTrue);
+    expect(result!.isInSystemLibrary, isTrue);
     // system libraries reference only other system libraries
-    Source partSource = factory.resolveUri(result, "num.dart");
+    var partSource = factory.resolveUri(result, "num.dart");
     expect(partSource, isNotNull);
-    expect(partSource.isInSystemLibrary, isTrue);
+    expect(partSource!.isInSystemLibrary, isTrue);
   }
 
   test_isInSystemLibrary_false() async {
@@ -338,7 +314,7 @@ class UriKindTest {
     expect(UriKind.fromEncoding(0x64), same(UriKind.DART_URI));
     expect(UriKind.fromEncoding(0x66), same(UriKind.FILE_URI));
     expect(UriKind.fromEncoding(0x70), same(UriKind.PACKAGE_URI));
-    expect(UriKind.fromEncoding(0x58), same(null));
+    expect(UriKind.fromEncoding(0x58), isNull);
   }
 
   test_getEncoding() async {
@@ -349,7 +325,7 @@ class UriKindTest {
 }
 
 class _SimpleDartSdkTest with ResourceProviderMixin {
-  /*late*/ DartSdk sdk;
+  late final DartSdk sdk;
 
   void setUp() {
     newFile('/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
@@ -375,7 +351,7 @@ part of dart.core;
 
 class _SourceMock implements Source {
   @override
-  Uri uri;
+  late final Uri uri;
 
   @override
   noSuchMethod(Invocation invocation) {

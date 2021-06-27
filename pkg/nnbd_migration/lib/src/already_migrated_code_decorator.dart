@@ -52,7 +52,7 @@ class AlreadyMigratedCodeDecorator {
     }
     if (type is FunctionType) {
       for (var element in type.typeFormals) {
-        DecoratedTypeParameterBounds.current.put(
+        DecoratedTypeParameterBounds.current!.put(
             element,
             decorate(
                 element.bound ??
@@ -114,7 +114,7 @@ class AlreadyMigratedCodeDecorator {
     var type = class_.thisType;
     if (type.isDartAsyncFuture) {
       // Add FutureOr<T> as a supertype of Future<T>.
-      allSupertypes.add(_typeProvider.futureOrType2(type.typeArguments.single));
+      allSupertypes.add(_typeProvider.futureOrType(type.typeArguments.single));
     }
     return [
       for (var t in allSupertypes)

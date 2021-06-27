@@ -19,20 +19,20 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
       : super.fromSubclass(coreTypes, hierarchy);
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes) {
     return hierarchy.getTypeAsInstanceOf(type, superclass, clientLibrary);
   }
 
   @override
-  List<DartType> getTypeArgumentsAsInstanceOf(
+  List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     if (type.classNode == superclass) return type.typeArguments;
     return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override
-  Member getInterfaceMember(Class cls, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class cls, Name name, {bool setter: false}) {
     return hierarchy.getInterfaceMember(cls, name, setter: setter);
   }
 }

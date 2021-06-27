@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method takesNoArg() → core::Iterable<dynamic>*
+  ;
+static method returnVoid() → void
+  ;
+static method returnInt() → core::int*
+  ;
+static method returnDynamic() → dynamic
+  ;
+static method returnObject() → core::Object*
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

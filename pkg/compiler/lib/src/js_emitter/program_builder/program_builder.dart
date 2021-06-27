@@ -4,9 +4,6 @@
 
 library dart2js.js_emitter.program_builder;
 
-import 'dart:io';
-import 'dart:convert' show jsonDecode;
-
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
@@ -24,9 +21,10 @@ import '../../js_backend/backend_usage.dart';
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
-import '../../js_backend/namer.dart' show Namer, StringBackedName;
+import '../../js_backend/namer.dart' show Namer, StringBackedName, compareNames;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
+import '../../js_backend/runtime_types_codegen.dart' show TypeCheck;
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding;
 import '../../js_backend/runtime_types_new.dart' as newRti;
@@ -63,7 +61,6 @@ part 'registry.dart';
 /// emitted more easily by the individual emitters.
 class ProgramBuilder {
   final CompilerOptions _options;
-  final DiagnosticReporter _reporter;
   final JElementEnvironment _elementEnvironment;
   final JCommonElements _commonElements;
   final OutputUnitData _outputUnitData;
@@ -110,7 +107,6 @@ class ProgramBuilder {
 
   ProgramBuilder(
       this._options,
-      this._reporter,
       this._elementEnvironment,
       this._commonElements,
       this._outputUnitData,
@@ -167,19 +163,13 @@ class ProgramBuilder {
 
   Set<Class> _unneededNativeClasses;
 
+  ClassEntity get _jsInteropInterceptor =>
+      _commonElements.jsJavaScriptObjectClass;
   List<StubMethod> _jsInteropIsChecks = [];
-
-  /// Classes that have been allocated during a profile run.
-  ///
-  /// These classes should not be soft-deferred.
-  ///
-  /// Also contains classes that are not tracked by the profile run (like
-  /// interceptors, ...).
-  Set<ClassEntity> _notSoftDeferred;
+  final Set<TypeCheck> _jsInteropTypeChecks = {};
 
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     collector.collect();
-    _initializeSoftDeferredMap();
 
     this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
     // Note: In rare cases (mostly tests) output units can be empty. This
@@ -193,20 +183,16 @@ class ProgramBuilder {
     collector.outputConstantLists.forEach(_registerConstants);
     collector.outputStaticNonFinalFieldLists.forEach(_registry.registerMembers);
 
-    // We always add the current isolate holder.
-    _registerStaticStateHolder();
-
     // We need to run the native-preparation before we build the output. The
     // preparation code, in turn needs the classes to be set up.
     // We thus build the classes before building their containers.
-    collector.outputClassLists
-        .forEach((OutputUnit _, List<ClassEntity> classes) {
-      classes.forEach(_buildClass);
-    });
-
     collector.outputClassTypeLists
         .forEach((OutputUnit _, List<ClassEntity> types) {
       types.forEach(_buildClassTypeData);
+    });
+    collector.outputClassLists
+        .forEach((OutputUnit _, List<ClassEntity> classes) {
+      classes.forEach(_buildClass);
     });
 
     // Resolve the superclass references after we've processed all the classes.
@@ -221,7 +207,7 @@ class ProgramBuilder {
                 "No Class for has been created for superclass "
                 "${superclass} of $c."));
       }
-      if (c.isSimpleMixinApplication || c.isSuperMixinApplication) {
+      if (c.isSimpleMixinApplication || c.isMixinApplicationWithMembers) {
         ClassEntity effectiveMixinClass =
             _elementEnvironment.getEffectiveMixinClass(cls);
         c.setMixinClass(_classes[effectiveMixinClass]);
@@ -259,8 +245,6 @@ class ProgramBuilder {
 
     associateNamedTypeVariablesNewRti();
 
-    List<Holder> holders = _registry.holders.toList(growable: false);
-
     bool needsNativeSupport =
         _nativeCodegenEnqueuer.hasInstantiatedNativeClasses ||
             _nativeData.isAllowInteropUsed;
@@ -273,91 +257,14 @@ class ProgramBuilder {
       finalizers.add(namingFinalizer as js.TokenFinalizer);
     }
 
-    return new Program(fragments, holders, _buildLoadMap(),
-        _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
+    return new Program(fragments, _buildTypeToInterceptorMap(),
+        _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
-        outputContainsConstantList: collector.outputContainsConstantList,
-        hasSoftDeferredClasses: _notSoftDeferred != null);
+        outputContainsConstantList: collector.outputContainsConstantList);
   }
 
   void _markEagerClasses() {
     _markEagerInterceptorClasses();
-  }
-
-  void _initializeSoftDeferredMap() {
-    var allocatedClassesPath = _options.experimentalAllocationsPath;
-    if (allocatedClassesPath != null) {
-      // TODO(29574): the following denylist is ad-hoc and potentially
-      // incomplete. We need to mark all classes as black listed, that are
-      // used without code going through the class' constructor.
-      var denylist = [
-        'dart:_interceptors',
-        'dart:html',
-        'dart:typed_data_implementation',
-        'dart:_native_typed_data'
-      ].toSet();
-
-      // TODO(29574): the compiler should not just use dart:io to get the
-      // contents of a file.
-      File file = new File(allocatedClassesPath);
-
-      // TODO(29574): are the following checks necessary?
-      // To make compilation in build-systems easier, we ignore non-existing
-      // or empty profiles.
-      if (!file.existsSync()) {
-        _reporter.log("Profile file does not exist: $allocatedClassesPath");
-        return;
-      }
-      if (file.lengthSync() == 0) {
-        _reporter.log("Profile information (allocated classes) is empty.");
-        return;
-      }
-
-      String data = new File(allocatedClassesPath).readAsStringSync();
-      Set<String> allocatedClassesKeys = jsonDecode(data).keys.toSet();
-      Set<ClassEntity> allocatedClasses = new Set<ClassEntity>();
-
-      // Collects all super and mixin classes of a class.
-      void collect(ClassEntity element) {
-        allocatedClasses.add(element);
-        if (_elementEnvironment.isMixinApplication(element)) {
-          collect(_elementEnvironment.getEffectiveMixinClass(element));
-        }
-        ClassEntity superclass = _elementEnvironment.getSuperClass(element);
-        if (superclass != null) {
-          collect(superclass);
-        }
-      }
-
-      // For every known class, see if it was allocated in the profile. If yes,
-      // collect its dependencies (supers and mixins) and mark them as
-      // not-soft-deferrable.
-      collector.outputClassLists.forEach((_, List<ClassEntity> elements) {
-        for (ClassEntity element in elements) {
-          // TODO(29574): share the encoding of the element with the code
-          // that emits the profile-run.
-          var key = "${element.library.canonicalUri}:${element.name}";
-          if (allocatedClassesKeys.contains(key) ||
-              _nativeData.isJsInteropClass(element) ||
-              denylist.contains(element.library.canonicalUri.toString())) {
-            collect(element);
-          }
-        }
-      });
-      _notSoftDeferred = allocatedClasses;
-    }
-  }
-
-  /// Builds a map from loadId to outputs-to-load.
-  Map<String, List<Fragment>> _buildLoadMap() {
-    Map<String, List<Fragment>> loadMap = <String, List<Fragment>>{};
-    _closedWorld.outputUnitData.hunksToLoad
-        .forEach((String loadId, List<OutputUnit> outputUnits) {
-      loadMap[loadId] = outputUnits
-          .map((OutputUnit unit) => _outputs[unit])
-          .toList(growable: false);
-    });
-    return loadMap;
   }
 
   js.Expression _buildTypeToInterceptorMap() {
@@ -426,10 +333,6 @@ class ProgramBuilder {
     ConstantValue initialValue = fieldData.initialValue;
     js.Expression code;
     if (initialValue != null) {
-      // TODO(zarah): The holder should not be registered during building of
-      // a static field.
-      _registry.registerHolder(_namer.globalObjectForConstant(initialValue),
-          isConstantsHolder: true);
       code = _task.emitter.constantReference(initialValue);
     } else {
       assert(fieldData.isEager);
@@ -441,8 +344,7 @@ class ProgramBuilder {
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, null, _registerStaticStateHolder(), code,
+    return new StaticField(element, name, null, code,
         isFinal: false,
         isLazy: false,
         isInitializedByConstant: initialValue != null,
@@ -473,8 +375,7 @@ class ProgramBuilder {
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, getterName, _registerStaticStateHolder(), code,
+    return new StaticField(element, name, getterName, code,
         isFinal: !element.isAssignable,
         isLazy: true,
         usesNonNullableInitialization: element.library.isNonNullableByDefault);
@@ -509,9 +410,12 @@ class ProgramBuilder {
     // a regular getter that returns a JavaScript function and tearing off
     // a method in the case where there exist multiple JavaScript classes
     // that conflict on whether the member is a getter or a method.
-    Class interceptorClass = _classes[_commonElements.jsJavaScriptObjectClass];
+    Class interceptorClass = _classes[_jsInteropInterceptor];
+    ClassTypeData interceptorTypeData = _classTypeData[_jsInteropInterceptor];
 
     interceptorClass?.isChecks?.addAll(_jsInteropIsChecks);
+    interceptorTypeData?.classChecks?.addAll(_jsInteropTypeChecks);
+
     Set<String> stubNames = {};
     librariesMap.forEach((LibraryEntity library,
         List<ClassEntity> classElements, _memberElement, _typeElement) {
@@ -639,19 +543,12 @@ class ProgramBuilder {
         .toList();
     classTypeData.addAll(classes.map((Class cls) => cls.typeData).toList());
 
-    bool visitStatics = true;
-    List<Field> staticFieldsForReflection =
-        _buildFields(library: library, visitStatics: visitStatics);
-
-    return new Library(library, uri, statics, classes, classTypeData,
-        staticFieldsForReflection);
-  }
-
-  bool _isSoftDeferred(ClassEntity element) {
-    return _notSoftDeferred != null && !_notSoftDeferred.contains(element);
+    return Library(library, uri, statics, classes, classTypeData);
   }
 
   Class _buildClass(ClassEntity cls) {
+    ClassTypeData typeData = _buildClassTypeData(cls);
+
     bool onlyForConstructor =
         collector.classesOnlyNeededForConstructor.contains(cls);
     // TODO(joshualitt): Can we just emit JSInteropClasses as types?
@@ -660,10 +557,21 @@ class ProgramBuilder {
     bool onlyForRti = _nativeData.isJsInteropClass(cls);
     bool hasRtiField = _rtiNeed.classNeedsTypeArguments(cls);
     bool onlyForConstructorOrRti = onlyForConstructor || onlyForRti;
+
+    // Recognize the specialized base classes for closures.
     bool isClosureBaseClass = cls == _commonElements.closureClass;
+    int sharedClosureApplyMetadata;
+    if (cls == _commonElements.closureClass) {
+      // The root base class has metadata for single-argument closures.
+      sharedClosureApplyMetadata = 1;
+    } else if (cls == _commonElements.closureClass0Args) {
+      sharedClosureApplyMetadata = 0;
+    } else if (cls == _commonElements.closureClass2Args) {
+      sharedClosureApplyMetadata = 2;
+    }
 
     List<Method> methods = [];
-    List<StubMethod> callStubs = <StubMethod>[];
+    List<StubMethod> callStubs = [];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
         _task.emitter, _commonElements, _namer, _codegenWorld, _closedWorld,
@@ -725,14 +633,14 @@ class ProgramBuilder {
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    bool isSuperMixinApplication = false;
+    bool isMixinApplicationWithMembers = false;
     if (!onlyForConstructorOrRti) {
-      if (_elementEnvironment.isSuperMixinApplication(cls)) {
+      if (_elementEnvironment.isMixinApplicationWithMembers(cls)) {
         List<MemberEntity> members = <MemberEntity>[];
         void add(MemberEntity member) {
           if (member.enclosingClass == cls) {
             members.add(member);
-            isSuperMixinApplication = true;
+            isMixinApplicationWithMembers = true;
           }
         }
 
@@ -753,16 +661,17 @@ class ProgramBuilder {
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
     List<Field> instanceFields = onlyForConstructorOrRti
         ? const []
-        : _buildFields(
-            cls: cls,
-            visitStatics: false,
-            isHolderInterceptedClass: isInterceptedClass);
-    List<Field> staticFieldsForReflection = onlyForConstructorOrRti
+        : _buildFields(cls: cls, isHolderInterceptedClass: isInterceptedClass);
+
+    List<StubMethod> gettersSetters = onlyForConstructorOrRti
         ? const []
-        : _buildFields(
-            cls: cls,
-            visitStatics: true,
-            isHolderInterceptedClass: isInterceptedClass);
+        : [
+            for (Field field in instanceFields)
+              if (field.needsGetter) classStubGenerator.generateGetter(field),
+            for (Field field in instanceFields)
+              if (field.needsUncheckedSetter)
+                classStubGenerator.generateSetter(field),
+          ];
 
     TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(
         cls, _generatedCode,
@@ -778,6 +687,8 @@ class ProgramBuilder {
       typeTests.forEachProperty(_sorter, (js.Name name, js.Node code) {
         _jsInteropIsChecks.add(_buildStubMethod(name, code));
       });
+
+      _jsInteropTypeChecks.addAll(typeData.classChecks?.checks ?? const []);
     } else {
       for (Field field in instanceFields) {
         if (field.needsCheckedSetter) {
@@ -802,49 +713,35 @@ class ProgramBuilder {
     }
 
     js.Name name = _namer.className(cls);
-    String holderName = _namer.globalObjectForClass(cls);
-    // TODO(floitsch): we shouldn't update the registry in the middle of
-    // building a class.
-    Holder holder = _registry.registerHolder(holderName);
     bool isInstantiated = !_nativeData.isJsInteropClass(cls) &&
         _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
-    ClassTypeData typeData = ClassTypeData(cls, _rtiChecks.requiredChecks[cls]);
     Class result;
     if (_elementEnvironment.isMixinApplication(cls) &&
         !onlyForConstructorOrRti &&
-        !isSuperMixinApplication) {
+        !isMixinApplicationWithMembers) {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
+      assert(sharedClosureApplyMetadata == null);
 
-      result = new MixinApplication(
-          cls,
-          typeData,
-          name,
-          holder,
-          instanceFields,
-          staticFieldsForReflection,
-          callStubs,
-          checkedSetters,
-          isChecks,
-          typeTests.functionTypeIndex,
+      result = MixinApplication(cls, typeData, name, instanceFields, callStubs,
+          checkedSetters, gettersSetters, isChecks, typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
           onlyForConstructor: onlyForConstructor);
     } else {
-      result = new Class(
+      result = Class(
           cls,
           typeData,
           name,
-          holder,
           methods,
           instanceFields,
-          staticFieldsForReflection,
           callStubs,
           noSuchMethodStubs,
           checkedSetters,
+          gettersSetters,
           isChecks,
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
@@ -853,16 +750,16 @@ class ProgramBuilder {
           onlyForConstructor: onlyForConstructor,
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
-          isSoftDeferred: _isSoftDeferred(cls),
-          isSuperMixinApplication: isSuperMixinApplication);
+          sharedClosureApplyMetadata: sharedClosureApplyMetadata,
+          isMixinApplicationWithMembers: isMixinApplicationWithMembers);
     }
     _classes[cls] = result;
     return result;
   }
 
-  void _buildClassTypeData(ClassEntity cls) {
-    _classTypeData[cls] = ClassTypeData(cls, _rtiChecks.requiredChecks[cls]);
-  }
+  ClassTypeData _buildClassTypeData(ClassEntity cls) =>
+      _classTypeData.putIfAbsent(
+          cls, () => ClassTypeData(cls, _rtiChecks.requiredChecks[cls]));
 
   void associateNamedTypeVariablesNewRti() {
     for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariablesNewRti
@@ -873,14 +770,10 @@ class ProgramBuilder {
               ? _classHierarchy.subtypesOf(declaration)
               : _classHierarchy.subclassesOf(declaration);
       for (ClassEntity entity in subtypes) {
-        Class cls = _classes[entity];
-        if (cls != null) {
-          cls.typeData.namedTypeVariables.add(typeVariable);
-        }
-        ClassTypeData classTypeData = _classTypeData[entity];
-        if (classTypeData != null) {
-          classTypeData.namedTypeVariables.add(typeVariable);
-        }
+        ClassTypeData classTypeData = _nativeData.isJsInteropClass(entity)
+            ? _buildClassTypeData(_jsInteropInterceptor)
+            : _buildClassTypeData(entity);
+        classTypeData.namedTypeVariables.add(typeVariable);
       }
     }
   }
@@ -931,8 +824,10 @@ class ProgramBuilder {
     if (code == null) return null;
 
     bool canTearOff = false;
+    bool tearOffNeedsDirectAccess = false;
     js.Name tearOffName;
     bool isClosureCallMethod = false;
+    bool inheritsApplyMetadata = false;
     bool isNotApplyTarget =
         !element.isFunction || element.isGetter || element.isSetter;
 
@@ -948,11 +843,24 @@ class ProgramBuilder {
       if (element.enclosingClass.isClosure) {
         canTearOff = false;
         isClosureCallMethod = true;
+        ClassEntity superclass =
+            _elementEnvironment.getSuperClass(element.enclosingClass);
+        if (superclass == _commonElements.closureClass &&
+                element.parameterStructure == ParameterStructure.oneArgument ||
+            superclass == _commonElements.closureClass0Args &&
+                element.parameterStructure ==
+                    ParameterStructure.zeroArguments ||
+            superclass == _commonElements.closureClass2Args &&
+                element.parameterStructure == ParameterStructure.twoArguments) {
+          inheritsApplyMetadata = true;
+        }
       } else {
         // Careful with operators.
-        canTearOff = _codegenWorld.hasInvokedGetter(element) ||
-            _codegenWorld.methodsNeedsSuperGetter(element);
+        bool needsSuperGetter = _codegenWorld.methodsNeedsSuperGetter(element);
+        canTearOff =
+            _codegenWorld.hasInvokedGetter(element) || needsSuperGetter;
         tearOffName = _namer.getterForElement(element);
+        tearOffNeedsDirectAccess = needsSuperGetter;
       }
     }
 
@@ -996,7 +904,9 @@ class ProgramBuilder {
         _generateParameterStubs(element, canTearOff, canBeApplied), callName,
         needsTearOff: canTearOff,
         tearOffName: tearOffName,
+        tearOffNeedsDirectAccess: tearOffNeedsDirectAccess,
         isClosureCallMethod: isClosureCallMethod,
+        inheritsApplyMetadata: inheritsApplyMetadata,
         isIntercepted: isIntercepted,
         aliasName: aliasName,
         canBeApplied: canBeApplied,
@@ -1094,11 +1004,6 @@ class ProgramBuilder {
         _codegenWorld,
         _closedWorld);
 
-    String holderName =
-        _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary);
-    // TODO(floitsch): we shouldn't update the registry in the middle of
-    // generating the interceptor methods.
-    Holder holder = _registry.registerHolder(holderName);
     List<js.Name> names = [];
     Map<js.Name, SpecializedGetInterceptor> interceptorMap = {};
     for (SpecializedGetInterceptor interceptor
@@ -1111,28 +1016,25 @@ class ProgramBuilder {
           "${interceptorMap[name]}, new ${interceptor}.");
       interceptorMap[name] = interceptor;
     }
-    names.sort();
+    names.sort(compareNames);
     return names.map((js.Name name) {
       SpecializedGetInterceptor interceptor = interceptorMap[name];
       js.Expression code =
           stubGenerator.generateGetInterceptorMethod(interceptor);
-      return new StaticStubMethod(name, holder, code);
+      return new StaticStubMethod(
+          _commonElements.interceptorsLibrary, name, code);
     });
   }
 
   List<Field> _buildFields(
-      {bool visitStatics: false,
-      bool isHolderInterceptedClass: false,
-      LibraryEntity library,
-      ClassEntity cls}) {
+      {bool isHolderInterceptedClass: false, ClassEntity cls}) {
     List<Field> fields = <Field>[];
 
-    void visitField(FieldEntity field, js.Name name, js.Name accessorName,
-        bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
+    void visitField(FieldEntity field, js.Name name, bool needsGetter,
+        bool needsSetter, bool needsCheckedSetter) {
       int getterFlags = 0;
       if (needsGetter) {
-        if (visitStatics ||
-            !_interceptorData.fieldHasInterceptedGetter(field)) {
+        if (!_interceptorData.fieldHasInterceptedGetter(field)) {
           getterFlags = 1;
         } else {
           getterFlags += 2;
@@ -1147,8 +1049,7 @@ class ProgramBuilder {
 
       int setterFlags = 0;
       if (needsSetter) {
-        if (visitStatics ||
-            !_interceptorData.fieldHasInterceptedSetter(field)) {
+        if (!_interceptorData.fieldHasInterceptedSetter(field)) {
           setterFlags = 1;
         } else {
           setterFlags += 2;
@@ -1168,7 +1069,9 @@ class ProgramBuilder {
         constantValue = fieldData.constantValue;
       }
 
-      fields.add(new Field(
+      js.Name accessorName = _namer.fieldAccessorName(field);
+
+      fields.add(Field(
           field,
           name,
           accessorName,
@@ -1180,10 +1083,9 @@ class ProgramBuilder {
           fieldData.isElided));
     }
 
-    FieldVisitor visitor = new FieldVisitor(
+    FieldVisitor visitor = FieldVisitor(
         _elementEnvironment, _codegenWorld, _nativeData, _namer, _closedWorld);
-    visitor.visitFields(visitField,
-        visitStatics: visitStatics, library: library, cls: cls);
+    visitor.visitFields(visitField, cls);
 
     return fields;
   }
@@ -1198,11 +1100,6 @@ class ProgramBuilder {
         _codegenWorld,
         _closedWorld);
 
-    String holderName =
-        _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary);
-    // TODO(floitsch): we shouldn't update the registry in the middle of
-    // generating the interceptor methods.
-    Holder holder = _registry.registerHolder(holderName);
     List<js.Name> names = [];
     Map<js.Name, OneShotInterceptor> interceptorMap = {};
     for (OneShotInterceptor interceptor
@@ -1216,18 +1113,18 @@ class ProgramBuilder {
           "${interceptorMap[name]}, new ${interceptor}.");
       interceptorMap[name] = interceptor;
     }
-    names.sort();
+    names.sort(compareNames);
     return names.map((js.Name name) {
       OneShotInterceptor interceptor = interceptorMap[name];
       js.Expression code =
           stubGenerator.generateOneShotInterceptor(interceptor);
-      return new StaticStubMethod(name, holder, code);
+      return new StaticStubMethod(
+          _commonElements.interceptorsLibrary, name, code);
     });
   }
 
   StaticDartMethod _buildStaticMethod(FunctionEntity element) {
     js.Name name = _namer.methodPropertyName(element);
-    String holder = _namer.globalObjectForMember(element);
     js.Expression code = _generatedCode[element];
 
     bool isApplyTarget =
@@ -1266,15 +1163,8 @@ class ProgramBuilder {
       }
     }
 
-    // TODO(floitsch): we shouldn't update the registry in the middle of
-    // building a static method.
-    return new StaticDartMethod(
-        element,
-        name,
-        _registry.registerHolder(holder),
-        code,
-        _generateParameterStubs(element, needsTearOff, canBeApplied),
-        callName,
+    return new StaticDartMethod(element, name, code,
+        _generateParameterStubs(element, needsTearOff, canBeApplied), callName,
         needsTearOff: needsTearOff,
         tearOffName: tearOffName,
         canBeApplied: canBeApplied,
@@ -1292,16 +1182,8 @@ class ProgramBuilder {
       _registry.registerConstant(outputUnit, constantValue);
       assert(!_constants.containsKey(constantValue));
       js.Name name = _namer.constantName(constantValue);
-      String constantObject = _namer.globalObjectForConstant(constantValue);
-      Holder holder =
-          _registry.registerHolder(constantObject, isConstantsHolder: true);
-      Constant constant = new Constant(name, holder, constantValue);
+      Constant constant = new Constant(name, constantValue);
       _constants[constantValue] = constant;
     }
-  }
-
-  Holder _registerStaticStateHolder() {
-    return _registry.registerHolder(_namer.staticStateHolder,
-        isStaticStateHolder: true);
   }
 }

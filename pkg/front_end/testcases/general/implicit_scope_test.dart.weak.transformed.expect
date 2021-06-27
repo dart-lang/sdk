@@ -1,0 +1,65 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+class ImplicitScopeTest extends core::Object {
+  synthetic constructor •() → self::ImplicitScopeTest*
+    : super core::Object::•()
+    ;
+  static method alwaysTrue() → core::bool* {
+    return 1.{core::num::+}(1){(core::num*) →* core::int*} =={core::num::==}{(core::Object*) →* core::bool*} 2;
+  }
+  static method testMain() → dynamic {
+    core::String* a = "foo";
+    dynamic b;
+    if(self::ImplicitScopeTest::alwaysTrue()) {
+      core::String* a = "bar";
+    }
+    else {
+      core::String* b = a;
+    }
+    exp::Expect::equals("foo", a);
+    exp::Expect::equals(null, b);
+    while (!self::ImplicitScopeTest::alwaysTrue()) {
+      core::String* a = "bar";
+      core::String* b = "baz";
+    }
+    exp::Expect::equals("foo", a);
+    exp::Expect::equals(null, b);
+    for (core::int* i = 0; i.{core::num::<}(10){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+      core::String* a = "bar";
+      core::String* b = "baz";
+    }
+    exp::Expect::equals("foo", a);
+    exp::Expect::equals(null, b);
+    do {
+      core::String* a = "bar";
+      core::String* b = "baz";
+    }
+    while ("black" =={core::String::==}{(core::Object*) →* core::bool*} "white")
+    exp::Expect::equals("foo", a);
+    exp::Expect::equals(null, b);
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  self::ImplicitScopeTest::testMain();
+}
+
+
+Extra constant evaluation status:
+Evaluated: EqualsCall @ org-dartlang-testcase:///implicit_scope_test.dart:11:18 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///implicit_scope_test.dart:32:49 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 28, effectively constant: 2

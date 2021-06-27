@@ -1,0 +1,19 @@
+abstract class AbstractClass extends AbstractSuper {
+  void declaredAbstractExtendsAbstractMethod();
+  void declaredAbstractExtendsConcreteMethod();
+  void declaredAbstractMethod();
+  void declaredConcreteExtendsAbstractMethod() {}
+  void declaredConcreteExtendsConcreteMethod() {}
+  void declaredConcreteMethod() {}
+}
+
+abstract class AbstractSuper {
+  void declaredAbstractExtendsAbstractMethod();
+  void declaredAbstractExtendsConcreteMethod() {}
+  void declaredConcreteExtendsAbstractMethod();
+  void declaredConcreteExtendsConcreteMethod() {}
+  void extendedAbstractMethod();
+  void extendedConcreteMethod() {}
+}
+
+main() {}

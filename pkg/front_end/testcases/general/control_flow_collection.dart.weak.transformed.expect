@@ -1,0 +1,109 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  final core::List<core::int*>* aList = block {
+    final core::List<core::int*>* #t1 = core::_GrowableList::_literal1<core::int*>(1);
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t1.{core::List::add}{Invariant}(2){(core::int*) →* void};
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t1.{core::List::add}{Invariant}(3){(core::int*) →* void};
+    else
+      #t1.{core::List::add}{Invariant}(1.{core::int::unary-}(){() →* core::int*}){(core::int*) →* void};
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+        #t1.{core::List::add}{Invariant}(4){(core::int*) →* void};
+    {
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
+        #t1.{core::List::add}{Invariant}(i){(core::int*) →* void};
+      }
+    }
+    {
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
+        if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+          #t1.{core::List::add}{Invariant}(i){(core::int*) →* void};
+      }
+    }
+    for (core::int* i = 11; i.{core::num::<=}(14){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*})
+      #t1.{core::List::add}{Invariant}(i){(core::int*) →* void};
+  } =>#t1;
+  final core::Set<core::int*>* aSet = block {
+    final core::Set<core::int*>* #t2 = new col::_CompactLinkedHashSet::•<core::int*>();
+    #t2.{core::Set::add}{Invariant}(1){(core::int*) →* core::bool*};
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t2.{core::Set::add}{Invariant}(2){(core::int*) →* core::bool*};
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t2.{core::Set::add}{Invariant}(3){(core::int*) →* core::bool*};
+    else
+      #t2.{core::Set::add}{Invariant}(1.{core::int::unary-}(){() →* core::int*}){(core::int*) →* core::bool*};
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+        #t2.{core::Set::add}{Invariant}(4){(core::int*) →* core::bool*};
+    {
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
+        #t2.{core::Set::add}{Invariant}(i){(core::int*) →* core::bool*};
+      }
+    }
+    {
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
+        if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+          #t2.{core::Set::add}{Invariant}(i){(core::int*) →* core::bool*};
+      }
+    }
+    for (core::int* i = 11; i.{core::num::<=}(14){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*})
+      #t2.{core::Set::add}{Invariant}(i){(core::int*) →* core::bool*};
+  } =>#t2;
+  final core::Map<core::int*, core::int*>* aMap = block {
+    final core::Map<core::int*, core::int*>* #t3 = <core::int*, core::int*>{};
+    #t3.{core::Map::[]=}{Invariant}(1, 1){(core::int*, core::int*) →* void};
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t3.{core::Map::[]=}{Invariant}(2, 2){(core::int*, core::int*) →* void};
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t3.{core::Map::[]=}{Invariant}(3, 3){(core::int*, core::int*) →* void};
+    else
+      #t3.{core::Map::[]=}{Invariant}(1.{core::int::unary-}(){() →* core::int*}, 1.{core::int::unary-}(){() →* core::int*}){(core::int*, core::int*) →* void};
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+        #t3.{core::Map::[]=}{Invariant}(4, 4){(core::int*, core::int*) →* void};
+    {
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
+        #t3.{core::Map::[]=}{Invariant}(i, i){(core::int*, core::int*) →* void};
+      }
+    }
+    {
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
+        if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+          #t3.{core::Map::[]=}{Invariant}(i, i){(core::int*, core::int*) →* void};
+      }
+    }
+    for (core::int* i = 11; i.{core::num::<=}(14){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*})
+      #t3.{core::Map::[]=}{Invariant}(i, i){(core::int*, core::int*) →* void};
+  } =>#t3;
+  core::print(aList);
+  core::print(aSet);
+  core::print(aMap);
+}
+static method oracle() → dynamic
+  return true;
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:9:26 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:18:26 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:27:29 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:27:33 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 158, effectively constant: 4

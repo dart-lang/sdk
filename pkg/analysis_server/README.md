@@ -13,8 +13,8 @@ not have a human-friendly user interface.
 Clients (typically tools, such as an editor) are expected to run the analysis
 server in a separate process and communicate with it using a JSON protocol. The
 original protocol is specified in the file [`analysis_server/doc/api.html`][api]
-and (less complete) [Language Server Protocol][lsp_spec] support is documented
-in [`tool/lsp_spec/README.md`](tool/lsp_spec/README.md).
+and [Language Server Protocol][lsp_spec] support is documented in
+[`tool/lsp_spec/README.md`](tool/lsp_spec/README.md).
 
 ## Features and bugs
 

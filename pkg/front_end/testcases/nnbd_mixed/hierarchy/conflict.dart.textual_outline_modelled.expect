@@ -1,0 +1,104 @@
+abstract class Class extends Super
+    with Mixin
+    implements Interface1, Interface2 {
+  int extendedMethodDeclaredField = 0;
+  int get extendedMethodDeclaredGetter => 0;
+  int get implementedMethodDeclaredGetter => 0;
+  int get mixedInMethodDeclaredGetter => 0;
+  int implementedMethodDeclaredField = 0;
+  int mixedInMethodDeclaredField = 0;
+  void declaredMethodAndSetter() {}
+  void extendedFieldDeclaredMethod() {}
+  void extendedGetterDeclaredMethod() {}
+  void extendedSetterDeclaredMethod() {}
+  void implementedFieldDeclaredMethod() {}
+  void implementedGetterDeclaredMethod() {}
+  void implementedSetterDeclaredMethod() {}
+  void mixedInFieldDeclaredMethod() {}
+  void mixedInGetterDeclaredMethod() {}
+  void mixedInSetterDeclaredMethod() {}
+  void set declaredMethodAndSetter(int value) {}
+  void set extendedMethodDeclaredSetter(int value) {}
+  void set implementedMethodDeclaredSetter(int value) {}
+  void set mixedInMethodDeclaredSetter(int value) {}
+}
+
+class Interface1 {
+  int extendedMethodImplementedField = 0;
+  int get extendedMethodImplementedGetter => 0;
+  int get implementedGetterDeclaredMethod => 0;
+  int get implementedGetterImplementedMethod => 0;
+  int get mixedInMethodImplementedGetter => 0;
+  int implementedFieldDeclaredMethod = 0;
+  int implementedFieldImplementedMethod = 0;
+  int mixedInMethodImplementedField = 0;
+  void extendedFieldImplementedMethod() {}
+  void extendedGetterImplementedMethod() {}
+  void extendedSetterImplementedMethod() {}
+  void implementedMethodDeclaredField() {}
+  void implementedMethodDeclaredGetter() {}
+  void implementedMethodDeclaredSetter() {}
+  void implementedMethodImplementedField() {}
+  void implementedMethodImplementedGetter() {}
+  void implementedMethodImplementedSetter() {}
+  void mixedInFieldImplementedMethod() {}
+  void mixedInGetterImplementedMethod() {}
+  void mixedInSetterImplementedMethod() {}
+  void set extendedMethodImplementedSetter(int value) {}
+  void set implementedSetterDeclaredMethod(int value) {}
+  void set implementedSetterImplementedMethod(int value) {}
+  void set mixedInMethodImplementedSetter(int value) {}
+}
+
+class Interface2 {
+  int get implementedMethodImplementedGetter => 0;
+  int implementedMethodImplementedField = 0;
+  void implementedFieldImplementedMethod() {}
+  void implementedGetterImplementedMethod() {}
+  void implementedSetterImplementedMethod() {}
+  void set implementedMethodImplementedSetter(int value) {}
+}
+
+class Mixin {
+  int extendedMethodMixedInField = 0;
+  int get extendedMethodMixedInGetter => 0;
+  int get mixedInGetterDeclaredMethod => 0;
+  int get mixedInGetterImplementedMethod => 0;
+  int mixedInFieldDeclaredMethod = 0;
+  int mixedInFieldImplementedMethod = 0;
+  void extendedFieldMixedInMethod() {}
+  void extendedGetterMixedInMethod() {}
+  void extendedSetterMixedInMethod() {}
+  void mixedInMethodDeclaredField() {}
+  void mixedInMethodDeclaredGetter() {}
+  void mixedInMethodDeclaredSetter() {}
+  void mixedInMethodImplementedField() {}
+  void mixedInMethodImplementedGetter() {}
+  void mixedInMethodImplementedSetter() {}
+  void set extendedMethodMixedInSetter(int value) {}
+  void set mixedInSetterDeclaredMethod(int value) {}
+  void set mixedInSetterImplementedMethod(int value) {}
+}
+
+class Super {
+  int extendedFieldDeclaredMethod = 0;
+  int extendedFieldImplementedMethod = 0;
+  int extendedFieldMixedInMethod = 0;
+  int get extendedGetterDeclaredMethod => 0;
+  int get extendedGetterImplementedMethod => 0;
+  int get extendedGetterMixedInMethod => 0;
+  void extendedMethodDeclaredField() {}
+  void extendedMethodDeclaredGetter() {}
+  void extendedMethodDeclaredSetter() {}
+  void extendedMethodImplementedField() {}
+  void extendedMethodImplementedGetter() {}
+  void extendedMethodImplementedSetter() {}
+  void extendedMethodMixedInField() {}
+  void extendedMethodMixedInGetter() {}
+  void extendedMethodMixedInSetter() {}
+  void set extendedSetterDeclaredMethod(int value) {}
+  void set extendedSetterImplementedMethod(int value) {}
+  void set extendedSetterMixedInMethod(int value) {}
+}
+
+main() {}

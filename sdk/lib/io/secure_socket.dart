@@ -4,43 +4,39 @@
 
 part of dart.io;
 
-/**
- * A high-level class for communicating securely over a TCP socket, using
- * TLS and SSL. The [SecureSocket] exposes both a [Stream] and an
- * [IOSink] interface, making it ideal for using together with
- * other [Stream]s.
- */
+/// A TCP socket using TLS and SSL.
+///
+/// A secure socket may be used as either a [Stream] or an [IOSink].
 abstract class SecureSocket implements Socket {
   external factory SecureSocket._(RawSecureSocket rawSocket);
 
-  /**
-   * Constructs a new secure client socket and connects it to the given
-   * [host] on port [port]. The returned Future will complete with a
-   * [SecureSocket] that is connected and ready for subscription.
-   *
-   * The certificate provided by the server is checked
-   * using the trusted certificates set in the SecurityContext object.
-   * The default SecurityContext object contains a built-in set of trusted
-   * root certificates for well-known certificate authorities.
-   *
-   * [onBadCertificate] is an optional handler for unverifiable certificates.
-   * The handler receives the [X509Certificate], and can inspect it and
-   * decide (or let the user decide) whether to accept
-   * the connection or not.  The handler should return true
-   * to continue the [SecureSocket] connection.
-   *
-   * [supportedProtocols] is an optional list of protocols (in decreasing
-   * order of preference) to use during the ALPN protocol negotiation with the
-   * server.  Example values are "http/1.1" or "h2".  The selected protocol
-   * can be obtained via [SecureSocket.selectedProtocol].
-   *
-   * The argument [timeout] is used to specify the maximum allowed time to wait
-   * for a connection to be established. If [timeout] is longer than the system
-   * level timeout duration, a timeout may occur sooner than specified in
-   * [timeout]. On timeout, a [SocketException] is thrown and all ongoing
-   * connection attempts to [host] are cancelled.
-
-   */
+  /// Constructs a new secure client socket and connects it to the given
+  /// [host] on port [port].
+  ///
+  /// The returned Future will complete with a
+  /// [SecureSocket] that is connected and ready for subscription.
+  ///
+  /// The certificate provided by the server is checked
+  /// using the trusted certificates set in the SecurityContext object.
+  /// The default SecurityContext object contains a built-in set of trusted
+  /// root certificates for well-known certificate authorities.
+  ///
+  /// [onBadCertificate] is an optional handler for unverifiable certificates.
+  /// The handler receives the [X509Certificate], and can inspect it and
+  /// decide (or let the user decide) whether to accept
+  /// the connection or not.  The handler should return true
+  /// to continue the [SecureSocket] connection.
+  ///
+  /// [supportedProtocols] is an optional list of protocols (in decreasing
+  /// order of preference) to use during the ALPN protocol negotiation with the
+  /// server.  Example values are "http/1.1" or "h2".  The selected protocol
+  /// can be obtained via [SecureSocket.selectedProtocol].
+  ///
+  /// The argument [timeout] is used to specify the maximum allowed time to wait
+  /// for a connection to be established. If [timeout] is longer than the system
+  /// level timeout duration, a timeout may occur sooner than specified in
+  /// [timeout]. On timeout, a [SocketException] is thrown and all ongoing
+  /// connection attempts to [host] are cancelled.
   static Future<SecureSocket> connect(host, int port,
       {SecurityContext? context,
       bool onBadCertificate(X509Certificate certificate)?,
@@ -72,39 +68,38 @@ abstract class SecureSocket implements Socket {
     });
   }
 
-  /**
-   * Takes an already connected [socket] and starts client side TLS
-   * handshake to make the communication secure. When the returned
-   * future completes the [SecureSocket] has completed the TLS
-   * handshake. Using this function requires that the other end of the
-   * connection is prepared for TLS handshake.
-   *
-   * If the [socket] already has a subscription, this subscription
-   * will no longer receive and events. In most cases calling
-   * `pause` on this subscription before starting TLS handshake is
-   * the right thing to do.
-   *
-   * The given [socket] is closed and may not be used anymore.
-   *
-   * If the [host] argument is passed it will be used as the host name
-   * for the TLS handshake. If [host] is not passed the host name from
-   * the [socket] will be used. The [host] can be either a [String] or
-   * an [InternetAddress].
-   *
-   * [supportedProtocols] is an optional list of protocols (in decreasing
-   * order of preference) to use during the ALPN protocol negotiation with the
-   * server.  Example values are "http/1.1" or "h2".  The selected protocol
-   * can be obtained via [SecureSocket.selectedProtocol].
-   *
-   * Calling this function will _not_ cause a DNS host lookup. If the
-   * [host] passed is a [String] the [InternetAddress] for the
-   * resulting [SecureSocket] will have the passed in [host] as its
-   * host value and the internet address of the already connected
-   * socket as its address value.
-   *
-   * See [connect] for more information on the arguments.
-   *
-   */
+  /// Initiates TLS on an existing connection.
+  ///
+  /// Takes an already connected [socket] and starts client side TLS
+  /// handshake to make the communication secure. When the returned
+  /// future completes the [SecureSocket] has completed the TLS
+  /// handshake. Using this function requires that the other end of the
+  /// connection is prepared for TLS handshake.
+  ///
+  /// If the [socket] already has a subscription, this subscription
+  /// will no longer receive and events. In most cases calling
+  /// [StreamSubscription.pause] on this subscription before
+  /// starting TLS handshake is the right thing to do.
+  ///
+  /// The given [socket] is closed and may not be used anymore.
+  ///
+  /// If the [host] argument is passed it will be used as the host name
+  /// for the TLS handshake. If [host] is not passed the host name from
+  /// the [socket] will be used. The [host] can be either a [String] or
+  /// an [InternetAddress].
+  ///
+  /// [supportedProtocols] is an optional list of protocols (in decreasing
+  /// order of preference) to use during the ALPN protocol negotiation with the
+  /// server.  Example values are "http/1.1" or "h2".  The selected protocol
+  /// can be obtained via [SecureSocket.selectedProtocol].
+  ///
+  /// Calling this function will _not_ cause a DNS host lookup. If the
+  /// [host] passed is a [String], the [InternetAddress] for the
+  /// resulting [SecureSocket] will have the passed in [host] as its
+  /// host value and the internet address of the already connected
+  /// socket as its address value.
+  ///
+  /// See [connect] for more information on the arguments.
   static Future<SecureSocket> secure(Socket socket,
       {host,
       SecurityContext? context,
@@ -121,32 +116,31 @@ abstract class SecureSocket implements Socket {
     }).then<SecureSocket>((raw) => new SecureSocket._(raw));
   }
 
-  /**
-   * Takes an already connected [socket] and starts server side TLS
-   * handshake to make the communication secure. When the returned
-   * future completes the [SecureSocket] has completed the TLS
-   * handshake. Using this function requires that the other end of the
-   * connection is going to start the TLS handshake.
-   *
-   * If the [socket] already has a subscription, this subscription
-   * will no longer receive and events. In most cases calling
-   * [:pause:] on this subscription before starting TLS handshake is
-   * the right thing to do.
-   *
-   * If some of the data of the TLS handshake has already been read
-   * from the socket this data can be passed in the [bufferedData]
-   * parameter. This data will be processed before any other data
-   * available on the socket.
-   *
-   * See [SecureServerSocket.bind] for more information on the
-   * arguments.
-   *
-   */
+  /// Initiates TLS on an existing server connection.
+  ///
+  /// Takes an already connected [socket] and starts server side TLS
+  /// handshake to make the communication secure. When the returned
+  /// future completes the [SecureSocket] has completed the TLS
+  /// handshake. Using this function requires that the other end of the
+  /// connection is going to start the TLS handshake.
+  ///
+  /// If the [socket] already has a subscription, this subscription
+  /// will no longer receive and events. In most cases calling
+  /// [StreamSubscription.pause] on this subscription
+  /// before starting TLS handshake is the right thing to do.
+  ///
+  /// If some of the data of the TLS handshake has already been read
+  /// from the socket this data can be passed in the [bufferedData]
+  /// parameter. This data will be processed before any other data
+  /// available on the socket.
+  ///
+  /// See [SecureServerSocket.bind] for more information on the
+  /// arguments.
   static Future<SecureSocket> secureServer(
       Socket socket, SecurityContext? context,
       {List<int>? bufferedData,
-      bool requestClientCertificate: false,
-      bool requireClientCertificate: false,
+      bool requestClientCertificate = false,
+      bool requireClientCertificate = false,
       List<String>? supportedProtocols}) {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
@@ -159,71 +153,66 @@ abstract class SecureSocket implements Socket {
     }).then<SecureSocket>((raw) => new SecureSocket._(raw));
   }
 
-  /**
-   * Get the peer certificate for a connected SecureSocket.  If this
-   * SecureSocket is the server end of a secure socket connection,
-   * [peerCertificate] will return the client certificate, or null, if no
-   * client certificate was received.  If it is the client end,
-   * [peerCertificate] will return the server's certificate.
-   */
+  /// The peer certificate for a connected SecureSocket.
+  ///
+  /// If this [SecureSocket] is the server end of a secure socket connection,
+  /// [peerCertificate] will return the client certificate, or `null` if no
+  /// client certificate was received.  If this socket is the client end,
+  /// [peerCertificate] will return the server's certificate.
   X509Certificate? get peerCertificate;
 
-  /**
-   * The protocol which was selected during ALPN protocol negotiation.
-   *
-   * Returns null if one of the peers does not have support for ALPN, did not
-   * specify a list of supported ALPN protocols or there was no common
-   * protocol between client and server.
-   */
+  /// The protocol which was selected during ALPN protocol negotiation.
+  ///
+  /// Returns `null` if one of the peers does not have support for ALPN, did not
+  /// specify a list of supported ALPN protocols or there was no common
+  /// protocol between client and server.
   String? get selectedProtocol;
 
-  /**
-   * Renegotiate an existing secure connection, renewing the session keys
-   * and possibly changing the connection properties.
-   *
-   * This repeats the SSL or TLS handshake, with options that allow clearing
-   * the session cache and requesting a client certificate.
-   */
+  /// Renegotiates an existing secure connection.
+  ///
+  /// Renews the session keys and possibly changes the connection properties.
+  ///
+  /// This repeats the SSL or TLS handshake, with options that allow clearing
+  /// the session cache and requesting a client certificate.
   void renegotiate(
-      {bool useSessionCache: true,
-      bool requestClientCertificate: false,
-      bool requireClientCertificate: false});
+      {bool useSessionCache = true,
+      bool requestClientCertificate = false,
+      bool requireClientCertificate = false});
 }
 
-/**
- * RawSecureSocket provides a secure (SSL or TLS) network connection.
- * Client connections to a server are provided by calling
- * RawSecureSocket.connect.  A secure server, created with
- * [RawSecureServerSocket], also returns RawSecureSocket objects representing
- * the server end of a secure connection.
- * The certificate provided by the server is checked
- * using the trusted certificates set in the SecurityContext object.
- * The default [SecurityContext] object contains a built-in set of trusted
- * root certificates for well-known certificate authorities.
- */
+/// `RawSecureSocket` provides a secure (SSL or TLS) network connection.
+///
+/// Client connections to a server are provided by calling
+/// RawSecureSocket.connect.  A secure server, created with
+/// [RawSecureServerSocket], also returns `RawSecureSocket` objects representing
+/// the server end of a secure connection.
+/// The certificate provided by the server is checked
+/// using the trusted certificates set in the [SecurityContext] object.
+/// The default [SecurityContext] object contains a built-in set of trusted
+/// root certificates for well-known certificate authorities.
 abstract class RawSecureSocket implements RawSocket {
-  /**
-   * Constructs a new secure client socket and connect it to the given
-   * host on the given port. The returned [Future] is completed with the
-   * RawSecureSocket when it is connected and ready for subscription.
-   *
-   * The certificate provided by the server is checked using the trusted
-   * certificates set in the SecurityContext object If a certificate and key are
-   * set on the client, using [SecurityContext.useCertificateChain] and
-   * [SecurityContext.usePrivateKey], and the server asks for a client
-   * certificate, then that client certificate is sent to the server.
-   *
-   * [onBadCertificate] is an optional handler for unverifiable certificates.
-   * The handler receives the [X509Certificate], and can inspect it and
-   * decide (or let the user decide) whether to accept
-   * the connection or not.  The handler should return true
-   * to continue the [RawSecureSocket] connection.
-   *
-   * [supportedProtocols] is an optional list of protocols (in decreasing
-   * order of preference) to use during the ALPN protocol negotiation with the
-   * server.  Example values are "http/1.1" or "h2".  The selected protocol
-   * can be obtained via [RawSecureSocket.selectedProtocol].
-   */
+  /// Constructs a new secure client socket and connect it to the given
+  /// host on the given port.
+  ///
+  /// The returned [Future] is completed with the
+  /// [RawSecureSocket] when it is connected and ready for subscription.
+  ///
+  /// The certificate provided by the server is checked using the trusted
+  /// certificates set in the SecurityContext object If a certificate and key are
+  /// set on the client, using [SecurityContext.useCertificateChain] and
+  /// [SecurityContext.usePrivateKey], and the server asks for a client
+  /// certificate, then that client certificate is sent to the server.
+  ///
+  /// [onBadCertificate] is an optional handler for unverifiable certificates.
+  /// The handler receives the [X509Certificate], and can inspect it and
+  /// decide (or let the user decide) whether to accept
+  /// the connection or not.  The handler should return true
+  /// to continue the [RawSecureSocket] connection.
+  ///
+  /// [supportedProtocols] is an optional list of protocols (in decreasing
+  /// order of preference) to use during the ALPN protocol negotiation with the
+  /// server.  Example values are "http/1.1" or "h2".  The selected protocol
+  /// can be obtained via [RawSecureSocket.selectedProtocol].
   static Future<RawSecureSocket> connect(host, int port,
       {SecurityContext? context,
       bool onBadCertificate(X509Certificate certificate)?,
@@ -257,39 +246,38 @@ abstract class RawSecureSocket implements RawSocket {
     });
   }
 
-  /**
-   * Takes an already connected [socket] and starts client side TLS
-   * handshake to make the communication secure. When the returned
-   * future completes the [RawSecureSocket] has completed the TLS
-   * handshake. Using this function requires that the other end of the
-   * connection is prepared for TLS handshake.
-   *
-   * If the [socket] already has a subscription, pass the existing
-   * subscription in the [subscription] parameter. The [secure]
-   * operation will take over the subscription by replacing the
-   * handlers with it own secure processing. The caller must not touch
-   * this subscription anymore. Passing a paused subscription is an
-   * error.
-   *
-   * If the [host] argument is passed it will be used as the host name
-   * for the TLS handshake. If [host] is not passed the host name from
-   * the [socket] will be used. The [host] can be either a [String] or
-   * an [InternetAddress].
-   *
-   * [supportedProtocols] is an optional list of protocols (in decreasing
-   * order of preference) to use during the ALPN protocol negotiation with the
-   * server.  Example values are "http/1.1" or "h2".  The selected protocol
-   * can be obtained via [SecureSocket.selectedProtocol].
-   *
-   * Calling this function will _not_ cause a DNS host lookup. If the
-   * [host] passed is a [String] the [InternetAddress] for the
-   * resulting [SecureSocket] will have this passed in [host] as its
-   * host value and the internet address of the already connected
-   * socket as its address value.
-   *
-   * See [connect] for more information on the arguments.
-   *
-   */
+  /// Initiates TLS on an existing connection.
+  ///
+  /// Takes an already connected [socket] and starts client side TLS
+  /// handshake to make the communication secure. When the returned
+  /// future completes the [RawSecureSocket] has completed the TLS
+  /// handshake. Using this function requires that the other end of the
+  /// connection is prepared for TLS handshake.
+  ///
+  /// If the [socket] already has a subscription, pass the existing
+  /// subscription in the [subscription] parameter. The [secure]
+  /// operation will take over the subscription by replacing the
+  /// handlers with it own secure processing. The caller must not touch
+  /// this subscription anymore. Passing a paused subscription is an
+  /// error.
+  ///
+  /// If the [host] argument is passed it will be used as the host name
+  /// for the TLS handshake. If [host] is not passed the host name from
+  /// the [socket] will be used. The [host] can be either a [String] or
+  /// an [InternetAddress].
+  ///
+  /// [supportedProtocols] is an optional list of protocols (in decreasing
+  /// order of preference) to use during the ALPN protocol negotiation with the
+  /// server.  Example values are "http/1.1" or "h2".  The selected protocol
+  /// can be obtained via [SecureSocket.selectedProtocol].
+  ///
+  /// Calling this function will _not_ cause a DNS host lookup. If the
+  /// [host] passed is a [String] the [InternetAddress] for the
+  /// resulting [SecureSocket] will have this passed in [host] as its
+  /// host value and the internet address of the already connected
+  /// socket as its address value.
+  ///
+  /// See [connect] for more information on the arguments.
   static Future<RawSecureSocket> secure(RawSocket socket,
       {StreamSubscription<RawSocketEvent>? subscription,
       host,
@@ -306,35 +294,34 @@ abstract class RawSecureSocket implements RawSocket {
         supportedProtocols: supportedProtocols);
   }
 
-  /**
-   * Takes an already connected [socket] and starts server side TLS
-   * handshake to make the communication secure. When the returned
-   * future completes the [RawSecureSocket] has completed the TLS
-   * handshake. Using this function requires that the other end of the
-   * connection is going to start the TLS handshake.
-   *
-   * If the [socket] already has a subscription, pass the existing
-   * subscription in the [subscription] parameter. The [secureServer]
-   * operation will take over the subscription by replacing the
-   * handlers with it own secure processing. The caller must not touch
-   * this subscription anymore. Passing a paused subscription is an
-   * error.
-   *
-   * If some of the data of the TLS handshake has already been read
-   * from the socket this data can be passed in the [bufferedData]
-   * parameter. This data will be processed before any other data
-   * available on the socket.
-   *
-   * See [RawSecureServerSocket.bind] for more information on the
-   * arguments.
-   *
-   */
+  /// Initiates TLS on an existing server connection.
+  ///
+  /// Takes an already connected [socket] and starts server side TLS
+  /// handshake to make the communication secure. When the returned
+  /// future completes the [RawSecureSocket] has completed the TLS
+  /// handshake. Using this function requires that the other end of the
+  /// connection is going to start the TLS handshake.
+  ///
+  /// If the [socket] already has a subscription, pass the existing
+  /// subscription in the [subscription] parameter. The [secureServer]
+  /// operation will take over the subscription by replacing the
+  /// handlers with it own secure processing. The caller must not touch
+  /// this subscription anymore. Passing a paused subscription is an
+  /// error.
+  ///
+  /// If some of the data of the TLS handshake has already been read
+  /// from the socket this data can be passed in the [bufferedData]
+  /// parameter. This data will be processed before any other data
+  /// available on the socket.
+  ///
+  /// See [RawSecureServerSocket.bind] for more information on the
+  /// arguments.
   static Future<RawSecureSocket> secureServer(
       RawSocket socket, SecurityContext? context,
       {StreamSubscription<RawSocketEvent>? subscription,
       List<int>? bufferedData,
-      bool requestClientCertificate: false,
-      bool requireClientCertificate: false,
+      bool requestClientCertificate = false,
+      bool requireClientCertificate = false,
       List<String>? supportedProtocols}) {
     socket.readEventsEnabled = false;
     socket.writeEventsEnabled = false;
@@ -348,41 +335,33 @@ abstract class RawSecureSocket implements RawSocket {
         supportedProtocols: supportedProtocols);
   }
 
-  /**
-   * Renegotiate an existing secure connection, renewing the session keys
-   * and possibly changing the connection properties.
-   *
-   * This repeats the SSL or TLS handshake, with options that allow clearing
-   * the session cache and requesting a client certificate.
-   */
+  /// Renegotiate an existing secure connection, renewing the session keys
+  /// and possibly changing the connection properties.
+  ///
+  /// This repeats the SSL or TLS handshake, with options that allow clearing
+  /// the session cache and requesting a client certificate.
   void renegotiate(
-      {bool useSessionCache: true,
-      bool requestClientCertificate: false,
-      bool requireClientCertificate: false});
+      {bool useSessionCache = true,
+      bool requestClientCertificate = false,
+      bool requireClientCertificate = false});
 
-  /**
-   * Get the peer certificate for a connected RawSecureSocket.  If this
-   * RawSecureSocket is the server end of a secure socket connection,
-   * [peerCertificate] will return the client certificate, or null, if no
-   * client certificate was received.  If it is the client end,
-   * [peerCertificate] will return the server's certificate.
-   */
+  /// Get the peer certificate for a connected RawSecureSocket.  If this
+  /// RawSecureSocket is the server end of a secure socket connection,
+  /// [peerCertificate] will return the client certificate, or null, if no
+  /// client certificate was received.  If it is the client end,
+  /// [peerCertificate] will return the server's certificate.
   X509Certificate? get peerCertificate;
 
-  /**
-   * The protocol which was selected during protocol negotiation.
-   *
-   * Returns null if one of the peers does not have support for ALPN, did not
-   * specify a list of supported ALPN protocols or there was no common
-   * protocol between client and server.
-   */
+  /// The protocol which was selected during protocol negotiation.
+  ///
+  /// Returns null if one of the peers does not have support for ALPN, did not
+  /// specify a list of supported ALPN protocols or there was no common
+  /// protocol between client and server.
   String? get selectedProtocol;
 }
 
-/**
- * X509Certificate represents an SSL certificate, with accessors to
- * get the fields of the certificate.
- */
+/// X509Certificate represents an SSL certificate, with accessors to
+/// get the fields of the certificate.
 @pragma("vm:entry-point")
 abstract class X509Certificate {
   @pragma("vm:entry-point")
@@ -476,8 +455,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       {SecurityContext? context,
       StreamSubscription<RawSocketEvent>? subscription,
       List<int>? bufferedData,
-      bool requestClientCertificate: false,
-      bool requireClientCertificate: false,
+      bool requestClientCertificate = false,
+      bool requireClientCertificate = false,
       bool onBadCertificate(X509Certificate certificate)?,
       List<String>? supportedProtocols}) {
     _verifyFields(host, requestedPort, requestClientCertificate,
@@ -828,9 +807,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void renegotiate(
-      {bool useSessionCache: true,
-      bool requestClientCertificate: false,
-      bool requireClientCertificate: false}) {
+      {bool useSessionCache = true,
+      bool requestClientCertificate = false,
+      bool requireClientCertificate = false}) {
     if (_status != connectedStatus) {
       throw new HandshakeException(
           "Called renegotiate on a non-connected socket");
@@ -882,69 +861,70 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  Future<void> _scheduleFilter() async {
+  Future<void> _scheduleFilter() {
     _filterPending = true;
     return _tryFilter();
   }
 
   Future<void> _tryFilter() async {
-    if (_status == closedStatus) {
-      return;
-    }
-    if (!_filterPending || _filterActive) {
-      return;
-    }
-    _filterActive = true;
-    _filterPending = false;
-
     try {
-      _filterStatus = await _pushAllFilterStages();
-      _filterActive = false;
-      if (_status == closedStatus) {
-        _secureFilter!.destroy();
-        _secureFilter = null;
-        return;
-      }
-      _socket.readEventsEnabled = true;
-      if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
-        // Checks for and handles all cases of partially closed sockets.
-        shutdown(SocketDirection.send);
+      while (true) {
         if (_status == closedStatus) {
           return;
         }
-      }
-      if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
-        if (_status == handshakeStatus) {
-          _secureFilter!.handshake();
-          if (_status == handshakeStatus) {
-            throw new HandshakeException(
-                'Connection terminated during handshake');
+        if (!_filterPending || _filterActive) {
+          return;
+        }
+        _filterActive = true;
+        _filterPending = false;
+
+        _filterStatus = await _pushAllFilterStages();
+        _filterActive = false;
+        if (_status == closedStatus) {
+          _secureFilter!.destroy();
+          _secureFilter = null;
+          return;
+        }
+        _socket.readEventsEnabled = true;
+        if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
+          // Checks for and handles all cases of partially closed sockets.
+          shutdown(SocketDirection.send);
+          if (_status == closedStatus) {
+            return;
           }
         }
-        _closeHandler();
+        if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
+          if (_status == handshakeStatus) {
+            _secureFilter!.handshake();
+            if (_status == handshakeStatus) {
+              throw new HandshakeException(
+                  'Connection terminated during handshake');
+            }
+          }
+          _closeHandler();
+        }
+        if (_status == closedStatus) {
+          return;
+        }
+        if (_filterStatus.progress) {
+          _filterPending = true;
+          if (_filterStatus.writeEncryptedNoLongerEmpty) {
+            _writeSocket();
+          }
+          if (_filterStatus.writePlaintextNoLongerFull) {
+            _sendWriteEvent();
+          }
+          if (_filterStatus.readEncryptedNoLongerFull) {
+            _readSocket();
+          }
+          if (_filterStatus.readPlaintextNoLongerEmpty) {
+            _scheduleReadEvent();
+          }
+          if (_status == handshakeStatus) {
+            await _secureHandshake();
+          }
+        }
       }
-      if (_status == closedStatus) {
-        return;
-      }
-      if (_filterStatus.progress) {
-        _filterPending = true;
-        if (_filterStatus.writeEncryptedNoLongerEmpty) {
-          _writeSocket();
-        }
-        if (_filterStatus.writePlaintextNoLongerFull) {
-          _sendWriteEvent();
-        }
-        if (_filterStatus.readEncryptedNoLongerFull) {
-          _readSocket();
-        }
-        if (_filterStatus.readPlaintextNoLongerEmpty) {
-          _scheduleReadEvent();
-        }
-        if (_status == handshakeStatus) {
-          await _secureHandshake();
-        }
-      }
-      return _tryFilter();
     } catch (e, st) {
       _reportError(e, st);
     }
@@ -1107,11 +1087,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 }
 
-/**
- * A circular buffer backed by an external byte array.  Accessed from
- * both C++ and Dart code in an unsynchronized way, with one reading
- * and one writing.  All updates to start and end are done by Dart code.
- */
+/// A circular buffer backed by an external byte array.  Accessed from
+/// both C++ and Dart code in an unsynchronized way, with one reading
+/// and one writing.  All updates to start and end are done by Dart code.
 class _ExternalBuffer {
   // This will be an ExternalByteArray, backed by C allocated data.
   @pragma("vm:entry-point", "set")
@@ -1262,9 +1240,8 @@ abstract class _SecureFilter {
   List<_ExternalBuffer>? get buffers;
 }
 
-/** A secure networking exception caused by a failure in the
- *  TLS/SSL protocol.
- */
+/// A secure networking exception caused by a failure in the
+/// TLS/SSL protocol.
 class TlsException implements IOException {
   final String type;
   final String message;
@@ -1291,10 +1268,8 @@ class TlsException implements IOException {
   }
 }
 
-/**
- * An exception that happens in the handshake phase of establishing
- * a secure network connection.
- */
+/// An exception that happens in the handshake phase of establishing
+/// a secure network connection.
 @pragma("vm:entry-point")
 class HandshakeException extends TlsException {
   @pragma("vm:entry-point")
@@ -1302,11 +1277,9 @@ class HandshakeException extends TlsException {
       : super._("HandshakeException", message, osError);
 }
 
-/**
- * An exception that happens in the handshake phase of establishing
- * a secure network connection, when looking up or verifying a
- * certificate.
- */
+/// An exception that happens in the handshake phase of establishing
+/// a secure network connection, when looking up or verifying a
+/// certificate.
 class CertificateException extends TlsException {
   @pragma("vm:entry-point")
   const CertificateException([String message = "", OSError? osError])

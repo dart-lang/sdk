@@ -31,7 +31,7 @@ class D implements A {
   /*member: D.foo:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
   foo() => {};
 
-  /*member: D.noSuchMethod:[exact=JSDouble]*/
+  /*member: D.noSuchMethod:[exact=JSNumNotInt]*/
   noSuchMethod(
           /*prod.[null|exact=JSInvocationMirror]*/
           /*spec.[null|subclass=Object]*/
@@ -63,7 +63,7 @@ test5() {
 }
 
 // Can hit A.noSuchMethod, D.noSuchMethod and Object.noSuchMethod.
-/*member: test6:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: test6:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
 test6() => a. /*invoke: Union(null, [exact=D], [subclass=B])*/ bar();
 
 // Can hit A.noSuchMethod.
@@ -86,14 +86,14 @@ test9() {
 }
 
 // Can hit A.noSuchMethod and D.noSuchMethod.
-/*member: test10:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: test10:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
 test10() {
   dynamic e = (a ? new B() : new D());
   return e. /*invoke: Union([exact=B], [exact=D])*/ bar();
 }
 
 // Can hit D.noSuchMethod.
-/*member: test11:[exact=JSDouble]*/
+/*member: test11:[exact=JSNumNotInt]*/
 test11() {
   dynamic e = new D();
   return e. /*invoke: [exact=D]*/ bar();

@@ -51,13 +51,13 @@ abstract class Selector {
       case CallKind.Method:
         return (member is Procedure)
             ? member.function.returnType
-            : const BottomType();
+            : const NeverType.nonNullable();
       case CallKind.PropertyGet:
         return member.getterType;
       case CallKind.PropertySet:
       case CallKind.FieldInitializer:
       case CallKind.SetFieldInConstructor:
-        return const BottomType();
+        return const NeverType.nonNullable();
     }
     return null;
   }

@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Bar {
   const Bar.withEmptyMessage(this.x) : assert(x < 0);
   const Bar.withMessage(this.x) : assert(x < 0, "x is not negative");

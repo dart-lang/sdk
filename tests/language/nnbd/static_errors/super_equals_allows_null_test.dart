@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import "package:expect/expect.dart";
 
-// SharedOptions=--enable-experiment=non-nullable
 
 // Test that `super == x` is allowed when `x` has a nullable type, even if the
 // targeted definition of `operator==` has a parameter with a non-nullable type,

@@ -10,17 +10,18 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:meta/meta.dart';
 
 class ElementDisplayStringBuilder {
   final StringBuffer _buffer = StringBuffer();
 
   final bool skipAllDynamicArguments;
   final bool withNullability;
+  final bool multiline;
 
   ElementDisplayStringBuilder({
-    @required this.skipAllDynamicArguments,
-    @required this.withNullability,
+    required this.skipAllDynamicArguments,
+    required this.withNullability,
+    this.multiline = false,
   });
 
   @override
@@ -29,11 +30,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeAbstractElement(ElementImpl element) {
-    if (element.name != null) {
-      _write(element.name);
-    } else {
-      _write('<unnamed $runtimeType>');
-    }
+    _write(element.name ?? '<unnamed $runtimeType>');
   }
 
   void writeClassElement(ClassElementImpl element) {
@@ -52,8 +49,8 @@ class ElementDisplayStringBuilder {
   }
 
   void writeCompilationUnitElement(CompilationUnitElementImpl element) {
-    var path = element.source?.fullName;
-    _write(path ?? '{compilation unit}');
+    var path = element.source.fullName;
+    _write(path);
   }
 
   void writeConstructorElement(ConstructorElement element) {
@@ -66,7 +63,11 @@ class ElementDisplayStringBuilder {
       _write(element.displayName);
     }
 
-    _writeFormalParameters(element.parameters, forElement: true);
+    _writeFormalParameters(
+      element.parameters,
+      forElement: true,
+      allowMultiline: true,
+    );
   }
 
   void writeDynamicType() {
@@ -86,7 +87,11 @@ class ElementDisplayStringBuilder {
 
     if (element.kind != ElementKind.GETTER) {
       _writeTypeParameters(element.typeParameters);
-      _writeFormalParameters(element.parameters, forElement: true);
+      _writeFormalParameters(
+        element.parameters,
+        forElement: true,
+        allowMultiline: true,
+      );
     }
   }
 
@@ -97,9 +102,10 @@ class ElementDisplayStringBuilder {
 
   void writeExtensionElement(ExtensionElementImpl element) {
     _write('extension ');
-    _write(element.displayName ?? '(unnamed)');
+    _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
-    _writeTypeIfNotNull(' on ', element.extendedType);
+    _write(' on ');
+    _writeType(element.extendedType);
   }
 
   void writeFormalParameter(ParameterElement element) {
@@ -187,9 +193,10 @@ class ElementDisplayStringBuilder {
 
     _write(element.displayName);
 
-    if (element.bound != null) {
+    var bound = element.bound;
+    if (bound != null) {
       _write(' extends ');
-      _writeType(element.bound);
+      _writeType(bound);
     }
   }
 
@@ -197,9 +204,10 @@ class ElementDisplayStringBuilder {
     _write(type.element.displayName);
     _writeNullability(type.nullabilitySuffix);
 
-    if (type.promotedBound != null) {
+    var promotedBound = type.promotedBound;
+    if (promotedBound != null) {
       _write(' & ');
-      _writeType(type.promotedBound);
+      _writeType(promotedBound);
     }
   }
 
@@ -223,16 +231,35 @@ class ElementDisplayStringBuilder {
 
   void _writeFormalParameters(
     List<ParameterElement> parameters, {
-    @required bool forElement,
+    required bool forElement,
+    bool allowMultiline = false,
   }) {
+    // Assume the display string looks better wrapped when there are at least
+    // three parameters. This avoids having to pre-compute the single-line
+    // version and know the length of the function name/return type.
+    var multiline = allowMultiline && this.multiline && parameters.length >= 3;
+
+    // The prefix for open groups is included in seperator for single-line but
+    // not for multline so must be added explicitly.
+    var openGroupPrefix = multiline ? ' ' : '';
+    var separator = multiline ? ',' : ', ';
+    var trailingComma = multiline ? ',\n' : '';
+    var parameterPrefix = multiline ? '\n  ' : '';
+
     _write('(');
 
-    var lastKind = _WriteFormalParameterKind.requiredPositional;
+    _WriteFormalParameterKind? lastKind;
     var lastClose = '';
 
     void openGroup(_WriteFormalParameterKind kind, String open, String close) {
       if (lastKind != kind) {
         _write(lastClose);
+        if (lastKind != null) {
+          // We only need to include the space before the open group if there
+          // was a previous parameter, otherwise it goes immediately after the
+          // open paren.
+          _write(openGroupPrefix);
+        }
         _write(open);
         lastKind = kind;
         lastClose = close;
@@ -241,7 +268,7 @@ class ElementDisplayStringBuilder {
 
     for (var i = 0; i < parameters.length; i++) {
       if (i != 0) {
-        _write(', ');
+        _write(separator);
       }
 
       var parameter = parameters[i];
@@ -252,9 +279,11 @@ class ElementDisplayStringBuilder {
       } else if (parameter.isNamed) {
         openGroup(_WriteFormalParameterKind.named, '{', '}');
       }
+      _write(parameterPrefix);
       _writeWithoutDelimiters(parameter, forElement: forElement);
     }
 
+    _write(trailingComma);
     _write(lastClose);
     _write(')');
   }
@@ -299,14 +328,7 @@ class ElementDisplayStringBuilder {
     _write('>');
   }
 
-  void _writeTypeIfNotNull(String prefix, DartType type) {
-    if (type != null) {
-      _write(prefix);
-      _writeType(type);
-    }
-  }
-
-  void _writeTypeIfNotObject(String prefix, DartType type) {
+  void _writeTypeIfNotObject(String prefix, DartType? type) {
     if (type != null && !type.isDartCoreObject) {
       _write(prefix);
       _writeType(type);
@@ -344,7 +366,7 @@ class ElementDisplayStringBuilder {
 
   void _writeWithoutDelimiters(
     ParameterElement element, {
-    @required bool forElement,
+    required bool forElement,
   }) {
     if (element.isRequiredNamed) {
       _write('required ');
@@ -357,9 +379,12 @@ class ElementDisplayStringBuilder {
       _write(element.displayName);
     }
 
-    if (forElement && element.defaultValueCode != null) {
-      _write(' = ');
-      _write(element.defaultValueCode);
+    if (forElement) {
+      var defaultValueCode = element.defaultValueCode;
+      if (defaultValueCode != null) {
+        _write(' = ');
+        _write(defaultValueCode);
+      }
     }
   }
 
@@ -370,7 +395,7 @@ class ElementDisplayStringBuilder {
 
     var referencedTypeParameters = <TypeParameterElement>{};
 
-    void collectTypeParameters(DartType type) {
+    void collectTypeParameters(DartType? type) {
       if (type is TypeParameterType) {
         referencedTypeParameters.add(type.element);
       } else if (type is FunctionType) {
@@ -417,7 +442,7 @@ class ElementDisplayStringBuilder {
           .freshTypeParameterCreated(newTypeParameter, typeParameter);
     }
 
-    return replaceTypeParameters(type, newTypeParameters);
+    return replaceTypeParameters(type as FunctionTypeImpl, newTypeParameters);
   }
 }
 

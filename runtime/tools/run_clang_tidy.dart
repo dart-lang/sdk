@@ -22,6 +22,7 @@ List<String> compilerFlagsForFile(String filepath) {
     '-DDEBUG',
     '-DTARGET_OS_LINUX',
     '-DTESTING',
+    '-std=c++17',
     '-x',
     'c++',
   ];
@@ -107,12 +108,6 @@ final Set<String> excludedFiles = Set<String>.from([
   'runtime/vm/stack_frame_arm.h',
   'runtime/vm/stack_frame_ia32.h',
   'runtime/vm/stack_frame_x64.h',
-
-  // By default the gclient checkout doesn't have llvm pulled in.
-  'runtime/llvm_codegen/bit/bit.h',
-  'runtime/llvm_codegen/bit/main.cc',
-  'runtime/llvm_codegen/bit/test.cc',
-  'runtime/llvm_codegen/codegen/main.cc',
 
   // Only available in special builds
   'runtime/bin/io_service_no_ssl.h',

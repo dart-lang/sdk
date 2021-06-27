@@ -13,10 +13,10 @@ const jsonRpcVersion = '2.0';
 
 const NullJsonHandler = LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
 
-ErrorOr<R> cancelled<R>([R t]) =>
+ErrorOr<R> cancelled<R>() =>
     error(ErrorCodes.RequestCancelled, 'Request was cancelled', null);
 
-ErrorOr<R> error<R>(ErrorCodes code, String message, [String data]) =>
+ErrorOr<R> error<R>(ErrorCodes code, String message, [String? data]) =>
     ErrorOr<R>.error(ResponseError(code: code, message: message, data: data));
 
 ErrorOr<R> failure<R>(ErrorOr<dynamic> error) => ErrorOr<R>.error(error.error);
@@ -52,7 +52,7 @@ int lspHashCode(dynamic obj) {
   return JenkinsSmiHash.finish(hash);
 }
 
-Object specToJson(Object obj) {
+Object? specToJson(Object? obj) {
   if (obj is ToJsonable) {
     return obj.toJson();
   } else {
@@ -60,7 +60,7 @@ Object specToJson(Object obj) {
   }
 }
 
-ErrorOr<R> success<R>([R t]) => ErrorOr<R>.success(t);
+ErrorOr<R> success<R>(R t) => ErrorOr<R>.success(t);
 
 Null _alwaysNull(_, [__]) => null;
 
@@ -68,13 +68,13 @@ bool _alwaysTrue(_, [__]) => true;
 
 class Either2<T1, T2> {
   final int _which;
-  final T1 _t1;
-  final T2 _t2;
+  final T1? _t1;
+  final T2? _t2;
 
-  Either2.t1(this._t1)
+  Either2.t1(T1 this._t1)
       : _t2 = null,
         _which = 1;
-  Either2.t2(this._t2)
+  Either2.t2(T2 this._t2)
       : _t1 = null,
         _which = 2;
 
@@ -86,10 +86,10 @@ class Either2<T1, T2> {
       o is Either2<T1, T2> && lspEquals(o._t1, _t1) && lspEquals(o._t2, _t2);
 
   T map<T>(T Function(T1) f1, T Function(T2) f2) {
-    return _which == 1 ? f1(_t1) : f2(_t2);
+    return _which == 1 ? f1(_t1 as T1) : f2(_t2 as T2);
   }
 
-  Object toJson() => map(specToJson, specToJson);
+  Object? toJson() => map(specToJson, specToJson);
 
   @override
   String toString() => map((t) => t.toString(), (t) => t.toString());
@@ -100,9 +100,9 @@ class Either2<T1, T2> {
 
 class Either3<T1, T2, T3> {
   final int _which;
-  final T1 _t1;
-  final T2 _t2;
-  final T3 _t3;
+  final T1? _t1;
+  final T2? _t2;
+  final T3? _t3;
 
   Either3.t1(this._t1)
       : _t2 = null,
@@ -130,17 +130,17 @@ class Either3<T1, T2, T3> {
   T map<T>(T Function(T1) f1, T Function(T2) f2, T Function(T3) f3) {
     switch (_which) {
       case 1:
-        return f1(_t1);
+        return f1(_t1 as T1);
       case 2:
-        return f2(_t2);
+        return f2(_t2 as T2);
       case 3:
-        return f3(_t3);
+        return f3(_t3 as T3);
       default:
         throw 'Invalid state.';
     }
   }
 
-  Object toJson() => map(specToJson, specToJson, specToJson);
+  Object? toJson() => map(specToJson, specToJson, specToJson);
 
   @override
   String toString() => map(
@@ -155,10 +155,10 @@ class Either3<T1, T2, T3> {
 
 class Either4<T1, T2, T3, T4> {
   final int _which;
-  final T1 _t1;
-  final T2 _t2;
-  final T3 _t3;
-  final T4 _t4;
+  final T1? _t1;
+  final T2? _t2;
+  final T3? _t3;
+  final T4? _t4;
 
   Either4.t1(this._t1)
       : _t2 = null,
@@ -196,19 +196,19 @@ class Either4<T1, T2, T3, T4> {
       T Function(T4) f4) {
     switch (_which) {
       case 1:
-        return f1(_t1);
+        return f1(_t1 as T1);
       case 2:
-        return f2(_t2);
+        return f2(_t2 as T2);
       case 3:
-        return f3(_t3);
+        return f3(_t3 as T3);
       case 4:
-        return f4(_t4);
+        return f4(_t4 as T4);
       default:
         throw 'Invalid state.';
     }
   }
 
-  Object toJson() => map(specToJson, specToJson, specToJson, specToJson);
+  Object? toJson() => map(specToJson, specToJson, specToJson, specToJson);
 
   @override
   String toString() => map(
@@ -225,12 +225,12 @@ class Either4<T1, T2, T3, T4> {
 
 class ErrorOr<T> extends Either2<ResponseError, T> {
   ErrorOr.error(ResponseError error) : super.t1(error);
-  ErrorOr.success([T result]) : super.t2(result);
+  ErrorOr.success(T result) : super.t2(result);
 
   /// Returns the error or throws if object is not an error. Check [isError]
   /// before accessing [error].
   ResponseError get error {
-    return _which == 1 ? _t1 : (throw 'Value is not an error');
+    return _which == 1 ? _t1 as ResponseError : (throw 'Value is not an error');
   }
 
   /// Returns true if this object is an error, false if it is a result. Prefer
@@ -242,7 +242,7 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
   /// before accessing [result]. It is valid for this to return null is the
   /// object does not represent an error but the resulting value was null.
   T get result {
-    return _which == 2 ? _t2 : (throw 'Value is not a result');
+    return _which == 2 ? _t2 as T : (throw 'Value is not a result');
   }
 
   /// If this object is a result, maps [result] through [f], otherwise returns
@@ -253,6 +253,20 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
         ? ErrorOr<N>.error(error)
         // Otherwise call the map function
         : f(result);
+  }
+
+  /// Converts a [List<ErrorOr<T>>] into an [ErrorOr<List<T>>]. If any of the
+  /// items represents an error, that error will be returned. Otherwise, the
+  /// list of results will be returned in a success response.
+  static ErrorOr<List<T>> all<T>(Iterable<ErrorOr<T>> items) {
+    final results = <T>[];
+    for (final item in items) {
+      if (item.isError) {
+        return failure(item);
+      }
+      results.add(item.result);
+    }
+    return success(results);
   }
 }
 
@@ -266,9 +280,9 @@ abstract class IncomingMessage {
 /// A helper to allow handlers to declare both a JSON validation function and
 /// parse function.
 class LspJsonHandler<T> {
-  final bool Function(Map<String, Object>, LspJsonReporter reporter)
+  final bool Function(Map<String, Object?>?, LspJsonReporter reporter)
       validateParams;
-  final T Function(Map<String, Object>) convertParams;
+  final T Function(Map<String, Object?>) convertParams;
 
   const LspJsonHandler(this.validateParams, this.convertParams);
 }

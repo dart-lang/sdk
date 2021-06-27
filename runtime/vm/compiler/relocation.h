@@ -117,8 +117,8 @@ class InstructionsMapTraits {
 
   static Key KeyOf(Pair kv) { return kv.instructions; }
   static ValueType ValueOf(Pair kv) { return kv.value; }
-  static inline intptr_t Hashcode(Key key) {
-    return static_cast<intptr_t>(key);
+  static inline uword Hash(Key key) {
+    return Utils::WordHash(static_cast<intptr_t>(key));
   }
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair.instructions == key;
@@ -161,7 +161,7 @@ class CodeRelocator : public StackResource {
 
   void Relocate(bool is_vm_isolate);
 
-  void FindInstructionAndCallLimits();
+  void FindLargestInstruction();
 
   bool AddInstructionsToText(CodePtr code);
   void ScanCallTargets(const Code& code,
@@ -183,7 +183,9 @@ class CodeRelocator : public StackResource {
                                 intptr_t destination_text);
   void ResolveTrampoline(UnresolvedTrampoline* unresolved_trampoline);
 
-  void BuildTrampolinesForAlmostOutOfRangeCalls();
+  void BuildTrampolinesForAlmostOutOfRangeCalls(
+      const Code& next_caller,
+      const Array& next_caller_targets);
 
   intptr_t FindDestinationInText(const InstructionsPtr destination,
                                  intptr_t offset_into_target);
@@ -207,7 +209,6 @@ class CodeRelocator : public StackResource {
   intptr_t max_instructions_size_ = 0;
   // The maximum number of pc-relative calls in an instructions object.
   intptr_t max_calls_ = 0;
-  intptr_t max_offset_into_target_ = 0;
 
   // Data structures used for relocation.
   intptr_t next_text_offset_ = 0;

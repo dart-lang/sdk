@@ -125,10 +125,9 @@ const intptr_t InterruptChecker::kIterations = 10;
 // compiler and/or CPU could reorder operations to make the tasks observe the
 // round update *before* the interrupt is set.
 TEST_CASE(StackLimitInterrupts) {
-  Isolate* isolate = thread->isolate();
-  ThreadBarrier barrier(InterruptChecker::kTaskCount + 1,
-                        isolate->heap()->barrier(),
-                        isolate->heap()->barrier_done());
+  auto heap = thread->isolate_group()->heap();
+  ThreadBarrier barrier(InterruptChecker::kTaskCount + 1, heap->barrier(),
+                        heap->barrier_done());
   // Start all tasks. They will busy-wait until interrupted in the first round.
   for (intptr_t task = 0; task < InterruptChecker::kTaskCount; task++) {
     Dart::thread_pool()->Run<InterruptChecker>(thread, &barrier);

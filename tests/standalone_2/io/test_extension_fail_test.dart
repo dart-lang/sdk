@@ -4,6 +4,8 @@
 //
 // Dart test program for testing native extensions.
 
+// @dart = 2.9
+
 // OtherResources=test_extension.dart
 // OtherResources=test_extension_fail_tester.dart
 // OtherResources=test_relative_extension.dart

@@ -32,8 +32,9 @@ class A {
   //                          ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.SUPER_IN_REDIRECTING_CONSTRUCTOR
   // [cfe] A redirecting constructor can't have other initializers.
-  //                               ^^^
+  //                                ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //                               ^^^
   // [cfe] Too many positional arguments: 0 allowed, but 1 found.
 }
 

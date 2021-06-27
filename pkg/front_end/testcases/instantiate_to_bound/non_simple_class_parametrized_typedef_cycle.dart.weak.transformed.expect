@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle.dart:9:12: Error: Type variables can't have generic function types in their bounds.
+// class Hest<TypeX extends Fisk> {}
+//            ^^^^^
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle.dart:11:9: Error: Generic type 'Fisk' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Hest'.
+// Try providing type arguments to 'Hest' here or to some other raw types in the bounds along the reference chain.
+// typedef Fisk = void Function<TypeY extends Hest>();
+//         ^^^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle.dart:11:30: Context: Bound of this variable references raw type 'Hest'.
+// typedef Fisk = void Function<TypeY extends Hest>();
+//                              ^^^^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle.dart:9:12: Context: Bound of this variable references raw type 'Fisk'.
+// class Hest<TypeX extends Fisk> {}
+//            ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Fisk = <TypeY extends core::Object* = dynamic>() →* void;
+class Hest<TypeX extends <TypeY extends core::Object* = dynamic>() →* void = dynamic> extends core::Object {
+  synthetic constructor •() → self::Hest<self::Hest::TypeX*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

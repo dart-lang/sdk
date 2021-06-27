@@ -79,6 +79,17 @@ main() {
 ''');
   }
 
+  @failingTest
+  Future<void> test_propertyAccess() async {
+    // We should not offer to define a local variable named 'g'.
+    await resolveTestCode('''
+void f(String s) {
+  s.g;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_read_typeAssignment() async {
     await resolveTestCode('''
 main() {
@@ -158,7 +169,7 @@ import 'package:pkg/a/a.dart';
 import 'package:pkg/b/b.dart';
 
 class C {
-  C(A a, B b);
+  C(A? a, B b);
 }
 ''');
 
@@ -172,7 +183,7 @@ import 'package:pkg/a/a.dart';
 import 'package:pkg/c/c.dart';
 
 main() {
-  A a;
+  A? a;
   new C(a, b);
 }
 ''');
@@ -182,7 +193,7 @@ import 'package:pkg/b/b.dart';
 import 'package:pkg/c/c.dart';
 
 main() {
-  A a;
+  A? a;
   B b;
   new C(a, b);
 }
@@ -192,12 +203,12 @@ main() {
     var typeGroup = groups[0];
     var typePositions = typeGroup.positions;
     expect(typePositions, hasLength(1));
-    expect(typePositions[0].offset, 112);
+    expect(typePositions[0].offset, 113);
     var nameGroup = groups[1];
     var groupPositions = nameGroup.positions;
     expect(groupPositions, hasLength(2));
-    expect(groupPositions[0].offset, 114);
-    expect(groupPositions[1].offset, 128);
+    expect(groupPositions[0].offset, 115);
+    expect(groupPositions[1].offset, 129);
   }
 
   Future<void> test_write_assignment() async {

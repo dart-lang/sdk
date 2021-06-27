@@ -102,9 +102,9 @@ class VMLibraryHooks {
   }
 }
 
-final bool is64Bit = _inquireIs64Bit();
-
-bool _inquireIs64Bit() native "Internal_inquireIs64Bit";
+@pragma("vm:recognized", "other")
+@pragma('vm:prefer-inline')
+bool get has63BitSmis native "Internal_has63BitSmis";
 
 @pragma("vm:recognized", "other")
 @pragma("vm:entry-point", "call")
@@ -163,10 +163,15 @@ Int32List _growRegExpStack(Int32List stack) {
 T unsafeCast<T>(Object? v) native "Internal_unsafeCast";
 
 // This function can be used to keep an object alive til that point.
-//
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
 void reachabilityFence(Object object) native "Internal_reachabilityFence";
+
+// This function can be used to encode native side effects.
+//
+// The function call and it's argument are removed in flow graph construction.
+@pragma("vm:recognized", "other")
+void _nativeEffect(Object object) native "Internal_nativeEffect";
 
 void sendAndExit(SendPort sendPort, var message)
     native "SendPortImpl_sendAndExitInternal_";

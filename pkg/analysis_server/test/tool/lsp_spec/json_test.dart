@@ -20,7 +20,7 @@ void main() {
 
     test('returns correct output for union types', () {
       final message = RequestMessage(
-          id: Either2<num, String>.t1(1),
+          id: Either2<int, String>.t1(1),
           method: Method.shutdown,
           jsonrpc: 'test');
       final output = json.encode(message.toJson());
@@ -80,6 +80,19 @@ void main() {
       expect(output, equals(expected));
     });
 
+    test('toJson() converts lists of enums to their underlying values', () {
+      final kind = CompletionClientCapabilitiesCompletionItemKind(
+        valueSet: [CompletionItemKind.Color],
+      );
+      final json = kind.toJson();
+      expect(
+        json['valueSet'],
+        // The list should contain the toJson (string/int) representation of
+        // the color, and not the CompletionItemKind itself.
+        equals([CompletionItemKind.Color.toJson()]),
+      );
+    });
+
     test('serialises enums to their underlying values', () {
       final foldingRange = FoldingRange(
           startLine: 1,
@@ -100,7 +113,7 @@ void main() {
     });
 
     test('ResponseMessage does not include an error with a result', () {
-      final id = Either2<num, String>.t1(1);
+      final id = Either2<int, String>.t1(1);
       final result = 'my result';
       final resp =
           ResponseMessage(id: id, result: result, jsonrpc: jsonRpcVersion);
@@ -289,7 +302,7 @@ void main() {
     });
 
     test('ResponseMessage can include a null result', () {
-      final id = Either2<num, String>.t1(1);
+      final id = Either2<int, String>.t1(1);
       final resp = ResponseMessage(id: id, jsonrpc: jsonRpcVersion);
       final jsonMap = resp.toJson();
       expect(jsonMap, contains('result'));
@@ -297,7 +310,7 @@ void main() {
     });
 
     test('ResponseMessage does not include a result for an error', () {
-      final id = Either2<num, String>.t1(1);
+      final id = Either2<int, String>.t1(1);
       final error =
           ResponseError(code: ErrorCodes.ParseError, message: 'Error');
       final resp =
@@ -308,7 +321,7 @@ void main() {
     });
 
     test('ResponseMessage throws if both result and error are non-null', () {
-      final id = Either2<num, String>.t1(1);
+      final id = Either2<int, String>.t1(1);
       final result = 'my result';
       final error =
           ResponseError(code: ErrorCodes.ParseError, message: 'Error');
@@ -374,6 +387,10 @@ void main() {
   });
 
   test('objects with lists can round-trip through to json and back', () {
+    final workspaceFolders = [
+      WorkspaceFolder(uri: '!uri1', name: '!name1'),
+      WorkspaceFolder(uri: '!uri2', name: '!name2'),
+    ];
     final obj = InitializeParams(
       processId: 1,
       clientInfo:
@@ -381,21 +398,17 @@ void main() {
       rootPath: '!root',
       capabilities: ClientCapabilities(),
       trace: 'off',
-      workspaceFolders: [
-        WorkspaceFolder(uri: '!uri1', name: '!name1'),
-        WorkspaceFolder(uri: '!uri2', name: '!name2'),
-      ],
+      workspaceFolders: workspaceFolders,
     );
     final json = jsonEncode(obj);
     final restoredObj = InitializeParams.fromJson(jsonDecode(json));
+    final restoredWorkspaceFolders = restoredObj.workspaceFolders!;
 
-    expect(
-        restoredObj.workspaceFolders, hasLength(obj.workspaceFolders.length));
-    for (var i = 0; i < obj.workspaceFolders.length; i++) {
-      expect(restoredObj.workspaceFolders[i].name,
-          equals(obj.workspaceFolders[i].name));
-      expect(restoredObj.workspaceFolders[i].uri,
-          equals(obj.workspaceFolders[i].uri));
+    expect(restoredWorkspaceFolders, hasLength(workspaceFolders.length));
+    for (var i = 0; i < workspaceFolders.length; i++) {
+      expect(
+          restoredWorkspaceFolders[i].name, equals(workspaceFolders[i].name));
+      expect(restoredWorkspaceFolders[i].uri, equals(workspaceFolders[i].uri));
     }
   });
 
@@ -429,7 +442,7 @@ void main() {
 
     expect(restoredObj.documentChanges, equals(obj.documentChanges));
     expect(restoredObj.changes, equals(obj.changes));
-    expect(restoredObj.changes.keys, equals(obj.changes.keys));
-    expect(restoredObj.changes.values, equals(obj.changes.values));
+    expect(restoredObj.changes!.keys, equals(obj.changes!.keys));
+    expect(restoredObj.changes!.values, equals(obj.changes!.values));
   });
 }

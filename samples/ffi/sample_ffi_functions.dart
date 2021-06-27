@@ -13,8 +13,8 @@ typedef NativeBinaryOp = Int32 Function(Int32, Int32);
 typedef UnaryOp = int Function(int);
 typedef BinaryOp = int Function(int, int);
 typedef GenericBinaryOp<T> = int Function(int, T);
-typedef NativeQuadOpSigned = Int64 Function(Int64, Int32, Int16, Int8);
-typedef NativeQuadOpUnsigned = Uint64 Function(Uint64, Uint32, Uint16, Uint8);
+typedef NativeQuadOpSigned = Int64 Function(Int8, Int16, Int32, Int64);
+typedef NativeQuadOpUnsigned = Uint64 Function(Uint8, Uint16, Uint32, Uint64);
 typedef NativeFunc4 = IntPtr Function(IntPtr);
 typedef NativeDoubleUnaryOp = Double Function(Double);
 typedef NativeFloatUnaryOp = Float Function(Float);
@@ -91,6 +91,16 @@ main() {
   }
 
   {
+    // As a leaf call.
+    BinaryOp sumPlus42Leaf = ffiTestFunctions
+        .lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42", isLeaf: true);
+
+    final result = sumPlus42Leaf(3, 17);
+    print(result);
+    print(result.runtimeType);
+  }
+
+  {
     // Various size arguments.
     QuadOp intComputation = ffiTestFunctions
         .lookupFunction<NativeQuadOpSigned, QuadOp>("IntComputation");
@@ -99,7 +109,7 @@ main() {
     print(result.runtimeType);
 
     var mint = 0x7FFFFFFFFFFFFFFF; // 2 ^ 63 - 1
-    result = intComputation(1, 1, 0, mint);
+    result = intComputation(1, 1, 1, mint);
     print(result);
     print(result.runtimeType);
   }
@@ -184,7 +194,7 @@ main() {
     // pass an array / pointer as argument
     Int64PointerUnOp assign1337Index1 = ffiTestFunctions
         .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>("Assign1337Index1");
-    Pointer<Int64> p2 = allocate(count: 2);
+    Pointer<Int64> p2 = calloc(2);
     p2.value = 42;
     p2[1] = 1000;
     print(p2.elementAt(1).address.toRadixString(16));
@@ -209,11 +219,11 @@ main() {
     print(result);
     print(result.runtimeType);
 
-    Pointer<Int64> p2 = allocate(count: 2);
+    Pointer<Int64> p2 = calloc(2);
     result = nullableInt64ElemAt1(p2);
     print(result);
     print(result.runtimeType);
-    free(p2);
+    calloc.free(p2);
   }
 
   print("end main");

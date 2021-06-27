@@ -13,7 +13,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
-import '../helpers/output_collector.dart';
 
 void main() {
   runTest() async {

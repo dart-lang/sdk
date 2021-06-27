@@ -246,7 +246,7 @@ main(A a, B b, C c, D d) {
 @reflectiveTest
 class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendExtractRequest(
-      int offset, int length, String name, bool extractAll) {
+      int offset, int length, String? name, bool extractAll) {
     var kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
     var options =
         name != null ? ExtractLocalVariableOptions(name, extractAll) : null;
@@ -261,7 +261,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
   }
 
   Future<Response> sendStringSuffixRequest(
-      String search, String suffix, String name, bool extractAll) {
+      String search, String suffix, String? name, bool extractAll) {
     var offset = findOffset(search + suffix);
     var length = search.length;
     return sendExtractRequest(offset, length, name, extractAll);
@@ -291,7 +291,7 @@ main() {
       return sendStringRequest('1 + 2', 'res', true);
     });
     // We get the refactoring feedback....
-    ExtractLocalVariableFeedback feedback = result.feedback;
+    var feedback = result.feedback as ExtractLocalVariableFeedback;
     expect(feedback.names, contains('myName'));
   }
 
@@ -304,7 +304,7 @@ main() {
     return getRefactoringResult(() {
       return sendExtractRequest(testCode.indexOf('222 +'), 0, 'res', true);
     }).then((result) {
-      ExtractLocalVariableFeedback feedback = result.feedback;
+      var feedback = result.feedback as ExtractLocalVariableFeedback;
       expect(feedback.coveringExpressionOffsets, [
         testCode.indexOf('222 +'),
         testCode.indexOf('111 +'),
@@ -388,7 +388,7 @@ main() {
     var result = await getRefactoringResult(() {
       return sendStringSuffixRequest('getSelectedItem()', ';', null, true);
     });
-    ExtractLocalVariableFeedback feedback = result.feedback;
+    var feedback = result.feedback as ExtractLocalVariableFeedback;
     expect(
         feedback.names, unorderedEquals(['treeItem', 'item', 'selectedItem']));
     expect(result.change, isNull);
@@ -424,7 +424,7 @@ main() {
     return getRefactoringResult(() {
       return sendStringRequest('1 + 2', 'res', true);
     }).then((result) {
-      ExtractLocalVariableFeedback feedback = result.feedback;
+      var feedback = result.feedback as ExtractLocalVariableFeedback;
       expect(feedback.offsets, [findOffset('1 + 2'), findOffset('1 +  2')]);
       expect(feedback.lengths, [5, 6]);
     });
@@ -488,7 +488,7 @@ foo(int myName) {}
       var result = await getRefactoringResult(() {
         return sendStringRequest('1 + 2', 'res', true);
       });
-      ExtractLocalVariableFeedback feedback = result.feedback;
+      var feedback = result.feedback as ExtractLocalVariableFeedback;
       expect(feedback.names, contains('myName'));
     }
     var initialResetCount = test_resetCount;
@@ -513,7 +513,7 @@ foo(int myName) {}
       var result = await getRefactoringResult(() {
         return sendStringRequest('1 + 2', 'res', true);
       });
-      ExtractLocalVariableFeedback feedback = result.feedback;
+      var feedback = result.feedback as ExtractLocalVariableFeedback;
       expect(feedback.names, contains('myName'));
     }
     var initialResetCount = test_resetCount;
@@ -532,7 +532,7 @@ foo(int otherName) {}
       var result = await getRefactoringResult(() {
         return sendStringRequest('1 + 2', 'res', true);
       });
-      ExtractLocalVariableFeedback feedback = result.feedback;
+      var feedback = result.feedback as ExtractLocalVariableFeedback;
       // The refactoring was reset, so we don't get stale results.
       expect(feedback.names, contains('otherName'));
     }
@@ -547,8 +547,8 @@ main() {
 ''');
     return waitForTasksFinished().then((_) {
       return sendStringRequest('1 + 2', 'res', true).then((response) {
-        expect(response.error, isNotNull);
-        expect(response.error.code, RequestErrorCode.SERVER_ERROR);
+        var error = response.error!;
+        expect(error.code, RequestErrorCode.SERVER_ERROR);
       });
     });
   }
@@ -562,8 +562,8 @@ main() {
 ''');
     return waitForTasksFinished().then((_) {
       return sendStringRequest('1 + 2', 'res', true).then((response) {
-        expect(response.error, isNotNull);
-        expect(response.error.code, RequestErrorCode.SERVER_ERROR);
+        var error = response.error!;
+        expect(error.code, RequestErrorCode.SERVER_ERROR);
       });
     });
   }
@@ -577,8 +577,8 @@ main() {
 ''');
     return waitForTasksFinished().then((_) {
       return sendStringRequest('1 + 2', 'res', true).then((response) {
-        expect(response.error, isNotNull);
-        expect(response.error.code, RequestErrorCode.SERVER_ERROR);
+        var error = response.error!;
+        expect(error.code, RequestErrorCode.SERVER_ERROR);
       });
     });
   }
@@ -586,10 +586,10 @@ main() {
 
 @reflectiveTest
 class ExtractMethodTest extends _AbstractGetRefactoring_Test {
-  int offset;
-  int length;
+  late int offset;
+  late int length;
   String name = 'res';
-  ExtractMethodOptions options;
+  ExtractMethodOptions? options;
 
   Future<void> test_expression() {
     addTestFile('''
@@ -642,13 +642,13 @@ main() {
 ''');
     _setOffsetLengthForString('a + b');
     var result = await getRefactoringResult(_computeChange);
-    ExtractMethodFeedback feedback = result.feedback;
+    var feedback = result.feedback as ExtractMethodFeedback;
     var parameters = feedback.parameters;
     parameters[0].name = 'aaa';
     parameters[1].name = 'bbb';
     parameters[1].type = 'num';
     parameters.insert(0, parameters.removeLast());
-    options.parameters = parameters;
+    options!.parameters = parameters;
     return assertSuccessfulRefactoring(_sendExtractRequest, '''
 main() {
   int a = 1;
@@ -763,6 +763,43 @@ void res(int a, int b) {
 ''');
   }
 
+  Future<void> test_statements_nullableReturnType() {
+    addTestFile('''
+void foo(int b) {
+// start
+  int? x;
+  if (b < 2) {
+    x = 42;
+  }
+  if (b >= 2) {
+    x = 43;
+  }
+// end
+  print(x!);
+}
+''');
+    _setOffsetLengthForStartEnd();
+    return assertSuccessfulRefactoring(_computeChange, '''
+void foo(int b) {
+// start
+  int? x = res(b);
+// end
+  print(x!);
+}
+
+int? res(int b) {
+  int? x;
+  if (b < 2) {
+    x = 42;
+  }
+  if (b >= 2) {
+    x = 43;
+  }
+  return x;
+}
+''');
+  }
+
   Future<Response> _computeChange() async {
     await _prepareOptions();
     // send request with the options
@@ -773,7 +810,7 @@ void res(int a, int b) {
     await waitForTasksFinished();
     var response = await _sendExtractRequest();
     var result = EditGetRefactoringResult.fromResponse(response);
-    return result.feedback;
+    return result.feedback as ExtractMethodFeedback;
   }
 
   Future _prepareOptions() {
@@ -783,7 +820,7 @@ void res(int a, int b) {
     }).then((result) {
       assertResultProblemsOK(result);
       // fill options from result
-      ExtractMethodFeedback feedback = result.feedback;
+      var feedback = result.feedback as ExtractMethodFeedback;
       options = ExtractMethodOptions(
           feedback.returnType, false, name, feedback.parameters, true);
       // done
@@ -809,7 +846,7 @@ void res(int a, int b) {
 
 @reflectiveTest
 class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
-  List<RefactoringKind> kinds;
+  late List<RefactoringKind> kinds;
 
   void addFlutterPackage() {
     var libFolder = MockPackages.instance.addFlutter(resourceProvider);
@@ -1075,7 +1112,7 @@ main() {
       return _sendInlineRequest('res =');
     });
     // We get the refactoring feedback....
-    InlineLocalVariableFeedback feedback = result.feedback;
+    var feedback = result.feedback as InlineLocalVariableFeedback;
     expect(feedback.occurrences, 2);
   }
 
@@ -1090,7 +1127,7 @@ main() {
     return getRefactoringResult(() {
       return _sendInlineRequest('test =');
     }).then((result) {
-      InlineLocalVariableFeedback feedback = result.feedback;
+      var feedback = result.feedback as InlineLocalVariableFeedback;
       expect(feedback.name, 'test');
       expect(feedback.occurrences, 2);
     });
@@ -1181,7 +1218,7 @@ class A {
     return getRefactoringResult(() {
       return _sendInlineRequest('test(int p)');
     }).then((result) {
-      InlineMethodFeedback feedback = result.feedback;
+      var feedback = result.feedback as InlineMethodFeedback;
       expect(feedback.className, 'A');
       expect(feedback.methodName, 'test');
       expect(feedback.isDeclaration, isTrue);
@@ -1286,7 +1323,7 @@ main() {
 
 @reflectiveTest
 class MoveFileTest extends _AbstractGetRefactoring_Test {
-  MoveFileOptions options;
+  late MoveFileOptions options;
 
   @failingTest
   Future<void> test_OK() {
@@ -1320,7 +1357,7 @@ import 'bin/lib.dart';
 
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
-  Future<Response> sendRenameRequest(String search, String newName,
+  Future<Response> sendRenameRequest(String search, String? newName,
       {String id = '0', bool validateOnly = false}) {
     var options = newName != null ? RenameOptions(newName) : null;
     var request = EditGetRefactoringParams(RefactoringKind.RENAME, testFile,
@@ -1407,7 +1444,7 @@ class NewName {
 }
 ''',
       feedbackValidator: (feedback) {
-        RenameFeedback renameFeedback = feedback;
+        var renameFeedback = feedback as RenameFeedback;
         expect(renameFeedback.offset, 18);
         expect(renameFeedback.length, 4);
       },
@@ -1436,7 +1473,7 @@ main() {
 }
 ''',
       feedbackValidator: (feedback) {
-        RenameFeedback renameFeedback = feedback;
+        var renameFeedback = feedback as RenameFeedback;
         expect(renameFeedback.offset, 42);
         expect(renameFeedback.length, 4);
       },
@@ -1465,7 +1502,7 @@ main() {
 }
 ''',
       feedbackValidator: (feedback) {
-        RenameFeedback renameFeedback = feedback;
+        var renameFeedback = feedback as RenameFeedback;
         expect(renameFeedback.offset, 48);
         expect(renameFeedback.length, 4);
       },
@@ -1494,7 +1531,7 @@ main() {
 }
 ''',
       feedbackValidator: (feedback) {
-        RenameFeedback renameFeedback = feedback;
+        var renameFeedback = feedback as RenameFeedback;
         expect(renameFeedback.offset, 42);
         expect(renameFeedback.length, 4);
       },
@@ -1523,7 +1560,7 @@ main() {
 }
 ''',
       feedbackValidator: (feedback) {
-        RenameFeedback renameFeedback = feedback;
+        var renameFeedback = feedback as RenameFeedback;
         expect(renameFeedback.offset, 48);
         expect(renameFeedback.length, 4);
       },
@@ -1557,7 +1594,7 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('Test {}', 'NewName', validateOnly: true);
     }).then((result) {
-      RenameFeedback feedback = result.feedback;
+      var feedback = result.feedback as RenameFeedback;
       assertResultProblemsOK(result);
       expect(feedback.elementKindName, 'class');
       expect(feedback.oldName, 'Test');
@@ -1733,13 +1770,12 @@ main(A a, a2) {
     }).then((result) {
       assertResultProblemsOK(result);
       // prepare potential edit ID
-      var potentialIds = result.potentialEdits;
+      var potentialIds = result.potentialEdits!;
       expect(potentialIds, hasLength(1));
       var potentialId = potentialIds[0];
       // find potential edit
-      var change = result.change;
-      var potentialEdit = _findEditWithId(change, potentialId);
-      expect(potentialEdit, isNotNull);
+      var change = result.change!;
+      var potentialEdit = _findEditWithId(change, potentialId)!;
       expect(potentialEdit.offset, findOffset('test(); // a2'));
       expect(potentialEdit.length, 4);
     });
@@ -1788,7 +1824,7 @@ class B {
 }
 ''',
       feedbackValidator: (feedback) {
-        RenameFeedback renameFeedback = feedback;
+        var renameFeedback = feedback as RenameFeedback;
         expect(renameFeedback.offset, 20);
         expect(renameFeedback.length, 4);
       },
@@ -1817,7 +1853,7 @@ main() {
 }
 ''',
       feedbackValidator: (feedback) {
-        RenameFeedback renameFeedback = feedback;
+        var renameFeedback = feedback as RenameFeedback;
         expect(renameFeedback.offset, 43);
         expect(renameFeedback.length, 4);
       },
@@ -1834,7 +1870,7 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('st v;', 'NewName');
     }).then((result) {
-      RenameFeedback feedback = result.feedback;
+      var feedback = result.feedback as RenameFeedback;
       expect(feedback, isNotNull);
       expect(feedback.offset, findOffset('Test v;'));
       expect(feedback.length, 'Test'.length);
@@ -1928,7 +1964,7 @@ main() {
 }
 ''',
         feedbackValidator: (feedback) {
-          RenameFeedback renameFeedback = feedback;
+          var renameFeedback = feedback as RenameFeedback;
           expect(renameFeedback.offset, -1);
           expect(renameFeedback.length, 0);
         });
@@ -1956,7 +1992,7 @@ main() {
 }
 ''',
         feedbackValidator: (feedback) {
-          RenameFeedback renameFeedback = feedback;
+          var renameFeedback = feedback as RenameFeedback;
           expect(renameFeedback.offset, 51);
           expect(renameFeedback.length, 4);
         });
@@ -2125,7 +2161,7 @@ main() {
   print(otherName);
 }
 ''');
-    server.getAnalysisDriver(testFile).getResult(testFile);
+    server.getAnalysisDriver(testFile)!.getResult2(testFile);
     // send the second request, with the same kind, file and offset
     await waitForTasksFinished();
     result = await getRefactoringResult(() {
@@ -2141,8 +2177,8 @@ main() {
         isResponseFailure('0', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
   }
 
-  SourceEdit _findEditWithId(SourceChange change, String id) {
-    SourceEdit potentialEdit;
+  SourceEdit? _findEditWithId(SourceChange change, String id) {
+    SourceEdit? potentialEdit;
     change.edits.forEach((fileEdit) {
       fileEdit.edits.forEach((edit) {
         if (edit.id == id) {
@@ -2153,9 +2189,8 @@ main() {
     return potentialEdit;
   }
 
-  void _validateFeedback(EditGetRefactoringResult result, {String oldName}) {
-    RenameFeedback feedback = result.feedback;
-    expect(feedback, isNotNull);
+  void _validateFeedback(EditGetRefactoringResult result, {String? oldName}) {
+    var feedback = result.feedback as RenameFeedback;
     if (oldName != null) {
       expect(feedback.oldName, oldName);
     }
@@ -2168,7 +2203,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
 
   /// Asserts that [problems] has a single ERROR problem.
   void assertResultProblemsError(List<RefactoringProblem> problems,
-      [String message]) {
+      [String? message]) {
     var problem = problems[0];
     expect(problem.severity, RefactoringProblemSeverity.ERROR,
         reason: problem.toString());
@@ -2179,7 +2214,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
 
   /// Asserts that [result] has a single FATAL problem.
   void assertResultProblemsFatal(List<RefactoringProblem> problems,
-      [String message]) {
+      [String? message]) {
     var problem = problems[0];
     expect(problems, hasLength(1));
     expect(problem.severity, RefactoringProblemSeverity.FATAL,
@@ -2198,7 +2233,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
 
   /// Asserts that [result] has a single WARNING problem.
   void assertResultProblemsWarning(List<RefactoringProblem> problems,
-      [String message]) {
+      [String? message]) {
     var problem = problems[0];
     expect(problems, hasLength(1));
     expect(problem.severity, RefactoringProblemSeverity.WARNING,
@@ -2210,7 +2245,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
 
   Future assertSuccessfulRefactoring(
       Future<Response> Function() requestSender, String expectedCode,
-      {void Function(RefactoringFeedback) feedbackValidator}) async {
+      {void Function(RefactoringFeedback?)? feedbackValidator}) async {
     var result = await getRefactoringResult(requestSender);
     assertResultProblemsOK(result);
     if (feedbackValidator != null) {
@@ -2223,8 +2258,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   /// which results in the [expectedCode].
   void assertTestRefactoringResult(
       EditGetRefactoringResult result, String expectedCode) {
-    var change = result.change;
-    expect(change, isNotNull);
+    var change = result.change!;
     for (var fileEdit in change.edits) {
       if (fileEdit.file == testFile) {
         var actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
@@ -2245,7 +2279,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future<Response> sendRequest(
-      RefactoringKind kind, int offset, int length, RefactoringOptions options,
+      RefactoringKind kind, int offset, int length, RefactoringOptions? options,
       [bool validateOnly = false]) {
     var request = EditGetRefactoringParams(
             kind, testFile, offset, length, validateOnly,

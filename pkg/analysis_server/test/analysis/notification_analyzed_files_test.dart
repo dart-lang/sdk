@@ -18,7 +18,7 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
-  List<String> analyzedFiles;
+  late List<String> analyzedFiles;
   bool analyzedFilesReceived = false;
 
   void assertHasFile(String filePath) {

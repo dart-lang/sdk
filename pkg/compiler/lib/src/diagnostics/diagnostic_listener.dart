@@ -49,8 +49,11 @@ abstract class DiagnosticReporter {
   void reportHint(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]);
 
+  void reportInfo(DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]);
+
   @deprecated
-  void reportInfo(Spannable node, MessageKind errorCode,
+  void reportInfoMessage(Spannable node, MessageKind errorCode,
       [Map<String, String> arguments = const {}]);
 
   /// Set current element of this reporter to [element]. This is used for

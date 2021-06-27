@@ -2,23 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*spec|three-frag.library: 
- output_units=[
-  f1: {units: [2{b, c}], usedBy: [2, 3], needs: []},
-  f2: {units: [1{b}], usedBy: [], needs: [1]},
-  f3: {units: [3{c}], usedBy: [], needs: [1]}],
- steps=[
-  b=(f1, f2),
-  c=(f1, f3)]
+/*spec.library: 
+ a_pre_fragments=[
+  p1: {units: [1{b}], usedBy: [], needs: []},
+  p2: {units: [3{c}], usedBy: [], needs: []},
+  p3: {units: [2{b, c}], usedBy: [], needs: []}],
+ b_finalized_fragments=[
+  f1: [1{b}],
+  f2: [3{c}],
+  f3: [2{b, c}]],
+ c_steps=[
+  b=(f3, f1),
+  c=(f3, f2)]
 */
 
-/*two-frag.library: 
- output_units=[
-  f1: {units: [2{b, c}, 1{b}], usedBy: [2], needs: []},
-  f2: {units: [3{c}], usedBy: [], needs: [1]}],
- steps=[
-  b=(f1),
-  c=(f1, f2)]
+/*two-frag|three-frag.library: 
+ a_pre_fragments=[
+  p1: {units: [1{b}], usedBy: [p3], needs: []},
+  p2: {units: [3{c}], usedBy: [p3], needs: []},
+  p3: {units: [2{b, c}], usedBy: [], needs: [p1, p2]}],
+ b_finalized_fragments=[
+  f1: [1{b}],
+  f2: [3{c}],
+  f3: [2{b, c}]],
+ c_steps=[
+  b=(f3, f1),
+  c=(f3, f2)]
 */
 
 // @dart = 2.7

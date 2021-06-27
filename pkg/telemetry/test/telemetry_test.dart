@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:telemetry/telemetry.dart';
 import 'package:test/test.dart';
-import 'package:usage/usage.dart';
 
 void main() {
   group('telemetry', () {
     test('getDartStorageDirectory', () {
-      Directory dir = getDartStorageDirectory();
+      var dir = getDartStorageDirectory();
       expect(dir, isNotNull);
     });
 

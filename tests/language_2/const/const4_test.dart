@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check compile-time constant library references with prefixes
 
+// @dart = 2.9
+
 library CTConst4Test;
 
 import "package:expect/expect.dart";

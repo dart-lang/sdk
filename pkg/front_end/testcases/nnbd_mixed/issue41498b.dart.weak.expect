@@ -12,11 +12,11 @@ class C extends core::Object {
     ;
   static method test() → void {
     () →* void f;
-    f.{core::Object::toString}();
+    f.{core::Object::toString}(){() →* core::String*};
   }
   method test2() → void {
     () →* void f;
-    f.{core::Object::toString}();
+    f.{core::Object::toString}(){() →* core::String*};
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -31,13 +31,13 @@ class C extends core::Object {
 }
 static method test() → dynamic {
   () →* void f;
-  f.{core::Object::toString}();
+  f.{core::Object::toString}(){() →* core::String*};
   core::Function* foo = () → Null {
     () →* void f;
-    f.{core::Object::toString}();
+    f.{core::Object::toString}(){() →* core::String*};
   };
   self::C::test();
-  new self::C::•().{self::C::test2}();
+  new self::C::•().{self::C::test2}(){() →* void};
 }
 static method main() → dynamic {
   iss::main();
@@ -74,29 +74,29 @@ class C extends core::Object {
     ;
   static method test() → void {
     () → void f;
-    (let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:11:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
+    (let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:11:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
     f.toString(); // error
-    ^" in f).{core::Object::toString}();
+    ^" in f).{core::Object::toString}(){() → core::String};
   }
   method test2() → void {
     () → void f;
-    (let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:17:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
+    (let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:17:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
     f.toString(); // error
-    ^" in f).{core::Object::toString}();
+    ^" in f).{core::Object::toString}(){() → core::String};
   }
 }
 static method test() → dynamic {
   () → void f;
-  (let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:24:3: Error: Non-nullable variable 'f' must be assigned before it can be used.
+  (let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:24:3: Error: Non-nullable variable 'f' must be assigned before it can be used.
   f.toString(); // error
-  ^" in f).{core::Object::toString}();
+  ^" in f).{core::Object::toString}(){() → core::String};
   core::Function foo = () → Null {
     () → void f;
-    (let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:29:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
+    (let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:29:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
     f.toString(); // error
-    ^" in f).{core::Object::toString}();
+    ^" in f).{core::Object::toString}(){() → core::String};
   };
   iss::C::test();
-  new iss::C::•().{iss::C::test2}();
+  new iss::C::•().{iss::C::test2}(){() → void};
 }
 static method main() → dynamic {}

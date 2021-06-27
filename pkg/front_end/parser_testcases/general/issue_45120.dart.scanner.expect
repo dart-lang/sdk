@@ -1,0 +1,17 @@
+@A<int>(0)
+typedef F<@A<int>(0) T> = int Function<@A<int>(0) X>(@A<int>(0) int);
+
+void main() {
+@A<int>(0)
+void Function<@A<int>(0) X>(@A<int>(0) int y)? f = null;
+}
+
+
+@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken]
+void[KeywordToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken] int[StringToken] y[StringToken])[SimpleToken]?[SimpleToken] f[StringToken] =[SimpleToken] null[KeywordToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

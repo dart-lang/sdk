@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,8 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ReadWriteWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ReadWriteWithNullSafetyTest extends PubPackageResolutionTest {
   @override
   bool get retainDataForTesting => true;
 
@@ -515,7 +513,8 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 68,
           1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          70, 2),
     ]);
     _assertAssigned('x +=', assigned: false, unassigned: true);
   }
@@ -530,7 +529,8 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 68,
           1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          69, 2),
     ]);
     _assertAssigned('x++', assigned: false, unassigned: true);
   }
@@ -545,7 +545,8 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 70,
           1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 70, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          68, 2),
     ]);
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -581,7 +582,8 @@ void f(bool b) {
   x += 1;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 90, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          92, 2),
     ]);
     _assertAssigned('x +=', assigned: false, unassigned: false);
   }
@@ -595,7 +597,8 @@ void f(bool b) {
   x++;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 90, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          91, 2),
     ]);
     _assertAssigned('x++', assigned: false, unassigned: false);
   }
@@ -609,7 +612,8 @@ void f(bool b) {
   ++x; // 0
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 92, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          90, 2),
     ]);
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
@@ -1208,13 +1212,13 @@ void f(bool b) {
 
   void _assertAssigned(
     String search, {
-    @required bool assigned,
-    @required bool unassigned,
+    required bool assigned,
+    required bool unassigned,
   }) {
     var node = findNode.simple(search);
 
-    var testingData = driverFor(testFilePath).testingData;
-    var unitData = testingData.uriToFlowAnalysisData[result.uri];
+    var testingData = driverFor(testFilePath).testingData!;
+    var unitData = testingData.uriToFlowAnalysisData[result.uri]!;
 
     if (assigned) {
       expect(unitData.definitelyAssigned, contains(node));

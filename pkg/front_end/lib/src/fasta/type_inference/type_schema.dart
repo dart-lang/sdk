@@ -36,10 +36,10 @@ String typeSchemaToString(DartType schema) {
 /// Extension of [Printer] that represents the unknown type as `?`.
 class TypeSchemaPrinter extends Printer {
   TypeSchemaPrinter(StringSink sink,
-      {NameSystem syntheticNames,
+      {NameSystem? syntheticNames,
       bool showOffsets: false,
-      ImportTable importTable,
-      Annotator annotator})
+      ImportTable? importTable,
+      Annotator? annotator})
       : super(sink,
             syntheticNames: syntheticNames,
             showOffsets: showOffsets,
@@ -62,16 +62,16 @@ class UnknownType extends DartType {
   const UnknownType();
 
   @override
-  Nullability get declaredNullability => null;
+  Nullability get declaredNullability => Nullability.undetermined;
 
   @override
-  Nullability get nullability => null;
+  Nullability get nullability => Nullability.undetermined;
 
   @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
-  bool equals(Object other, Assumptions assumptions) {
+  bool equals(Object other, Assumptions? assumptions) {
     // This class doesn't have any fields so all instances of `UnknownType` are
     // equal.
     return other is UnknownType;
@@ -91,6 +91,9 @@ class UnknownType extends DartType {
 
   @override
   UnknownType withDeclaredNullability(Nullability nullability) => this;
+
+  @override
+  UnknownType toNonNull() => this;
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -119,7 +122,7 @@ class _IsKnownVisitor extends DartTypeVisitor<bool> {
     for (NamedType namedParameterType in node.namedParameters) {
       if (!namedParameterType.type.accept(this)) return false;
     }
-    if (node.typedefType != null && !node.typedefType.accept(this)) {
+    if (node.typedefType != null && !node.typedefType!.accept(this)) {
       return false;
     }
     return true;

@@ -92,8 +92,6 @@ class AnalyzerImpl {
   /// it will be marked as being for a cold VM.
   Future<ErrorSeverity> analyze(ErrorFormatter formatter,
       {int printMode = 1}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     setupForAnalysis();
     return await _analyze(printMode, formatter);
   }
@@ -114,11 +112,11 @@ class AnalyzerImpl {
 
   /// Fills [errorsResults] using [files].
   Future<void> prepareErrors() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     for (var path in files) {
-      var errorsResult = await analysisDriver.getErrors(path);
-      errorsResults.add(errorsResult);
+      var errorsResult = await analysisDriver.getErrors2(path);
+      if (errorsResult is ErrorsResult) {
+        errorsResults.add(errorsResult);
+      }
     }
   }
 
@@ -141,8 +139,6 @@ class AnalyzerImpl {
 
   Future<ErrorSeverity> _analyze(
       int printMode, ErrorFormatter formatter) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // Don't try to analyze parts.
     if (libraryFile.isPart) {
       var libraryPath = libraryFile.path;
@@ -210,12 +206,10 @@ class AnalyzerImpl {
   }
 
   Future<LibraryElement> _resolveLibrary() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     var libraryPath = libraryFile.path;
     analysisDriver.priorityFiles = [libraryPath];
-    var elementResult = await analysisDriver.getUnitElement(libraryPath);
+    var elementResult =
+        await analysisDriver.getUnitElement2(libraryPath) as UnitElementResult;
     return elementResult.element.library;
   }
 
@@ -245,7 +239,7 @@ class StdInstrumentation extends NoopInstrumentationService {
   @override
   void logException(dynamic exception,
       [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments]) {
+      List<InstrumentationServiceAttachment> attachments = const []]) {
     errorSink.writeln(exception);
     errorSink.writeln(stackTrace);
   }

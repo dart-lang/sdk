@@ -22,7 +22,11 @@ class ChangeToNearestPreciseValue extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    IntegerLiteral integer = node;
+    var integer = node;
+    if (integer is! IntegerLiteral) {
+      return;
+    }
+
     var lexeme = integer.literal.lexeme;
     var precise = BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme));
     _correction = lexeme.toLowerCase().contains('x')

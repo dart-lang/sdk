@@ -34,23 +34,20 @@ import '../universe/selector.dart';
 import '../world.dart';
 import 'closure.dart';
 import 'elements.dart';
-import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'js_world.dart';
-import 'locals.dart';
 
 class JsClosedWorldBuilder {
   final JsKernelToElementMap _elementMap;
   final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
       new ClassHierarchyNodesMap();
   final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
-  final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataBuilder _closureDataBuilder;
   final CompilerOptions _options;
   final AbstractValueStrategy _abstractValueStrategy;
 
-  JsClosedWorldBuilder(this._elementMap, this._globalLocalsMap,
-      this._closureDataBuilder, this._options, this._abstractValueStrategy);
+  JsClosedWorldBuilder(this._elementMap, this._closureDataBuilder,
+      this._options, this._abstractValueStrategy);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
@@ -236,7 +233,6 @@ class JsClosedWorldBuilder {
             _elementMap.commonElements, _classHierarchyNodes, _classSets),
         _abstractValueStrategy,
         annotationsData,
-        _globalLocalsMap,
         closureData,
         outputUnitData,
         memberAccess);
@@ -414,23 +410,22 @@ class JsClosedWorldBuilder {
 
   /// Construct a closure class and set up the necessary class inference
   /// hierarchy.
-  KernelClosureClassInfo buildClosureClass(
+  JsClosureClassInfo buildClosureClass(
       MemberEntity member,
       ir.FunctionNode originalClosureFunctionNode,
       JLibrary enclosingLibrary,
-      Map<Local, JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
       KernelScopeInfo info,
-      KernelToLocalsMap localsMap,
       {bool createSignatureMethod}) {
-    ClassEntity superclass = _commonElements.closureClass;
+    ClassEntity superclass =
+        _chooseClosureSuperclass(originalClosureFunctionNode);
 
-    KernelClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
+    JsClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
         member,
         originalClosureFunctionNode,
         enclosingLibrary,
         boxedVariables,
         info,
-        localsMap,
         _dartTypes.interfaceType(superclass, const []),
         createSignatureMethod: createSignatureMethod);
 
@@ -444,6 +439,21 @@ class JsClosedWorldBuilder {
     node.isDirectlyInstantiated = true;
 
     return closureClassInfo;
+  }
+
+  ClassEntity _chooseClosureSuperclass(ir.FunctionNode node) {
+    // Choose a superclass so that similar closures can share the metadata used
+    // by `Function.apply`.
+    int requiredParameterCount = node.requiredParameterCount;
+    if (node.typeParameters.isEmpty &&
+        node.namedParameters.isEmpty &&
+        requiredParameterCount == node.positionalParameters.length) {
+      if (requiredParameterCount == 0) return _commonElements.closureClass0Args;
+      if (requiredParameterCount == 2) return _commonElements.closureClass2Args;
+    }
+    // Note that the base closure class has specialized metadata for the common
+    // case of single-argument functions.
+    return _commonElements.closureClass;
   }
 
   OutputUnitData _convertOutputUnitData(JsToFrontendMapImpl map,
@@ -534,7 +544,7 @@ class TrivialClosureRtiNeed implements ClosureRtiNeed {
 
   @override
   bool instantiationNeedsTypeArguments(
-          DartType functionType, int typeArgumentCount) =>
+          FunctionType functionType, int typeArgumentCount) =>
       true;
 }
 
@@ -574,7 +584,7 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
 
   @override
   bool instantiationNeedsTypeArguments(
-          DartType functionType, int typeArgumentCount) =>
+          FunctionType functionType, int typeArgumentCount) =>
       rtiNeed.instantiationNeedsTypeArguments(functionType, typeArgumentCount);
 }
 
@@ -889,6 +899,9 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   @override
   ConstantValue visitDummyInterceptor(
           DummyInterceptorConstantValue constant, _) =>
+      constant;
+  @override
+  ConstantValue visitLateSentinel(LateSentinelConstantValue constant, _) =>
       constant;
   @override
   ConstantValue visitUnreachable(UnreachableConstantValue constant, _) =>

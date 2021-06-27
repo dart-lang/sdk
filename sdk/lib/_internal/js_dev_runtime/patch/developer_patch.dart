@@ -11,6 +11,16 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:isolate';
 
+var _issuedPostEventWarning = false;
+var _issuedRegisterExtensionWarning = false;
+final _developerSupportWarning = 'from dart:developer is only supported in '
+    'build/run/test environments where the developer event method hooks have '
+    'been set.';
+
+/// Returns `true` if the debugger service has been attached to the app.
+// TODO(46377) Update this check when we have a documented API for DDC apps.
+bool get _debuggerAttached => JS<bool>('!', r'!!#.$dwdsVersion', dart.global_);
+
 @patch
 @ForceInline()
 bool debugger({bool when = true, String? message}) {
@@ -59,7 +69,24 @@ ServiceExtensionHandler? _lookupExtension(String method) {
 
 @patch
 _registerExtension(String method, ServiceExtensionHandler handler) {
-  _extensions[method] = handler;
+  if (!_debuggerAttached) {
+    if (!_issuedRegisterExtensionWarning) {
+      var message = 'registerExtension() $_developerSupportWarning';
+      JS('', 'console.warn(#)', message);
+      _issuedRegisterExtensionWarning = true;
+    }
+    return;
+  }
+  // TODO(46377) Update this check when we have a documented API for DDC apps.
+  if (JS<bool>('!', r'!!#.$emitRegisterEvent', dart.global_)) {
+    _extensions[method] = handler;
+    // See hooks assigned by package:dwds:
+    // https://github.com/dart-lang/webdev/blob/de05cf9fbbfe088be74bb61df4a138289a94d902/dwds/web/client.dart#L223
+    JS('', r'#.$emitRegisterEvent(#)', dart.global_, method);
+    return;
+  }
+  // TODO(nshahan) Remove use of debug log after package:dwds removes support.
+  // https://github.com/dart-lang/webdev/issues/1342
   JS('', 'console.debug("dart.developer.registerExtension", #)', method);
 }
 
@@ -92,6 +119,23 @@ _invokeExtension(String methodName, String encodedJson) {
 
 @patch
 void _postEvent(String eventKind, String eventData) {
+  if (!_debuggerAttached) {
+    if (!_issuedPostEventWarning) {
+      var message = 'postEvent() $_developerSupportWarning';
+      JS('', 'console.warn(#)', message);
+      _issuedPostEventWarning = true;
+    }
+    return;
+  }
+  // TODO(46377) Update this check when we have a documented API for DDC apps.
+  if (JS<bool>('!', r'!!#.$emitDebugEvent', dart.global_)) {
+    // See hooks assigned by package:dwds:
+    // https://github.com/dart-lang/webdev/blob/de05cf9fbbfe088be74bb61df4a138289a94d902/dwds/web/client.dart#L220
+    JS('', r'#.$emitDebugEvent(#, #)', dart.global_, eventKind, eventData);
+    return;
+  }
+  // TODO(nshahan) Remove use of debug log after package:dwds removes support.
+  // https://github.com/dart-lang/webdev/issues/1342
   JS('', 'console.debug("dart.developer.postEvent", #, #)', eventKind,
       eventData);
 }

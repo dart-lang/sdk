@@ -73,8 +73,6 @@ static bool kernel_isolate_is_running = false;
 
 static Dart_Isolate main_isolate = NULL;
 
-static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size);
-
 #define SAVE_ERROR_AND_EXIT(result)                                            \
   *error = Utils::StrDup(Dart_GetError(result));                               \
   if (Dart_IsCompilationError(result)) {                                       \
@@ -109,10 +107,10 @@ static void WriteDepsFile(Dart_Isolate isolate) {
               Options::depfile());
   }
   bool success = true;
-  if (Options::snapshot_filename() != NULL) {
-    success &= file->Print("%s: ", Options::snapshot_filename());
-  } else {
+  if (Options::depfile_output_filename() != NULL) {
     success &= file->Print("%s: ", Options::depfile_output_filename());
+  } else {
+    success &= file->Print("%s: ", Options::snapshot_filename());
   }
   if (kernel_isolate_is_running) {
     Dart_KernelCompilationResult result = Dart_KernelListDependencies();
@@ -298,9 +296,14 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     }
     uint8_t* application_kernel_buffer = NULL;
     intptr_t application_kernel_buffer_size = 0;
+    // Only pass snapshot = true when generating an AppJIT snapshot to avoid
+    // duplicate null-safety info messages from the frontend when generating
+    // a kernel snapshot (this flag is instead set in
+    // Snapshot::GenerateKernel()).
+    const bool snapshot = Options::gen_snapshot_kind() == kAppJIT;
     dfe.CompileAndReadScript(script_uri, &application_kernel_buffer,
                              &application_kernel_buffer_size, error, exit_code,
-                             resolved_packages_config);
+                             resolved_packages_config, snapshot);
     if (application_kernel_buffer == NULL) {
       Dart_ExitScope();
       Dart_ShutdownIsolate();
@@ -548,6 +551,12 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     vm_service_server_port = 0;
   }
 
+  // We do not want to wait for DDS to advertise availability of VM service in
+  // the following scenarios:
+  // - The DartDev CLI is disabled (CLI isolate starts DDS) and VM service is
+  //   enabled.
+  // TODO(bkonyi): do we want to tie DevTools / DDS to the CLI in the long run?
+  bool wait_for_dds_to_advertise_service = !Options::disable_dart_dev();
   // Load embedder specific bits and return.
   if (!VmService::Setup(
           Options::disable_dart_dev() ? Options::vm_service_server_ip()
@@ -556,7 +565,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
           Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback(),
-          !Options::disable_dart_dev())) {
+          wait_for_dds_to_advertise_service)) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return NULL;
   }
@@ -584,40 +593,81 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   int64_t start = Dart_TimelineGetMicros();
 
   auto dartdev_path = DartDevIsolate::TryResolveDartDevSnapshotPath();
-  if (dartdev_path == nullptr) {
-    *error = Utils::StrDup("Unable to find DartDev snapshot");
-    return nullptr;
-  }
 
+  Dart_Isolate isolate = nullptr;
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
+  IsolateGroupData* isolate_group_data = nullptr;
+  IsolateData* isolate_data = nullptr;
 
-  auto isolate_group_data =
-      new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config, nullptr,
-                           /*isolate_run_app_snapshot*/ false);
-  uint8_t* application_kernel_buffer = NULL;
-  intptr_t application_kernel_buffer_size = 0;
-  dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
-                 &application_kernel_buffer_size);
-  isolate_group_data->SetKernelBufferNewlyOwned(application_kernel_buffer,
-                                                application_kernel_buffer_size);
+  if (error != nullptr) {
+    *error = nullptr;
+  }
+  AppSnapshot* app_snapshot = nullptr;
+  bool isolate_run_app_snapshot = true;
+  if (dartdev_path.get() != nullptr &&
+      (app_snapshot = Snapshot::TryReadAppSnapshot(dartdev_path.get())) !=
+          nullptr) {
+    const uint8_t* isolate_snapshot_data = NULL;
+    const uint8_t* isolate_snapshot_instructions = NULL;
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    app_snapshot->SetBuffers(
+        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    isolate_group_data =
+        new IsolateGroupData(dartdev_path.get(), packages_config, app_snapshot,
+                             isolate_run_app_snapshot);
+    isolate_data = new IsolateData(isolate_group_data);
+    isolate = Dart_CreateIsolateGroup(
+        DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
+        isolate_snapshot_instructions, flags, isolate_group_data, isolate_data,
+        error);
+  }
 
-  auto isolate_data = new IsolateData(isolate_group_data);
-  Dart_Isolate isolate = nullptr;
-  isolate = Dart_CreateIsolateGroup(
-      DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
-      isolate_snapshot_instructions, flags, isolate_group_data, isolate_data,
-      error);
+  if (isolate == nullptr) {
+    isolate_run_app_snapshot = false;
+    dartdev_path = DartDevIsolate::TryResolveDartDevKernelPath();
+    // Clear error from app snapshot and retry from kernel.
+    if (error != nullptr && *error != nullptr) {
+      free(*error);
+      *error = nullptr;
+    }
+
+    if (app_snapshot != nullptr) {
+      delete app_snapshot;
+    }
+
+    if (dartdev_path.get() != nullptr) {
+      isolate_group_data =
+          new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config, nullptr,
+                               isolate_run_app_snapshot);
+      uint8_t* application_kernel_buffer = NULL;
+      intptr_t application_kernel_buffer_size = 0;
+      dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
+                     &application_kernel_buffer_size);
+      isolate_group_data->SetKernelBufferNewlyOwned(
+          application_kernel_buffer, application_kernel_buffer_size);
+
+      isolate_data = new IsolateData(isolate_group_data);
+      isolate = Dart_CreateIsolateGroup(
+          DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
+          isolate_snapshot_instructions, flags, isolate_group_data,
+          isolate_data, error);
+    }
+  }
 
   Dart_Isolate created_isolate = nullptr;
   if (isolate == nullptr) {
+    Syslog::PrintErr("Failed to start the Dart CLI isolate\n");
     delete isolate_data;
     delete isolate_group_data;
+    return nullptr;
   } else {
     created_isolate = IsolateSetupHelper(
         isolate, false, DART_DEV_ISOLATE_NAME, packages_config,
-        /*isolate_run_app_snapshot*/ false, flags, error, exit_code);
+        isolate_run_app_snapshot, flags, error, exit_code);
   }
   int64_t end = Dart_TimelineGetMicros();
   Dart_TimelineEvent("CreateAndSetupDartDevIsolate", start, end,
@@ -873,32 +923,6 @@ static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
 
-static void WriteFile(const char* filename,
-                      const uint8_t* buffer,
-                      const intptr_t size) {
-  File* file = File::Open(NULL, filename, File::kWriteTruncate);
-  if (file == NULL) {
-    ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
-  }
-  if (!file->WriteFully(buffer, size)) {
-    ErrorExit(kErrorExitCode, "Unable to write file %s\n", filename);
-  }
-  file->Release();
-}
-
-static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
-  File* file = File::Open(NULL, filename, File::kRead);
-  if (file == NULL) {
-    ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
-  }
-  *size = file->Length();
-  *buffer = reinterpret_cast<uint8_t*>(malloc(*size));
-  if (!file->ReadFully(*buffer, *size)) {
-    ErrorExit(kErrorExitCode, "Unable to read file %s\n", filename);
-  }
-  file->Release();
-}
-
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
                     CommandLineOptions* dart_options) {
@@ -965,23 +989,6 @@ void RunMainIsolate(const char* script_name,
                 script_name);
     }
 
-    if (Options::load_compilation_trace_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      ReadFile(Options::load_compilation_trace_filename(), &buffer, &size);
-      result = Dart_LoadCompilationTrace(buffer, size);
-      free(buffer);
-      CHECK_RESULT(result);
-    }
-    if (Options::load_type_feedback_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      ReadFile(Options::load_type_feedback_filename(), &buffer, &size);
-      result = Dart_LoadTypeFeedback(buffer, size);
-      free(buffer);
-      CHECK_RESULT(result);
-    }
-
     // Create a closure for the main entry point which is in the exported
     // namespace of the root library or invoke a getter of the same name
     // in the exported namespace and return the resulting closure.
@@ -1016,21 +1023,6 @@ void RunMainIsolate(const char* script_name,
       }
     }
     CHECK_RESULT(result);
-
-    if (Options::save_compilation_trace_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      result = Dart_SaveCompilationTrace(&buffer, &size);
-      CHECK_RESULT(result);
-      WriteFile(Options::save_compilation_trace_filename(), buffer, size);
-    }
-    if (Options::save_type_feedback_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      result = Dart_SaveTypeFeedback(&buffer, &size);
-      CHECK_RESULT(result);
-      WriteFile(Options::save_type_feedback_filename(), buffer, size);
-    }
   }
 
   WriteDepsFile(isolate);
@@ -1237,6 +1229,7 @@ void main(int argc, char** argv) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Load vm_platform_strong.dill for dart:* source support.
   dfe.Init();
+  dfe.set_verbosity(Options::verbosity_level());
   if (script_name != nullptr) {
     uint8_t* application_kernel_buffer = NULL;
     intptr_t application_kernel_buffer_size = 0;

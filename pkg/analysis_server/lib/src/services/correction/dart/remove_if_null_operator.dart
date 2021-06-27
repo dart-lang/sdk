@@ -12,7 +12,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveIfNullOperator extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_IF_NULL_OPERATOR_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

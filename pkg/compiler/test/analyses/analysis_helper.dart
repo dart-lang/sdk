@@ -11,9 +11,6 @@ import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/diagnostics/messages.dart';
-import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/scope.dart';
 import 'package:compiler/src/ir/static_type.dart';
@@ -335,24 +332,24 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   }
 
   @override
-  void handlePropertyGet(
-      ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
+  void handleDynamicGet(ir.Expression node, ir.DartType receiverType,
+      ir.Name name, ir.DartType resultType) {
     if (receiverType is ir.DynamicType) {
-      registerError(node, "Dynamic access of '${node.name}'.");
+      registerError(node, "Dynamic access of '${name}'.");
     }
   }
 
   @override
-  void handlePropertySet(
-      ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
+  void handleDynamicSet(ir.Expression node, ir.DartType receiverType,
+      ir.Name name, ir.DartType valueType) {
     if (receiverType is ir.DynamicType) {
-      registerError(node, "Dynamic update to '${node.name}'.");
+      registerError(node, "Dynamic update to '${name}'.");
     }
   }
 
   @override
-  void handleMethodInvocation(
-      ir.MethodInvocation node,
+  void handleDynamicInvocation(
+      ir.InvocationExpression node,
       ir.DartType receiverType,
       ArgumentTypes argumentTypes,
       ir.DartType returnType) {

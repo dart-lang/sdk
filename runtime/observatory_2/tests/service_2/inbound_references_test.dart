@@ -8,14 +8,16 @@ import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
 import 'test_helper.dart';
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class Node {
   // Make sure this field is not removed by the tree shaker.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   var edge;
 }
 
 class Edge {}
 
+@pragma("vm:entry-point") // Prevent obfuscation
 var n, e, array;
 
 void script() {

@@ -4,12 +4,10 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
-
-/// Semantic tokens temporarily disabled due to a race condition.
-const enableSemanticTokens = false;
 
 /// Helper for reading client dynamic registrations which may be ommitted by the
 /// client.
@@ -39,12 +37,13 @@ class ClientDynamicRegistrations {
     Method.textDocument_codeAction,
     Method.textDocument_rename,
     Method.textDocument_foldingRange,
+    Method.textDocument_selectionRange,
     // workspace.fileOperations covers all file operation methods but we only
     // support this one.
     Method.workspace_willRenameFiles,
     // Sematic tokens are all registered under a single "method" as the
     // actual methods are controlled by the server capabilities.
-    if (enableSemanticTokens) CustomMethods.semanticTokenDynamicRegistration,
+    CustomMethods.semanticTokenDynamicRegistration,
   ];
   final ClientCapabilities _capabilities;
 
@@ -94,6 +93,9 @@ class ClientDynamicRegistrations {
   bool get rename =>
       _capabilities.textDocument?.rename?.dynamicRegistration ?? false;
 
+  bool get selectionRange =>
+      _capabilities.textDocument?.selectionRange?.dynamicRegistration ?? false;
+
   bool get semanticTokens =>
       _capabilities.textDocument?.semanticTokens?.dynamicRegistration ?? false;
 
@@ -124,25 +126,22 @@ class ServerCapabilitiesComputer {
 
   final LspAnalysisServer _server;
 
-  /// Map from method name to current registration data.
-  Map<String, Registration> currentRegistrations = {};
+  /// List of current registrations.
+  Set<Registration> currentRegistrations = {};
   var _lastRegistrationId = 0;
 
   ServerCapabilitiesComputer(this._server);
 
   ServerCapabilities computeServerCapabilities(
-      ClientCapabilities clientCapabilities) {
-    final codeActionLiteralSupport =
-        clientCapabilities.textDocument?.codeAction?.codeActionLiteralSupport;
-
-    final renameOptionsSupport =
-        clientCapabilities.textDocument?.rename?.prepareSupport ?? false;
-
+      LspClientCapabilities clientCapabilities) {
+    final codeActionLiteralSupport = clientCapabilities.literalCodeActions;
+    final renameOptionsSupport = clientCapabilities.renameValidation;
     final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
     final previewCommitCharacters =
         _server.clientConfiguration.previewCommitCharacters;
 
-    final dynamicRegistrations = ClientDynamicRegistrations(clientCapabilities);
+    final dynamicRegistrations =
+        ClientDynamicRegistrations(clientCapabilities.raw);
 
     // When adding new capabilities to the server that may apply to specific file
     // types, it's important to update
@@ -205,7 +204,7 @@ class ServerCapabilitiesComputer {
       // `textDocument.codeAction.codeActionLiteralSupport`."
       codeActionProvider: dynamicRegistrations.codeActions
           ? null
-          : codeActionLiteralSupport != null
+          : codeActionLiteralSupport
               ? Either2<bool, CodeActionOptions>.t2(CodeActionOptions(
                   codeActionKinds: DartCodeActionKind.serverSupportedKinds,
                 ))
@@ -236,18 +235,22 @@ class ServerCapabilitiesComputer {
               FoldingRangeRegistrationOptions>.t1(
               true,
             ),
-      semanticTokensProvider:
-          dynamicRegistrations.semanticTokens || !enableSemanticTokens
-              ? null
-              : Either2<SemanticTokensOptions,
-                  SemanticTokensRegistrationOptions>.t1(
-                  SemanticTokensOptions(
-                    legend: semanticTokenLegend.lspLegend,
-                    full: Either2<bool, SemanticTokensOptionsFull>.t2(
-                      SemanticTokensOptionsFull(delta: false),
-                    ),
-                  ),
+      selectionRangeProvider: dynamicRegistrations.selectionRange
+          ? null
+          : Either3<bool, SelectionRangeOptions,
+              SelectionRangeRegistrationOptions>.t1(true),
+      semanticTokensProvider: dynamicRegistrations.semanticTokens
+          ? null
+          : Either2<SemanticTokensOptions,
+              SemanticTokensRegistrationOptions>.t1(
+              SemanticTokensOptions(
+                legend: semanticTokenLegend.lspLegend,
+                full: Either2<bool, SemanticTokensOptionsFull>.t2(
+                  SemanticTokensOptionsFull(delta: false),
                 ),
+                range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
+              ),
+            ),
       executeCommandProvider: ExecuteCommandOptions(
         commands: Commands.serverSupportedCommands,
         workDoneProgress: true,
@@ -307,8 +310,10 @@ class ServerCapabilitiesComputer {
     // Completion is supported for some synchronised files that we don't _fully_
     // support (eg. YAML). If these gain support for things like hover, we may
     // wish to move them to fullySupprtedTypes but add an exclusion for formatting.
-    final completionSupportedTypes = {
-      ...fullySupportedTypes,
+    final completionSupportedTypesExcludingDart = {
+      // Dart is excluded here at it's registered separately with trigger/commit
+      // characters.
+      ...pluginTypes,
       pubspecFile,
       analysisOptionsFile,
       fixDataFile,
@@ -321,17 +326,17 @@ class ServerCapabilitiesComputer {
         _server.clientConfiguration.previewCommitCharacters;
 
     /// Helper for creating registrations with IDs.
-    void register(bool condition, Method method, [ToJsonable options]) {
+    void register(bool condition, Method method, [ToJsonable? options]) {
       if (condition == true) {
         registrations.add(Registration(
             id: (_lastRegistrationId++).toString(),
-            method: method.toJson(),
+            method: method.toString(),
             registerOptions: options));
       }
     }
 
     final dynamicRegistrations =
-        ClientDynamicRegistrations(_server.clientCapabilities);
+        ClientDynamicRegistrations(_server.clientCapabilities!.raw);
 
     register(
       dynamicRegistrations.textSync,
@@ -350,14 +355,24 @@ class ServerCapabilitiesComputer {
           syncKind: TextDocumentSyncKind.Incremental,
           documentSelector: synchronisedTypes),
     );
+    // Trigger and commit characters are specific to Dart, so register them
+    // separately to the others.
     register(
       dynamicRegistrations.completion,
       Method.textDocument_completion,
       CompletionRegistrationOptions(
-        documentSelector: completionSupportedTypes,
+        documentSelector: [dartFiles],
         triggerCharacters: dartCompletionTriggerCharacters,
         allCommitCharacters:
             previewCommitCharacters ? dartCompletionCommitCharacters : null,
+        resolveProvider: true,
+      ),
+    );
+    register(
+      dynamicRegistrations.completion,
+      Method.textDocument_completion,
+      CompletionRegistrationOptions(
+        documentSelector: completionSupportedTypesExcludingDart,
         resolveProvider: true,
       ),
     );
@@ -450,7 +465,14 @@ class ServerCapabilitiesComputer {
       Method.workspace_didChangeConfiguration,
     );
     register(
-      dynamicRegistrations.semanticTokens && enableSemanticTokens,
+      dynamicRegistrations.selectionRange,
+      Method.textDocument_selectionRange,
+      SelectionRangeRegistrationOptions(
+        documentSelector: [dartFiles],
+      ),
+    );
+    register(
+      dynamicRegistrations.semanticTokens,
       CustomMethods.semanticTokenDynamicRegistration,
       SemanticTokensRegistrationOptions(
         documentSelector: fullySupportedTypes,
@@ -458,64 +480,67 @@ class ServerCapabilitiesComputer {
         full: Either2<bool, SemanticTokensOptionsFull>.t2(
           SemanticTokensOptionsFull(delta: false),
         ),
+        range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
       ),
     );
 
     await _applyRegistrations(registrations);
   }
 
-  Future<void> _applyRegistrations(List<Registration> registrations) async {
-    final newRegistrationsByMethod = {
-      for (final registration in registrations)
-        registration.method: registration
-    };
+  Future<void> _applyRegistrations(List<Registration> newRegistrations) async {
+    // Compute a diff of old and new registrations to send the unregister or
+    // another register request. We compare registrations by their methods and
+    // the hashcode of their registration options to allow for multiple
+    // registrations of a single method.
 
-    final additionalRegistrations = List.of(registrations);
-    final removedRegistrations = <Unregistration>[];
+    String _registrationHash(Registration registration) =>
+        '${registration.method}${registration.registerOptions.hashCode}';
 
-    // compute a diff of old and new registrations to send the unregister or
-    // another register request. We assume that we'll only ever have one
-    // registration per LSP method name.
-    for (final entry in currentRegistrations.entries) {
-      final method = entry.key;
-      final registration = entry.value;
+    final newRegistrationsMap = Map.fromEntries(
+        newRegistrations.map((r) => MapEntry(r, _registrationHash(r))));
+    final newRegistrationsJsons = newRegistrationsMap.values.toSet();
+    final currentRegistrationsMap = Map.fromEntries(
+        currentRegistrations.map((r) => MapEntry(r, _registrationHash(r))));
+    final currentRegistrationJsons = currentRegistrationsMap.values.toSet();
 
-      final newRegistrationForMethod = newRegistrationsByMethod[method];
-      final entryRemovedOrChanged = newRegistrationForMethod?.registerOptions !=
-          registration.registerOptions;
+    final registrationsToAdd = newRegistrationsMap.entries
+        .where((entry) => !currentRegistrationJsons.contains(entry.value))
+        .map((entry) => entry.key)
+        .toList();
 
-      if (entryRemovedOrChanged) {
-        removedRegistrations.add(
-            Unregistration(id: registration.id, method: registration.method));
-      } else {
-        // Replace the registration in our new set with the original registration
-        // so that we retain the original ID sent to the client (otherwise we
-        // will try to unregister using an ID the client was never sent).
-        newRegistrationsByMethod[method] = registration;
-        additionalRegistrations.remove(newRegistrationForMethod);
-      }
-    }
+    final registrationsToRemove = currentRegistrationsMap.entries
+        .where((entry) => !newRegistrationsJsons.contains(entry.value))
+        .map((entry) => entry.key)
+        .toList();
 
-    currentRegistrations = newRegistrationsByMethod;
+    // Update the current list before we start sending requests since we
+    // go async.
+    currentRegistrations
+      ..removeAll(registrationsToRemove)
+      ..addAll(registrationsToAdd);
 
-    if (removedRegistrations.isNotEmpty) {
+    if (registrationsToRemove.isNotEmpty) {
+      final unregistrations = registrationsToRemove
+          .map((r) => Unregistration(id: r.id, method: r.method))
+          .toList();
       await _server.sendRequest(Method.client_unregisterCapability,
-          UnregistrationParams(unregisterations: removedRegistrations));
+          UnregistrationParams(unregisterations: unregistrations));
     }
 
     // Only send the registration request if we have at least one (since
     // otherwise we don't know that the client supports registerCapability).
-    if (additionalRegistrations.isNotEmpty) {
+    if (registrationsToAdd.isNotEmpty) {
       final registrationResponse = await _server.sendRequest(
         Method.client_registerCapability,
-        RegistrationParams(registrations: additionalRegistrations),
+        RegistrationParams(registrations: registrationsToAdd),
       );
 
-      if (registrationResponse.error != null) {
+      final error = registrationResponse.error;
+      if (error != null) {
         _server.logErrorToClient(
           'Failed to register capabilities with client: '
-          '(${registrationResponse.error.code}) '
-          '${registrationResponse.error.message}',
+          '(${error.code}) '
+          '${error.message}',
         );
       }
     }

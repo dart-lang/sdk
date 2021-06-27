@@ -25,8 +25,9 @@ class StatusTest extends AbstractAnalysisServerIntegrationTest {
     var analysisBegun = Completer();
     var analysisFinished = Completer();
     onServerStatus.listen((ServerStatusParams params) {
-      if (params.analysis != null) {
-        if (params.analysis.isAnalyzing) {
+      var analysisStatus = params.analysis;
+      if (analysisStatus != null) {
+        if (analysisStatus.isAnalyzing) {
           expect(analysisBegun.isCompleted, isFalse);
           analysisBegun.complete();
         } else {

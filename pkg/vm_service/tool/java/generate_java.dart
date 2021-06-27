@@ -50,11 +50,11 @@ More specifically, you should not make any calls to {@link VmService}
 from within any {@link Consumer} method.
 ''';
 
-Api api;
+late Api api;
 
 /// Convert documentation references
 /// from spec style of [className] to javadoc style {@link className}
-String convertDocLinks(String doc) {
+String? convertDocLinks(String? doc) {
   if (doc == null) return null;
   var sb = StringBuffer();
   int start = 0;
@@ -78,14 +78,14 @@ String convertDocLinks(String doc) {
   return sb.toString();
 }
 
-String _coerceRefType(String typeName) {
+String? _coerceRefType(String? typeName) {
   if (typeName == 'Class') typeName = 'ClassObj';
   if (typeName == 'Error') typeName = 'ErrorObj';
   if (typeName == 'Object') typeName = 'Obj';
   if (typeName == '@Object') typeName = 'ObjRef';
   if (typeName == 'Function') typeName = 'Func';
   if (typeName == '@Function') typeName = 'FuncRef';
-  if (typeName.startsWith('@')) typeName = typeName.substring(1) + 'Ref';
+  if (typeName!.startsWith('@')) typeName = typeName.substring(1) + 'Ref';
   if (typeName == 'string') typeName = 'String';
   if (typeName == 'bool') typeName = 'boolean';
   if (typeName == 'num') typeName = 'BigDecimal';
@@ -94,20 +94,20 @@ String _coerceRefType(String typeName) {
 }
 
 class Api extends Member with ApiParseUtil {
-  int serviceMajor;
-  int serviceMinor;
-  String serviceVersion;
+  int? serviceMajor;
+  int? serviceMinor;
+  String? serviceVersion;
   List<Method> methods = [];
-  List<Enum> enums = [];
-  List<Type> types = [];
+  List<Enum?> enums = [];
+  List<Type?> types = [];
   Map<String, List<String>> streamIdMap = {};
 
-  String get docs => null;
+  String? get docs => null;
 
   String get name => 'api';
 
-  void addProperty(String typeName, String propertyName, {String javadoc}) {
-    var t = types.firstWhere((t) => t.name == typeName);
+  void addProperty(String typeName, String propertyName, {String? javadoc}) {
+    var t = types.firstWhere((t) => t!.name == typeName)!;
     for (var f in t.fields) {
       if (f.name == propertyName) {
         print('$typeName already has $propertyName field');
@@ -133,13 +133,13 @@ class Api extends Member with ApiParseUtil {
     for (var m in methods) {
       for (var a in m.args) {
         if (a.hasDocs) continue;
-        var t = types.firstWhere((Type t) => t.name == a.type.name,
+        var t = types.firstWhere((Type? t) => t!.name == a.type.name,
             orElse: () => null);
         if (t != null) {
           a.docs = t.docs;
           continue;
         }
-        var e = enums.firstWhere((Enum e) => e.name == a.type.name,
+        var e = enums.firstWhere((Enum? e) => e!.name == a.type.name,
             orElse: () => null);
         if (e != null) {
           a.docs = e.docs;
@@ -234,17 +234,18 @@ class Api extends Member with ApiParseUtil {
       m.generateConsumerInterface(gen);
     }
     for (var t in types) {
-      t.generateElement(gen);
+      t!.generateElement(gen);
     }
     for (var e in enums) {
-      e.generateEnum(gen);
+      e!.generateEnum(gen);
     }
   }
 
-  Type getType(String name) =>
-      types.firstWhere((t) => t.name == name, orElse: () => null);
+  Type? getType(String? name) =>
+      types.firstWhere((t) => t!.name == name, orElse: () => null);
 
-  bool isEnumName(String typeName) => enums.any((Enum e) => e.name == typeName);
+  bool isEnumName(String? typeName) =>
+      enums.any((Enum? e) => e!.name == typeName);
 
   void parse(List<Node> nodes) {
     Version version = ApiParseUtil.parseVersionSemVer(nodes);
@@ -256,17 +257,17 @@ class Api extends Member with ApiParseUtil {
     // the pre following it is the definition
     // the optional p following that is the documentation
 
-    String h3Name;
+    String? h3Name;
 
     for (int i = 0; i < nodes.length; i++) {
       Node node = nodes[i];
 
       if (isPre(node) && h3Name != null) {
         String definition = textForCode(node);
-        String docs;
+        String? docs;
 
         if (i + 1 < nodes.length && isPara(nodes[i + 1])) {
-          Element p = nodes[++i];
+          Element p = nodes[++i] as Element;
           docs = collapseWhitespace(TextOutputVisitor.printText(p));
         }
 
@@ -276,7 +277,7 @@ class Api extends Member with ApiParseUtil {
       } else if (isHeader(node)) {
         h3Name = null;
       } else if (isPara(node)) {
-        var children = (node as Element).children;
+        var children = (node as Element).children!;
         if (children.isNotEmpty && children.first is Text) {
           var text = children.expand<String>((child) {
             if (child is Text) return [child.text];
@@ -288,18 +289,18 @@ class Api extends Member with ApiParseUtil {
         }
       }
     }
-    for (Type type in types) {
-      type.calculateFieldOverrides();
+    for (Type? type in types) {
+      type!.calculateFieldOverrides();
     }
   }
 
   void setDefaultValue(String typeName, String propertyName) {
-    var type = types.firstWhere((t) => t.name == typeName);
+    var type = types.firstWhere((t) => t!.name == typeName)!;
     var field = type.fields.firstWhere((f) => f.name == propertyName);
     field.defaultValue = 'false';
   }
 
-  void _parse(String name, String definition, [String docs]) {
+  void _parse(String name, String definition, [String? docs]) {
     name = name.trim();
     definition = definition.trim();
     // clean markdown introduced changes
@@ -352,7 +353,7 @@ class Api extends Member with ApiParseUtil {
       return n.text;
     } else if (n is Element) {
       if (n.tag != 'h3') return n.tag;
-      return '${n.tag}:[${n.children.map((c) => printNode(c)).join(', ')}]';
+      return '${n.tag}:[${n.children!.map((c) => printNode(c)).join(', ')}]';
     } else {
       return '${n}';
     }
@@ -361,7 +362,7 @@ class Api extends Member with ApiParseUtil {
 
 class Enum extends Member {
   final String name;
-  final String docs;
+  final String? docs;
 
   List<EnumValue> enums = [];
 
@@ -375,7 +376,7 @@ class Enum extends Member {
     gen.writeType(elementTypeName, (TypeWriter writer) {
       writer.javadoc = convertDocLinks(docs);
       writer.isEnum = true;
-      enums.sort((v1, v2) => v1.name.compareTo(v2.name));
+      enums.sort((v1, v2) => v1.name!.compareTo(v2.name!));
       for (var value in enums) {
         writer.addEnumValue(value.name, javadoc: value.docs);
       }
@@ -386,13 +387,13 @@ class Enum extends Member {
     });
   }
 
-  void _parse(Token token) {
+  void _parse(Token? token) {
     EnumParser(token).parseInto(this);
   }
 }
 
 class EnumParser extends Parser {
-  EnumParser(Token startToken) : super(startToken);
+  EnumParser(Token? startToken) : super(startToken);
 
   void parseInto(Enum e) {
     // enum ErrorKind { UnhandledException, Foo, Bar }
@@ -405,7 +406,7 @@ class EnumParser extends Parser {
 
     while (!t.eof) {
       if (consume('}')) break;
-      String docs = collectComments();
+      String? docs = collectComments();
       t = expectName();
       consume(',');
 
@@ -416,8 +417,8 @@ class EnumParser extends Parser {
 
 class EnumValue extends Member {
   final Enum parent;
-  final String name;
-  final String docs;
+  final String? name;
+  final String? docs;
 
   EnumValue(this.parent, this.name, [this.docs]);
 
@@ -425,13 +426,13 @@ class EnumValue extends Member {
 }
 
 abstract class Member {
-  String get docs => null;
+  String? get docs => null;
 
   bool get hasDocs => docs != null;
 
-  String get name;
+  String? get name;
 
-  String toString() => name;
+  String toString() => name!;
 }
 
 class MemberType extends Member {
@@ -449,13 +450,13 @@ class MemberType extends Member {
 
   bool get isValueAndSentinel => types.length == 2 && hasSentinel;
 
-  String get name {
+  String? get name {
     if (types.isEmpty) return '';
     if (types.length == 1) return types.first.ref;
     return 'dynamic';
   }
 
-  TypeRef get valueType {
+  TypeRef? get valueType {
     if (types.length == 1) return types.first;
     if (isValueAndSentinel) {
       return types.firstWhere((t) => t.name != 'Sentinel');
@@ -492,7 +493,7 @@ class MemberType extends Member {
 
 class Method extends Member {
   final String name;
-  final String docs;
+  final String? docs;
 
   MemberType returnType = MemberType();
   List<MethodArg> args = [];
@@ -502,7 +503,7 @@ class Method extends Member {
   }
 
   String get consumerTypeName {
-    String prefix;
+    String? prefix;
     if (returnType.isMultipleReturns) {
       prefix = titleCase(name);
     } else {
@@ -531,13 +532,13 @@ class Method extends Member {
   void generateVmServiceForward(StatementWriter writer) {
     var consumerName = classNameFor(consumerTypeName);
     writer.addLine('if (consumer instanceof $consumerName) {');
-    List<Type> types = List.from(returnType.types.map((ref) => ref.type));
+    List<Type?> types = List.from(returnType.types.map((ref) => ref.type));
     for (int index = 0; index < types.length; ++index) {
-      types.addAll(types[index].subtypes);
+      types.addAll(types[index]!.subtypes);
     }
-    types.sort((t1, t2) => t1.name.compareTo(t2.name));
+    types.sort((t1, t2) => t1!.name!.compareTo(t2!.name!));
     for (var t in types) {
-      var responseName = classNameFor(t.elementTypeName);
+      var responseName = classNameFor(t!.elementTypeName!);
       writer.addLine('  if (responseType.equals("${t.rawName}")) {');
       writer.addLine(
           '    (($consumerName) consumer).received(new $responseName(json));');
@@ -548,16 +549,8 @@ class Method extends Member {
   }
 
   void generateVmServiceMethod(TypeWriter writer, {includeOptional = false}) {
-    // TODO(danrubel) move this to the Consumer's javadoc
-//    String javadoc = docs == null ? '' : docs;
-//    if (returnType.isMultipleReturns) {
-//      javadoc += '\n\nThe return value can be one of '
-//          '${joinLast(returnType.types.map((t) => '[${t}]'), ', ', ' or ')}.';
-//      javadoc = javadoc.trim();
-//    }
-
     // Update method docs
-    var javadoc = StringBuffer(docs == null ? '' : docs);
+    var javadoc = StringBuffer(docs == null ? '' : docs!);
     bool firstParamDoc = true;
     for (var a in args) {
       if (!includeOptional && a.optional) continue;
@@ -593,25 +586,30 @@ class Method extends Member {
       writer.addLine('final JsonObject params = new JsonObject();');
       for (MethodArg arg in args) {
         if (!includeOptional && arg.optional) continue;
-        var name = arg.name;
-        String op = arg.optional ? 'if (${name} != null) ' : '';
+        var argName = arg.name;
+        String op = arg.optional ? 'if (${argName} != null) ' : '';
         if (arg.isEnumType) {
-          writer.addLine('${op}params.addProperty("$name", $name.name());');
+          writer
+              .addLine('${op}params.addProperty("$argName", $argName.name());');
         } else if (arg.type.name == 'Map') {
           writer.addLine(
-              '${op}params.add("$name", convertMapToJsonObject($name));');
+              '${op}params.add("$argName", convertMapToJsonObject($argName));');
         } else if (arg.type.arrayDepth > 0) {
           writer.addLine(
-              '${op}params.add("$name", convertIterableToJsonArray($name));');
+              '${op}params.add("$argName", convertIterableToJsonArray($argName));');
+        } else if (name.startsWith('evaluate') && argName == 'expression') {
+          // Special case the eval expression parameters.
+          writer.addLine(
+              '${op}params.addProperty("$argName", removeNewLines($argName));');
         } else {
-          writer.addLine('${op}params.addProperty("$name", $name);');
+          writer.addLine('${op}params.addProperty("$argName", $argName);');
         }
       }
       writer.addLine('request("$name", params, consumer);');
     }, javadoc: javadoc.toString());
   }
 
-  void _parse(Token token) {
+  void _parse(Token? token) {
     MethodParser(token).parseInto(this);
   }
 }
@@ -619,13 +617,13 @@ class Method extends Member {
 class MethodArg extends Member {
   final Method parent;
   final TypeRef type;
-  String name;
-  String docs;
+  String? name;
+  String? docs;
   bool optional = false;
 
   MethodArg(this.parent, this.type, this.name);
 
-  get asJavaMethodArg {
+  JavaMethodArg get asJavaMethodArg {
     if (optional && type.ref == 'int') {
       return JavaMethodArg(name, 'Integer');
     }
@@ -643,7 +641,7 @@ class MethodArg extends Member {
 }
 
 class MethodParser extends Parser {
-  MethodParser(Token startToken) : super(startToken);
+  MethodParser(Token? startToken) : super(startToken);
 
   void parseInto(Method method) {
     // method is return type, name, (, args )
@@ -657,21 +655,21 @@ class MethodParser extends Parser {
 
     expect('(');
 
-    while (peek().text != ')') {
+    while (peek()!.text != ')') {
       Token type = expectName();
       TypeRef ref = TypeRef(_coerceRefType(type.text));
-      if (peek().text == '[') {
+      if (peek()!.text == '[') {
         while (consume('[')) {
           expect(']');
           ref.arrayDepth++;
         }
-      } else if (peek().text == '<') {
+      } else if (peek()!.text == '<') {
         // handle generics
         expect('<');
         ref.genericTypes = [];
-        while (peek().text != '>') {
+        while (peek()!.text != '>') {
           Token genericTypeName = expectName();
-          ref.genericTypes.add(TypeRef(_coerceRefType(genericTypeName.text)));
+          ref.genericTypes!.add(TypeRef(_coerceRefType(genericTypeName.text)));
           consume(',');
         }
         expect('>');
@@ -719,7 +717,7 @@ class TextOutputVisitor implements NodeVisitor {
   }
 
   void visitText(Text text) {
-    String t = text.text;
+    String? t = text.text;
     if (_inRef) t = _coerceRefType(t);
     buf.write(t);
   }
@@ -742,39 +740,39 @@ class TextOutputVisitor implements NodeVisitor {
 
 class Type extends Member {
   final Api parent;
-  String rawName;
-  String name;
-  String superName;
-  final String docs;
+  String? rawName;
+  String? name;
+  String? superName;
+  final String? docs;
   List<TypeField> fields = [];
 
   Type(this.parent, String categoryName, String definition, [this.docs]) {
     _parse(Tokenizer(definition).tokenize());
   }
 
-  String get elementTypeName {
+  String? get elementTypeName {
     if (isSimple) return null;
     return '$servicePackage.element.$name';
   }
 
-  bool get isRef => name.endsWith('Ref');
+  bool get isRef => name!.endsWith('Ref');
 
   bool get isResponse {
     if (superName == null) return false;
     if (name == 'Response' || superName == 'Response') return true;
-    return parent.getType(superName).isResponse;
+    return parent.getType(superName)!.isResponse;
   }
 
   bool get isSimple => simpleTypes.contains(name);
 
-  get jsonTypeName {
+  String? get jsonTypeName {
     if (name == 'ClassObj') return 'Class';
     if (name == 'ErrorObj') return 'Error';
     return name;
   }
 
-  Iterable<Type> get subtypes =>
-      api.types.toList()..retainWhere((t) => t.superName == name);
+  Iterable<Type?> get subtypes =>
+      api.types.toList()..retainWhere((t) => t!.superName == name);
 
   void generateElement(JavaGenerator gen) {
     gen.writeType('$servicePackage.element.$name', (TypeWriter writer) {
@@ -814,7 +812,7 @@ class Type extends Member {
     List<TypeField> all = [];
     all.insertAll(0, fields);
 
-    Type s = getSuper();
+    Type? s = getSuper();
     while (s != null) {
       all.insertAll(0, s.fields);
       s = s.getSuper();
@@ -823,14 +821,14 @@ class Type extends Member {
     return all;
   }
 
-  Type getSuper() => superName == null ? null : api.getType(superName);
+  Type? getSuper() => superName == null ? null : api.getType(superName);
 
-  bool hasField(String name) {
+  bool hasField(String? name) {
     if (fields.any((field) => field.name == name)) return true;
     return getSuper()?.hasField(name) ?? false;
   }
 
-  void _parse(Token token) {
+  void _parse(Token? token) {
     TypeParser(token).parseInto(this);
   }
 
@@ -838,7 +836,7 @@ class Type extends Member {
     for (TypeField field in fields.toList()) {
       if (superName == null) continue;
 
-      if (getSuper().hasField(field.name)) {
+      if (getSuper()!.hasField(field.name)) {
         field.setOverrides();
       }
     }
@@ -860,11 +858,11 @@ class TypeField extends Member {
   };
 
   final Type parent;
-  final String _docs;
+  final String? _docs;
   MemberType type = MemberType();
-  String name;
+  String? name;
   bool optional = false;
-  String defaultValue;
+  String? defaultValue;
   bool overrides = false;
 
   TypeField(this.parent, this._docs);
@@ -880,11 +878,11 @@ class TypeField extends Member {
     } else {
       remappedName = name;
     }
-    return 'get${titleCase(remappedName)}';
+    return 'get${titleCase(remappedName!)}';
   }
 
-  String get docs {
-    String str = _docs == null ? '' : _docs;
+  String? get docs {
+    String str = _docs == null ? '' : _docs!;
     if (type.isMultipleReturns) {
       str += '\n\n@return one of '
           '${joinLast(type.types.map((t) => '<code>${t}</code>'), ', ', ' or ')}';
@@ -904,7 +902,7 @@ class TypeField extends Member {
         w.addLine('final JsonObject elem = (JsonObject)json.get("$name");');
         w.addLine('if (elem == null) return null;\n');
         for (TypeRef t in type.types) {
-          String refName = t.name;
+          String refName = t.name!;
           if (refName.endsWith('Ref')) {
             refName = "@" + refName.substring(0, refName.length - 3);
           }
@@ -914,7 +912,7 @@ class TypeField extends Member {
         w.addLine('return null;');
       }, javadoc: docs, returnType: 'Object');
     } else {
-      String returnType = type.valueType.ref;
+      String? returnType = type.valueType!.ref;
       if (name == 'timestamp') {
         returnType = 'long';
       }
@@ -923,7 +921,7 @@ class TypeField extends Member {
         accessorName,
         [],
         (StatementWriter writer) {
-          type.valueType.generateAccessStatements(
+          type.valueType!.generateAccessStatements(
             writer,
             name,
             canBeSentinel: type.isValueAndSentinel,
@@ -940,7 +938,7 @@ class TypeField extends Member {
 }
 
 class TypeParser extends Parser {
-  TypeParser(Token startToken) : super(startToken);
+  TypeParser(Token? startToken) : super(startToken);
 
   void parseInto(Type type) {
     // class ClassList extends Response {
@@ -959,7 +957,7 @@ class TypeParser extends Parser {
 
     expect('{');
 
-    while (peek().text != '}') {
+    while (peek()!.text != '}') {
       TypeField field = TypeField(type, collectComments());
       field.type.parse(this);
       field.name = expectName().text;
@@ -977,13 +975,13 @@ class TypeParser extends Parser {
 }
 
 class TypeRef {
-  String name;
+  String? name;
   int arrayDepth = 0;
-  List<TypeRef> genericTypes;
+  List<TypeRef>? genericTypes;
 
   TypeRef(this.name);
 
-  String get elementTypeName {
+  String? get elementTypeName {
     if (isSimple) return null;
     return '$servicePackage.element.$name';
   }
@@ -991,20 +989,20 @@ class TypeRef {
   bool get isArray => arrayDepth > 0;
 
   /// Hacked enum determination
-  bool get isEnum => name.endsWith('Kind') || name.endsWith('Mode');
+  bool get isEnum => name!.endsWith('Kind') || name!.endsWith('Mode');
 
   bool get isSimple => simpleTypes.contains(name);
 
-  String get javaBoxedName {
+  String? get javaBoxedName {
     if (name == 'boolean') return 'Boolean';
     if (name == 'int') return 'Integer';
     if (name == 'double') return 'Double';
     return name;
   }
 
-  String get ref {
+  String? get ref {
     if (genericTypes != null) {
-      return '$name<${genericTypes.join(', ')}>';
+      return '$name<${genericTypes!.join(', ')}>';
     } else if (isSimple) {
       if (arrayDepth == 2) return 'List<List<${javaBoxedName}>>';
       if (arrayDepth == 1) return 'List<${javaBoxedName}>';
@@ -1015,13 +1013,13 @@ class TypeRef {
     return name;
   }
 
-  Type get type => api.types.firstWhere((t) => t.name == name);
+  Type? get type => api.types.firstWhere((t) => t!.name == name);
 
   void generateAccessStatements(
     StatementWriter writer,
-    String propertyName, {
+    String? propertyName, {
     bool canBeSentinel = false,
-    String defaultValue,
+    String? defaultValue,
     bool optional = false,
   }) {
     if (name == 'boolean') {
@@ -1144,5 +1142,5 @@ class TypeRef {
     }
   }
 
-  String toString() => ref;
+  String toString() => ref!;
 }

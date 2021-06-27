@@ -1,0 +1,50 @@
+// @dart = 2.9
+abstract class Super {
+  void concreteExtendsConcreteMixin() {}
+  void concreteExtendsAbstractMixin() {}
+  void abstractExtendsConcreteMixin();
+  void abstractExtendsAbstractMixin();
+}
+
+abstract class MixinClass {
+  void concreteExtendsConcreteMixin() {}
+  void concreteExtendsAbstractMixin();
+  void concreteMixin() {}
+  void abstractExtendsConcreteMixin() {}
+  void abstractExtendsAbstractMixin();
+  void abstractMixin();
+}
+
+mixin Mixin {
+  void concreteExtendsConcreteMixin() {}
+  void concreteExtendsAbstractMixin();
+  void concreteMixin() {}
+  void abstractExtendsConcreteMixin() {}
+  void abstractExtendsAbstractMixin();
+  void abstractMixin();
+}
+abstract class ClassEqMixinClass = Super with MixinClass;
+
+abstract class ClassExtendsMixinClass extends Super with MixinClass {}
+
+abstract class ClassEqMixin = Super with Mixin;
+
+abstract class ClassExtendsMixin extends Super with Mixin {}
+
+abstract class SubclassEqMixinClass extends ClassEqMixinClass {
+  method() {}
+}
+
+abstract class SubclassExtendsMixinClass extends ClassExtendsMixinClass {
+  method() {}
+}
+
+abstract class SubclassEqMixin extends ClassEqMixin {
+  method() {}
+}
+
+abstract class SubclassExtendsMixin extends ClassExtendsMixin {
+  method() {}
+}
+
+main() {}

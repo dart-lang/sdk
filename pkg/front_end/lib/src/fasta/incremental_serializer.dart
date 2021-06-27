@@ -38,7 +38,7 @@ class IncrementalSerializer {
     for (int i = 0; i < views.length; i++) {
       SubComponentView view = views[i];
       bool good = true;
-      String packageName;
+      String? packageName;
       for (Library lib in view.libraries) {
         Uri uri = lib.importUri;
         // Uris need to be unique.
@@ -87,7 +87,7 @@ class IncrementalSerializer {
 
   /// Write packages to sink, cache new package data, trim input component.
   void writePackagesToSinkAndTrimComponent(
-      Component component, Sink<List<int>> sink) {
+      Component? component, Sink<List<int>> sink) {
     if (component == null) return;
     if (component.libraries.isEmpty) return;
 
@@ -130,13 +130,12 @@ class IncrementalSerializer {
     Set<SerializationGroup> cachedPackagesInOutput =
         new Set<SerializationGroup>.identity();
     for (Library lib in packageLibraries) {
-      SerializationGroup group = uriToGroup[lib.fileUri];
+      SerializationGroup? group = uriToGroup[lib.fileUri];
       if (group != null) {
         addDataButNotDependentData(group, cachedPackagesInOutput, sink);
       } else {
         String package = lib.importUri.pathSegments.first;
-        newPackages[package] ??= <Library>[];
-        newPackages[package].add(lib);
+        (newPackages[package] ??= <Library>[]).add(lib);
       }
     }
 
@@ -145,7 +144,7 @@ class IncrementalSerializer {
     for (SerializationGroup group in upFrontGroups) {
       if (group.dependencies != null) {
         // Now also add all dependencies.
-        for (SerializationGroup dep in group.dependencies) {
+        for (SerializationGroup dep in group.dependencies!) {
           addDataAndDependentData(dep, cachedPackagesInOutput, sink);
         }
       }
@@ -155,7 +154,7 @@ class IncrementalSerializer {
     Map<String, SerializationGroup> newPackageGroups =
         new Map<String, SerializationGroup>();
     for (String package in newPackages.keys) {
-      List<Library> libraries = newPackages[package];
+      List<Library> libraries = newPackages[package]!;
       List<int> data = serialize(component, libraries);
       sink.add(data);
       SerializationGroup newGroup = createGroupFor(libraries, data);
@@ -164,8 +163,8 @@ class IncrementalSerializer {
 
     // Setup dependency tracking for the new groups.
     for (String package in newPackages.keys) {
-      List<Library> libraries = newPackages[package];
-      SerializationGroup packageGroup = newPackageGroups[package];
+      List<Library> libraries = newPackages[package]!;
+      SerializationGroup packageGroup = newPackageGroups[package]!;
       setupDependencyTracking(libraries, packageGroup);
     }
 
@@ -226,7 +225,7 @@ class IncrementalSerializer {
     while (workList.isNotEmpty) {
       SerializationGroup group = workList.removeLast();
       if (group.othersDependingOnMe == null) continue;
-      for (SerializationGroup dependsOnGroup in group.othersDependingOnMe) {
+      for (SerializationGroup dependsOnGroup in group.othersDependingOnMe!) {
         removeUriFromMap(dependsOnGroup.uris.first, removed, workList);
       }
     }
@@ -245,7 +244,7 @@ class IncrementalSerializer {
         if (dependencyLibrary.importUri.scheme != "package") continue;
         Uri dependencyLibraryUri =
             dep.importedLibraryReference.asLibrary.fileUri;
-        SerializationGroup depGroup = uriToGroup[dependencyLibraryUri];
+        SerializationGroup? depGroup = uriToGroup[dependencyLibraryUri];
         if (depGroup == null) {
           throw "Didn't contain group for $dependencyLibraryUri";
         }
@@ -272,7 +271,7 @@ class IncrementalSerializer {
       sink.add(group.serializedData);
       if (group.dependencies != null) {
         // Now also add all dependencies.
-        for (SerializationGroup dep in group.dependencies) {
+        for (SerializationGroup dep in group.dependencies!) {
           addDataAndDependentData(dep, cachedPackagesInOutput, sink);
         }
       }
@@ -316,13 +315,13 @@ class IncrementalSerializer {
   /// the worklist.
   void removeUriFromMap(Uri uri, Set<SerializationGroup> removed,
       List<SerializationGroup> workList) {
-    SerializationGroup group = uriToGroup.remove(uri);
+    SerializationGroup? group = uriToGroup.remove(uri);
     if (group == null) return;
     bool added = removed.add(group);
     assert(added);
     workList.add(group);
     for (Uri groupUri in group.uris) {
-      SerializationGroup sameGroup = uriToGroup.remove(groupUri);
+      SerializationGroup? sameGroup = uriToGroup.remove(groupUri);
       assert((groupUri == uri && sameGroup == null) ||
           (groupUri != uri && sameGroup != null));
     }
@@ -332,8 +331,8 @@ class IncrementalSerializer {
 class SerializationGroup {
   final List<int> serializedData;
   final Set<Uri> uris;
-  Set<SerializationGroup> dependencies;
-  Set<SerializationGroup> othersDependingOnMe;
+  Set<SerializationGroup>? dependencies;
+  Set<SerializationGroup>? othersDependingOnMe;
 
   SerializationGroup(this.serializedData, this.uris);
 
@@ -342,9 +341,9 @@ class SerializationGroup {
   /// this, and this is added as a "others depend on me" for [other].
   void registerDependency(SerializationGroup other) {
     dependencies ??= new Set<SerializationGroup>.identity();
-    if (dependencies.add(other)) {
+    if (dependencies!.add(other)) {
       other.othersDependingOnMe ??= new Set<SerializationGroup>.identity();
-      other.othersDependingOnMe.add(this);
+      other.othersDependingOnMe!.add(this);
     }
   }
 }

@@ -20,16 +20,19 @@
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"
+#include "vm/pending_deopts.h"
 #include "vm/random.h"
 #include "vm/runtime_entry_list.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
+
 namespace dart {
 
 class AbstractType;
 class ApiLocalScope;
 class Array;
 class CompilerState;
+class CompilerTimings;
 class Class;
 class Code;
 class Error;
@@ -82,76 +85,77 @@ class Thread;
   V(PcDescriptors)                                                             \
   V(Smi)                                                                       \
   V(String)                                                                    \
+  V(TypeParameters)                                                            \
   V(TypeArguments)                                                             \
   V(TypeParameter)
 
 #define CACHED_VM_STUBS_LIST(V)                                                \
-  V(CodePtr, write_barrier_code_, StubCode::WriteBarrier().raw(), nullptr)     \
-  V(CodePtr, array_write_barrier_code_, StubCode::ArrayWriteBarrier().raw(),   \
+  V(CodePtr, write_barrier_code_, StubCode::WriteBarrier().ptr(), nullptr)     \
+  V(CodePtr, array_write_barrier_code_, StubCode::ArrayWriteBarrier().ptr(),   \
     nullptr)                                                                   \
-  V(CodePtr, fix_callers_target_code_, StubCode::FixCallersTarget().raw(),     \
+  V(CodePtr, fix_callers_target_code_, StubCode::FixCallersTarget().ptr(),     \
     nullptr)                                                                   \
   V(CodePtr, fix_allocation_stub_code_,                                        \
-    StubCode::FixAllocationStubTarget().raw(), nullptr)                        \
-  V(CodePtr, invoke_dart_code_stub_, StubCode::InvokeDartCode().raw(),         \
+    StubCode::FixAllocationStubTarget().ptr(), nullptr)                        \
+  V(CodePtr, invoke_dart_code_stub_, StubCode::InvokeDartCode().ptr(),         \
     nullptr)                                                                   \
-  V(CodePtr, call_to_runtime_stub_, StubCode::CallToRuntime().raw(), nullptr)  \
+  V(CodePtr, call_to_runtime_stub_, StubCode::CallToRuntime().ptr(), nullptr)  \
   V(CodePtr, late_initialization_error_shared_without_fpu_regs_stub_,          \
-    StubCode::LateInitializationErrorSharedWithoutFPURegs().raw(), nullptr)    \
+    StubCode::LateInitializationErrorSharedWithoutFPURegs().ptr(), nullptr)    \
   V(CodePtr, late_initialization_error_shared_with_fpu_regs_stub_,             \
-    StubCode::LateInitializationErrorSharedWithFPURegs().raw(), nullptr)       \
+    StubCode::LateInitializationErrorSharedWithFPURegs().ptr(), nullptr)       \
   V(CodePtr, null_error_shared_without_fpu_regs_stub_,                         \
-    StubCode::NullErrorSharedWithoutFPURegs().raw(), nullptr)                  \
+    StubCode::NullErrorSharedWithoutFPURegs().ptr(), nullptr)                  \
   V(CodePtr, null_error_shared_with_fpu_regs_stub_,                            \
-    StubCode::NullErrorSharedWithFPURegs().raw(), nullptr)                     \
+    StubCode::NullErrorSharedWithFPURegs().ptr(), nullptr)                     \
   V(CodePtr, null_arg_error_shared_without_fpu_regs_stub_,                     \
-    StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
+    StubCode::NullArgErrorSharedWithoutFPURegs().ptr(), nullptr)               \
   V(CodePtr, null_arg_error_shared_with_fpu_regs_stub_,                        \
-    StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+    StubCode::NullArgErrorSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, null_cast_error_shared_without_fpu_regs_stub_,                    \
-    StubCode::NullCastErrorSharedWithoutFPURegs().raw(), nullptr)              \
+    StubCode::NullCastErrorSharedWithoutFPURegs().ptr(), nullptr)              \
   V(CodePtr, null_cast_error_shared_with_fpu_regs_stub_,                       \
-    StubCode::NullCastErrorSharedWithFPURegs().raw(), nullptr)                 \
+    StubCode::NullCastErrorSharedWithFPURegs().ptr(), nullptr)                 \
   V(CodePtr, range_error_shared_without_fpu_regs_stub_,                        \
-    StubCode::RangeErrorSharedWithoutFPURegs().raw(), nullptr)                 \
+    StubCode::RangeErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
   V(CodePtr, range_error_shared_with_fpu_regs_stub_,                           \
-    StubCode::RangeErrorSharedWithFPURegs().raw(), nullptr)                    \
+    StubCode::RangeErrorSharedWithFPURegs().ptr(), nullptr)                    \
   V(CodePtr, allocate_mint_with_fpu_regs_stub_,                                \
-    StubCode::AllocateMintSharedWithFPURegs().raw(), nullptr)                  \
+    StubCode::AllocateMintSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, allocate_mint_without_fpu_regs_stub_,                             \
-    StubCode::AllocateMintSharedWithoutFPURegs().raw(), nullptr)               \
-  V(CodePtr, allocate_object_stub_, StubCode::AllocateObject().raw(), nullptr) \
+    StubCode::AllocateMintSharedWithoutFPURegs().ptr(), nullptr)               \
+  V(CodePtr, allocate_object_stub_, StubCode::AllocateObject().ptr(), nullptr) \
   V(CodePtr, allocate_object_parameterized_stub_,                              \
-    StubCode::AllocateObjectParameterized().raw(), nullptr)                    \
-  V(CodePtr, allocate_object_slow_stub_, StubCode::AllocateObjectSlow().raw(), \
+    StubCode::AllocateObjectParameterized().ptr(), nullptr)                    \
+  V(CodePtr, allocate_object_slow_stub_, StubCode::AllocateObjectSlow().ptr(), \
     nullptr)                                                                   \
   V(CodePtr, stack_overflow_shared_without_fpu_regs_stub_,                     \
-    StubCode::StackOverflowSharedWithoutFPURegs().raw(), nullptr)              \
+    StubCode::StackOverflowSharedWithoutFPURegs().ptr(), nullptr)              \
   V(CodePtr, stack_overflow_shared_with_fpu_regs_stub_,                        \
-    StubCode::StackOverflowSharedWithFPURegs().raw(), nullptr)                 \
-  V(CodePtr, switchable_call_miss_stub_, StubCode::SwitchableCallMiss().raw(), \
+    StubCode::StackOverflowSharedWithFPURegs().ptr(), nullptr)                 \
+  V(CodePtr, switchable_call_miss_stub_, StubCode::SwitchableCallMiss().ptr(), \
     nullptr)                                                                   \
-  V(CodePtr, throw_stub_, StubCode::Throw().raw(), nullptr)                    \
-  V(CodePtr, re_throw_stub_, StubCode::Throw().raw(), nullptr)                 \
-  V(CodePtr, assert_boolean_stub_, StubCode::AssertBoolean().raw(), nullptr)   \
-  V(CodePtr, optimize_stub_, StubCode::OptimizeFunction().raw(), nullptr)      \
-  V(CodePtr, deoptimize_stub_, StubCode::Deoptimize().raw(), nullptr)          \
+  V(CodePtr, throw_stub_, StubCode::Throw().ptr(), nullptr)                    \
+  V(CodePtr, re_throw_stub_, StubCode::Throw().ptr(), nullptr)                 \
+  V(CodePtr, assert_boolean_stub_, StubCode::AssertBoolean().ptr(), nullptr)   \
+  V(CodePtr, optimize_stub_, StubCode::OptimizeFunction().ptr(), nullptr)      \
+  V(CodePtr, deoptimize_stub_, StubCode::Deoptimize().ptr(), nullptr)          \
   V(CodePtr, lazy_deopt_from_return_stub_,                                     \
-    StubCode::DeoptimizeLazyFromReturn().raw(), nullptr)                       \
+    StubCode::DeoptimizeLazyFromReturn().ptr(), nullptr)                       \
   V(CodePtr, lazy_deopt_from_throw_stub_,                                      \
-    StubCode::DeoptimizeLazyFromThrow().raw(), nullptr)                        \
-  V(CodePtr, slow_type_test_stub_, StubCode::SlowTypeTest().raw(), nullptr)    \
+    StubCode::DeoptimizeLazyFromThrow().ptr(), nullptr)                        \
+  V(CodePtr, slow_type_test_stub_, StubCode::SlowTypeTest().ptr(), nullptr)    \
   V(CodePtr, lazy_specialize_type_test_stub_,                                  \
-    StubCode::LazySpecializeTypeTest().raw(), nullptr)                         \
-  V(CodePtr, enter_safepoint_stub_, StubCode::EnterSafepoint().raw(), nullptr) \
-  V(CodePtr, exit_safepoint_stub_, StubCode::ExitSafepoint().raw(), nullptr)   \
+    StubCode::LazySpecializeTypeTest().ptr(), nullptr)                         \
+  V(CodePtr, enter_safepoint_stub_, StubCode::EnterSafepoint().ptr(), nullptr) \
+  V(CodePtr, exit_safepoint_stub_, StubCode::ExitSafepoint().ptr(), nullptr)   \
   V(CodePtr, call_native_through_safepoint_stub_,                              \
-    StubCode::CallNativeThroughSafepoint().raw(), nullptr)
+    StubCode::CallNativeThroughSafepoint().ptr(), nullptr)
 
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(ObjectPtr, object_null_, Object::null(), nullptr)                          \
-  V(BoolPtr, bool_true_, Object::bool_true().raw(), nullptr)                   \
-  V(BoolPtr, bool_false_, Object::bool_false().raw(), nullptr)
+  V(BoolPtr, bool_true_, Object::bool_true().ptr(), nullptr)                   \
+  V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)
 
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.
@@ -231,6 +235,28 @@ enum class ValidationPolicy {
   kDontValidateFrames = 1,
 };
 
+enum class RuntimeCallDeoptAbility {
+  // There was no leaf call or a leaf call that can cause deoptimization
+  // after-call.
+  kCanLazyDeopt,
+  // There was a leaf call and the VM cannot cause deoptimize after-call.
+  kCannotLazyDeopt,
+};
+
+// The safepoint level a thread is on or a safepoint operation is requested for
+//
+// The higher the number the stronger the guarantees:
+//   * the time-to-safepoint latency increases with level
+//   * the frequency of hitting possible safe points decreases with level
+enum SafepointLevel {
+  // Safe to GC
+  kGC,
+  // Safe to GC as well as Deopt.
+  kGCAndDeopt,
+  // Number of levels.
+  kNumLevels,
+};
+
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
 // a thread is allocated by EnsureInit before entering an isolate, and destroyed
@@ -267,9 +293,9 @@ class Thread : public ThreadState {
   }
 
   // Makes the current thread enter 'isolate'.
-  static bool EnterIsolate(Isolate* isolate);
+  static bool EnterIsolate(Isolate* isolate, bool is_nested_reenter = false);
   // Makes the current thread exit its isolate.
-  static void ExitIsolate();
+  static void ExitIsolate(bool is_nested_exit = false);
 
   // A VM thread other than the main mutator thread can enter an isolate as a
   // "helper" to gain limited concurrent access to the isolate. One example is
@@ -325,10 +351,12 @@ class Thread : public ThreadState {
   };
 
   uword write_barrier_mask() const { return write_barrier_mask_; }
+  uword heap_base() const { return heap_base_; }
 
   static intptr_t write_barrier_mask_offset() {
     return OFFSET_OF(Thread, write_barrier_mask_);
   }
+  static intptr_t heap_base_offset() { return OFFSET_OF(Thread, heap_base_); }
   static intptr_t stack_overflow_flags_offset() {
     return OFFSET_OF(Thread, stack_overflow_flags_);
   }
@@ -336,6 +364,8 @@ class Thread : public ThreadState {
   int32_t IncrementAndGetStackOverflowCount() {
     return ++stack_overflow_count_;
   }
+
+  uint32_t IncrementAndGetRuntimeCallCount() { return ++runtime_call_count_; }
 
   static uword stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
     return fpu_regs
@@ -418,6 +448,9 @@ class Thread : public ThreadState {
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
+  static intptr_t isolate_group_offset() {
+    return OFFSET_OF(Thread, isolate_group_);
+  }
 
   // The isolate group that this thread is operating on, or nullptr if none.
   IsolateGroup* isolate_group() const { return isolate_group_; }
@@ -451,27 +484,33 @@ class Thread : public ThreadState {
   }
 
   HierarchyInfo* hierarchy_info() const {
-    ASSERT(isolate_ != NULL);
+    ASSERT(isolate_group_ != nullptr);
     return hierarchy_info_;
   }
 
   void set_hierarchy_info(HierarchyInfo* value) {
-    ASSERT(isolate_ != NULL);
-    ASSERT((hierarchy_info_ == NULL && value != NULL) ||
-           (hierarchy_info_ != NULL && value == NULL));
+    ASSERT(isolate_group_ != nullptr);
+    ASSERT((hierarchy_info_ == nullptr && value != nullptr) ||
+           (hierarchy_info_ != nullptr && value == nullptr));
     hierarchy_info_ = value;
   }
 
   TypeUsageInfo* type_usage_info() const {
-    ASSERT(isolate_ != NULL);
+    ASSERT(isolate_group_ != nullptr);
     return type_usage_info_;
   }
 
   void set_type_usage_info(TypeUsageInfo* value) {
-    ASSERT(isolate_ != NULL);
-    ASSERT((type_usage_info_ == NULL && value != NULL) ||
-           (type_usage_info_ != NULL && value == NULL));
+    ASSERT(isolate_group_ != nullptr);
+    ASSERT((type_usage_info_ == nullptr && value != nullptr) ||
+           (type_usage_info_ != nullptr && value == nullptr));
     type_usage_info_ = value;
+  }
+
+  CompilerTimings* compiler_timings() const { return compiler_timings_; }
+
+  void set_compiler_timings(CompilerTimings* stats) {
+    compiler_timings_ = stats;
   }
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
@@ -558,6 +597,12 @@ class Thread : public ThreadState {
     ASSERT(no_safepoint_scope_depth_ > 0);
     no_safepoint_scope_depth_ -= 1;
 #endif
+  }
+
+  bool IsInNoReloadScope() const { return no_reload_scope_depth_ > 0; }
+
+  bool IsInStoppedMutatorsScope() const {
+    return stopped_mutators_scope_depth_ > 0;
   }
 
 #define DEFINE_OFFSET_METHOD(type_name, member_name, expr, default_init_value) \
@@ -712,9 +757,14 @@ class Thread : public ThreadState {
    * - Bit 0 of the safepoint_state_ field is used to indicate if the thread is
    *   already at a safepoint,
    * - Bit 1 of the safepoint_state_ field is used to indicate if a safepoint
-   *   operation is requested for this thread.
-   * - Bit 2 of the safepoint_state_ field is used to indicate that the thread
-   *   is blocked for the safepoint operation to complete.
+   *   is requested for this thread.
+   * - Bit 2 of the safepoint_state_ field is used to indicate if the thread is
+   *   already at a deopt safepoint,
+   * - Bit 3 of the safepoint_state_ field is used to indicate if a deopt
+   *   safepoint is requested for this thread.
+   * - Bit 4 of the safepoint_state_ field is used to indicate that the thread
+   *   is blocked at a (deopt)safepoint and has to be woken up once the
+   *   (deopt)safepoint operation is complete.
    *
    * The safepoint execution state (described above) for a thread is stored in
    * in the execution_state_ field.
@@ -724,35 +774,68 @@ class Thread : public ThreadState {
    *   kThreadInNative - The thread is running native code.
    *   kThreadInBlockedState - The thread is blocked waiting for a resource.
    */
-  static bool IsAtSafepoint(uword state) {
-    return AtSafepointField::decode(state);
+  static bool IsAtSafepoint(SafepointLevel level, uword state) {
+    const uword mask = AtSafepointBits(level);
+    return (state & mask) == mask;
   }
   bool IsAtSafepoint() const {
-    return AtSafepointField::decode(safepoint_state_);
+    return IsAtSafepoint(current_safepoint_level());
   }
-  static uword SetAtSafepoint(bool value, uword state) {
-    return AtSafepointField::update(value, state);
+  bool IsAtSafepoint(SafepointLevel level) const {
+    return IsAtSafepoint(level, safepoint_state_.load());
   }
   void SetAtSafepoint(bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
-    safepoint_state_ = AtSafepointField::update(value, safepoint_state_);
+    if (value) {
+      safepoint_state_ |= AtSafepointBits(current_safepoint_level());
+    } else {
+      safepoint_state_ &= ~AtSafepointBits(current_safepoint_level());
+    }
+  }
+  bool IsSafepointRequestedLocked() const {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    return IsSafepointRequested();
   }
   bool IsSafepointRequested() const {
-    return SafepointRequestedField::decode(safepoint_state_);
+    const uword state = safepoint_state_.load();
+    for (intptr_t level = current_safepoint_level(); level >= 0; --level) {
+      if (IsSafepointLevelRequested(state, static_cast<SafepointLevel>(level)))
+        return true;
+    }
+    return false;
   }
-  static uword SetSafepointRequested(bool value, uword state) {
-    return SafepointRequestedField::update(value, state);
-  }
-  uword SetSafepointRequested(bool value) {
+  bool IsSafepointLevelRequestedLocked(SafepointLevel level) const {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    if (level > current_safepoint_level()) return false;
+    const uword state = safepoint_state_.load();
+    return IsSafepointLevelRequested(state, level);
+  }
+
+  static bool IsSafepointLevelRequested(uword state, SafepointLevel level) {
+    switch (level) {
+      case SafepointLevel::kGC:
+        return (state & SafepointRequestedField::mask_in_place()) != 0;
+      case SafepointLevel::kGCAndDeopt:
+        return (state & DeoptSafepointRequestedField::mask_in_place()) != 0;
+      default:
+        UNREACHABLE();
+    }
+  }
+
+  void BlockForSafepoint();
+  uword SetSafepointRequested(SafepointLevel level, bool value) {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+
+    const uword mask = level == SafepointLevel::kGC
+                           ? SafepointRequestedField::mask_in_place()
+                           : DeoptSafepointRequestedField::mask_in_place();
+
     if (value) {
       // acquire pulls from the release in TryEnterSafepoint.
-      return safepoint_state_.fetch_or(SafepointRequestedField::encode(true),
-                                       std::memory_order_acquire);
+      return safepoint_state_.fetch_or(mask, std::memory_order_acquire);
     } else {
       // release pushes to the acquire in TryExitSafepoint.
-      return safepoint_state_.fetch_and(~SafepointRequestedField::encode(true),
-                                        std::memory_order_release);
+      return safepoint_state_.fetch_and(~mask, std::memory_order_release);
     }
   }
   static bool IsBlockedForSafepoint(uword state) {
@@ -800,12 +883,21 @@ class Thread : public ThreadState {
            (execution_state() == kThreadInGenerated);
   }
 
-  static uword safepoint_state_unacquired() { return SetAtSafepoint(false, 0); }
-  static uword safepoint_state_acquired() { return SetAtSafepoint(true, 0); }
+  static uword full_safepoint_state_unacquired() {
+    return (0 << AtSafepointField::shift()) |
+           (0 << AtDeoptSafepointField::shift());
+  }
+  static uword full_safepoint_state_acquired() {
+    return (1 << AtSafepointField::shift()) |
+           (1 << AtDeoptSafepointField::shift());
+  }
 
   bool TryEnterSafepoint() {
     uword old_state = 0;
-    uword new_state = SetAtSafepoint(true, 0);
+    uword new_state = AtSafepointField::encode(true);
+    if (current_safepoint_level() == SafepointLevel::kGCAndDeopt) {
+      new_state |= AtDeoptSafepointField::encode(true);
+    }
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
                                                     std::memory_order_release);
   }
@@ -822,7 +914,10 @@ class Thread : public ThreadState {
   }
 
   bool TryExitSafepoint() {
-    uword old_state = SetAtSafepoint(true, 0);
+    uword old_state = AtSafepointField::encode(true);
+    if (current_safepoint_level() == SafepointLevel::kGCAndDeopt) {
+      old_state |= AtDeoptSafepointField::encode(true);
+    }
     uword new_state = 0;
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
                                                     std::memory_order_acquire);
@@ -839,6 +934,8 @@ class Thread : public ThreadState {
   }
 
   void CheckForSafepoint() {
+    // If we are in a runtime call that doesn't support lazy deopt, we will only
+    // respond to gc safepointing requests.
     ASSERT(no_safepoint_scope_depth() == 0);
     if (IsSafepointRequested()) {
       BlockForSafepoint();
@@ -884,7 +981,7 @@ class Thread : public ThreadState {
 
   void InitVMConstants();
 
-  uint64_t GetRandomUInt64() { return thread_random_.NextUInt64(); }
+  Random* random() { return &thread_random_; }
 
   uint64_t* GetFfiMarshalledArguments(intptr_t size) {
     if (ffi_marshalled_arguments_size_ < size) {
@@ -900,6 +997,15 @@ class Thread : public ThreadState {
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
+
+  PendingDeopts& pending_deopts() { return pending_deopts_; }
+
+  SafepointLevel current_safepoint_level() const {
+    return runtime_call_deopt_ability_ ==
+                   RuntimeCallDeoptAbility::kCannotLazyDeopt
+               ? SafepointLevel::kGC
+               : SafepointLevel::kGCAndDeopt;
+  }
 
  private:
   template <class T>
@@ -927,6 +1033,7 @@ class Thread : public ThreadState {
   // different architectures. See also CheckOffsets in dart.cc.
   RelaxedAtomic<uword> stack_limit_;
   uword write_barrier_mask_;
+  uword heap_base_;
   Isolate* isolate_;
   const uword* dispatch_table_array_;
   uword top_ = 0;
@@ -936,7 +1043,7 @@ class Thread : public ThreadState {
   // is important for code size (although code size on X64 is not a priority).
   uword saved_stack_limit_;
   uword stack_overflow_flags_;
-  InstancePtr* field_table_values_;
+  ObjectPtr* field_table_values_;
   Heap* heap_;
   uword volatile top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
@@ -994,6 +1101,8 @@ class Thread : public ThreadState {
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;
+  intptr_t no_reload_scope_depth_ = 0;
+  intptr_t stopped_mutators_scope_depth_ = 0;
 #if defined(DEBUG)
   int32_t no_safepoint_scope_depth_;
 #endif
@@ -1002,12 +1111,20 @@ class Thread : public ThreadState {
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
+  uint32_t runtime_call_count_ = 0;
+
+  // Deoptimization of stack frames.
+  RuntimeCallDeoptAbility runtime_call_deopt_ability_ =
+      RuntimeCallDeoptAbility::kCanLazyDeopt;
+  PendingDeopts pending_deopts_;
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;
   HierarchyInfo* hierarchy_info_;
   TypeUsageInfo* type_usage_info_;
   GrowableObjectArrayPtr pending_functions_;
+
+  CompilerTimings* compiler_timings_ = nullptr;
 
   ErrorPtr sticky_error_;
 
@@ -1016,7 +1133,7 @@ class Thread : public ThreadState {
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;
 
-  InstancePtr* field_table_values() const { return field_table_values_; }
+  ObjectPtr* field_table_values() const { return field_table_values_; }
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
@@ -1030,11 +1147,32 @@ class Thread : public ThreadState {
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
-  // Generated code assumes that AtSafepointField is the LSB.
   class AtSafepointField : public BitField<uword, bool, 0, 1> {};
-  class SafepointRequestedField : public BitField<uword, bool, 1, 1> {};
-  class BlockedForSafepointField : public BitField<uword, bool, 2, 1> {};
-  class BypassSafepointsField : public BitField<uword, bool, 3, 1> {};
+  class SafepointRequestedField
+      : public BitField<uword, bool, AtSafepointField::kNextBit, 1> {};
+  class AtDeoptSafepointField
+      : public BitField<uword, bool, SafepointRequestedField::kNextBit, 1> {};
+  class DeoptSafepointRequestedField
+      : public BitField<uword, bool, AtDeoptSafepointField::kNextBit, 1> {};
+  class BlockedForSafepointField
+      : public BitField<uword,
+                        bool,
+                        DeoptSafepointRequestedField::kNextBit,
+                        1> {};
+  class BypassSafepointsField
+      : public BitField<uword, bool, BlockedForSafepointField::kNextBit, 1> {};
+
+  static uword AtSafepointBits(SafepointLevel level) {
+    switch (level) {
+      case SafepointLevel::kGC:
+        return AtSafepointField::mask_in_place();
+      case SafepointLevel::kGCAndDeopt:
+        return AtSafepointField::mask_in_place() |
+               AtDeoptSafepointField::mask_in_place();
+      default:
+        UNREACHABLE();
+    }
+  }
 
 #if defined(USING_SAFE_STACK)
   uword saved_safestack_limit_;
@@ -1061,7 +1199,6 @@ class Thread : public ThreadState {
   void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
-  void BlockForSafepoint();
 
   void FinishEntering(TaskKind kind);
   void PrepareLeaving();
@@ -1077,22 +1214,51 @@ class Thread : public ThreadState {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
+  friend class DisabledNoActiveIsolateScope;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateGroup;
   friend class IsolateTestHelper;
+  friend class NoActiveIsolateScope;
   friend class NoOOBMessageScope;
+  friend class NoReloadScope;
   friend class Simulator;
   friend class StackZone;
+  friend class StoppedMutatorsScope;
   friend class ThreadRegistry;
-  friend class NoActiveIsolateScope;
   friend class CompilerState;
   friend class compiler::target::Thread;
   friend class FieldTable;
+  friend class RuntimeCallDeoptScope;
+  friend class
+      TransitionGeneratedToVM;  // IsSafepointRequested/BlockForSafepoint
+  friend class
+      TransitionVMToGenerated;  // IsSafepointRequested/BlockForSafepoint
+  friend class MonitorLocker;   // ExitSafepointUsingLock
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
                                                    const char*,
                                                    char**);
   DISALLOW_COPY_AND_ASSIGN(Thread);
+};
+
+class RuntimeCallDeoptScope : public StackResource {
+ public:
+  RuntimeCallDeoptScope(Thread* thread, RuntimeCallDeoptAbility kind)
+      : StackResource(thread) {
+    // We cannot have nested calls into the VM without deopt support.
+    ASSERT(thread->runtime_call_deopt_ability_ ==
+           RuntimeCallDeoptAbility::kCanLazyDeopt);
+    thread->runtime_call_deopt_ability_ = kind;
+  }
+  virtual ~RuntimeCallDeoptScope() {
+    thread()->runtime_call_deopt_ability_ =
+        RuntimeCallDeoptAbility::kCanLazyDeopt;
+  }
+
+ private:
+  Thread* thread() {
+    return reinterpret_cast<Thread*>(StackResource::thread());
+  }
 };
 
 #if defined(HOST_OS_WINDOWS)
@@ -1130,6 +1296,46 @@ class NoSafepointScope : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
 };
 #endif  // defined(DEBUG)
+
+class NoReloadScope : public ThreadStackResource {
+ public:
+  explicit NoReloadScope(Thread* thread) : ThreadStackResource(thread) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread->no_reload_scope_depth_++;
+    ASSERT(thread->no_reload_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ~NoReloadScope() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread()->no_reload_scope_depth_ -= 1;
+    ASSERT(thread()->no_reload_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
+};
+
+class StoppedMutatorsScope : public ThreadStackResource {
+ public:
+  explicit StoppedMutatorsScope(Thread* thread) : ThreadStackResource(thread) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread->stopped_mutators_scope_depth_++;
+    ASSERT(thread->stopped_mutators_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ~StoppedMutatorsScope() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread()->stopped_mutators_scope_depth_ -= 1;
+    ASSERT(thread()->stopped_mutators_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(StoppedMutatorsScope);
+};
 
 // Within a EnterCompilerScope, the thread must operate on cloned fields.
 #if defined(DEBUG)

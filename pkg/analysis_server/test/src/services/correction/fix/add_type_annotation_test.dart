@@ -11,33 +11,10 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddTypeAnnotationLintTest);
     defineReflectiveTests(AddTypeAnnotationTest);
+    defineReflectiveTests(AlwaysSpecifyTypesLintTest);
+    defineReflectiveTests(PreferTypingUninitializedVariablesLintTest);
   });
-}
-
-@reflectiveTest
-class AddTypeAnnotationLintTest extends FixProcessorLintTest {
-  @override
-  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
-
-  @override
-  String get lintCode => LintNames.always_specify_types;
-
-  // More coverage in the `add_type_annotation_test.dart` assist test.
-
-  Future<void> test_do_block() async {
-    await resolveTestCode('''
-class A {
-  final f = 0;
-}
-''');
-    await assertHasFix('''
-class A {
-  final int f = 0;
-}
-''');
-  }
 }
 
 @reflectiveTest
@@ -69,6 +46,58 @@ class A {
     await assertHasFix('''
 class A {
   static int f = 0;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AlwaysSpecifyTypesLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+
+  @override
+  String get lintCode => LintNames.always_specify_types;
+
+  // More coverage in the `add_type_annotation_test.dart` assist test.
+
+  Future<void> test_field() async {
+    await resolveTestCode('''
+class A {
+  final f = 0;
+}
+''');
+    await assertHasFix('''
+class A {
+  final int f = 0;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class PreferTypingUninitializedVariablesLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+
+  @override
+  String get lintCode => LintNames.prefer_typing_uninitialized_variables;
+
+  // More coverage in the `add_type_annotation_test.dart` assist test.
+
+  Future<void> test_local() async {
+    await resolveTestCode('''
+void f() {
+  var l;
+  l = 0;
+  print(l);
+}
+''');
+    await assertHasFix('''
+void f() {
+  int l;
+  l = 0;
+  print(l);
 }
 ''');
   }

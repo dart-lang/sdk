@@ -3,17 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:path/path.dart' as path;
+
 import 'dart2native.dart';
 
 final Directory binDir = File(Platform.resolvedExecutable).parent;
 final String executableSuffix = Platform.isWindows ? '.exe' : '';
 final String dartaotruntime =
-    path.join(binDir.path, 'dartaotruntime${executableSuffix}');
+    path.join(binDir.path, 'dartaotruntime$executableSuffix');
 final String genKernel =
     path.join(binDir.path, 'snapshots', 'gen_kernel.dart.snapshot');
 final String genSnapshot =
-    path.join(binDir.path, 'utils', 'gen_snapshot${executableSuffix}');
+    path.join(binDir.path, 'utils', 'gen_snapshot$executableSuffix');
 final String productPlatformDill = path.join(
     binDir.parent.path, 'lib', '_internal', 'vm_platform_strong_product.dill');
 
@@ -26,7 +28,9 @@ Future<void> generateNative({
   List<String> defines,
   String enableExperiment = '',
   bool enableAsserts = false,
+  bool soundNullSafety,
   bool verbose = false,
+  String verbosity = 'all',
   List<String> extraOptions = const [],
 }) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
@@ -40,12 +44,11 @@ Future<void> generateNative({
       'exe': Kind.exe,
     }[kind];
     final sourceWithoutDart = sourcePath.replaceFirst(RegExp(r'\.dart$'), '');
-    final outputPath = path.canonicalize(path.normalize(outputFile != null
-        ? outputFile
-        : {
-            Kind.aot: '${sourceWithoutDart}.aot',
-            Kind.exe: '${sourceWithoutDart}.exe',
-          }[outputKind]));
+    final outputPath = path.canonicalize(path.normalize(outputFile ??
+        {
+          Kind.aot: '$sourceWithoutDart.aot',
+          Kind.exe: '$sourceWithoutDart.exe',
+        }[outputKind]));
     final debugPath =
         debugFile != null ? path.canonicalize(path.normalize(debugFile)) : null;
 
@@ -57,13 +60,29 @@ Future<void> generateNative({
     final String kernelFile = path.join(tempDir.path, 'kernel.dill');
     final kernelResult = await generateAotKernel(Platform.executable, genKernel,
         productPlatformDill, sourcePath, kernelFile, packages, defines,
-        enableExperiment: enableExperiment);
+        enableExperiment: enableExperiment,
+        extraGenKernelOptions: [
+          '--invocation-modes=compile',
+          '--verbosity=$verbosity',
+          if (soundNullSafety != null)
+            '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
+        ]);
     if (kernelResult.exitCode != 0) {
-      stderr.writeln(kernelResult.stdout);
-      stderr.writeln(kernelResult.stderr);
+      // We pipe both stdout and stderr to stderr because the CFE doesn't print
+      // errors to stderr. This unfortunately does emit info-only output in
+      // stderr, though.
+      stderr.write(kernelResult.stdout);
+      stderr.write(kernelResult.stderr);
       await stderr.flush();
       throw 'Generating AOT kernel dill failed!';
     }
+    // Pipe info and warnings from the CFE to stdout since the compilation
+    // succeeded. Stderr should be empty but we pipe it to stderr for
+    // completeness.
+    stdout.write(kernelResult.stdout);
+    await stdout.flush();
+    stderr.write(kernelResult.stderr);
+    await stderr.flush();
 
     if (verbose) {
       print('Generating AOT snapshot.');
@@ -95,7 +114,7 @@ Future<void> generateNative({
       }
     }
 
-    print('Generated: ${outputPath}');
+    print('Generated: $outputPath');
   } finally {
     tempDir.deleteSync(recursive: true);
   }

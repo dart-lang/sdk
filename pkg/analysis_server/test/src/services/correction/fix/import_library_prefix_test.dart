@@ -23,16 +23,16 @@ class ImportLibraryPrefixTest extends FixProcessorTest {
     await resolveTestCode('''
 import 'dart:collection' as pref;
 main() {
-  pref.HashMap s = null;
-  LinkedHashMap f = null;
+  pref.HashMap? s = null;
+  LinkedHashMap? f = null;
   print('\$s \$f');
 }
 ''');
     await assertHasFix('''
 import 'dart:collection' as pref;
 main() {
-  pref.HashMap s = null;
-  pref.LinkedHashMap f = null;
+  pref.HashMap? s = null;
+  pref.LinkedHashMap? f = null;
   print('\$s \$f');
 }
 ''');

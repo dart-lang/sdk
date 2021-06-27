@@ -15,25 +15,33 @@ main() {
 
   {
     // Allocates each coordinate separately in c memory.
-    Coordinate c1 = Coordinate.allocate(10.0, 10.0, nullptr);
-    Coordinate c2 = Coordinate.allocate(20.0, 20.0, c1.addressOf);
-    Coordinate c3 = Coordinate.allocate(30.0, 30.0, c2.addressOf);
-    c1.next = c3.addressOf;
+    final c1 = calloc<Coordinate>()
+      ..ref.x = 10.0
+      ..ref.y = 10.0;
+    final c2 = calloc<Coordinate>()
+      ..ref.x = 20.0
+      ..ref.y = 20.0
+      ..ref.next = c1;
+    final c3 = calloc<Coordinate>()
+      ..ref.x = 30.0
+      ..ref.y = 30.0
+      ..ref.next = c2;
+    c1.ref.next = c3;
 
-    Coordinate currentCoordinate = c1;
+    Coordinate currentCoordinate = c1.ref;
     for (var i in [0, 1, 2, 3, 4]) {
       currentCoordinate = currentCoordinate.next.ref;
       print("${currentCoordinate.x}; ${currentCoordinate.y}");
     }
 
-    free(c1.addressOf);
-    free(c2.addressOf);
-    free(c3.addressOf);
+    calloc.free(c1);
+    calloc.free(c2);
+    calloc.free(c3);
   }
 
   {
     // Allocates coordinates consecutively in c memory.
-    Pointer<Coordinate> c1 = allocate<Coordinate>(count: 3);
+    Pointer<Coordinate> c1 = calloc<Coordinate>(3);
     Pointer<Coordinate> c2 = c1.elementAt(1);
     Pointer<Coordinate> c3 = c1.elementAt(2);
     c1.ref.x = 10.0;
@@ -52,15 +60,16 @@ main() {
       print("${currentCoordinate.x}; ${currentCoordinate.y}");
     }
 
-    free(c1);
+    calloc.free(c1);
   }
 
   {
-    Coordinate c = Coordinate.allocate(10, 10, nullptr);
-    print(c is Coordinate);
-    print(c is Pointer<Void>);
-    print(c is Pointer);
-    free(c.addressOf);
+    // Allocating in native memory returns a pointer.
+    final c = calloc<Coordinate>();
+    print(c is Pointer<Coordinate>);
+    // `.ref` returns a reference which gives access to the fields.
+    print(c.ref is Coordinate);
+    calloc.free(c);
   }
 
   print("end main");

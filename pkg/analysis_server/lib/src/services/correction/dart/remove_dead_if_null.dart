@@ -29,7 +29,7 @@ class RemoveDeadIfNull extends CorrectionProducer {
   }
 
   /// Finds the dead if-null expression above [node].
-  SourceRange findIfNull() {
+  SourceRange? findIfNull() {
     var child = node;
     var parent = node.parent;
     while (parent != null) {
@@ -42,10 +42,11 @@ class RemoveDeadIfNull extends CorrectionProducer {
           parent.operator.type == TokenType.QUESTION_QUESTION_EQ &&
           parent.rightHandSide == child) {
         var assignee = parent.leftHandSide;
-        if (parent.parent is ExpressionStatement &&
+        var grandParent = parent.parent;
+        if (grandParent is ExpressionStatement &&
             assignee is SimpleIdentifier &&
             assignee.staticElement is PromotableElement) {
-          return utils.getLinesRange(range.node(parent.parent));
+          return utils.getLinesRange(range.node(grandParent));
         } else {
           return range.endEnd(parent.leftHandSide, parent.rightHandSide);
         }

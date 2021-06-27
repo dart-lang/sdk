@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class MakeVariableNotFinal extends CorrectionProducer {
-  String _variableName;
+  String _variableName = '';
 
   @override
   List<Object> get fixArguments => [_variableName];
@@ -23,29 +23,37 @@ class MakeVariableNotFinal extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is SimpleIdentifier &&
-        node.staticElement is LocalVariableElement) {
-      LocalVariableElement variable = node.staticElement;
-      var id = NodeLocator(variable.nameOffset).searchWithin(unit);
-      var decl = id?.parent;
-      if (decl is VariableDeclaration &&
-          decl.parent is VariableDeclarationList) {
-        VariableDeclarationList declarationList = decl.parent;
-        var keywordToken = declarationList.keyword;
-        if (declarationList.variables.length == 1 &&
-            keywordToken.keyword == Keyword.FINAL) {
-          await builder.addDartFileEdit(file, (builder) {
-            if (declarationList.type != null) {
-              builder.addDeletion(
-                  range.startStart(keywordToken, declarationList.type));
-            } else {
-              builder.addSimpleReplacement(range.token(keywordToken), 'var');
-            }
-          });
-          declarationList.variables[0].name.name;
-          _variableName = declarationList.variables[0].name.name;
-        }
+    final node = this.node;
+    if (node is! SimpleIdentifier) {
+      return;
+    }
+
+    var variable = node.staticElement;
+    if (variable is! LocalVariableElement) {
+      return;
+    }
+
+    var id = NodeLocator(variable.nameOffset).searchWithin(unit);
+    var declaration = id?.parent;
+    var declarationList = declaration?.parent;
+
+    if (declaration is VariableDeclaration &&
+        declarationList is VariableDeclarationList) {
+      var keywordToken = declarationList.keyword;
+      if (declarationList.variables.length == 1 &&
+          keywordToken != null &&
+          keywordToken.keyword == Keyword.FINAL) {
+        await builder.addDartFileEdit(file, (builder) {
+          var typeAnnotation = declarationList.type;
+          if (typeAnnotation != null) {
+            builder.addDeletion(
+              range.startStart(keywordToken, typeAnnotation),
+            );
+          } else {
+            builder.addSimpleReplacement(range.token(keywordToken), 'var');
+          }
+        });
+        _variableName = variable.name;
       }
     }
   }

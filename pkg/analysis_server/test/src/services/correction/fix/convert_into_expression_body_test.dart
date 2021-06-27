@@ -27,7 +27,7 @@ class ConvertIntoExpressionBodyTest extends FixProcessorLintTest {
   Future<void> test_async() async {
     await resolveTestCode('''
 class A {
-  mmm() async { 
+  mmm() async {
     return 42;
   }
 }

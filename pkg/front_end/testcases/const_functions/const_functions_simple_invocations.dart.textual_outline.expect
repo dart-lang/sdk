@@ -1,0 +1,26 @@
+import "package:expect/expect.dart";
+
+const binary = binaryFn(2, 1);
+int binaryFn(int a, int b) => a - b;
+const optional = optionalFn(2);
+const optional1 = optionalFn(2, 1);
+int optionalFn(int c, [int d = 0]) => c + d;
+const named = namedFn(2, f: 2);
+const named1 = namedFn(2);
+int namedFn(int e, {int f = 3}) => e + f;
+const type = typeFn(6);
+T typeFn<T>(T x) => x;
+const str = stringFn("str");
+String stringFn(String s) => s + "ing";
+const eq = equalFn(2, 2);
+bool equalFn(int a, int b) => a == b;
+const negative = unary(2);
+int unary(int a) => -a;
+const boolean = boolFn(true, false);
+bool boolFn(bool a, bool b) => a || b;
+const doubleResult = doubleFn(2.2, 2);
+double doubleFn(double a, double b) => a * b;
+const multi = multiFn(1);
+const multi2 = multiFn(2);
+int multiFn(int a) => a + 1;
+void main() {}

@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
+import 'package:collection/collection.dart';
 
 class ImplementationHandler
     extends MessageHandler<TextDocumentPositionParams, List<Location>> {
@@ -36,22 +37,27 @@ class ImplementationHandler
   }
 
   Future<ErrorOr<List<Location>>> _getImplementations(
-      String file, int offset, CancelableToken token) async {
+      String file, int offset, CancellationToken token) async {
     final element = await server.getElementAtOffset(file, offset);
+    if (element == null) {
+      return success([]);
+    }
+
     final computer = TypeHierarchyComputer(server.searchEngine, element);
+
     if (token.isCancellationRequested) {
       return cancelled();
     }
-    final items = await computer.compute();
 
+    final items = await computer.compute();
     if (items == null || items.isEmpty) {
       return success([]);
     }
 
     Iterable<TypeHierarchyItem> getDescendants(TypeHierarchyItem item) => item
         .subclasses
-        ?.map((i) => items[i])
-        ?.followedBy(item.subclasses.expand((i) => getDescendants(items[i])));
+        .map((i) => items[i])
+        .followedBy(item.subclasses.expand((i) => getDescendants(items[i])));
 
     // [TypeHierarchyComputer] returns the whole tree, but we specifically only
     // want implementations (sub-classes). Find the referenced element and then
@@ -59,8 +65,9 @@ class ImplementationHandler
     var currentItem = items.firstWhere(
       (item) {
         final location =
-            item.memberElement?.location ?? item.classElement?.location;
-        return location.offset <= offset &&
+            item.memberElement?.location ?? item.classElement.location;
+        return location != null &&
+            location.offset <= offset &&
             location.offset + location.length >= offset;
       },
       // If we didn't find an item spanning our offset, we must've been at a
@@ -68,23 +75,32 @@ class ImplementationHandler
       orElse: () => items.first,
     );
 
-    final isClass = currentItem.memberElement == null;
+    final isMember = currentItem.memberElement != null;
+    final locations = getDescendants(currentItem)
+        // Filter based on type, so when searching for members we don't include
+        // any intermediate classes that don't have implementations for the
+        // method.
+        .where((item) => isMember ? item.memberElement != null : true)
+        .map((item) {
+          final elementLocation =
+              item.memberElement?.location ?? item.classElement.location;
+          if (elementLocation == null) {
+            return null;
+          }
 
-    final locations = getDescendants(currentItem).where((item) {
-      // Filter based on type, so when searching for members we don't include
-      // any intermediate classes that don't have implementations for the
-      // method.
-      return isClass ? item.classElement != null : item.memberElement != null;
-    }).map((item) {
-      final elementLocation =
-          item.memberElement?.location ?? item.classElement?.location;
-      final lineInfo = server.getLineInfo(elementLocation.file);
-      return Location(
-        uri: Uri.file(elementLocation.file).toString(),
-        range:
-            toRange(lineInfo, elementLocation.offset, elementLocation.length),
-      );
-    }).toList();
+          final lineInfo = server.getLineInfo(elementLocation.file);
+          if (lineInfo == null) {
+            return null;
+          }
+
+          return Location(
+            uri: Uri.file(elementLocation.file).toString(),
+            range: toRange(
+                lineInfo, elementLocation.offset, elementLocation.length),
+          );
+        })
+        .whereNotNull()
+        .toList();
 
     return success(locations);
   }

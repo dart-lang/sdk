@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -310,10 +312,16 @@ class HumanErrorFormatter extends ErrorFormatter {
     for (var message in error.contextMessages) {
       var session = result.session.analysisContext;
       if (session is DriverBasedAnalysisContext) {
-        var lineInfo = session.driver.getFileSync(message.filePath)?.lineInfo;
-        var location = lineInfo.getLocation(message.offset);
-        contextMessages.add(ContextMessage(message.filePath, message.message,
-            location.lineNumber, location.columnNumber));
+        var fileResult = session.driver.getFileSync2(message.filePath);
+        if (fileResult is FileResult) {
+          var lineInfo = fileResult?.lineInfo;
+          var location = lineInfo.getLocation(message.offset);
+          contextMessages.add(ContextMessage(
+              message.filePath,
+              message.messageText(includeUrl: true),
+              location.lineNumber,
+              location.columnNumber));
+        }
       }
     }
 
@@ -329,6 +337,87 @@ class HumanErrorFormatter extends ErrorFormatter {
       correction: error.correction,
       url: error.errorCode.url,
     ));
+  }
+}
+
+class JsonErrorFormatter extends ErrorFormatter {
+  JsonErrorFormatter(
+      StringSink out, CommandLineOptions options, AnalysisStats stats,
+      {SeverityProcessor severityProcessor})
+      : super(out, options, stats, severityProcessor: severityProcessor);
+
+  @override
+  void flush() {}
+
+  @override
+  void formatError(
+      Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
+    throw UnsupportedError('Cannot format a single error');
+  }
+
+  @override
+  void formatErrors(List<ErrorsResult> results) {
+    Map<String, dynamic> range(
+            Map<String, dynamic> start, Map<String, dynamic> end) =>
+        {
+          'start': start,
+          'end': end,
+        };
+
+    Map<String, dynamic> position(int offset, int line, int column) => {
+          'offset': offset,
+          'line': line,
+          'column': column,
+        };
+
+    Map<String, dynamic> location(
+        String filePath, int offset, int length, LineInfo lineInfo) {
+      var startLocation = lineInfo.getLocation(offset);
+      var startLine = startLocation.lineNumber;
+      var startColumn = startLocation.columnNumber;
+      var endLocation = lineInfo.getLocation(offset + length);
+      var endLine = endLocation.lineNumber;
+      var endColumn = endLocation.columnNumber;
+      return {
+        'file': filePath,
+        'range': range(position(offset, startLine, startColumn),
+            position(offset + length, endLine, endColumn)),
+      };
+    }
+
+    var diagnostics = <Map<String, dynamic>>[];
+    for (var result in results) {
+      var errors = result.errors;
+      var lineInfo = result.lineInfo;
+      for (var error in errors) {
+        var contextMessages = <Map<String, dynamic>>[];
+        for (var contextMessage in error.contextMessages) {
+          contextMessages.add({
+            'location': location(contextMessage.filePath, contextMessage.offset,
+                contextMessage.length, lineInfo),
+            'message': contextMessage.messageText(includeUrl: true),
+          });
+        }
+        var errorCode = error.errorCode;
+        var problemMessage = error.problemMessage;
+        var url = error.errorCode.url;
+        diagnostics.add({
+          'code': errorCode.name.toLowerCase(),
+          'severity': errorCode.errorSeverity.name,
+          'type': errorCode.type.name,
+          'location': location(problemMessage.filePath, problemMessage.offset,
+              problemMessage.length, lineInfo),
+          'problemMessage': problemMessage.messageText(includeUrl: true),
+          if (error.correction != null) 'correctionMessage': error.correction,
+          if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
+          if (url != null) 'documentation': url,
+        });
+      }
+    }
+    out.writeln(json.encode({
+      'version': 1,
+      'diagnostics': diagnostics,
+    }));
   }
 }
 

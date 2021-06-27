@@ -15,15 +15,15 @@ class InvertIfStatement extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! IfStatement) {
+    var ifStatement = node;
+    if (ifStatement is! IfStatement) {
       return;
     }
-    var ifStatement = node as IfStatement;
     var condition = ifStatement.condition;
     // should have both "then" and "else"
     var thenStatement = ifStatement.thenStatement;
     var elseStatement = ifStatement.elseStatement;
-    if (thenStatement == null || elseStatement == null) {
+    if (elseStatement == null) {
       return;
     }
     // prepare source

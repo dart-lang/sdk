@@ -17,7 +17,7 @@ class ImportedReferenceContributor extends DartCompletionContributor {
       return;
     }
 
-    var imports = request.libraryElement.imports;
+    var imports = request.libraryElement?.imports;
     if (imports == null) {
       return;
     }
@@ -28,13 +28,17 @@ class ImportedReferenceContributor extends DartCompletionContributor {
       if (libraryElement != null) {
         _buildSuggestions(request, builder, importElement.namespace,
             prefix: importElement.prefix?.name);
+        if (libraryElement.isDartCore &&
+            request.opType.includeTypeNameSuggestions) {
+          builder.suggestName('Never');
+        }
       }
     }
   }
 
   void _buildSuggestions(DartCompletionRequest request,
       SuggestionBuilder builder, Namespace namespace,
-      {String prefix}) {
+      {String? prefix}) {
     var visitor = LibraryElementSuggestionBuilder(request, builder, prefix);
     for (var elem in namespace.definedNames.values) {
       elem.accept(visitor);

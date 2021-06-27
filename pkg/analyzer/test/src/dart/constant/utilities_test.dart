@@ -3,15 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -31,9 +30,9 @@ main() {
 
 @reflectiveTest
 class ConstantFinderTest {
-  AstNode _node;
-  TypeProvider _typeProvider;
-  Source _source;
+  late final AstNode _node;
+  late final TypeProvider _typeProvider;
+  late final Source _source;
 
   void setUp() {
     _typeProvider = TestTypeProvider();
@@ -43,15 +42,15 @@ class ConstantFinderTest {
   /// Test an annotation that consists solely of an identifier (and hence
   /// represents a reference to a compile-time constant variable).
   void test_visitAnnotation_constantVariable() {
-    CompilationUnitElement compilationUnitElement =
+    var compilationUnitElement =
         ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
-    ElementFactory.library(null, 'L').definingCompilationUnit =
-        compilationUnitElement;
+    ElementFactory.library(_AnalysisContextMock(), 'L')
+        .definingCompilationUnit = compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         ElementAnnotationImpl(compilationUnitElement);
-    _node = elementAnnotation.annotationAst =
-        AstTestFactory.annotation(AstTestFactory.identifier3('x'))
-          ..elementAnnotation = elementAnnotation;
+    var annotation = AstTestFactory.annotation(AstTestFactory.identifier3('x'));
+    _node = elementAnnotation.annotationAst = annotation
+      ..elementAnnotation = elementAnnotation;
     expect(_findAnnotations(), contains(_node));
   }
 
@@ -67,14 +66,15 @@ class ConstantFinderTest {
   /// Test an annotation that represents the invocation of a constant
   /// constructor.
   void test_visitAnnotation_invocation() {
-    CompilationUnitElement compilationUnitElement =
+    var compilationUnitElement =
         ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
-    ElementFactory.library(null, 'L').definingCompilationUnit =
-        compilationUnitElement;
+    ElementFactory.library(_AnalysisContextMock(), 'L')
+        .definingCompilationUnit = compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         ElementAnnotationImpl(compilationUnitElement);
-    _node = elementAnnotation.annotationAst = AstTestFactory.annotation2(
-        AstTestFactory.identifier3('A'), null, AstTestFactory.argumentList())
+    var annotation = AstTestFactory.annotation2(
+        AstTestFactory.identifier3('A'), null, AstTestFactory.argumentList());
+    _node = elementAnnotation.annotationAst = annotation
       ..elementAnnotation = elementAnnotation;
     expect(_findAnnotations(), contains(_node));
   }
@@ -182,16 +182,15 @@ class ConstantFinderTest {
   }
 
   ConstructorElement _setupConstructorDeclaration(String name, bool isConst) {
-    Keyword constKeyword = isConst ? Keyword.CONST : null;
-    ConstructorDeclarationImpl constructorDeclaration =
-        AstTestFactory.constructorDeclaration2(
-            constKeyword,
-            null,
-            null,
-            name,
-            AstTestFactory.formalParameterList(),
-            null,
-            AstTestFactory.blockFunctionBody2());
+    var constKeyword = isConst ? Keyword.CONST : null;
+    var constructorDeclaration = AstTestFactory.constructorDeclaration2(
+        constKeyword,
+        null,
+        AstTestFactory.identifier3(name),
+        null,
+        AstTestFactory.formalParameterList(),
+        [],
+        AstTestFactory.blockFunctionBody2());
     ClassElement classElement = ElementFactory.classElement2(name);
     ConstructorElement element =
         ElementFactory.constructorElement(classElement, name, isConst);
@@ -205,11 +204,11 @@ class ConstantFinderTest {
       {bool isInitialized = true,
       bool isStatic = false,
       bool hasConstConstructor = false}) {
-    VariableDeclaration variableDeclaration = isInitialized
+    var variableDeclaration = isInitialized
         ? AstTestFactory.variableDeclaration2(
             fieldName, AstTestFactory.integer(0))
         : AstTestFactory.variableDeclaration(fieldName);
-    VariableElement fieldElement = ElementFactory.fieldElement(
+    var fieldElement = ElementFactory.fieldElement(
         fieldName,
         isStatic,
         keyword == Keyword.FINAL,
@@ -218,7 +217,7 @@ class ConstantFinderTest {
     variableDeclaration.name.staticElement = fieldElement;
     FieldDeclaration fieldDeclaration = AstTestFactory.fieldDeclaration2(
         isStatic, keyword, <VariableDeclaration>[variableDeclaration]);
-    ClassDeclaration classDeclaration = AstTestFactory.classDeclaration(
+    var classDeclaration = AstTestFactory.classDeclaration(
         null, className, null, null, null, null);
     classDeclaration.members.add(fieldDeclaration);
     _node = classDeclaration;
@@ -226,15 +225,14 @@ class ConstantFinderTest {
     classElement.fields = <FieldElement>[fieldElement];
     classDeclaration.name.staticElement = classElement;
     if (hasConstConstructor) {
-      ConstructorDeclarationImpl constructorDeclaration =
-          AstTestFactory.constructorDeclaration2(
-              Keyword.CONST,
-              null,
-              AstTestFactory.identifier3(className),
-              null,
-              AstTestFactory.formalParameterList(),
-              null,
-              AstTestFactory.blockFunctionBody2());
+      var constructorDeclaration = AstTestFactory.constructorDeclaration2(
+          Keyword.CONST,
+          null,
+          AstTestFactory.identifier3(className),
+          null,
+          AstTestFactory.formalParameterList(),
+          [],
+          AstTestFactory.blockFunctionBody2());
       classDeclaration.members.add(constructorDeclaration);
       ConstructorElement constructorElement =
           ElementFactory.constructorElement(classElement, '', true);
@@ -249,13 +247,17 @@ class ConstantFinderTest {
   VariableElement _setupVariableDeclaration(
       String name, bool isConst, bool isInitialized,
       {isFinal = false}) {
-    VariableDeclaration variableDeclaration = isInitialized
+    var variableDeclaration = isInitialized
         ? AstTestFactory.variableDeclaration2(name, AstTestFactory.integer(0))
         : AstTestFactory.variableDeclaration(name);
-    SimpleIdentifier identifier = variableDeclaration.name;
+    var identifier = variableDeclaration.name;
     VariableElement element = ElementFactory.localVariableElement(identifier);
     identifier.staticElement = element;
-    Keyword keyword = isConst ? Keyword.CONST : isFinal ? Keyword.FINAL : null;
+    var keyword = isConst
+        ? Keyword.CONST
+        : isFinal
+            ? Keyword.FINAL
+            : null;
     AstTestFactory.variableDeclarationList2(keyword, [variableDeclaration]);
     _node = variableDeclaration;
     return element;
@@ -264,7 +266,7 @@ class ConstantFinderTest {
 
 @reflectiveTest
 class ReferenceFinderTest {
-  Element _tail;
+  late final Element _tail;
   final List<ConstantEvaluationTarget> _dependencies = [];
 
   void test_visitSimpleIdentifier_const() {
@@ -301,14 +303,16 @@ class ReferenceFinderTest {
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(
       String name, bool isConst) {
     List<ConstructorInitializer> initializers = <ConstructorInitializer>[];
-    ConstructorDeclaration constructorDeclaration =
-        AstTestFactory.constructorDeclaration(AstTestFactory.identifier3(name),
-            null, AstTestFactory.formalParameterList(), initializers);
+    var constructorDeclaration = AstTestFactory.constructorDeclaration(
+        AstTestFactory.identifier3(name),
+        null,
+        AstTestFactory.formalParameterList(),
+        initializers);
     if (isConst) {
       constructorDeclaration.constKeyword = KeywordToken(Keyword.CONST, 0);
     }
     ClassElementImpl classElement = ElementFactory.classElement2(name);
-    SuperConstructorInvocation superConstructorInvocation =
+    var superConstructorInvocation =
         AstTestFactory.superConstructorInvocation();
     ConstructorElementImpl constructorElement =
         ElementFactory.constructorElement(classElement, name, isConst);
@@ -326,7 +330,7 @@ class ReferenceFinderTest {
     variableElement.isConst = isConst;
     AstTestFactory.variableDeclarationList2(
         isConst ? Keyword.CONST : Keyword.VAR, [variableDeclaration]);
-    SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+    var identifier = AstTestFactory.identifier3(name);
     identifier.staticElement = variableElement;
     return identifier;
   }
@@ -337,4 +341,9 @@ class ReferenceFinderTest {
     });
     node.accept(referenceFinder);
   }
+}
+
+class _AnalysisContextMock implements AnalysisContext {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

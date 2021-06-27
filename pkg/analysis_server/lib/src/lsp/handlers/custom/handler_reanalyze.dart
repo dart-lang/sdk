@@ -19,6 +19,6 @@ class ReanalyzeHandler extends MessageHandler<void, void> {
   @override
   Future<ErrorOr<void>> handle(void _, CancellationToken token) async {
     server.reanalyze();
-    return success();
+    return success(null);
   }
 }

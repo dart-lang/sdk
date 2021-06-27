@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
-import 'package:meta/meta.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 
 /// A set of transforms used to aid in the construction of fixes for issues
 /// related to some body of code. Typically there is one set of transforms for
@@ -18,11 +18,26 @@ class TransformSet {
     _transforms.add(transform);
   }
 
+  /// Return the result of applying the overrides in the [overrideSet] to the
+  /// transforms in this set.
+  TransformSet applyOverrides(TransformOverrideSet overrideSet) {
+    var overriddenSet = TransformSet();
+    for (var transform in _transforms) {
+      var override = overrideSet.overrideForTransform(transform.title);
+      if (override != null) {
+        overriddenSet.addTransform(transform.applyOverride(override));
+      } else {
+        overriddenSet.addTransform(transform);
+      }
+    }
+    return overriddenSet;
+  }
+
   /// Return a list of the transforms that match the [matcher]. The flag
   /// [applyingBulkFixes] indicates whether the transforms are being applied in
   /// the context of a bulk fix.
   List<Transform> transformsFor(ElementMatcher matcher,
-      {@required bool applyingBulkFixes}) {
+      {required bool applyingBulkFixes}) {
     var result = <Transform>[];
     for (var transform in _transforms) {
       if (transform.appliesTo(matcher, applyingBulkFixes: applyingBulkFixes)) {

@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+
 // We need to use the 'io' prefix here, otherwise io.exitCode will shadow
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import 'dart:io' as io;
 
-import 'package:status_file/expectation.dart';
-import 'package:test_runner/src/repository.dart';
-import 'package:test_runner/src/static_error.dart';
 import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
+import 'package:status_file/expectation.dart';
+import 'package:test_runner/src/static_error.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
@@ -53,6 +53,7 @@ class CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (_didFail(testCase)) return Expectation.fail;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     return Expectation.pass;
   }
@@ -64,6 +65,7 @@ class CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (_didFail(testCase)) return Expectation.fail;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     return Expectation.pass;
   }
@@ -116,6 +118,9 @@ class CommandOutput {
   }
 
   bool get hasNonUtf8 => exitCode == nonUtfFakeExitCode;
+
+  /// Whether the command's output was too long and was truncated.
+  bool get truncatedOutput => exitCode == truncatedFakeExitCode;
 
   /// Called when producing output for a test failure to describe this output.
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
@@ -335,6 +340,7 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // Multitests are handled specially.
     if (testCase.hasRuntimeError) {
@@ -354,6 +360,7 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
     return _outcome;
   }
 
@@ -453,68 +460,54 @@ class BrowserCommandOutput extends CommandOutput
 
 /// A parsed analyzer error diagnostic.
 class AnalyzerError implements Comparable<AnalyzerError> {
-  /// Parses all errors from analyzer [stderr] output.
-  static Iterable<AnalyzerError> parseStderr(String stderr) sync* {
-    for (var outputLine in stderr.split("\n")) {
-      var error = _tryParse(outputLine);
-      if (error != null) yield error;
+  /// Parses all errors from analyzer [stdout] output.
+  static List<AnalyzerError> parseStdout(String stdout) {
+    var result = <AnalyzerError>[];
+
+    var jsonData = json.decode(stdout) as Map<String, dynamic>;
+    var version = jsonData['version'];
+    if (version != 1) {
+      DebugLogger.error('Unexpected analyzer JSON data version: $version');
+      throw UnimplementedError();
     }
-  }
 
-  static AnalyzerError _tryParse(String line) {
-    if (line.isEmpty) return null;
+    for (var diagnostic in jsonData['diagnostics'] as List<dynamic>) {
+      var diagnosticMap = diagnostic as Map<String, dynamic>;
 
-    // Split and unescape the fields.
-    // The escaping is implemented in:
-    // pkg/analyzer_cli/lib/src/error_formatter.dart#L392
-    var fields = <String>[];
-    var field = StringBuffer();
-    var inEscape = false;
-    for (var i = 0; i < line.length; i++) {
-      var c = line[i];
+      var type = diagnosticMap['type'] as String;
+      var code = diagnosticMap['code'] as String;
+      var errorCode = '$type.${code.toUpperCase()}';
 
-      if (inEscape) {
-        switch (c) {
-          case '\\':
-            field.write('\\');
-            break;
-          case '|':
-            field.write('|');
-            break;
-          case 'n':
-            field.write('\n');
-            break;
-          // TODO(rnystrom): Are there other escapes?
-          default:
-            field.write(c);
-            break;
-        }
+      var error = _parse(
+          diagnosticMap, diagnosticMap['problemMessage'] as String, errorCode);
+      result.add(error);
 
-        inEscape = false;
-      } else if (c == '\\') {
-        inEscape = true;
-      } else if (c == '|') {
-        fields.add(field.toString());
-        field = StringBuffer();
-      } else {
-        field.write(c);
+      var contextMessages = diagnosticMap['contextMessages'] as List<dynamic>;
+      for (var contextMessage in contextMessages ?? const []) {
+        var contextMessageMap = contextMessage as Map<String, dynamic>;
+        error.contextMessages.add(
+            _parse(contextMessageMap, contextMessageMap['message'] as String));
       }
     }
 
-    // Add the last field.
-    fields.add(field.toString());
+    return result;
+  }
 
-    // Lines without enough fields are other output we don't care about.
-    if (fields.length < 8) return null;
+  static AnalyzerError _parse(Map<String, dynamic> diagnostic, String message,
+      [String errorCode]) {
+    var location = diagnostic['location'] as Map<String, dynamic>;
 
+    var range = location['range'] as Map<String, dynamic>;
+    var start = range['start'] as Map<String, dynamic>;
+    var end = range['end'] as Map<String, dynamic>;
     return AnalyzerError._(
-        severity: fields[0],
-        errorCode: "${fields[1]}.${fields[2]}",
-        file: fields[3],
-        message: fields[7],
-        line: int.parse(fields[4]),
-        column: int.parse(fields[5]),
-        length: int.parse(fields[6]));
+        severity: diagnostic['severity'] as String,
+        errorCode: errorCode,
+        file: location['file'] as String,
+        message: message,
+        line: start['line'] as int,
+        column: start['column'] as int,
+        length: (end['offset'] as int) - (start['offset'] as int));
   }
 
   final String severity;
@@ -524,6 +517,8 @@ class AnalyzerError implements Comparable<AnalyzerError> {
   final int line;
   final int column;
   final int length;
+
+  final List<AnalyzerError> contextMessages = [];
 
   AnalyzerError._(
       {this.severity,
@@ -549,19 +544,57 @@ class AnalyzerError implements Comparable<AnalyzerError> {
 }
 
 class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
-  static void parseErrors(String stderr, List<StaticError> errors,
-      [List<StaticError> warnings]) {
-    for (var error in AnalyzerError.parseStderr(stderr)) {
-      var staticError = StaticError({ErrorSource.analyzer: error.errorCode},
+  static void parseErrors(
+    String stdout,
+    List<StaticError> errors, [
+    List<StaticError> warnings,
+  ]) {
+    StaticError convert(AnalyzerError error) {
+      var staticError = StaticError(ErrorSource.analyzer, error.errorCode,
           line: error.line, column: error.column, length: error.length);
 
-      if (error.severity == 'ERROR') {
-        errors.add(staticError);
-      } else if (error.severity == 'WARNING') {
-        warnings?.add(staticError);
+      for (var context in error.contextMessages) {
+        // TODO(rnystrom): Include these when static error tests get support
+        // for errors/context in other files.
+        if (context.file != error.file) {
+          DebugLogger.warning(
+              "Context messages in other files not currently supported.");
+          continue;
+        }
+
+        staticError.contextMessages.add(StaticError(
+            ErrorSource.context, context.message,
+            line: context.line,
+            column: context.column,
+            length: context.length));
+      }
+
+      return staticError;
+    }
+
+    // Parse as Analyzer errors and then convert them to the StaticError objects
+    // the static error tests expect.
+    for (var diagnostic in AnalyzerError.parseStdout(stdout)) {
+      if (diagnostic.severity == 'ERROR') {
+        errors.add(convert(diagnostic));
+      } else if (diagnostic.severity == 'WARNING' && warnings != null) {
+        warnings.add(convert(diagnostic));
       }
     }
   }
+
+  /// If the stdout of analyzer could not be parsed as valid JSON, this will be
+  /// the stdout as a string instead. Otherwise it will be null.
+  String get invalidJsonStdout {
+    if (!_parsedErrors) {
+      _parseErrors();
+      _parsedErrors = true;
+    }
+
+    return _invalidJsonStdout;
+  }
+
+  String _invalidJsonStdout;
 
   AnalysisCommandOutput(
       Command command,
@@ -583,6 +616,9 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
+    if (invalidJsonStdout != null) return Expectation.fail;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -627,6 +663,9 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
+    if (invalidJsonStdout != null) return Expectation.fail;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -644,17 +683,20 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
 
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    if (invalidJsonStdout != null) {
+      output.subsection("invalid analyzer json");
+      output.write(invalidJsonStdout);
+      return;
+    }
+
     // Handle static error test output specially. We don't want to show the raw
     // stdout if we can give the user the parsed expectations instead.
     if (testCase.testFile.isStaticErrorTest || hasCrashed || hasTimedOut) {
       super.describe(testCase, progress, output);
     } else {
-      output.subsection("unexpected analysis errors");
-
-      var errorsByFile = <String, List<AnalyzerError>>{};
-
       // Parse and sort the errors.
-      for (var error in AnalyzerError.parseStderr(decodeUtf8(stderr))) {
+      var errorsByFile = <String, List<AnalyzerError>>{};
+      for (var error in AnalyzerError.parseStdout(decodeUtf8(stdout))) {
         errorsByFile.putIfAbsent(error.file, () => []).add(error);
       }
 
@@ -662,8 +704,10 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       files.sort();
 
       for (var file in files) {
-        var path = Path(file).relativeTo(Repository.dir).toString();
-        output.write("In $path:");
+        var path = Path(file)
+            .relativeTo(testCase.testFile.path.directoryPath)
+            .toString();
+        output.subsection("unexpected analysis errors in $path");
 
         var errors = errorsByFile[file];
         errors.sort();
@@ -680,24 +724,21 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     }
   }
 
-  /// Parses the machine-readable output of analyzer, which looks like:
-  ///
-  ///     ERROR|STATIC_TYPE_WARNING|SOME_ERROR_CODE|/path/to/some_test.dart|9|26|1|Error message.
-  ///
-  /// Pipes can be escaped with backslashes:
-  ///
-  ///     FOO|BAR|FOO\|BAR|FOO\\BAZ
-  ///
-  /// Is parsed as:
-  ///
-  ///     FOO BAR FOO|BAR FOO\BAZ
+  /// Parses the JSON output of the analyzer.
   @override
   void _parseErrors() {
-    var errors = <StaticError>[];
-    var warnings = <StaticError>[];
-    parseErrors(decodeUtf8(stderr), errors, warnings);
-    errors.forEach(addError);
-    warnings.forEach(addWarning);
+    var stdoutString = decodeUtf8(stdout);
+    try {
+      var errors = <StaticError>[];
+      var warnings = <StaticError>[];
+      parseErrors(stdoutString, errors, warnings);
+      errors.forEach(addError);
+      warnings.forEach(addWarning);
+    } on FormatException {
+      // It wasn't JSON. This can happen if analyzer instead prints:
+      // "No dart files found at: ..."
+      _invalidJsonStdout = stdoutString;
+    }
   }
 }
 
@@ -718,6 +759,7 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (exitCode != 0) return Expectation.fail;
     for (var line in decodeUtf8(stdout).split('\n')) {
@@ -734,6 +776,7 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (exitCode != 0) return Expectation.fail;
     for (var line in decodeUtf8(stdout).split('\n')) {
@@ -763,6 +806,7 @@ class SpecParseCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (testCase.hasCompileError) {
       if (testCase.hasSyntaxError) {
@@ -788,6 +832,7 @@ class SpecParseCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
     if (hasSyntaxError) return Expectation.syntaxError;
     if (exitCode != 0) return Expectation.syntaxError;
     return Expectation.pass;
@@ -811,6 +856,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // Multitests are handled specially.
     if (testCase.hasCompileError) {
@@ -851,6 +897,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
@@ -913,6 +960,7 @@ class CompilationCommandOutput extends CommandOutput {
           : Expectation.timeout;
     }
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // Handle dart2js specific crash detection
     if (exitCode == _crashExitCode ||
@@ -937,6 +985,7 @@ class CompilationCommandOutput extends CommandOutput {
           : Expectation.timeout;
     }
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // Handle dart2js specific crash detection
     if (exitCode == _crashExitCode ||
@@ -984,8 +1033,9 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   ///
   /// The test runner only validates the main error message, and not the
   /// suggested fixes, so we only parse the first line.
+  // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+):\nError: (.*)$", multiLine: true);
+      RegExp(r"^([^:]+):(\d+):(\d+):\n(Error): (.*)$", multiLine: true);
 
   Dart2jsCompilerCommandOutput(
       Command command,
@@ -1017,8 +1067,9 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   ///
   /// The test runner only validates the main error message, and not the
   /// suggested fixes, so we only parse the first line.
+  // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp = RegExp(
-      r"^org-dartlang-app:/([^:]+):(\d+):(\d+): Error: (.*)$",
+      r"^org-dartlang-app:/([^:]+):(\d+):(\d+): (Error): (.*)$",
       multiLine: true);
 
   DevCompilerCommandOutput(
@@ -1037,6 +1088,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -1059,6 +1111,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -1110,6 +1163,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     if (hasCrashed) return Expectation.dartkCrash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // If the frontend had an uncaught exception, then we'll consider this a
     // crash.
@@ -1152,6 +1206,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     if (hasCrashed) return Expectation.dartkCrash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // If the frontend had an uncaught exception, then we'll consider this a
     // crash.
@@ -1192,6 +1247,7 @@ class JSCommandLineOutput extends CommandOutput
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (testCase.hasRuntimeError) {
       if (exitCode != 0) return Expectation.pass;
@@ -1209,6 +1265,7 @@ class JSCommandLineOutput extends CommandOutput
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (exitCode != 0) return Expectation.runtimeError;
     var output = decodeUtf8(stdout);
@@ -1240,6 +1297,7 @@ class ScriptCommandOutput extends CommandOutput {
   }
 
   Expectation result(TestCase testCase) => _result;
+
   Expectation realResult(TestCase testCase) => _result;
 
   bool get canRunDependendCommands => _result == Expectation.pass;
@@ -1252,36 +1310,22 @@ class FastaCommandOutput extends CompilationCommandOutput
   static void parseErrors(
       String stdout, List<StaticError> errors, List<StaticError> warnings) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.cfe, _errorRegexp, stdout, errors);
-    _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.cfe, _warningRegexp, stdout, warnings);
+        ErrorSource.cfe, _errorRegexp, stdout, errors, warnings);
   }
 
-  /// Matches the first line of a Fasta error message. Fasta prints errors to
-  /// stdout that look like:
+  /// Matches the first line of a Fasta error, warning, or context message.
+  /// Fasta prints to stdout like:
   ///
   ///     tests/language_2/some_test.dart:7:21: Error: Some message.
   ///     Try fixing the code to be less bad.
   ///       var _ = <int>[if (1) 2];
   ///                    ^
   ///
-  /// The test runner only validates the main error message, and not the
-  /// suggested fixes, so we only parse the first line.
-  static final _errorRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+): Error: (.*)$", multiLine: true);
-
-  /// Matches the first line of a Fasta warning message. Fasta prints errors to
-  /// stdout that look like:
-  ///
-  ///     tests/language_2/some_test.dart:7:21: Warning: Some message.
-  ///     Try fixing the code to be less bad.
-  ///       var _ = <int>[if (1) 2];
-  ///                    ^
-  ///
-  /// The test runner only validates the main error message, and not the
-  /// suggested fixes, so we only parse the first line.
-  static final _warningRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+): Warning: (.*)$", multiLine: true);
+  /// The test runner only validates the first line of the message, and not the
+  /// suggested fixes.
+  static final _errorRegexp = RegExp(
+      r"^(?:([^:]+):(\d+):(\d+): )?(Context|Error|Warning): (.*)$",
+      multiLine: true);
 
   FastaCommandOutput(
       Command command,
@@ -1310,14 +1354,61 @@ mixin _StaticErrorOutput on CommandOutput {
   /// Parses compile errors reported by CFE using the given [regExp] and adds
   /// them to [errors] as coming from [errorSource].
   static void _parseCfeErrors(ErrorSource errorSource, RegExp regExp,
-      String stdout, List<StaticError> errors) {
+      String stdout, List<StaticError> errors,
+      [List<StaticError> warnings]) {
+    StaticError previousError;
     for (var match in regExp.allMatches(stdout)) {
-      var line = int.parse(match.group(2));
-      var column = int.parse(match.group(3));
-      var message = match.group(4);
-      errors
-          .add(StaticError({errorSource: message}, line: line, column: column));
+      var line = _parseNullableInt(match.group(2));
+      var column = _parseNullableInt(match.group(3));
+      var severity = match.group(4);
+      var message = match.group(5);
+
+      if (line == null) {
+        // No location information.
+        if (severity == 'Context' && previousError != null) {
+          // We can use the location information from the error message
+          line = previousError.line;
+          column = previousError.column;
+        } else {
+          // No good default location information, so disregard the error.
+          // TODO(45558): we should do something smarter here.
+          continue;
+        }
+      }
+      // Column information should have been present or it should have been
+      // filled in by the code above.
+      assert(column != null);
+
+      var error = StaticError(
+          severity == "Context" ? ErrorSource.context : errorSource, message,
+          line: line, column: column);
+
+      if (severity == "Context") {
+        // Attach context messages to the preceding error/warning.
+        if (previousError == null) {
+          DebugLogger.error("Got context message in CFE output before "
+              "error to attach it to.");
+        } else {
+          previousError.contextMessages.add(error);
+        }
+      } else {
+        if (severity == "Error") {
+          errors.add(error);
+        } else {
+          warnings.add(error);
+        }
+        previousError = error;
+      }
     }
+  }
+
+  /// Same as `int.parse`, but allows nulls to simply pass through.
+  static int _parseNullableInt(String s) {
+    if (s == null) {
+      // ignore: avoid_returning_null
+      return null;
+    }
+    return int.parse(s);
   }
 
   /// Reported static errors, parsed from [stderr].
@@ -1352,21 +1443,36 @@ mixin _StaticErrorOutput on CommandOutput {
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
     // Handle static error test output specially. We don't want to show the raw
     // stdout if we can give the user the parsed expectations instead.
-    if (testCase.testFile.isStaticErrorTest && !hasCrashed && !hasTimedOut) {
-      _validateExpectedErrors(testCase, output);
-    }
+    if (testCase.testFile.isStaticErrorTest &&
+        !hasCrashed &&
+        !hasTimedOut &&
+        !hasNonUtf8 &&
+        !truncatedOutput) {
+      try {
+        _validateExpectedErrors(testCase, output);
+      } catch (_) {
+        // In the event of a crash trying to compute errors, go ahead and give
+        // the raw output.
+        super.describe(testCase, progress, output);
+        return;
+      }
 
-    // Don't show the "raw" output unless something strange happened or the
-    // user explicitly requests all the output.
-    if (hasTimedOut ||
-        hasCrashed ||
-        !testCase.testFile.isStaticErrorTest ||
-        progress == Progress.verbose) {
+      // Always show the raw output when specifically requested.
+      if (progress == Progress.verbose) {
+        super.describe(testCase, progress, output);
+      }
+    } else {
+      // Something strange happened, so show the raw output.
       super.describe(testCase, progress, output);
     }
   }
 
   Expectation result(TestCase testCase) {
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
       return _validateExpectedErrors(testCase);
@@ -1376,6 +1482,11 @@ mixin _StaticErrorOutput on CommandOutput {
   }
 
   Expectation realResult(TestCase testCase) {
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
       return _validateExpectedErrors(testCase);
@@ -1417,7 +1528,7 @@ mixin _StaticErrorOutput on CommandOutput {
     assert(errorSource != null);
 
     var expected = testCase.testFile.expectedErrors
-        .where((error) => error.hasError(errorSource));
+        .where((error) => error.source == errorSource);
 
     var validation = StaticError.validateExpectations(
       expected,

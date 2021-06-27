@@ -6,9 +6,9 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -38,6 +38,16 @@ class DocumentationValidator {
     'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
+    // The mock SDK doesn't define any internal libraries.
+    'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
+    // Has code in the example section that needs to be skipped (because it's
+    // part of the explanitory text not part of the example), but there's
+    // currently no way to do that.
+    'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE',
     // Produces two diagnostics when it should only produce one. We could get
     // rid of the invalid error by adding a declaration of a top-level variable
     // (such as `JSBool b;`), but that would complicate the example.
@@ -46,9 +56,25 @@ class DocumentationValidator {
     'CompileTimeErrorCode.INVALID_URI',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',
+    // No example, by design.
+    'CompileTimeErrorCode.MISSING_DART_LIBRARY',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.NON_SYNC_FACTORY',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
+    // https://github.com/dart-lang/sdk/issues/45960
+    'CompileTimeErrorCode.RETURN_IN_GENERATOR',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
     // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // The code has been replaced but is not yet removed.
@@ -81,17 +107,17 @@ class DocumentationValidator {
   final StringBuffer buffer = StringBuffer();
 
   /// The path to the file currently being verified.
-  String filePath;
+  late String filePath;
 
   /// A flag indicating whether the [filePath] has already been written to the
   /// buffer.
   bool hasWrittenFilePath = false;
 
   /// The name of the variable currently being verified.
-  String variableName;
+  late String variableName;
 
   /// The name of the error code currently being verified.
-  String codeName;
+  late String codeName;
 
   /// A flag indicating whether the [variableName] has already been written to
   /// the buffer.
@@ -116,17 +142,17 @@ class DocumentationValidator {
 
   /// Return the name of the code as defined in the [initializer].
   String _extractCodeName(VariableDeclaration variable) {
-    Expression initializer = variable.initializer;
+    var initializer = variable.initializer;
     if (initializer is MethodInvocation) {
       var firstArgument = initializer.argumentList.arguments[0];
-      return (firstArgument as StringLiteral).stringValue;
+      return (firstArgument as StringLiteral).stringValue!;
     }
     return variable.name.name;
   }
 
   /// Extract documentation from the given [field] declaration.
-  List<String> _extractDoc(FieldDeclaration field) {
-    Token comments = field.firstTokenAfterCommentAndMetadata.precedingComments;
+  List<String>? _extractDoc(FieldDeclaration field) {
+    var comments = field.firstTokenAfterCommentAndMetadata.precedingComments;
     if (comments == null) {
       return null;
     }
@@ -140,7 +166,7 @@ class DocumentationValidator {
       } else if (lexeme == '//') {
         docs.add('');
       }
-      comments = comments.next;
+      comments = comments.next as CommentToken?;
     }
     if (docs.isEmpty) {
       return null;
@@ -153,7 +179,7 @@ class DocumentationValidator {
     bool errorRequired,
     Map<String, String> auxiliaryFiles,
     List<String> experiments,
-    String languageVersion,
+    String? languageVersion,
   ) {
     int rangeStart = snippet.indexOf(errorRangeStart);
     if (rangeStart < 0) {
@@ -188,8 +214,8 @@ class DocumentationValidator {
       List<String> lines, int start, int end, bool errorRequired) {
     var snippets = <_SnippetData>[];
     var auxiliaryFiles = <String, String>{};
-    List<String> experiments;
-    String languageVersion;
+    List<String>? experiments;
+    String? languageVersion;
     var currentStart = -1;
     for (var i = start; i < end; i++) {
       var line = lines[i];
@@ -218,7 +244,7 @@ class DocumentationValidator {
           }
           var content = lines.sublist(currentStart + 1, i).join('\n');
           snippets.add(_extractSnippetData(content, errorRequired,
-              auxiliaryFiles, experiments, languageVersion));
+              auxiliaryFiles, experiments ?? [], languageVersion));
           auxiliaryFiles = <String, String>{};
         }
         currentStart = -1;
@@ -237,11 +263,8 @@ class DocumentationValidator {
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
-    if (session == null) {
-      throw StateError('No session for "$path"');
-    }
-    ParsedUnitResult result = session.getParsedUnit(path);
-    if (result.state != ResultState.VALID) {
+    var result = session.getParsedUnit2(path);
+    if (result is! ParsedUnitResult) {
       throw StateError('Unable to parse "$path"');
     }
     return result;
@@ -274,7 +297,7 @@ class DocumentationValidator {
   /// Extract documentation from the file that was parsed to produce the given
   /// [result].
   Future<void> _validateFile(ParsedUnitResult result) async {
-    filePath = result.path;
+    filePath = result.path!;
     hasWrittenFilePath = false;
     CompilationUnit unit = result.unit;
     for (CompilationUnitMember declaration in unit.declarations) {
@@ -282,7 +305,7 @@ class DocumentationValidator {
         String className = declaration.name.name;
         for (ClassMember member in declaration.members) {
           if (member is FieldDeclaration) {
-            List<String> docs = _extractDoc(member);
+            var docs = _extractDoc(member);
             if (docs != null) {
               VariableDeclaration variable = member.fields.variables[0];
               codeName = _extractCodeName(variable);
@@ -300,7 +323,7 @@ class DocumentationValidator {
 
               List<_SnippetData> exampleSnippets =
                   _extractSnippets(docs, exampleStart + 1, fixesStart, true);
-              _SnippetData firstExample;
+              _SnippetData? firstExample;
               if (exampleSnippets.isEmpty) {
                 _reportProblem('No example.');
               } else {
@@ -410,7 +433,7 @@ class _SnippetData {
   final int length;
   final Map<String, String> auxiliaryFiles;
   final List<String> experiments;
-  final String languageVersion;
+  final String? languageVersion;
 
   _SnippetData(this.content, this.offset, this.length, this.auxiliaryFiles,
       this.experiments, this.languageVersion);
@@ -432,7 +455,7 @@ class _SnippetTest extends PubPackageResolutionTest {
   }
 
   @override
-  String get testPackageLanguageVersion {
+  String? get testPackageLanguageVersion {
     return snippet.languageVersion;
   }
 
@@ -456,12 +479,12 @@ class _SnippetTest extends PubPackageResolutionTest {
         String pathInLib = uri.pathSegments.skip(1).join('/');
         newFile(
           '$packageRootPath/lib/$pathInLib',
-          content: auxiliaryFiles[uriStr],
+          content: auxiliaryFiles[uriStr]!,
         );
       } else {
         newFile(
           '$testPackageRootPath/$uriStr',
-          content: auxiliaryFiles[uriStr],
+          content: auxiliaryFiles[uriStr]!,
         );
       }
     }

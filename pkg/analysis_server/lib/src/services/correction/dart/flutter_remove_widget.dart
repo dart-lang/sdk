@@ -23,7 +23,7 @@ class FlutterRemoveWidget extends CorrectionProducer {
     // Prepare the list of our children.
     var childrenArgument = flutter.findChildrenArgument(widgetCreation);
     if (childrenArgument != null) {
-      var childrenExpression = childrenArgument?.expression;
+      var childrenExpression = childrenArgument.expression;
       if (childrenExpression is ListLiteral &&
           childrenExpression.elements.isNotEmpty) {
         await _removeChildren(

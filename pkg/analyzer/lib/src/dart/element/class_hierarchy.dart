@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:meta/meta.dart';
 
 class ClassHierarchy {
   final Map<ClassElement, _Hierarchy> _map = {};
@@ -49,7 +48,7 @@ class ClassHierarchy {
     var typeSystem = library.typeSystem;
     var interfacesMerger = InterfacesMerger(typeSystem);
 
-    void append(InterfaceType type) {
+    void append(InterfaceType? type) {
       if (type == null) {
         return;
       }
@@ -59,8 +58,10 @@ class ClassHierarchy {
       var substitution = Substitution.fromInterfaceType(type);
       var rawInterfaces = implementedInterfaces(type.element);
       for (var rawInterface in rawInterfaces) {
-        var newInterface = substitution.substituteType(rawInterface);
-        newInterface = library.toLegacyTypeIfOptOut(newInterface);
+        var newInterface =
+            substitution.substituteType(rawInterface) as InterfaceType;
+        newInterface =
+            library.toLegacyTypeIfOptOut(newInterface) as InterfaceType;
         interfacesMerger.add(newInterface);
       }
     }
@@ -79,8 +80,9 @@ class ClassHierarchy {
     var errors = <ClassHierarchyError>[];
     var interfaces = <InterfaceType>[];
     for (var collector in interfacesMerger._map.values) {
-      if (collector._error != null) {
-        errors.add(collector._error);
+      var error = collector._error;
+      if (error != null) {
+        errors.add(error);
       }
       interfaces.add(collector.type);
     }
@@ -131,7 +133,7 @@ class InterfacesMerger {
     classResult.update(type);
   }
 
-  void addWithSupertypes(InterfaceType type) {
+  void addWithSupertypes(InterfaceType? type) {
     if (type != null) {
       for (var superType in type.allSupertypes) {
         add(superType);
@@ -144,14 +146,14 @@ class InterfacesMerger {
 class _ClassInterfaceType {
   final TypeSystemImpl _typeSystem;
 
-  ClassHierarchyError _error;
+  ClassHierarchyError? _error;
 
-  InterfaceType _singleType;
-  InterfaceType _currentResult;
+  InterfaceType? _singleType;
+  InterfaceType? _currentResult;
 
   _ClassInterfaceType(this._typeSystem);
 
-  InterfaceType get type => _currentResult ?? _singleType;
+  InterfaceType get type => (_currentResult ?? _singleType)!;
 
   void update(InterfaceType type) {
     if (_error != null) {
@@ -166,27 +168,28 @@ class _ClassInterfaceType {
         } else if (type == _singleType) {
           return;
         } else {
-          _currentResult = _typeSystem.normalize(_singleType);
+          _currentResult = _typeSystem.normalize(_singleType!) as InterfaceType;
         }
       }
 
       var normType = _typeSystem.normalize(type);
       try {
-        _currentResult = _typeSystem.topMerge(_currentResult, normType);
+        _currentResult =
+            _typeSystem.topMerge(_currentResult!, normType) as InterfaceType;
       } catch (e) {
         _error = IncompatibleInterfacesClassHierarchyError(
-          _currentResult,
+          _currentResult!,
           type,
         );
       }
     } else {
-      var legacyType = _typeSystem.toLegacyType(type);
+      var legacyType = _typeSystem.toLegacyType(type) as InterfaceType;
       if (_currentResult == null) {
         _currentResult = legacyType;
       } else {
         if (legacyType != _currentResult) {
           _error = IncompatibleInterfacesClassHierarchyError(
-            _currentResult,
+            _currentResult!,
             legacyType,
           );
         }
@@ -200,7 +203,7 @@ class _Hierarchy {
   List<InterfaceType> interfaces;
 
   _Hierarchy({
-    @required this.errors,
-    @required this.interfaces,
+    required this.errors,
+    required this.interfaces,
   });
 }

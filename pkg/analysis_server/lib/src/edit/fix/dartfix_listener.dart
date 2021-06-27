@@ -35,7 +35,7 @@ class DartFixListener {
   }
 
   /// Record a recommendation to be sent to the client.
-  void addRecommendation(String description, [Location location]) {
+  void addRecommendation(String description, [Location? location]) {
     otherSuggestions.add(DartFixSuggestion(description, location: location));
   }
 
@@ -79,9 +79,16 @@ class DartFixListener {
   /// Return the [Location] representing the specified offset and length
   /// in the given compilation unit.
   Location locationFor(ResolvedUnitResult result, int offset, int length) {
-    final locInfo = result.unit.lineInfo.getLocation(offset);
-    final location = Location(
-        result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
-    return location;
+    var lineInfo = result.unit!.lineInfo!;
+    var startLocation = lineInfo.getLocation(offset);
+    var endLocation = lineInfo.getLocation(offset + length);
+    return Location(
+        result.path!,
+        offset,
+        length,
+        startLocation.lineNumber,
+        startLocation.columnNumber,
+        endLocation.lineNumber,
+        endLocation.columnNumber);
   }
 }

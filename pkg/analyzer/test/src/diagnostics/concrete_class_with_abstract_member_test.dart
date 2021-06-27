@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest
-    with ConcreteClassWithAbstractMemberTestCases {}
+    with WithoutNullSafetyMixin, ConcreteClassWithAbstractMemberTestCases {}
 
 mixin ConcreteClassWithAbstractMemberTestCases on PubPackageResolutionTest {
   test_direct() async {
@@ -44,7 +44,7 @@ class A implements I {
 @reflectiveTest
 class ConcreteClassWithAbstractMemberWithNullSafetyTest
     extends PubPackageResolutionTest
-    with WithNullSafetyMixin, ConcreteClassWithAbstractMemberTestCases {
+    with ConcreteClassWithAbstractMemberTestCases {
   test_abstract_field() async {
     await assertErrorsInCode('''
 class A {

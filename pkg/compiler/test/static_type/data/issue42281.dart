@@ -16,8 +16,8 @@ class SubClass extends Class {
 }
 
 method1(Class c, Type type, [o]) {
-  if (/*Class*/ c /*invoke: [Class]->bool*/ == null) {
-    if (/*dynamic*/ o /*invoke: [dynamic]->bool*/ != null) {
+  if (/*Class*/ c == null) {
+    if (/*dynamic*/ o != null) {
       c = new Class(String);
     }
     /*Class*/ c;
@@ -26,8 +26,8 @@ method1(Class c, Type type, [o]) {
 }
 
 method2(Class c, Type type, [o]) {
-  if (/*Class*/ c /*invoke: [Class]->bool*/ == null) {
-    if (/*dynamic*/ o /*invoke: [dynamic]->bool*/ != null) {
+  if (/*Class*/ c == null) {
+    if (/*dynamic*/ o != null) {
       c = new SubClass(String);
     }
     /*Class*/ c;
@@ -37,8 +37,8 @@ method2(Class c, Type type, [o]) {
 
 method3(Class c, Type type, [o]) {
   if (/*Class*/ c is SubClass) {
-    if (/*SubClass*/ c /*invoke: [SubClass]->bool*/ == null) {
-      if (/*dynamic*/ o /*invoke: [dynamic]->bool*/ != null) {
+    if (/*SubClass*/ c == null) {
+      if (/*dynamic*/ o != null) {
         c = new SubClass(String);
       }
       /*SubClass*/ c;

@@ -19,21 +19,21 @@ class CodeFragmentParser {
 
   /// The amount to be added to translate from offsets within the content to
   /// offsets within the file.
-  int delta;
+  int delta = 0;
 
   /// The tokens being parsed.
-  /* late */ List<_Token> tokens;
+  late List<_Token> tokens;
 
   /// The index in the [tokens] of the next token to be consumed.
   int currentIndex = 0;
 
   /// Initialize a newly created parser to report errors to the [errorReporter].
-  CodeFragmentParser(this.errorReporter, {VariableScope scope})
+  CodeFragmentParser(this.errorReporter, {VariableScope? scope})
       : variableScope = scope ?? VariableScope(null, {});
 
   /// Return the current token, or `null` if the end of the tokens has been
   /// reached.
-  _Token get currentToken =>
+  _Token? get currentToken =>
       currentIndex < tokens.length ? tokens[currentIndex] : null;
 
   /// Advance to the next token.
@@ -48,13 +48,15 @@ class CodeFragmentParser {
   ///
   /// <content> ::=
   ///   <accessor> ('.' <accessor>)*
-  List<Accessor> parseAccessors(String content, int delta) {
+  List<Accessor>? parseAccessors(String content, int delta) {
     this.delta = delta;
-    tokens = _CodeFragmentScanner(content, delta, errorReporter).scan();
-    if (tokens == null) {
+    var scannedTokens =
+        _CodeFragmentScanner(content, delta, errorReporter).scan();
+    if (scannedTokens == null) {
       // The error has already been reported.
       return null;
     }
+    tokens = scannedTokens;
     currentIndex = 0;
     var accessors = <Accessor>[];
     var accessor = _parseAccessor();
@@ -64,6 +66,9 @@ class CodeFragmentParser {
     accessors.add(accessor);
     while (currentIndex < tokens.length) {
       var token = currentToken;
+      if (token == null) {
+        return accessors;
+      }
       if (token.kind == _TokenKind.period) {
         advance();
         accessor = _parseAccessor();
@@ -85,13 +90,15 @@ class CodeFragmentParser {
   ///
   /// <content> ::=
   ///   <logicalExpression>
-  Expression parseCondition(String content, int delta) {
+  Expression? parseCondition(String content, int delta) {
     this.delta = delta;
-    tokens = _CodeFragmentScanner(content, delta, errorReporter).scan();
-    if (tokens == null) {
+    var scannedTokens =
+        _CodeFragmentScanner(content, delta, errorReporter).scan();
+    if (scannedTokens == null) {
       // The error has already been reported.
       return null;
     }
+    tokens = scannedTokens;
     currentIndex = 0;
     var expression = _parseLogicalAndExpression();
     if (currentIndex < tokens.length) {
@@ -105,7 +112,7 @@ class CodeFragmentParser {
 
   /// Return the current token if it exists and has one of the [validKinds].
   /// Report an error and return `null` if those conditions aren't met.
-  _Token _expect(List<_TokenKind> validKinds) {
+  _Token? _expect(List<_TokenKind> validKinds) {
     String validKindsDisplayString() {
       var buffer = StringBuffer();
       for (var i = 0; i < validKinds.length; i++) {
@@ -149,7 +156,7 @@ class CodeFragmentParser {
   ///
   /// <accessor> ::=
   ///   <identifier> '[' (<integer> | <identifier>) ']'
-  Accessor _parseAccessor() {
+  Accessor? _parseAccessor() {
     var token = _expect(const [_TokenKind.identifier]);
     if (token == null) {
       // The error has already been reported.
@@ -219,7 +226,7 @@ class CodeFragmentParser {
   ///   <primaryExpression> (<comparisonOperator> <primaryExpression>)?
   /// <comparisonOperator> ::=
   ///   '==' | '!='
-  Expression _parseEqualityExpression() {
+  Expression? _parseEqualityExpression() {
     var expression = _parsePrimaryExpression();
     if (expression == null) {
       return null;
@@ -227,7 +234,7 @@ class CodeFragmentParser {
     if (currentIndex >= tokens.length) {
       return expression;
     }
-    var kind = currentToken.kind;
+    var kind = currentToken?.kind;
     if (kind == _TokenKind.equal || kind == _TokenKind.notEqual) {
       advance();
       var operator =
@@ -245,15 +252,16 @@ class CodeFragmentParser {
   ///
   /// <logicalExpression> ::=
   ///   <equalityExpression> ('&&' <equalityExpression>)*
-  Expression _parseLogicalAndExpression() {
-    var expression = _parseEqualityExpression();
-    if (expression == null) {
+  Expression? _parseLogicalAndExpression() {
+    var leftOperand = _parseEqualityExpression();
+    if (leftOperand == null) {
       return null;
     }
     if (currentIndex >= tokens.length) {
-      return expression;
+      return leftOperand;
     }
-    var kind = currentToken.kind;
+    var expression = leftOperand;
+    var kind = currentToken?.kind;
     while (kind == _TokenKind.and) {
       advance();
       var rightOperand = _parseEqualityExpression();
@@ -264,7 +272,7 @@ class CodeFragmentParser {
       if (currentIndex >= tokens.length) {
         return expression;
       }
-      kind = currentToken.kind;
+      kind = currentToken?.kind;
     }
     return expression;
   }
@@ -273,27 +281,29 @@ class CodeFragmentParser {
   ///
   /// <primaryExpression> ::=
   ///   <identifier> | <string>
-  Expression _parsePrimaryExpression() {
+  Expression? _parsePrimaryExpression() {
     var token = currentToken;
-    var kind = token?.kind;
-    if (kind == _TokenKind.identifier) {
-      advance();
-      var variableName = token.lexeme;
-      var generator = variableScope.lookup(variableName);
-      if (generator == null) {
-        errorReporter.reportErrorForOffset(
-            TransformSetErrorCode.undefinedVariable,
-            token.offset + delta,
-            token.length,
-            [variableName]);
-        return null;
+    if (token != null) {
+      var kind = token.kind;
+      if (kind == _TokenKind.identifier) {
+        advance();
+        var variableName = token.lexeme;
+        var generator = variableScope.lookup(variableName);
+        if (generator == null) {
+          errorReporter.reportErrorForOffset(
+              TransformSetErrorCode.undefinedVariable,
+              token.offset + delta,
+              token.length,
+              [variableName]);
+          return null;
+        }
+        return VariableReference(generator);
+      } else if (kind == _TokenKind.string) {
+        advance();
+        var lexeme = token.lexeme;
+        var value = lexeme.substring(1, lexeme.length - 1);
+        return LiteralString(value);
       }
-      return VariableReference(generator);
-    } else if (kind == _TokenKind.string) {
-      advance();
-      var lexeme = token.lexeme;
-      var value = lexeme.substring(1, lexeme.length - 1);
-      return LiteralString(value);
     }
     int offset;
     int length;
@@ -354,7 +364,7 @@ class _CodeFragmentScanner {
 
   /// Return the tokens in the content, or `null` if there is an error in the
   /// content that prevents it from being scanned.
-  List<_Token> scan() {
+  List<_Token>? scan() {
     var length = content.length;
 
     int peekAt(int offset) {
@@ -429,7 +439,7 @@ class _CodeFragmentScanner {
   }
 
   /// Return `true` if the [char] is a digit.
-  bool _isDigit(int char) => (char >= $0 && char <= $9);
+  bool _isDigit(int char) => char >= $0 && char <= $9;
 
   /// Return `true` if the [char] is a letter.
   bool _isLetter(int char) =>
@@ -513,6 +523,5 @@ extension on _TokenKind {
       case _TokenKind.string:
         return 'a string';
     }
-    return '';
   }
 }

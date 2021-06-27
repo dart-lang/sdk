@@ -25,14 +25,14 @@ class RemoveArgumentTest extends FixProcessorLintTest {
 
   Future<void> test_named_param() async {
     await resolveTestCode('''
-void f({bool valWithDefault = true, bool val}) {}
+void f({bool valWithDefault = true, bool? val}) {}
 
 void main() {
   f(valWithDefault: true);
 }
 ''');
     await assertHasFix('''
-void f({bool valWithDefault = true, bool val}) {}
+void f({bool valWithDefault = true, bool? val}) {}
 
 void main() {
   f();
@@ -42,14 +42,14 @@ void main() {
 
   Future<void> test_named_param_2() async {
     await resolveTestCode('''
-void f({bool valWithDefault = true, bool val}) {}
+void f({bool valWithDefault = true, bool? val}) {}
 
 void main() {
   f(valWithDefault: true, val: false);
 }
 ''');
     await assertHasFix('''
-void f({bool valWithDefault = true, bool val}) {}
+void f({bool valWithDefault = true, bool? val}) {}
 
 void main() {
   f(val: false);

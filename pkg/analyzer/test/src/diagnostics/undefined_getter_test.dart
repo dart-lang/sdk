@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class UndefinedGetterTest extends PubPackageResolutionTest
-    with UndefinedGetterTestCases {}
+    with WithoutNullSafetyMixin, UndefinedGetterTestCases {}
 
 mixin UndefinedGetterTestCases on PubPackageResolutionTest {
   test_compoundAssignment_hasSetter_instance() async {
@@ -247,7 +247,7 @@ m() {
 }
 ''',
         expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 22, 5),
+          error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 28, 3),
         ], legacy: [
           error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
         ]));
@@ -387,7 +387,7 @@ class B extends A<List> {
 
 @reflectiveTest
 class UndefinedGetterWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, UndefinedGetterTestCases {
+    with UndefinedGetterTestCases {
   test_get_from_abstract_field_final_valid() async {
     await assertNoErrorsInCode('''
 abstract class A {
