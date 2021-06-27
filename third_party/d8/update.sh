@@ -26,7 +26,7 @@ path=("linux" "linux/ia32" "linux/x64" "linux/arm32" "macos" "windows")
 for i in "${!arch[@]}"
 do
   filename="v8-${arch[$i]}-rel-$version.zip"
-  gsutil cp "gs://chromium-v8/official/canary/$filename" .
+  gsutil.py cp "gs://chromium-v8/official/canary/$filename" .
   mkdir -p d8/${path[$i]}
   unzip -q $filename -d d8/${path[$i]}
   rm $filename
