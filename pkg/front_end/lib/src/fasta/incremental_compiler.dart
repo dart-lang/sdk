@@ -1436,6 +1436,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
   }
 
+  bool dontReissueLibraryProblemsFor(Uri uri) {
+    return uri == debugExprUri;
+  }
+
   /// Internal method.
   void reissueLibraryProblems(
       Set<Library> allLibraries, List<Library> compiledLibraries) {
@@ -1448,7 +1452,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         for (String jsonString in library.problemsAsJson) {
           DiagnosticMessageFromJson message =
               new DiagnosticMessageFromJson.fromJson(jsonString);
-          if (message.uri == debugExprUri) {
+          if (dontReissueLibraryProblemsFor(message.uri)) {
             continue;
           }
           context.options.reportDiagnosticMessage(message);

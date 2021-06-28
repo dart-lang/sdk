@@ -29,20 +29,32 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:front_end/src/fasta/builder/library_builder.dart';
+import 'package:front_end/src/fasta/combinator.dart';
 
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
 
 import 'package:front_end/src/fasta/compiler_context.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:front_end/src/fasta/hybrid_file_system.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:front_end/src/fasta/incremental_compiler.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:kernel/ast.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:kernel/kernel.dart' as kernel
+    show Combinator, Component, LibraryDependency, Library, Location, Source;
 import 'package:kernel/target/targets.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:vm/target/vm.dart';
@@ -61,7 +73,7 @@ const _portMessageDone = "done";
 // the part declares what file it's part of and if we've compiled other stuff
 // first so we know more stuff).
 class DartDocTest {
-  IncrementalCompiler? incrementalCompiler;
+  DocTestIncrementalCompiler? incrementalCompiler;
   late CompilerOptions options;
   late ProcessedOptions processedOpts;
   bool errors = false;
@@ -138,18 +150,17 @@ class DartDocTest {
 
     processedOpts.inputs.clear();
     processedOpts.inputs.add(uri);
-    AmendedFileSystem fileSystem = new AmendedFileSystem(_getFileSystem());
-    fileSystem.amendFileUri = uri;
-    fileSystem.amendWith = sb.toString();
+    HybridFileSystem fileSystem = new HybridFileSystem(
+        new MemoryFileSystem(new Uri(scheme: "dartdoctest", path: "/")),
+        _getFileSystem());
     options.fileSystem = fileSystem;
     processedOpts.clearFileSystemCache();
-    // Invalidate file and package uri to force compilation and re-finding of
-    // packages (e.g. if we're now compiling somewhere else).
-    incrementalCompiler!.invalidate(uri);
+    // Invalidate package uri to force re-finding of packages
+    // (e.g. if we're now compiling somewhere else).
     incrementalCompiler!.invalidate(processedOpts.packagesUri);
 
     Stopwatch stopwatch = new Stopwatch()..start();
-    Component component =
+    kernel.Component component =
         await incrementalCompiler!.computeDelta(entryPoints: [uri]);
     if (errors) {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
@@ -161,13 +172,23 @@ class DartDocTest {
     _print("Compiled (1) in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
 
-    fileSystem.amendImportUri = component.uriToSource[uri]?.importUri;
-    incrementalCompiler!.invalidate(AmendedFileSystem.mainUri);
-    Component componentMain = await incrementalCompiler!.computeDelta(
-        entryPoints: [AmendedFileSystem.mainUri], fullComponent: true);
+    await incrementalCompiler!.compileDartDocTestLibrary(
+        sb.toString(), component.uriToSource[uri]?.importUri ?? uri);
+
+    final Uri dartDocMainUri = new Uri(scheme: "dartdoctest", path: "main");
+    fileSystem.memory
+        .entityForUri(dartDocMainUri)
+        .writeAsStringSync(mainFileContent);
+
+    incrementalCompiler!.invalidate(dartDocMainUri);
+    kernel.Component componentMain = await incrementalCompiler!
+        .computeDelta(entryPoints: [dartDocMainUri], fullComponent: true);
     if (errors) {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
-      return [new TestResult(null, TestOutcome.CompilationError)];
+      return [
+        new TestResult(null, TestOutcome.CompilationError)
+          ..message = errorStrings.join("\n")
+      ];
     }
     _print("Compiled (2) in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
@@ -306,24 +327,99 @@ class DartDocTest {
         }
       }
     };
-
-    // Because we add a top-level method this doesn't currently do anything
-    // but maybe it will in the future.
-    options.explicitExperimentalFlags[
-        ExperimentalFlag.alternativeInvalidationStrategy] = true;
-
     processedOpts = new ProcessedOptions(options: options, inputs: [uri]);
     CompilerContext compilerContext = new CompilerContext(processedOpts);
-    this.incrementalCompiler = new IncrementalCompiler(compilerContext);
+    this.incrementalCompiler = new DocTestIncrementalCompiler(compilerContext);
   }
 }
+
+final String mainFileContent = """
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
+import "${DocTestIncrementalCompiler.dartDocTestUri}" as tester;
+import "dart:isolate";
+
+Future<void> main(List<String> args, SendPort port) async {
+  DartDocTest test = new DartDocTest(port);
+  await tester.\$dart\$doc\$test\$tester(test);
+  port.send("$_portMessageDone");
+}
+
+class DartDocTest {
+  final SendPort port;
+
+  DartDocTest(this.port);
+
+  void test(dynamic actual, dynamic expected) {
+    port.send("$_portMessageTest");
+    if (_testImpl(actual, expected)) {
+      port.send("$_portMessageGood");
+    } else {
+      port.send("$_portMessageBad: Expected '\$expected'; got '\$actual'.");
+    }
+  }
+
+  void crash(dynamic error) {
+    port.send("$_portMessageTest");
+    port.send("$_portMessageCrash: \$error");
+  }
+
+  void parseError(String message) {
+    port.send("$_portMessageTest");
+    port.send("$_portMessageParseError: \$message");
+  }
+
+  bool _testImpl(dynamic actual, dynamic expected) {
+    if (identical(actual, expected)) return true;
+    if (actual == expected) return true;
+    if (actual == null || expected == null) return false;
+    if (actual is List && expected is List) {
+      if (actual.runtimeType != expected.runtimeType) return false;
+      if (actual.length != expected.length) return false;
+      for (int i = 0; i < actual.length; i++) {
+        if (actual[i] != expected[i]) return false;
+      }
+      return true;
+    }
+    if (actual is List || expected is List) return false;
+
+    if (actual is Map && expected is Map) {
+      if (actual.runtimeType != expected.runtimeType) return false;
+      if (actual.length != expected.length) return false;
+      for (dynamic key in actual.keys) {
+        if (!expected.containsKey(key)) return false;
+        if (actual[key] != expected[key]) return false;
+      }
+      return true;
+    }
+    if (actual is Map || expected is Map) return false;
+
+    if (actual is Set && expected is Set) {
+      if (actual.runtimeType != expected.runtimeType) return false;
+      if (actual.length != expected.length) return false;
+      for (dynamic value in actual) {
+        if (!expected.contains(value)) return false;
+      }
+      return true;
+    }
+    if (actual is Set || expected is Set) return false;
+
+    // More stuff?
+    return false;
+  }
+}
+""";
 
 List<Test> extractTests(Uint8List rawBytes, Uri uriForReporting) {
   String rawString = utf8.decode(rawBytes);
   List<int> lineStarts = [];
   Token firstToken = scanRawBytes(rawBytes, lineStarts: lineStarts);
-  Source source =
-      new Source(lineStarts, rawBytes, uriForReporting, uriForReporting);
+  kernel.Source source =
+      new kernel.Source(lineStarts, rawBytes, uriForReporting, uriForReporting);
   Token token = firstToken;
   List<Test> tests = [];
   while (true) {
@@ -441,7 +537,7 @@ class TestResult {
 }
 
 List<Test> extractTestsFromComment(
-    CommentToken comment, String rawString, Source source) {
+    CommentToken comment, String rawString, kernel.Source source) {
   CommentString commentsData = extractComments(comment, rawString);
   final String comments = commentsData.string;
   List<Test> result = [];
@@ -522,7 +618,7 @@ List<Test> extractTestsFromComment(
 }
 
 int _createParseErrorMessages(ErrorListener listener, StringBuffer sb,
-    CommentString commentsData, int scanOffset, Source source) {
+    CommentString commentsData, int scanOffset, kernel.Source source) {
   assert(listener.recoverableErrors.isNotEmpty);
   sb.writeln("Parse error(s):");
   int? firstPosition;
@@ -543,9 +639,9 @@ int _createParseErrorMessages(ErrorListener listener, StringBuffer sb,
   return firstPosition!;
 }
 
-String _createParseErrorMessage(Source source, int position, Token startToken,
-    Token endToken, Message message) {
-  Location location = source.getLocation(source.importUri!, position);
+String _createParseErrorMessage(kernel.Source source, int position,
+    Token startToken, Token endToken, Message message) {
+  kernel.Location location = source.getLocation(source.importUri!, position);
   return command_line_reporting.formatErrorMessage(
       source.getTextLine(location.line),
       location,
@@ -664,191 +760,139 @@ class RecoverableError {
   RecoverableError(this.message, this.startToken, this.endToken);
 }
 
-class AmendedFileSystem implements FileSystem {
-  static Uri mainUri = Uri.parse("dartdoctest:main");
-  final FileSystem fs;
-  late Uri amendFileUri;
-  Uri? amendImportUri;
-  late String amendWith;
+class DocTestIncrementalCompiler extends IncrementalCompiler {
+  static final Uri dartDocTestUri =
+      new Uri(scheme: "dartdoctest", path: "tester");
+  DocTestIncrementalCompiler(CompilerContext context) : super(context);
 
-  AmendedFileSystem(this.fs);
+  bool dontReissueLibraryProblemsFor(Uri uri) {
+    return super.dontReissueLibraryProblemsFor(uri) || uri == dartDocTestUri;
+  }
 
   @override
-  FileSystemEntity entityForUri(Uri uri) {
-    if (uri == mainUri) {
-      return DartdoctestMainFile(amendImportUri ?? amendFileUri);
-    }
-    return new AmendedFileSystemEntity(
-        fs.entityForUri(uri), uri == amendFileUri ? amendWith : null);
+  IncrementalKernelTarget createIncrementalKernelTarget(
+      FileSystem fileSystem,
+      bool includeComments,
+      DillTarget dillTarget,
+      UriTranslator uriTranslator) {
+    return new DocTestIncrementalKernelTarget(
+        this, fileSystem, includeComments, dillTarget, uriTranslator);
   }
-}
 
-class DartdoctestMainFile implements FileSystemEntity {
-  late final String content;
-  late final List<int> contentBytes = utf8.encode(content);
+  LibraryBuilder? _dartDocTestLibraryBuilder;
+  String? _dartDocTestCode;
 
-  DartdoctestMainFile(Uri amendImportUri) {
-    content = """
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+  Future<kernel.Component> compileDartDocTestLibrary(
+      String dartDocTestCode, Uri libraryUri) async {
+    assert(dillLoadedData != null && userCode != null);
 
-// @dart = 2.9
+    return await context.runInContext((_) async {
+      LibraryBuilder libraryBuilder =
+          userCode.loader.read(libraryUri, -1, accessor: userCode.loader.first);
 
-import "$amendImportUri" as tester;
-import "dart:isolate";
+      userCode.loader.seenMessages.clear();
 
-Future<void> main(List<String> args, SendPort port) async {
-  DartDocTest test = new DartDocTest(port);
-  await tester.\$dart\$doc\$test\$tester(test);
-  port.send("$_portMessageDone");
-}
+      _dartDocTestLibraryBuilder = libraryBuilder;
+      _dartDocTestCode = dartDocTestCode;
 
-class DartDocTest {
-  final SendPort port;
+      invalidate(dartDocTestUri);
+      kernel.Component result = await computeDelta(
+          entryPoints: [dartDocTestUri], fullComponent: true);
+      _dartDocTestLibraryBuilder = null;
+      _dartDocTestCode = null;
 
-  DartDocTest(this.port);
+      userCode.uriToSource.remove(dartDocTestUri);
+      userCode.loader.sourceBytes.remove(dartDocTestUri);
 
-  void test(dynamic actual, dynamic expected) {
-    port.send("$_portMessageTest");
-    if (_testImpl(actual, expected)) {
-      port.send("$_portMessageGood");
+      return result;
+    });
+  }
+
+  SourceLibraryBuilder createDartDocTestLibrary(LibraryBuilder libraryBuilder) {
+    SourceLibraryBuilder dartDocTestLibrary = new SourceLibraryBuilder(
+      dartDocTestUri,
+      dartDocTestUri,
+      /*packageUri*/ null,
+      new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+      userCode.loader,
+      null,
+      scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
+      nameOrigin: libraryBuilder,
+    );
+
+    if (libraryBuilder is DillLibraryBuilder) {
+      for (kernel.LibraryDependency dependency
+          in libraryBuilder.library.dependencies) {
+        if (!dependency.isImport) continue;
+
+        List<Combinator>? combinators;
+
+        for (kernel.Combinator combinator in dependency.combinators) {
+          combinators ??= <Combinator>[];
+
+          combinators.add(combinator.isShow
+              ? new Combinator.show(combinator.names, combinator.fileOffset,
+                  libraryBuilder.fileUri)
+              : new Combinator.hide(combinator.names, combinator.fileOffset,
+                  libraryBuilder.fileUri));
+        }
+
+        dartDocTestLibrary.addImport(
+            null,
+            dependency.importedLibraryReference.asLibrary.importUri.toString(),
+            null,
+            dependency.name,
+            combinators,
+            dependency.isDeferred,
+            -1,
+            -1,
+            -1,
+            -1);
+      }
+
+      dartDocTestLibrary.addImport(null, libraryBuilder.importUri.toString(),
+          null, null, null, false, -1, -1, -1, -1);
+
+      dartDocTestLibrary.addImportsToScope();
     } else {
-      port.send("$_portMessageBad: Expected '\$expected'; got '\$actual'.");
+      throw "Got ${libraryBuilder.runtimeType}";
     }
-  }
 
-  void crash(dynamic error) {
-    port.send("$_portMessageTest");
-    port.send("$_portMessageCrash: \$error");
-  }
-
-  void parseError(String message) {
-    port.send("$_portMessageTest");
-    port.send("$_portMessageParseError: \$message");
-  }
-
-  bool _testImpl(dynamic actual, dynamic expected) {
-    if (identical(actual, expected)) return true;
-    if (actual == expected) return true;
-    if (actual == null || expected == null) return false;
-    if (actual is List && expected is List) {
-      if (actual.runtimeType != expected.runtimeType) return false;
-      if (actual.length != expected.length) return false;
-      for (int i = 0; i < actual.length; i++) {
-        if (actual[i] != expected[i]) return false;
-      }
-      return true;
-    }
-    if (actual is List || expected is List) return false;
-
-    if (actual is Map && expected is Map) {
-      if (actual.runtimeType != expected.runtimeType) return false;
-      if (actual.length != expected.length) return false;
-      for (dynamic key in actual.keys) {
-        if (!expected.containsKey(key)) return false;
-        if (actual[key] != expected[key]) return false;
-      }
-      return true;
-    }
-    if (actual is Map || expected is Map) return false;
-
-    if (actual is Set && expected is Set) {
-      if (actual.runtimeType != expected.runtimeType) return false;
-      if (actual.length != expected.length) return false;
-      for (dynamic value in actual) {
-        if (!expected.contains(value)) return false;
-      }
-      return true;
-    }
-    if (actual is Set || expected is Set) return false;
-
-    // More stuff?
-    return false;
+    return dartDocTestLibrary;
   }
 }
-""";
-  }
+
+class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
+  final DocTestIncrementalCompiler compiler;
+  DocTestIncrementalKernelTarget(this.compiler, FileSystem fileSystem,
+      bool includeComments, DillTarget dillTarget, UriTranslator uriTranslator)
+      : super(fileSystem, includeComments, dillTarget, uriTranslator);
 
   @override
-  Future<bool> exists() {
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> existsAsyncIfPossible() {
-    return Future.value(true);
-  }
-
-  @override
-  Future<List<int>> readAsBytes() {
-    return Future.value(contentBytes);
-  }
-
-  @override
-  Future<List<int>> readAsBytesAsyncIfPossible() {
-    return Future.value(contentBytes);
-  }
-
-  @override
-  Future<String> readAsString() {
-    return Future.value(content);
-  }
-
-  @override
-  Uri get uri => AmendedFileSystem.mainUri;
-}
-
-class AmendedFileSystemEntity implements FileSystemEntity {
-  final FileSystemEntity entityForUri;
-  final String? amendWith;
-  AmendedFileSystemEntity(this.entityForUri, this.amendWith);
-
-  @override
-  Future<bool> exists() {
-    return entityForUri.exists();
-  }
-
-  @override
-  Future<bool> existsAsyncIfPossible() {
-    return entityForUri.existsAsyncIfPossible();
-  }
-
-  @override
-  Future<List<int>> readAsBytes() async {
-    List<int> result = await entityForUri.readAsBytes();
-    return _amendIfNeeded(result);
-  }
-
-  List<int> _amendIfNeeded(List<int> existing) {
-    final String? amendWith = this.amendWith;
-    if (amendWith != null) {
-      List<int> encoded = utf8.encode(amendWith);
-      if (encoded.length > 0) {
-        Uint8List combined =
-            new Uint8List(existing.length + 1 + encoded.length);
-        combined.setRange(0, existing.length, existing);
-        combined[existing.length] = $LF;
-        combined.setRange(existing.length + 1, combined.length, encoded);
-        return combined;
-      }
+  LibraryBuilder createLibraryBuilder(
+      Uri uri,
+      Uri fileUri,
+      Uri packageUri,
+      LanguageVersion packageLanguageVersion,
+      covariant LibraryBuilder origin,
+      kernel.Library referencesFrom,
+      bool referenceIsPartOwner) {
+    if (uri == DocTestIncrementalCompiler.dartDocTestUri) {
+      HybridFileSystem hfs = compiler.userCode.fileSystem as HybridFileSystem;
+      MemoryFileSystem fs = hfs.memory;
+      fs
+          .entityForUri(DocTestIncrementalCompiler.dartDocTestUri)
+          .writeAsStringSync(compiler._dartDocTestCode!);
+      return compiler
+          .createDartDocTestLibrary(compiler._dartDocTestLibraryBuilder!);
     }
-    return existing;
+    return super.createLibraryBuilder(
+        uri,
+        fileUri,
+        packageUri,
+        packageLanguageVersion,
+        origin as SourceLibraryBuilder,
+        referencesFrom,
+        referenceIsPartOwner);
   }
-
-  @override
-  Future<List<int>> readAsBytesAsyncIfPossible() async {
-    List<int> result = await entityForUri.readAsBytesAsyncIfPossible();
-    return _amendIfNeeded(result);
-  }
-
-  @override
-  Future<String> readAsString() async {
-    String result = await entityForUri.readAsString();
-    if (amendWith != null) return "$result\n$amendWith";
-    return result;
-  }
-
-  @override
-  Uri get uri => entityForUri.uri;
 }

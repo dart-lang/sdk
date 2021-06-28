@@ -214,7 +214,7 @@ deps = {
   Var("dart_root") + "/third_party/d8": {
       "packages": [{
           "package": "dart/d8",
-          "version": "version:8.5.210",
+          "version": "version:9.1.269",
       }],
       "dep_type": "cipd",
   },

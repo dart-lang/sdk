@@ -221,7 +221,7 @@ abstract class Loader {
         if (coreLibrary == library) {
           target.loadExtraRequiredLibraries(this);
         }
-        // This library isn't owned by this loader, so not further processing
+        // This library isn't owned by this loader, so no further processing
         // should be attempted.
         return library;
       }
