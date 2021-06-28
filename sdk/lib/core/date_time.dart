@@ -717,7 +717,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get year;
 
-  /// The month [1..12].
+  /// The month `[1..12]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -726,7 +726,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get month;
 
-  /// The day of the month [1..31].
+  /// The day of the month `[1..31]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -734,7 +734,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get day;
 
-  /// The hour of the day, expressed as in a 24-hour clock [0..23].
+  /// The hour of the day, expressed as in a 24-hour clock `[0..23]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -742,7 +742,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get hour;
 
-  /// The minute [0...59].
+  /// The minute `[0...59]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -750,7 +750,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get minute;
 
-  /// The second [0...59].
+  /// The second `[0...59]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -758,7 +758,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get second;
 
-  /// The millisecond [0...999].
+  /// The millisecond `[0...999]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
@@ -766,7 +766,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int get millisecond;
 
-  /// The microsecond [0...999].
+  /// The microsecond `[0...999]`.
   ///
   /// ```dart
   /// var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");

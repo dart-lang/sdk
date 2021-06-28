@@ -47,7 +47,7 @@ abstract class Metric {
 }
 
 /// A measured value with a min and max. Initial value is min. Value will
-/// be clamped to the interval [min, max].
+/// be clamped to the interval `[min, max]`.
 class Gauge extends Metric {
   final double min;
   final double max;

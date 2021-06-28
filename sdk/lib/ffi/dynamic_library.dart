@@ -40,7 +40,7 @@ class DynamicLibrary {
   /// call.
   ///
   /// The symbol must be provided by the dynamic library. To check whether
-  /// the library provides such symbol, use [hasSymbol].
+  /// the library provides such symbol, use [providesSymbol].
   external Pointer<T> lookup<T extends NativeType>(String symbolName);
 
   /// Checks whether this dynamic library provides a symbol with the given
