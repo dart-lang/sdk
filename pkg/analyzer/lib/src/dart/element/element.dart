@@ -2981,7 +2981,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  String get identifier => exportedLibrary!.name;
+  String get identifier => exportedLibrary!.name ?? 'unknown';
 
   @override
   ElementKind get kind => ElementKind.EXPORT;
@@ -3877,9 +3877,6 @@ class LibraryElementImpl extends _ExistingElementImpl
     linkedData?.read(this);
     return super.metadata;
   }
-
-  @override
-  String get name => super.name!;
 
   @override
   List<CompilationUnitElement> get parts => _parts;

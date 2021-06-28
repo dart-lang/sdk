@@ -133,7 +133,7 @@ class _ElementWriter {
     _writelnWithIndent('library');
     _withIndent(() {
       var name = e.name;
-      if (name.isNotEmpty) {
+      if (name != null && name.isNotEmpty) {
         _writelnWithIndent('name: $name');
       }
 

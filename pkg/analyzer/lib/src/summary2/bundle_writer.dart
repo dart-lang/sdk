@@ -99,7 +99,7 @@ class BundleWriter {
     _classMembersLengths = <int>[];
 
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(libraryElement.name);
+    _sink._writeStringReference(libraryElement.name!);
     _writeFeatureSet(libraryElement.featureSet);
     _writeLanguageVersion(libraryElement.languageVersion);
     _resolutionSink._writeAnnotationList(libraryElement.metadata);

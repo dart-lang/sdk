@@ -1402,11 +1402,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// deferred import.
   FunctionElement get loadLibraryFunction;
 
-  /// Return the name of this library, possibly the empty string if this
-  /// library does not have an explicit name.
-  @override
-  String get name;
-
   /// Return a list containing all of the compilation units that are included in
   /// this library using a `part` directive. This does not include the defining
   /// compilation unit that contains the `part` directives.
