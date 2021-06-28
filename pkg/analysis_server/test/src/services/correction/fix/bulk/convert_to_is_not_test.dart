@@ -20,12 +20,12 @@ class ConvertIntoIsNotTest extends BulkFixProcessorTest {
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !(p is String) && !!(p is String);
 }
 ''');
     await assertHasFix('''
-main(p) {
+void f(p) {
   p is! String && !(p is! String);
 }
 ''');

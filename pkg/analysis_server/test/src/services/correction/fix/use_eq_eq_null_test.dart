@@ -23,13 +23,13 @@ class UseEqEqNullMultiTest extends FixProcessorTest {
 
   Future<void> test_isNull_all() async {
     await resolveTestCode('''
-main(p, q) {
+void f(p, q) {
   p is Null;
   q is Null;
 }
 ''');
     await assertHasFixAllFix(HintCode.TYPE_CHECK_IS_NULL, '''
-main(p, q) {
+void f(p, q) {
   p == null;
   q == null;
 }
@@ -44,12 +44,12 @@ class UseEqEqNullTest extends FixProcessorTest {
 
   Future<void> test_isNull() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   p is Null;
 }
 ''');
     await assertHasFix('''
-main(p) {
+void f(p) {
   p == null;
 }
 ''');

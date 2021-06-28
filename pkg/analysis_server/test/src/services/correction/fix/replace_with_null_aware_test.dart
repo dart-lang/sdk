@@ -24,12 +24,12 @@ class ReplaceWithNullAwareTest extends FixProcessorTest {
 
   Future<void> test_chain() async {
     await resolveTestCode('''
-main(x) {
+void f(x) {
   x?.a.b.c;
 }
 ''');
     await assertHasFix('''
-main(x) {
+void f(x) {
   x?.a?.b?.c;
 }
 ''');
@@ -37,12 +37,12 @@ main(x) {
 
   Future<void> test_methodInvocation() async {
     await resolveTestCode('''
-main(x) {
+void f(x) {
   x?.a.b();
 }
 ''');
     await assertHasFix('''
-main(x) {
+void f(x) {
   x?.a?.b();
 }
 ''');
@@ -50,12 +50,12 @@ main(x) {
 
   Future<void> test_propertyAccess() async {
     await resolveTestCode('''
-main(x) {
+void f(x) {
   x?.a().b;
 }
 ''');
     await assertHasFix('''
-main(x) {
+void f(x) {
   x?.a()?.b;
 }
 ''');

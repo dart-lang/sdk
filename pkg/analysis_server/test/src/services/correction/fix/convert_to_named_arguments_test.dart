@@ -25,7 +25,7 @@ class A {
   A({int? a, int? b});
 }
 
-main() {
+void f() {
   new A(1, 2);
 }
 ''');
@@ -76,7 +76,7 @@ class A {
   A({int? a, double? b});
 }
 
-main() {
+void f() {
   new A(1.2, 3);
 }
 ''');
@@ -85,7 +85,7 @@ class A {
   A({int? a, double? b});
 }
 
-main() {
+void f() {
   new A(b: 1.2, a: 3);
 }
 ''');
@@ -97,7 +97,7 @@ class A {
   A(int a, {int? b});
 }
 
-main() {
+void f() {
   new A(1, 2);
 }
 ''');
@@ -106,7 +106,7 @@ class A {
   A(int a, {int? b});
 }
 
-main() {
+void f() {
   new A(1, b: 2);
 }
 ''');
@@ -139,7 +139,7 @@ class A {
   A({String? a});
 }
 
-main() {
+void f() {
   new A(1);
 }
 ''');
