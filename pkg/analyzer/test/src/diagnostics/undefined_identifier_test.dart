@@ -18,6 +18,51 @@ main() {
 @reflectiveTest
 class UndefinedIdentifierTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
+  test_annotation_references_static_method_in_class() async {
+    await assertErrorsInCode('''
+@Annotation(foo)
+class C {
+  static void foo() {}
+}
+class Annotation {
+  const Annotation(dynamic d);
+}
+    ''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 3),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 12, 3),
+    ]);
+  }
+
+  test_annotation_references_static_method_in_extension() async {
+    await assertErrorsInCode('''
+@Annotation(foo)
+extension E on int {
+  static void foo() {}
+}
+class Annotation {
+  const Annotation(dynamic d);
+}
+    ''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 3),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 12, 3),
+    ]);
+  }
+
+  test_annotation_references_static_method_in_mixin() async {
+    await assertErrorsInCode('''
+@Annotation(foo)
+mixin M {
+  static void foo() {}
+}
+class Annotation {
+  const Annotation(dynamic d);
+}
+    ''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 3),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 12, 3),
+    ]);
+  }
+
   @failingTest
   test_commentReference() async {
     await assertErrorsInCode('''

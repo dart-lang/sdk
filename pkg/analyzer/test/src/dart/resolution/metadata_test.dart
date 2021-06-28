@@ -897,6 +897,215 @@ B<int>
 ''');
   }
 
+  test_value_genericMixinApplication_inference_unnamedConstructor_classTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+@B(42)
+class C<T> = D with E;
+
+class D {}
+class E {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_inference_unnamedConstructor_functionTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+@B(42)
+typedef T F<T>();
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_inference_unnamedConstructor_functionTypedFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+f(@B(42) g()) {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_inference_unnamedConstructor_genericTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+@B(42)
+typedef F = void Function();
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_inference_unnamedConstructor_methodDeclaration() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+class C {
+  @B(42)
+  m() {}
+}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
   test_value_genericMixinApplication_typeArguments_unnamedConstructor() async {
     await assertNoErrorsInCode(r'''
  class A<T> {

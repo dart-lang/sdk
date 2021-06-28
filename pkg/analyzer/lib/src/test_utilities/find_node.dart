@@ -64,6 +64,10 @@ class FindNode {
     return _node(search, (n) => n is ClassDeclaration);
   }
 
+  ClassTypeAlias classTypeAlias(String search) {
+    return _node(search, (n) => n is ClassTypeAlias);
+  }
+
   CollectionElement collectionElement(String search) {
     return _node(search, (n) => n is CollectionElement);
   }
@@ -102,6 +106,10 @@ class FindNode {
 
   DoubleLiteral doubleLiteral(String search) {
     return _node(search, (n) => n is DoubleLiteral);
+  }
+
+  EnumDeclaration enumDeclaration(String search) {
+    return _node(search, (n) => n is EnumDeclaration);
   }
 
   ExportDirective export(String search) {
@@ -168,6 +176,10 @@ class FindNode {
     return _node(search, (n) => n is GenericFunctionType);
   }
 
+  GenericTypeAlias genericTypeAlias(String search) {
+    return _node(search, (n) => n is GenericTypeAlias);
+  }
+
   IfElement ifElement(String search) {
     return _node(search, (n) => n is IfElement);
   }
@@ -217,6 +229,10 @@ class FindNode {
   }
 
   MixinDeclaration mixin(String search) {
+    return _node(search, (n) => n is MixinDeclaration);
+  }
+
+  MixinDeclaration mixinDeclaration(String search) {
     return _node(search, (n) => n is MixinDeclaration);
   }
 

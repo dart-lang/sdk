@@ -850,6 +850,58 @@ const A = null;
     );
   }
 
+  test_metadata_classTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+const A = null;
+@A class C<A> = D with E;
+class D {}
+class E {}
+''');
+    verifyTestResolved();
+
+    var annotations = findElement.class_('C').metadata;
+    expect(annotations, hasLength(1));
+
+    var cDeclaration = findNode.classTypeAlias('C<A>');
+    assertElement(
+      cDeclaration.metadata[0].name,
+      findElement.topGet('A'),
+    );
+  }
+
+  test_metadata_enum() async {
+    await assertNoErrorsInCode('''
+const A = null;
+@A enum E { A, B }
+''');
+    verifyTestResolved();
+
+    var annotations = findElement.enum_('E').metadata;
+    expect(annotations, hasLength(1));
+
+    var eDeclaration = findNode.enumDeclaration('E');
+    assertElement(
+      eDeclaration.metadata[0].name,
+      findElement.topGet('A'),
+    );
+  }
+
+  test_metadata_extension() async {
+    await assertNoErrorsInCode(r'''
+const A = null;
+@A extension E<A> on List<A> {}''');
+    verifyTestResolved();
+
+    var annotations = findElement.extension_('E').metadata;
+    expect(annotations, hasLength(1));
+
+    var cDeclaration = findNode.extensionDeclaration('E<A>');
+    assertElement(
+      cDeclaration.metadata[0].name,
+      findElement.topGet('A'),
+    );
+  }
+
   test_metadata_field() async {
     await assertNoErrorsInCode(r'''
 const A = null;
@@ -885,6 +937,39 @@ const A = null;
     expect(annotations, hasLength(1));
   }
 
+  test_metadata_function_generic() async {
+    await assertNoErrorsInCode(r'''
+const A = null;
+@A f<A>() {}''');
+    verifyTestResolved();
+
+    var annotations = findElement.topFunction('f').metadata;
+    expect(annotations, hasLength(1));
+
+    var fDeclaration = findNode.functionDeclaration('f<A>');
+    assertElement(
+      fDeclaration.metadata[0].name,
+      findElement.topGet('A'),
+    );
+  }
+
+  test_metadata_functionTypeAlias() async {
+    await assertNoErrorsInCode('''
+const A = null;
+@A typedef F<A>(int A);
+''');
+    verifyTestResolved();
+
+    var annotations = findElement.typeAlias('F').metadata;
+    expect(annotations, hasLength(1));
+
+    var fDeclaration = findNode.functionTypeAlias('F');
+    assertElement(
+      fDeclaration.metadata[0].name,
+      findElement.topGet('A'),
+    );
+  }
+
   test_metadata_functionTypedParameter() async {
     await assertNoErrorsInCode(r'''
 const A = null;
@@ -893,6 +978,39 @@ f(@A int p(int x)) {}''');
 
     var metadata = findElement.parameter('p').metadata;
     expect(metadata, hasLength(1));
+  }
+
+  test_metadata_functionTypedParameter_generic() async {
+    await assertNoErrorsInCode(r'''
+const A = null;
+f(@A int p<A>(int x)) {}''');
+    verifyTestResolved();
+
+    var annotations = findElement.parameter('p').metadata;
+    expect(annotations, hasLength(1));
+
+    var pDeclaration = findNode.functionTypedFormalParameter('p<A>');
+    assertElement(
+      pDeclaration.metadata[0].name,
+      findElement.topGet('A'),
+    );
+  }
+
+  test_metadata_genericTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+const A = null;
+@A typedef F<A> = A Function();
+''');
+    verifyTestResolved();
+
+    var annotations = findElement.typeAlias('F').metadata;
+    expect(annotations, hasLength(1));
+
+    var fDeclaration = findNode.genericTypeAlias('F<A>');
+    assertElement(
+      fDeclaration.metadata[0].name,
+      findElement.topGet('A'),
+    );
   }
 
   test_metadata_libraryDirective() async {
@@ -915,6 +1033,40 @@ class C {
 
     var metadata = findElement.method('m').metadata;
     expect(metadata, hasLength(1));
+  }
+
+  test_metadata_method_generic() async {
+    await assertNoErrorsInCode(r'''
+const A = null;
+class C {
+  @A void m<A>() {}
+}''');
+    verifyTestResolved();
+
+    var annotations = findElement.method('m').metadata;
+    expect(annotations, hasLength(1));
+
+    var mDeclaration = findNode.methodDeclaration('m<A>');
+    assertElement(
+      mDeclaration.metadata[0].name,
+      findElement.topGet('A'),
+    );
+  }
+
+  test_metadata_mixin() async {
+    await assertNoErrorsInCode(r'''
+const A = null;
+@A mixin M<A> on Object {}''');
+    verifyTestResolved();
+
+    var annotations = findElement.mixin('M').metadata;
+    expect(annotations, hasLength(1));
+
+    var mDeclaration = findNode.mixinDeclaration('M<A>');
+    assertElement(
+      mDeclaration.metadata[0].name,
+      findElement.topGet('A'),
+    );
   }
 
   test_metadata_namedParameter() async {
