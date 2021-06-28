@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -44,7 +45,7 @@ class DapCommand extends Command {
       ..addOption(
         argPort,
         abbr: 'p',
-        defaultsTo: DapServer.defaultPort.toString(),
+        defaultsTo: '0',
         help: 'The port to bind the server to',
       )
       ..addFlag(
@@ -69,12 +70,18 @@ class DapCommand extends Command {
     final port = int.parse(args[argPort]);
     final host = args[argHost];
 
-    await DapServer.create(
+    final server = await DapServer.create(
       host: host,
       port: port,
       enableDdds: args[argDds],
       enableAuthCodes: args[argAuthCodes],
       logger: args[argVerbose] ? print : null,
     );
+
+    stdout.write(jsonEncode({
+      'state': 'started',
+      'dapHost': server.host,
+      'dapPort': server.port,
+    }));
   }
 }

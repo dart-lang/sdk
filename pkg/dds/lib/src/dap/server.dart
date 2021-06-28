@@ -15,8 +15,6 @@ import 'protocol_stream_transformers.dart';
 
 /// A DAP server that binds to a port and runs in multi-session mode.
 class DapServer {
-  static const defaultPort = 9200;
-
   final ServerSocket _socket;
   final bool enableDds;
   final bool enableAuthCodes;
