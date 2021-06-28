@@ -12,6 +12,7 @@ import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
+import 'add_key_to_constructors_test.dart' as add_key_to_constructors;
 import 'add_late_test.dart' as add_late;
 import 'add_missing_enum_case_clauses_test.dart'
     as add_missing_enum_case_clauses;
@@ -195,6 +196,7 @@ void main() {
     add_diagnostic_property_reference.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
+    add_key_to_constructors.main();
     add_late.main();
     add_missing_enum_case_clauses.main();
     add_missing_enum_like_case_clauses.main();

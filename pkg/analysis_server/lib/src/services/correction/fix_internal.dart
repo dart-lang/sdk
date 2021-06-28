@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
+import 'package:analysis_server/src/services/correction/dart/add_key_to_constructors.dart';
 import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_case_clauses.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_like_case_clauses.dart';
@@ -563,6 +564,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.use_function_type_syntax_for_parameters: [
       ConvertToGenericFunctionSyntax.newInstance,
+    ],
+    LintNames.use_key_in_widget_constructors: [
+      AddKeyToConstructors.newInstance,
     ],
     LintNames.use_rethrow_when_possible: [
       UseRethrow.newInstance,

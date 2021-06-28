@@ -179,6 +179,10 @@ class DartFixKind {
       'dart.fix.add.fieldFormalParameters',
       70,
       'Add final field formal parameters');
+  static const ADD_KEY_TO_CONSTRUCTORS = FixKind(
+      'dart.fix.add.keyToConstructors',
+      DartFixKindPriority.DEFAULT,
+      "Add 'key' to constructors");
   static const ADD_LATE = FixKind(
       'dart.fix.add.late', DartFixKindPriority.DEFAULT, "Add 'late' modifier");
   static const ADD_MISSING_ENUM_CASE_CLAUSES = FixKind(
