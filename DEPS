@@ -86,7 +86,7 @@ vars = {
   "cli_util_rev" : "8c504de5deb08fe32ecf51f9662bb37d8c708e57",
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
   "collection_rev": "9967dcd3d7645db6de48d5abfab3018bb0c84236",
-  "convert_rev": "a60156c6efd653657c8926b5788219ed609917d7",
+  "convert_rev": "413f591577419d8a8b95d445094a82c926650bd1",
   "crypto_rev": "1c8ccc07b83b100216dc6dede767371043385648",
   "csslib_rev": "e411d862fd8cc50415c1badf2632e017373b3f47",
   "dart2js_info_rev" : "e0acfeb5affdf94c53067e68bd836adf589628fd",
