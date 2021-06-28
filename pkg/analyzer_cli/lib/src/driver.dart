@@ -87,7 +87,7 @@ class Driver implements CommandLineStarter {
   }
 
   @override
-  Future<void> start(List<String> args) async {
+  Future<void> start(List<String> arguments) async {
     if (analysisDriver != null) {
       throw StateError('start() can only be called once');
     }
@@ -98,14 +98,14 @@ class Driver implements CommandLineStarter {
     linter.registerLintRules();
 
     // Parse commandline options.
-    var options = CommandLineOptions.parse(resourceProvider, args);
+    var options = CommandLineOptions.parse(resourceProvider, arguments);
 
     _analysisContextProvider = _AnalysisContextProvider(resourceProvider);
 
     // Do analysis.
     if (options.batchMode) {
       var batchRunner = BatchRunner(outSink, errorSink);
-      batchRunner.runAsBatch(args, (List<String> args) async {
+      batchRunner.runAsBatch(arguments, (List<String> args) async {
         var options = CommandLineOptions.parse(resourceProvider, args);
         return await _analyzeAll(options);
       });

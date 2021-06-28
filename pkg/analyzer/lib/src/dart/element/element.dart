@@ -237,6 +237,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           String methodName, LibraryElement library) =>
       _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
+              !method.isStatic &&
               method.isAccessibleIn(library) &&
               method.enclosingElement != this));
 
