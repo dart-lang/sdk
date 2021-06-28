@@ -8,12 +8,43 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToRelativeImportBulkTest);
     defineReflectiveTests(ConvertToRelativeImportTest);
   });
+}
+
+@reflectiveTest
+class ConvertToRelativeImportBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_relative_imports;
+
+  Future<void> test_singleFile() async {
+    addSource('/home/test/lib/foo.dart', '''
+class C {}
+''');
+    addSource('/home/test/lib/bar.dart', '''
+class D {}
+''');
+    testFile = convertPath('/home/test/lib/src/test.dart');
+
+    await resolveTestCode('''
+import 'package:test/bar.dart';
+import 'package:test/foo.dart';
+C c;
+D d;
+''');
+    await assertHasFix('''
+import '../bar.dart';
+import '../foo.dart';
+C c;
+D d;
+''');
+  }
 }
 
 @reflectiveTest

@@ -7,12 +7,31 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToIntLiteralBulkTest);
     defineReflectiveTests(ConvertToIntLiteralTest);
   });
+}
+
+@reflectiveTest
+class ConvertToIntLiteralBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_int_literals;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+const double d1 = 42.0;
+double d2 = 7.0e2;
+''');
+    await assertHasFix('''
+const double d1 = 42;
+double d2 = 700;
+''');
+  }
 }
 
 @reflectiveTest

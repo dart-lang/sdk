@@ -4,35 +4,8 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'add_await_test.dart' as add_await;
-import 'add_const_test.dart' as add_const;
-import 'add_diagnostic_property_reference_test.dart'
-    as add_diagnostic_property_reference;
-import 'add_override_test.dart' as add_override;
-import 'add_required_test.dart' as add_required;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
-import 'convert_documentation_into_line_test.dart'
-    as convert_documentation_into_line;
-import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
-import 'convert_map_from_iterable_to_for_literal_test.dart'
-    as convert_map_from_iterable_to_for_literal;
-import 'convert_to_contains_test.dart' as convert_to_contains;
-import 'convert_to_generic_function_syntax_test.dart'
-    as convert_to_generic_function_syntax;
-import 'convert_to_if_element_test.dart' as convert_to_if_element;
-import 'convert_to_if_null_test.dart' as convert_to_if_null;
-import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_is_not_test.dart' as convert_to_is_not;
-import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
-import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
-import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
-import 'convert_to_package_import_test.dart' as convert_to_package_import;
-import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
-import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
-import 'convert_to_single_quoted_strings_test.dart'
-    as convert_to_single_quoted_strings;
-import 'convert_to_spread_test.dart' as convert_to_spread;
-import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'create_method_test.dart' as create_method;
 import 'data_driven_test.dart' as data_driven;
 import 'inline_invocation_test.dart' as inline_invocation;
@@ -76,30 +49,8 @@ import 'use_rethrow_test.dart' as use_rethrow;
 
 void main() {
   defineReflectiveSuite(() {
-    add_await.main();
-    add_const.main();
-    add_diagnostic_property_reference.main();
-    add_override.main();
-    add_required.main();
     bulk_fix_processor.main();
-    convert_documentation_into_line.main();
-    convert_for_each_to_for_loop.main();
-    convert_map_from_iterable_to_for_literal.main();
-    convert_to_contains.main();
-    convert_to_generic_function_syntax.main();
-    convert_to_if_element.main();
-    convert_to_if_null.main();
-    convert_to_int_literal.main();
     convert_to_is_not.main();
-    convert_to_list_literal.main();
-    convert_to_map_literal.main();
-    convert_to_null_aware.main();
-    convert_to_package_import.main();
-    convert_to_relative_import.main();
-    convert_to_set_literal.main();
-    convert_to_single_quoted_strings.main();
-    convert_to_spread.main();
-    convert_to_where_type.main();
     create_method.main();
     data_driven.main();
     inline_invocation.main();

@@ -8,12 +8,35 @@ import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToIfNullBulkTest);
     defineReflectiveTests(ConvertToIfNullTest);
   });
+}
+
+@reflectiveTest
+class ConvertToIfNullBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_if_null_operators;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f(String s) {
+  print(s == null ? 'default' : s);
+  print(s != null ? s : 'default');
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  print(s ?? 'default');
+  print(s ?? 'default');
+}
+''');
+  }
 }
 
 @reflectiveTest

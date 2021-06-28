@@ -7,12 +7,39 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToPackageImportBulkTest);
     defineReflectiveTests(ConvertToPackageImportTest);
   });
+}
+
+@reflectiveTest
+class ConvertToPackageImportBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_relative_lib_imports;
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44673')
+  Future<void> test_singleFile() async {
+    writeTestPackageConfig(config: PackageConfigFileBuilder());
+    addSource('/home/test/lib/bar.dart', 'class Bar {}');
+
+    testFile = convertPath('/home/test/tool/test.dart');
+
+    await resolveTestCode('''
+import '../lib/bar.dart';
+
+var bar = Bar();
+''');
+    await assertHasFix('''
+import 'package:test/foo/bar.dart';
+
+var bar = Bar();
+''');
+  }
 }
 
 @reflectiveTest

@@ -7,12 +7,42 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToIfElementBulkTest);
     defineReflectiveTests(ConvertToIfElementTest);
   });
+}
+
+@reflectiveTest
+class ConvertToIfElementBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode =>
+      LintNames.prefer_if_elements_to_conditional_expressions;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+String f(bool b) {
+  return ['a', b ? 'c' : 'd', 'e'];
+}
+
+String f2(bool b) {
+  return {'a', b ? 'c' : 'd', 'e'};
+}
+''');
+    await assertHasFix('''
+String f(bool b) {
+  return ['a', if (b) 'c' else 'd', 'e'];
+}
+
+String f2(bool b) {
+  return {'a', if (b) 'c' else 'd', 'e'};
+}
+''');
+  }
 }
 
 @reflectiveTest
