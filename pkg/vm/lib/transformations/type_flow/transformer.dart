@@ -9,6 +9,7 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
+import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
@@ -55,6 +56,8 @@ Component transformComponent(
 
   Statistics.reset();
   final analysisStopWatch = new Stopwatch()..start();
+
+  MoveFieldInitializers().transformComponent(component);
 
   final typeFlowAnalysis = new TypeFlowAnalysis(
       target,
@@ -119,6 +122,77 @@ Component transformComponent(
   Statistics.print("TFA statistics");
 
   return component;
+}
+
+// Move instance field initializers with possible side-effects
+// into constructors. This makes fields self-contained and
+// simplifies tree-shaking of fields.
+class MoveFieldInitializers {
+  void transformComponent(Component component) {
+    for (Library library in component.libraries) {
+      for (Class cls in library.classes) {
+        transformClass(cls);
+      }
+    }
+  }
+
+  void transformClass(Class cls) {
+    if (cls.fields.isEmpty) return;
+
+    // Collect instance fields with non-trivial initializers.
+    // Those will be moved into constructors.
+    final List<Field> fields = [
+      for (Field f in cls.fields)
+        if (!f.isStatic &&
+            !f.isLate &&
+            f.initializer != null &&
+            mayHaveSideEffects(f.initializer))
+          f
+    ];
+    if (fields.isEmpty) return;
+
+    // Collect non-redirecting constructors.
+    final List<Constructor> constructors = [
+      for (Constructor c in cls.constructors)
+        if (!_isRedirectingConstructor(c)) c
+    ];
+
+    assert(constructors.isNotEmpty);
+
+    // Move field initializers to constructors.
+    // Clone AST for all constructors except the first.
+    bool isFirst = true;
+    for (Constructor c in constructors) {
+      // Avoid duplicate FieldInitializers in the constructor initializer list.
+      final Set<Field> initializedFields = {
+        for (Initializer init in c.initializers)
+          if (init is FieldInitializer) init.field
+      };
+      final List<Initializer> newInitializers = [];
+      for (Field f in fields) {
+        Expression initExpr = f.initializer;
+        if (!isFirst) {
+          initExpr = CloneVisitorNotMembers().clone(initExpr);
+        }
+        final Initializer newInit = initializedFields.contains(f)
+            ? LocalInitializer(VariableDeclaration(null, initializer: initExpr))
+            : FieldInitializer(f, initExpr);
+        newInit.parent = c;
+        newInitializers.add(newInit);
+      }
+      newInitializers.addAll(c.initializers);
+      c.initializers = newInitializers;
+      isFirst = false;
+    }
+
+    // Cleanup field initializers.
+    for (Field f in fields) {
+      f.initializer = null;
+    }
+  }
+
+  bool _isRedirectingConstructor(Constructor c) =>
+      c.initializers.last is RedirectingInitializer;
 }
 
 // Pass which removes all annotations except @ExternalName and @pragma
