@@ -4,6 +4,8 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +25,94 @@ class AddMissingEnumLikeCaseClausesTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.exhaustive_cases;
 
-  Future<void> test_missing() async {
+  bool Function(AnalysisError) get _filter {
+    var hasError = false;
+    return (error) {
+      var errorCode = error.errorCode;
+      if (!hasError && errorCode is LintCode && errorCode.name == lintCode) {
+        hasError = true;
+        return true;
+      }
+      return false;
+    };
+  }
+
+  Future<void> assertHasFixWithFilter(String expected) async {
+    await assertHasFix(expected, errorFilter: _filter);
+  }
+
+  Future<void> test_empty() async {
+    await resolveTestCode('''
+void f(E e) {
+  switch (e) {
+  }
+}
+class E {
+  static const E a = E._(0);
+  static const E b = E._(1);
+  static const E c = E._(2);
+  const E._(int x);
+}
+''');
+    await assertHasFixWithFilter('''
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+class E {
+  static const E a = E._(0);
+  static const E b = E._(1);
+  static const E c = E._(2);
+  const E._(int x);
+}
+''');
+  }
+
+  Future<void> test_empty_singleLine() async {
+    await resolveTestCode('''
+void f(E e) {
+  switch (e) {}
+}
+class E {
+  static const E a = E._(0);
+  static const E b = E._(1);
+  static const E c = E._(2);
+  const E._(int x);
+}
+''');
+    await assertHasFixWithFilter('''
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+class E {
+  static const E a = E._(0);
+  static const E b = E._(1);
+  static const E c = E._(2);
+  const E._(int x);
+}
+''');
+  }
+
+  Future<void> test_notEmpty() async {
     await resolveTestCode('''
 void f(E e) {
   switch (e) {

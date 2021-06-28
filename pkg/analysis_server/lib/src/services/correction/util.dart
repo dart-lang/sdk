@@ -970,6 +970,21 @@ class CorrectionUtils {
     return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
   }
 
+  ClassMemberLocation newCaseClauseAtEndLocation(SwitchStatement statement) {
+    var blockStartLine = getLineThis(statement.leftBracket.offset);
+    var blockEndLine = getLineThis(statement.end);
+    var offset = blockEndLine;
+    var prefix = '';
+    var suffix = '';
+    if (blockStartLine == blockEndLine) {
+      // The switch body is on a single line.
+      prefix = endOfLine;
+      offset = statement.leftBracket.end;
+      suffix = getLinePrefix(statement.offset);
+    }
+    return ClassMemberLocation(prefix, offset, suffix);
+  }
+
   ClassMemberLocation? prepareNewClassMemberLocation(
       CompilationUnitMember declaration,
       bool Function(ClassMember existingMember) shouldSkip) {
