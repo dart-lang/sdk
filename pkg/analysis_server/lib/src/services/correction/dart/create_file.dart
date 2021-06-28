@@ -41,10 +41,12 @@ class CreateFile extends CorrectionProducer {
       } else if (parent is PartDirective) {
         var source = parent.uriSource;
         if (source != null) {
-          var libName = resolvedResult.libraryElement.name;
+          var pathContext = resourceProvider.pathContext;
+          var relativePath = pathContext.relative(
+              resolvedResult.libraryElement.source.fullName,
+              from: pathContext.dirname(source.fullName));
           await builder.addDartFileEdit(source.fullName, (builder) {
-            // TODO(brianwilkerson) Consider using the URI rather than name.
-            builder.addSimpleInsertion(0, 'part of $libName;$eol$eol');
+            builder.addSimpleInsertion(0, "part of '$relativePath';$eol$eol");
           });
           _fileName = source.shortName;
         }
