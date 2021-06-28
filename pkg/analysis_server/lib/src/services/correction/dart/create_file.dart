@@ -45,8 +45,12 @@ class CreateFile extends CorrectionProducer {
           var relativePath = pathContext.relative(
               resolvedResult.libraryElement.source.fullName,
               from: pathContext.dirname(source.fullName));
+
+          // URIs always use forward slashes regardless of platform.
+          var relativeUri = pathContext.split(relativePath).join('/');
+
           await builder.addDartFileEdit(source.fullName, (builder) {
-            builder.addSimpleInsertion(0, "part of '$relativePath';$eol$eol");
+            builder.addSimpleInsertion(0, "part of '$relativeUri';$eol$eol");
           });
           _fileName = source.shortName;
         }
