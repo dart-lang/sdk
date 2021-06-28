@@ -6,8 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:io' as io;
-import 'dart:isolate';
-import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
@@ -73,6 +71,8 @@ class AotTestRunner extends TestRunner {
   }
 }
 
+const int tsanShards = 200;
+
 final configurations = <TestRunner>[
   JitTestRunner('out/DebugX64', [
     '--disable-dart-dev',
@@ -91,13 +91,16 @@ final configurations = <TestRunner>[
     '--deoptimize-on-runtime-call-every=3',
     'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
   ]),
-  JitTestRunner('out/ReleaseTSANX64', [
-    '--disable-dart-dev',
-    '--no-sound-null-safety',
-    '--enable-isolate-groups',
-    '--experimental-enable-isolate-groups-jit',
-    'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
-  ]),
+  for (int i = 0; i < tsanShards; ++i)
+    JitTestRunner('out/ReleaseTSANX64', [
+      '--disable-dart-dev',
+      '-Dshard=$i',
+      '-Dshards=$tsanShards',
+      '--no-sound-null-safety',
+      '--enable-isolate-groups',
+      '--experimental-enable-isolate-groups-jit',
+      'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
+    ]),
   AotTestRunner('out/ReleaseX64', [
     '--no-sound-null-safety',
     'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
