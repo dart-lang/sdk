@@ -175,7 +175,7 @@ void f(A a) {
 class A {
   int; // marker
 }
-main(A a) {
+void f(A a) {
   print(a.test);
 }
 ''');
