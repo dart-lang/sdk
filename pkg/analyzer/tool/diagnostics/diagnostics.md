@@ -808,6 +808,128 @@ class C {
 }
 {% endprettify %}
 
+### asset_directory_does_not_exist
+
+_The asset directory '{0}' doesn't exist._
+
+#### Description
+
+The analyzer produces this diagnostic when an asset list contains a value
+referencing a directory that doesn't exist.
+
+#### Example
+
+Assuming that the directory `assets` doesn't exist, the following code
+produces this diagnostic because it's listed as a directory containing
+assets:
+
+```yaml
+name: example
+flutter:
+  assets:
+    - assets/
+```
+
+#### Common fixes
+
+If the path is correct, then create a directory at that path.
+
+If the path isn't correct, then change the path to match the path of the
+directory containing the assets.
+
+### asset_does_not_exist
+
+_The asset file '{0}' doesn't exist._
+
+#### Description
+
+The analyzer produces this diagnostic when an asset list contains a value
+referencing a file that doesn't exist.
+
+#### Example
+
+Assuming that the file `doesNotExist.gif` doesn't exist, the following code
+produces this diagnostic because it's listed as an asset:
+
+```yaml
+name: example
+flutter:
+  assets:
+    - doesNotExist.gif
+```
+
+#### Common fixes
+
+If the path is correct, then create a file at that path.
+
+If the path isn't correct, then change the path to match the path of the
+file containing the asset.
+
+### asset_field_not_list
+
+_The value of the 'asset' field is expected to be a list of relative file
+paths._
+
+#### Description
+
+The analyzer produces this diagnostic when the value of the `asset` key
+isn't a list.
+
+#### Example
+
+The following code produces this diagnostic because the value of the assets
+key is a string when a list is expected:
+
+```yaml
+name: example
+flutter:
+  assets: assets/
+```
+
+#### Common fixes
+
+Change the value of the asset list so that it's a list:
+
+```yaml
+name: example
+flutter:
+  assets:
+    - assets/
+```
+
+### asset_not_string
+
+_Assets are required to be file paths (strings)._
+
+#### Description
+
+The analyzer produces this diagnostic when an asset list contains a value
+that isn't a string.
+
+#### Example
+
+The following code produces this diagnostic because the asset list contains
+a map:
+
+```yaml
+name: example
+flutter:
+  assets:
+    - image.gif: true
+```
+
+#### Common fixes
+
+Change the asset list so that it only contains valid POSIX-style file
+paths:
+
+```yaml
+name: example
+flutter:
+  assets:
+    - image.gif
+```
+
 ### assignment_to_const
 
 _Constant variables can't be assigned a value._
@@ -1794,6 +1916,76 @@ class I<T> {}
 class A<S> implements I<S> {}
 class B implements I<String> {}
 class C extends A<String> implements B {}
+{% endprettify %}
+
+### conflicting_type_variable_and_container
+
+_'{0}' can't be used to name both a type variable and the class in which the
+type variable is defined._
+
+_'{0}' can't be used to name both a type variable and the extension in which the
+type variable is defined._
+
+_'{0}' can't be used to name both a type variable and the mixin in which the
+type variable is defined._
+
+#### Description
+
+The analyzer produces this diagnostic when a class, mixin, or extension
+declaration declares a type parameter with the same name as the class,
+mixin, or extension that declares it.
+
+#### Example
+
+The following code produces this diagnostic because the type parameter `C`
+has the same name as the class `C` of which it's a part:
+
+{% prettify dart tag=pre+code %}
+class C<[!C!]> {}
+{% endprettify %}
+
+#### Common fixes
+
+Rename either the type parameter, or the class, mixin, or extension:
+
+{% prettify dart tag=pre+code %}
+class C<T> {}
+{% endprettify %}
+
+### conflicting_type_variable_and_member
+
+_'{0}' can't be used to name both a type variable and a member in this class._
+
+_'{0}' can't be used to name both a type variable and a member in this
+extension._
+
+_'{0}' can't be used to name both a type variable and a member in this mixin._
+
+#### Description
+
+The analyzer produces this diagnostic when a class, mixin, or extension
+declaration declares a type parameter with the same name as one of the
+members of the class, mixin, or extension that declares it.
+
+#### Example
+
+The following code produces this diagnostic because the type parameter `T`
+has the same name as the field `T`:
+
+{% prettify dart tag=pre+code %}
+class C<[!T!]> {
+  int T = 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rename either the type parameter or the member with which it conflicts:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  int total = 0;
+}
 {% endprettify %}
 
 ### const_constructor_param_type_mismatch
@@ -3005,6 +3197,64 @@ void f(bool b) {
 }
 {% endprettify %}
 
+### dependencies_field_not_map
+
+_The value of the '{0}' field is expected to be a map._
+
+#### Description
+
+The analyzer produces this diagnostic when the value of either the
+`dependencies` or `dev_dependencies` key isn't a map.
+
+#### Example
+
+The following code produces this diagnostic because the value of the
+top-level `dependencies` key is a list:
+
+```yaml
+name: example
+dependencies:
+  - meta
+```
+
+#### Common fixes
+
+Use a map as the value of the `dependencies` key:
+
+```yaml
+name: example
+dependencies:
+  meta: ^1.0.2
+```
+
+### deprecated_field
+
+_The '{0}' field is no longer used and can be removed._
+
+#### Description
+
+The analyzer produces this diagnostic when a key is used in a
+`pubspec.yaml` file that was deprecated. Unused keys take up space and
+might imply semantics that are no longer valid.
+
+#### Example
+
+The following code produces this diagnostic because the `author` key is no
+longer being used:
+
+{% prettify dart tag=pre+code %}
+name: example
+author: 'Dash'
+{% endprettify %}
+
+#### Common fixes
+
+Remove the deprecated key:
+
+{% prettify dart tag=pre+code %}
+name: example
+{% endprettify %}
+
 ### deprecated_member_use
 
 _'{0}' is deprecated and shouldn't be used._
@@ -3058,6 +3308,39 @@ var y = [!x!];
 The fix depends on what's been deprecated and what the replacement is. The
 documentation for deprecated declarations should indicate what code to use
 in place of the deprecated code.
+
+### deprecated_subtype_of_function
+
+_Extending 'Function' is deprecated._
+
+_Implementing 'Function' has no effect._
+
+_Mixing in 'Function' is deprecated._
+
+#### Description
+
+The analyzer produces this diagnostic when the class `Function` is used in
+either the `extends`, `implements`, or `with` clause of a class or mixin.
+Using the class `Function` in this way has no semantic value, so it's
+effectively dead code.
+
+#### Example
+
+The following code produces this diagnostic because `Function` is used as
+the superclass of `F`:
+
+{% prettify dart tag=pre+code %}
+class F extends [!Function!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the class `Function` from whichever clause it's in, and remove the
+whole clause if `Function` is the only type in the clause:
+
+{% prettify dart tag=pre+code %}
+class F {}
+{% endprettify %}
 
 ### duplicate_constructor
 
@@ -4833,6 +5116,43 @@ class C {
 }
 {% endprettify %}
 
+### flutter_field_not_map
+
+_The value of the 'flutter' field is expected to be a map._
+
+#### Description
+
+The analyzer produces this diagnostic when the value of the `flutter` key
+isn't a map.
+
+#### Example
+
+The following code produces this diagnostic because the value of the
+top-level `flutter` key is a string:
+
+```yaml
+name: example
+flutter: true
+```
+
+#### Common fixes
+
+If you need to specify Flutter-specific options, then change the value to
+be a map:
+
+```yaml
+name: example
+flutter:
+  uses-material-design: true
+```
+
+If you don't need to specify Flutter-specific options, then remove the
+`flutter` key:
+
+```yaml
+name: example
+```
+
 ### for_in_of_invalid_element_type
 
 _The type '{0}' used in the 'for' loop must implement '{1}' with a type argument
@@ -5269,6 +5589,81 @@ class C {
   int get defaultX => 0;
 }
 {% endprettify %}
+
+### import_deferred_library_with_load_function
+
+_The imported library defines a top-level function named 'loadLibrary' that is
+hidden by deferring this library._
+
+#### Description
+
+The analyzer produces this diagnostic when a library that declares a
+function named `loadLibrary` is imported using a deferred import. A
+deferred import introduces an implicit function named `loadLibrary`. This
+function is used to load the contents of the deferred library, and the
+implicit function hides the explicit declaration in the deferred library.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+Given a file (`a.dart`) that defines a function named `loadLibrary`:
+
+{% prettify dart tag=pre+code %}
+void loadLibrary(Library library) {}
+
+class Library {}
+{% endprettify %}
+
+The following code produces this diagnostic because the implicit
+declaration of `a.loadLibrary` is hiding the explicit declaration of
+`loadLibrary` in `a.dart`:
+
+{% prettify dart tag=pre+code %}
+[!import 'a.dart' deferred as a;!]
+
+void f() {
+  a.Library();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the imported library isn't required to be deferred, then remove the
+keyword `deferred`:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' as a;
+
+void f() {
+  a.Library();
+}
+{% endprettify %}
+
+If the imported library is required to be deferred and you need to
+reference the imported function, then rename the function in the imported
+library:
+
+{% prettify dart tag=pre+code %}
+void populateLibrary(Library library) {}
+
+class Library {}
+{% endprettify %}
+
+If the imported library is required to be deferred and you don't need to
+reference the imported function, then add a `hide` clause:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a hide loadLibrary;
+
+void f() {
+  a.Library();
+}
+{% endprettify %}
+
+If type arguments shouldn't be required for the class, then mark the class
+with the `@optionalTypeArgs` annotation (from `package:meta`):
 
 ### import_internal_library
 
@@ -5709,6 +6104,43 @@ var e = E.a;
 
 If you intend to use an instance of a class, then use the name of that class in place of the name of the enum.
 
+### integer_literal_imprecise_as_double
+
+_The integer literal is being used as a double, but can't be represented as a
+64-bit double without overflow or loss of precision: '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an integer literal is being
+implicitly converted to a double, but can't be represented as a 64-bit
+double without overflow or loss of precision. Integer literals are
+implicitly converted to a double if the context requires the type `double`.
+
+#### Example
+
+The following code produces this diagnostic because the integer value
+`9223372036854775807` can't be represented exactly as a double:
+
+{% prettify dart tag=pre+code %}
+double x = [!9223372036854775807!];
+{% endprettify %}
+
+#### Common fixes
+
+If you need to use the exact value, then use the class `BigInt` to
+represent the value:
+
+{% prettify dart tag=pre+code %}
+var x = BigInt.parse('9223372036854775807');
+{% endprettify %}
+
+If you need to use a double, then change the value to one that can be
+represented exactly:
+
+{% prettify dart tag=pre+code %}
+double x = 9223372036854775808;
+{% endprettify %}
+
 ### integer_literal_out_of_range
 
 _The integer literal {0} can't be represented in 64 bits._
@@ -5897,6 +6329,54 @@ compatible with the type of the value being assigned:
 int i = 0;
 int s = i;
 {% endprettify %}
+
+### invalid_dependency
+
+_Publishable packages can't have '{0}' dependencies._
+
+#### Description
+
+The analyzer produces this diagnostic when a package under either
+`dependencies` or `dev_dependencies` is not a pub, `git`, or `path` based
+dependency.
+
+See [Package dependencies](https://dart.dev/tools/pub/dependencies) for
+more information about the kind of dependencies that are supported.
+
+#### Example
+
+The following code produces this diagnostic because the dependency on the
+package `transmogrify` is not a pub, `git`, or `path` based dependency:
+
+```yaml
+name: example
+dependencies:
+  transmogrify:
+    hosted:
+      name: transmogrify
+      url: http://your-package-server.com
+    version: ^1.4.0
+```
+
+#### Common fixes
+
+If you want to publish your package to `pub.dev`, then change the
+dependencies to ones that are supported by `pub`.
+
+If you don't want to publish your package to `pub.dev`, then add a
+`publish_to: none` entry to mark the package as one that isn't intended to
+be published:
+
+```yaml
+name: example
+publish_to: none
+dependencies:
+  transmogrify:
+    hosted:
+      name: transmogrify
+      url: http://your-package-server.com
+    version: ^1.4.0
+```
 
 ### invalid_extension_argument_count
 
@@ -7456,6 +7936,35 @@ void f(E e) {
 }
 {% endprettify %}
 
+### missing_name
+
+_The 'name' field is required but missing._
+
+#### Description
+
+The analyzer produces this diagnostic when there's no top-level `name` key.
+The `name` key provides the name of the package, which is required.
+
+#### Example
+
+The following code produces this diagnostic because the package doesn't
+have a name:
+
+```yaml
+dependencies:
+  meta: ^1.0.2
+```
+
+#### Common fixes
+
+Add the top-level key `name` with a value that's the name of the package:
+
+```yaml
+name: example
+dependencies:
+  meta: ^1.0.2
+```
+
 ### missing_required_argument
 
 _The named parameter '{0}' is required, but there's no corresponding argument._
@@ -8193,6 +8702,33 @@ class B extends A {
   }
 }
 {% endprettify %}
+
+### name_not_string
+
+_The value of the 'name' field is required to be a string._
+
+#### Description
+
+The analyzer produces this diagnostic when the top-level `name` key has a
+value that isn't a string.
+
+#### Example
+
+The following code produces this diagnostic because the value following the
+`name` key is a list:
+
+```yaml
+name:
+  - example
+```
+
+#### Common fixes
+
+Replace the value with a string:
+
+```yaml
+name: example
+```
 
 ### new_with_undefined_constructor_default
 
@@ -10014,6 +10550,92 @@ URI:
 part of 'test.dart';
 {% endprettify %}
 
+### path_does_not_exist
+
+_The path '{0}' doesn't exist._
+
+#### Description
+
+The analyzer produces this diagnostic when a dependency has a `path` key
+referencing a directory that doesn't exist.
+
+#### Example
+
+Assuming that the directory `doesNotExist` doesn't exist, the following
+code produces this diagnostic because it's listed as the path of a package:
+
+```yaml
+name: example
+dependencies:
+  local_package:
+    path: doesNotExist
+```
+
+#### Common fixes
+
+If the path is correct, then create a directory at that path.
+
+If the path isn't correct, then change the path to match the path to the
+root of the package.
+
+### path_not_posix
+
+_The path '{0}' isn't a POSIX-style path._
+
+#### Description
+
+The analyzer produces this diagnostic when a dependency has a `path` key
+whose value is a string, but isn't a POSIX-style path.
+
+#### Example
+
+The following code produces this diagnostic because the path following the
+`path` key is a Windows path:
+
+```yaml
+name: example
+dependencies:
+  local_package:
+    path: E:\local_package
+```
+
+#### Common fixes
+
+Convert the path to a POSIX path.
+
+### path_pubspec_does_not_exist
+
+_The directory '{0}' doesn't contain a pubspec._
+
+#### Description
+
+The analyzer produces this diagnostic when a dependency has a `path` key
+that references a directory that doesn't contain a `pubspec.yaml` file.
+
+#### Example
+
+Assuming that the directory `local_package` doesn't contain a file named
+`pubspec.yaml`, the following code produces this diagnostic because it's
+listed as the path of a package:
+
+```yaml
+name: example
+dependencies:
+  local_package:
+    path: local_package
+```
+
+#### Common fixes
+
+If the path is intended to be the root of a package, then add a
+`pubspec.yaml` file in the directory:
+
+```yaml
+name: local_package
+```
+
+If the path is wrong, then replace it with a the correct path.
+
 ### prefix_collides_with_top_level_member
 
 _The name '{0}' is already used as an import prefix and can't be used to name a
@@ -10093,6 +10715,54 @@ void f() {
 {% endprettify %}
 
 If the name is wrong, then correct the name.
+
+### private_collision_in_mixin_application
+
+_The private name '{0}', defined by '{1}', conflicts with the same name defined
+by '{2}'._
+
+#### Description
+
+The analyzer produces this diagnostic when two mixins that define the same
+private member are used together in a single class in a library other than
+the one that defines the mixins.
+
+#### Example
+
+Given a file named `a.dart` containing the following code:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void _foo() {}
+}
+
+class B {
+  void _foo() {}
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the classes `A` and `B`
+both define the method `_foo`:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart';
+
+class C extends Object with A, [!B!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need both of the mixins, then remove one of them from the
+`with` clause:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart';
+
+class C extends Object with A, [!B!] {}
+{% endprettify %}
+
+If you need both of the mixins, then rename the conflicting member in one
+of the two mixins.
 
 ### private_optional_parameter
 
@@ -11612,6 +12282,57 @@ type, and possibly the whole clause:
 class B {}
 {% endprettify %}
 
+### subtype_of_sealed_class
+
+_The class '{0}' shouldn't be extended, mixed in, or implemented because it's
+sealed._
+
+#### Description
+
+The analyzer produces this diagnostic when a sealed class (one that either
+has the `@sealed` annotation or inherits or mixes in a sealed class) is
+referenced in either the `extends`, `implements`, or `with` clause of a
+class or mixin declaration if the declaration isn't in the same package as
+the sealed class.
+
+#### Example
+
+Given a library in a package other than the package being analyzed that
+contains the following:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class A {}
+
+@sealed
+class B {}
+{% endprettify %}
+
+The following code produces this diagnostic because `C`, which isn't in the
+same package as `B`, is extending the sealed class `B`:
+
+{% prettify dart tag=pre+code %}
+import 'package:a/a.dart';
+
+[!class C extends B {}!]
+{% endprettify %}
+
+#### Common fixes
+
+If the class doesn't need to be a subtype of the sealed class, then change
+the declaration so that it isn't:
+
+{% prettify dart tag=pre+code %}
+import 'package:a/a.dart';
+
+class B extends A {}
+{% endprettify %}
+
+If the class needs to be a subtype of the sealed class, then either change
+the sealed class so that it's no longer sealed or move the subclass into
+the same package as the sealed class.
+
 ### supertype_expands_to_type_parameter
 
 _A type alias that expands to a type parameter can't be implemented._
@@ -11868,6 +12589,36 @@ will produce a stack overflow at runtime unless at least one of the
 variables is assigned a value that doesn't depend on the other variables
 before any of the variables in the cycle are referenced.
 
+### type_alias_cannot_reference_itself
+
+_Typedefs can't reference themselves directly or recursively via another
+typedef._
+
+#### Description
+
+The analyzer produces this diagnostic when a typedef refers to itself,
+either directly or indirectly.
+
+#### Example
+
+The following code produces this diagnostic because `F` depends on itself
+indirectly through `G`:
+
+{% prettify dart tag=pre+code %}
+typedef [!F!] = void Function(G);
+typedef G = void Function(F);
+{% endprettify %}
+
+#### Common fixes
+
+Change one or more of the typedefs in the cycle so that none of them refer
+to themselves:
+
+{% prettify dart tag=pre+code %}
+typedef F = void Function(G);
+typedef G = void Function(int);
+{% endprettify %}
+
 ### type_annotation_deferred_class
 
 _The deferred type '{0}' can't be used in a declaration, cast, or type test._
@@ -11938,6 +12689,58 @@ class A<E extends num> {}
 var a = A<int>();
 {% endprettify %}
 
+### type_check_with_null
+
+_Tests for non-null should be done with '!= null'._
+
+_Tests for null should be done with '== null'._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a type check (using the
+`as` operator) where the type is `Null`. There's only one value whose type
+is `Null`, so the code is both more readable and more performant when it
+tests for `null` explicitly.
+
+#### Example
+
+The following code produces this diagnostic because the code is testing to
+see whether the value of `s` is `null` by using a type check:
+
+{% prettify dart tag=pre+code %}
+void f(String? s) {
+  if ([!s is Null!]) {
+    return;
+  }
+  print(s);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the code is testing to
+see whether the value of `s` is something other than `null` by using a type
+check:
+
+{% prettify dart tag=pre+code %}
+void f(String? s) {
+  if ([!s is! Null!]) {
+    print(s);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the type check with the equivalent comparison with `null`:
+
+{% prettify dart tag=pre+code %}
+void f(String? s) {
+  if (s == null) {
+    return;
+  }
+  print(s);
+}
+{% endprettify %}
+
 ### type_parameter_referenced_by_static
 
 _Static members can't reference type parameters of the class._
@@ -11979,6 +12782,50 @@ class C<T> {
 
 Note, however, that there isn’t a relationship between `T` and `S`, so this
 second option changes the semantics from what was likely to be intended.
+
+### type_parameter_supertype_of_its_bound
+
+_'{0}' can't be a supertype of its upper bound._
+
+#### Description
+
+The analyzer produces this diagnostic when the bound of a type parameter
+(the type following the `extends` keyword) is either directly or indirectly
+the type parameter itself. Stating that the type parameter must be the same
+as itself or a subtype of itself or a subtype of itself isn't helpful
+because it will always be the same as itself.
+
+#### Example
+
+The following code produces this diagnostic because the bound of `T` is
+`T`:
+
+{% prettify dart tag=pre+code %}
+class C<[!T!] extends T> {}
+{% endprettify %}
+
+The following code produces this diagnostic because the bound of `T1` is
+`T2`, and the bound of `T2` is `T1`, effectively making the bound of `T1`
+be `T1`:
+
+{% prettify dart tag=pre+code %}
+class C<[!T1!] extends T2, T2 extends T1> {}
+{% endprettify %}
+
+#### Common fixes
+
+If the type parameter needs to be a subclass of some type, then replace the
+bound with the required type:
+
+{% prettify dart tag=pre+code %}
+class C<T extends num> {}
+{% endprettify %}
+
+If the type parameter can be any type, then remove the `extends` clause:
+
+{% prettify dart tag=pre+code %}
+class C<T> {}
+{% endprettify %}
 
 ### type_test_with_non_type
 
@@ -13130,6 +13977,42 @@ void f(num n) {
 }
 {% endprettify %}
 
+### unnecessary_dev_dependency
+
+_The dev dependency on {0} is unnecessary because there is also a normal
+dependency on that package._
+
+#### Description
+
+The analyzer produces this diagnostic when there's an entry under
+`dev_dependencies` for a package that is also listed under `dependencies`.
+The packages under `dependencies` are available to all of the code in the
+package, so there's no need to also list them under `dev_dependencies`.
+
+#### Example
+
+The following code produces this diagnostic because the package `meta` is
+listed under both `dependencies` and `dev_dependencies`:
+
+```yaml
+name: example
+dependencies:
+  meta: ^1.0.2
+dev_dependencies:
+  meta: ^1.0.2
+```
+
+#### Common fixes
+
+Remove the entry under `dev_dependencies` (and the `dev_dependencies` key
+if that's the only package listed there):
+
+```yaml
+name: example
+dependencies:
+  meta: ^1.0.2
+```
+
 ### unnecessary_non_null_assertion
 
 _The '!' will have no effect because the receiver can't be null._
@@ -13157,6 +14040,54 @@ Remove the null check operator (`!`):
 int f(int x) {
   return x;
 }
+{% endprettify %}
+
+### unnecessary_no_such_method
+
+_Unnecessary 'noSuchMethod' declaration._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a declaration of
+`noSuchMethod`, the only thing the declaration does is invoke the
+overridden declaration, and the overridden declaration isn't the
+declaration in `Object`.
+
+Overriding the implementation of `Object`'s `noSuchMethod` (no matter what
+the implementation does) signals to the analyzer that it shouldn't flag any
+inherited abstract methods that aren't implemented in that class. This
+works even if the overriding implementation is inherited from a superclass,
+so there's no value to declare it again in a subclass.
+
+#### Example
+
+The following code produces this diagnostic because the declaration of
+`noSuchMethod` in `A` makes the declaration of `noSuchMethod` in `B`
+unnecessary:
+
+{% prettify dart tag=pre+code %}
+class A {
+  @override
+  dynamic noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  @override
+  dynamic [!noSuchMethod!](y) {
+    return super.noSuchMethod(y);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the unnecessary declaration:
+
+{% prettify dart tag=pre+code %}
+class A {
+  @override
+  dynamic noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {}
 {% endprettify %}
 
 ### unnecessary_null_comparison
@@ -13917,6 +14848,95 @@ class C<E> {}
 void f(C<int> x) {}
 {% endprettify %}
 
+### wrong_number_of_type_arguments_constructor
+
+_The constructor '{0}.{1}' doesn't have type parameters._
+
+#### Description
+
+The analyzer produces this diagnostic when type arguments are provided
+after the name of a named constructor. Constructors can't declare type
+parameters, so invocations can only provide the type arguments associated
+with the class, and those type arguments are required to follow the name of
+the class rather than the name of the constructor.
+
+#### Example
+
+The following code produces this diagnostic because the type parameters
+(`<String>`) follow the name of the constructor rather than the name of the
+class:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  C.named();
+}
+C f() => C.named[!<String>!]();
+{% endprettify %}
+
+#### Common fixes
+
+If the type arguments are for the class' type parameters, then move the
+type arguments to follow the class name:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  C.named();
+}
+C f() => C<String>.named();
+{% endprettify %}
+
+If the type arguments aren't for the class' type parameters, then remove
+them:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  C.named();
+}
+C f() => C.named();
+{% endprettify %}
+
+### wrong_number_of_type_arguments_extension
+
+_The extension '{0}' is declared with {1} type parameters, but {2} type
+arguments were given._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension that has type
+parameters is used and type arguments are provided, but the number of type
+arguments isn't the same as the number of type parameters.
+
+#### Example
+
+The following code produces this diagnostic because the extension `E` is
+declared to have a single type parameter (`T`), but the extension override
+has two type arguments:
+
+{% prettify dart tag=pre+code %}
+extension E<T> on List<T> {
+  int get len => length;
+}
+
+void f(List<int> p) {
+  E[!<int, String>!](p).len;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the type arguments so that there are the same number of type
+arguments as there are type parameters:
+
+{% prettify dart tag=pre+code %}
+extension E<T> on List<T> {
+  int get len => length;
+}
+
+void f(List<int> p) {
+  E<int>(p).len;
+}
+{% endprettify %}
+
 ### wrong_number_of_type_arguments_method
 
 _The method '{0}' is declared with {1} type parameters, but {2} type arguments
@@ -13964,6 +14984,52 @@ class C {
 }
 
 int f(C c) => c.m(2);
+{% endprettify %}
+
+### yield_in_non_generator
+
+_Yield statements must be in a generator function (one marked with either
+'async*' or 'sync*')._
+
+_Yield-each statements must be in a generator function (one marked with either
+'async*' or 'sync*')._
+
+#### Description
+
+The analyzer produces this diagnostic when a `yield` or `yield*` statement
+appears in a function whose body isn't marked with one of the `async*` or
+`sync*` modifiers.
+
+#### Example
+
+The following code produces this diagnostic because `yield` is being used
+in a function whose body doesn't have a modifier:
+
+{% prettify dart tag=pre+code %}
+Iterable<int> get digits {
+  yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+}
+{% endprettify %}
+
+The following code produces this diagnostic because `yield*` is being used
+in a function whose body has the `async` modifier rather than the `async*`
+modifier:
+
+{% prettify dart tag=pre+code %}
+Stream<int> get digits async {
+  yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add a modifier, or change the existing modifier to be either `async*` or
+`sync*`:
+
+{% prettify dart tag=pre+code %}
+Iterable<int> get digits sync* {
+  yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+}
 {% endprettify %}
 
 ### yield_of_invalid_type
