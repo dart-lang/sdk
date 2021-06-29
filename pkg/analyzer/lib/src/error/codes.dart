@@ -10151,7 +10151,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // - Doesn't have an initializer.
   // - Isn't marked as `late`.
   // - The analyzer can't prove that the local variable will be assigned before
-  //   the reference based on the specification of [definite assignment.][]
+  //   the reference based on the specification of [definite assignment][].
   //
   // #### Example
   //

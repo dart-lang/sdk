@@ -154,7 +154,7 @@ condition is `true` and the path in which the condition is `false`.
 For additional details, see the
 [specification of definite assignment][definiteAssignmentSpec].
 
-[definiteAssignmentSpec](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
+[definiteAssignmentSpec]: https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md
 
 ### Mixin application
 
@@ -9694,7 +9694,7 @@ and has all these characteristics:
 - Doesn't have an initializer.
 - Isn't marked as `late`.
 - The analyzer can't prove that the local variable will be assigned before
-  the reference based on the specification of [definite assignment.][]
+  the reference based on the specification of [definite assignment][].
 
 #### Example
 

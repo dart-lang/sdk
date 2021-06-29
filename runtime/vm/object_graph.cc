@@ -821,7 +821,7 @@ class Pass1Visitor : public ObjectVisitor,
     if (obj->IsPseudoObject()) return;
 
     writer_->AssignObjectId(obj);
-    obj->untag()->VisitPointers(this);
+    obj->untag()->VisitPointersPrecise(isolate_group(), this);
   }
 
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) {

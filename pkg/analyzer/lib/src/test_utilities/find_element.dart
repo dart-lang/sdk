@@ -12,13 +12,15 @@ class FindElement extends _FindElementBase {
 
   FindElement(this.unit);
 
+  LibraryElement get libraryElement => unitElement.library;
+
   @override
   CompilationUnitElement get unitElement => unit.declaredElement!;
 
   ExportElement export(String targetUri) {
     ExportElement? result;
 
-    for (var export in unitElement.library.exports) {
+    for (var export in libraryElement.exports) {
       var exportedUri = export.exportedLibrary?.source.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
@@ -50,7 +52,7 @@ class FindElement extends _FindElementBase {
   ImportElement import(String targetUri, {bool mustBeUnique = true}) {
     ImportElement? importElement;
 
-    for (var import in unitElement.library.imports) {
+    for (var import in libraryElement.imports) {
       var importedUri = import.importedLibrary?.source.uri.toString();
       if (importedUri == targetUri) {
         if (importElement == null) {
@@ -215,7 +217,7 @@ class FindElement extends _FindElementBase {
   CompilationUnitElement part(String targetUri) {
     CompilationUnitElement? partElement;
 
-    for (var part in unitElement.library.parts) {
+    for (var part in libraryElement.parts) {
       if (part.uri == targetUri) {
         if (partElement != null) {
           throw StateError('Not unique: $targetUri');
@@ -236,7 +238,7 @@ class FindElement extends _FindElementBase {
   }
 
   PrefixElement prefix(String name) {
-    for (var import_ in unitElement.library.imports) {
+    for (var import_ in libraryElement.imports) {
       var prefix = import_.prefix;
       if (prefix?.name == name) {
         return prefix!;
