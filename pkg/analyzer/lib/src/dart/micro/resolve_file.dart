@@ -908,16 +908,15 @@ class _LibraryContext {
       } else {
         performance.getDataInt('bytesGet').add(resolutionBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
+        elementFactory.addBundle(
+          BundleReader(
+            elementFactory: elementFactory,
+            unitsInformativeBytes: unitsInformativeBytes,
+            resolutionBytes: resolutionBytes as Uint8List,
+          ),
+        );
       }
       cycle.resolutionId = resolutionData!.id;
-
-      elementFactory.addBundle(
-        BundleReader(
-          elementFactory: elementFactory,
-          unitsInformativeBytes: unitsInformativeBytes,
-          resolutionBytes: resolutionBytes as Uint8List,
-        ),
-      );
 
       // We might have just linked dart:core, ensure the type provider.
       _createElementFactoryTypeProvider();
