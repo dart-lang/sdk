@@ -128,8 +128,8 @@ class Metrics {
     _metrics.remove(metric.name);
   }
 
-  // ignore: unused_element, called from native code
   @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+  // ignore: unused_element, called from native code
   static String? _printMetric(String id) {
     var metric = _metrics[id];
     if (metric == null) {
@@ -138,8 +138,8 @@ class Metrics {
     return json.encode(metric._toJSON());
   }
 
-  // ignore: unused_element, called from native code
   @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+  // ignore: unused_element, called from native code
   static String _printMetrics() {
     var metrics = [];
     for (var metric in _metrics.values) {
