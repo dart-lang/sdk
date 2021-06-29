@@ -3040,14 +3040,14 @@ _@IsolateGroup_ is a reference to an _IsolateGroup_ object.
 
 ```
 class IsolateGroup extends Response {
-  // The id which is passed to the getIsolate RPC to reload this
+  // The id which is passed to the getIsolateGroup RPC to reload this
   // isolate.
   string id;
 
   // A numeric id for this isolate, represented as a string. Unique.
   string number;
 
-  // A name identifying this isolate. Not guaranteed to be unique.
+  // A name identifying this isolate group. Not guaranteed to be unique.
   string name;
 
   // Specifies whether the isolate group was spawned by the VM or embedder for
@@ -3059,7 +3059,7 @@ class IsolateGroup extends Response {
 }
 ```
 
-An _Isolate_ object provides information about one isolate in the VM.
+An _IsolateGroup_ object provides information about an isolate group in the VM.
 
 ### InboundReferences
 
