@@ -5,27 +5,20 @@
 library dart2js.js_emitter.type_test_registry;
 
 import '../common.dart';
-import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesChecksBuilder;
-import '../js_backend/runtime_types_codegen.dart'
-    show RuntimeTypesSubstitutions;
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 
+/// TODO(joshualitt): Delete this class and store [RuntimeTypeChecks] on
+/// [CodeEmitterTask] directly.
 class TypeTestRegistry {
-  final ElementEnvironment _elementEnvironment;
-
-  /// After [computeNeededClasses] this set only contains classes that are only
-  /// used for RTI.
-  Set<ClassEntity> _rtiNeededClasses;
-
   final CompilerOptions _options;
 
   RuntimeTypesChecks _rtiChecks;
 
-  TypeTestRegistry(this._options, this._elementEnvironment);
+  TypeTestRegistry(this._options);
 
   RuntimeTypesChecks get rtiChecks {
     assert(
@@ -36,35 +29,7 @@ class TypeTestRegistry {
   }
 
   Iterable<ClassEntity> get rtiNeededClasses {
-    assert(
-        _rtiNeededClasses != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "rtiNeededClasses has not been computed yet."));
-    return _rtiNeededClasses;
-  }
-
-  void computeRtiNeededClasses(RuntimeTypesSubstitutions rtiSubstitutions,
-      Iterable<MemberEntity> liveMembers) {
-    _rtiNeededClasses = new Set<ClassEntity>();
-
-    void addClassWithSuperclasses(ClassEntity cls) {
-      _rtiNeededClasses.add(cls);
-      for (ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
-          superclass != null;
-          superclass = _elementEnvironment.getSuperClass(superclass)) {
-        _rtiNeededClasses.add(superclass);
-      }
-    }
-
-    void addClassesWithSuperclasses(Iterable<ClassEntity> classes) {
-      for (ClassEntity cls in classes) {
-        addClassWithSuperclasses(cls);
-      }
-    }
-
-    // Add classes that are referenced by type arguments or substitutions in
-    // argument checks.
-    addClassesWithSuperclasses(rtiChecks.requiredClasses);
+    return rtiChecks.requiredClasses;
   }
 
   void computeRequiredTypeChecks(
