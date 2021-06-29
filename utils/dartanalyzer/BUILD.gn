@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/dart/dart_action.gni")
+import("../../sdk_args.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
@@ -46,6 +47,6 @@ prebuilt_dart_action("generate_summary_strong") {
   args = [
     "build",
     rebase_path(output),
-    rebase_path("$root_out_dir/dart-sdk"),
+    rebase_path("$root_out_dir/$dart_sdk_output"),
   ]
 }
