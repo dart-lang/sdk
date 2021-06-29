@@ -25729,7 +25729,7 @@ UserTagPtr UserTag::MakeActive() const {
 #if !defined(PRODUCT)
   // Notify VM service clients that the current UserTag has changed.
   if (Service::profiler_stream.enabled()) {
-    ServiceEvent event(ServiceEvent::kUserTagChanged);
+    ServiceEvent event(isolate, ServiceEvent::kUserTagChanged);
     String& name = String::Handle(old.label());
     event.set_previous_tag(name.ToCString());
     name ^= label();

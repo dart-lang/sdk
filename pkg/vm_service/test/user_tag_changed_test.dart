@@ -37,12 +37,14 @@ var tests = <IsolateTest>[
 
     var event = await stream.next;
     expect(event.kind, EventKind.kUserTagChanged);
+    expect(event.isolate, isNotNull);
     expect(event.updatedTag, 'Foo');
     expect(event.previousTag, 'Default');
 
     expect(await stream.hasNext, true);
     event = await stream.next;
     expect(event.kind, EventKind.kUserTagChanged);
+    expect(event.isolate, isNotNull);
     expect(event.updatedTag, 'Default');
     expect(event.previousTag, 'Foo');
   },
