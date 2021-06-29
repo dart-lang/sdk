@@ -119,23 +119,34 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   void check(AstNode node) {
+    bool checkStatements(AstNode child, NodeList<Statement> statements) {
+      var index = statements.indexOf(child as Statement);
+      for (var i = index - 1; i >= 0; i--) {
+        var s = statements[i];
+        if (isMountedCheck(s)) {
+          return false;
+        } else if (isAsync(s)) {
+          rule.reportLint(node);
+          return true;
+        }
+      }
+      return true;
+    }
+
     // Walk back and look for an async gap that is not guarded by a mounted
     // property check.
     AstNode? child = node;
     while (child != null && child is! FunctionBody) {
       var parent = child.parent;
-      // todo (pq): refactor to handle SwitchCase's
       if (parent is Block) {
-        var statements = parent.statements;
-        var index = statements.indexOf(child as Statement);
-        for (var i = index - 1; i >= 0; i--) {
-          var s = statements.elementAt(i);
-          if (isMountedCheck(s)) {
-            return;
-          } else if (isAsync(s)) {
-            rule.reportLint(node);
-            return;
-          }
+        var keepChecking = checkStatements(child, parent.statements);
+        if (!keepChecking) {
+          return;
+        }
+      } else if (parent is SwitchCase) {
+        var keepChecking = checkStatements(child, parent.statements);
+        if (!keepChecking) {
+          return;
         }
       } else if (parent is IfStatement) {
         // if (mounted) { ... do ... }
@@ -193,6 +204,16 @@ class _Visitor extends SimpleAstVisitor {
           }
           var then = statement.thenStatement;
           return terminatesControl(then);
+        }
+      }
+    } else if (statement is TryStatement) {
+      var statements = statement.finallyBlock?.statements;
+      if (statements != null) {
+        for (var i = statements.length - 1; i >= 0; i--) {
+          var s = statements[i];
+          if (isMountedCheck(s)) {
+            return true;
+          }
         }
       }
     }
