@@ -24,7 +24,6 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 
 var timerLinkingLinkingBundle = Stopwatch();
-var timerLinkingRemoveBundle = Stopwatch();
 
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
 ///
@@ -81,13 +80,6 @@ class Linker {
     timerLinkingLinkingBundle.start();
     _writeLibraries();
     timerLinkingLinkingBundle.stop();
-
-    // TODO(scheglov) Remove to keep linking elements.
-    timerLinkingRemoveBundle.start();
-    elementFactory.removeBundle(
-      inputLibraries.map((e) => e.uriStr).toSet(),
-    );
-    timerLinkingRemoveBundle.stop();
   }
 
   void _buildEnumChildren() {

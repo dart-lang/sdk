@@ -1862,6 +1862,17 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   bool get isOverride => _isDartCoreGetter(_OVERRIDE_VARIABLE_NAME);
 
+  /// Return `true` if this is an annotation of the form
+  /// `@pragma("vm:entry-point")`.
+  bool get isPragmaVmEntryPoint {
+    if (_isConstructor(libraryName: 'dart.core', className: 'pragma')) {
+      var value = computeConstantValue();
+      var nameValue = value?.getField('name');
+      return nameValue?.toStringValue() == 'vm:entry-point';
+    }
+    return false;
+  }
+
   @override
   bool get isProtected => _isPackageMetaGetter(_PROTECTED_VARIABLE_NAME);
 
@@ -2215,6 +2226,20 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isOverride) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if this element has an annotation of the form
+  /// `@pragma("vm:entry-point")`.
+  bool get hasPragmaVmEntryPoint {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation is ElementAnnotationImpl &&
+          annotation.isPragmaVmEntryPoint) {
         return true;
       }
     }

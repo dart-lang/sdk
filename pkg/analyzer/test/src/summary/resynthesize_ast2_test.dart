@@ -26,7 +26,8 @@ import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ResynthesizeAst2Test);
+    defineReflectiveTests(ResynthesizeAstKeepLinkingTest);
+    defineReflectiveTests(ResynthesizeAstFromBytesTest);
     // defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
 }
@@ -39,10 +40,15 @@ class ApplyCheckElementTextReplacements {
 }
 
 @reflectiveTest
-class ResynthesizeAst2Test extends AbstractResynthesizeTest
+abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     with ResynthesizeTestCases {
   /// The shared SDK bundle, computed once and shared among test invocations.
   static _SdkBundle? _sdkBundle;
+
+  /// We need to test both cases - when we keep linking libraries (happens for
+  /// new or invalidated libraries), and when we load libraries from bytes
+  /// (happens internally in Blaze or when we have cached summaries).
+  bool get keepLinkingLibraries;
 
   _SdkBundle get sdkBundle {
     if (_sdkBundle != null) {
@@ -124,14 +130,18 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
 
     var linkResult = link(elementFactory, inputLibraries, true);
 
-    // TODO(scheglov) Remove to keep linking elements.
-    elementFactory.addBundle(
-      BundleReader(
-        elementFactory: elementFactory,
-        unitsInformativeBytes: unitsInformativeBytes,
-        resolutionBytes: linkResult.resolutionBytes,
-      ),
-    );
+    if (!keepLinkingLibraries) {
+      elementFactory.removeBundle(
+        inputLibraries.map((e) => e.uriStr).toSet(),
+      );
+      elementFactory.addBundle(
+        BundleReader(
+          elementFactory: elementFactory,
+          unitsInformativeBytes: unitsInformativeBytes,
+          resolutionBytes: linkResult.resolutionBytes,
+        ),
+      );
+    }
 
     return elementFactory.libraryOfUri('${source.uri}')!;
   }
@@ -230,6 +240,18 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
       return '';
     }
   }
+}
+
+@reflectiveTest
+class ResynthesizeAstFromBytesTest extends ResynthesizeAst2Test {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class ResynthesizeAstKeepLinkingTest extends ResynthesizeAst2Test {
+  @override
+  bool get keepLinkingLibraries => true;
 }
 
 class _AnalysisSessionForLinking implements AnalysisSessionImpl {

@@ -61,8 +61,6 @@
  * basic mechanism that stores data as a [Map],
  * and where both the keys and the values are strings.
  *
- * * [dart:web_sql]&mdash;a database that can be queried with SQL.
- *
  * MDN provides [API
  * documentation](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
  *

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // Generates the type tables used by DartFuzz.
 //
 // Usage:
@@ -230,7 +228,7 @@ Map<String, Map<String, Set<List<String>>>> filterTypesMap4(
   var filteredTypes = <String, Map<String, Set<List<String>>>>{};
   types.forEach((baseType, ops) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
-      return true;
+      return;
     }
     var filteredOps = filterOperatorMapSetList(ops, fp: fp, flatTp: flatTp);
     if (filteredOps.isNotEmpty) {
@@ -250,10 +248,10 @@ void printTypeMap4(
       'Set<List<DartType>>>> $name = {');
   var filteredTypes = filterTypesMap4(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
-    var ops = filteredTypes[baseType];
+    var ops = filteredTypes[baseType]!;
     print('    $prefix$baseType: {');
     for (var op in ops.keys.toList()..sort()) {
-      var paramTypeL = ops[op];
+      var paramTypeL = ops[op]!;
       print("      '$op': {");
       for (var paramTypes in paramTypeL) {
         stdout.write('          [');
@@ -277,7 +275,7 @@ Map<String, Map<String, Set<String>>> filterTypesMap3Set(
   var filteredTypes = <String, Map<String, Set<String>>>{};
   types.forEach((baseType, ops) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
-      return true;
+      return;
     }
     var filteredOps = filterOperatorMapSet(ops, fp: fp, flatTp: flatTp);
     if (filteredOps.isNotEmpty) {
@@ -297,10 +295,10 @@ void printTypeMap3Set(String name, Map<String, Map<String, Set<String>>> types,
 
   var filteredTypes = filterTypesMap3Set(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
-    var ops = filteredTypes[baseType];
+    var ops = filteredTypes[baseType]!;
     print('    $prefix$baseType: {');
     for (var op in ops.keys.toList()) {
-      var paramTypes = ops[op];
+      var paramTypes = ops[op]!;
       stdout.write("      '$op': {");
       for (var paramType in paramTypes.toList()..sort()) {
         stdout.write('$prefix$paramType, ');
@@ -320,7 +318,7 @@ Map<String, Map<String, List<String>>> filterTypesMap3(
   var filteredTypes = <String, Map<String, List<String>>>{};
   types.forEach((baseType, ops) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
-      return true;
+      return;
     }
     var filteredOps = filterOperatorMapList(ops, fp: fp, flatTp: flatTp);
     if (filteredOps.isNotEmpty) {
@@ -339,10 +337,10 @@ void printTypeMap3(String name, Map<String, Map<String, List<String>>> types,
       '  static const Map<DartType, Map<String, ' 'List<DartType>>> $name = {');
   var filteredTypes = filterTypesMap3(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
-    var ops = filteredTypes[baseType];
+    var ops = filteredTypes[baseType]!;
     print('    $prefix$baseType: {');
     for (var op in ops.keys.toList()..sort()) {
-      var paramTypes = ops[op];
+      var paramTypes = ops[op]!;
       stdout.write("      '$op': [");
       for (var paramType in paramTypes.toList()) {
         stdout.write('$prefix$paramType, ');
@@ -360,7 +358,7 @@ Map<String, Set<String>> filterTypesMap2(Map<String, Set<String>> types,
   var filteredTypes = <String, Set<String>>{};
   types.forEach((baseType, parameterSet) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
-      return true;
+      return;
     }
     var filteredParams =
         filterParameterSet(parameterSet, fp: fp, flatTp: flatTp);
@@ -379,7 +377,7 @@ void printTypeMap2(String name, Map<String, Set<String>> types,
   print('  static const Map<DartType, Set<DartType>> $name = {');
   var filteredTypes = filterTypesMap2(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
-    var paramTypes = filteredTypes[baseType];
+    var paramTypes = filteredTypes[baseType]!;
     stdout.write('    $prefix$baseType: { ');
     for (var paramType in paramTypes.toList()..sort()) {
       stdout.write('$prefix$paramType, ');
@@ -395,10 +393,10 @@ Map<String, String> filterTypesMap1(Map<String, String> types,
   var filteredTypes = <String, String>{};
   types.forEach((baseType, paramType) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
-      return true;
+      return;
     }
     if (shouldFilterType(paramType, fp: fp, flatTp: flatTp)) {
-      return true;
+      return;
     }
     filteredTypes[baseType] = paramType;
   });
@@ -413,7 +411,7 @@ void printTypeMap1(String name, Map<String, String> types,
   print('  static const Map<DartType, DartType> $name = {');
   var filteredTypes = filterTypesMap1(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
-    var paramType = filteredTypes[baseType];
+    var paramType = filteredTypes[baseType]!;
     print('    $prefix$baseType: $prefix$paramType, ');
   }
   print('  };');
@@ -442,6 +440,7 @@ void printTypeSet(String name, Set<String> types,
   for (var typName in filterTypesSet(types, fp: fp, flatTp: flatTp).toList()
     ..sort()) {
     stdout.write('$prefix$typName, ');
+    stdout.write('$prefix${typName}_NULLABLE, ');
   }
   print('};');
 }
@@ -452,7 +451,7 @@ Map<String, Set<String>> filterTypeMapSet(Map<String, Set<String>> types,
   var filteredTypes = <String, Set<String>>{};
   types.forEach((baseType, params) {
     if (shouldFilterType(baseType, fp: fp, flatTp: flatTp)) {
-      return true;
+      return;
     }
     filteredTypes[baseType] = params;
   });
@@ -467,7 +466,7 @@ void printTypeMapSet(String name, Map<String, Set<String>> types,
   print('  static const Map<DartType, Set<String>> $name = {');
   var filteredTypes = filterTypeMapSet(types, fp: fp, flatTp: flatTp);
   for (var baseType in filteredTypes.keys.toList()..sort()) {
-    var paramTypes = filteredTypes[baseType].toList()..sort();
+    var paramTypes = filteredTypes[baseType]!.toList()..sort();
     print('    $prefix$baseType: {' + paramTypes.join(', ') + '},');
   }
   print('  };');
@@ -483,7 +482,6 @@ void printTypeTable(Set<InterfaceType> allTypes,
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
 // ignore_for_file: annotate_overrides
 // ignore_for_file: unused_element
 // ignore_for_file: unused_field
@@ -499,8 +497,9 @@ void printTypeTable(Set<InterfaceType> allTypes,
   print('class $className'
       '${subclass ? " extends DartType" : ""} {');
   print('  final String name;');
+  print('  final bool isNullable;');
   if (!subclass) {
-    print('  const DartType._withName(this.name);');
+    print('  const DartType._withName(this.name, this.isNullable);');
     print('''
   factory $className.fromDartConfig(
       {bool enableFp = false, bool disableNesting =
@@ -517,33 +516,63 @@ void printTypeTable(Set<InterfaceType> allTypes,
   }''');
   } else {
     print('  const $className'
-        '._withName(this.name) : super._withName(name);');
+        '._withName(this.name, this.isNullable) : super._withName(name, isNullable);');
   }
 
   print('''
-  const $className() : name = null;
+  const $className() : name = "!", isNullable = false;
+
+  String get dartName { return name + (isNullable ? "?" : ""); }
+  String toString() { return "DartType(\$dartName)"; }
+
   static bool isListType(DartType tp) {
-    return DartType._listTypes.contains(tp);
+    return DartType._listTypes.contains(tp.toNonNullable());
+  }
+
+  static bool isSetType(DartType tp) {
+    return DartType._setTypes.contains(tp.toNonNullable());
   }
 
   static bool isMapType(DartType tp) {
-    return DartType._mapTypes.contains(tp);
+    return DartType._mapTypes.contains(tp.toNonNullable());
   }
 
   static bool isCollectionType(DartType tp) {
-    return DartType._collectionTypes.contains(tp);
+    return DartType._collectionTypes.contains(tp.toNonNullable());
   }
 
   static bool isGrowableType(DartType tp) {
-    return DartType._growableTypes.contains(tp);
+    return DartType._growableTypes.contains(tp.toNonNullable());
   }
 
   static bool isComplexType(DartType tp) {
-    return DartType._complexTypes.contains(tp);
+    return DartType._complexTypes.contains(tp.toNonNullable());
+  }
+
+  DartType toNullable() {
+    if (isNullable) {
+      return this;
+    }
+    for (var tp in _allTypes) {
+      if (tp.isNullable && tp.name == name) return tp;
+    }
+    throw 'Fail toNullable \$name \$isNullable';
+  }
+
+  DartType toNonNullable() {
+    if (!isNullable) {
+      return this;
+    }
+    for (var tp in _allTypes) {
+      if (!tp.isNullable && tp.name == name) return tp;
+    }
+    throw 'Fail toNonNullable \$name \$isNullable';
   }
 
   bool isInterfaceOfType(DartType tp, DartType iTp) {
-    return _interfaceRels.containsKey(iTp) && _interfaceRels[iTp].contains(tp);
+    tp = tp.toNonNullable();
+    iTp = iTp.toNonNullable();
+    return _interfaceRels.containsKey(iTp) && _interfaceRels[iTp]!.contains(tp);
   }
 
   Set<DartType> get mapTypes {
@@ -551,28 +580,30 @@ void printTypeTable(Set<InterfaceType> allTypes,
   }
 
   bool isSpecializable(DartType tp) {
-    return _interfaceRels.containsKey(tp);
+    return _interfaceRels.containsKey(tp.toNonNullable());
   }
 
   Set<DartType> interfaces(DartType tp) {
+    tp = tp.toNonNullable();
     if (_interfaceRels.containsKey(tp)) {
-      return _interfaceRels[tp];
+      return _interfaceRels[tp]!;
     }
-    return null;
+    throw "NotFound";
   }
 
   DartType indexType(DartType tp) {
+    tp = tp.toNonNullable();
     if (_indexedBy.containsKey(tp)) {
-      return _indexedBy[tp];
+      return _indexedBy[tp]!;
     }
-    return null;
+    throw "NotFound";
   }
 
   Set<DartType> indexableElementTypes(DartType tp) {
     if (_indexableElementOf.containsKey(tp)) {
-      return _indexableElementOf[tp];
+      return _indexableElementOf[tp]!;
     }
-    return null;
+    throw "NotFound";
   }
 
   bool isIndexableElementType(DartType tp) {
@@ -580,10 +611,11 @@ void printTypeTable(Set<InterfaceType> allTypes,
   }
 
   DartType elementType(DartType tp) {
+    tp = tp.toNonNullable();
     if (_subscriptsTo.containsKey(tp)) {
-      return _subscriptsTo[tp];
+      return _subscriptsTo[tp]!;
     }
-    return null;
+    throw "NotFound";
   }
 
   Set<DartType> get iterableTypes1 {
@@ -592,58 +624,61 @@ void printTypeTable(Set<InterfaceType> allTypes,
 
   Set<String> uniOps(DartType tp) {
     if (_uniOps.containsKey(tp)) {
-      return _uniOps[tp];
+      return _uniOps[tp]!;
     }
     return <String>{};
   }
 
   Set<String> binOps(DartType tp) {
     if (_binOps.containsKey(tp)) {
-      return _binOps[tp].keys.toSet();
+      return _binOps[tp]!.keys.toSet();
     }
     return <String>{};
   }
 
   Set<List<DartType>> binOpParameters(DartType tp, String op) {
     if (_binOps.containsKey(tp) &&
-        _binOps[tp].containsKey(op)) {
-      return _binOps[tp][op];
+        _binOps[tp]!.containsKey(op)) {
+      return _binOps[tp]![op]!;
     }
-    return null;
+    throw "NotFound";
   }
 
   Set<String> assignOps(DartType tp) {
     if (_assignOps.containsKey(tp)) {
-      return _assignOps[tp].keys.toSet();
+      return _assignOps[tp]!.keys.toSet();
     }
     return <String>{};
   }
 
   Set<DartType> assignOpRhs(DartType tp, String op) {
     if (_assignOps.containsKey(tp) &&
-        _assignOps[tp].containsKey(op)) {
-      return _assignOps[tp][op];
+        _assignOps[tp]!.containsKey(op)) {
+      return _assignOps[tp]![op]!;
     }
     return <DartType>{};
   }
 
   bool hasConstructor(DartType tp) {
+    tp = tp.toNonNullable();
     return _constructors.containsKey(tp);
   }
 
   Set<String> constructors(DartType tp) {
+    tp = tp.toNonNullable();
     if (_constructors.containsKey(tp)) {
-      return _constructors[tp].keys.toSet();
+      return _constructors[tp]!.keys.toSet();
     }
     return <String>{};
   }
 
   List<DartType> constructorParameters(DartType tp, String constructor) {
+    tp = tp.toNonNullable();
     if (_constructors.containsKey(tp) &&
-        _constructors[tp].containsKey(constructor)) {
-      return _constructors[tp][constructor];
+        _constructors[tp]!.containsKey(constructor)) {
+      return _constructors[tp]![constructor]!;
     }
-    return null;
+    throw "NotFound";
   }
 
   Set<DartType> get allTypes {
@@ -652,7 +687,8 @@ void printTypeTable(Set<InterfaceType> allTypes,
 
 ''');
 
-  print("  static const VOID = DartType._withName('void');");
+  print("  static const VOID = DartType._withName('void', false);");
+  print("  static const VOID_NULLABLE = VOID;");
   var instTypes = <String>{};
 
   // Generate one static DartType instance for all instantiable types.
@@ -662,7 +698,9 @@ void printTypeTable(Set<InterfaceType> allTypes,
     instTypes.add(constName);
     if (!subclass) {
       print('  static const $constName = '
-          "DartType._withName('${baseType.displayName}');");
+          "DartType._withName('${baseType.displayName}', false);");
+      print('  static const ${constName}_NULLABLE = '
+          "DartType._withName('${baseType.displayName}', true);");
     }
   });
 
@@ -673,9 +711,11 @@ void printTypeTable(Set<InterfaceType> allTypes,
     print('');
     print('  // NON INSTANTIABLE' '');
     interfaceRels.keys.forEach((constName) {
-      if (instTypes.contains(constName)) return true;
+      if (instTypes.contains(constName)) return;
       print('  static const $constName = '
-          "DartType._withName('__$constName');");
+          "DartType._withName('__$constName', false);");
+      print('  static const ${constName}_NULLABLE = '
+          "DartType._withName('__$constName', true);");
     });
   }
 
@@ -686,6 +726,7 @@ void printTypeTable(Set<InterfaceType> allTypes,
   static const _allTypes = {''');
   filterTypesSet(instTypes, fp: fp, flatTp: flatTp).forEach((constName) {
     print("    ${subclass ? "DartType." : ""}$constName,");
+    print("    ${subclass ? "DartType." : ""}${constName}_NULLABLE,");
   });
   print('  };');
 
@@ -823,7 +864,7 @@ bool isIndexable(InterfaceType tp) {
 bool isInterfaceOf(String iTypName, String typName) {
   return iTypName == typName ||
       (interfaceRels.containsKey(iTypName) &&
-          interfaceRels[iTypName].contains(typName));
+          interfaceRels[iTypName]!.contains(typName));
 }
 
 // Filter operator parameters so that the more specific types are discarded if
@@ -857,8 +898,8 @@ void filterOperators(Set<InterfaceType> allTypes) {
   for (var tp in allTypes) {
     var typName = getConstName(tp.displayName);
     if (!binOps.containsKey(typName)) continue;
-    for (var op in binOps[typName].keys) {
-      binOps[typName][op] = filterOperator(binOps[typName][op]);
+    for (var op in binOps[typName]!.keys) {
+      binOps[typName]![op] = filterOperator(binOps[typName]![op]!);
     }
   }
 }
@@ -913,22 +954,29 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
         // Get binary operators.
 
         var retTypName = getConstName(method.returnType.displayName);
+        if (method.returnType.nullabilitySuffix != NullabilitySuffix.none) {
+          retTypName += '_NULLABLE';
+        }
         binOps[retTypName] ??= <String, Set<List<String>>>{};
-        binOps[retTypName][method.name] ??= <List<String>>{};
+        binOps[retTypName]![method.name] ??= <List<String>>{};
 
         var rhsTypName = getConstName(method.parameters[0].type.displayName);
+        if (method.parameters[0].type.nullabilitySuffix !=
+            NullabilitySuffix.none) {
+          rhsTypName += '_NULLABLE';
+        }
 
         // TODO (felih): no hashing for List<String> ?
         // if i remove this test i will get duplicates even though it is a Set.
         var present = false;
-        for (var o in binOps[retTypName][method.name]) {
+        for (var o in binOps[retTypName]![method.name]!) {
           if (o[0] == typName && o[1] == rhsTypName) {
             present = true;
             break;
           }
         }
         if (!present) {
-          binOps[retTypName][method.name].add([typName, rhsTypName]);
+          binOps[retTypName]![method.name]!.add([typName, rhsTypName]);
         }
 
         // Add some assignment operators corresponding to the binary operators.
@@ -939,8 +987,8 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
         if (retTypName != 'BOOL') {
           assignOps[retTypName] ??= <String, Set<String>>{};
           var ao = method.name + '=';
-          assignOps[retTypName][ao] ??= <String>{};
-          assignOps[retTypName][ao].add(rhsTypName);
+          assignOps[retTypName]![ao] ??= <String>{};
+          assignOps[retTypName]![ao]!.add(rhsTypName);
         }
       } else {
         // Get unary operators.
@@ -949,10 +997,17 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
         // Hack: remove unary from operator so that the operator name can be
         // used directly for source code generation.
         if (uo.startsWith('unary')) uo = '-';
-        uniOps[typName].add('\'$uo\'');
+        uniOps[typName]!.add('\'$uo\'');
       }
     }
   }
+}
+
+bool typesEqualModuloNullability(DartType a, DartType b) {
+  // The analyzer's DartType doesn't provide conversions to change nullability.
+  // Comparing by name isn't correct in general, but it works for the core
+  // libraries because there are no simple name conflicts.
+  return a.displayName == b.displayName;
 }
 
 // Extract all binary and unary operators for all types.
@@ -971,27 +1026,40 @@ void getOperators(Set<InterfaceType> allTypes) {
     var typName = getConstName(tp.displayName);
     // Manually add basic assignment operators which each type supports.
     assignOps[typName] ??= <String, Set<String>>{};
-    assignOps[typName]['='] = {typName};
-    assignOps[typName]['??='] = {typName};
+    assignOps[typName]!['='] = {typName};
     getOperatorsForTyp(typName, tp, fromLiteral);
+
+    var typNameNullable = typName + "_NULLABLE";
+    assignOps[typNameNullable] ??= <String, Set<String>>{};
+    assignOps[typNameNullable]!['='] = {typName, typNameNullable};
+    assignOps[typNameNullable]!['??='] = {typName, typNameNullable};
   }
 
   // Add some static ops not extractable from dart:core/typed_data.
-  for (var typName in binOps.keys) {
+  for (var typName in binOps.keys.toList()) {
+    if (typName.endsWith("_NULLABLE")) continue;
+
+    var typNameNullable = typName + "_NULLABLE";
+    binOps[typNameNullable] ??= <String, Set<List<String>>>{};
+    binOps[typNameNullable]!['??'] = {
+      [typNameNullable, typName],
+      [typNameNullable, typNameNullable],
+    };
+
     binOps[typName] ??= <String, Set<List<String>>>{};
-    binOps[typName]['??'] = {
-      [typName, typName],
+    binOps[typName]!['??'] = {
+      [typNameNullable, typName],
     };
   }
   binOps['BOOL'] ??= <String, Set<List<String>>>{};
-  binOps['BOOL']['&&'] = {
+  binOps['BOOL']!['&&'] = {
     ['BOOL', 'BOOL'],
   };
-  binOps['BOOL']['||'] = {
+  binOps['BOOL']!['||'] = {
     ['BOOL', 'BOOL'],
   };
   uniOps['BOOL'] ??= <String>{};
-  uniOps['BOOL'].add('\'!\'');
+  uniOps['BOOL']!.add('\'!\'');
 
   // Get constructors.
   for (var tp in allTypes) {
@@ -1008,7 +1076,8 @@ void getOperators(Set<InterfaceType> allTypes) {
         var tstr = getConstName(p.type.displayName);
         if (tstr == 'DYNAMIC' || tstr == 'OBJECT') {
           tstr = 'INT';
-        } else if (!allTypes.contains(p.type)) {
+        } else if (!allTypes
+            .any((a) => typesEqualModuloNullability(a, p.type))) {
           // Exclude constructors that have an unsupported parameter type.
           canConstruct = false;
           break;
@@ -1020,7 +1089,7 @@ void getOperators(Set<InterfaceType> allTypes) {
       if (!canConstruct) continue;
 
       constructors[typName] ??= <String, List<String>>{};
-      constructors[typName][constructor.name] = params;
+      constructors[typName]![constructor.name] = params;
     }
   }
   // Removed redundant specialized parameter types.
@@ -1075,10 +1144,10 @@ void analyzeTypes(Set<InterfaceType> allTypes) {
       var argName = getConstName(iTyp.typeArguments[0].displayName);
       subscriptsTo[typName] = argName;
       elementOf[argName] ??= <String>{};
-      elementOf[argName].add(typName);
+      elementOf[argName]!.add(typName);
       if (isIndexable(iTyp)) {
         indexableElementOf[argName] ??= <String>{};
-        indexableElementOf[argName].add(typName);
+        indexableElementOf[argName]!.add(typName);
         indexedBy[typName] = 'INT';
         indexableTypes.add(typName);
       }
@@ -1093,9 +1162,9 @@ void analyzeTypes(Set<InterfaceType> allTypes) {
         var argName1 = getConstName(iTyp.typeArguments[1].displayName);
         subscriptsTo[typName] = argName1;
         elementOf[argName1] ??= <String>{};
-        elementOf[argName1].add(typName);
+        elementOf[argName1]!.add(typName);
         indexableElementOf[argName1] ??= <String>{};
-        indexableElementOf[argName1].add(typName);
+        indexableElementOf[argName1]!.add(typName);
         indexedBy[typName] = argName0;
         indexableTypes.add(typName);
         // Check if type is floating point precision.
@@ -1144,12 +1213,12 @@ Set<InterfaceType> instantiatePTypes(
   var newITypes = <InterfaceType>{};
 
   // Calculate the total number of new types if all combinations were used.
-  var nNew = pTypes1.length * iTypes.length +
+  int nNew = pTypes1.length * iTypes.length +
       pTypes2.length * iTypes.length * iTypes.length;
   // Calculate how many generated types have to be skipped in order to stay
   // under the maximum number set for generating new types (maxNew).
-  var step = maxNew / nNew;
-  var cntr = 0.0;
+  double step = maxNew / nNew.toDouble();
+  double cntr = 0.0;
 
   // Instantiate List and Set types.
   pTypes1.forEach((pType) {
@@ -1158,9 +1227,9 @@ Set<InterfaceType> instantiatePTypes(
       if (cntr >= 1.0) {
         cntr -= 1.0;
       } else {
-        return true;
+        return;
       }
-      ParameterizedType ptx = pType.element.instantiate(
+      InterfaceType ptx = pType.element.instantiate(
         typeArguments: [iType],
         nullabilitySuffix: NullabilitySuffix.star,
       );
@@ -1179,9 +1248,9 @@ Set<InterfaceType> instantiatePTypes(
         if (cntr >= 1.0) {
           cntr -= 1.0;
         } else {
-          return true;
+          return;
         }
-        ParameterizedType ptx = pType.element.instantiate(
+        InterfaceType ptx = pType.element.instantiate(
           typeArguments: [iType1, iType2],
           nullabilitySuffix: NullabilitySuffix.star,
         );
@@ -1227,7 +1296,7 @@ Set<InterfaceType> instantiateAllTypes(
   // Each iteration constructs more nested types like
   // Map<Map<int, int>, List<int>>.
   for (var i = 0; i < depth + 1; ++i) {
-    var mn = max(1, maxNew / (depth + 1));
+    double mn = max(1.0, maxNew / (depth + 1.0));
     filteredITypes = filteredITypes
         .union(instantiatePTypes(pTypes1, pTypes2, filteredITypes, maxNew: mn));
   }
@@ -1260,7 +1329,7 @@ int countOperators(ClassElement ce) {
 }
 
 // Analyze typed_data and core libraries to extract data types.
-Future<void> getDataTypes(Set<InterfaceType> allTypes, String dartTop) async {
+Future<void> getDataTypes(Set<InterfaceType> allTypes, String? dartTop) async {
   final session = GenUtil.createAnalysisSession(dartTop);
 
   // Visit libraries for type table generation.
@@ -1271,9 +1340,9 @@ Future<void> getDataTypes(Set<InterfaceType> allTypes, String dartTop) async {
 Future<void> visitLibraryAtUri(
     AnalysisSession session, String uri, Set<InterfaceType> allTypes) async {
   var libPath = session.uriConverter.uriToPath(Uri.parse(uri));
-  var result = await session.getResolvedLibrary2(libPath);
+  var result = await session.getResolvedLibrary2(libPath!);
   if (result is ResolvedLibraryResult) {
-    visitLibrary(result.element, allTypes);
+    visitLibrary(result.element!, allTypes);
   } else {
     throw StateError('Unable to resolve "$uri"');
   }
@@ -1351,7 +1420,7 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
     var typName = getConstName(tp.displayName);
     for (var ifTypName in getInterfaces(tp)) {
       interfaceRels[ifTypName] ??= <String>{};
-      interfaceRels[ifTypName].add(typName);
+      interfaceRels[ifTypName]!.add(typName);
       if (ifTypName.contains('ITERABLE')) {
         iterableTypes1.add(typName);
       }
@@ -1359,7 +1428,7 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
     for (var it in tp.element.allSupertypes) {
       var ifTypName = getConstName(it.displayName);
       interfaceRels[ifTypName] ??= <String>{};
-      interfaceRels[ifTypName].add(typName);
+      interfaceRels[ifTypName]!.add(typName);
     }
   }
   // If interface can be instantiated,
@@ -1369,7 +1438,7 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
   for (var tp in allTypes) {
     var typName = getConstName(tp.displayName);
     if (interfaceRels.containsKey(typName)) {
-      interfaceRels[typName].add(typName);
+      interfaceRels[typName]!.add(typName);
     }
   }
 }
@@ -1385,32 +1454,33 @@ void main(List<String> arguments) async {
             'therefore types with higher nesting '
             'depth are partially filtered.',
         defaultsTo: '1');
+  var results;
   try {
-    final results = parser.parse(arguments);
-    var depth = int.parse(results['depth']);
-    var allTypes = <InterfaceType>{};
-    // Filter types to instantiate parameterized types with, this excludes
-    // complex types like Int8List (might be added later).
-    var iTypeFilter = <String>{'int', 'bool', 'double', 'String'};
-    // Extract basic types from dart::core and dart::typed_data.
-    await getDataTypes(allTypes, results['dart-top']);
-    // Instantiate parameterized types like List<E>.
-    allTypes =
-        instantiateAllTypes(allTypes, iTypeFilter, depth, maxNew: 10000.0);
-    // Extract interface Relations between types.
-    getInterfaceRels(allTypes);
-    // Extract operators from instantiated types.
-    getOperators(allTypes);
-    // Analyze instantiated types to get elementof/subscript and floating point
-    // information.
-    analyzeTypes(allTypes);
-    // Print everything.
-    printTypeTable(allTypes);
-    printTypeTable(allTypes, fp: false);
-    printTypeTable(allTypes, flatTp: true);
-    printTypeTable(allTypes, fp: false, flatTp: true);
+    results = parser.parse(arguments);
   } catch (e) {
     print('Usage: dart gen_type_table.dart [OPTIONS]\n${parser.usage}\n$e');
     exitCode = 255;
+    return;
   }
+  var depth = int.parse(results['depth']);
+  var allTypes = <InterfaceType>{};
+  // Filter types to instantiate parameterized types with, this excludes
+  // complex types like Int8List (might be added later).
+  var iTypeFilter = <String>{'int', 'bool', 'double', 'String'};
+  // Extract basic types from dart::core and dart::typed_data.
+  await getDataTypes(allTypes, results['dart-top']);
+  // Instantiate parameterized types like List<E>.
+  allTypes = instantiateAllTypes(allTypes, iTypeFilter, depth, maxNew: 10000.0);
+  // Extract interface Relations between types.
+  getInterfaceRels(allTypes);
+  // Extract operators from instantiated types.
+  getOperators(allTypes);
+  // Analyze instantiated types to get elementof/subscript and floating point
+  // information.
+  analyzeTypes(allTypes);
+  // Print everything.
+  printTypeTable(allTypes);
+  printTypeTable(allTypes, fp: false);
+  printTypeTable(allTypes, flatTp: true);
+  printTypeTable(allTypes, fp: false, flatTp: true);
 }

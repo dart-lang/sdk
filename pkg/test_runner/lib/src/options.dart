@@ -108,7 +108,6 @@ dartk:                Compile the Dart code into Kernel before running test.
 dartkp:               Compile the Dart code into Kernel and then Kernel into
                       AOT snapshot before running the test.
 spec_parser:          Parse Dart code using the specification parser.
-
 fasta:                Compile using CFE for errors, but do not run.
 ''',
         abbr: 'c',

@@ -79,9 +79,6 @@ class CodeEmitterTask extends CompilerTask {
     // 'is$' method.
     typeTestRegistry.computeRequiredTypeChecks(
         _backendStrategy.rtiChecksBuilder, codegenWorld);
-    // Compute the classes needed by RTI.
-    typeTestRegistry.computeRtiNeededClasses(
-        codegen.rtiSubstitutions, _backendStrategy.generatedCode.keys);
   }
 
   /// Creates the [Emitter] for this task.
@@ -104,8 +101,7 @@ class CodeEmitterTask extends CompilerTask {
           _generateSourceMap);
       metadataCollector = new MetadataCollector(
           _compiler.reporter, _emitter, codegen.rtiRecipeEncoder);
-      typeTestRegistry = new TypeTestRegistry(
-          _compiler.options, closedWorld.elementEnvironment);
+      typeTestRegistry = new TypeTestRegistry(_compiler.options);
     });
   }
 

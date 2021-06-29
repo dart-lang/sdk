@@ -73,7 +73,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "d8fea36c10ef96797be02e3d132d572445cd86f4",
-  "async_rev": "92e7119aa068bfb86a6a9519d44037ffff5eece8",
+  "async_rev": "b8850b3851026676083413c67fa0a22f63a8edbc",
   "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
@@ -105,8 +105,8 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "f17c23e0eea9a870601c19d904e2a9c1a7c81470",
 
-  "dartdoc_rev" : "b733d4952dbd25374d55e28476a5f44bd60ed63f",
-  "devtools_rev" : "b3bf672474a2bff82f33e1176aa803539baa0d60+1",
+  "dartdoc_rev" : "b86cddcedf0737763d2e337c7474ad18d973fd4a",
+  "devtools_rev" : "64cffbed6366329ad05e44d48fa2298367643bb6",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
