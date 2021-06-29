@@ -10635,7 +10635,7 @@ void Field::InitializeNew(const Field& result,
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_has_pragma(false);
-  result.set_static_type_exactness_state(
+  result.set_static_type_exactness_state_unsafe(
       StaticTypeExactnessState::NotTracking());
   auto isolate_group = IsolateGroup::Current();
 

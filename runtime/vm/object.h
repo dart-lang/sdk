@@ -4145,11 +4145,20 @@ class Field : public Object {
 
   StaticTypeExactnessState static_type_exactness_state() const {
     return StaticTypeExactnessState::Decode(
-        untag()->static_type_exactness_state_);
+        LoadNonPointer<int8_t, std::memory_order_relaxed>(
+            &untag()->static_type_exactness_state_));
   }
 
   void set_static_type_exactness_state(StaticTypeExactnessState state) const {
-    StoreNonPointer(&untag()->static_type_exactness_state_, state.Encode());
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_static_type_exactness_state_unsafe(state);
+  }
+
+  void set_static_type_exactness_state_unsafe(
+      StaticTypeExactnessState state) const {
+    StoreNonPointer<int8_t, int8_t, std::memory_order_relaxed>(
+        &untag()->static_type_exactness_state_, state.Encode());
   }
 
   static intptr_t static_type_exactness_state_offset() {
