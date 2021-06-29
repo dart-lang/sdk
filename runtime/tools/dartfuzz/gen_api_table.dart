@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // Generates the API tables used by DartFuzz. Automatically generating these
 // tables is less error-prone than generating such tables by hand. Furthermore,
 // it simplifies regenerating the table when the libraries change.
@@ -18,6 +16,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import 'gen_util.dart';
 
@@ -37,7 +36,7 @@ enum Restriction { none, small }
 class DartLib {
   final String name;
   final List<String> proto;
-  final List<Restriction> restrictions;
+  final List<Restriction>? restrictions;
   final bool isMethod;
   const DartLib(this.name, this.proto, this.restrictions, this.isMethod);
 }
@@ -167,129 +166,146 @@ final unsupportedErrorLibs = 'unsupportedErrorLibs';
 final voidLibs = 'voidLibs';
 
 // Map from the DartType (string) to the name of the library methods list.
-final Map<String, String> typeToLibraryMethodsListName = {
-  abstractClassInstantiationErrorEncoding: abstractClassInstantiationErrorLibs,
-  argumentErrorEncoding: argumentErrorLibs,
-  assertionErrorEncoding: assertionErrorLibs,
-  boolEncoding: boolLibs,
-  byteDataEncoding: byteDataLibs,
-  castErrorEncoding: castErrorLibs,
-  concurrentModificationErrorEncoding: concurrentModificationErrorLibs,
-  cyclicInitializationErrorEncoding: cyclicInitializationErrorLibs,
-  deprecatedEncoding: deprecatedLibs,
-  doubleEncoding: doubleLibs,
-  endianEncoding: endianLibs,
-  errorEncoding: errorLibs,
-  exceptionEncoding: exceptionLibs,
-  expandoDoubleEncoding: expandoDoubleLibs,
-  expandoIntEncoding: expandoIntLibs,
-  fallThroughErrorEncoding: fallThroughErrorLibs,
-  float32ListEncoding: float32ListLibs,
-  float32x4Encoding: float32x4Libs,
-  float32x4ListEncoding: float32x4ListLibs,
-  float64ListEncoding: float64ListLibs,
-  float64x2Encoding: float64x2Libs,
-  float64x2ListEncoding: float64x2ListLibs,
-  formatExceptionEncoding: formatExceptionLibs,
-  indexErrorEncoding: indexErrorLibs,
-  int16ListEncoding: int16ListLibs,
-  int32ListEncoding: int32ListLibs,
-  int32x4Encoding: int32x4Libs,
-  int32x4ListEncoding: int32x4ListLibs,
-  int64ListEncoding: int64ListLibs,
-  int8ListEncoding: int8ListLibs,
-  intEncoding: intLibs,
-  integerDivisionByZeroExceptionEncoding: integerDivisionByZeroExceptionLibs,
-  listIntEncoding: listLibs,
-  mapEntryIntStringEncoding: mapEntryIntStringLibs,
-  mapIntStringEncoding: mapLibs,
-  nullEncoding: nullLibs,
-  nullThrownErrorEncoding: nullThrownErrorLibs,
-  numEncoding: numLibs,
-  provisionalEncoding: provisionalLibs,
-  rangeErrorEncoding: rangeErrorLibs,
-  regExpEncoding: regExpLibs,
-  runeIteratorEncoding: runeIteratorLibs,
-  runesEncoding: runesLibs,
-  setIntEncoding: setLibs,
-  stackOverflowErrorEncoding: stackOverflowErrorLibs,
-  stateErrorEncoding: stateErrorLibs,
-  stringBufferEncoding: stringBufferLibs,
-  stringEncoding: stringLibs,
-  symbolEncoding: symbolLibs,
-  typeErrorEncoding: typeErrorLibs,
-  uint16ListEncoding: uint16ListLibs,
-  uint32ListEncoding: uint32ListLibs,
-  uint64ListEncoding: uint64ListLibs,
-  uint8ClampedListEncoding: uint8ClampedListLibs,
-  uint8ListEncoding: uint8ListLibs,
-  unimplementedErrorEncoding: unimplementedErrorLibs,
-  unsupportedErrorEncoding: unsupportedErrorLibs,
-  voidEncoding: voidLibs
-};
+final Map<String, String> typeToLibraryMethodsListName = () {
+  var encodings = <String, String>{
+    abstractClassInstantiationErrorEncoding:
+        abstractClassInstantiationErrorLibs,
+    argumentErrorEncoding: argumentErrorLibs,
+    assertionErrorEncoding: assertionErrorLibs,
+    boolEncoding: boolLibs,
+    byteDataEncoding: byteDataLibs,
+    castErrorEncoding: castErrorLibs,
+    concurrentModificationErrorEncoding: concurrentModificationErrorLibs,
+    cyclicInitializationErrorEncoding: cyclicInitializationErrorLibs,
+    deprecatedEncoding: deprecatedLibs,
+    doubleEncoding: doubleLibs,
+    endianEncoding: endianLibs,
+    errorEncoding: errorLibs,
+    exceptionEncoding: exceptionLibs,
+    expandoDoubleEncoding: expandoDoubleLibs,
+    expandoIntEncoding: expandoIntLibs,
+    fallThroughErrorEncoding: fallThroughErrorLibs,
+    float32ListEncoding: float32ListLibs,
+    float32x4Encoding: float32x4Libs,
+    float32x4ListEncoding: float32x4ListLibs,
+    float64ListEncoding: float64ListLibs,
+    float64x2Encoding: float64x2Libs,
+    float64x2ListEncoding: float64x2ListLibs,
+    formatExceptionEncoding: formatExceptionLibs,
+    indexErrorEncoding: indexErrorLibs,
+    int16ListEncoding: int16ListLibs,
+    int32ListEncoding: int32ListLibs,
+    int32x4Encoding: int32x4Libs,
+    int32x4ListEncoding: int32x4ListLibs,
+    int64ListEncoding: int64ListLibs,
+    int8ListEncoding: int8ListLibs,
+    intEncoding: intLibs,
+    integerDivisionByZeroExceptionEncoding: integerDivisionByZeroExceptionLibs,
+    listIntEncoding: listLibs,
+    mapEntryIntStringEncoding: mapEntryIntStringLibs,
+    mapIntStringEncoding: mapLibs,
+    nullEncoding: nullLibs,
+    nullThrownErrorEncoding: nullThrownErrorLibs,
+    numEncoding: numLibs,
+    provisionalEncoding: provisionalLibs,
+    rangeErrorEncoding: rangeErrorLibs,
+    regExpEncoding: regExpLibs,
+    runeIteratorEncoding: runeIteratorLibs,
+    runesEncoding: runesLibs,
+    setIntEncoding: setLibs,
+    stackOverflowErrorEncoding: stackOverflowErrorLibs,
+    stateErrorEncoding: stateErrorLibs,
+    stringBufferEncoding: stringBufferLibs,
+    stringEncoding: stringLibs,
+    symbolEncoding: symbolLibs,
+    typeErrorEncoding: typeErrorLibs,
+    uint16ListEncoding: uint16ListLibs,
+    uint32ListEncoding: uint32ListLibs,
+    uint64ListEncoding: uint64ListLibs,
+    uint8ClampedListEncoding: uint8ClampedListLibs,
+    uint8ListEncoding: uint8ListLibs,
+    unimplementedErrorEncoding: unimplementedErrorLibs,
+    unsupportedErrorEncoding: unsupportedErrorLibs,
+    voidEncoding: voidLibs,
+  };
+  var result = <String, String>{};
+  encodings.forEach((key, value) {
+    result[key] = value;
+    result[key + "_NULLABLE"] = value + "Nullable";
+  });
+  return result;
+}();
 
 // Map from return type encoding to list of recognized methods with that
 // return type.
-final Map<String, List<DartLib>> typeToLibraryMethodsList = {
-  abstractClassInstantiationErrorEncoding: <DartLib>[],
-  argumentErrorEncoding: <DartLib>[],
-  assertionErrorEncoding: <DartLib>[],
-  boolEncoding: <DartLib>[],
-  byteDataEncoding: <DartLib>[],
-  castErrorEncoding: <DartLib>[],
-  concurrentModificationErrorEncoding: <DartLib>[],
-  cyclicInitializationErrorEncoding: <DartLib>[],
-  deprecatedEncoding: <DartLib>[],
-  doubleEncoding: <DartLib>[],
-  endianEncoding: <DartLib>[],
-  errorEncoding: <DartLib>[],
-  exceptionEncoding: <DartLib>[],
-  expandoDoubleEncoding: <DartLib>[],
-  expandoIntEncoding: <DartLib>[],
-  fallThroughErrorEncoding: <DartLib>[],
-  float32ListEncoding: <DartLib>[],
-  float32x4Encoding: <DartLib>[],
-  float32x4ListEncoding: <DartLib>[],
-  float64ListEncoding: <DartLib>[],
-  float64x2Encoding: <DartLib>[],
-  float64x2ListEncoding: <DartLib>[],
-  formatExceptionEncoding: <DartLib>[],
-  indexErrorEncoding: <DartLib>[],
-  int16ListEncoding: <DartLib>[],
-  int32ListEncoding: <DartLib>[],
-  int32x4Encoding: <DartLib>[],
-  int32x4ListEncoding: <DartLib>[],
-  int64ListEncoding: <DartLib>[],
-  int8ListEncoding: <DartLib>[],
-  intEncoding: <DartLib>[],
-  integerDivisionByZeroExceptionEncoding: <DartLib>[],
-  listIntEncoding: <DartLib>[],
-  mapEntryIntStringEncoding: <DartLib>[],
-  mapIntStringEncoding: <DartLib>[],
-  nullEncoding: <DartLib>[],
-  nullThrownErrorEncoding: <DartLib>[],
-  numEncoding: <DartLib>[],
-  provisionalEncoding: <DartLib>[],
-  rangeErrorEncoding: <DartLib>[],
-  regExpEncoding: <DartLib>[],
-  runeIteratorEncoding: <DartLib>[],
-  runesEncoding: <DartLib>[],
-  setIntEncoding: <DartLib>[],
-  stackOverflowErrorEncoding: <DartLib>[],
-  stateErrorEncoding: <DartLib>[],
-  stringBufferEncoding: <DartLib>[],
-  stringEncoding: <DartLib>[],
-  symbolEncoding: <DartLib>[],
-  typeErrorEncoding: <DartLib>[],
-  uint16ListEncoding: <DartLib>[],
-  uint32ListEncoding: <DartLib>[],
-  uint64ListEncoding: <DartLib>[],
-  uint8ClampedListEncoding: <DartLib>[],
-  uint8ListEncoding: <DartLib>[],
-  unimplementedErrorEncoding: <DartLib>[],
-  unsupportedErrorEncoding: <DartLib>[],
-  voidEncoding: <DartLib>[]
-};
+final Map<String, List<DartLib>> typeToLibraryMethodsList = () {
+  var encodings = <String>[
+    abstractClassInstantiationErrorEncoding,
+    argumentErrorEncoding,
+    assertionErrorEncoding,
+    boolEncoding,
+    byteDataEncoding,
+    castErrorEncoding,
+    concurrentModificationErrorEncoding,
+    cyclicInitializationErrorEncoding,
+    deprecatedEncoding,
+    doubleEncoding,
+    endianEncoding,
+    errorEncoding,
+    exceptionEncoding,
+    expandoDoubleEncoding,
+    expandoIntEncoding,
+    fallThroughErrorEncoding,
+    float32ListEncoding,
+    float32x4Encoding,
+    float32x4ListEncoding,
+    float64ListEncoding,
+    float64x2Encoding,
+    float64x2ListEncoding,
+    formatExceptionEncoding,
+    indexErrorEncoding,
+    int16ListEncoding,
+    int32ListEncoding,
+    int32x4Encoding,
+    int32x4ListEncoding,
+    int64ListEncoding,
+    int8ListEncoding,
+    intEncoding,
+    integerDivisionByZeroExceptionEncoding,
+    listIntEncoding,
+    mapEntryIntStringEncoding,
+    mapIntStringEncoding,
+    nullEncoding,
+    nullThrownErrorEncoding,
+    numEncoding,
+    provisionalEncoding,
+    rangeErrorEncoding,
+    regExpEncoding,
+    runeIteratorEncoding,
+    runesEncoding,
+    setIntEncoding,
+    stackOverflowErrorEncoding,
+    stateErrorEncoding,
+    stringBufferEncoding,
+    stringEncoding,
+    symbolEncoding,
+    typeErrorEncoding,
+    uint16ListEncoding,
+    uint32ListEncoding,
+    uint64ListEncoding,
+    uint8ClampedListEncoding,
+    uint8ListEncoding,
+    unimplementedErrorEncoding,
+    unsupportedErrorEncoding,
+    voidEncoding,
+  ];
+  var result = <String, List<DartLib>>{};
+  for (var encoding in encodings) {
+    result[encoding] = <DartLib>[];
+    result[encoding + "_NULLABLE"] = <DartLib>[];
+  }
+  return result;
+}();
 
 final typedDataFloatTypes = [
   float32ListEncoding,
@@ -319,10 +335,10 @@ void main() async {
   dumpTypeToLibraryMethodMap();
   dumpTypedDataFloatTypes();
   for (var key in typeToLibraryMethodsList.keys.toList()..sort()) {
-    if (typeToLibraryMethodsList[key].isNotEmpty) {
+    if (typeToLibraryMethodsList[key]!.isNotEmpty) {
       // Only output library methods lists that are non-empty.
       dumpTable(
-          typeToLibraryMethodsListName[key], typeToLibraryMethodsList[key]);
+          typeToLibraryMethodsListName[key]!, typeToLibraryMethodsList[key]!);
     }
   }
   dumpFooter();
@@ -330,9 +346,9 @@ void main() async {
 
 Future<void> visitLibraryAtUri(AnalysisSession session, String uri) async {
   final libPath = session.uriConverter.uriToPath(Uri.parse(uri));
-  var result = await session.getResolvedLibrary2(libPath);
+  var result = await session.getResolvedLibrary2(libPath!);
   if (result is ResolvedLibraryResult) {
-    visitLibrary(result.element);
+    visitLibrary(result.element!);
   } else {
     throw StateError('Unable to resolve "$uri"');
   }
@@ -443,6 +459,17 @@ String classString(ClassElement classElement) {
 // will be an instance of `InterfaceType`, which will provide access to the
 // defining (class) element, as well as any type arguments.
 String typeString(DartType type) {
+  String result = typeStringHelper(type);
+  if (result == "?") {
+    return result;
+  }
+  if (type.nullabilitySuffix == NullabilitySuffix.none) {
+    return result;
+  }
+  return result + "_NULLABLE";
+}
+
+String typeStringHelper(DartType type) {
   if (type.isDartCoreBool) {
     return boolEncoding;
   } else if (type.isDartCoreInt) {
@@ -582,7 +609,8 @@ String typeString(DartType type) {
   return '?';
 }
 
-List<String> protoString(DartType receiver, List<ParameterElement> parameters) {
+List<String> protoString(
+    DartType? receiver, List<ParameterElement> parameters) {
   final proto = [receiver == null ? voidEncoding : typeString(receiver)];
   // Construct prototype for non-named parameters.
   for (var parameter in parameters) {
@@ -596,15 +624,15 @@ List<String> protoString(DartType receiver, List<ParameterElement> parameters) {
 }
 
 List<DartLib> getTable(String ret) => typeToLibraryMethodsList.containsKey(ret)
-    ? typeToLibraryMethodsList[ret]
+    ? typeToLibraryMethodsList[ret]!
     : throw ArgumentError('Invalid ret value: $ret');
 
 void addToTable(String ret, String name, List<String> proto,
     {bool isMethod = true}) {
-  // If any of the type representations contains a question
+  // If any of the type representations equal a question
   // mark, this means that DartFuzz' type system cannot
   // deal with such an expression yet. So drop the entry.
-  if (ret.contains('?') || proto.contains('?')) {
+  if (ret == '?' || proto.contains('?')) {
     return;
   }
   // Avoid the exit function and other functions that give false divergences.
@@ -622,7 +650,7 @@ void addToTable(String ret, String name, List<String> proto,
     return;
   }
 
-  List<Restriction> restrictions;
+  List<Restriction>? restrictions;
   // Restrict parameters for a few hardcoded cases,
   // for example, to avoid excessive runtime or memory
   // allocation in the generated fuzzing program.
@@ -646,6 +674,11 @@ void addToTable(String ret, String name, List<String> proto,
   }
   // Add to table.
   getTable(ret).add(DartLib(name, proto, restrictions, isMethod));
+  // Every non-nullable result is also a valid nullable result.
+  if (!ret.endsWith("_NULLABLE")) {
+    getTable("${ret}_NULLABLE")
+        .add(DartLib(name, proto, restrictions, isMethod));
+  }
 }
 
 void dumpHeader() {
@@ -653,8 +686,6 @@ void dumpHeader() {
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// @dart = 2.9
 
 /// NOTE: this code has been generated automatically.
 
@@ -678,19 +709,19 @@ enum Restriction {
 class DartLib {
   final String name;
   final List<DartType> proto;
-  final List<Restriction> restrictions;
+  final List<Restriction>? restrictions;
   final bool isMethod;
   const DartLib(this.name, this.proto, this.isMethod,
   {this.restrictions});
   Restriction getRestriction(int paramIndex) => (restrictions == null) ?
-  Restriction.none : restrictions[paramIndex];
+  Restriction.none : restrictions![paramIndex];
 ''');
 }
 
 void dumpTypeToLibraryMethodMap() {
   print('  static final typeToLibraryMethods = {');
   for (var key in typeToLibraryMethodsListName.keys.toList()..sort()) {
-    if (typeToLibraryMethodsList[key].isNotEmpty) {
+    if (typeToLibraryMethodsList[key]!.isNotEmpty) {
       // Only output a mapping from type to library methods list name for those
       // types that have a non-empty library methods list.
       print('    $key: ${typeToLibraryMethodsListName[key]},');
