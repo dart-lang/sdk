@@ -34,6 +34,7 @@ Future<String> generateStressTest(List<String> testFiles) async {
   sb.writeln(r'''
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:io';
 
 ''');
   for (int i = 0; i < testFiles.length; ++i) {
@@ -80,6 +81,7 @@ class Runner {
   late final ReceivePort onExit;
   late final List<ReceivePort> onExits;
   late final List<ReceivePort> onErrors;
+  final List<String> errorLog = [];
 
   Runner(this.tests) {
     onExit = ReceivePort();
@@ -91,7 +93,7 @@ class Runner {
     });
     onErrors = List<ReceivePort>.generate(tests.length, (int i) {
       return ReceivePort()..listen((error) {
-        print('[\${tests[i].name}] error: \$error');
+        errorLog.add('[\${tests[i].name}] error: \$error');
       });
     });
   }
@@ -138,6 +140,15 @@ class Runner {
     onExit.close();
     onExits.forEach((rp) => rp.close());
     onErrors.forEach((rp) => rp.close());
+
+    if (!errorLog.isEmpty) {
+      print('Spawning tests in isolates resulted in the following errors:');
+      print('------------------------------------------------------------');
+      errorLog.forEach(print);
+      print('------------------------------------------------------------');
+      print('-> Setting exitCode to 255');
+      exitCode = 255;
+    }
   }
 
 }
