@@ -28,6 +28,8 @@ namespace dart {
   F(PatchClass, library_kernel_data_)                                          \
   F(Function, name_)                                                           \
   F(Function, owner_)                                                          \
+  F(Function, parameter_names_)                                                \
+  F(Function, signature_)                                                      \
   F(Function, data_)                                                           \
   F(Function, ic_data_array_)                                                  \
   F(Function, code_)                                                           \
@@ -37,10 +39,10 @@ namespace dart {
   F(Field, name_)                                                              \
   F(Field, owner_)                                                             \
   F(Field, type_)                                                              \
-  F(Field, guarded_list_length_)                                               \
-  F(Field, dependent_code_)                                                    \
   F(Field, initializer_function_)                                              \
   F(Field, host_offset_or_field_id_)                                           \
+  F(Field, guarded_list_length_)                                               \
+  F(Field, dependent_code_)                                                    \
   F(Script, url_)                                                              \
   F(Script, resolved_url_)                                                     \
   F(Script, line_starts_)                                                      \
@@ -57,6 +59,7 @@ namespace dart {
   F(Library, loading_unit_)                                                    \
   F(Library, imports_)                                                         \
   F(Library, exports_)                                                         \
+  F(Library, dependencies_)                                                    \
   F(Library, kernel_data_)                                                     \
   F(Library, resolved_names_)                                                  \
   F(Library, exported_names_)                                                  \
@@ -98,9 +101,13 @@ namespace dart {
   F(MonomorphicSmiableCall, target_)                                           \
   F(CallSiteData, target_name_)                                                \
   F(CallSiteData, args_descriptor_)                                            \
+  F(ICData, target_name_)                                                      \
+  F(ICData, args_descriptor_)                                                  \
   F(ICData, entries_)                                                          \
   F(ICData, owner_)                                                            \
   F(InstructionsTable, descriptors_)                                           \
+  F(MegamorphicCache, target_name_)                                            \
+  F(MegamorphicCache, args_descriptor_)                                        \
   F(MegamorphicCache, buckets_)                                                \
   F(MegamorphicCache, mask_)                                                   \
   F(SubtypeTestCache, cache_)                                                  \
@@ -210,8 +217,14 @@ namespace dart {
   F(Function, unoptimized_code_)                                               \
   F(Field, type_test_cache_)
 
+#define JIT_NON_PRODUCT_CLASSES_AND_FIELDS(F)                                  \
+  F(Script, constant_coverage_)
+
 #define NON_PRODUCT_CLASSES_AND_FIELDS(F)                                      \
   F(Class, user_name_)                                                         \
+  F(Code, return_address_metadata_)                                            \
+  F(Code, var_descriptors_)                                                    \
+  F(Code, comments_)                                                           \
   F(ReceivePort, debug_name_)                                                  \
   F(ReceivePort, allocation_location_)
 
@@ -251,6 +264,9 @@ const OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
 #endif
 #else
     JIT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#if !defined(PRODUCT)
+    JIT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#endif
 #endif
     {-1, nullptr, -1}
 };
