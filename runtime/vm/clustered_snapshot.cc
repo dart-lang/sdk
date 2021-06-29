@@ -5565,6 +5565,7 @@ class VMDeserializationRoots : public DeserializationRoots {
         *code ^= d->ReadRef();
         StubCode::EntryAtPut(i, code);
       }
+      StubCode::InitializationDone();
     }
   }
 
