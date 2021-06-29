@@ -103,6 +103,9 @@ class TypeProviderImpl extends TypeProviderBase {
   /// If `false`, then legacy types are returned.
   final bool isNonNullableByDefault;
 
+  bool _hasEnumElement = false;
+  bool _hasEnumType = false;
+
   ClassElement? _boolElement;
   ClassElement? _doubleElement;
   ClassElement? _enumElement;
@@ -223,13 +226,28 @@ class TypeProviderImpl extends TypeProviderBase {
   DartType get dynamicType => DynamicTypeImpl.instance;
 
   @override
-  ClassElement get enumElement {
-    return _enumElement ??= _getClassElement(_coreLibrary, "Enum");
+  ClassElement? get enumElement {
+    if (!_hasEnumElement) {
+      _hasEnumElement = true;
+      _enumElement = _coreLibrary.getType('Enum');
+    }
+    return _enumElement;
   }
 
   @override
-  InterfaceType get enumType {
-    return _enumType ??= _getType(_coreLibrary, "Enum");
+  InterfaceType? get enumType {
+    if (!_hasEnumType) {
+      _hasEnumType = true;
+      var element = enumElement;
+      if (element != null) {
+        _enumType = InterfaceTypeImpl(
+          element: element,
+          typeArguments: const [],
+          nullabilitySuffix: _nullabilitySuffix,
+        );
+      }
+    }
+    return _enumType;
   }
 
   @override

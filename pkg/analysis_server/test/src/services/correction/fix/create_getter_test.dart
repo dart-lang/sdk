@@ -46,7 +46,7 @@ void f(M m) {
   Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestCode('''
 mixin M {
-  main() {
+  void f() {
     test = 42;
   }
 }
@@ -57,7 +57,7 @@ mixin M {
   Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 mixin M {
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -67,7 +67,7 @@ mixin M {
 mixin M {
   int get test => null;
 
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -105,7 +105,7 @@ void f(A a) {
 
   Future<void> test_inSDK() async {
     await resolveTestCode('''
-main(List p) {
+void f(List p) {
   int v = p.foo;
   print(v);
 }
@@ -316,7 +316,7 @@ class A {}
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -346,7 +346,7 @@ void f(A a) {
 class A {
   A get self => this;
 }
-main() {
+void f() {
   var a = new A();
   int v = a.self.test;
   print(v);
@@ -358,7 +358,7 @@ class A {
 
   int get test => null;
 }
-main() {
+void f() {
   var a = new A();
   int v = a.self.test;
   print(v);
@@ -402,7 +402,7 @@ void f(String s) {
   Future<void> test_unqualified_instance_asInvocationArgument() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void m() {
     f(test);
   }
 }
@@ -412,7 +412,7 @@ f(String s) {}
 class A {
   String get test => null;
 
-  main() {
+  void m() {
     f(test);
   }
 }
@@ -423,7 +423,7 @@ f(String s) {}
   Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test = 42;
   }
 }
@@ -434,7 +434,7 @@ class A {
   Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -444,7 +444,7 @@ class A {
 class A {
   int get test => null;
 
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -455,7 +455,7 @@ class A {
   Future<void> test_unqualified_instance_asStatement() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test;
   }
 }
@@ -464,7 +464,7 @@ class A {
 class A {
   get test => null;
 
-  main() {
+  void f() {
     test;
   }
 }

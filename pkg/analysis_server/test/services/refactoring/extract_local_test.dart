@@ -25,7 +25,7 @@ class ExtractLocalTest extends RefactoringTest {
 
   Future<void> test_checkFinalConditions_sameVariable_after() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2;
   var res;
 }
@@ -39,7 +39,7 @@ main() {
 
   Future<void> test_checkFinalConditions_sameVariable_before() async {
     await indexTestUnit('''
-main() {
+void f() {
   var res;
   int a = 1 + 2;
 }
@@ -53,7 +53,7 @@ main() {
 
   Future<void> test_checkInitialCondition_false_outOfRange_length() async {
     await indexTestUnit('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -64,7 +64,7 @@ main() {
 
   Future<void> test_checkInitialCondition_outOfRange_offset() async {
     await indexTestUnit('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -75,7 +75,7 @@ main() {
 
   Future<void> test_checkInitialConditions_assignmentLeftHandSize() async {
     await indexTestUnit('''
-main() {
+void f() {
   var v = 0;
   v = 1;
 }
@@ -90,7 +90,7 @@ main() {
   Future<void>
       test_checkInitialConditions_namePartOfDeclaration_function() async {
     await indexTestUnit('''
-void main() {
+void f() {
   void foo() {}
 }
 ''');
@@ -104,7 +104,7 @@ void main() {
   Future<void>
       test_checkInitialConditions_namePartOfDeclaration_variable() async {
     await indexTestUnit('''
-main() {
+void f() {
   int vvv = 0;
 }
 ''');
@@ -117,7 +117,7 @@ main() {
 
   Future<void> test_checkInitialConditions_noExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   // abc
 }
 ''');
@@ -141,14 +141,14 @@ int a = 1 + 2;
   Future<void>
       test_checkInitialConditions_stringSelection_leadingQuote() async {
     await indexTestUnit('''
-main() {
+void f() {
   var vvv = 'abc';
 }
 ''');
     _createRefactoringForString("'a");
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 'abc';
   var vvv = res;
 }
@@ -158,14 +158,14 @@ main() {
   Future<void>
       test_checkInitialConditions_stringSelection_trailingQuote() async {
     await indexTestUnit('''
-main() {
+void f() {
   var vvv = 'abc';
 }
 ''');
     _createRefactoringForString("c'");
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 'abc';
   var vvv = res;
 }
@@ -174,7 +174,7 @@ main() {
 
   Future<void> test_checkInitialConditions_voidExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   print(42);
 }
 ''');
@@ -187,7 +187,7 @@ main() {
 
   Future<void> test_checkName() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2;
 }
 ''');
@@ -205,7 +205,7 @@ main() {
 
   Future<void> test_checkName_conflict_withInvokedFunction() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2;
   res();
 }
@@ -222,7 +222,7 @@ void res() {}
 
   Future<void> test_checkName_conflict_withOtherLocal() async {
     await indexTestUnit('''
-main() {
+void f() {
   var res;
   int a = 1 + 2;
 }
@@ -237,7 +237,7 @@ main() {
 
   Future<void> test_checkName_conflict_withTypeName() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2;
   Res? b = null;
 }
@@ -254,14 +254,14 @@ class Res {}
 
   Future<void> test_completeStatementExpression() async {
     await indexTestUnit('''
-main(p) {
+void f(p) {
   p.toString();
 }
 ''');
     _createRefactoringForString('p.toString()');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(p) {
+void f(p) {
   var res = p.toString();
 }
 ''');
@@ -272,7 +272,7 @@ main(p) {
 class A {
   const A(int a, int b);
 }
-main() {
+void f() {
   const A(1, 2);
 }
 ''');
@@ -282,7 +282,7 @@ main() {
 class A {
   const A(int a, int b);
 }
-main() {
+void f() {
   const res = 1;
   const A(res, 2);
 }
@@ -291,14 +291,14 @@ main() {
 
   Future<void> test_const_inList() async {
     await indexTestUnit('''
-main() {
+void f() {
   const [1, 2];
 }
 ''');
     _createRefactoringForString('1');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   const res = 1;
   const [res, 2];
 }
@@ -307,14 +307,14 @@ main() {
 
   Future<void> test_const_inList_inBinaryExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   const [1 + 2, 3];
 }
 ''');
     _createRefactoringForString('1');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   const res = 1;
   const [res + 2, 3];
 }
@@ -323,14 +323,14 @@ main() {
 
   Future<void> test_const_inList_inConditionalExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   const [true ? 1 : 2, 3];
 }
 ''');
     _createRefactoringForString('1');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   const res = 1;
   const [true ? res : 2, 3];
 }
@@ -339,14 +339,14 @@ main() {
 
   Future<void> test_const_inList_inParenthesis() async {
     await indexTestUnit('''
-main() {
+void f() {
   const [(1), 2];
 }
 ''');
     _createRefactoringForString('1');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   const res = 1;
   const [(res), 2];
 }
@@ -355,14 +355,14 @@ main() {
 
   Future<void> test_const_inList_inPrefixExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   const [!true, 2];
 }
 ''');
     _createRefactoringForString('true');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   const res = true;
   const [!res, 2];
 }
@@ -371,14 +371,14 @@ main() {
 
   Future<void> test_const_inMap_key() async {
     await indexTestUnit('''
-main() {
+void f() {
   const {1: 2};
 }
 ''');
     _createRefactoringForString('1');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   const res = 1;
   const {res: 2};
 }
@@ -387,14 +387,14 @@ main() {
 
   Future<void> test_const_inMap_value() async {
     await indexTestUnit('''
-main() {
+void f() {
   const {1: 2};
 }
 ''');
     _createRefactoringForString('2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   const res = 2;
   const {1: res};
 }
@@ -403,7 +403,7 @@ main() {
 
   Future<void> test_coveringExpressions() async {
     await indexTestUnit('''
-main() {
+void f() {
   int aaa = 1;
   int bbb = 2;
   var c = aaa + bbb * 2 + 3;
@@ -419,7 +419,7 @@ main() {
 
   Future<void> test_coveringExpressions_inArgumentList() async {
     await indexTestUnit('''
-main() {
+void f() {
   foo(111 + 222);
 }
 int foo(int x) => x;
@@ -433,7 +433,7 @@ int foo(int x) => x;
 
   Future<void> test_coveringExpressions_inInvocationOfVoidFunction() async {
     await indexTestUnit('''
-main() {
+void f() {
   foo(111 + 222);
 }
 void foo(int x) {}
@@ -447,7 +447,7 @@ void foo(int x) {}
 
   Future<void> test_coveringExpressions_namedExpression_value() async {
     await indexTestUnit('''
-main() {
+void f() {
   foo(ppp: 42);
 }
 int foo({int ppp: 0}) => ppp + 1;
@@ -461,7 +461,7 @@ int foo({int ppp: 0}) => ppp + 1;
 
   Future<void> test_coveringExpressions_skip_assignment() async {
     await indexTestUnit('''
-main() {
+void f() {
   int v;
   foo(v = 111 + 222);
 }
@@ -479,7 +479,7 @@ int foo(x) => 42;
 class AAA {
   AAA.name() {}
 }
-main() {
+void f() {
   var v = new AAA.name();
 }
 ''');
@@ -495,7 +495,7 @@ main() {
 class A {
   A.name() {}
 }
-main() {
+void f() {
   var v = new A.name();
 }
 ''');
@@ -509,7 +509,7 @@ main() {
   Future<void> test_coveringExpressions_skip_constructorName_type() async {
     await indexTestUnit('''
 class A {}
-main() {
+void f() {
   var v = new A();
 }
 ''');
@@ -524,7 +524,7 @@ main() {
       test_coveringExpressions_skip_constructorName_typeArgument() async {
     await indexTestUnit('''
 class A<T> {}
-main() {
+void f() {
   var v = new A<String>();
 }
 ''');
@@ -537,7 +537,7 @@ main() {
 
   Future<void> test_coveringExpressions_skip_namedExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   foo(ppp: 42);
 }
 int foo({int ppp: 0}) => ppp + 1;
@@ -551,14 +551,14 @@ int foo({int ppp: 0}) => ppp + 1;
 
   Future<void> test_fragmentExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2 + 3 + 4;
 }
 ''');
     _createRefactoringForString('2 + 3');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 + 2 + 3;
   int a = res + 4;
 }
@@ -567,14 +567,14 @@ main() {
 
   Future<void> test_fragmentExpression_leadingNotWhitespace() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2 + 3 + 4;
 }
 ''');
     _createRefactoringForString('+ 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 + 2;
   int a = res + 3 + 4;
 }
@@ -583,14 +583,14 @@ main() {
 
   Future<void> test_fragmentExpression_leadingPartialSelection() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 111 + 2 + 3 + 4;
 }
 ''');
     _createRefactoringForString('11 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 111 + 2;
   int a = res + 3 + 4;
 }
@@ -599,14 +599,14 @@ main() {
 
   Future<void> test_fragmentExpression_leadingWhitespace() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2 + 3 + 4;
 }
 ''');
     _createRefactoringForString(' 2 + 3');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 + 2 + 3;
   int a = res + 4;
 }
@@ -615,14 +615,14 @@ main() {
 
   Future<void> test_fragmentExpression_notAssociativeOperator() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 - 2 - 3 - 4;
 }
 ''');
     _createRefactoringForString('2 - 3');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 - 2 - 3;
   int a = res - 4;
 }
@@ -631,14 +631,14 @@ main() {
 
   Future<void> test_fragmentExpression_trailingNotWhitespace() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2 + 3 + 4;
 }
 ''');
     _createRefactoringForString('1 + 2 +');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 + 2 + 3;
   int a = res + 4;
 }
@@ -647,14 +647,14 @@ main() {
 
   Future<void> test_fragmentExpression_trailingPartialSelection() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2 + 333 + 4;
 }
 ''');
     _createRefactoringForString('2 + 33');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 + 2 + 333;
   int a = res + 4;
 }
@@ -663,14 +663,14 @@ main() {
 
   Future<void> test_fragmentExpression_trailingWhitespace() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2 + 3 + 4;
 }
 ''');
     _createRefactoringForString('2 + 3 ');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 + 2 + 3;
   int a = res + 4;
 }
@@ -679,7 +679,7 @@ main() {
 
   Future<void> test_guessNames_fragmentExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   var a = 111 + 222 + 333 + 444;
 }
 ''');
@@ -694,7 +694,7 @@ main() {
 class TreeItem {}
 TreeItem? getSelectedItem() => null;
 process(my) {}
-main() {
+void f() {
   process(getSelectedItem()); // marker
 }
 ''');
@@ -707,7 +707,7 @@ main() {
 
   Future<void> test_guessNames_stringPart() async {
     await indexTestUnit('''
-main() {
+void f() {
   var s = 'Hello Bob... welcome to Dart!';
 }
 ''');
@@ -727,7 +727,7 @@ var v = 1 + 2;
 
   Future<void> test_isAvailable_true() async {
     await indexTestUnit('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -738,14 +738,14 @@ main() {
   Future<void> test_lint_prefer_final_locals() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_final_locals]);
     await indexTestUnit('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
     _createRefactoringForString('1 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   final res = 1 + 2;
   print(res);
 }
@@ -784,7 +784,7 @@ class A {
 
   Future<void> test_occurrences_differentVariable() async {
     await indexTestUnit('''
-main() {
+void f() {
   {
     int v = 1;
     print(v + 1); // marker
@@ -799,7 +799,7 @@ main() {
     _createRefactoringWithSuffix('v + 1', '); // marker');
     // apply refactoring
     await _assertSuccessfulRefactoring('''
-main() {
+void f() {
   {
     int v = 1;
     var res = v + 1;
@@ -813,13 +813,13 @@ main() {
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [36, 59, 85], names: ['object', 'i']);
+        length: 3, offsets: [38, 61, 87], names: ['object', 'i']);
   }
 
   Future<void> test_occurrences_disableOccurrences() async {
     await indexTestUnit('''
 int foo() => 42;
-main() {
+void f() {
   int a = 1 + foo();
   int b = 2 + foo(); // marker
 }
@@ -829,7 +829,7 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int foo() => 42;
-main() {
+void f() {
   int a = 1 + foo();
   var res = foo();
   int b = 2 + res; // marker
@@ -839,7 +839,7 @@ main() {
 
   Future<void> test_occurrences_ignore_assignmentLeftHandSize() async {
     await indexTestUnit('''
-main() {
+void f() {
   int v = 1;
   v = 2;
   print(() {v = 2;});
@@ -850,7 +850,7 @@ main() {
     _createRefactoringWithSuffix('v', '); // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   int v = 1;
   v = 2;
   print(() {v = 2;});
@@ -863,7 +863,7 @@ main() {
 
   Future<void> test_occurrences_ignore_nameOfVariableDeclaration() async {
     await indexTestUnit('''
-main() {
+void f() {
   int v = 1;
   print(v); // marker
 }
@@ -871,7 +871,7 @@ main() {
     _createRefactoringWithSuffix('v', '); // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   int v = 1;
   var res = v;
   print(res); // marker
@@ -882,7 +882,7 @@ main() {
   Future<void> test_occurrences_singleExpression() async {
     await indexTestUnit('''
 int foo() => 42;
-main() {
+void f() {
   int a = 1 + foo();
   int b = 2 +  foo(); // marker
 }
@@ -891,7 +891,7 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int foo() => 42;
-main() {
+void f() {
   var res = foo();
   int a = 1 + res;
   int b = 2 +  res; // marker
@@ -901,7 +901,7 @@ main() {
 
   Future<void> test_occurrences_useDominator() async {
     await indexTestUnit('''
-main() {
+void f() {
   if (true) {
     print(42);
   } else {
@@ -912,7 +912,7 @@ main() {
     _createRefactoringForString('42');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 42;
   if (true) {
     print(res);
@@ -926,7 +926,7 @@ main() {
   Future<void> test_occurrences_whenComment() async {
     await indexTestUnit('''
 int foo() => 42;
-main() {
+void f() {
   /*int a = 1 + foo();*/
   int b = 2 + foo(); // marker
 }
@@ -935,7 +935,7 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int foo() => 42;
-main() {
+void f() {
   /*int a = 1 + foo();*/
   var res = foo();
   int b = 2 + res; // marker
@@ -946,7 +946,7 @@ main() {
   Future<void> test_occurrences_withSpace() async {
     await indexTestUnit('''
 int foo(String s) => 42;
-main() {
+void f() {
   int a = 1 + foo('has space');
   int b = 2 + foo('has space'); // marker
 }
@@ -955,7 +955,7 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int foo(String s) => 42;
-main() {
+void f() {
   var res = foo('has space');
   int a = 1 + res;
   int b = 2 + res; // marker
@@ -966,7 +966,7 @@ main() {
   Future<void> test_offsets_lengths() async {
     await indexTestUnit('''
 int foo() => 42;
-main() {
+void f() {
   int a = 1 + foo(); // marker
   int b = 2 + foo( );
 }
@@ -981,14 +981,14 @@ main() {
 
   Future<void> test_singleExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2;
 }
 ''');
     _createRefactoringForString('1 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 + 2;
   int a = res;
 }
@@ -1000,7 +1000,7 @@ main() {
 class A {
   int get foo => 42;
 }
-main() {
+void f() {
   A a = new A();
   int b = 1 + a.foo; // marker
 }
@@ -1011,7 +1011,7 @@ main() {
 class A {
   int get foo => 42;
 }
-main() {
+void f() {
   A a = new A();
   var res = a.foo;
   int b = 1 + res; // marker
@@ -1023,7 +1023,7 @@ main() {
   Future<void> test_singleExpression_hasParseError_expectedSemicolon() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit('''
-main(p) {
+void f(p) {
   foo
   p.bar.baz;
 }
@@ -1031,7 +1031,7 @@ main(p) {
     _createRefactoringForString('p.bar');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(p) {
+void f(p) {
   foo
   var res = p.bar;
   res.baz;
@@ -1041,14 +1041,14 @@ main(p) {
 
   Future<void> test_singleExpression_inExpressionBody_ofClosure() async {
     await indexTestUnit('''
-main() {
+void f() {
   print((x) => x.y * x.y + 1);
 }
 ''');
     _createRefactoringForString('x.y');
     // apply refactoring
     await _assertSuccessfulRefactoring('''
-main() {
+void f() {
   print((x) {
     var res = x.y;
     return res * res + 1;
@@ -1056,7 +1056,7 @@ main() {
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [31, 53, 59], names: ['y']);
+        length: 3, offsets: [33, 55, 61], names: ['y']);
   }
 
   Future<void> test_singleExpression_inExpressionBody_ofFunction() async {
@@ -1126,7 +1126,7 @@ void f(int p) {
   Future<void> test_singleExpression_inMethod() async {
     await indexTestUnit('''
 class A {
-  main() {
+  void f() {
     print(1 + 2);
   }
 }
@@ -1135,7 +1135,7 @@ class A {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
-  main() {
+  void f() {
     var res = 1 + 2;
     print(res);
   }
@@ -1145,14 +1145,14 @@ class A {
 
   Future<void> test_singleExpression_leadingNotWhitespace() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 12 + 345;
 }
 ''');
     _createRefactoringForString('+ 345');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 12 + 345;
   int a = res;
 }
@@ -1161,14 +1161,14 @@ main() {
 
   Future<void> test_singleExpression_leadingWhitespace() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 /*abc*/ + 2 + 345;
 }
 ''');
     _createRefactoringForString('1 /*abc*/');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 /*abc*/ + 2;
   int a = res + 345;
 }
@@ -1177,7 +1177,7 @@ main() {
 
   Future<void> test_singleExpression_methodName_reference() async {
     await indexTestUnit('''
-main() {
+void f() {
   var v = foo().length;
 }
 String foo() => '';
@@ -1185,7 +1185,7 @@ String foo() => '';
     _createRefactoringWithSuffix('foo', '().');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = foo();
   var v = res.length;
 }
@@ -1195,14 +1195,14 @@ String foo() => '';
 
   Future<void> test_singleExpression_nameOfProperty_prefixedIdentifier() async {
     await indexTestUnit('''
-main(p) {
+void f(p) {
   var v = p.value; // marker
 }
 ''');
     _createRefactoringWithSuffix('value', '; // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(p) {
+void f(p) {
   var res = p.value;
   var v = res; // marker
 }
@@ -1211,7 +1211,7 @@ main(p) {
 
   Future<void> test_singleExpression_nameOfProperty_propertyAccess() async {
     await indexTestUnit('''
-main() {
+void f() {
   var v = foo().length; // marker
 }
 String foo() => '';
@@ -1219,7 +1219,7 @@ String foo() => '';
     _createRefactoringWithSuffix('length', '; // marker');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = foo().length;
   var v = res; // marker
 }
@@ -1232,14 +1232,14 @@ String foo() => '';
   /// handled as a single expression.
   Future<void> test_singleExpression_partOfBinaryExpression() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2 + 3 + 4;
 }
 ''');
     _createRefactoringForString('1 + 2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 + 2;
   int a = res + 3 + 4;
 }
@@ -1248,14 +1248,14 @@ main() {
 
   Future<void> test_singleExpression_string() async {
     await indexTestUnit('''
-void main() {
+void f() {
   print("1234");
 }
 ''');
     _createRefactoringAtString('34"');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-void main() {
+void f() {
   var res = "1234";
   print(res);
 }
@@ -1264,14 +1264,14 @@ void main() {
 
   Future<void> test_singleExpression_trailingNotWhitespace() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 12 + 345;
 }
 ''');
     _createRefactoringForString('12 +');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 12 + 345;
   int a = res;
 }
@@ -1280,14 +1280,14 @@ main() {
 
   Future<void> test_singleExpression_trailingWhitespace() async {
     await indexTestUnit('''
-main() {
+void f() {
   int a = 1 + 2 ;
 }
 ''');
     _createRefactoringForString('1 + 2 ');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 1 + 2;
   int a = res ;
 }
@@ -1296,42 +1296,42 @@ main() {
 
   Future<void> test_stringLiteral_part() async {
     await indexTestUnit('''
-main() {
+void f() {
   print('abcdefgh');
 }
 ''');
     _createRefactoringForString('cde');
     // apply refactoring
     await _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   var res = 'cde';
   print('ab${res}fgh');
 }
 ''');
-    _assertSingleLinkedEditGroup(length: 3, offsets: [15, 41], names: ['cde']);
+    _assertSingleLinkedEditGroup(length: 3, offsets: [17, 43], names: ['cde']);
   }
 
   Future<void> test_stringLiteral_whole() async {
     await indexTestUnit('''
-main() {
+void f() {
   print('abc');
 }
 ''');
     _createRefactoringForString("'abc'");
     // apply refactoring
     await _assertSuccessfulRefactoring('''
-main() {
+void f() {
   var res = 'abc';
   print(res);
 }
 ''');
     _assertSingleLinkedEditGroup(
-        length: 3, offsets: [15, 36], names: ['object', 's']);
+        length: 3, offsets: [17, 38], names: ['object', 's']);
   }
 
   Future<void> test_stringLiteralPart() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   int x = 1;
   int y = 2;
   print('$x+$y=${x+y}');
@@ -1340,14 +1340,14 @@ main() {
     _createRefactoringForString(r'$x+$y');
     // apply refactoring
     await _assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   int x = 1;
   int y = 2;
   var res = '$x+$y';
   print('${res}=${x+y}');
 }
 ''');
-    _assertSingleLinkedEditGroup(length: 3, offsets: [41, 67], names: ['xy']);
+    _assertSingleLinkedEditGroup(length: 3, offsets: [43, 69], names: ['xy']);
   }
 
   Future _assertInitialConditions_fatal_selection() async {

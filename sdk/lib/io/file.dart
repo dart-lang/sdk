@@ -659,10 +659,10 @@ abstract class RandomAccessFile {
   ///
   /// Reads bytes and writes then into the the range of [buffer]
   /// from [start] to [end].
-  /// The [start] must be non-negative and no greater than `buffer.length`.
-  /// If [end] is omitted, it defaults to [buffer.length].
+  /// The [start] must be non-negative and no greater than [buffer].length.
+  /// If [end] is omitted, it defaults to [buffer].length.
   /// Otherwise [end] must be no less than [start]
-  /// and no greater than `buffer.length`.
+  /// and no greater than [buffer].length.
   ///
   /// Returns the number of bytes read. This maybe be less than `end - start`
   /// if the file doesn't have that many bytes to read.
@@ -672,10 +672,10 @@ abstract class RandomAccessFile {
   ///
   /// Reads bytes and writes then into the the range of [buffer]
   /// from [start] to [end].
-  /// The [start] must be non-negative and no greater than `buffer.length`.
-  /// If [end] is omitted, it defaults to [buffer.length].
+  /// The [start] must be non-negative and no greater than [buffer].length.
+  /// If [end] is omitted, it defaults to [buffer].length.
   /// Otherwise [end] must be no less than [start]
-  /// and no greater than `buffer.length`.
+  /// and no greater than [buffer].length.
   ///
   /// Returns the number of bytes read. This maybe be less than `end - start`
   /// if the file doesn't have that many bytes to read.
@@ -699,10 +699,10 @@ abstract class RandomAccessFile {
   /// Writes from a [buffer] to the file.
   ///
   /// Will read the buffer from index [start] to index [end].
-  /// The [start] must be non-negative and no greater than `buffer.length`.
-  /// If [end] is omitted, it defaults to [buffer.length].
+  /// The [start] must be non-negative and no greater than [buffer].length.
+  /// If [end] is omitted, it defaults to [buffer].length.
   /// Otherwise [end] must be no less than [start]
-  /// and no greater than `buffer.length`.
+  /// and no greater than [buffer].length.
   ///
   /// Returns a `Future<RandomAccessFile>` that completes with this
   /// [RandomAccessFile] when the write completes.
@@ -712,10 +712,10 @@ abstract class RandomAccessFile {
   /// Synchronously writes from a [buffer] to the file.
   ///
   /// Will read the buffer from index [start] to index [end].
-  /// The [start] must be non-negative and no greater than `buffer.length`.
-  /// If [end] is omitted, it defaults to [buffer.length].
+  /// The [start] must be non-negative and no greater than [buffer].length.
+  /// If [end] is omitted, it defaults to [buffer].length.
   /// Otherwise [end] must be no less than [start]
-  /// and no greater than `buffer.length`.
+  /// and no greater than [buffer].length.
   ///
   /// Throws a [FileSystemException] if the operation fails.
   void writeFromSync(List<int> buffer, [int start = 0, int? end]);

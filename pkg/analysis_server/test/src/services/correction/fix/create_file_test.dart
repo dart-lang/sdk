@@ -100,7 +100,7 @@ import 'a/bb/my_lib.dart';
     );
   }
 
-  Future<void> test_forPart() async {
+  Future<void> test_forPart_explicitlyNamedLibrary() async {
     await resolveTestCode('''
 library my.lib;
 part 'my_part.dart';
@@ -113,6 +113,21 @@ part 'my_part.dart';
     expect(fileEdit.file, convertPath('/home/test/lib/my_part.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
-    expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));
+    expect(fileEdit.edits[0].replacement, contains("part of 'test.dart';"));
+  }
+
+  Future<void> test_forPart_implicitlyNamedLibrary() async {
+    await resolveTestCode('''
+part 'foo/my_part.dart';
+''');
+    await assertHasFixWithoutApplying();
+    // validate change
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    var fileEdit = change.edits[0];
+    expect(fileEdit.file, convertPath('/home/test/lib/foo/my_part.dart'));
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
+    expect(fileEdit.edits[0].replacement, contains("part of '../test.dart';"));
   }
 }

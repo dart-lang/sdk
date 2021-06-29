@@ -75,8 +75,14 @@ class DocumentationValidator {
     'CompileTimeErrorCode.RETURN_IN_GENERATOR',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
     // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
+    // Produces multiple diagnostic because of poor recovery.
+    'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
     // Produces two diagnostics when it should only produce one (see
@@ -85,6 +91,24 @@ class DocumentationValidator {
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43263)
     'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
+    //
+    // The following can't currently be verified because the examples aren't
+    // Dart code.
+    //
+    'PubspecWarningCode.ASSET_DOES_NOT_EXIST',
+    'PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST',
+    'PubspecWarningCode.ASSET_FIELD_NOT_LIST',
+    'PubspecWarningCode.ASSET_NOT_STRING',
+    'PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP',
+    'PubspecWarningCode.DEPRECATED_FIELD',
+    'PubspecWarningCode.FLUTTER_FIELD_NOT_MAP',
+    'PubspecWarningCode.INVALID_DEPENDENCY',
+    'PubspecWarningCode.MISSING_NAME',
+    'PubspecWarningCode.NAME_NOT_STRING',
+    'PubspecWarningCode.PATH_DOES_NOT_EXIST',
+    'PubspecWarningCode.PATH_NOT_POSIX',
+    'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
+    'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
   ];
 
   /// The prefix used on directive lines to specify the experiments that should

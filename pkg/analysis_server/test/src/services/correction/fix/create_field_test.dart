@@ -193,7 +193,7 @@ class B {
 class A {
   A get self => this;
 }
-main() {
+void f() {
   var a = new A();
   int v = a.self.test;
   print(v);
@@ -205,7 +205,7 @@ class A {
 
   A get self => this;
 }
-main() {
+void f() {
   var a = new A();
   int v = a.self.test;
   print(v);
@@ -216,7 +216,7 @@ main() {
   Future<void> test_getter_unqualified_instance_asInvocationArgument() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void m() {
     f(test);
   }
 }
@@ -226,7 +226,7 @@ f(String s) {}
 class A {
   String test;
 
-  main() {
+  void m() {
     f(test);
   }
 }
@@ -237,7 +237,7 @@ f(String s) {}
   Future<void> test_getter_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -247,7 +247,7 @@ class A {
 class A {
   int test;
 
-  main() {
+  void f() {
     int v = test;
     print(v);
   }
@@ -258,7 +258,7 @@ class A {
   Future<void> test_getter_unqualified_instance_asStatement() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test;
   }
 }
@@ -267,7 +267,7 @@ class A {
 class A {
   var test;
 
-  main() {
+  void f() {
     test;
   }
 }
@@ -357,7 +357,7 @@ void f(C c) {
 enum MyEnum {
   AAA, BBB
 }
-main() {
+void f() {
   MyEnum.foo;
 }
 ''');
@@ -373,7 +373,7 @@ class A {}
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main(A a) {
+void f(A a) {
   int v = a.test;
   print(v);
 }
@@ -398,7 +398,7 @@ void f(A a) {
 
   Future<void> test_inSDK() async {
     await resolveTestCode('''
-main(List p) {
+void f(List p) {
   p.foo = 1;
 }
 ''');
@@ -441,7 +441,7 @@ class A {
 }
 class B<T> {
   List<T> items = [];
-  main(A a) {
+  void f(A a) {
     a.test = items;
   }
 }
@@ -452,7 +452,7 @@ class A {
 }
 class B<T> {
   List<T> items = [];
-  main(A a) {
+  void f(A a) {
     a.test = items;
   }
 }
@@ -464,7 +464,7 @@ class B<T> {
 class A<T> {
   List<T> items = [];
 
-  main(A a) {
+  void f(A a) {
     test = items;
   }
 }
@@ -475,7 +475,7 @@ class A<T> {
 
   List<T> test;
 
-  main(A a) {
+  void f(A a) {
     test = items;
   }
 }
@@ -534,7 +534,7 @@ void f(A a) {
     await resolveTestCode('''
 class A {
 }
-main() {
+void f() {
   A.test = 5;
 }
 ''');
@@ -542,7 +542,7 @@ main() {
 class A {
   static int test;
 }
-main() {
+void f() {
   A.test = 5;
 }
 ''');
@@ -551,7 +551,7 @@ main() {
   Future<void> test_setter_unqualified_instance() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test = 5;
   }
 }
@@ -560,7 +560,7 @@ class A {
 class A {
   int test;
 
-  main() {
+  void f() {
     test = 5;
   }
 }
@@ -570,7 +570,7 @@ class A {
   Future<void> test_setter_unqualified_static() async {
     await resolveTestCode('''
 class A {
-  static main() {
+  static void f() {
     test = 5;
   }
 }
@@ -579,7 +579,7 @@ class A {
 class A {
   static int test;
 
-  static main() {
+  static void f() {
     test = 5;
   }
 }

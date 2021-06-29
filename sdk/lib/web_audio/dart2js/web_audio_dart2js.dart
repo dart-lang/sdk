@@ -1242,9 +1242,9 @@ class ScriptProcessorNode extends AudioNode {
 /**
    * Get a Stream that fires events when AudioProcessingEvents occur.
    * This particular stream is special in that it only allows one listener to a
-   * given stream. Converting the returned Stream [asBroadcast] will likely ruin
-   * the soft-real-time properties which which these events are fired and can
-   * be processed.
+   * given stream. Converting the returned [Stream.asBroadcastStream] will
+   * likely ruin the soft-real-time properties which which these events are
+   * fired and can be processed.
    */
   Stream<AudioProcessingEvent> get onAudioProcess =>
       audioProcessEvent.forTarget(this);

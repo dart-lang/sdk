@@ -2701,8 +2701,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
   bool get hasStaticMember => true;
 
   @override
-  List<InterfaceType> get interfaces =>
-      <InterfaceType>[library.typeProvider.enumType];
+  List<InterfaceType> get interfaces {
+    var enumType = library.typeProvider.enumType;
+    return enumType != null ? <InterfaceType>[enumType] : const [];
+  }
 
   @override
   bool get isAbstract => false;

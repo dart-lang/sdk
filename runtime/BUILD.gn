@@ -153,7 +153,28 @@ config("dart_config") {
     }
   }
 
-  if (!is_win) {
+  # Below are flags copied from ../build/config/compiler/BUILD.gn that should
+  # be preserved even when the Dart VM and runtime are compiled out-of-tree,
+  # for example in the Flutter Engine build. They ensure that the Dart VM
+  # and runtime are compiled with optimizations unless explicitly requested
+  # otherwise with the `dart_debug` and `dart_debug_optimization_level`
+  # flags.
+  if (is_win) {
+    if (dart_debug) {
+      cflags = [
+        "/O${dart_debug_optimization_level}",
+        "/Oy-",
+      ]
+    } else {
+      cflags = [
+        "/O2",
+        "/Ob2",
+        "/Oy-",
+        "/Oi",
+        "/Gw",
+      ]
+    }
+  } else {
     cflags = [
       "-Werror",
       "-Wall",

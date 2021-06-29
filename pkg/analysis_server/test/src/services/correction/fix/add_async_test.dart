@@ -44,13 +44,13 @@ Future<void> f(Stream<String> names) async {
   Future<void> test_blockFunctionBody_function() async {
     await resolveTestCode('''
 foo() {}
-main() {
+f() {
   await foo();
 }
 ''');
     await assertHasFix('''
 foo() {}
-main() async {
+f() async {
   await foo();
 }
 ''');
@@ -93,11 +93,11 @@ void doStuff() => takeFutureCallback(() async => await 1);
   Future<void> test_expressionFunctionBody() async {
     await resolveTestCode('''
 foo() {}
-main() => await foo();
+f() => await foo();
 ''');
     await assertHasFix('''
 foo() {}
-main() async => await foo();
+f() async => await foo();
 ''');
   }
 
@@ -147,14 +147,14 @@ var F = await;
   Future<void> test_returnFuture_alreadyFuture() async {
     await resolveTestCode('''
 foo() {}
-Future<int> main() {
+Future<int> f() {
   await foo();
   return 42;
 }
 ''');
     await assertHasFix('''
 foo() {}
-Future<int> main() async {
+Future<int> f() async {
   await foo();
   return 42;
 }
@@ -166,14 +166,14 @@ Future<int> main() async {
   Future<void> test_returnFuture_dynamic() async {
     await resolveTestCode('''
 foo() {}
-dynamic main() {
+dynamic f() {
   await foo();
   return 42;
 }
 ''');
     await assertHasFix('''
 foo() {}
-dynamic main() async {
+dynamic f() async {
   await foo();
   return 42;
 }
@@ -183,14 +183,14 @@ dynamic main() async {
   Future<void> test_returnFuture_nonFuture() async {
     await resolveTestCode('''
 foo() {}
-int main() {
+int f() {
   await foo();
   return 42;
 }
 ''');
     await assertHasFix('''
 foo() {}
-Future<int> main() async {
+Future<int> f() async {
   await foo();
   return 42;
 }
@@ -200,14 +200,14 @@ Future<int> main() async {
   Future<void> test_returnFuture_noType() async {
     await resolveTestCode('''
 foo() {}
-main() {
+f() {
   await foo();
   return 42;
 }
 ''');
     await assertHasFix('''
 foo() {}
-main() async {
+f() async {
   await foo();
   return 42;
 }

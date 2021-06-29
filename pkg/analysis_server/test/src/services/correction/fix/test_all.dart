@@ -12,6 +12,7 @@ import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
+import 'add_key_to_constructors_test.dart' as add_key_to_constructors;
 import 'add_late_test.dart' as add_late;
 import 'add_missing_enum_case_clauses_test.dart'
     as add_missing_enum_case_clauses;
@@ -138,6 +139,8 @@ import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unnecessary_parentheses_test.dart'
     as remove_unnecessary_parentheses;
+import 'remove_unnecessary_string_escapes_test.dart'
+    as remove_unnecessary_string_escapes;
 import 'remove_unnecessary_string_interpolation_test.dart'
     as remove_unnecessary_string_interpolation;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
@@ -193,6 +196,7 @@ void main() {
     add_diagnostic_property_reference.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
+    add_key_to_constructors.main();
     add_late.main();
     add_missing_enum_case_clauses.main();
     add_missing_enum_like_case_clauses.main();
@@ -304,6 +308,7 @@ void main() {
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
     remove_unnecessary_parentheses.main();
+    remove_unnecessary_string_escapes.main();
     remove_unnecessary_string_interpolation.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();

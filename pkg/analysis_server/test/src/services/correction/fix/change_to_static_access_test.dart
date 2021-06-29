@@ -43,7 +43,7 @@ void f(A a) {
 extension E on int {
   static void foo() {}
 }
-main() {
+void f() {
   0.foo();
 }
 ''');
@@ -51,7 +51,7 @@ main() {
 extension E on int {
   static void foo() {}
 }
-main() {
+void f() {
   E.foo();
 }
 ''');
@@ -127,7 +127,7 @@ void f(A a) {
 extension E on int {
   static int get foo => 42;
 }
-main() {
+void f() {
   0.foo;
 }
 ''');
@@ -135,7 +135,7 @@ main() {
 extension E on int {
   static int get foo => 42;
 }
-main() {
+void f() {
   E.foo;
 }
 ''');

@@ -7,12 +7,35 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToSingleQuotedStringBulkTest);
     defineReflectiveTests(ConvertToSingleQuotedStringTest);
   });
+}
+
+@reflectiveTest
+class ConvertToSingleQuotedStringBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_single_quotes;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f() {
+  print("abc");
+  print("e" + "f" + "g");
+}
+''');
+    await assertHasFix('''
+void f() {
+  print('abc');
+  print('e' + 'f' + 'g');
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -25,14 +48,14 @@ class ConvertToSingleQuotedStringTest extends FixProcessorLintTest {
 
   Future<void> test_one_interpolation() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print("a $b-${c} d");
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
   var b = 'b';
   var c = 'c';
   print('a $b-${c} d');
@@ -43,12 +66,12 @@ main() {
   /// More coverage in the `convert_to_single_quoted_string_test.dart` assist test.
   Future<void> test_one_simple() async {
     await resolveTestCode('''
-main() {
+void f() {
   print("abc");
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   print('abc');
 }
 ''');

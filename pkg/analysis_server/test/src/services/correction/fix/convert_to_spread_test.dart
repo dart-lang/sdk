@@ -7,12 +7,47 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToSpreadBulkTest);
     defineReflectiveTests(ConvertToSpreadTest);
   });
+}
+
+@reflectiveTest
+class ConvertToSpreadBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_spread_collections;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+f() {
+  var ints = [1, 2, 3];
+  print(['a']..addAll(ints.map((i) => i.toString()))..addAll(['c']));
+}
+
+f2() {
+  bool condition;
+  var things;
+  var l = ['a']..addAll(condition ? things : []);
+}
+''');
+    await assertHasFix('''
+f() {
+  var ints = [1, 2, 3];
+  print(['a', ...ints.map((i) => i.toString())]..addAll(['c']));
+}
+
+f2() {
+  bool condition;
+  var things;
+  var l = ['a', if (condition) ...things];
+}
+''');
+  }
 }
 
 @reflectiveTest

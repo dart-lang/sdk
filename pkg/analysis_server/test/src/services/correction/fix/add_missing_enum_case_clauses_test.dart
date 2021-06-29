@@ -64,10 +64,34 @@ void f(E e) {
 ''');
   }
 
+  Future<void> test_empty_singleLine() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {}
+}
+''');
+    await assertHasFixWithFilter('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
   Future<void> test_incomplete_switchStatement() async {
     await resolveTestCode(r'''
 enum E {a, b, c}
-
 void f(E e) {
   switch(e
 }
@@ -75,7 +99,7 @@ void f(E e) {
     await assertNoFix(errorFilter: _filter);
   }
 
-  Future<void> test_nonEmpty() async {
+  Future<void> test_notEmpty() async {
     await resolveTestCode('''
 enum E {a, b, c}
 void f(E e) {

@@ -30,7 +30,7 @@ class _ProcessUtils {
 /// The handling of exit codes is platform specific.
 ///
 /// On Linux and OS X an exit code for normal termination will always
-/// be in the range [0..255]. If an exit code outside this range is
+/// be in the range `[0..255]`. If an exit code outside this range is
 /// set the actual exit code will be the lower 8 bits masked off and
 /// treated as an unsigned value. E.g. using an exit code of -1 will
 /// result in an actual exit code of 255 being reported.
@@ -244,8 +244,8 @@ abstract class Process {
   /// The handling of exit codes is platform specific.
   ///
   /// On Linux and OS X a normal exit code will be a positive value in
-  /// the range [0..255]. If the process was terminated due to a signal
-  /// the exit code will be a negative value in the range [-255..-1],
+  /// the range `[0..255]`. If the process was terminated due to a signal
+  /// the exit code will be a negative value in the range `[-255..-1]`,
   /// where the absolute value of the exit code is the signal
   /// number. For example, if a process crashes due to a segmentation
   /// violation the exit code will be -11, as the signal SIGSEGV has the

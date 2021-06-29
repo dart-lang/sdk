@@ -22,7 +22,7 @@ class ImportAddShowTest extends AssistProcessorTest {
   Future<void> test_hasShow() async {
     await resolveTestCode('''
 import 'dart:math' show pi;
-main() {
+void f() {
   pi;
 }
 ''');
@@ -32,14 +32,14 @@ main() {
   Future<void> test_hasUnresolvedIdentifier() async {
     await resolveTestCode('''
 import 'dart:math';
-main(x) {
+void f(x) {
   pi;
   return x.foo();
 }
 ''');
     await assertHasAssistAt('import ', '''
 import 'dart:math' show pi;
-main(x) {
+void f(x) {
   pi;
   return x.foo();
 }
@@ -49,7 +49,7 @@ main(x) {
   Future<void> test_onDirective() async {
     await resolveTestCode('''
 import 'dart:math';
-main() {
+void f() {
   pi;
   e;
   max(1, 2);
@@ -57,7 +57,7 @@ main() {
 ''');
     await assertHasAssistAt('import ', '''
 import 'dart:math' show e, max, pi;
-main() {
+void f() {
   pi;
   e;
   max(1, 2);
@@ -68,7 +68,7 @@ main() {
   Future<void> test_onUri() async {
     await resolveTestCode('''
 import 'dart:math';
-main() {
+void f() {
   pi;
   e;
   max(1, 2);
@@ -76,7 +76,7 @@ main() {
 ''');
     await assertHasAssistAt('art:math', '''
 import 'dart:math' show e, max, pi;
-main() {
+void f() {
   pi;
   e;
   max(1, 2);
@@ -91,14 +91,14 @@ void set setter(int i) {}
     await resolveTestCode('''
 import 'a.dart';
 
-main() {
+void f() {
   setter = 42;
 }
 ''');
     await assertHasAssistAt('import ', '''
 import 'a.dart' show setter;
 
-main() {
+void f() {
   setter = 42;
 }
 ''');

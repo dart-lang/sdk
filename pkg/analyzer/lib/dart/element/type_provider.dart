@@ -31,11 +31,13 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type `dynamic`.
   DartType get dynamicType;
 
-  /// Return the element representing the built-in type `Enum`.
-  ClassElement get enumElement;
+  /// Return the element representing the built-in type `Enum`, or `null` if
+  /// the SDK does not have definition of `Enum`.
+  ClassElement? get enumElement;
 
-  /// Return the type representing the built-in type `Enum`.
-  InterfaceType get enumType;
+  /// Return the type representing the built-in type `Enum`, or `null` if
+  /// the SDK does not have definition of `Enum`.
+  InterfaceType? get enumType;
 
   /// Return the type representing the built-in type `Function`.
   InterfaceType get functionType;

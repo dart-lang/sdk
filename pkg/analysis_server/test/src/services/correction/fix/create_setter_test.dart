@@ -44,7 +44,7 @@ void f(M m) {
   Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestCode('''
 mixin M {
-  main() {
+  void f() {
     test = 0;
   }
 }
@@ -53,7 +53,7 @@ mixin M {
 mixin M {
   set test(int test) {}
 
-  main() {
+  void f() {
     test = 0;
   }
 }
@@ -63,7 +63,7 @@ mixin M {
   Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 mixin M {
-  main() {
+  void f() {
     test;
   }
 }
@@ -110,7 +110,7 @@ void f(A a) {
 
   Future<void> test_inSDK() async {
     await resolveTestCode('''
-main(List p) {
+void f(List p) {
   p.foo = 0;
 }
 ''');
@@ -311,7 +311,7 @@ class A {}
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main(A a) {
+void f(A a) {
   a.test = 0;
 }
 ''');
@@ -339,7 +339,7 @@ void f(A a) {
 class A {
   A get self => this;
 }
-main() {
+void f() {
   var a = new A();
   a.self.test = 0;
 }
@@ -350,7 +350,7 @@ class A {
 
   set test(int test) {}
 }
-main() {
+void f() {
   var a = new A();
   a.self.test = 0;
 }
@@ -380,7 +380,7 @@ void f(String s) {
   Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test = 0;
   }
 }
@@ -389,7 +389,7 @@ class A {
 class A {
   set test(int test) {}
 
-  main() {
+  void f() {
     test = 0;
   }
 }
@@ -399,7 +399,7 @@ class A {
   Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test;
   }
 }

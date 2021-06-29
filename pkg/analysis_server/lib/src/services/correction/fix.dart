@@ -179,6 +179,10 @@ class DartFixKind {
       'dart.fix.add.fieldFormalParameters',
       70,
       'Add final field formal parameters');
+  static const ADD_KEY_TO_CONSTRUCTORS = FixKind(
+      'dart.fix.add.keyToConstructors',
+      DartFixKindPriority.DEFAULT,
+      "Add 'key' to constructors");
   static const ADD_LATE = FixKind(
       'dart.fix.add.late', DartFixKindPriority.DEFAULT, "Add 'late' modifier");
   static const ADD_MISSING_ENUM_CASE_CLAUSES = FixKind(
@@ -687,6 +691,14 @@ class DartFixKind {
       'dart.fix.remove.unnecessaryParentheses.multi',
       DartFixKindPriority.IN_FILE,
       'Remove all unnecessary parentheses in file');
+  static const REMOVE_UNNECESSARY_STRING_ESCAPE = FixKind(
+      'dart.fix.remove.unnecessaryStringEscape',
+      DartFixKindPriority.DEFAULT,
+      "Remove unnecessary '\\' in string");
+  static const REMOVE_UNNECESSARY_STRING_ESCAPE_MULTI = FixKind(
+      'dart.fix.remove.unnecessaryStringEscape.multi',
+      DartFixKindPriority.DEFAULT,
+      "Remove unnecessary '\\' in strings in file");
   static const REMOVE_UNNECESSARY_STRING_INTERPOLATION = FixKind(
       'dart.fix.remove.unnecessaryStringInterpolation',
       DartFixKindPriority.DEFAULT,

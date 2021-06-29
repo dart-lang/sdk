@@ -219,11 +219,11 @@ class DateTime{static const int WED=3;int get day;}fd(){DateTime d=new DateTime.
 class L{var k;void.!1}''', <String>['1-k']);
 
     buildTests('testCommentSnippets044', '''
-class List{}class XXX {XXX.fisk();}main() {main(); new !1}}''',
+class List{}class XXX {XXX.fisk();}void f() {f(); new !1}}''',
         <String>['1+List', '1+XXX.fisk']);
 
     buildTests('testCommentSnippets045', '''
-class List{}class XXX {XXX.fisk();}main() {main(); !1}}''',
+class List{}class XXX {XXX.fisk();}void f() {f(); !1}}''',
         <String>['1+List', '1+XXX.fisk']);
 
     buildTests('testCommentSnippets047', '''
@@ -541,11 +541,11 @@ class X {
 p(x)=>0;var E;f(q)=>!1p(!2E);''', <String>['1+p', '2+E']);
 
     buildTests('testCommentSnippets076', '''
-class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3int>>();}''',
+class Map<K,V>{}class List<E>{}class int{}void f() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3int>>();}''',
         <String>['1+List', '2+int', '3+int']);
 
     buildTests('testCommentSnippets076a', '''
-class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3>>();}''',
+class Map<K,V>{}class List<E>{}class int{}void f() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3>>();}''',
         <String>['1+List', '2+int', '3+int']);
 
     buildTests('testCommentSnippets077', '''
@@ -571,15 +571,15 @@ f() => new Fil!1''', <String>[
     ]);
 
     buildTests('testCommentSnippets078', '''
-class Map{static from()=>null;clear(){}}void main() { Map.!1 }''',
+class Map{static from()=>null;clear(){}}void f() { Map.!1 }''',
         <String>['1+from', '1-clear']); // static method, instance method
 
     buildTests('testCommentSnippets079', '''
-class Map{static from()=>null;clear(){}}void main() { Map s; s.!1 }''',
+class Map{static from()=>null;clear(){}}void f() { Map s; s.!1 }''',
         <String>['1-from', '1+clear']); // static method, instance method
 
     buildTests('testCommentSnippets080', '''
-class RuntimeError{var message;}void main() { RuntimeError.!1 }''',
+class RuntimeError{var message;}void f() { RuntimeError.!1 }''',
         <String>['1-message']); // field
 
     buildTests(
@@ -595,20 +595,20 @@ class Foo {this.!1}''',
         '''
         class HttpRequest {}
         class HttpResponse {}
-        main() {
+        void f() {
           var v = (HttpRequest req, HttpResp!1)
         }''',
         <String>['1+HttpResponse'],
         failingTests: '1');
 
     buildTests('testCommentSnippets083', '''
-main() {(.!1)}''', <String>['1-toString']);
+void f() {(.!1)}''', <String>['1-toString']);
 
     buildTests('testCommentSnippets083a', '''
-main() { .!1 }''', <String>['1-toString']);
+void f() { .!1 }''', <String>['1-toString']);
 
     buildTests('testCommentSnippets083b', '''
-main() { null.!1 }''', <String>['1+toString']);
+void f() { null.!1 }''', <String>['1+toString']);
 
     buildTests('testCommentSnippets085', '''
 class List{}class Map{}class Z extends List with !1Ma!2p {}''',
@@ -710,7 +710,7 @@ class AAA {",
 }",
 ",
 @AAA(!1)
-main() {
+void f() {
 }''',
         <String>[
           '1+AAA' /*":" + ProposalKind.ARGUMENT_LIST*/,
@@ -727,7 +727,7 @@ final fooNotConst = null;
 const bar = null;
 
 @foo!1
-main() {
+void f() {
 }''',
         <String>['1+fooConst', '1-fooNotConst', '1-bar'],
         failingTests: '1');
@@ -738,7 +738,7 @@ class AAA {
   const AAA.nnn(int c, int d);
 }
 @AAA!1
-main() {
+void f() {
 }''', <String>[
       '1+AAA' /*":" + ProposalKind.CONSTRUCTOR*/,
       '1+AAA.nnn' /*":" + ProposalKind.CONSTRUCTOR*/
@@ -760,7 +760,7 @@ class Enum {
   static Enum FOO = new Enum();
 }
 f(Enum e) {}
-main() {
+void f() {
   f(En!1);
 }''', <String>['1+Enum']);
 
@@ -768,12 +768,12 @@ main() {
 class A {
   test() {}
 }
-main(A a) {
+void f(A a) {
   a.test(!1);
 }''', <String>['1-test']);
 
     buildTests('testCompletion_as_asIdentifierPrefix', '''
-main(p) {
+void f(p) {
   var asVisible;
   var v = as!1;
 }''', <String>['1+asVisible']);
@@ -783,13 +783,13 @@ class A {
   var asVisible;
 }
 
-main(A p) {
+void f(A p) {
   var v = p.as!1;
 }''', <String>['1+asVisible']);
 
     buildTests('testCompletion_as_incompleteStatement', '''
 class MyClass {}
-main(p) {
+void f(p) {
   var justSomeVar;
   var v = p as !1
 }''', <String>['1+MyClass', '1-justSomeVar']);
@@ -800,9 +800,9 @@ class A {
 }
 
 
-main(A a) {
+void f(A a) {
   a..!1 aaa();
-}''', <String>['1+aaa', '1-main']);
+}''', <String>['1+aaa', '1-f']);
 
     buildTests('testCompletion_combinator_afterComma', '''
 import 'dart:math' show cos, !1;''',
@@ -842,7 +842,7 @@ class A {
   A.first(int p);
   A.second(double p);
 }
-main() {
+void f() {
   new A.first(!1);
 }''',
         <String>['1+A.first', '1-A.second'],
@@ -852,7 +852,7 @@ main() {
         'testCompletion_constructorArguments_whenPrefixedType',
         '''
 import 'dart:math' as m;
-main() {
+void f() {
   new m.Random(!1);
 }''',
         <String>['1+Random:ARGUMENT_LIST'],
@@ -963,19 +963,19 @@ class C {}''', <String>[
     ]);
 
     buildTests('testCompletion_double_inFractionPart', '''
-main() {
+void f() {
   1.0!1
-}''', <String>['1-abs', '1-main']);
+}''', <String>['1-abs', '1-f']);
 
     buildTests('testCompletion_enum', '''
 enum MyEnum {A, B, C}
-main() {
+void f() {
   MyEnum.!1;
 }''', <String>['1+values', '1+A', '1+B', '1+C']);
 
     buildTests('testCompletion_exactPrefix_hasHigherRelevance', '''
 var STR;
-main(p) {
+void f(p) {
   var str;
   str!1;
   STR!2;
@@ -1028,7 +1028,7 @@ class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1)); }}''',
         'testCompletion_functionTypeParameter_namedArgument',
         '''
 typedef FFF(a, b, {x1, x2, y});
-main(FFF fff) {
+void f(FFF fff) {
   fff(1, 2, !1)!2;
 }''',
         <String>['1+x1', '2-x2'],
@@ -1066,7 +1066,7 @@ topValue = 7; class Foo { mth() { if (t!1) {}}}''', <String>['1+topValue']);
         '''
 class A { a() => null; x() => null}
 class B { a() => null; y() => null}
-void main() {
+void f() {
   var x;
   var c;
   if(c) {
@@ -1084,7 +1084,7 @@ void main() {
         '''
 class A { a() => null; x() => null}
 class B { a() => null; y() => null}
-void main() {
+void f() {
   var x;
   var c;
   if(c) {
@@ -1146,7 +1146,7 @@ class A {
     buildTests('testCompletion_incompleteClosure_parameterType', '''
 f1(cb(String s)) {}
 f2(String s) {}
-main() {
+void f() {
   f1((Str!1));
   f2((Str!2));
 }''', <String>['1+String', '1-bool', '2+String', '2-bool']);
@@ -1154,7 +1154,7 @@ main() {
     buildTests(
         'testCompletion_inPeriodPeriod',
         '''
-main(String str) {
+void f(String str) {
   1 < str.!1.length;
   1 + str.!2.length;
   1 + 2 * str.!3.length;
@@ -1166,7 +1166,7 @@ main(String str) {
     buildTests('testCompletion_instanceCreation_unresolved', '''
 class A {
 }
-main() {
+void f() {
   new NoSuchClass(!1);
   new A.noSuchConstructor(!2);
 }''', <String>['1+int', '2+int']);
@@ -1181,7 +1181,7 @@ import '!1''',
 
     buildTests('testCompletion_is', '''
 class MyClass {}
-main(p) {
+void f(p) {
   var isVariable;
   if (p is MyCla!1) {}
   var v1 = p is MyCla!2;
@@ -1200,7 +1200,7 @@ main(p) {
     buildTests(
         'testCompletion_is_asIdentifierStart',
         '''
-main(p) {
+void f(p) {
   var isVisible;
   var v1 = is!1;
   var v2 = is!2
@@ -1213,21 +1213,21 @@ class A {
   var isVisible;
 }
 
-main(A p) {
+void f(A p) {
   var v1 = p.is!1;
   var v2 = p.is!2
 }''', <String>['1+isVisible', '2+isVisible']);
 
     buildTests('testCompletion_is_incompleteStatement1', '''
 class MyClass {}
-main(p) {
+void f(p) {
   var justSomeVar;
   var v = p is !1
 }''', <String>['1+MyClass', '1-justSomeVar']);
 
     buildTests('testCompletion_is_incompleteStatement2', '''
 class MyClass {}
-main(p) {
+void f(p) {
   var isVariable;
   var v = p is!1
 }''', <String>['1+is', '1-isVariable']);
@@ -1236,7 +1236,7 @@ main(p) {
 class Foo { int input = 7; mth() { if (in!1) {}}}''', <String>['1+input']);
 
     buildTests('testCompletion_keyword_syntheticIdentifier', '''
-main() {
+void f() {
   var caseVar;
   var otherVar;
   var v = case!1
@@ -1257,7 +1257,7 @@ class Functions {
   static myFuncDouble(double p) {}
 }
 bar(p) {}
-main(p) {
+void f(p) {
   foo( Functions.!1; );
 }''',
         <String>[
@@ -1274,7 +1274,7 @@ class Functions {
   static myFunc(int p) {}
 }
 bar(p) {}
-main(p) {
+void f(p) {
   foo( (int p) => Functions.!1; );
 }''',
         <String>[
@@ -1288,7 +1288,7 @@ foo( f(int p) ) {}
 class Functions {
   static int myFunc(int p) {}
 }
-main(p) {
+void f(p) {
   foo(Functions.!1);
 }''', <String>[
       '1+myFunc' /*":" + ProposalKind.METHOD*/,
@@ -1296,19 +1296,19 @@ main(p) {
     ]);
 
     buildTests('testCompletion_namedArgument_alreadyUsed', '''
-func({foo}) {} main() { func(foo: 0, fo!1); }''', <String>['1-foo']);
+func({foo}) {} void f() { func(foo: 0, fo!1); }''', <String>['1-foo']);
 
     buildTests(
         'testCompletion_namedArgument_constructor',
         '''
-class A {A({foo, bar}) {}} main() { new A(fo!1); }''',
+class A {A({foo, bar}) {}} void f() { new A(fo!1); }''',
         <String>['1+foo', '1-bar'],
         failingTests: '1');
 
     buildTests(
         'testCompletion_namedArgument_empty',
         '''
-func({foo, bar}) {} main() { func(!1); }''',
+func({foo, bar}) {} void f() { func(!1); }''',
         <String>[
           '1+foo' /*":" + ProposalKind.NAMED_ARGUMENT*/,
           '1-foo' /*":" + ProposalKind.OPTIONAL_ARGUMENT*/
@@ -1318,15 +1318,15 @@ func({foo, bar}) {} main() { func(!1); }''',
     buildTests(
         'testCompletion_namedArgument_function',
         '''
-func({foo, bar}) {} main() { func(fo!1); }''',
+func({foo, bar}) {} void f() { func(fo!1); }''',
         <String>['1+foo', '1-bar'],
         failingTests: '1');
 
     buildTests('testCompletion_namedArgument_notNamed', '''
-func([foo]) {} main() { func(fo!1); }''', <String>['1-foo']);
+func([foo]) {} void f() { func(fo!1); }''', <String>['1-foo']);
 
     buildTests('testCompletion_namedArgument_unresolvedFunction', '''
-main() { func(fo!1); }''', <String>['1-foo']);
+void f() { func(fo!1); }''', <String>['1-foo']);
 
     buildTests('testCompletion_newMemberType1', '''
 class Collection{}class List extends Collection{}class Foo { !1 }''',
@@ -1350,7 +1350,7 @@ class Collection{}class List extends Collection{}class Foo {C!1}''',
 class A {
   A([foo, bar]);
 }
-main() {
+void f() {
   new A(!1);
   new A(0, !2);
 }''',
@@ -1367,7 +1367,7 @@ main() {
         'testCompletion_positionalArgument_function',
         '''
 func([foo, bar]) {}
-main() {
+void f() {
   func(!1);
   func(0, !2);
 }''',
@@ -1389,7 +1389,7 @@ class A {
 class B extends A {
   bar() {}
 }
-main() {
+void f() {
   A v = new B();
   v.!1
 }''',
@@ -1405,7 +1405,7 @@ class A {
   A._c();
   A.c();
 }
-main() {
+void f() {
   new A.!1
 }''', <String>['1+_c', '1+c']);
 
@@ -1414,7 +1414,7 @@ class A {
   _m() {}
   m() {}
 }
-main(A a) {
+void f(A a) {
   a.!1
 }''', <String>['1+_m', '1+m']);
 
@@ -1423,7 +1423,7 @@ class A {
   static int FIELD;
   int field;
 }
-main() {
+void f() {
   A.!1
 }''', <String>['1+FIELD', '1-field']);
 
@@ -1436,7 +1436,7 @@ class B extends A {
   static int FIELD_B;
   static int methodB() {}
 }
-main() {
+void f() {
   B.!1;
 }''', <String>['1+FIELD_B', '1-FIELD_A', '1+methodB', '1-methodA']);
 
@@ -1451,7 +1451,7 @@ class B {
 class C extends A {
   int fieldC;
 }
-main(B b, C c) {
+void f(B b, C c) {
   b.a.!1;
   c.!2;
 }''', <String>['1-FIELD', '1+fieldA', '2+fieldC', '2+fieldA']);
@@ -1477,7 +1477,7 @@ class A {
 class B extends A {
   var fb;
   mb() {}
-  main() {
+  void f() {
     super.!1
   }
 }''', <String>['1+fa', '1-fb', '1+ma', '1-mb']);
@@ -1535,7 +1535,7 @@ class A {
     buildTests(
         'testCompletion_this_bad_inTopLevelFunction',
         '''
-main() {
+void f() {
   this.!1;
 }''',
         <String>['1-toString'],
@@ -1565,7 +1565,7 @@ class A {
 class B extends A {
   var fb;
   mb() {}
-  main() {
+  void m() {
     this.!1
   }
 }''', <String>['1+fa', '1+fb', '1+ma', '1+mb']);
@@ -1584,7 +1584,7 @@ class Foo { int boo = 7; mth() { while (b!1) {} }}''', <String>['1+boo']);
     buildTests('test_export_ignoreIfThisLibraryExports', '''
 export 'dart:math';
 libFunction() {};
-main() {
+void f() {
   !1
 }''', <String>['1-cos', '1+libFunction']);
 
@@ -1597,7 +1597,7 @@ libFunction() {};''';
         'test_export_showIfImportLibraryWithExport',
         '''
 import 'lib.dart' as p;
-main() {
+void f() {
   p.!1
 }''',
         <String>['1+cos', '1-sin', '1+libFunction'],
@@ -1606,13 +1606,13 @@ main() {
 
     buildTests('test_importPrefix_hideCombinator', '''
 import 'dart:math' as math hide pi;
-main() {
+void f() {
   math.!1
 }''', <String>['1-pi', '1+ln10']);
 
     buildTests('test_importPrefix_showCombinator', '''
 import 'dart:math' as math show pi;
-main() {
+void f() {
   math.!1
 }''', <String>['1+pi', '1-ln10']);
 
@@ -1628,7 +1628,7 @@ class A extends _A {
         'test_memberOfPrivateClass_otherLibrary',
         '''
 import 'lib.dart';
-main(A a) {
+void f(A a) {
   a.!1
 }''',
         <String>['1+foo'],
@@ -1646,7 +1646,7 @@ class A {
         'test_noPrivateElement_otherLibrary_constructor',
         '''
 import 'lib.dart';
-main() {
+void f() {
   new A.!1
 }''',
         <String>['1-_c', '1+c'],
@@ -1663,7 +1663,7 @@ class A {
         'test_noPrivateElement_otherLibrary_member',
         '''
               import 'lib.dart';
-              main(A a) {
+              void f(A a) {
                 a.!1
               }''',
         <String>['1-_f', '1+f'],
@@ -1680,7 +1680,7 @@ class SerializationException {
         'testLibrary001',
         '''
 import 'firth.dart';
-main() {
+void f() {
 throw new Seria!1lizationException();}''',
         <String>['1+SerializationException'],
         extraFiles: sources,
@@ -1717,8 +1717,10 @@ throw new Seria!1lizationException();}''',
 
     // TODO Enable after type propagation is implemented. Not yet.
     // TODO Include corelib analysis
-    buildTests('testLibrary005',
-        '''var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}''', <String>['1+abs'],
+    buildTests(
+        'testLibrary005',
+        '''var PHI;void f(){PHI=5.3;PHI.abs().!1 Object x;}''',
+        <String>['1+abs'],
         failingTests: '1');
 
     // Exercise import and export handling.
@@ -1747,7 +1749,7 @@ i2() {}''';
         '''
 import 'imp1.dart';
 import 'imp2.dart';
-main() {!1
+void f() {!1
   i1();
   i2();
   e1a();
@@ -1768,7 +1770,7 @@ var _l1t; var l1t;''';
         'testLibrary007',
         '''
 import 'l1.dart';
-main() {
+void f() {
   var x = l!1
   var y = _!2
 }''',
@@ -2146,7 +2148,7 @@ class Q {
     buildTests('test019', '''
 var truefalse = 0;
 var falsetrue = 1;
-main() {
+void f() {
   var foo = true!1
 }''', <String>['1+true', '1+truefalse', '1-falsetrue']);
 
@@ -2325,7 +2327,7 @@ class A1 {
     a.field.!1
   }
 }
-main() {
+void f() {
   A1 a = new A1();
   a.field.!2
 }''',
@@ -2337,7 +2339,7 @@ main() {
         '''
 class HttpServer{}
 class HttpClient{}
-main() {
+void f() {
   new HtS!1
 }''',
         <String>['1+HttpServer', '1-HttpClient'],

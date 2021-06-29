@@ -22,7 +22,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Creates a queue containing all [elements].
   ///
   /// The element order in the queue is as if the elements were added using
-  /// [addLast] in the order provided by [elements.iterator].
+  /// [addLast] in the order provided by [elements].iterator.
   ///
   /// All the [elements] should be instances of [E].
   /// The `elements` iterable itself may have any element type, so this
@@ -37,7 +37,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Creates a queue from [elements].
   ///
   /// The element order in the queue is as if the elements were added using
-  /// [addLast] in the order provided by [elements.iterator].
+  /// [addLast] in the order provided by [elements].iterator.
   factory Queue.of(Iterable<E> elements) = ListQueue<E>.of;
 
   /// Adapts [source] to be a `Queue<T>`.
@@ -278,11 +278,11 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// Creates a double-linked queue containing all [elements].
   ///
   /// The element order in the queue is as if the elements were added using
-  /// [addLast] in the order provided by [elements.iterator].
+  /// [addLast] in the order provided by [elements].iterator.
   ///
   /// All the [elements] should be instances of [E].
-  /// The `elements` iterable itself may have any element type, so this
-  /// constructor can be used to down-cast a `Queue`, for example as:
+  /// The [elements] iterable itself may have any element type, so this
+  /// constructor can be used to down-cast a [Queue], for example as:
   /// ```dart
   /// Queue<SuperType> superQueue = ...;
   /// Queue<SubType> subQueue =
@@ -299,7 +299,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// Creates a double-linked queue from [elements].
   ///
   /// The element order in the queue is as if the elements were added using
-  /// [addLast] in the order provided by [elements.iterator].
+  /// [addLast] in the order provided by [elements].iterator.
   factory DoubleLinkedQueue.of(Iterable<E> elements) =>
       DoubleLinkedQueue<E>()..addAll(elements);
 

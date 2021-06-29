@@ -57,40 +57,41 @@ import 'dart:isolate';
         ''');
   }
   sb.writeln('');
-  sb.writeln('final List<dynamic Function(dynamic)> wrappers = [');
+  sb.writeln(r'''
+    class Test {
+      final String name;
+      final dynamic Function(dynamic) fun;
+      Test(this.name, this.fun);
+    }
+  ''');
+  sb.writeln('final List<Test> tests = [');
   for (int i = 0; i < testFiles.length; ++i) {
     final testFile = testFiles[i];
-    sb.writeln('  wrapper$i,');
-  }
-  sb.writeln('];');
-  sb.writeln('final List<String> wrapperNames = [');
-  for (int i = 0; i < testFiles.length; ++i) {
-    final testFile = testFiles[i];
-    sb.writeln('  "$testFile",');
+    sb.writeln('  Test("$testFile", wrapper$i),');
   }
   sb.writeln('];');
   sb.writeln('');
+
   sb.writeln('''
 class Runner {
   static const progressEvery = 100;
 
-  final List<String> testNames;
-  final List<dynamic Function(dynamic)> tests;
+  final List<Test> tests;
   late final ReceivePort onExit;
   late final List<ReceivePort> onExits;
   late final List<ReceivePort> onErrors;
 
-  Runner(this.testNames, this.tests) {
+  Runner(this.tests) {
     onExit = ReceivePort();
     onExits = List<ReceivePort>.generate(tests.length, (int i) {
       return ReceivePort()..listen((_) {
-        print('[\${testNames[i]}] finished');
+        print('[\${tests[i].name}] finished');
         onExit.sendPort.send(null);
       });
     });
     onErrors = List<ReceivePort>.generate(tests.length, (int i) {
       return ReceivePort()..listen((error) {
-        print('[\${testNames[i]}] error: \$error');
+        print('[\${tests[i].name}] error: \$error');
       });
     });
   }
@@ -98,7 +99,7 @@ class Runner {
   Future runWithUnlimitedParallelism() async {
     for (int i = 0; i < tests.length; ++i) {
       await Isolate.spawn(
-          tests[i],
+          tests[i].fun,
           null,
           onExit: onExits[i].sendPort,
           onError: onErrors[i].sendPort);
@@ -112,7 +113,7 @@ class Runner {
     Future run() async {
       final int current = _current++;
       await Isolate.spawn(
-          tests[current],
+          tests[current].fun,
           null,
           onExit: onExits[current].sendPort,
           onError: onErrors[current].sendPort);
@@ -142,10 +143,22 @@ class Runner {
 }
 
 main() async {
-  const int parallelism = const int.fromEnvironment(
+  final shards = int.fromEnvironment(
+      'shards', defaultValue: 1);
+  final shard = int.fromEnvironment(
+      'shard', defaultValue: 0);
+
+  final parallelism = int.fromEnvironment(
       'parallelism', defaultValue: 0);
 
-  final runner = Runner(wrapperNames, wrappers);
+  final filteredTests = <Test>[];
+  for (int i = 0; i < tests.length; ++i) {
+    if ((i % shards) == shard) {
+      filteredTests.add(tests[i]);
+    }
+  }
+
+  final runner = Runner(filteredTests);
   if (parallelism <= 0) {
     await runner.runWithUnlimitedParallelism();
   } else {

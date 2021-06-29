@@ -197,7 +197,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The range from [start] to [end] must be a valid range of [source],
   /// and there must be room for `end - start` elements from position [at].
   /// If [start] is omitted, it defaults to zero.
-  /// If [end] is omitted, it defaults to [source.length].
+  /// If [end] is omitted, it defaults to [source].length.
   ///
   /// If [source] and [target] is the same list, overlapping source and target
   /// ranges are respected so that the target range ends up containing the

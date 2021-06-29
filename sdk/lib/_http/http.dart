@@ -1593,7 +1593,7 @@ abstract class HttpClient {
    * [url].
    *
    * The `Host` header for the request will be set to the value
-   * [Uri.host]:[Uri.port] from [url] (if [url.host] is an IP address, it will
+   * [Uri.host]:[Uri.port] from [url] (if `url.host` is an IP address, it will
    * still be used in the `Host` header). This can be overridden through the
    * [HttpClientRequest] interface before the request is sent.
    *
@@ -1724,7 +1724,8 @@ abstract class HttpClient {
    * authentication.
    *
    * The URL requested, the authentication scheme and the security realm
-   * from the server are passed in the arguments [url], [scheme] and [realm].
+   * from the server are passed in the arguments [f.url], [f.scheme] and
+   * [f.realm].
    *
    * The function returns a [Future] which should complete when the
    * authentication has been resolved. If credentials cannot be
@@ -1844,7 +1845,7 @@ abstract class HttpClient {
    *
    * Information on the proxy in use, the authentication scheme
    * and the security realm for the authentication
-   * are passed in the arguments [host], [port], [scheme] and [realm].
+   * are passed in the arguments [f.host], [f.port], [f.scheme] and [f.realm].
    *
    * The function returns a [Future] which should complete when the
    * authentication has been resolved. If credentials cannot be

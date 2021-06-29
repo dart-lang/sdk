@@ -132,7 +132,7 @@ const double myDouble = 42.0;
 class A<T> {
   A.from(Object obj);
 }
-main() {
+void f() {
   print(A.from<String>([]));
 }
     ''');
@@ -140,12 +140,12 @@ main() {
     var result = await performFix(
         includedFixes: ['wrong_number_of_type_arguments_constructor']);
     expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'type arguments', 60, 8);
+    expectSuggestion(result.suggestions[0], 'type arguments', 62, 8);
     expectEdits(result.edits, '''
 class A<T> {
   A.from(Object obj);
 }
-main() {
+void f() {
   print(A<String>.from([]));
 }
     ''');
@@ -200,13 +200,13 @@ const double myDouble = 42;
   }
 
   Future<void> test_pedantic() async {
-    addTestFile('main(List args) { if (args.length == 0) { } }');
+    addTestFile('void f(List args) { if (args.length == 0) { } }');
     createProject();
     var result = await performFix(pedantic: true);
     expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 22, 16);
+    expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 24, 16);
     expect(result.hasErrors, isFalse);
-    expectEdits(result.edits, 'main(List args) { if (args.isEmpty) { } }');
+    expectEdits(result.edits, 'void f(List args) { if (args.isEmpty) { } }');
   }
 
   Future<void> test_preferEqualForDefaultValues() async {
@@ -267,14 +267,14 @@ const double myDouble = 42;
   }
 
   Future<void> test_preferIsEmpty() async {
-    addTestFile('main(List<String> args) { if (args.length == 0) { } }');
+    addTestFile('void f(List<String> args) { if (args.length == 0) { } }');
     createProject();
     var result = await performFix(includedFixes: ['prefer_is_empty']);
     expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 30, 16);
+    expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 32, 16);
     expect(result.hasErrors, isFalse);
     expectEdits(
-        result.edits, 'main(List<String> args) { if (args.isEmpty) { } }');
+        result.edits, 'void f(List<String> args) { if (args.isEmpty) { } }');
   }
 
   Future<void> test_preferMixin() async {

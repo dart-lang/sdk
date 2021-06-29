@@ -105,7 +105,7 @@ var w = new Foo();
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   new MyWidget(1234);
   new MyWidget.named(5678);
 }
@@ -116,8 +116,8 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) => null;
 }
 ''');
-    var main = testUnit.declarations[0] as FunctionDeclaration;
-    var body = main.functionExpression.body as BlockFunctionBody;
+    var f = testUnit.declarations[0] as FunctionDeclaration;
+    var body = f.functionExpression.body as BlockFunctionBody;
     var statements = body.block.statements;
 
     // new MyWidget(1234);
@@ -161,7 +161,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   createEmptyText();
   createText('xyz');
 }
@@ -192,7 +192,7 @@ Text createText(String txt) => new Text(txt);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   new Container(child: new Text(''));
 }
 
@@ -211,7 +211,7 @@ abstract class Foo extends Widget {
   Widget bar;
 }
 
-main(Foo foo) {
+void f(Foo foo) {
   foo.bar; // ref
 }
 ''');
@@ -228,7 +228,7 @@ abstract class Foo extends Widget {
   Widget bar;
 }
 
-main(Foo foo) {
+void f(Foo foo) {
   foo.bar; // ref
 }
 ''');
@@ -240,7 +240,7 @@ main(Foo foo) {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main(Widget widget) {
+void f(Widget widget) {
   widget; // ref
 }
 ''');
@@ -252,7 +252,7 @@ main(Widget widget) {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   var intVariable = 42;
   intVariable;
 }
@@ -275,7 +275,7 @@ Text createEmptyText() => new Text('');
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   var text = new Text('abc');
   useWidget(text); // ref
 }
@@ -291,7 +291,7 @@ void useWidget(Widget w) {}
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   Widget text;
   text = Text('abc');
 }
@@ -322,7 +322,7 @@ void useWidget(Widget w) {}
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main(bool condition, Widget w1, Widget w2) {
+void f(bool condition, Widget w1, Widget w2) {
   condition ? w1 : w2;
 }
 ''');
@@ -338,7 +338,7 @@ main(bool condition, Widget w1, Widget w2) {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main(Widget widget) => widget; // ref
+void f(Widget widget) => widget; // ref
 ''');
     var expression = findNode.simple('widget; // ref');
     expect(_flutter.identifyWidgetExpression(expression), expression);
@@ -349,7 +349,7 @@ main(Widget widget) => widget; // ref
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main(Widget widget) {
+void f(Widget widget) {
   widget; // ref
 }
 ''');
@@ -361,7 +361,7 @@ main(Widget widget) {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main(bool b) {
+void f(bool b) {
   [
     for (var v in [0, 1, 2]) Container()
   ];
@@ -377,7 +377,7 @@ void useWidget(Widget w) {}
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main(bool b) {
+void f(bool b) {
   [
     if (b)
       Text('then')
@@ -399,7 +399,7 @@ void useWidget(Widget w) {}
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main(Widget widget) {
+List<Widget> f(Widget widget) {
   return [widget]; // ref
 }
 ''');
@@ -411,7 +411,7 @@ main(Widget widget) {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   var text = new Text('abc');
   useWidget(child: text); // ref
 }
@@ -426,7 +426,7 @@ void useWidget({Widget child}) {}
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main(Widget widget) {
+Widget f(Widget widget) {
   return widget; // ref
 }
 ''');
@@ -480,7 +480,7 @@ var b = new Text('bbb');
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   MyWidget.named(); // use
   var text = new Text('abc');
   text;

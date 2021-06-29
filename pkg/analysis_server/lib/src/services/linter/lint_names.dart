@@ -108,6 +108,7 @@ class LintNames {
       'unnecessary_nullable_for_final_variable_declarations';
   static const String unnecessary_overrides = 'unnecessary_overrides';
   static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
+  static const String unnecessary_string_escapes = 'unnecessary_string_escapes';
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
@@ -115,5 +116,7 @@ class LintNames {
       'use_full_hex_values_for_flutter_colors';
   static const String use_function_type_syntax_for_parameters =
       'use_function_type_syntax_for_parameters';
+  static const String use_key_in_widget_constructors =
+      'use_key_in_widget_constructors';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }
