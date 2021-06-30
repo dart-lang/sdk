@@ -15499,13 +15499,12 @@ void ICData::set_entries(const Array& value) const {
 }
 
 intptr_t ICData::NumArgsTested() const {
-  return NumArgsTestedBits::decode(untag()->state_bits_);
+  return untag()->state_bits_.Read<NumArgsTestedBits>();
 }
 
 void ICData::SetNumArgsTested(intptr_t value) const {
   ASSERT(Utils::IsUint(2, value));
-  StoreNonPointer(&untag()->state_bits_,
-                  NumArgsTestedBits::update(value, untag()->state_bits_));
+  untag()->state_bits_.Update<NumArgsTestedBits>(value);
 }
 
 intptr_t CallSiteData::TypeArgsLen() const {
@@ -15534,12 +15533,11 @@ intptr_t CallSiteData::SizeWithTypeArgs() const {
 }
 
 uint32_t ICData::DeoptReasons() const {
-  return DeoptReasonBits::decode(untag()->state_bits_);
+  return untag()->state_bits_.Read<DeoptReasonBits>();
 }
 
 void ICData::SetDeoptReasons(uint32_t reasons) const {
-  StoreNonPointer(&untag()->state_bits_,
-                  DeoptReasonBits::update(reasons, untag()->state_bits_));
+  untag()->state_bits_.Update<DeoptReasonBits>(reasons);
 }
 
 bool ICData::HasDeoptReason(DeoptReasonId reason) const {
@@ -15549,7 +15547,7 @@ bool ICData::HasDeoptReason(DeoptReasonId reason) const {
 
 void ICData::AddDeoptReason(DeoptReasonId reason) const {
   if (reason <= kLastRecordedDeoptReason) {
-    SetDeoptReasons(DeoptReasons() | (1 << reason));
+    untag()->state_bits_.FetchOr<DeoptReasonBits>(1 << reason);
   }
 }
 
@@ -15577,20 +15575,19 @@ bool ICData::ParseRebindRule(const char* str, RebindRule* out) {
 }
 
 ICData::RebindRule ICData::rebind_rule() const {
-  return (ICData::RebindRule)RebindRuleBits::decode(untag()->state_bits_);
+  return RebindRule(untag()->state_bits_.Read<RebindRuleBits>());
 }
 
 void ICData::set_rebind_rule(uint32_t rebind_rule) const {
-  StoreNonPointer(&untag()->state_bits_,
-                  RebindRuleBits::update(rebind_rule, untag()->state_bits_));
+  untag()->state_bits_.Update<ICData::RebindRuleBits>(rebind_rule);
 }
 
 bool ICData::is_static_call() const {
   return rebind_rule() != kInstance;
 }
 
-void ICData::set_state_bits(uint32_t bits) const {
-  StoreNonPointer(&untag()->state_bits_, bits);
+void ICData::clear_state_bits() const {
+  untag()->state_bits_ = 0;
 }
 
 intptr_t ICData::TestEntryLengthFor(intptr_t num_args,
@@ -16341,7 +16338,7 @@ ICDataPtr ICData::NewDescriptor(Zone* zone,
   result.set_target_name(target_name);
   result.set_arguments_descriptor(arguments_descriptor);
   NOT_IN_PRECOMPILED(result.set_deopt_id(deopt_id));
-  result.set_state_bits(0);
+  result.clear_state_bits();
   result.set_rebind_rule(rebind_rule);
   result.SetNumArgsTested(num_args_tested);
   NOT_IN_PRECOMPILED(result.SetReceiversStaticType(receivers_static_type));
@@ -16363,7 +16360,7 @@ ICDataPtr ICData::New() {
     result ^= raw;
   }
   result.set_deopt_id(DeoptId::kNone);
-  result.set_state_bits(0);
+  result.clear_state_bits();
   return result.ptr();
 }
 

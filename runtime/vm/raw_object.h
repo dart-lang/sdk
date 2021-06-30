@@ -280,9 +280,10 @@ class UntaggedObject {
       return tags_.compare_exchange_weak(old_tags, new_tags, order);
     }
 
-    template <class TagBitField>
+    template <class TagBitField,
+              std::memory_order order = std::memory_order_relaxed>
     typename TagBitField::Type Read() const {
-      return TagBitField::decode(tags_.load(std::memory_order_relaxed));
+      return TagBitField::decode(tags_.load(order));
     }
 
     template <class TagBitField>
@@ -298,6 +299,11 @@ class UntaggedObject {
       } else {
         tags_.fetch_and(~TagBitField::encode(true), order);
       }
+    }
+
+    template <class TagBitField>
+    void FetchOr(typename TagBitField::Type value) {
+      tags_.fetch_or(TagBitField::encode(value), std::memory_order_relaxed);
     }
 
     template <class TagBitField>
@@ -2462,7 +2468,8 @@ class UntaggedICData : public UntaggedCallSiteData {
     return NULL;
   }
   NOT_IN_PRECOMPILED(int32_t deopt_id_);
-  uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons.
+  // Number of arguments tested in IC, deopt reasons.
+  Tags<uint32_t> state_bits_;
 };
 
 class UntaggedMegamorphicCache : public UntaggedCallSiteData {
