@@ -247,6 +247,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// checkLibrary calls are correct.
   bool disableProgramSplit = false;
 
+  // Whether or not to stop compilation after splitting the
+  bool stopAfterProgramSplit = false;
+
   /// Diagnostic option: If `true`, warnings cause the compilation to fail.
   @override
   bool fatalWarnings = false;
@@ -549,6 +552,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
+      ..stopAfterProgramSplit = _hasOption(options, Flags.stopAfterProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
       ..useTrivialAbstractValueDomain =
           _hasOption(options, Flags.useTrivialAbstractValueDomain)

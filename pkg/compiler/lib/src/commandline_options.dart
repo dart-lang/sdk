@@ -138,6 +138,9 @@ class Flags {
 
   static const String cfeInvocationModes = '--cfe-invocation-modes';
 
+  /// Flag to stop after splitting the program.
+  static const String stopAfterProgramSplit = '--stop-after-program-split';
+
   // The syntax-only level of support for generic methods is included in the
   // 1.50 milestone for Dart. It is not experimental, but also not permanent:
   // a full implementation is expected in the future. Hence, the
