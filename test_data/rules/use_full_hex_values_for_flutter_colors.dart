@@ -17,5 +17,7 @@ m() {
   Color(1); // LINT
   Color(0x000000); // LINT
   Color(0x00000000); // OK
+  Color(0X000000); // LINT
+  Color(0X00000000); // OK
   Color(a); // OK
 }

@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor {
       if (arguments.isNotEmpty) {
         var argument = arguments.first;
         if (argument is IntegerLiteral) {
-          var value = argument.literal.lexeme;
+          var value = argument.literal.lexeme.toLowerCase();
           if (!value.startsWith('0x') || value.length != 10) {
             rule.reportLint(argument);
           }
