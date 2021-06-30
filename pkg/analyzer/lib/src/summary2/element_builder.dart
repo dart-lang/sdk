@@ -81,14 +81,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _libraryElement.imports = _imports;
     _libraryElement.hasExtUri = _hasExtUri;
 
-    var firstDirective = unit.directives.firstOrNull;
-    if (firstDirective != null) {
-      _libraryElement.documentationComment = getCommentNodeRawText(
-        firstDirective.documentationComment,
-      );
-      var firstDirectiveMetadata = firstDirective.element?.metadata;
-      if (firstDirectiveMetadata != null) {
-        _libraryElement.metadata = firstDirectiveMetadata;
+    if (_isFirstLibraryDirective) {
+      _isFirstLibraryDirective = false;
+      var firstDirective = unit.directives.firstOrNull;
+      if (firstDirective != null) {
+        _libraryElement.documentationComment = getCommentNodeRawText(
+          firstDirective.documentationComment,
+        );
+        var firstDirectiveMetadata = firstDirective.element?.metadata;
+        if (firstDirectiveMetadata != null) {
+          _libraryElement.metadata = firstDirectiveMetadata;
+        }
       }
     }
   }
@@ -626,6 +629,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
       node.element = _libraryElement;
+      _libraryElement.documentationComment = getCommentNodeRawText(
+        node.documentationComment,
+      );
       _libraryElement.metadata = _buildAnnotations(node.metadata);
     }
   }

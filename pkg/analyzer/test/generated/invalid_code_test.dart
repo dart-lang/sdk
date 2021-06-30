@@ -368,6 +368,14 @@ class C {
 ''');
   }
 
+  test_libraryAfterImport() async {
+    await _assertCanBeAnalyzed(r'''
+import 'dart:async';
+@foo
+library my;
+''');
+  }
+
   test_localFunction_defaultFieldFormalParameter_metadata() async {
     await _assertCanBeAnalyzed(r'''
 const my = 0;
