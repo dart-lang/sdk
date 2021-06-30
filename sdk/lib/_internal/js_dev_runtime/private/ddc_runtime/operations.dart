@@ -250,6 +250,12 @@ Symbol _setterSymbol(name) {
           _toDisplayName(name));
 }
 
+/// Checks for a valid function, receiver and arguments before calling [f].
+///
+/// If passed, [args] and [typeArgs] must be native JavaScript arrays.
+///
+/// NOTE: The contents of [args] may be modified before calling [f]. If it
+/// originated outside of the SDK it must be copied first.
 _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     JS('', '''(() => {
   $trackCall($obj);
@@ -320,7 +326,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
   let errorMessage = $_argumentErrors($ftype, $args, $named);
   if (errorMessage == null) {
     if ($typeArgs != null) $args = $typeArgs.concat($args);
-    if ($named != null) $args = $args.concat($named);
+    if ($named != null) $args.push($named);
     return $f.apply($obj, $args);
   }
   return callNSM(errorMessage);
