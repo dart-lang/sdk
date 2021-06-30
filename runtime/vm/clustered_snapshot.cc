@@ -1437,7 +1437,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field.set_guarded_list_length_unsafe(Field::kNoFixedLength);
         field.set_guarded_list_length_in_object_offset_unsafe(
             Field::kUnknownLengthOffset);
-        field.set_static_type_exactness_state(
+        field.set_static_type_exactness_state_unsafe(
             StaticTypeExactnessState::NotTracking());
       }
     } else {
@@ -5565,6 +5565,7 @@ class VMDeserializationRoots : public DeserializationRoots {
         *code ^= d->ReadRef();
         StubCode::EntryAtPut(i, code);
       }
+      StubCode::InitializationDone();
     }
   }
 

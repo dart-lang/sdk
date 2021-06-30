@@ -129,7 +129,6 @@ class Metrics {
   }
 
   @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
-  // ignore: unused_element, called from native code
   static String? _printMetric(String id) {
     var metric = _metrics[id];
     if (metric == null) {
@@ -139,7 +138,6 @@ class Metrics {
   }
 
   @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
-  // ignore: unused_element, called from native code
   static String _printMetrics() {
     var metrics = [];
     for (var metric in _metrics.values) {

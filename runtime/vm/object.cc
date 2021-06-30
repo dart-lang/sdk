@@ -10635,7 +10635,7 @@ void Field::InitializeNew(const Field& result,
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_has_pragma(false);
-  result.set_static_type_exactness_state(
+  result.set_static_type_exactness_state_unsafe(
       StaticTypeExactnessState::NotTracking());
   auto isolate_group = IsolateGroup::Current();
 
@@ -25729,7 +25729,7 @@ UserTagPtr UserTag::MakeActive() const {
 #if !defined(PRODUCT)
   // Notify VM service clients that the current UserTag has changed.
   if (Service::profiler_stream.enabled()) {
-    ServiceEvent event(ServiceEvent::kUserTagChanged);
+    ServiceEvent event(isolate, ServiceEvent::kUserTagChanged);
     String& name = String::Handle(old.label());
     event.set_previous_tag(name.ToCString());
     name ^= label();

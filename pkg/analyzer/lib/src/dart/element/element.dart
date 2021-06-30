@@ -201,6 +201,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       _first(_implementationsOfGetter(getterName).where(
           (PropertyAccessorElement getter) =>
               !getter.isAbstract &&
+              !getter.isStatic &&
               getter.isAccessibleIn(library) &&
               getter.enclosingElement != this));
 
@@ -220,6 +221,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
               !method.isAbstract &&
+              !method.isStatic &&
               method.isAccessibleIn(library) &&
               method.enclosingElement != this));
 
@@ -229,6 +231,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       _first(_implementationsOfSetter(setterName).where(
           (PropertyAccessorElement setter) =>
               !setter.isAbstract &&
+              !setter.isStatic &&
               setter.isAccessibleIn(library) &&
               setter.enclosingElement != this));
 

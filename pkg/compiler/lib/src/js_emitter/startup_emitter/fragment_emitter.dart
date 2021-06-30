@@ -1079,7 +1079,14 @@ class FragmentEmitter {
     allMethods.forEach((Method method) {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
-        final property = js.Property(name, code);
+        js.Property property;
+        if (_options.features.legacyJavaScript.isEnabled) {
+          property = js.Property(name, code);
+        } else {
+          property = code is js.Fun
+              ? js.MethodDefinition(name, code)
+              : js.Property(name, code);
+        }
         registerEntityAst(method.element, property);
         properties.add(property);
       });
