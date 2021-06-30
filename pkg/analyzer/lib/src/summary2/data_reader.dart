@@ -60,6 +60,12 @@ class SummaryDataReader {
     }
   }
 
+  String? readOptionalStringUtf8() {
+    if (readBool()) {
+      return readStringUtf8();
+    }
+  }
+
   int? readOptionalUInt30() {
     if (readBool()) {
       return readUInt30();

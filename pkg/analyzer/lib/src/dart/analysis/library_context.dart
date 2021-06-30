@@ -150,6 +150,7 @@ class LibraryContext {
                 partDirectiveIndex: partIndex - 1,
                 partUriStr: partUriStr,
                 source: file.source,
+                sourceContent: file.content,
                 isSynthetic: isSynthetic,
                 unit: unit,
               ),

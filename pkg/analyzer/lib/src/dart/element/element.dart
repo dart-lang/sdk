@@ -926,6 +926,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   late Source source;
 
+  /// The content of the [source] for which this element model was built.
+  /// Might be `null` if we don't have it (for example in google3 summaries).
+  String? sourceContent;
+
   @override
   LineInfo? lineInfo;
 
