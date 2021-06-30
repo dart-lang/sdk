@@ -7,12 +7,50 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveEmptyElseBulkTest);
     defineReflectiveTests(RemoveEmptyElseTest);
   });
+}
+
+@reflectiveTest
+class RemoveEmptyElseBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_empty_else;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f(bool cond) {
+  if (cond) {
+    //
+  }
+  else ;
+}
+
+void f2(bool cond) {
+  if (cond) {
+    //
+  } else ;
+}
+''');
+    await assertHasFix('''
+void f(bool cond) {
+  if (cond) {
+    //
+  }
+}
+
+void f2(bool cond) {
+  if (cond) {
+    //
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest

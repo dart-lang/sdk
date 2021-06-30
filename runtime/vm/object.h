@@ -2044,7 +2044,7 @@ class ICData : public CallSiteData {
     return untag()->receivers_static_type();
   }
   bool is_tracking_exactness() const {
-    return TrackingExactnessBit::decode(untag()->state_bits_);
+    return untag()->state_bits_.Read<TrackingExactnessBit>();
   }
 #else
   bool is_tracking_exactness() const { return false; }
@@ -2116,14 +2116,8 @@ class ICData : public CallSiteData {
   RebindRule rebind_rule() const;
 
   void set_is_megamorphic(bool value) const {
-    // We don't have concurrent RW access to [state_bits_].
-    const uint32_t updated_bits =
-        MegamorphicBit::update(value, untag()->state_bits_);
-
-    // Though we ensure that once the state bits are updated, all other previous
-    // writes to the IC are visible as well.
-    StoreNonPointer<uint32_t, uint32_t, std::memory_order_release>(
-        &untag()->state_bits_, updated_bits);
+    untag()->state_bits_.UpdateBool<MegamorphicBit, std::memory_order_release>(
+        value);
   }
 
   // The length of the array. This includes all sentinel entries including
@@ -2342,13 +2336,11 @@ class ICData : public CallSiteData {
   }
 
   bool receiver_cannot_be_smi() const {
-    return ReceiverCannotBeSmiBit::decode(
-        LoadNonPointer(&untag()->state_bits_));
+    return untag()->state_bits_.Read<ReceiverCannotBeSmiBit>();
   }
 
   void set_receiver_cannot_be_smi(bool value) const {
-    set_state_bits(ReceiverCannotBeSmiBit::encode(value) |
-                   LoadNonPointer(&untag()->state_bits_));
+    untag()->state_bits_.UpdateBool<ReceiverCannotBeSmiBit>(value);
   }
 
  private:
@@ -2362,10 +2354,9 @@ class ICData : public CallSiteData {
   void set_entries(const Array& value) const;
   void set_owner(const Function& value) const;
   void set_rebind_rule(uint32_t rebind_rule) const;
-  void set_state_bits(uint32_t bits) const;
+  void clear_state_bits() const;
   void set_tracking_exactness(bool value) const {
-    StoreNonPointer(&untag()->state_bits_,
-                    TrackingExactnessBit::update(value, untag()->state_bits_));
+    untag()->state_bits_.UpdateBool<TrackingExactnessBit>(value);
   }
 
   // Does entry |index| contain the sentinel value?
@@ -2394,9 +2385,8 @@ class ICData : public CallSiteData {
   bool is_megamorphic() const {
     // Ensure any following load instructions do not get performed before this
     // one.
-    const uint32_t bits = LoadNonPointer<uint32_t, std::memory_order_acquire>(
-        &untag()->state_bits_);
-    return MegamorphicBit::decode(bits);
+    return untag()
+        ->state_bits_.Read<MegamorphicBit, std::memory_order_acquire>();
   }
 
   bool ValidateInterceptor(const Function& target) const;

@@ -7,16 +7,35 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../abstract_context.dart';
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveNonNullAssertionWithNullSafetyTest);
+    defineReflectiveTests(RemoveNonNullAssertionBulkTest);
+    defineReflectiveTests(RemoveNonNullAssertionTest);
   });
 }
 
 @reflectiveTest
-class RemoveNonNullAssertionWithNullSafetyTest extends FixProcessorTest
+class RemoveNonNullAssertionBulkTest extends BulkFixProcessorTest
+    with WithNullSafetyMixin {
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f(String a) {
+  print(a!!);
+}
+''');
+    await assertHasFix('''
+void f(String a) {
+  print(a);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveNonNullAssertionTest extends FixProcessorTest
     with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.REMOVE_NON_NULL_ASSERTION;
