@@ -201,7 +201,7 @@ class ProgramBuilder {
       if (superclass != null) {
         c.setSuperclass(_classes[superclass]);
         assert(
-            c.superclass != null,
+            c.onlyForConstructor || c.superclass != null,
             failedAt(
                 cls,
                 "No Class for has been created for superclass "
