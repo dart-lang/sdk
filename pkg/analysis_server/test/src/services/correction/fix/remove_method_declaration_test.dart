@@ -7,12 +7,45 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveMethodDeclarationBulkTest);
     defineReflectiveTests(RemoveMethodDeclarationTest);
   });
+}
+
+@reflectiveTest
+class RemoveMethodDeclarationBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_overrides;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class A {
+  int foo;
+  int bar() => 0;
+}
+
+class B extends A {
+  @override
+  int get foo => super.foo;
+  @override
+  int bar() => super.bar();
+}
+''');
+    await assertHasFix('''
+class A {
+  int foo;
+  int bar() => 0;
+}
+
+class B extends A {
+}
+''');
+  }
 }
 
 @reflectiveTest

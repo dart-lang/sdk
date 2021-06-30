@@ -8,12 +8,41 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveEmptyConstructorBodyBulkTest);
     defineReflectiveTests(RemoveEmptyConstructorBodyTest);
   });
+}
+
+@reflectiveTest
+class RemoveEmptyConstructorBodyBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.empty_constructor_bodies;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class C {
+  C() {}
+}
+
+class D {
+  D() {}
+}
+''');
+    await assertHasFix('''
+class C {
+  C();
+}
+
+class D {
+  D();
+}
+''');
+  }
 }
 
 @reflectiveTest

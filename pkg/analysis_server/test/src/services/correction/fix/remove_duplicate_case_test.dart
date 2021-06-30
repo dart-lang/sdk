@@ -7,12 +7,51 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveDuplicateCaseBulkTest);
     defineReflectiveTests(RemoveDuplicateCaseTest);
   });
+}
+
+@reflectiveTest
+class RemoveDuplicateCaseBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.no_duplicate_case_values;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void switchInt() {
+  switch (2) {
+    case 1:
+      print('a');
+      break;
+    case 2:
+    case 2:
+    case 3:
+    case 3:
+    default:
+      print('?');
+  }
+}
+''');
+    await assertHasFix('''
+void switchInt() {
+  switch (2) {
+    case 1:
+      print('a');
+      break;
+    case 2:
+    case 3:
+    default:
+      print('?');
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest
