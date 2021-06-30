@@ -68,13 +68,12 @@ dynamic newObject() => JS('=Object', '{}');
 
 bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
 
-// All usage optimized away in a CFE transformation. Changes here will not
-// affect the generated JS.
+// A CFE transformation will optimize all calls to `getProperty`.
 dynamic getProperty(Object o, Object name) =>
     JS('Object|Null', '#[#]', o, name);
 
-// Some usage optimized away in a CFE transformation. If given value is a
-// function, changes here will not affect the generated JS.
+// A CFE transformation may optimize calls to `setProperty`, when [value] is
+// statically known to be a non-function.
 dynamic setProperty(Object o, Object name, Object? value) {
   assertInterop(value);
   return JS('', '#[#]=#', o, name, value);
@@ -86,9 +85,46 @@ dynamic _setPropertyUnchecked(Object o, Object name, Object? value) {
   return JS('', '#[#]=#', o, name, value);
 }
 
+// A CFE transformation may optimize calls to `callMethod` when [args] is a
+// a list literal or const list containing at most 4 values, all of which are
+// statically known to be non-functions.
 dynamic callMethod(Object o, String method, List<Object?> args) {
   assertInteropArgs(args);
   return JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
+}
+
+/// Unchecked version for 0 arguments, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callMethodUnchecked0(Object o, String method) {
+  return JS('Object|Null', '#[#]()', o, method);
+}
+
+/// Unchecked version for 1 argument, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callMethodUnchecked1(Object o, String method, Object? arg1) {
+  return JS('Object|Null', '#[#](#)', o, method, arg1);
+}
+
+/// Unchecked version for 2 arguments, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callMethodUnchecked2(
+    Object o, String method, Object? arg1, Object? arg2) {
+  return JS('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
+}
+
+/// Unchecked version for 3 arguments, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callMethodUnchecked3(
+    Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
+  return JS('Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
+}
+
+/// Unchecked version for 4 arguments, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _callMethodUnchecked4(Object o, String method, Object? arg1,
+    Object? arg2, Object? arg3, Object? arg4) {
+  return JS(
+      'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
 }
 
 /// Check whether [o] is an instance of [type].
