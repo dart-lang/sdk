@@ -13025,15 +13025,19 @@ class TypedefTearOffConstant extends Constant {
     if (other.tearOffConstant != tearOffConstant) return false;
     if (other.parameters.length != parameters.length) return false;
     if (parameters.isNotEmpty) {
-      Map<TypeParameter, DartType> substitutionMap =
-          <TypeParameter, DartType>{};
-      for (int i = 0; i < parameters.length; ++i) {
-        substitutionMap[parameters[i]] = new TypeParameterType.forAlphaRenaming(
-            other.parameters[i], parameters[i]);
+      Assumptions assumptions = new Assumptions();
+      for (int index = 0; index < parameters.length; index++) {
+        assumptions.assume(parameters[index], other.parameters[index]);
       }
-      Substitution substitution = Substitution.fromMap(substitutionMap);
-      for (int i = 0; i < parameters.length; ++i) {
-        if (types[i] != substitution.substituteType(other.types[i])) {
+      for (int index = 0; index < parameters.length; index++) {
+        if (!parameters[index]
+            .bound
+            .equals(other.parameters[index].bound, assumptions)) {
+          return false;
+        }
+      }
+      for (int i = 0; i < types.length; ++i) {
+        if (!types[i].equals(other.types[i], assumptions)) {
           return false;
         }
       }
