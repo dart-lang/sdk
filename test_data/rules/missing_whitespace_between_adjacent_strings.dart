@@ -33,6 +33,8 @@ f(o) {
     'b');
   f('a' // OK
     '$o b');
+  f("a $o b" // OK
+    " c$o");
 }
 
 void matches(String value) {}

@@ -118,7 +118,7 @@ extension on StringLiteral {
       return self.value.startsWithWhitespace;
     } else if (self is StringInterpolation) {
       var first = self.elements.first as InterpolationString;
-      return first.value.isEmpty || first.value.endsWithWhitespace;
+      return first.value.isEmpty || first.value.startsWithWhitespace;
     }
     throw ArgumentError(
         'Expected SimpleStringLiteral or StringInterpolation, but got '
