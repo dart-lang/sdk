@@ -73,11 +73,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
     for (var i = 0; i < node.strings.length - 1; i++) {
       var current = node.strings[i];
       var next = node.strings[i + 1];
-      if (_visit(current, (l) => l.last.endsWithWhitespace) ||
-          _visit(next, (l) => l.first.startsWithWhitespace)) {
+      if (current.endsWithWhitespace || next.startsWithWhitespace) {
         continue;
       }
-      if (!_visit(current, (l) => l.any((e) => e.hasWhitespace))) {
+      if (!current.hasWhitespace) {
         continue;
       }
       rule.reportLint(current);
@@ -86,34 +85,55 @@ class _Visitor extends RecursiveAstVisitor<void> {
     return super.visitAdjacentStrings(node);
   }
 
-  bool _visit(StringLiteral string, bool Function(Iterable<String>) test) {
-    if (string is SimpleStringLiteral) {
-      return test([string.value]);
-    } else if (string is StringInterpolation) {
-      var interpolationSubstitutions = <String>[];
-      for (var e in string.elements) {
-        // Given a [StringInterpolation] like '$text', the elements include
-        // empty [InterpolationString]s on either side of the
-        // [InterpolationExpression]. Don't include them in the evaluation.
-        if (e is InterpolationString && e.value.isNotEmpty) {
-          interpolationSubstitutions.add(e.value);
-        }
-        if (e is InterpolationExpression) {
-          // Treat an interpolation expression as a string with whitespace. This
-          // prevents over-reporting on adjascent Strings which start or end
-          // with interpolations.
-          interpolationSubstitutions.add(' ');
-        }
-      }
-      return test(interpolationSubstitutions);
-    }
-    throw ArgumentError('${string.runtimeType}: $string');
-  }
-
   static bool _isRegExpInstanceCreation(AstNode? node) {
     if (node is InstanceCreationExpression) {
       var constructorElement = node.constructorName.staticElement;
       return constructorElement?.enclosingElement.name == 'RegExp';
+    }
+    return false;
+  }
+}
+
+extension on StringLiteral {
+  /// Returns whether this ends with whitespace, where an initial
+  /// [InterpolationExpression] counts as whitespace.
+  bool get endsWithWhitespace {
+    var self = this;
+    if (self is SimpleStringLiteral) {
+      return self.value.endsWithWhitespace;
+    } else if (self is StringInterpolation) {
+      var last = self.elements.last as InterpolationString;
+      return last.value.isEmpty || last.value.endsWithWhitespace;
+    }
+    throw ArgumentError(
+        'Expected SimpleStringLiteral or StringInterpolation, but got '
+        '$runtimeType');
+  }
+
+  /// Returns whether this starts with whitespace, where an initial
+  /// [InterpolationExpression] counts as whitespace.
+  bool get startsWithWhitespace {
+    var self = this;
+    if (self is SimpleStringLiteral) {
+      return self.value.startsWithWhitespace;
+    } else if (self is StringInterpolation) {
+      var first = self.elements.first as InterpolationString;
+      return first.value.isEmpty || first.value.endsWithWhitespace;
+    }
+    throw ArgumentError(
+        'Expected SimpleStringLiteral or StringInterpolation, but got '
+        '$runtimeType');
+  }
+
+  /// Returns whether this contains whitespace, where any
+  /// [InterpolationExpression] does not count as whitespace.
+  bool get hasWhitespace {
+    if (this is SimpleStringLiteral) {
+      return (this as SimpleStringLiteral).value.hasWhitespace;
+    } else if (this is StringInterpolation) {
+      return (this as StringInterpolation)
+          .elements
+          .any((e) => e is InterpolationString && e.value.hasWhitespace);
     }
     return false;
   }
