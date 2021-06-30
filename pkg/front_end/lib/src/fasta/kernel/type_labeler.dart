@@ -360,7 +360,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add("}");
   }
 
-  void visitTearOffConstant(TearOffConstant node) {
+  void visitStaticTearOffConstant(StaticTearOffConstant node) {
     Procedure procedure = node.procedure;
     Class? classNode = procedure.enclosingClass;
     if (classNode != null) {
@@ -374,8 +374,50 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(procedure.name.text);
   }
 
-  void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    Constructor constructor = node.constructor;
+    Class? classNode = constructor.enclosingClass;
+    result.add(nameForEntity(
+        classNode,
+        classNode.name,
+        classNode.enclosingLibrary.importUri,
+        classNode.enclosingLibrary.fileUri));
+    result.add(".");
+    result.add(constructor.name.text);
+  }
+
+  void visitInstantiationConstant(InstantiationConstant node) {
     node.tearOffConstant.accept(this);
+    if (node.types.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.types) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
+  }
+
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    node.tearOffConstant.accept(this);
+    if (node.parameters.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (TypeParameter param in node.parameters) {
+        if (!first) result.add(", ");
+        result.add(param.name ?? '');
+        if (isObject(param.bound) && param.defaultType is DynamicType) {
+          // Bound was not specified, and therefore should not be printed.
+        } else {
+          result.add(" extends ");
+          param.bound.accept(this);
+        }
+        first = false;
+      }
+      result.add(">");
+    }
     if (node.types.isNotEmpty) {
       result.add("<");
       bool first = true;

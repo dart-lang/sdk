@@ -2284,14 +2284,13 @@ class TypeInformationConstantVisitor
   }
 
   @override
-  TypeInformation visitPartialInstantiationConstant(
-      ir.PartialInstantiationConstant node) {
+  TypeInformation visitInstantiationConstant(ir.InstantiationConstant node) {
     return builder.createInstantiationTypeInformation(
         visitConstant(node.tearOffConstant));
   }
 
   @override
-  TypeInformation visitTearOffConstant(ir.TearOffConstant node) {
+  TypeInformation visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
     return builder.createStaticGetTypeInformation(node, node.procedure);
   }
 

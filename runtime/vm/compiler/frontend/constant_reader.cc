@@ -310,7 +310,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       }
       break;
     }
-    case kPartialInstantiationConstant: {
+    case kInstantiationConstant: {
       // Recurse into lazily evaluating the "sub" constant
       // needed to evaluate the current constant.
       const intptr_t entry_index = reader.ReadUInt();
@@ -345,7 +345,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
                               type_arguments, function, context, Heap::kOld);
       break;
     }
-    case kTearOffConstant: {
+    case kStaticTearOffConstant: {
       const NameIndex index = reader.ReadCanonicalNameReference();
       Function& function =
           Function::Handle(Z, H.LookupStaticMethodByKernelProcedure(index));

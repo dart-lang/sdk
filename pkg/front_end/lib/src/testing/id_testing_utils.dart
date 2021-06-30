@@ -401,17 +401,51 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     sb.write(')');
   }
 
-  void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+  void visitInstantiationConstant(InstantiationConstant node) {
     sb.write('Instantiation(');
-    sb.write(getMemberName(node.tearOffConstant.procedure));
+    sb.write(getMemberName(node.tearOffConstant.member));
     sb.write('<');
     typeToText.visitList(node.types);
     sb.write('>)');
   }
 
-  void visitTearOffConstant(TearOffConstant node) {
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    sb.write('TypedefTearOff(');
+    sb.write(getMemberName(node.tearOffConstant.member));
+    if (node.parameters.isNotEmpty) {
+      sb.write('<');
+      for (int i = 0; i < node.parameters.length; i++) {
+        if (i > 0) {
+          sb.write(',');
+          if (typeToText.typeRepresentation ==
+              TypeRepresentation.analyzerNonNullableByDefault) {
+            sb.write(' ');
+          }
+        }
+        TypeParameter typeParameter = node.parameters[i];
+        sb.write(typeParameter.name);
+        DartType bound = typeParameter.bound;
+        if (!(bound is InterfaceType && bound.classNode.name == 'Object')) {
+          sb.write(' extends ');
+          typeToText.visit(bound);
+        }
+      }
+      sb.write('>');
+    }
+    sb.write('<');
+    typeToText.visitList(node.types);
+    sb.write('>)');
+  }
+
+  void visitStaticTearOffConstant(StaticTearOffConstant node) {
     sb.write('Function(');
     sb.write(getMemberName(node.procedure));
+    sb.write(')');
+  }
+
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    sb.write('Constructor(');
+    sb.write(getMemberName(node.constructor));
     sb.write(')');
   }
 

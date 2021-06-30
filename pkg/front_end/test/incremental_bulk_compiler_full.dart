@@ -97,6 +97,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
       bulkSerialized = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulkFailed = true;
+      context.compiler = null;
     }
 
     // Compile again - the serialized output should be the same.
@@ -112,6 +113,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
       bulkSerialized2 = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulk2Failed = true;
+      context.compiler = null;
     }
 
     if (bulkFailed || oneShotFailed) {

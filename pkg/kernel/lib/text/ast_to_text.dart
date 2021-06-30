@@ -49,7 +49,7 @@ class ConstantNamer extends RecursiveResultVisitor<Null> with Namer<Constant> {
           // Name everything in post-order visit of DAG.
           getName(value);
         }
-      } else if (constant is TearOffConstant) {
+      } else if (constant is StaticTearOffConstant) {
         // We only care about naming the constants themselves. [TearOffConstant]
         // has no Constant children.
         // Avoid visiting `TearOffConstant.procedureReference`.
@@ -2659,13 +2659,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     endLine('}');
   }
 
-  visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+  visitInstantiationConstant(InstantiationConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
     writeWord('partial-instantiation');
     writeSpace();
-    writeMemberReferenceFromReference(node.tearOffConstant.procedureReference);
+    writeMemberReferenceFromReference(node.tearOffConstant.memberReference);
     writeSpace();
     writeSymbol('<');
     writeList(node.types, writeType);
@@ -2680,13 +2680,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     endLine('"${escapeString(node.value)}"');
   }
 
-  visitTearOffConstant(TearOffConstant node) {
+  visitStaticTearOffConstant(StaticTearOffConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
     writeWord('tearoff');
     writeSpace();
-    writeMemberReferenceFromReference(node.procedureReference);
+    writeMemberReferenceFromReference(node.memberReference);
     endLine();
   }
 
@@ -2904,6 +2904,9 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitConstructorTearOff(ConstructorTearOff node) => PRIMARY;
+
+  @override
+  int visitTypedefTearOff(TypedefTearOff node) => EXPRESSION;
 
   @override
   int visitLet(Let node) => EXPRESSION;

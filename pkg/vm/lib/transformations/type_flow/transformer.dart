@@ -1794,12 +1794,12 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   }
 
   @override
-  visitTearOffConstant(TearOffConstant constant) {
+  visitStaticTearOffConstant(StaticTearOffConstant constant) {
     shaker.addUsedMember(constant.procedure);
   }
 
   @override
-  visitPartialInstantiationConstant(PartialInstantiationConstant constant) {
+  visitInstantiationConstant(InstantiationConstant constant) {
     analyzeConstant(constant.tearOffConstant);
   }
 
