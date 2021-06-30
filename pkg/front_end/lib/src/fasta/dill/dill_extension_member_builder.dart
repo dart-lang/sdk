@@ -22,6 +22,9 @@ abstract class DillExtensionMemberBuilder extends DillMemberBuilder {
   bool get isExternal => member.isExternal;
 
   @override
+  String get name => _descriptor.name.text;
+
+  @override
   ProcedureKind get kind {
     switch (_descriptor.kind) {
       case ExtensionMemberKind.Method:

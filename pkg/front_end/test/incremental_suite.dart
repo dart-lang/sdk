@@ -440,6 +440,8 @@ class NewWorldTest {
     }
 
     int worldNum = 0;
+    // TODO: When needed, we can do this for warnings too.
+    List<Set<String>> worldErrors = [];
     for (YamlMap world in worlds) {
       worldNum++;
       print("----------------");
@@ -890,6 +892,18 @@ class NewWorldTest {
         return serializationResult.copyWithOutput(data);
       }
       List<int> incrementalSerializationBytes = serializationResult.output;
+
+      worldErrors.add(formattedErrors.toSet());
+      assert(worldErrors.length == worldNum);
+      if (world["expectSameErrorsAsWorld"] != null) {
+        int expectSameErrorsAsWorld = world["expectSameErrorsAsWorld"];
+        checkErrorsAndWarnings(
+          worldErrors[expectSameErrorsAsWorld - 1],
+          formattedErrors,
+          {},
+          {},
+        );
+      }
 
       Set<String> prevFormattedErrors = formattedErrors.toSet();
       Set<String> prevFormattedWarnings = formattedWarnings.toSet();
