@@ -556,14 +556,14 @@ Object? _substituteArray(
     Object? universe, Object? rtiArray, Object? typeArguments, int depth) {
   bool changed = false;
   int length = _Utils.arrayLength(rtiArray);
-  Object? result = JS('', '[]');
+  Object? result = _Utils.newArrayOrEmpty(length);
   for (int i = 0; i < length; i++) {
     Rti rti = _Utils.asRti(_Utils.arrayAt(rtiArray, i));
     Rti substitutedRti = _substitute(universe, rti, typeArguments, depth);
     if (_Utils.isNotIdentical(substitutedRti, rti)) {
       changed = true;
     }
-    _Utils.arrayPush(result, substitutedRti);
+    _Utils.arraySetAt(result, i, substitutedRti);
   }
   return changed ? result : rtiArray;
 }
@@ -573,7 +573,7 @@ Object? _substituteNamed(
   bool changed = false;
   int length = _Utils.arrayLength(namedArray);
   assert(_Utils.isMultipleOf(length, 3));
-  Object? result = JS('', '[]');
+  Object? result = _Utils.newArrayOrEmpty(length);
   for (int i = 0; i < length; i += 3) {
     String name = _Utils.asString(_Utils.arrayAt(namedArray, i));
     bool isRequired = _Utils.asBool(_Utils.arrayAt(namedArray, i + 1));
@@ -582,9 +582,8 @@ Object? _substituteNamed(
     if (_Utils.isNotIdentical(substitutedRti, rti)) {
       changed = true;
     }
-    _Utils.arrayPush(result, name);
-    _Utils.arrayPush(result, isRequired);
-    _Utils.arrayPush(result, substitutedRti);
+    JS('', '#.splice(#, #, #, #, #)', result, i, 3, name, isRequired,
+        substitutedRti);
   }
   return changed ? result : namedArray;
 }
@@ -1419,7 +1418,7 @@ String _rtiToString(Rti rti, List<String>? genericContext) {
     String name = Rti._getInterfaceName(rti);
     name = _unminifyOrTag(name);
     var arguments = Rti._getInterfaceTypeArguments(rti);
-    if (arguments.length != 0) {
+    if (arguments.length > 0) {
       name += '<' + _rtiArrayToString(arguments, genericContext) + '>';
     }
     return name;
@@ -1633,9 +1632,9 @@ class _Universe {
     } else if (_Utils.isNum(probe)) {
       int length = _Utils.asInt(probe);
       Rti erased = _lookupErasedRti(universe);
-      Object? arguments = JS('', '[]');
+      Object? arguments = _Utils.newArrayOrEmpty(length);
       for (int i = 0; i < length; i++) {
-        _Utils.arrayPush(arguments, erased);
+        _Utils.arraySetAt(arguments, i, erased);
       }
       Rti interface = _lookupInterfaceRti(universe, cls, arguments);
       JS('', '#.# = #', metadata, cls, interface);
@@ -1657,8 +1656,8 @@ class _Universe {
   static void addTypeParameterVariances(Object? universe, Object? variances) =>
       _Utils.objectAssign(typeParameterVariances(universe), variances);
 
-  static JSArray sharedEmptyArray(Object? universe) =>
-      JS('JSArray', '#.#', universe, RtiUniverseFieldNames.sharedEmptyArray);
+  static JSArray sharedEmptyArray(Object? universe) => JS('JSUnmodifiableArray',
+      '#.#', universe, RtiUniverseFieldNames.sharedEmptyArray);
 
   /// Evaluates [recipe] in the global environment.
   static Rti eval(Object? universe, String recipe, bool normalize) {
@@ -1986,7 +1985,7 @@ class _Universe {
     assert(_Utils.isString(name));
     String s = _Utils.asString(name);
     int length = _Utils.arrayLength(arguments);
-    if (length != 0) {
+    if (length > 0) {
       s = _recipeJoin4(s, Recipe.startTypeArgumentsString,
           _canonicalRecipeJoin(arguments), Recipe.endTypeArgumentsString);
     }
@@ -2143,7 +2142,7 @@ class _Universe {
     if (normalize) {
       int length = _Utils.arrayLength(bounds);
       int count = 0;
-      Object? typeArguments = JS('', 'new Array(#)', length);
+      Object? typeArguments = _Utils.newArrayOrEmpty(length);
       for (int i = 0; i < length; i++) {
         Rti bound = _Utils.asRti(_Utils.arrayAt(bounds, i));
         if (Rti._getKind(bound) == Rti.kindNever) {
@@ -2996,7 +2995,7 @@ bool _isInterfaceSubtype(
     var recipes = TypeRule.lookupSupertype(rule, tName);
     if (recipes == null) return false;
     int length = _Utils.arrayLength(recipes);
-    Object? supertypeArgs = length > 0 ? JS('', 'new Array(#)', length) : null;
+    Object? supertypeArgs = _Utils.newArrayOrEmpty(length);
     for (int i = 0; i < length; i++) {
       String recipe = _Utils.asString(_Utils.arrayAt(recipes, i));
       Rti supertypeArg = _Universe.evalInEnvironment(universe, s, recipe);
@@ -3020,7 +3019,7 @@ bool _isInterfaceSubtype(
 
 bool _areArgumentsSubtypes(Object? universe, Object? sArgs, Object? sVariances,
     Object? sEnv, Object? tArgs, Object? tEnv) {
-  int length = sArgs != null ? _Utils.arrayLength(sArgs) : 0;
+  int length = _Utils.arrayLength(sArgs);
   assert(length == _Utils.arrayLength(tArgs));
   bool hasVariances = sVariances != null;
   if (JS_GET_FLAG("VARIANCE")) {
@@ -3139,6 +3138,10 @@ class _Utils {
     }
   }
 
+  static Object? newArrayOrEmpty(int length) => length > 0
+      ? JS('', 'new Array(#)', length)
+      : _Universe.sharedEmptyArray(_theUniverse());
+
   static bool isArray(Object? o) => JS('bool', 'Array.isArray(#)', o);
 
   static int arrayLength(Object? array) => JS('int', '#.length', array);
@@ -3157,10 +3160,6 @@ class _Utils {
 
   static JSArray arrayConcat(Object? a1, Object? a2) =>
       JS('JSArray', '#.concat(#)', a1, a2);
-
-  static void arrayPush(Object? array, Object? value) {
-    JS('', '#.push(#)', array, value);
-  }
 
   static String substring(String s, int start, int end) =>
       JS('String', '#.substring(#, #)', s, start, end);
