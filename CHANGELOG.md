@@ -8,8 +8,6 @@
   interpolations at the beginning and end of String literals.
 - update `unnecessary_getters_setters` to allow for setters with non-basic
   assignments (for example, `??=` or `+=`).
-- update `unnecessary_overrides` to allow overrides with a doc comment only if
-  they are abstract.
 
 # 1.6.1
 

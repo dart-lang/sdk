@@ -20,7 +20,7 @@ class Base {
   int m2({int a, int b}) => 0;
   int m3({int a, int b}) => 0;
   int operator +(other) => 0;
-  Base operator ~() => null;
+  Base operator ~()=> null;
   @override
   int get hashCode => 13;
 }
@@ -53,7 +53,7 @@ class Parent extends Base {
   int operator +(other) => super + other; // LINT
 
   @override
-  Base operator ~() => ~super; // LINT
+  Base operator ~()=> ~super; // LINT
 
   @override
   @myAnnotation
@@ -195,11 +195,7 @@ class D implements C {
 }
 
 class E extends C {
-  /// Overridden for documentation, but has a body.
+  /// it's ok to override to provide better documentation
   @override
-  num get g => super.g; // LINT
-
-  /// Overridden for documentation, without a body.
-  @override
-  num m(int v); // OK
+  num get g => super.g; // OK
 }
