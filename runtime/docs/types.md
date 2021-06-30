@@ -56,7 +56,7 @@ main() {
 
 Variable `c` is assigned a new instance of type `C<bool>`. According to the previous sections, the type arguments of the instance `c` could simply be the vector `[bool]`. When the method `foo()` is called on receiver `c`,  the type `bool` in the type argument vector of `c` would properly reflect the type parameter `T` of class `C`. However, when the method `bar()` is called on the same receiver `c`, its type argument vector would need some transformation so that the correct type argument `List<bool>` reflects the type parameter `X` of class `B`.
 
-For this reason, the type argument vector stored in instance `c` is not simply `[bool]`, but `[List<bool>, bool]`. More generally, the type argument vector stored in any instance of class ‘C’ will have the form `[List<T>, T]`, where `T` is substituted with the actual type argument used to allocate the instance. The type at index 0 in the vector represents `X` in class `B` and the type at index 1 represents `T` in class `C`.
+For this reason, the type argument vector stored in instance `c` is not simply `[bool]`, but `[List<bool>, bool]`. More generally, the type argument vector stored in any instance of class `C` will have the form `[List<T>, T]`, where `T` is substituted with the actual type argument used to allocate the instance. The type at index 0 in the vector represents `X` in class `B` and the type at index 1 represents `T` in class `C`.
 
 This *index* is an important attribute of the type parameter. In fact, the `TypeParameter` object contains a field `index` specifying which type argument to look up in the vector in order to *instantiate* the type parameter.
 
@@ -90,14 +90,14 @@ class C<T> extends B<T> {
   foo() => T;
 }
 ```
-Note how the flattened type argument vector would now repeat type parameter `T` as in `[T, T]’. This repetition is not necessary, since the type at index 0 in the vector representing `X` in class `B` is always identical to the type at index 1 representing `T` in class `C`. Therefore, the *overlapping* vectors are collapsed into a simple vector `[T]`. In other words, both type parameters `T` of `B` and `C` have now the same index 0.
+Note how the flattened type argument vector would now repeat type parameter `T` as in `[T, T]`. This repetition is not necessary, since the type at index 0 in the vector representing `X` in class `B` is always identical to the type at index 1 representing `T` in class `C`. Therefore, the repeating parts of the vector are shifted as to *overlap* each other. The longer vector `[T, T]` is collapsed into a shorter vector `[T]`. In other words, both type parameters `X` of `B` and `T` of `C` now have the same index 0.
 More complex situations can arise with overlapping vectors:
 ```dart
 class B<R, S> { }
 class C<T> extends B<List<T>, T> { }
 ```
-Instead of using `[List[T], T, T]`, the last `T` is overlapping and collapsed into `[List[T], T]`.
-Class `B` has 2 type parameters and 2 type arguments, whereas class `C` has 1 type parameter and 3 type arguments.
+Instead of using `[List[T], T, T]`, the last overlapping `T` is collapsed and the vector becomes `[List[T], T]`.
+Class `B` has 2 type parameters and 2 type arguments, whereas class `C` has 1 type parameter and 2 type arguments.
 
 
 ## TypeRef
@@ -107,7 +107,7 @@ Consider the following example:
 class B<T> { }
 class D extends B<D> { }
 ```
-Flattening the type argument vector of instances of class `D` poses a problem. Indeed, the type argument at index 0 must represent type `D`, which is the type argument of class `B`. Therefore, type `D` is represented by `D[D[D[D[...]]]]` ad infinitum. To solve this problem, the `TypeRef` object extending `AbstractType` is introduced. It contains a single field `type`, which points to an `AbstractType`. Basically, `TypeRef` references another type and it is used to break cycles in type graphs. In this example, type `D` is represented as `D[TypeRef to D]`, or graphically:
+Flattening the type argument vector of instances of class `D` poses a problem. Indeed, the type argument at index 0 must represent type `D`, which is the type argument of class `B`. Therefore, type `D` would need to be represented by `D[D[D[D[...]]]]` ad infinitum. To solve this problem, the `TypeRef` object extending `AbstractType` is introduced. It contains a single field `type`, which points to an `AbstractType`. Basically, `TypeRef` references another type and it is used to break cycles in type graphs. In this example, type `D` is represented as `D[TypeRef -> D]`, or graphically:
 ```
 D:    D[TypeRef]
       ^    |
@@ -122,8 +122,8 @@ class D2 extends B<D1> { }
 ```
 Corresponding types and their internal representation:
 ```
-D1:    D1[TypeRef to D2]
-D2:    D2[TypeRef to D1]
+D1:    D1[TypeRef -> D2]
+D2:    D2[TypeRef -> D1]
 ```
 
 Note that not all declarations of types can be represented this way, but only what is called *contractive* types:
@@ -145,7 +145,7 @@ D<D<T>>:    D[D<D<D<T>>>, D<T>]
 D<D<D<T>>>: D[D<D<D<D<T>>>>, D<D<T>>]
 ...
 ```
-The representation is divergent and therefore not possible. The VM detects non-contractive types and reports an error. These non-contractive types make no sense in real programs and rejecting them is not an issue at all.
+The representation is divergent and therefore not possible. The VM detects non-contractive types (search for `ClassFinalizer::CheckRecursiveType` in the [class finalizer](https://github.com/dart-lang/sdk/blob/master/runtime/vm/class_finalizer.cc)) and reports an error. These non-contractive types make no sense in real programs and rejecting them is not an issue at all.
 
 ## Compile Time Type
 
@@ -220,7 +220,7 @@ Types read from kernel files (produced by the Common Front End) need finalizatio
 
 The index of function type parameters can be assigned immediately upon loading of the type parameter from the kernel file. This is possible because enclosing generic functions are always loaded prior to inner generic functions. Therefore the number of type parameters declared in the  enclosing scope is known. The picture is more complicated with class type parameters. Classes can reference each other and a clear order is not defined in the kernel file. Clusters of classes must be fully loaded before type arguments can be flattened, which in turn determines the indices of class type parameters.
 
-As a last step of finalization, types and type argument vectors get canonicalized not only to minimize memory usage but also to optimize type tests. Indeed, previously tested types can be entered in test caches to speed up further tests. Since types are canonical, using their address in the heap works.
+As a last step of finalization, types and type argument vectors get canonicalized not only to minimize memory usage but also to optimize type tests. Indeed, previously tested types can be entered in test caches to speed up further tests. Since types are canonical, using their heap address as an identifier works (different addresses imply unequal types).
 
 ## Canonicalization and Hash
 
@@ -249,5 +249,5 @@ For details, search for the string *ShareInstantiator* in the source.
 
 ## Nullability of TypeArguments
 
-The previous section ignores an important point, sharing is only allowed if the nullability of each type argument in the instantiator is not modified by the instantiation. If the new instance was allocated with `A<S?, T>()` instead, it would only work if the first type argument in the instantiator is nullable, otherwise, its nullability would change from legacy or non-nullable to nullable. This check cannot be performed at compile time and performing it at run time undermines the benefits of the optimization. However, the nullability change can be computed quickly for the whole vector with a simple integer operation. Since two bits are required per type argument, there is a maximal vector length allowed to apply this optimization. For details, search for `kNullabilityBitsPerType` in the [source](https://github.com/dart-lang/sdk/blob/master/runtime/vm/object.h) and read the comments.
+The previous section ignores an important point, namely, sharing is only allowed if the nullability of each type argument in the instantiator is not modified by the instantiation. If the new instance was allocated with `A<S?, T>()` instead, it would only work if the first type argument in the instantiator is nullable, otherwise, its nullability would change from legacy or non-nullable to nullable. This check cannot be performed at compile time and performing it at run time undermines the benefits of the optimization. However, whether the nullability will remain unchanged for each type argument in the vector can be computed quickly for the whole vector with a simple integer operation. Each type argument vector is assigned a nullability value reflecting the nullability of each one of its type arguments. Since two bits are required per type argument, there is a maximal vector length allowed to apply this optimization. For a more detailed explanation, search for `kNullabilityBitsPerType` in the [source](https://github.com/dart-lang/sdk/blob/master/runtime/vm/object.h) and read the comments.
 
