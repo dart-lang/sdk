@@ -8,6 +8,6 @@ import 'duplicate_import_liba.dart';
 import 'duplicate_import_libb.dart';
 import 'duplicate_import_libc.dart';
 
-export '../duplicate_import_liba.dart';
+export 'duplicate_import_liba.dart';
 export 'duplicate_import_libb.dart';
 export 'duplicate_import_libc.dart';
