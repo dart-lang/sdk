@@ -221,6 +221,12 @@ class InferenceVisitor
   }
 
   @override
+  ExpressionInferenceResult visitTypedefTearOff(
+      TypedefTearOff node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
   ExpressionInferenceResult visitListConcatenation(
       ListConcatenation node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);

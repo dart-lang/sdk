@@ -328,8 +328,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
   }
 
   @override
-  Constant? visitPartialInstantiationConstant(
-      PartialInstantiationConstant node) {
+  Constant? visitInstantiationConstant(InstantiationConstant node) {
     List<DartType>? types;
     for (int index = 0; index < node.types.length; index++) {
       DartType? type = computeConstCanonicalType(
@@ -341,13 +340,13 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
       }
     }
     if (types != null) {
-      return new PartialInstantiationConstant(node.tearOffConstant, types);
+      return new InstantiationConstant(node.tearOffConstant, types);
     }
     return null;
   }
 
   @override
-  Constant? visitTearOffConstant(TearOffConstant node) => null;
+  Constant? visitStaticTearOffConstant(StaticTearOffConstant node) => null;
 
   @override
   Constant? visitTypeLiteralConstant(TypeLiteralConstant node) {
@@ -2917,7 +2916,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 .withArguments(target.name.text));
       } else if (target is Procedure) {
         if (target.kind == ProcedureKind.Method) {
-          return canonicalize(new TearOffConstant(target));
+          return canonicalize(new StaticTearOffConstant(target));
         }
         return createErrorConstant(
             node,
@@ -2936,7 +2935,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       final Member target = node.target;
       if (target is Procedure) {
         if (target.kind == ProcedureKind.Method) {
-          return canonicalize(new TearOffConstant(target));
+          return canonicalize(new StaticTearOffConstant(target));
         }
         return createErrorConstant(
             node,
@@ -3402,28 +3401,42 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           new Instantiation(extract(constant),
               node.typeArguments.map((t) => env.substituteType(t)).toList()));
     }
-    if (constant is TearOffConstant) {
-      if (node.typeArguments.length ==
-          constant.procedure.function.typeParameters.length) {
-        List<DartType>? types = _evaluateDartTypes(node, node.typeArguments);
-        if (types == null) {
-          AbortConstant error = _gotError!;
-          _gotError = null;
-          return error;
-        }
-        assert(_gotError == null);
-        // ignore: unnecessary_null_comparison
-        assert(types != null);
+    if (constant is StaticTearOffConstant) {
+      Member constantMember = constant.procedure;
+      if (constantMember is Procedure) {
+        if (node.typeArguments.length ==
+            constantMember.function.typeParameters.length) {
+          List<DartType>? types = _evaluateDartTypes(node, node.typeArguments);
+          if (types == null) {
+            AbortConstant error = _gotError!;
+            _gotError = null;
+            return error;
+          }
+          assert(_gotError == null);
+          // ignore: unnecessary_null_comparison
+          assert(types != null);
 
-        final List<DartType> typeArguments = convertTypes(types);
-        return canonicalize(
-            new PartialInstantiationConstant(constant, typeArguments));
+          final List<DartType> typeArguments = convertTypes(types);
+          return canonicalize(
+              new InstantiationConstant(constant, typeArguments));
+        } else {
+          // Probably unreachable.
+          return createInvalidExpressionConstant(
+              node,
+              'The number of type arguments supplied in the partial '
+              'instantiation does not match the number of type arguments '
+              'of the $constant.');
+        }
+      } else if (constantMember is Constructor) {
+        // TODO(dmitryas): Add support for instantiated constructor tear-offs.
+        return defaultExpression(node);
+      } else {
+        // Probably unreachable.
+        return createInvalidExpressionConstant(
+            node,
+            "Unsupported kind of a torn off member: "
+            "'${constantMember.runtimeType}'.");
       }
-      // Probably unreachable.
-      return createInvalidExpressionConstant(
-          node,
-          'The number of type arguments supplied in the partial instantiation '
-          'does not match the number of type arguments of the $constant.');
     }
     // The inner expression in an instantiation can never be null, since
     // instantiations are only inferred on direct references to declarations.
@@ -3434,6 +3447,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitConstructorTearOff(ConstructorTearOff node) {
+    return defaultExpression(node);
+  }
+
+  @override
+  Constant visitTypedefTearOff(TypedefTearOff node) {
     return defaultExpression(node);
   }
 

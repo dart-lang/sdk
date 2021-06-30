@@ -307,10 +307,18 @@ class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   void visitTypeLiteralConstant(ir.TypeLiteralConstant node) {}
 
   @override
-  void visitTearOffConstant(ir.TearOffConstant node) {}
+  void visitStaticTearOffConstant(ir.StaticTearOffConstant node) {}
 
   @override
-  void visitPartialInstantiationConstant(ir.PartialInstantiationConstant node) {
+  void visitConstructorTearOffConstant(ir.ConstructorTearOffConstant node) {}
+
+  @override
+  void visitInstantiationConstant(ir.InstantiationConstant node) {
+    node.tearOffConstant.accept(this);
+  }
+
+  @override
+  void visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) {
     node.tearOffConstant.accept(this);
   }
 

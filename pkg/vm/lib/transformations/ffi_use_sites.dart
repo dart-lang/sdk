@@ -770,7 +770,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   void _ensureIsStaticFunction(Expression node) {
     if ((node is StaticGet && node.target is Procedure) ||
-        (node is ConstantExpression && node.constant is TearOffConstant)) {
+        (node is ConstantExpression &&
+            node.constant is StaticTearOffConstant)) {
       return;
     }
     diagnosticReporter.report(

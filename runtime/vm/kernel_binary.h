@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 66;
-static const uint32_t kMaxSupportedKernelFormatVersion = 66;
+static const uint32_t kMinSupportedKernelFormatVersion = 67;
+static const uint32_t kMaxSupportedKernelFormatVersion = 67;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -97,6 +97,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 66;
   V(ConstSetLiteral, 110)                                                      \
   V(ConstMapLiteral, 59)                                                       \
   V(ConstructorTearOff, 60)                                                    \
+  V(TypedefTearOff, 83)                                                        \
   V(ExpressionStatement, 61)                                                   \
   V(Block, 62)                                                                 \
   V(EmptyStatement, 63)                                                        \
@@ -166,12 +167,14 @@ enum ConstantTag {
   kListConstant = 7,
   kSetConstant = 13,
   kInstanceConstant = 8,
-  kPartialInstantiationConstant = 9,
-  kTearOffConstant = 10,
+  kInstantiationConstant = 9,
+  kStaticTearOffConstant = 10,
   kTypeLiteralConstant = 11,
   // These constants are not expected to be seen by the VM, because all
   // constants are fully evaluated.
   kUnevaluatedConstant = 12,
+  kTypedefTearOffConstant = 14,
+  kConstructorTearOffConstant = 15,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart

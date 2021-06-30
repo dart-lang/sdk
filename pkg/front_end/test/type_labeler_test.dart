@@ -285,11 +285,11 @@ main() {
   ]);
   check({mapConst: "<bool, num>{true: 2, false: 2.5}"}, 0);
 
-  Constant tearOffConst = new TearOffConstant(gooMethod);
+  Constant tearOffConst = new StaticTearOffConstant(gooMethod);
   check({tearOffConst: "Foo.goo"}, 1);
 
   Constant partialInstantiationConst =
-      new PartialInstantiationConstant(tearOffConst, [intType]);
+      new InstantiationConstant(tearOffConst, [intType]);
   check({partialInstantiationConst: "Foo.goo<int>"}, 1);
 
   Constant typeLiteralConst = new TypeLiteralConstant(foo);

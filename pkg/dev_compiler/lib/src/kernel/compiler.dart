@@ -5851,6 +5851,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitTypedefTearOff(TypedefTearOff node) {
+    throw UnsupportedError('Typedef instantiation');
+  }
+
+  @override
   js_ast.Expression visitIsExpression(IsExpression node) {
     return _emitIsExpression(node.operand, node.type);
   }
@@ -6232,7 +6237,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitConstant(Constant node) {
-    if (node is TearOffConstant) {
+    if (node is StaticTearOffConstant) {
       // JS() or external JS consts should not be lazily loaded.
       var isSdk = node.procedure.enclosingLibrary.importUri.scheme == 'dart';
       if (_isInForeignJS) {
@@ -6418,7 +6423,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitTearOffConstant(TearOffConstant node) {
+  js_ast.Expression visitStaticTearOffConstant(StaticTearOffConstant node) {
     _declareBeforeUse(node.procedure.enclosingClass);
     return _emitStaticGet(node.procedure);
   }
@@ -6428,8 +6433,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitTypeLiteral(node.type);
 
   @override
-  js_ast.Expression visitPartialInstantiationConstant(
-          PartialInstantiationConstant node) =>
+  js_ast.Expression visitInstantiationConstant(InstantiationConstant node) =>
       canonicalizeConstObject(runtimeCall('gbind(#, #)', [
         visitConstant(node.tearOffConstant),
         node.types.map(_emitType).toList()

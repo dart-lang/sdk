@@ -124,7 +124,7 @@ class UnevaluatedConstantFinder extends ir.ConstantVisitor<bool> {
   bool visitUnevaluatedConstant(ir.UnevaluatedConstant node) => true;
 
   @override
-  bool visitPartialInstantiationConstant(ir.PartialInstantiationConstant node) {
+  bool visitInstantiationConstant(ir.InstantiationConstant node) {
     return node.tearOffConstant.accept(this);
   }
 

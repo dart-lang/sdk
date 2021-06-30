@@ -82,6 +82,7 @@ abstract class ExpressionVisitor<R> {
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
   R visitConstructorTearOff(ConstructorTearOff node) => defaultExpression(node);
+  R visitTypedefTearOff(TypedefTearOff node) => defaultExpression(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -257,6 +258,7 @@ abstract class TreeVisitor<R>
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
   R visitConstructorTearOff(ConstructorTearOff node) => defaultExpression(node);
+  R visitTypedefTearOff(TypedefTearOff node) => defaultExpression(node);
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);
@@ -434,6 +436,8 @@ abstract class TreeVisitor1<R, A>
       defaultExpression(node, arg);
   R visitConstructorTearOff(ConstructorTearOff node, A arg) =>
       defaultExpression(node, arg);
+  R visitTypedefTearOff(TypedefTearOff node, A arg) =>
+      defaultExpression(node, arg);
 
   // Statements
   R defaultStatement(Statement node, A arg) => defaultTreeNode(node, arg);
@@ -577,9 +581,14 @@ abstract class ConstantVisitor<R> {
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  R visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
-  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      defaultConstant(node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      defaultConstant(node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 }
@@ -597,8 +606,10 @@ abstract class _ConstantCallback<R> {
   R visitListConstant(ListConstant node);
   R visitSetConstant(SetConstant node);
   R visitInstanceConstant(InstanceConstant node);
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node);
-  R visitTearOffConstant(TearOffConstant node);
+  R visitInstantiationConstant(InstantiationConstant node);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node);
   R visitTypeLiteralConstant(TypeLiteralConstant node);
   R visitUnevaluatedConstant(UnevaluatedConstant node);
 }
@@ -617,12 +628,20 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
       _callback.visitTypeLiteralConstant(node);
 
   @override
-  R visitTearOffConstant(TearOffConstant node) =>
-      _callback.visitTearOffConstant(node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      _callback.visitStaticTearOffConstant(node);
 
   @override
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
-      _callback.visitPartialInstantiationConstant(node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      _callback.visitConstructorTearOffConstant(node);
+
+  @override
+  R visitInstantiationConstant(InstantiationConstant node) =>
+      _callback.visitInstantiationConstant(node);
+
+  @override
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      _callback.visitTypedefTearOffConstant(node);
 
   @override
   R visitInstanceConstant(InstanceConstant node) =>
@@ -703,9 +722,14 @@ abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  R visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
-  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      defaultConstant(node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      defaultConstant(node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 }
@@ -744,9 +768,12 @@ abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
   void visitListConstant(ListConstant node) => defaultConstant(node);
   void visitSetConstant(SetConstant node) => defaultConstant(node);
   void visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
-  void visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  void visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
-  void visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  void visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      defaultConstant(node);
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      defaultConstant(node);
   void visitTypeLiteralConstant(TypeLiteralConstant node) =>
       defaultConstant(node);
   void visitUnevaluatedConstant(UnevaluatedConstant node) =>
@@ -804,9 +831,14 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  R visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
-  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      defaultConstant(node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      defaultConstant(node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 
@@ -840,10 +872,11 @@ abstract class Visitor<R> extends TreeVisitor<R>
       defaultConstantReference(node);
   R visitInstanceConstantReference(InstanceConstant node) =>
       defaultConstantReference(node);
-  R visitPartialInstantiationConstantReference(
-          PartialInstantiationConstant node) =>
+  R visitInstantiationConstantReference(InstantiationConstant node) =>
       defaultConstantReference(node);
-  R visitTearOffConstantReference(TearOffConstant node) =>
+  R visitStaticTearOffConstantReference(StaticTearOffConstant node) =>
+      defaultConstantReference(node);
+  R visitConstructorTearOffConstantReference(ConstructorTearOffConstant node) =>
       defaultConstantReference(node);
   R visitTypeLiteralConstantReference(TypeLiteralConstant node) =>
       defaultConstantReference(node);
@@ -1547,6 +1580,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, T arg) =>
       defaultExpression(node, arg);
   R visitConstructorTearOff(ConstructorTearOff node, T arg) =>
+      defaultExpression(node, arg);
+  R visitTypedefTearOff(TypedefTearOff node, T arg) =>
       defaultExpression(node, arg);
 }
 

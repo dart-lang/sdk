@@ -130,10 +130,10 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:15:28 -> PartialInstantiationConstant(id2<int*>)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:15:28 -> InstantiationConstant(id2<int*>)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:37:5 -> BoolConstant(false)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:37:5 -> BoolConstant(false)
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2_lib.dart:20:39 -> PartialInstantiationConstant(id2<int*>)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2_lib.dart:20:39 -> InstantiationConstant(id2<int*>)
 Extra constant evaluation: evaluated: 41, effectively constant: 4
 
 

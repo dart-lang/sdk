@@ -748,17 +748,27 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   }
 
   @override
-  void visitTearOffConstant(ir.TearOffConstant node) {
-    registry.registerStaticTearOff(node.procedure, import);
+  void visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
+    ir.Member member = node.procedure;
+    if (member is ir.Procedure) {
+      registry.registerStaticTearOff(member, import);
+    } else {
+      throw new UnsupportedError("Unexpected member (${member.runtimeType}).");
+    }
   }
 
   @override
-  void visitPartialInstantiationConstant(ir.PartialInstantiationConstant node) {
+  void visitInstantiationConstant(ir.InstantiationConstant node) {
     registry.registerGenericInstantiation(
-        node.tearOffConstant.procedure.function.computeFunctionType(
-            node.tearOffConstant.procedure.enclosingLibrary.nonNullable),
+        node.tearOffConstant.function.computeFunctionType(
+            node.tearOffConstant.member.enclosingLibrary.nonNullable),
         node.types);
     visitConstant(node.tearOffConstant);
+  }
+
+  @override
+  void visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) {
+    defaultConstant(node);
   }
 
   @override

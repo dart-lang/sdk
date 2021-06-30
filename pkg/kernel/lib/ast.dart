@@ -8659,6 +8659,82 @@ class ConstructorTearOff extends Expression {
   }
 }
 
+class TypedefTearOff extends Expression {
+  final List<TypeParameter> typeParameters;
+  Expression expression;
+  final List<DartType> typeArguments;
+
+  TypedefTearOff(this.typeParameters, this.expression, this.typeArguments) {
+    expression.parent = this;
+    setParents(typeParameters, this);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    FreshTypeParameters freshTypeParameters =
+        getFreshTypeParameters(typeParameters);
+    FunctionType type = expression.getStaticType(context) as FunctionType;
+    type = Substitution.combine(
+            Substitution.fromPairs(type.typeParameters, typeArguments),
+            freshTypeParameters.substitution)
+        .substituteType(type.withoutTypeParameters) as FunctionType;
+    return new FunctionType(
+        type.positionalParameters, type.returnType, type.declaredNullability,
+        namedParameters: type.namedParameters,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        requiredParameterCount: type.requiredParameterCount,
+        typedefType: null);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitTypedefTearOff(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitTypedefTearOff(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    expression.accept(v);
+    visitList(typeParameters, v);
+    visitList(typeArguments, v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
+    if (expression != null) {
+      expression = v.transform(expression);
+      expression.parent = this;
+    }
+    v.transformList(typeParameters, this);
+    v.transformDartTypeList(typeArguments);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
+    if (expression != null) {
+      expression = v.transform(expression);
+      expression.parent = this;
+    }
+    v.transformList(typeParameters, this, dummyTypeParameter);
+    v.transformDartTypeList(typeArguments);
+  }
+
+  @override
+  String toString() {
+    return "TypedefTearOff(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(expression);
+    printer.writeTypeParameters(typeParameters);
+    printer.writeTypeArguments(typeArguments);
+  }
+}
+
 // ------------------------------------------------------------------------
 //                              STATEMENTS
 // ------------------------------------------------------------------------
@@ -12777,21 +12853,20 @@ class InstanceConstant extends Constant {
       new InterfaceType(classNode, context.nonNullable, typeArguments);
 }
 
-class PartialInstantiationConstant extends Constant {
+class InstantiationConstant extends Constant {
   final TearOffConstant tearOffConstant;
   final List<DartType> types;
 
-  PartialInstantiationConstant(this.tearOffConstant, this.types);
+  InstantiationConstant(this.tearOffConstant, this.types);
 
   visitChildren(Visitor v) {
     tearOffConstant.acceptReference(v);
     visitList(types, v);
   }
 
-  R accept<R>(ConstantVisitor<R> v) =>
-      v.visitPartialInstantiationConstant(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitInstantiationConstant(this);
   R acceptReference<R>(Visitor<R> v) =>
-      v.visitPartialInstantiationConstantReference(this);
+      v.visitInstantiationConstantReference(this);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12800,19 +12875,19 @@ class PartialInstantiationConstant extends Constant {
   }
 
   @override
-  String toString() => 'PartialInstantiationConstant(${toStringInternal()})';
+  String toString() => 'InstantiationConstant(${toStringInternal()})';
 
   int get hashCode => _Hash.combineFinish(
       tearOffConstant.hashCode, _Hash.combineListHash(types));
 
   bool operator ==(Object other) {
-    return other is PartialInstantiationConstant &&
+    return other is InstantiationConstant &&
         other.tearOffConstant == tearOffConstant &&
         listEquals(other.types, types);
   }
 
   DartType getType(StaticTypeContext context) {
-    final FunctionType type = tearOffConstant.getType(context);
+    final FunctionType type = tearOffConstant.getType(context) as FunctionType;
     final Map<TypeParameter, DartType> mapping = <TypeParameter, DartType>{};
     for (final TypeParameter parameter in type.typeParameters) {
       mapping[parameter] = types[mapping.length];
@@ -12821,42 +12896,164 @@ class PartialInstantiationConstant extends Constant {
   }
 }
 
-class TearOffConstant extends Constant {
-  final Reference procedureReference;
+abstract class TearOffConstant implements Constant {
+  Reference get memberReference;
+  Member get member;
+  FunctionNode get function;
+}
 
-  TearOffConstant(Procedure procedure)
-      : procedureReference = procedure.reference {
+class StaticTearOffConstant extends Constant implements TearOffConstant {
+  @override
+  final Reference memberReference;
+
+  StaticTearOffConstant(Procedure procedure)
+      : memberReference = procedure.reference {
     assert(procedure.isStatic);
   }
 
-  TearOffConstant.byReference(this.procedureReference);
+  StaticTearOffConstant.byReference(this.memberReference);
 
-  Procedure get procedure => procedureReference.asProcedure;
+  @override
+  Member get member => memberReference.asMember;
+
+  @override
+  FunctionNode get function => procedure.function;
+
+  Procedure get procedure => memberReference.asProcedure;
 
   visitChildren(Visitor v) {
-    procedureReference.asProcedure.acceptReference(v);
+    memberReference.asProcedure.acceptReference(v);
   }
 
-  R accept<R>(ConstantVisitor<R> v) => v.visitTearOffConstant(this);
-  R acceptReference<R>(Visitor<R> v) => v.visitTearOffConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitStaticTearOffConstant(this);
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitStaticTearOffConstantReference(this);
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeMemberName(procedureReference);
+    printer.writeMemberName(memberReference);
   }
 
   @override
-  String toString() => 'TearOffConstant(${toStringInternal()})';
+  String toString() => 'StaticTearOffConstant(${toStringInternal()})';
 
-  int get hashCode => procedureReference.hashCode;
+  int get hashCode => memberReference.hashCode;
 
   bool operator ==(Object other) {
-    return other is TearOffConstant &&
-        other.procedureReference == procedureReference;
+    return other is StaticTearOffConstant &&
+        other.memberReference == memberReference;
   }
 
   FunctionType getType(StaticTypeContext context) {
     return procedure.function.computeFunctionType(context.nonNullable);
+  }
+}
+
+class ConstructorTearOffConstant extends Constant implements TearOffConstant {
+  @override
+  final Reference memberReference;
+
+  ConstructorTearOffConstant(Constructor constructor)
+      : memberReference = constructor.reference;
+
+  ConstructorTearOffConstant.byReference(this.memberReference);
+
+  @override
+  Member get member => memberReference.asMember;
+
+  @override
+  FunctionNode get function => constructor.function;
+
+  Constructor get constructor => memberReference.asConstructor;
+
+  visitChildren(Visitor v) {
+    memberReference.asProcedure.acceptReference(v);
+  }
+
+  R accept<R>(ConstantVisitor<R> v) => v.visitConstructorTearOffConstant(this);
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitConstructorTearOffConstantReference(this);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(memberReference);
+  }
+
+  @override
+  String toString() => 'ConstructorTearOffConstant(${toStringInternal()})';
+
+  int get hashCode => memberReference.hashCode;
+
+  bool operator ==(Object other) {
+    return other is StaticTearOffConstant &&
+        other.memberReference == memberReference;
+  }
+
+  FunctionType getType(StaticTypeContext context) {
+    return constructor.function.computeFunctionType(context.nonNullable);
+  }
+}
+
+class TypedefTearOffConstant extends Constant {
+  final List<TypeParameter> parameters;
+  final TearOffConstant tearOffConstant;
+  final List<DartType> types;
+
+  TypedefTearOffConstant(this.parameters, this.tearOffConstant, this.types);
+
+  visitChildren(Visitor v) {
+    visitList(parameters, v);
+    tearOffConstant.acceptReference(v);
+    visitList(types, v);
+  }
+
+  R accept<R>(ConstantVisitor<R> v) => v.visitTypedefTearOffConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitTypedefTearOffConstant(this);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeConstant(tearOffConstant);
+    printer.writeTypeParameters(parameters);
+    printer.writeTypeArguments(types);
+  }
+
+  @override
+  String toString() => 'TypedefTearOffConstant(${toStringInternal()})';
+
+  bool operator ==(Object other) {
+    if (other is! TypedefTearOffConstant) return false;
+    if (other.tearOffConstant != tearOffConstant) return false;
+    if (other.parameters.length != parameters.length) return false;
+    if (parameters.isNotEmpty) {
+      Map<TypeParameter, DartType> substitutionMap =
+          <TypeParameter, DartType>{};
+      for (int i = 0; i < parameters.length; ++i) {
+        substitutionMap[parameters[i]] = new TypeParameterType.forAlphaRenaming(
+            other.parameters[i], parameters[i]);
+      }
+      Substitution substitution = Substitution.fromMap(substitutionMap);
+      for (int i = 0; i < parameters.length; ++i) {
+        if (types[i] != substitution.substituteType(other.types[i])) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  DartType getType(StaticTypeContext context) {
+    FunctionType type = tearOffConstant.getType(context) as FunctionType;
+    FreshTypeParameters freshTypeParameters =
+        getFreshTypeParameters(parameters);
+    type = freshTypeParameters.substitute(
+            Substitution.fromPairs(parameters, types).substituteType(type))
+        as FunctionType;
+    return new FunctionType(
+        type.positionalParameters, type.returnType, type.declaredNullability,
+        namedParameters: type.namedParameters,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        requiredParameterCount: type.requiredParameterCount,
+        typedefType: null);
   }
 }
 

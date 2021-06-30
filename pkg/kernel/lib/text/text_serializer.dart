@@ -2204,12 +2204,13 @@ class ConstantTagger extends ConstantVisitor<String>
   String visitListConstant(ListConstant node) => "const-list";
   String visitMapConstant(MapConstant node) => "const-map";
   String visitNullConstant(NullConstant node) => "const-null";
-  String visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  String visitInstantiationConstant(InstantiationConstant node) =>
       "const-apply";
   String visitSetConstant(SetConstant node) => "const-set";
   String visitStringConstant(StringConstant node) => "const-string";
   String visitSymbolConstant(SymbolConstant node) => "const-symbol";
-  String visitTearOffConstant(TearOffConstant node) => "const-tearoff";
+  String visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      "const-tearoff";
   String visitTypeLiteralConstant(TypeLiteralConstant node) => "const-type";
   String visitUnevaluatedConstant(UnevaluatedConstant node) => "const-expr";
 
@@ -2254,12 +2255,10 @@ TextSerializer<MapConstant> mapConstantSerializer =
 TextSerializer<NullConstant> nullConstantSerializer =
     Wrapped<void, NullConstant>((w) => null, (u) => NullConstant(), Nothing());
 
-TextSerializer<PartialInstantiationConstant>
-    partialInstantiationConstantSerializer = Wrapped<
-            Tuple2<TearOffConstant, List<DartType>>,
-            PartialInstantiationConstant>(
+TextSerializer<InstantiationConstant> instantiationConstantSerializer =
+    Wrapped<Tuple2<TearOffConstant, List<DartType>>, InstantiationConstant>(
         (w) => Tuple2(w.tearOffConstant, w.types),
-        (u) => PartialInstantiationConstant(u.first, u.second),
+        (u) => InstantiationConstant(u.first, u.second),
         Tuple2Serializer(
             tearOffConstantSerializer, ListSerializer(dartTypeSerializer)));
 
@@ -2280,10 +2279,10 @@ TextSerializer<SymbolConstant> symbolConstantSerializer =
         (u) => SymbolConstant(u.first, u.second?.reference),
         Tuple2Serializer(DartString(), Optional(CanonicalNameSerializer())));
 
-TextSerializer<TearOffConstant> tearOffConstantSerializer =
-    Wrapped<CanonicalName, TearOffConstant>(
-        (w) => w.procedureReference.canonicalName!,
-        (u) => TearOffConstant.byReference(u.reference),
+TextSerializer<StaticTearOffConstant> tearOffConstantSerializer =
+    Wrapped<CanonicalName, StaticTearOffConstant>(
+        (w) => w.memberReference.canonicalName!,
+        (u) => StaticTearOffConstant.byReference(u.reference),
         CanonicalNameSerializer());
 
 TextSerializer<TypeLiteralConstant> typeLiteralConstantSerializer =
@@ -2656,7 +2655,7 @@ void initializeSerializers() {
     "const-list": listConstantSerializer,
     "const-map": mapConstantSerializer,
     "const-null": nullConstantSerializer,
-    "const-apply": partialInstantiationConstantSerializer,
+    "const-apply": instantiationConstantSerializer,
     "const-set": setConstantSerializer,
     "const-string": stringConstantSerializer,
     "const-symbol": symbolConstantSerializer,
