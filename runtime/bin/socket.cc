@@ -687,11 +687,6 @@ void FUNCTION_NAME(Socket_RecvMsg)(Dart_NativeArguments args) {
     Dart_ThrowException(DartUtils::NewDartOSError());
   }
 
-  // Memory Sanitizer complains addr not being initialized, which is done
-  // through RecvMsg().
-  // Issue: https://github.com/google/sanitizers/issues/1201
-  MSAN_UNPOISON(&addr, sizeof(RawAddr));
-
   // Get the port and clear it in the sockaddr structure.
   int port = SocketAddress::GetAddrPort(addr);
   // TODO(21403): Add checks for AF_UNIX, if unix domain sockets
