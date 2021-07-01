@@ -329,7 +329,9 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(Thread* thread,
                                         const Array& arguments_descriptor) {
   auto const zone = thread->zone();
   const ArgumentsDescriptor args_desc(arguments_descriptor);
-  ASSERT(receiver.ptr() == arguments.At(args_desc.FirstArgIndex()));
+  ASSERT(
+      CompressedInstancePtr(receiver.ptr()).Decompress(thread->heap_base()) ==
+      arguments.At(args_desc.FirstArgIndex()));
   // Allocate an Invocation object.
   const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
 

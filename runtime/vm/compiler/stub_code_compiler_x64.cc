@@ -3312,7 +3312,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   const intptr_t entry_length =
       target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
       target::kCompressedWordSize;
-  __ OBJ(add)(R13, Immediate(entry_length));  // Next entry.
+  __ addq(R13, Immediate(entry_length));  // Next entry.
   __ jmp(&loop);
 
   __ Bind(&found);

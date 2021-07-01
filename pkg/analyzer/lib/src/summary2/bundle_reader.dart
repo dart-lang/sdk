@@ -1208,6 +1208,7 @@ class LibraryReader {
 
     unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
+    unitElement.sourceContent = _reader.readOptionalStringUtf8();
 
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);

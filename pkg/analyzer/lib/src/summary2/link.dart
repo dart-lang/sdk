@@ -252,6 +252,7 @@ class LinkInputUnit {
   final int? partDirectiveIndex;
   final String? partUriStr;
   final Source source;
+  final String? sourceContent;
   final bool isSynthetic;
   final ast.CompilationUnit unit;
 
@@ -259,6 +260,7 @@ class LinkInputUnit {
     required this.partDirectiveIndex,
     this.partUriStr,
     required this.source,
+    this.sourceContent,
     required this.isSynthetic,
     required this.unit,
   });

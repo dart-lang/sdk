@@ -137,6 +137,15 @@ class BufferedSink {
     }
   }
 
+  void writeOptionalStringUtf8(String? value) {
+    if (value != null) {
+      writeBool(true);
+      writeStringUtf8(value);
+    } else {
+      writeBool(false);
+    }
+  }
+
   void writeOptionalUInt30(int? value) {
     if (value != null) {
       writeBool(true);

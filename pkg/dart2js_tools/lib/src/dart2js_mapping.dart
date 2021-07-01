@@ -152,6 +152,7 @@ class _FrameDecoder implements Iterator<String> {
 
 _extractMinifedNames(String encodedInput, SingleMapping sourceMap,
     Map<String, String> minifiedNames, Logger logger) {
+  if (encodedInput.isEmpty) return;
   List<String> input = encodedInput.split(',');
   if (input.length % 2 != 0) {
     logger?.log("Error: expected an even number of entries");

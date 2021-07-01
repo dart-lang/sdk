@@ -40,6 +40,11 @@ class FeatureOption {
     _state = value;
   }
 
+  void set override(bool value) {
+    assert(_state != null);
+    _state = value;
+  }
+
   FeatureOption(this.flag, {this.isNegativeFlag = false});
 }
 
@@ -66,6 +71,13 @@ class FeatureOptions {
 
   /// [FeatureOption]s which default to disabled.
   List<FeatureOption> canary;
+
+  /// Forces canary feature on. This must run after [Option].parse.
+  void forceCanary() {
+    for (var feature in canary) {
+      feature.override = feature.isNegativeFlag ? false : true;
+    }
+  }
 
   // Initialize feature lists.
   FeatureOptions() {
@@ -246,6 +258,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Note: the resulting program still correctly checks that loadLibrary &
   /// checkLibrary calls are correct.
   bool disableProgramSplit = false;
+
+  // Whether or not to stop compilation after splitting the
+  bool stopAfterProgramSplit = false;
 
   /// Diagnostic option: If `true`, warnings cause the compilation to fail.
   @override
@@ -549,6 +564,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
+      ..stopAfterProgramSplit = _hasOption(options, Flags.stopAfterProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
       ..useTrivialAbstractValueDomain =
           _hasOption(options, Flags.useTrivialAbstractValueDomain)
@@ -678,6 +694,7 @@ class CompilerOptions implements DiagnosticOptions {
       // Set flags implied by '--benchmarking-x'.
       // TODO(sra): Use this for some NNBD variant.
       useContentSecurityPolicy = true;
+      features.forceCanary();
     }
 
     if (_soundNullSafety) nullSafetyMode = NullSafetyMode.sound;

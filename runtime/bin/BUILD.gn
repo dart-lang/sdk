@@ -527,7 +527,7 @@ template("bin_to_assembly") {
     output = invoker.input + ".S"
     args = [
       "--input",
-      rebase_path(invoker.input),
+      rebase_path(invoker.input, root_build_dir),
       "--output",
       rebase_path(output),
       "--symbol_name",
@@ -545,6 +545,9 @@ template("bin_to_assembly") {
     }
     if (invoker.executable) {
       args += [ "--executable" ]
+    }
+    if (current_os != "win") {
+      args += [ "--incbin" ]
     }
     inputs = [ invoker.input ]
     outputs = [ output ]

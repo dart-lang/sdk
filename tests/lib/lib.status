@@ -40,6 +40,7 @@ js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS
 js/js_util/async_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/jsify_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/promise_reject_null_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/properties_implicit_checks_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.

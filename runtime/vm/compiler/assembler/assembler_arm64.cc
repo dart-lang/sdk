@@ -991,7 +991,7 @@ void Assembler::LoadCompressedFromOffset(Register dest,
   } else {
     ASSERT(base != TMP2);
     AddImmediate(TMP2, base, offset);
-    ldr(dest, Address(base, 0, Address::Offset, kObjectBytes),
+    ldr(dest, Address(TMP2, 0, Address::Offset, kObjectBytes),
         kUnsignedFourBytes);  // Zero-extension.
   }
   add(dest, dest, Operand(HEAP_BITS, LSL, 32));
@@ -1024,7 +1024,7 @@ void Assembler::LoadCompressedSmiFromOffset(Register dest,
   } else {
     ASSERT(base != TMP2);
     AddImmediate(TMP2, base, offset);
-    ldr(dest, Address(base, 0, Address::Offset, kObjectBytes),
+    ldr(dest, Address(TMP2, 0, Address::Offset, kObjectBytes),
         kUnsignedFourBytes);  // Zero-extension.
   }
 #endif
