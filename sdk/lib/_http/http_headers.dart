@@ -421,8 +421,13 @@ class _HttpHeaders implements HttpHeaders {
 
   void _addHost(String name, value) {
     if (value is String) {
-      int pos = value.indexOf(":");
-      if (pos == -1) {
+      // value.indexOf will only work for ipv4, ipv6 which has multiple : in its
+      // host part needs lastIndexOf
+      int pos = value.lastIndexOf(":");
+      // According to RFC 3986, section 3.2.2, host part of ipv6 address must be
+      // enclosed by square brackets.
+      // https://serverfault.com/questions/205793/how-can-one-distinguish-the-host-and-the-port-in-an-ipv6-url
+      if (pos == -1 || value.startsWith("[") && value.endsWith("]")) {
         _host = value;
         _port = HttpClient.defaultHttpPort;
       } else {
