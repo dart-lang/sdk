@@ -1249,10 +1249,10 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   Code& code = Code::Handle();
 
   code = TypeTestingStubGenerator::DefaultCodeForType(*dynamic_type_);
-  dynamic_type_->SetTypeTestingStub(code);
+  dynamic_type_->InitializeTypeTestingStubNonAtomic(code);
 
   code = TypeTestingStubGenerator::DefaultCodeForType(*void_type_);
-  void_type_->SetTypeTestingStub(code);
+  void_type_->InitializeTypeTestingStubNonAtomic(code);
 }
 
 void Object::Cleanup() {
@@ -10256,7 +10256,7 @@ FunctionTypePtr FunctionType::New(intptr_t num_parent_type_arguments,
   result.SetHash(0);
   result.StoreNonPointer(&result.untag()->type_state_,
                          UntaggedType::kAllocated);
-  result.SetTypeTestingStub(
+  result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
 }
@@ -20279,6 +20279,32 @@ const char* AbstractType::ToCString() const {
 
 void AbstractType::SetTypeTestingStub(const Code& stub) const {
   if (stub.IsNull()) {
+    InitializeTypeTestingStubNonAtomic(stub);
+    return;
+  }
+
+  auto& old = Code::Handle(Thread::Current()->zone());
+  while (true) {
+    // We load the old TTS and it's entrypoint.
+    old = untag()->type_test_stub<std::memory_order_acquire>();
+    uword old_entry_point = old.IsNull() ? 0 : old.EntryPoint();
+
+    // If we can successfully update the entrypoint of the TTS, we will
+    // unconditionally also set the [Code] of the TTS.
+    //
+    // Any competing writer would do the same, lose the compare-exchange, loop
+    // around and continue loading the old [Code] TTS and continue to lose the
+    // race until we have finally also updated the [Code] TTS.
+    if (untag()->type_test_stub_entry_point_.compare_exchange_strong(
+            old_entry_point, stub.EntryPoint())) {
+      untag()->set_type_test_stub<std::memory_order_release>(stub.ptr());
+      return;
+    }
+  }
+}
+
+void AbstractType::InitializeTypeTestingStubNonAtomic(const Code& stub) const {
+  if (stub.IsNull()) {
     // This only happens during bootstrapping when creating Type objects before
     // we have the instructions.
     ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid);
@@ -20286,9 +20312,6 @@ void AbstractType::SetTypeTestingStub(const Code& stub) const {
     untag()->set_type_test_stub(stub.ptr());
     return;
   }
-
-  Thread* thread = Thread::Current();
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   StoreNonPointer(&untag()->type_test_stub_entry_point_, stub.EntryPoint());
   untag()->set_type_test_stub(stub.ptr());
 }
@@ -20448,7 +20471,7 @@ TypePtr Type::ToNullability(Nullability value, Heap::Space space) const {
   type ^= Object::Clone(*this, space);
   type.set_nullability(value);
   type.SetHash(0);
-  type.SetTypeTestingStub(
+  type.InitializeTypeTestingStubNonAtomic(
       Code::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
   if (IsCanonical()) {
     // Object::Clone does not clone canonical bit.
@@ -20470,7 +20493,7 @@ FunctionTypePtr FunctionType::ToNullability(Nullability value,
   type ^= Object::Clone(*this, space);
   type.set_nullability(value);
   type.SetHash(0);
-  type.SetTypeTestingStub(
+  type.InitializeTypeTestingStubNonAtomic(
       Code::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
   if (IsCanonical()) {
     // Object::Clone does not clone canonical bit.
@@ -21076,7 +21099,7 @@ TypePtr Type::New(const Class& clazz,
                          UntaggedType::kAllocated);
   result.set_nullability(nullability);
 
-  result.SetTypeTestingStub(
+  result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
 }
@@ -21390,7 +21413,7 @@ AbstractTypePtr TypeRef::InstantiateFrom(
   ASSERT(!instantiated_ref_type.IsTypeRef());
   instantiated_type_ref.set_type(instantiated_ref_type);
 
-  instantiated_type_ref.SetTypeTestingStub(Code::Handle(
+  instantiated_type_ref.InitializeTypeTestingStubNonAtomic(Code::Handle(
       TypeTestingStubGenerator::DefaultCodeForType(instantiated_type_ref)));
   return instantiated_type_ref.ptr();
 }
@@ -21477,7 +21500,7 @@ TypeRefPtr TypeRef::New(const AbstractType& type) {
   const TypeRef& result = TypeRef::Handle(Z, TypeRef::New());
   result.set_type(type);
 
-  result.SetTypeTestingStub(
+  result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
 }
@@ -21525,7 +21548,7 @@ TypeParameterPtr TypeParameter::ToNullability(Nullability value,
   type_parameter ^= Object::Clone(*this, space);
   type_parameter.set_nullability(value);
   type_parameter.SetHash(0);
-  type_parameter.SetTypeTestingStub(Code::Handle(
+  type_parameter.InitializeTypeTestingStubNonAtomic(Code::Handle(
       TypeTestingStubGenerator::DefaultCodeForType(type_parameter)));
   if (IsCanonical()) {
     // Object::Clone does not clone canonical bit.
@@ -21903,7 +21926,7 @@ TypeParameterPtr TypeParameter::New(const Class& parameterized_class,
   result.set_nullability(nullability);
   result.SetHash(0);
 
-  result.SetTypeTestingStub(
+  result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
 }
