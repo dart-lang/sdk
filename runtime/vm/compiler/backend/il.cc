@@ -5286,7 +5286,11 @@ static Definition* CanonicalizeStringInterpolate(StaticCallInstr* call,
 
   for (Value::Iterator it(create_array->input_use_list()); !it.Done();
        it.Advance()) {
-    auto store = it.Current()->instruction()->AsStoreIndexed();
+    auto current = it.Current()->instruction();
+    if (current == call) {
+      continue;
+    }
+    auto store = current->AsStoreIndexed();
     if (store == nullptr || !store->index()->BindsToConstant() ||
         !store->index()->BoundConstant().IsSmi()) {
       return call;
