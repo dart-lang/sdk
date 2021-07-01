@@ -99,6 +99,12 @@ class CompilerState : public ThreadStackResource {
   // Returns class Comparable<T> from dart:core.
   const Class& ComparableClass();
 
+  // Returns _StringBase._interpolate
+  const Function& StringBaseInterpolate();
+
+  // Returns _StringBase._interpolateSingle
+  const Function& StringBaseInterpolateSingle();
+
  private:
   CHA cha_;
   intptr_t deopt_id_ = 0;
@@ -118,6 +124,8 @@ class CompilerState : public ThreadStackResource {
   // Lookup cache for various classes (to avoid polluting object store with
   // compiler specific classes).
   const Class* comparable_class_ = nullptr;
+  const Function* interpolate_ = nullptr;
+  const Function* interpolate_single_ = nullptr;
 
   CompilerState* previous_;
 };

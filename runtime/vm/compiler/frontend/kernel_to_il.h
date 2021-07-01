@@ -222,6 +222,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
   Fragment StringInterpolateSingle(TokenPosition position);
+  Fragment StringInterpolate(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError(const Function& target);
   Fragment ThrowLateInitializationError(TokenPosition position,
