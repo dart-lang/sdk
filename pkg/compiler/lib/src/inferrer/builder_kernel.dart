@@ -1548,6 +1548,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     Selector selector = _elementMap.getSelector(node);
     if (_closedWorld.commonElements.isForeign(member)) {
       return handleForeignInvoke(node, member, arguments, selector);
+    } else if (_closedWorld.commonElements.isCreateSentinel(member)) {
+      handleStaticInvoke(node, selector, member, arguments);
+      return _types.nonNullEmptyType;
     } else if (member.isConstructor) {
       return handleConstructorInvoke(
           node, node.arguments, selector, member, arguments);
