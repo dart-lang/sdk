@@ -2708,8 +2708,11 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
     if (array_size < (kInlineArraySize * kCompressedWordSize)) {
       intptr_t current_offset = 0;
       while (current_offset < array_size) {
-        __ str(R6, compiler::Address(R8, current_offset),
-               compiler::kObjectBytes);
+        __ StoreCompressedIntoObjectNoBarrier(
+            AllocateArrayABI::kResultReg,
+            compiler::Address(R8, current_offset, compiler::Address::Offset,
+                              compiler::kObjectBytes),
+            R6);
         current_offset += kCompressedWordSize;
       }
     } else {
@@ -2717,7 +2720,11 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       __ Bind(&init_loop);
       __ CompareRegisters(R8, R3);
       __ b(&end_loop, CS);
-      __ str(R6, compiler::Address(R8), compiler::kObjectBytes);
+      __ StoreCompressedIntoObjectNoBarrier(
+          AllocateArrayABI::kResultReg,
+          compiler::Address(R8, 0, compiler::Address::Offset,
+                            compiler::kObjectBytes),
+          R6);
       __ AddImmediate(R8, kCompressedWordSize);
       __ b(&init_loop);
       __ Bind(&end_loop);
