@@ -5,30 +5,40 @@
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'bulk_fix_processor.dart';
+import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UseIsNotEmptyTest);
+    defineReflectiveTests(UseCurlyBracesTest);
   });
 }
 
 @reflectiveTest
-class UseIsNotEmptyTest extends BulkFixProcessorTest {
+class UseCurlyBracesTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.prefer_is_not_empty;
+  String get lintCode => LintNames.curly_braces_in_flow_control_structures;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
-void f(List<int> l) {
-  if (!l.isEmpty) {}
-  if (!l.isEmpty || true) {}
+f() {
+  while (true) if (false) print('');
+}
+
+f2() {
+  while (true) print(2);
 }
 ''');
     await assertHasFix('''
-void f(List<int> l) {
-  if (l.isNotEmpty) {}
-  if (l.isNotEmpty || true) {}
+f() {
+  while (true) if (false) {
+    print('');
+  }
+}
+
+f2() {
+  while (true) {
+    print(2);
+  }
 }
 ''');
   }

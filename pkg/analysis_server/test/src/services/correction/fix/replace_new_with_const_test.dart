@@ -11,8 +11,36 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ReplaceNewWithConstBulkTest);
     defineReflectiveTests(ReplaceNewWithConstTest);
   });
+}
+
+@reflectiveTest
+class ReplaceNewWithConstBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_const_constructors;
+
+  /// Disabled in BulkFixProcessor.
+  @failingTest
+  Future<void> test_singleFile() async {
+    await resolveTestCode(r'''
+class C {
+  const C();
+}
+main() {
+  print('${new C()} ${new C()}');
+}
+''');
+    await assertHasFix(r'''
+class C {
+  const C();
+}
+main() {
+  print('${const C()} ${const C()}');
+}
+''');
+  }
 }
 
 @reflectiveTest

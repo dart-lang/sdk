@@ -11,8 +11,45 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ReplaceWithConditionalAssignmentBulkTest);
     defineReflectiveTests(ReplaceWithConditionalAssignmentTest);
   });
+}
+
+@reflectiveTest
+class ReplaceWithConditionalAssignmentBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_conditional_assignment;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class Person {
+  String _fullName;
+  void foo() {
+    if (_fullName == null) {
+      _fullName = getFullUserName(this);
+    }
+  }
+  void bar() {
+    if (_fullName == null)
+      _fullName = getFullUserName(this);
+  }
+  String getFullUserName(Person p) => '';
+}
+''');
+    await assertHasFix('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+  void bar() {
+    _fullName ??= getFullUserName(this);
+  }
+  String getFullUserName(Person p) => '';
+}
+''');
+  }
 }
 
 @reflectiveTest

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
+import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
@@ -73,6 +74,85 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
       }
     }
     fail('Expected to find an error with the code: $errorCode');
+  }
+}
+
+/// A base class defining support for writing bulk fix processor tests.
+abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
+  /// The source change associated with the fix that was found, or `null` if
+  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
+  late SourceChange change;
+
+  /// The result of applying the [change] to the file content, or `null` if
+  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
+  late String resultCode;
+
+  /// Return a list of the experiments that are to be enabled for tests in this
+  /// class, or `null` if there are no experiments that should be enabled.
+  List<String>? get experiments => null;
+
+  /// Return the lint code being tested.
+  String? get lintCode => null;
+
+  /// Return `true` if this test uses config files.
+  bool get useConfigFiles => false;
+
+  /// The workspace in which fixes contributor operates.
+  DartChangeWorkspace get workspace {
+    return DartChangeWorkspace([session]);
+  }
+
+  Future<void> assertHasFix(String expected) async {
+    change = await _computeSourceChange();
+
+    // apply to "file"
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+
+    var fileContent = testCode;
+    resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
+    expect(resultCode, expected);
+  }
+
+  Future<void> assertNoFix() async {
+    change = await _computeSourceChange();
+    var fileEdits = change.edits;
+    expect(fileEdits, isEmpty);
+  }
+
+  /// Computes fixes for the specified [testUnit].
+  Future<BulkFixProcessor> computeFixes() async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    var processor = BulkFixProcessor(TestInstrumentationService(), workspace,
+        useConfigFiles: useConfigFiles);
+    await processor.fixErrors([analysisContext]);
+    return processor;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    verifyNoTestUnitErrors = false;
+    _createAnalysisOptionsFile();
+  }
+
+  /// Returns the source change for computed fixes in the specified [testUnit].
+  Future<SourceChange> _computeSourceChange() async {
+    var processor = await computeFixes();
+    return processor.builder.sourceChange;
+  }
+
+  /// Create the analysis options file needed in order to correctly analyze the
+  /// test file.
+  void _createAnalysisOptionsFile() {
+    var code = lintCode;
+    if (code == null) {
+      createAnalysisOptionsFile(experiments: experiments);
+    } else {
+      createAnalysisOptionsFile(experiments: experiments, lints: [code]);
+    }
   }
 }
 

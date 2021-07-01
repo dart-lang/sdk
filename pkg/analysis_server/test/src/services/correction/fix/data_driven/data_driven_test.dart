@@ -10,7 +10,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'bulk_fix_processor.dart';
+import '../fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
