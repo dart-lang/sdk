@@ -575,10 +575,8 @@ class InferenceVisitor
       ConstructorInvocation node, DartType typeContext) {
     inferrer.inferConstructorParameterTypes(node.target);
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
-    FunctionType functionType = replaceReturnType(
-        node.target.function
-            .computeThisFunctionType(inferrer.library.nonNullable),
-        computeConstructorReturnType(node.target, inferrer.coreTypes));
+    FunctionType functionType = node.target.function
+        .computeThisFunctionType(inferrer.library.nonNullable);
     InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext, node.fileOffset, functionType, node.arguments,
         isConst: node.isConst, staticTarget: node.target);
@@ -864,10 +862,8 @@ class InferenceVisitor
       FactoryConstructorInvocationJudgment node, DartType typeContext) {
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
 
-    FunctionType functionType = replaceReturnType(
-        node.target.function
-            .computeThisFunctionType(inferrer.library.nonNullable),
-        computeConstructorReturnType(node.target, inferrer.coreTypes));
+    FunctionType functionType = node.target.function
+        .computeThisFunctionType(inferrer.library.nonNullable);
 
     InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext, node.fileOffset, functionType, node.arguments,
