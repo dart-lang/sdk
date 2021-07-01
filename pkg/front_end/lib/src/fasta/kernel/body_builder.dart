@@ -6581,6 +6581,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  DartType buildTypeLiteralDartType(UnresolvedType unresolvedType,
+      {bool nonInstanceAccessIsError: false,
+      bool allowPotentiallyConstantType: false}) {
+    if (unresolvedType == null) return null;
+    return validateTypeUse(unresolvedType,
+            nonInstanceAccessIsError: nonInstanceAccessIsError,
+            allowPotentiallyConstantType: allowPotentiallyConstantType)
+        .builder
+        ?.buildTypeLiteralType(libraryBuilder);
+  }
+
+  @override
   List<DartType> buildDartTypeArguments(List<UnresolvedType> unresolvedTypes) {
     if (unresolvedTypes == null) return <DartType>[];
     List<DartType> types =

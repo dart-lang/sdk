@@ -28,6 +28,10 @@ abstract class TypeDeclarationBuilder implements ModifierBuilder {
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
       [bool notInstanceContext]);
 
+  DartType buildTypeLiteralType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]);
+
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments);
@@ -61,4 +65,12 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
 
   @override
   int get typeVariablesCount => 0;
+
+  @override
+  DartType buildTypeLiteralType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
+    return buildType(
+        library, nullabilityBuilder, arguments, notInstanceContext);
+  }
 }

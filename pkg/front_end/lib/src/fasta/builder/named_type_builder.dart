@@ -239,9 +239,32 @@ class NamedTypeBuilder extends TypeBuilder {
     return null;
   }
 
-  // TODO(johnniwinther): Store [origin] on the built type.
+  @override
   DartType build(LibraryBuilder library,
       [TypedefType origin, bool notInstanceContext]) {
+    return buildInternal(library, origin, notInstanceContext, false);
+  }
+
+  @override
+  DartType buildTypeLiteralType(LibraryBuilder library,
+      [TypedefType origin, bool notInstanceContext]) {
+    return buildInternal(library, origin, notInstanceContext, true);
+  }
+
+  DartType declarationBuildType(
+      LibraryBuilder library, bool notInstanceContext, bool forTypeLiteral) {
+    if (forTypeLiteral) {
+      return declaration.buildTypeLiteralType(
+          library, nullabilityBuilder, arguments, notInstanceContext);
+    } else {
+      return declaration.buildType(
+          library, nullabilityBuilder, arguments, notInstanceContext);
+    }
+  }
+
+  // TODO(johnniwinther): Store [origin] on the built type.
+  DartType buildInternal(LibraryBuilder library,
+      [TypedefType origin, bool notInstanceContext, bool forTypeLiteral]) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
     if (notInstanceContext == true && declaration.isTypeVariable) {
       TypeVariableBuilder typeParameterBuilder = declaration;
@@ -258,8 +281,8 @@ class NamedTypeBuilder extends TypeBuilder {
 
     if (library is SourceLibraryBuilder) {
       int uncheckedTypedefTypeCount = library.uncheckedTypedefTypes.length;
-      DartType builtType = declaration.buildType(
-          library, nullabilityBuilder, arguments, notInstanceContext);
+      DartType builtType =
+          declarationBuildType(library, notInstanceContext, forTypeLiteral);
       // Set locations for new unchecked TypedefTypes for error reporting.
       for (int i = uncheckedTypedefTypeCount;
           i < library.uncheckedTypedefTypes.length;
@@ -270,8 +293,7 @@ class NamedTypeBuilder extends TypeBuilder {
       }
       return builtType;
     } else {
-      return declaration.buildType(
-          library, nullabilityBuilder, arguments, notInstanceContext);
+      return declarationBuildType(library, notInstanceContext, forTypeLiteral);
     }
   }
 

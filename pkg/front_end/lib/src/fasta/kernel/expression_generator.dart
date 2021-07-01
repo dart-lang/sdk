@@ -3043,7 +3043,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
       } else {
         super.expression = _forest.createTypeLiteral(
             offsetForToken(token),
-            _helper.buildDartType(
+            _helper.buildTypeLiteralDartType(
                 new UnresolvedType(
                     buildTypeWithResolvedArguments(
                         _helper.libraryBuilder.nonNullableBuilder,
