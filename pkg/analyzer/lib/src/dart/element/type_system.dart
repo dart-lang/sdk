@@ -1473,6 +1473,15 @@ class TypeSystemImpl implements TypeSystem {
     return NullabilityEliminator.perform(typeProvider, type);
   }
 
+  /// If a legacy library, return the legacy version of the [type].
+  /// Otherwise, return the original type.
+  DartType toLegacyTypeIfOptOut(DartType type) {
+    if (isNonNullableByDefault) {
+      return type;
+    }
+    return NullabilityEliminator.perform(typeProvider, type);
+  }
+
   /// Merges two types into a single type.
   /// Compute the canonical representation of [T].
   ///
