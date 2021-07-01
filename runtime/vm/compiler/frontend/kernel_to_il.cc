@@ -617,19 +617,18 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
 }
 
 Fragment FlowGraphBuilder::StringInterpolateSingle(TokenPosition position) {
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  const Class& cls =
-      Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
-  ASSERT(!cls.IsNull());
-  const Function& function = Function::ZoneHandle(
-      Z, Resolver::ResolveStatic(
-             cls, Library::PrivateCoreLibName(Symbols::InterpolateSingle()),
-             kTypeArgsLen, kNumberOfArguments, kNoArgumentNames));
+  Fragment instructions;
+  instructions += StaticCall(
+      position, CompilerState::Current().StringBaseInterpolateSingle(),
+      /* argument_count = */ 1, ICData::kStatic);
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
   Fragment instructions;
   instructions +=
-      StaticCall(position, function, /* argument_count = */ 1, ICData::kStatic);
+      StaticCall(position, CompilerState::Current().StringBaseInterpolate(),
+                 /* argument_count = */ 1, ICData::kStatic);
   return instructions;
 }
 

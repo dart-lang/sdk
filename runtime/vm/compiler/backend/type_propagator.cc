@@ -1503,11 +1503,6 @@ CompileType StringToCharCodeInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
 
-CompileType StringInterpolateInstr::ComputeType() const {
-  // TODO(srdjan): Do better and determine if it is a one or two byte string.
-  return CompileType::String();
-}
-
 CompileType LoadStaticFieldInstr::ComputeType() const {
   const Field& field = this->field();
   bool is_nullable = CompileType::kCanBeNull;

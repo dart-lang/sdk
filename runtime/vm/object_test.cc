@@ -4520,8 +4520,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_OneByteString\",\"_"
         "vmName\":\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
         "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
-        "patch\\/string_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":32310,"
-        "\"endTokenPos\":44599},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "patch\\/string_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":32339,"
+        "\"endTokenPos\":44628},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":0,\"kind\":\"String\",\"id\":\"\",\"length\":2,"
         "\"valueAsString\":\"dw\"}",

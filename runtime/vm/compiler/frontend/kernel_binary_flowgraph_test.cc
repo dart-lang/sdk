@@ -88,7 +88,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_FlattenNestedStringInterp) {
     kMatchAndMoveCreateArray,
     {kMatchAndMoveStoreIndexed, &store1},
     {kMatchAndMoveStoreIndexed, &store2},
-    kMatchAndMoveStringInterpolate,
+    kMatchAndMoveStaticCall,
     kMoveDebugStepChecks,
     kMatchReturn,
   }));
@@ -147,7 +147,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_DropEmptyStringInterp) {
     {kMatchAndMoveStoreIndexed, &store1},
     {kMatchAndMoveStoreIndexed, &store2},
     {kMatchAndMoveStoreIndexed, &store3},
-    kMatchAndMoveStringInterpolate,
+    kMatchAndMoveStaticCall,
     kMoveDebugStepChecks,
     kMatchReturn,
   }));
@@ -215,7 +215,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConcatStringLits) {
     {kMatchAndMoveStoreIndexed, &store1},
     {kMatchAndMoveStoreIndexed, &store2},
     {kMatchAndMoveStoreIndexed, &store3},
-    kMatchAndMoveStringInterpolate,
+    kMatchAndMoveStaticCall,
     kMoveDebugStepChecks,
     kMatchReturn,
   }));

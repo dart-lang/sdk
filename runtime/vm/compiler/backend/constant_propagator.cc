@@ -791,10 +791,6 @@ void ConstantPropagator::VisitStringToCharCode(StringToCharCodeInstr* instr) {
   }
 }
 
-void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
 void ConstantPropagator::VisitUtf8Scan(Utf8ScanInstr* instr) {
   SetValue(instr, non_constant_);
 }

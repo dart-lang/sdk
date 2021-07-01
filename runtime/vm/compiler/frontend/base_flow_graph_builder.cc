@@ -1149,14 +1149,6 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
   return Fragment(call);
 }
 
-Fragment BaseFlowGraphBuilder::StringInterpolate(TokenPosition position) {
-  Value* array = Pop();
-  StringInterpolateInstr* interpolate = new (Z) StringInterpolateInstr(
-      array, InstructionSource(position), GetNextDeoptId());
-  Push(interpolate);
-  return Fragment(interpolate);
-}
-
 void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {
   if (is_recording_context_levels()) {
     for (intptr_t i = 0, n = context_level_array_->length(); i < n; i += 2) {
