@@ -59,12 +59,19 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
+      bool isTrue(Expression e) => e is BooleanLiteral && e.value == true;
+
+      var unicode = args.any((arg) =>
+          arg is NamedExpression &&
+          arg.name.label.name == 'unicode' &&
+          isTrue(arg.expression));
+
       var sourceExpression = args.first;
       if (sourceExpression is StringLiteral) {
         var source = sourceExpression.stringValue;
         if (source != null) {
           try {
-            RegExp(source);
+            RegExp(source, unicode: unicode);
           } on FormatException {
             rule.reportLint(sourceExpression);
           }
