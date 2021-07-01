@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'bulk_fix_processor.dart';
+import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {

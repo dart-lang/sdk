@@ -11,8 +11,40 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RenameToCamelCaseBulkTest);
     defineReflectiveTests(RenameToCamelCaseTest);
   });
+}
+
+@reflectiveTest
+class RenameToCamelCaseBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.non_constant_identifier_names;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+main() {
+  int my_integer_variable = 42;
+  int foo;
+  print(my_integer_variable);
+  print(foo);
+  [0, 1, 2].forEach((my_integer_variable) {
+    print(my_integer_variable);
+  });
+}
+''');
+    await assertHasFix('''
+main() {
+  int myIntegerVariable = 42;
+  int foo;
+  print(myIntegerVariable);
+  print(foo);
+  [0, 1, 2].forEach((myIntegerVariable) {
+    print(myIntegerVariable);
+  });
+}
+''');
+  }
 }
 
 @reflectiveTest

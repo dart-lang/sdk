@@ -173,6 +173,40 @@ void testHost() {
   Expect.equals(":1234", headers.value(HttpHeaders.hostHeader));
   Expect.isNull(headers.host);
   Expect.equals(1234, headers.port);
+
+  // ipv4
+  host = "123.45.67.89";
+  int port = 1234;
+  headers = new _HttpHeaders("1.1");
+  headers.add(HttpHeaders.hostHeader, "$host:$port");
+  Expect.equals("$host:$port", headers.value(HttpHeaders.hostHeader));
+  Expect.equals(host, headers.host);
+  Expect.equals(port, headers.port);
+
+  // ipv6: host+port
+  host = "[2001:db8::1]";
+  port = 1234;
+  headers = new _HttpHeaders("1.1");
+  headers.add(HttpHeaders.hostHeader, "$host:$port");
+  Expect.equals("$host:$port", headers.value(HttpHeaders.hostHeader));
+  Expect.equals(host, headers.host);
+  Expect.equals(port, headers.port);
+
+  // ipv6: host only
+  host = "[2001:db8::1]";
+  headers = new _HttpHeaders("1.1");
+  headers.add(HttpHeaders.hostHeader, "$host");
+  Expect.equals("$host", headers.value(HttpHeaders.hostHeader));
+  Expect.equals(host, headers.host);
+  Expect.equals(headers.port, HttpClient.defaultHttpPort);
+
+  // ipv6: host + invalid port
+  host = "[2001:db8::1]";
+  headers = new _HttpHeaders("1.1");
+  headers.add(HttpHeaders.hostHeader, "$host:xxx");
+  Expect.equals("$host:xxx", headers.value(HttpHeaders.hostHeader));
+  Expect.equals(host, headers.host);
+  Expect.isNull(headers.port);
 }
 
 void testTransferEncoding() {

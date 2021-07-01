@@ -11,8 +11,46 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(UseRethrowBulkTest);
     defineReflectiveTests(UseRethrowTest);
   });
+}
+
+@reflectiveTest
+class UseRethrowBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.use_rethrow_when_possible;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f() {
+  try {} catch (e) {
+    throw e;
+  }
+}
+
+void f2() {
+  try {} catch (e, stackTrace) {
+    print(stackTrace);
+    throw e;
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  try {} catch (e) {
+    rethrow;
+  }
+}
+
+void f2() {
+  try {} catch (e, stackTrace) {
+    print(stackTrace);
+    rethrow;
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest

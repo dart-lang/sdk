@@ -11,8 +11,42 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveUnnecessaryStringInterpolationBulkTest);
     defineReflectiveTests(RemoveUnnecessaryStringInterpolationTest);
   });
+}
+
+@reflectiveTest
+class RemoveUnnecessaryStringInterpolationBulkTest
+    extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_string_interpolations;
+
+  Future<void> test_embedded_removeBoth() async {
+    await resolveTestCode(r'''
+void f(String s) {
+  print('${'$s'}');
+}
+''');
+    await assertHasFix(r'''
+void f(String s) {
+  print(s);
+}
+''');
+  }
+
+  Future<void> test_embedded_removeOuter() async {
+    await resolveTestCode(r'''
+void f(String s) {
+  print('${'$s '}');
+}
+''');
+    await assertHasFix(r'''
+void f(String s) {
+  print('$s ');
+}
+''');
+  }
 }
 
 @reflectiveTest

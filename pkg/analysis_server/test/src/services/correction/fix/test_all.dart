@@ -35,7 +35,7 @@ import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'analysis_options/test_all.dart' as analysis_options;
-import 'bulk/test_all.dart' as bulk;
+import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
 import 'change_argument_name_test.dart' as change_argument_name;
 import 'change_to_nearest_precise_value_test.dart'
     as change_to_nearest_precise_value;
@@ -48,6 +48,7 @@ import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
+import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_generic_function_syntax_test.dart'
@@ -178,6 +179,7 @@ import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_const_test.dart' as use_const;
+import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_effective_integer_division_test.dart'
     as use_effective_integer_division;
 import 'use_eq_eq_null_test.dart' as use_eq_eq_null;
@@ -213,7 +215,7 @@ void main() {
     add_super_constructor_invocation.main();
     add_type_annotation.main();
     analysis_options.main();
-    bulk.main();
+    bulk_fix_processor.main();
     change_argument_name.main();
     change_to.main();
     change_to_nearest_precise_value.main();
@@ -224,6 +226,7 @@ void main() {
     convert_flutter_children.main();
     convert_for_each_to_for_loop.main();
     convert_into_expression_body.main();
+    convert_into_is_not.main();
     convert_to_contains.main();
     convert_to_for_element.main();
     convert_to_generic_function_syntax.main();
@@ -344,6 +347,7 @@ void main() {
     sort_properties_last.main();
     update_sdk_constraints.main();
     use_const.main();
+    use_curly_braces.main();
     use_effective_integer_division.main();
     use_eq_eq_null.main();
     use_is_not_empty.main();

@@ -11,8 +11,30 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ReplaceWithIsEmptyBulkTest);
     defineReflectiveTests(ReplaceWithIsEmptyTest);
   });
+}
+
+@reflectiveTest
+class ReplaceWithIsEmptyBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_is_empty;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f(List c) {
+  if (0 == c.length) {}
+  if (1 > c.length) {}
+}
+''');
+    await assertHasFix('''
+void f(List c) {
+  if (c.isEmpty) {}
+  if (c.isEmpty) {}
+}
+''');
+  }
 }
 
 @reflectiveTest
