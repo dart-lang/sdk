@@ -154,6 +154,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   DartType buildDartType(UnresolvedType unresolvedType,
       {bool nonInstanceAccessIsError});
 
+  DartType buildTypeLiteralDartType(UnresolvedType unresolvedType,
+      {bool nonInstanceAccessIsError});
+
   List<DartType> buildDartTypeArguments(List<UnresolvedType> unresolvedTypes);
 
   void reportDuplicatedDeclaration(

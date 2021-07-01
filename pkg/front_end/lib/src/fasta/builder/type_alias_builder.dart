@@ -8,9 +8,9 @@ library fasta.function_type_alias_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/legacy_erasure.dart';
 
 import 'package:kernel/type_algebra.dart' show substitute, uniteNullabilities;
-import 'package:kernel/src/legacy_erasure.dart';
 
 import '../fasta_codes.dart'
     show
@@ -158,6 +158,21 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
       [bool notInstanceContext]) {
+    return buildTypeInternal(
+        library, nullabilityBuilder, arguments, notInstanceContext, true);
+  }
+
+  @override
+  DartType buildTypeLiteralType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
+    return buildTypeInternal(
+        library, nullabilityBuilder, arguments, notInstanceContext, false);
+  }
+
+  DartType buildTypeInternal(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext, bool performLegacyErasure]) {
     DartType thisType = buildThisType();
     if (thisType is InvalidType) return thisType;
 
@@ -184,7 +199,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       result = buildTypesWithBuiltArguments(
           library, nullability, buildTypeArguments(library, arguments));
     }
-    if (!library.isNonNullableByDefault) {
+    if (performLegacyErasure && !library.isNonNullableByDefault) {
       result = legacyErasure(result);
     }
     return result;

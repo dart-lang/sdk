@@ -114,6 +114,20 @@ void main() {
 ''');
   }
 
+  test_functionType_instantiatedToBounds() async {
+    await assertErrorsInCode(r'''
+class A<X extends A<X>> {}
+
+void foo<X extends Y, Y extends A<X>>() {}
+
+void f() {
+  foo();
+}
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 85, 3),
+    ]);
+  }
+
   test_functionType_parameterIsBound_returnIsBound() async {
     await assertNoErrorsInCode(r'''
 external T f<T extends num>(T a, T b);

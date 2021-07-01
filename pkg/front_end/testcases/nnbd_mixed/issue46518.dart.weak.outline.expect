@@ -1,0 +1,17 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///issue46518_lib.dart";
+
+static method main() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+typedef NullableIntF = () → core::int?;
+static method _check(core::Type t1, core::Type t2) → void
+  ;
+static method checkOptedIn(core::Type t) → void
+  ;

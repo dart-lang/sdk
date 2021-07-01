@@ -21,7 +21,6 @@
 /// with the same kind of root node.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/type_environment.dart';
@@ -43,17 +42,6 @@ import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'inference_visitor.dart';
-
-/// Computes the return type of a (possibly factory) constructor.
-InterfaceType computeConstructorReturnType(
-    Member constructor, CoreTypes coreTypes) {
-  if (constructor is Constructor) {
-    return coreTypes.thisInterfaceType(
-        constructor.enclosingClass, constructor.enclosingLibrary.nonNullable);
-  } else {
-    return constructor.function.returnType;
-  }
-}
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {

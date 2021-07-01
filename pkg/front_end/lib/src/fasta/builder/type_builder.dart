@@ -72,6 +72,11 @@ abstract class TypeBuilder {
   DartType build(LibraryBuilder library,
       [TypedefType origin, bool notInstanceContext]);
 
+  DartType buildTypeLiteralType(LibraryBuilder library,
+      [TypedefType origin, bool notInstanceContext]) {
+    return build(library, origin, notInstanceContext);
+  }
+
   Supertype buildSupertype(LibraryBuilder library, int charOffset, Uri fileUri);
 
   Supertype buildMixedInType(

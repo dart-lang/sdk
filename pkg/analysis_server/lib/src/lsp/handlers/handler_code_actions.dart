@@ -321,6 +321,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
             unit,
             error,
             supportedTags: supportedDiagnosticTags,
+            clientSupportsCodeDescription:
+                server.clientCapabilities?.diagnosticCodeDescription ?? false,
           );
           codeActions.addAll(
             fixes.map((fix) => _createFixAction(fix, diagnostic)),
