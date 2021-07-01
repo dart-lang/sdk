@@ -3907,7 +3907,7 @@ class TypeDeserializationCluster
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type ^= refs.At(id);
         stub = TypeTestingStubGenerator::DefaultCodeForType(type);
-        type.SetTypeTestingStub(stub);
+        type.InitializeTypeTestingStubNonAtomic(stub);
       }
     }
   }
@@ -4032,7 +4032,7 @@ class FunctionTypeDeserializationCluster
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type ^= refs.At(id);
         stub = TypeTestingStubGenerator::DefaultCodeForType(type);
-        type.SetTypeTestingStub(stub);
+        type.InitializeTypeTestingStubNonAtomic(stub);
       }
     }
   }
@@ -4116,7 +4116,7 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_ref ^= refs.At(id);
         stub = TypeTestingStubGenerator::DefaultCodeForType(type_ref);
-        type_ref.SetTypeTestingStub(stub);
+        type_ref.InitializeTypeTestingStubNonAtomic(stub);
       }
     }
   }
@@ -4242,7 +4242,7 @@ class TypeParameterDeserializationCluster
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_param ^= refs.At(id);
         stub = TypeTestingStubGenerator::DefaultCodeForType(type_param);
-        type_param.SetTypeTestingStub(stub);
+        type_param.InitializeTypeTestingStubNonAtomic(stub);
       }
     }
   }

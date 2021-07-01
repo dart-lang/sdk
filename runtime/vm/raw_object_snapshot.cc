@@ -113,7 +113,7 @@ TypePtr Type::ReadFrom(SnapshotReader* reader,
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type);
-  type.SetTypeTestingStub(code);
+  type.InitializeTypeTestingStubNonAtomic(code);
 
   if (is_canonical) {
     type ^= type.Canonicalize(Thread::Current(), nullptr);
@@ -194,7 +194,7 @@ TypeRefPtr TypeRef::ReadFrom(SnapshotReader* reader,
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type_ref);
-  type_ref.SetTypeTestingStub(code);
+  type_ref.InitializeTypeTestingStubNonAtomic(code);
 
   return type_ref.ptr();
 }
@@ -256,7 +256,7 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type_parameter);
-  type_parameter.SetTypeTestingStub(code);
+  type_parameter.InitializeTypeTestingStubNonAtomic(code);
 
   if (is_canonical) {
     type_parameter ^= type_parameter.Canonicalize(Thread::Current(), nullptr);

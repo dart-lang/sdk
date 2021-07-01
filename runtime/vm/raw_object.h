@@ -2644,9 +2644,10 @@ class UntaggedAbstractType : public UntaggedInstance {
 
  protected:
   static constexpr intptr_t kTypeStateBitSize = 2;
+  COMPILE_ASSERT(sizeof(std::atomic<word>) == sizeof(word));
 
   // Accessed from generated code.
-  uword type_test_stub_entry_point_;
+  std::atomic<uword> type_test_stub_entry_point_;
   COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
   VISIT_FROM(type_test_stub)
 

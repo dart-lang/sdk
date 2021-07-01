@@ -8156,7 +8156,22 @@ class AbstractType : public Instance {
   }
   CodePtr type_test_stub() const { return untag()->type_test_stub(); }
 
+  // Sets the TTS to [stub].
+  //
+  // The update will ensure both fields (code as well as the cached entrypoint)
+  // are updated together.
+  //
+  // Can be used concurrently by multiple threads - the updates will be applied
+  // in undetermined order - but always consistently.
   void SetTypeTestingStub(const Code& stub) const;
+
+  // Sets the TTS to the [stub].
+  //
+  // The caller has to ensure no other thread can concurrently try to update the
+  // TTS. This should mainly be used when initializing newly allocated Type
+  // objects.
+  void InitializeTypeTestingStubNonAtomic(const Code& stub) const;
+
   void UpdateTypeTestingStubEntryPoint() const {
     StoreNonPointer(&untag()->type_test_stub_entry_point_,
                     Code::EntryPointOf(untag()->type_test_stub()));

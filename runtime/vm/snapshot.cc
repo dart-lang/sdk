@@ -362,7 +362,7 @@ void SnapshotReader::RunDelayedTypePostprocessing() {
   for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
     type ^= types_to_postprocess_.At(i);
     code = TypeTestingStubGenerator::DefaultCodeForType(type);
-    type.SetTypeTestingStub(code);
+    type.InitializeTypeTestingStubNonAtomic(code);
   }
 }
 
