@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.dart';
@@ -22,6 +23,7 @@ class ExecuteCommandHandler
       : commandHandlers = {
           Commands.sortMembers: SortMembersCommandHandler(server),
           Commands.organizeImports: OrganizeImportsCommandHandler(server),
+          Commands.fixAll: FixAllCommandHandler(server),
           Commands.performRefactor: PerformRefactorCommandHandler(server),
           Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
         },
@@ -49,6 +51,9 @@ class ExecuteCommandHandler
         : server.clientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
-    return handler.handle(params.arguments, progress, cancellationToken);
+    // TODO(dantup): Remove this cast and update codegen to use `Object?` in
+    //   place of the `dynamics`.
+    return handler.handle(
+        params.arguments?.cast<Object?>(), progress, cancellationToken);
   }
 }

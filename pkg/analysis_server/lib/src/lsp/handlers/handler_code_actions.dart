@@ -476,6 +476,13 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               command: Commands.organizeImports,
               arguments: [path]),
         ),
+      if (shouldIncludeKind(DartCodeActionKind.FixAll))
+        _commandOrCodeAction(
+          supportsLiteralCodeActions,
+          DartCodeActionKind.FixAll,
+          Command(
+              title: 'Fix All', command: Commands.fixAll, arguments: [path]),
+        ),
     ];
   }
 }

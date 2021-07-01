@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,14 +8,17 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
-import 'package:analysis_server/src/services/correction/organize_imports.dart';
+import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 
-class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
-  OrganizeImportsCommandHandler(LspAnalysisServer server) : super(server);
+class FixAllCommandHandler extends SimpleEditCommandHandler {
+  FixAllCommandHandler(LspAnalysisServer server) : super(server);
 
   @override
-  String get commandName => 'Organize Imports';
+  String get commandName => 'Fix All';
 
   @override
   Future<ErrorOr<void>> handle(List<Object?>? arguments,
@@ -40,28 +43,31 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
     }
 
-    return result.mapResult((result) {
-      final code = result.content!;
-      final unit = result.unit!;
+    return result.mapResult((result) async {
+      final workspace = DartChangeWorkspace(server.currentSessions);
+      final processor =
+          BulkFixProcessor(server.instrumentationService, workspace);
 
-      if (hasScanParseErrors(result.errors)) {
-        // It's not uncommon for editors to run this command automatically on-save
-        // so if the file in in an invalid state it's better to fail silently
-        // than trigger errors (VS Code recently started showing popups when
-        // LSP requests return errors).
-        server.instrumentationService.logInfo(
-            'Unable to $commandName because the file contains parse errors');
+      final collection = AnalysisContextCollectionImpl(
+        includedPaths: [path],
+        resourceProvider: server.resourceProvider,
+        sdkPath: server.sdkManager.defaultSdkDirectory,
+      );
+      final changeBuilder = await processor.fixErrors(collection.contexts);
+      final change = changeBuilder.sourceChange;
+
+      if (change.edits.isEmpty) {
         return success(null);
       }
 
-      final organizer = ImportOrganizer(code, unit, result.errors);
-      final edits = organizer.organize();
-
-      if (edits.isEmpty) {
-        return success(null);
+      // Before we send anything back, ensure the original file didn't change
+      // while we were computing changes.
+      if (fileHasBeenModified(path, docIdentifier.version)) {
+        return fileModifiedError;
       }
 
-      return sendSourceEditsToClient(docIdentifier, unit, edits);
+      final edit = createWorkspaceEdit(server, change);
+      return sendWorkspaceEditToClient(edit);
     });
   }
 }
