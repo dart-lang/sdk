@@ -7971,9 +7971,8 @@ void Function::SetNumTypeParameters(intptr_t value) const {
   if (!Utils::IsUint(UntaggedFunction::kMaxTypeParametersBits, value)) {
     ReportTooManyTypeParameters(*this);
   }
-  const uint32_t* original = &untag()->packed_fields_;
-  StoreNonPointer(original, UntaggedFunction::PackedNumTypeParameters::update(
-                                value, *original));
+  untag()->packed_fields_.Update<UntaggedFunction::PackedNumTypeParameters>(
+      value);
 }
 
 intptr_t FunctionType::NumTypeParameters(Thread* thread) const {
@@ -10187,9 +10186,8 @@ const char* ClosureData::ToCString() const {
 void Function::set_num_fixed_parameters(intptr_t value) const {
   ASSERT(value >= 0);
   ASSERT(Utils::IsUint(UntaggedFunction::kMaxFixedParametersBits, value));
-  const uint32_t* original = &untag()->packed_fields_;
-  StoreNonPointer(original, UntaggedFunction::PackedNumFixedParameters::update(
-                                value, *original));
+  untag()->packed_fields_.Update<UntaggedFunction::PackedNumFixedParameters>(
+      value);
   // Also store in signature.
   FunctionType::Handle(signature()).set_num_fixed_parameters(value);
 }
@@ -10206,12 +10204,12 @@ void FunctionType::set_num_fixed_parameters(intptr_t value) const {
 void Function::SetNumOptionalParameters(intptr_t value,
                                         bool are_optional_positional) const {
   ASSERT(Utils::IsUint(UntaggedFunction::kMaxOptionalParametersBits, value));
-  uint32_t packed_fields = untag()->packed_fields_;
-  packed_fields = UntaggedFunction::PackedHasNamedOptionalParameters::update(
-      (value > 0) && !are_optional_positional, packed_fields);
-  packed_fields = UntaggedFunction::PackedNumOptionalParameters::update(
-      value, packed_fields);
-  StoreNonPointer(&untag()->packed_fields_, packed_fields);
+  untag()
+      ->packed_fields_
+      .Update<UntaggedFunction::PackedHasNamedOptionalParameters>(
+          (value > 0) && !are_optional_positional);
+  untag()->packed_fields_.Update<UntaggedFunction::PackedNumOptionalParameters>(
+      value);
   // Also store in signature.
   FunctionType::Handle(signature())
       .SetNumOptionalParameters(value, are_optional_positional);
