@@ -68,6 +68,7 @@ class LspClientCapabilities {
   final bool insertReplaceCompletionRanges;
   final bool definitionLocationLink;
   final bool hierarchicalSymbols;
+  final bool diagnosticCodeDescription;
   final Set<CodeActionKind> codeActionKinds;
   final Set<CompletionItemTag> completionItemTags;
   final Set<DiagnosticTag> diagnosticTags;
@@ -115,6 +116,9 @@ class LspClientCapabilities {
         hierarchicalSymbols = raw.textDocument?.documentSymbol
                 ?.hierarchicalDocumentSymbolSupport ??
             false,
+        diagnosticCodeDescription =
+            raw.textDocument?.publishDiagnostics?.codeDescriptionSupport ??
+                false,
         hoverContentFormats = _hoverContentFormats(raw),
         insertReplaceCompletionRanges = raw.textDocument?.completion
                 ?.completionItem?.insertReplaceSupport ??

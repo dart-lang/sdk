@@ -1201,6 +1201,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a prefix name.",
           correction: "Try choosing a different name for the prefix.",
+          hasPublishedDocs: true,
           uniqueName: 'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME');
 
   /**
@@ -1242,6 +1243,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a type name.",
           correction: "Try choosing a different name for the type.",
+          hasPublishedDocs: true,
           uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_NAME');
 
   /**
@@ -1254,6 +1256,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The built-in identifier '{0}' can't be used as a type parameter "
               "name.",
           correction: "Try choosing a different name for the type parameter.",
+          hasPublishedDocs: true,
           uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME');
 
   /**
@@ -1264,6 +1267,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a typedef name.",
           correction: "Try choosing a different name for the typedef.",
+          hasPublishedDocs: true,
           uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME');
 
   /**

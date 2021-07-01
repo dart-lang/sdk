@@ -371,6 +371,16 @@ mixin ClientCapabilitiesHelperMixin {
     return extendWorkspaceCapabilities(source, {'configuration': true});
   }
 
+  TextDocumentClientCapabilities withDiagnosticCodeDescriptionSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'publishDiagnostics': {
+        'codeDescriptionSupport': true,
+      }
+    });
+  }
+
   TextDocumentClientCapabilities withDiagnosticTagSupport(
     TextDocumentClientCapabilities source,
     List<DiagnosticTag> tags,
