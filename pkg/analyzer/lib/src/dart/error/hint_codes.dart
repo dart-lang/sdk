@@ -336,6 +336,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
       'DEPRECATED_SUBTYPE_OF_FUNCTION', "Extending 'Function' is deprecated.",
       correction: "Try removing 'Function' from the 'extends' clause.",
+      hasPublishedDocs: true,
       uniqueName: 'DEPRECATED_EXTENDS_FUNCTION');
 
   /**
@@ -353,6 +354,7 @@ class HintCode extends AnalyzerErrorCode {
       'DEPRECATED_SUBTYPE_OF_FUNCTION',
       "Implementing 'Function' has no effect.",
       correction: "Try removing 'Function' from the 'implements' clause.",
+      hasPublishedDocs: true,
       uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION');
 
   /**
@@ -451,6 +453,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DEPRECATED_MIXIN_FUNCTION = HintCode(
       'DEPRECATED_SUBTYPE_OF_FUNCTION', "Mixing in 'Function' is deprecated.",
       correction: "Try removing 'Function' from the 'with' clause.",
+      hasPublishedDocs: true,
       uniqueName: 'DEPRECATED_MIXIN_FUNCTION');
 
   /**
@@ -843,7 +846,8 @@ class HintCode extends AnalyzerErrorCode {
       "The imported library defines a top-level function named 'loadLibrary' "
           "that is hidden by deferring this library.",
       correction: "Try changing the import to not be deferred, or "
-          "rename the function in the imported library.");
+          "rename the function in the imported library.",
+      hasPublishedDocs: true);
 
   /**
    * https://github.com/dart-lang/sdk/issues/44063
@@ -2769,7 +2773,8 @@ class HintCode extends AnalyzerErrorCode {
           "it's sealed.",
       correction:
           "Try composing instead of inheriting, or refer to the documentation "
-          "of '{0}' for more information.");
+          "of '{0}' for more information.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2823,6 +2828,7 @@ class HintCode extends AnalyzerErrorCode {
       'TYPE_CHECK_WITH_NULL',
       "Tests for non-null should be done with '!= null'.",
       correction: "Try replacing the 'is! Null' check with '!= null'.",
+      hasPublishedDocs: true,
       uniqueName: 'TYPE_CHECK_IS_NOT_NULL');
 
   /**
@@ -2831,6 +2837,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode TYPE_CHECK_IS_NULL = HintCode(
       'TYPE_CHECK_WITH_NULL', "Tests for null should be done with '== null'.",
       correction: "Try replacing the 'is Null' check with '== null'.",
+      hasPublishedDocs: true,
       uniqueName: 'TYPE_CHECK_IS_NULL');
 
   /**
@@ -3018,7 +3025,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode UNNECESSARY_NO_SUCH_METHOD = HintCode(
       'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration.",
-      correction: "Try removing the declaration of 'noSuchMethod'.");
+      correction: "Try removing the declaration of 'noSuchMethod'.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.

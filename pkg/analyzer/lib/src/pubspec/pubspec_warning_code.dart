@@ -43,7 +43,8 @@ class PubspecWarningCode extends ErrorCode {
   // file containing the asset.
   static const PubspecWarningCode ASSET_DOES_NOT_EXIST = PubspecWarningCode(
       'ASSET_DOES_NOT_EXIST', "The asset file '{0}' doesn't exist.",
-      correction: "Try creating the file or fixing the path to the file.");
+      correction: "Try creating the file or fixing the path to the file.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -78,7 +79,8 @@ class PubspecWarningCode extends ErrorCode {
       PubspecWarningCode('ASSET_DIRECTORY_DOES_NOT_EXIST',
           "The asset directory '{0}' doesn't exist.",
           correction: "Try creating the directory or fixing the path to the "
-              "directory.");
+              "directory.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -116,7 +118,8 @@ class PubspecWarningCode extends ErrorCode {
       "The value of the 'asset' field is expected to be a list of relative "
           "file paths.",
       correction:
-          "Try converting the value to be a list of relative file paths.");
+          "Try converting the value to be a list of relative file paths.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -153,7 +156,8 @@ class PubspecWarningCode extends ErrorCode {
   // ```
   static const PubspecWarningCode ASSET_NOT_STRING = PubspecWarningCode(
       'ASSET_NOT_STRING', "Assets are required to be file paths (strings).",
-      correction: "Try converting the value to be a string.");
+      correction: "Try converting the value to be a string.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -188,7 +192,8 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode DEPENDENCIES_FIELD_NOT_MAP =
       PubspecWarningCode('DEPENDENCIES_FIELD_NOT_MAP',
           "The value of the '{0}' field is expected to be a map.",
-          correction: "Try converting the value to be a map.");
+          correction: "Try converting the value to be a map.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -221,7 +226,8 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode DEPRECATED_FIELD = PubspecWarningCode(
       'DEPRECATED_FIELD',
       "The '{0}' field is no longer used and can be removed.",
-      correction: "Try removing the field.");
+      correction: "Try removing the field.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -264,7 +270,8 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode FLUTTER_FIELD_NOT_MAP = PubspecWarningCode(
       'FLUTTER_FIELD_NOT_MAP',
       "The value of the 'flutter' field is expected to be a map.",
-      correction: "Try converting the value to be a map.");
+      correction: "Try converting the value to be a map.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -320,7 +327,8 @@ class PubspecWarningCode extends ErrorCode {
       "Publishable packages can't have '{0}' dependencies.",
       correction:
           "Try adding a 'publish_to: none' entry to mark the package as not "
-          "for publishing or remove the {0} dependency.");
+          "for publishing or remove the {0} dependency.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -353,7 +361,7 @@ class PubspecWarningCode extends ErrorCode {
   // ```
   static const PubspecWarningCode MISSING_NAME = PubspecWarningCode(
       'MISSING_NAME', "The 'name' field is required but missing.",
-      correction: "Try adding a field named 'name'.");
+      correction: "Try adding a field named 'name'.", hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -385,7 +393,8 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode NAME_NOT_STRING = PubspecWarningCode(
       'NAME_NOT_STRING',
       "The value of the 'name' field is required to be a string.",
-      correction: "Try converting the value to be a string.");
+      correction: "Try converting the value to be a string.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -418,7 +427,8 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode PATH_DOES_NOT_EXIST = PubspecWarningCode(
       'PATH_DOES_NOT_EXIST', "The path '{0}' doesn't exist.",
       correction:
-          "Try creating the referenced path or using a path that exists.");
+          "Try creating the referenced path or using a path that exists.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -447,7 +457,8 @@ class PubspecWarningCode extends ErrorCode {
   // Convert the path to a POSIX path.
   static const PubspecWarningCode PATH_NOT_POSIX = PubspecWarningCode(
       'PATH_NOT_POSIX', "The path '{0}' isn't a POSIX-style path.",
-      correction: "Try converting the value to a POSIX-style path.");
+      correction: "Try converting the value to a POSIX-style path.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -487,7 +498,8 @@ class PubspecWarningCode extends ErrorCode {
       'PATH_PUBSPEC_DOES_NOT_EXIST',
       "The directory '{0}' doesn't contain a pubspec.",
       correction:
-          "Try creating a pubspec in the referenced directory or using a path that has a pubspec.");
+          "Try creating a pubspec in the referenced directory or using a path that has a pubspec.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -530,16 +542,19 @@ class PubspecWarningCode extends ErrorCode {
           'UNNECESSARY_DEV_DEPENDENCY',
           "The dev dependency on {0} is unnecessary because there is also a "
               "normal dependency on that package.",
-          correction: "Try removing the dev dependency.");
+          correction: "Try removing the dev dependency.",
+          hasPublishedDocs: true);
 
   /// Initialize a newly created warning code to have the given [name],
   /// [message] and [correction].
-  const PubspecWarningCode(String name, String message, {String? correction})
+  const PubspecWarningCode(String name, String message,
+      {String? correction, bool hasPublishedDocs = false})
       : super(
           correction: correction,
           message: message,
           name: name,
           uniqueName: 'PubspecWarningCode.$name',
+          hasPublishedDocs: hasPublishedDocs,
         );
 
   @override
