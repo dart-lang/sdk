@@ -1035,7 +1035,8 @@ void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
     fail('Unhandled scheme ${uri.scheme}.');
   }
-  var file = new File(uri.toFilePath()).openSync(mode: FileMode.write);
+  var file = (File(uri.toFilePath())..createSync(recursive: true))
+      .openSync(mode: FileMode.write);
   file.writeStringSync(text);
   file.closeSync();
 }
