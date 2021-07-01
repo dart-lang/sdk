@@ -471,10 +471,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
-  /// Use the dart2js lowering of late instance variables rather than the CFE
-  /// lowering.
-  bool experimentLateInstanceVariables = false;
-
   /// When null-safety is enabled, whether the compiler should emit code with
   /// unsound or sound semantics.
   ///
@@ -599,8 +595,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
-      ..experimentLateInstanceVariables =
-          _hasOption(options, Flags.experimentLateInstanceVariables)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries

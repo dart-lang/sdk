@@ -52,11 +52,6 @@ class Flags {
 
   static const String experimentNewRti = '--experiment-new-rti';
 
-  /// Use the dart2js lowering of late instance variables rather than the CFE
-  /// lowering.
-  static const String experimentLateInstanceVariables =
-      '--experiment-late-instance-variables';
-
   static const String enableLanguageExperiments = '--enable-experiment';
 
   static const String fastStartup = '--fast-startup';
