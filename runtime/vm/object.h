@@ -756,7 +756,9 @@ class Object {
 #undef STORE_NON_POINTER_ILLEGAL_TYPE
 
   // Allocate an object and copy the body of 'orig'.
-  static ObjectPtr Clone(const Object& orig, Heap::Space space);
+  static ObjectPtr Clone(const Object& orig,
+                         Heap::Space space,
+                         bool load_with_relaxed_atomics = false);
 
   // End of field mutator guards.
 

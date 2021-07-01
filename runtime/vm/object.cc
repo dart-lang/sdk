@@ -2752,7 +2752,9 @@ bool Object::IsNotTemporaryScopedHandle() const {
   return (IsZoneHandle() || IsReadOnlyHandle());
 }
 
-ObjectPtr Object::Clone(const Object& orig, Heap::Space space) {
+ObjectPtr Object::Clone(const Object& orig,
+                        Heap::Space space,
+                        bool load_with_relaxed_atomics) {
   const Class& cls = Class::Handle(orig.clazz());
   intptr_t size = orig.ptr()->untag()->HeapSize();
   ObjectPtr raw_clone =
@@ -2762,9 +2764,19 @@ ObjectPtr Object::Clone(const Object& orig, Heap::Space space) {
   uword orig_addr = UntaggedObject::ToAddr(orig.ptr());
   uword clone_addr = UntaggedObject::ToAddr(raw_clone);
   static const intptr_t kHeaderSizeInBytes = sizeof(UntaggedObject);
-  memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
-          reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
-          size - kHeaderSizeInBytes);
+  if (load_with_relaxed_atomics) {
+    auto orig_atomics_ptr = reinterpret_cast<std::atomic<uword>*>(orig_addr);
+    auto clone_ptr = reinterpret_cast<uword*>(clone_addr);
+    for (intptr_t i = kHeaderSizeInBytes / kWordSize; i < size / kWordSize;
+         i++) {
+      *(clone_ptr + i) =
+          (orig_atomics_ptr + i)->load(std::memory_order_relaxed);
+    }
+  } else {
+    memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
+            reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
+            size - kHeaderSizeInBytes);
+  }
 
   // Add clone to store buffer, if needed.
   if (!raw_clone->IsOldObject()) {
@@ -20310,6 +20322,7 @@ void AbstractType::InitializeTypeTestingStubNonAtomic(const Code& stub) const {
     untag()->set_type_test_stub(stub.ptr());
     return;
   }
+
   StoreNonPointer(&untag()->type_test_stub_entry_point_, stub.EntryPoint());
   untag()->set_type_test_stub(stub.ptr());
 }
@@ -20466,7 +20479,9 @@ TypePtr Type::ToNullability(Nullability value, Heap::Space space) const {
   Type& type = Type::Handle();
   // Always cloning in old space and removing space parameter would not satisfy
   // currently existing requests for type instantiation in new space.
-  type ^= Object::Clone(*this, space);
+  // Load with relaxed atomics to prevent data race with updating type
+  // testing stub.
+  type ^= Object::Clone(*this, space, /*load_with_relaxed_atomics=*/true);
   type.set_nullability(value);
   type.SetHash(0);
   type.InitializeTypeTestingStubNonAtomic(
