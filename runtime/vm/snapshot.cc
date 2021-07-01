@@ -617,7 +617,7 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
     *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew,
-                                /*compressed*/ false);
+                                Instance::ContainsCompressedPointers());
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
