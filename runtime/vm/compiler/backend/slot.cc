@@ -226,7 +226,7 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kDartField:
     case Slot::Kind::kFunction_data:
     case Slot::Kind::kFunction_signature:
-    case Slot::Kind::kFunctionType_parameter_names:
+    case Slot::Kind::kFunctionType_named_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kPointerBase_data_field:

@@ -5365,7 +5365,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         // Finalize function type.
         FunctionType& signature = FunctionType::Handle(Z, function.signature());
         signature ^= ClassFinalizer::FinalizeType(signature);
-        function.set_signature(signature);
+        function.SetSignature(signature);
 
         ClosureFunctionsCache::AddClosureFunctionLocked(function);
         break;

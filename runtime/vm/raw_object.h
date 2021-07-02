@@ -265,6 +265,8 @@ class UntaggedObject {
    public:
     Tags() : tags_(0) {}
 
+    using ContentType = T;
+
     operator T() const { return tags_.load(std::memory_order_relaxed); }
     T operator=(T tags) {
       tags_.store(tags, std::memory_order_relaxed);
@@ -1360,8 +1362,7 @@ class UntaggedFunction : public UntaggedObject {
   VISIT_FROM(name)
   // Class or patch class or mixin class where this function is defined.
   COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names)
-  COMPRESSED_POINTER_FIELD(FunctionTypePtr, signature)
+  WSR_COMPRESSED_POINTER_FIELD(FunctionTypePtr, signature)
   // Additional data specific to the function kind. See Function::set_data()
   // for details.
   COMPRESSED_POINTER_FIELD(ObjectPtr, data)
@@ -1384,52 +1385,21 @@ class UntaggedFunction : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, ic_data_array);
   // Currently active code. Accessed from generated code.
   COMPRESSED_POINTER_FIELD(CodePtr, code);
-  // Unoptimized code, keep it after optimization.
-  NOT_IN_PRECOMPILED(COMPRESSED_POINTER_FIELD(CodePtr, unoptimized_code));
 #if defined(DART_PRECOMPILED_RUNTIME)
   VISIT_TO(code);
 #else
+  // Positional parameter names are not needed in the AOT runtime.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, positional_parameter_names);
+  // Unoptimized code, keep it after optimization.
+  COMPRESSED_POINTER_FIELD(CodePtr, unoptimized_code);
   VISIT_TO(unoptimized_code);
+
+  UnboxedParameterBitmap unboxed_parameters_info_;
+  TokenPosition token_pos_;
+  TokenPosition end_token_pos_;
 #endif
 
-  NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
-  NOT_IN_PRECOMPILED(TokenPosition token_pos_);
-  NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
   Tags<uint32_t> kind_tag_;  // See Function::KindTagBits.
-  Tags<uint32_t> packed_fields_;
-
-  // TODO(regis): Split packed_fields_ in 2 uint32_t if max values are too low.
-
-  static constexpr intptr_t kMaxOptimizableBits = 1;
-  static constexpr intptr_t kMaxTypeParametersBits = 7;
-  static constexpr intptr_t kMaxHasNamedOptionalParametersBits = 1;
-  static constexpr intptr_t kMaxFixedParametersBits = 10;
-  static constexpr intptr_t kMaxOptionalParametersBits = 10;
-
-  typedef BitField<uint32_t, bool, 0, kMaxOptimizableBits> PackedOptimizable;
-  typedef BitField<uint32_t,
-                   uint8_t,
-                   PackedOptimizable::kNextBit,
-                   kMaxTypeParametersBits>
-      PackedNumTypeParameters;
-  typedef BitField<uint32_t,
-                   bool,
-                   PackedNumTypeParameters::kNextBit,
-                   kMaxHasNamedOptionalParametersBits>
-      PackedHasNamedOptionalParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedHasNamedOptionalParameters::kNextBit,
-                   kMaxFixedParametersBits>
-      PackedNumFixedParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedNumFixedParameters::kNextBit,
-                   kMaxOptionalParametersBits>
-      PackedNumOptionalParameters;
-  static_assert(PackedNumOptionalParameters::kNextBit <=
-                    kBitsPerByte * sizeof(decltype(packed_fields_)),
-                "UntaggedFunction::packed_fields_ bitfields don't fit.");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, int32_t, usage_counter)                                          \
@@ -1448,7 +1418,14 @@ class UntaggedFunction : public UntaggedObject {
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  friend class UntaggedFunctionType;  // To use same constants for packing.
+  Tags<uint8_t> packed_fields_;
+
+  static constexpr intptr_t kMaxOptimizableBits = 1;
+
+  using PackedOptimizable = BitField<decltype(packed_fields_)::ContentType,
+                                     bool,
+                                     0,
+                                     kMaxOptimizableBits>;
 };
 
 class UntaggedClosureData : public UntaggedObject {
@@ -2682,49 +2659,46 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, result_type)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_types)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names);
+  COMPRESSED_POINTER_FIELD(ArrayPtr, named_parameter_names);
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
-  uint32_t packed_fields_;  // Number of parent type args and own parameters.
+  Tags<uint32_t> packed_parameter_counts_;
+  Tags<uint16_t> packed_type_parameter_counts_;
   uint8_t type_state_;
   uint8_t nullability_;
 
-  static constexpr intptr_t kMaxParentTypeArgumentsBits = 8;
-  static constexpr intptr_t kMaxImplicitParametersBits = 1;
-  static constexpr intptr_t kMaxHasNamedOptionalParametersBits =
-      UntaggedFunction::kMaxHasNamedOptionalParametersBits;
-  static constexpr intptr_t kMaxFixedParametersBits =
-      UntaggedFunction::kMaxFixedParametersBits;
-  static constexpr intptr_t kMaxOptionalParametersBits =
-      UntaggedFunction::kMaxOptionalParametersBits;
-
   // The bit fields are public for use in kernel_to_il.cc.
  public:
-  typedef BitField<uint32_t, uint8_t, 0, kMaxParentTypeArgumentsBits>
-      PackedNumParentTypeArguments;
-  typedef BitField<uint32_t,
-                   uint8_t,
-                   PackedNumParentTypeArguments::kNextBit,
-                   kMaxImplicitParametersBits>
-      PackedNumImplicitParameters;
-  typedef BitField<uint32_t,
-                   bool,
-                   PackedNumImplicitParameters::kNextBit,
-                   kMaxHasNamedOptionalParametersBits>
-      PackedHasNamedOptionalParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedHasNamedOptionalParameters::kNextBit,
-                   kMaxFixedParametersBits>
-      PackedNumFixedParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedNumFixedParameters::kNextBit,
-                   kMaxOptionalParametersBits>
-      PackedNumOptionalParameters;
-  static_assert(PackedNumOptionalParameters::kNextBit <=
-                    kBitsPerByte * sizeof(decltype(packed_fields_)),
-                "UntaggedFunctionType::packed_fields_ bitfields don't fit.");
+  // For packed_type_parameter_counts_.
+  using PackedNumParentTypeArguments =
+      BitField<decltype(packed_type_parameter_counts_)::ContentType,
+               uint8_t,
+               0,
+               8>;
+  using PackedNumTypeParameters =
+      BitField<decltype(packed_type_parameter_counts_)::ContentType,
+               uint8_t,
+               PackedNumParentTypeArguments::kNextBit,
+               8>;
+
+  // For packed_parameter_counts_.
+  using PackedNumImplicitParameters =
+      BitField<decltype(packed_parameter_counts_)::ContentType, uint8_t, 0, 1>;
+  using PackedHasNamedOptionalParameters =
+      BitField<decltype(packed_parameter_counts_)::ContentType,
+               bool,
+               PackedNumImplicitParameters::kNextBit,
+               1>;
+  using PackedNumFixedParameters =
+      BitField<decltype(packed_parameter_counts_)::ContentType,
+               uint16_t,
+               PackedHasNamedOptionalParameters::kNextBit,
+               14>;
+  using PackedNumOptionalParameters =
+      BitField<decltype(packed_parameter_counts_)::ContentType,
+               uint16_t,
+               PackedNumFixedParameters::kNextBit,
+               14>;
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     compiler::target::kSmiBits,
                 "In-place mask for number of optional parameters cannot fit in "

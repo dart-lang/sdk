@@ -2587,8 +2587,8 @@ class Function : public Object {
   void SetFfiCallbackExceptionalReturn(const Instance& value) const;
 
   // Return the signature of this function.
-  FunctionTypePtr signature() const { return untag()->signature(); }
-  void set_signature(const FunctionType& value) const;
+  PRECOMPILER_WSR_FIELD_DECLARATION(FunctionType, signature);
+  void SetSignature(const FunctionType& value) const;
   static intptr_t signature_offset() {
     return OFFSET_OF(UntaggedFunction, signature_);
   }
@@ -2637,7 +2637,7 @@ class Function : public Object {
   void set_native_name(const String& name) const;
 
   AbstractTypePtr result_type() const {
-    return untag()->signature()->untag()->result_type();
+    return signature()->untag()->result_type();
   }
 
   // The parameters, starting with NumImplicitParameters() parameters which are
@@ -2645,33 +2645,37 @@ class Function : public Object {
   // Note that type checks exclude implicit parameters.
   AbstractTypePtr ParameterTypeAt(intptr_t index) const;
   ArrayPtr parameter_types() const {
-    return untag()->signature()->untag()->parameter_types();
+    return signature()->untag()->parameter_types();
   }
 
-  // Parameter names are valid for all valid parameter indices, and are not
-  // limited to named optional parameters. If there are parameter flags (eg
-  // required) they're stored at the end of this array, so the size of this
-  // array isn't necessarily NumParameters(), but the first NumParameters()
-  // elements are the names.
+  // Outside of the AOT runtime, functions store the names for their positional
+  // parameters, and delegate storage of the names for named parameters to
+  // their signature. These methods handle fetching the name from and
+  // setting the name to the correct location.
   StringPtr ParameterNameAt(intptr_t index) const;
-  ArrayPtr parameter_names() const { return untag()->parameter_names(); }
-  void SetParameterNamesFrom(const FunctionType& signature) const;
+  // Only valid for positional parameter indexes, as this should be called
+  // explicitly on the signature for named parameters.
+  void SetParameterNameAt(intptr_t index, const String& value) const;
+  // Creates an appropriately sized array in the function to hold positional
+  // parameter names, using the positional parameter count in the signature.
+  // Uses same default space as Function::New.
+  void CreateNameArray(Heap::Space space = Heap::kOld) const;
 
-  // The required flags are stored at the end of the parameter_names. The flags
-  // are packed into SMIs, but omitted if they're 0.
+  // Delegates to the signature, which stores the named parameter flags.
   bool IsRequiredAt(intptr_t index) const;
 
   // The formal type parameters, their bounds, and defaults, are specified as an
   // object of type TypeParameters stored in the signature.
   TypeParametersPtr type_parameters() const {
-    return untag()->signature()->untag()->type_parameters();
+    return signature()->untag()->type_parameters();
   }
 
   intptr_t NumTypeParameters() const {
-    return UntaggedFunction::PackedNumTypeParameters::decode(
-        untag()->packed_fields_);
+    return signature()
+        ->untag()
+        ->packed_type_parameter_counts_
+        .Read<UntaggedFunctionType::PackedNumTypeParameters>();
   }
-  void SetNumTypeParameters(intptr_t value) const;
 
   // Return the cumulative number of type arguments in all parent functions.
   intptr_t NumParentTypeArguments() const;
@@ -2993,33 +2997,38 @@ class Function : public Object {
   }
 
   intptr_t num_fixed_parameters() const {
-    return UntaggedFunction::PackedNumFixedParameters::decode(
-        untag()->packed_fields_);
+    return signature()
+        ->untag()
+        ->packed_parameter_counts_
+        .Read<UntaggedFunctionType::PackedNumFixedParameters>();
   }
-  void set_num_fixed_parameters(intptr_t value) const;
 
   bool HasOptionalParameters() const {
-    return UntaggedFunction::PackedNumOptionalParameters::decode(
-               untag()->packed_fields_) > 0;
+    return signature()
+               ->untag()
+               ->packed_parameter_counts_
+               .Read<UntaggedFunctionType::PackedNumOptionalParameters>() > 0;
   }
   bool HasOptionalNamedParameters() const {
     return HasOptionalParameters() &&
-           UntaggedFunction::PackedHasNamedOptionalParameters::decode(
-               untag()->packed_fields_);
+           signature()
+               ->untag()
+               ->packed_parameter_counts_
+               .Read<UntaggedFunctionType::PackedHasNamedOptionalParameters>();
   }
   bool HasRequiredNamedParameters() const;
   bool HasOptionalPositionalParameters() const {
     return HasOptionalParameters() && !HasOptionalNamedParameters();
   }
   intptr_t NumOptionalParameters() const {
-    return UntaggedFunction::PackedNumOptionalParameters::decode(
-        untag()->packed_fields_);
+    return signature()
+        ->untag()
+        ->packed_parameter_counts_
+        .Read<UntaggedFunctionType::PackedNumOptionalParameters>();
   }
   intptr_t NumOptionalPositionalParameters() const {
     return HasOptionalPositionalParameters() ? NumOptionalParameters() : 0;
   }
-  void SetNumOptionalParameters(intptr_t num_optional_parameters,
-                                bool are_optional_positional) const;
 
   intptr_t NumOptionalNamedParameters() const {
     return HasOptionalNamedParameters() ? NumOptionalParameters() : 0;
@@ -3781,8 +3790,6 @@ class Function : public Object {
   DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
       const TypeArguments& defaults) const;
 
-  void set_parameter_names(const Array& value) const;
-  void set_parameter_types(const Array& value) const;
   void set_ic_data_array(const Array& value) const;
   void set_name(const String& value) const;
   void set_kind(UntaggedFunction::Kind value) const;
@@ -3795,6 +3802,13 @@ class Function : public Object {
   void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  ArrayPtr positional_parameter_names() const {
+    return untag()->positional_parameter_names();
+  }
+  void set_positional_parameter_names(const Array& value) const;
+#endif
 
   ObjectPtr data() const { return untag()->data<std::memory_order_acquire>(); }
   void set_data(const Object& value) const;
@@ -8365,6 +8379,19 @@ class Type : public AbstractType {
 // of parameters, but includes the names of optional named parameters.
 class FunctionType : public AbstractType {
  public:
+  // Reexported so they can be used by the flow graph builders.
+  using PackedNumParentTypeArguments =
+      UntaggedFunctionType::PackedNumParentTypeArguments;
+  using PackedNumTypeParameters = UntaggedFunctionType::PackedNumTypeParameters;
+  using PackedHasNamedOptionalParameters =
+      UntaggedFunctionType::PackedHasNamedOptionalParameters;
+  using PackedNumImplicitParameters =
+      UntaggedFunctionType::PackedNumImplicitParameters;
+  using PackedNumFixedParameters =
+      UntaggedFunctionType::PackedNumFixedParameters;
+  using PackedNumOptionalParameters =
+      UntaggedFunctionType::PackedNumOptionalParameters;
+
   static intptr_t type_state_offset() {
     return OFFSET_OF(UntaggedFunctionType, type_state_);
   }
@@ -8421,41 +8448,46 @@ class FunctionType : public AbstractType {
 
   // Return the number of type arguments in enclosing signature.
   intptr_t NumParentTypeArguments() const {
-    return UntaggedFunctionType::PackedNumParentTypeArguments::decode(
-        untag()->packed_fields_);
+    return untag()
+        ->packed_type_parameter_counts_.Read<PackedNumParentTypeArguments>();
   }
   void SetNumParentTypeArguments(intptr_t value) const;
+  intptr_t NumTypeParameters() const {
+    return PackedNumTypeParameters::decode(
+        untag()->packed_type_parameter_counts_);
+  }
 
   intptr_t NumTypeArguments() const {
     return NumParentTypeArguments() + NumTypeParameters();
   }
 
   intptr_t num_implicit_parameters() const {
-    return UntaggedFunctionType::PackedNumImplicitParameters::decode(
-        untag()->packed_fields_);
+    return untag()
+        ->packed_parameter_counts_.Read<PackedNumImplicitParameters>();
   }
   void set_num_implicit_parameters(intptr_t value) const;
   intptr_t num_fixed_parameters() const {
-    return UntaggedFunctionType::PackedNumFixedParameters::decode(
-        untag()->packed_fields_);
+    return untag()->packed_parameter_counts_.Read<PackedNumFixedParameters>();
   }
   void set_num_fixed_parameters(intptr_t value) const;
 
   bool HasOptionalParameters() const {
-    return UntaggedFunctionType::PackedNumOptionalParameters::decode(
-               untag()->packed_fields_) > 0;
+    return untag()
+               ->packed_parameter_counts_.Read<PackedNumOptionalParameters>() >
+           0;
   }
   bool HasOptionalNamedParameters() const {
     return HasOptionalParameters() &&
-           UntaggedFunctionType::PackedHasNamedOptionalParameters::decode(
-               untag()->packed_fields_);
+           untag()
+               ->packed_parameter_counts_
+               .Read<PackedHasNamedOptionalParameters>();
   }
   bool HasOptionalPositionalParameters() const {
     return HasOptionalParameters() && !HasOptionalNamedParameters();
   }
   intptr_t NumOptionalParameters() const {
-    return UntaggedFunctionType::PackedNumOptionalParameters::decode(
-        untag()->packed_fields_);
+    return untag()
+        ->packed_parameter_counts_.Read<PackedNumOptionalParameters>();
   }
   void SetNumOptionalParameters(intptr_t num_optional_parameters,
                                 bool are_optional_positional) const;
@@ -8467,21 +8499,21 @@ class FunctionType : public AbstractType {
   intptr_t NumOptionalNamedParameters() const {
     return HasOptionalNamedParameters() ? NumOptionalParameters() : 0;
   }
-  uint32_t packed_fields() const { return untag()->packed_fields_; }
-  void set_packed_fields(uint32_t packed_fields) const;
-  static intptr_t packed_fields_offset() {
-    return OFFSET_OF(UntaggedFunctionType, packed_fields_);
-  }
 
-  // Reexported so they can be used by the flow graph builders.
-  using PackedNumParentTypeArguments =
-      UntaggedFunctionType::PackedNumParentTypeArguments;
-  using PackedHasNamedOptionalParameters =
-      UntaggedFunctionType::PackedHasNamedOptionalParameters;
-  using PackedNumFixedParameters =
-      UntaggedFunctionType::PackedNumFixedParameters;
-  using PackedNumOptionalParameters =
-      UntaggedFunctionType::PackedNumOptionalParameters;
+  uint32_t packed_parameter_counts() const {
+    return untag()->packed_parameter_counts_;
+  }
+  void set_packed_parameter_counts(uint32_t packed_parameter_counts) const;
+  static intptr_t packed_parameter_counts_offset() {
+    return OFFSET_OF(UntaggedFunctionType, packed_parameter_counts_);
+  }
+  uint16_t packed_type_parameter_counts() const {
+    return untag()->packed_type_parameter_counts_;
+  }
+  void set_packed_type_parameter_counts(uint16_t packed_parameter_counts) const;
+  static intptr_t packed_type_parameter_counts_offset() {
+    return OFFSET_OF(UntaggedFunctionType, packed_type_parameter_counts_);
+  }
 
   // Return the type parameter declared at index.
   TypeParameterPtr TypeParameterAt(
@@ -8501,20 +8533,24 @@ class FunctionType : public AbstractType {
   static intptr_t parameter_types_offset() {
     return OFFSET_OF(UntaggedFunctionType, parameter_types_);
   }
-  // Parameter names are valid for all valid parameter indices, and are not
-  // limited to named optional parameters. However, they are meaningless after
-  // canonicalization of the function type. Any particular signature may be
-  // selected as the canonical represent as the names are not part of the type.
+  // Parameter names are only stored for named parameters. If there are no named
+  // parameters, named_parameter_names() is null.
   // If there are parameter flags (eg required) they're stored at the end of
-  // this array, so the size of this array isn't necessarily NumParameters(),
-  // but the first NumParameters() elements are the names.
-  StringPtr ParameterNameAt(intptr_t index) const;
-  void SetParameterNameAt(intptr_t index, const String& value) const;
-  ArrayPtr parameter_names() const { return untag()->parameter_names(); }
-  void set_parameter_names(const Array& value) const;
-  static intptr_t parameter_names_offset() {
-    return OFFSET_OF(UntaggedFunctionType, parameter_names_);
+  // this array, so the size of this array isn't necessarily
+  // NumOptionalNamedParameters(), but the first NumOptionalNamedParameters()
+  // elements are the names.
+  ArrayPtr named_parameter_names() const {
+    return untag()->named_parameter_names();
   }
+  void set_named_parameter_names(const Array& value) const;
+  static intptr_t named_parameter_names_offset() {
+    return OFFSET_OF(UntaggedFunctionType, named_parameter_names_);
+  }
+  // The index for these operations is the absolute index of the parameter, not
+  // the index relative to the start of the named parameters (if any).
+  StringPtr ParameterNameAt(intptr_t index) const;
+  // Only valid for absolute indexes of named parameters.
+  void SetParameterNameAt(intptr_t index, const String& value) const;
 
   // The required flags are stored at the end of the parameter_names. The flags
   // are packed into SMIs, but omitted if they're 0.
@@ -8523,20 +8559,16 @@ class FunctionType : public AbstractType {
 
   // Sets up the signature's parameter name array, including appropriate space
   // for any possible parameter flags. This may be an overestimate if some
-  // parameters don't have flags, and so TruncateUnusedParameterFlags() should
+  // parameters don't have flags, and so FinalizeNameArray() should
   // be called after all parameter flags have been appropriately set.
   //
   // Assumes that the number of fixed and optional parameters for the signature
-  // has already been set.
-  void CreateNameArrayIncludingFlags(Heap::Space space) const;
+  // has already been set. Uses same default space as FunctionType::New.
+  void CreateNameArrayIncludingFlags(Heap::Space space = Heap::kOld) const;
 
   // Truncate the parameter names array to remove any unused flag slots. Make
   // sure to only do this after calling SetIsRequiredAt as necessary.
-  void TruncateUnusedParameterFlags() const;
-
-  // Finalize the name arrays by truncating the parameter name array and copying
-  // the names in the given function.
-  void FinalizeNameArrays(const Function& function) const;
+  void FinalizeNameArray() const;
 
   // Returns the length of the parameter names array that is required to store
   // all the names plus all their flags. This may be an overestimate if some
@@ -8548,13 +8580,9 @@ class FunctionType : public AbstractType {
   TypeParametersPtr type_parameters() const {
     return untag()->type_parameters();
   }
-  void set_type_parameters(const TypeParameters& value) const;
+  void SetTypeParameters(const TypeParameters& value) const;
   static intptr_t type_parameters_offset() {
     return OFFSET_OF(UntaggedFunctionType, type_parameters_);
-  }
-  intptr_t NumTypeParameters(Thread* thread) const;
-  intptr_t NumTypeParameters() const {
-    return NumTypeParameters(Thread::Current());
   }
 
   // Returns true if this function type has the same number of type parameters
@@ -8565,7 +8593,7 @@ class FunctionType : public AbstractType {
                                       TrailPtr trail = nullptr) const;
 
   // Return true if this function type declares type parameters.
-  bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
+  bool IsGeneric() const { return NumTypeParameters() > 0; }
 
   // Return true if any enclosing signature of this signature is generic.
   bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
@@ -11071,9 +11099,16 @@ class Closure : public Instance {
     return OFFSET_OF(UntaggedClosure, function_);
   }
 
+#if defined(DART_PRECOMPILER)
+  FunctionTypePtr signature() const {
+    return FunctionType::RawCast(WeakSerializationReference::Unwrap(
+        untag()->function()->untag()->signature()));
+  }
+#else
   FunctionTypePtr signature() const {
     return untag()->function()->untag()->signature();
   }
+#endif
 
   ContextPtr context() const { return untag()->context(); }
   static intptr_t context_offset() {

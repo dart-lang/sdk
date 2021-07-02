@@ -96,9 +96,9 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   const int kNumFixedParameters = 2;
   const int kNumOptionalParameters = 3;
   const bool kAreOptionalPositional = true;
-  function.set_num_fixed_parameters(kNumFixedParameters);
-  function.SetNumOptionalParameters(kNumOptionalParameters,
-                                    kAreOptionalPositional);
+  signature.set_num_fixed_parameters(kNumFixedParameters);
+  signature.SetNumOptionalParameters(kNumOptionalParameters,
+                                     kAreOptionalPositional);
   functions.SetAt(1, function);
 
   function_name = Symbols::New(thread, "baz");
@@ -2599,7 +2599,7 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   signature = function.signature();
   signature.set_result_type(Object::dynamic_type());
   signature ^= ClassFinalizer::FinalizeType(signature);
-  function.set_signature(signature);
+  function.SetSignature(signature);
   const Closure& closure = Closure::Handle(
       Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
                    function, context));

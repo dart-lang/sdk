@@ -960,6 +960,9 @@ class FunctionSerializationCluster : public SerializationCluster {
       s->Push(func->untag()->code());
       s->Push(func->untag()->ic_data_array());
     }
+    if (kind != Snapshot::kFullAOT) {
+      NOT_IN_PRECOMPILED(s->Push(func->untag()->positional_parameter_names()));
+    }
   }
 
   void WriteAlloc(Serializer* s) {
@@ -987,6 +990,8 @@ class FunctionSerializationCluster : public SerializationCluster {
       }
 
       if (kind != Snapshot::kFullAOT) {
+        NOT_IN_PRECOMPILED(
+            WriteCompressedField(func, positional_parameter_names));
         s->WriteTokenPosition(func->untag()->token_pos_);
         s->WriteTokenPosition(func->untag()->end_token_pos_);
         s->Write<uint32_t>(func->untag()->kernel_offset_);
@@ -1061,6 +1066,8 @@ class FunctionDeserializationCluster : public DeserializationCluster {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (kind != Snapshot::kFullAOT) {
+        func->untag()->positional_parameter_names_ =
+            static_cast<ArrayPtr>(d->ReadRef());
         func->untag()->token_pos_ = d->ReadTokenPosition();
         func->untag()->end_token_pos_ = d->ReadTokenPosition();
         func->untag()->kernel_offset_ = d->Read<uint32_t>();
@@ -3971,7 +3978,8 @@ class FunctionTypeSerializationCluster
     ASSERT_EQUAL(type->untag()->type_state_, combined >> kNullabilityBitSize);
     ASSERT_EQUAL(type->untag()->nullability_, combined & kNullabilityBitMask);
     s->Write<uint8_t>(combined);
-    s->Write<uint32_t>(type->untag()->packed_fields_);
+    s->Write<uint32_t>(type->untag()->packed_parameter_counts_);
+    s->Write<uint16_t>(type->untag()->packed_type_parameter_counts_);
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4001,7 +4009,8 @@ class FunctionTypeDeserializationCluster
       const uint8_t combined = d->Read<uint8_t>();
       type->untag()->type_state_ = combined >> kNullabilityBitSize;
       type->untag()->nullability_ = combined & kNullabilityBitMask;
-      type->untag()->packed_fields_ = d->Read<uint32_t>();
+      type->untag()->packed_parameter_counts_ = d->Read<uint32_t>();
+      type->untag()->packed_type_parameter_counts_ = d->Read<uint16_t>();
     }
   }
 
@@ -6255,6 +6264,10 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       name = String::ToCString(thread(), lib->untag()->url());
       break;
     }
+    case kFunctionTypeCid: {
+      type = "FunctionType";
+      break;
+    };
     default:
       FATAL("Request to create artificial node for object with cid %d", cid);
   }

@@ -205,6 +205,7 @@ static void AppendSubString(BaseTextBuffer* buffer,
 #endif
 
 PRECOMPILER_WSR_FIELD_DEFINITION(ClosureData, Function, parent_function)
+PRECOMPILER_WSR_FIELD_DEFINITION(Function, FunctionType, signature)
 
 #undef PRECOMPILER_WSR_FIELD_DEFINITION
 
@@ -3647,26 +3648,41 @@ FunctionPtr Class::CreateInvocationDispatcher(
                 false,  // Not native.
                 *this, TokenPosition::kMinSource));
   ArgumentsDescriptor desc(args_desc);
-  if (desc.TypeArgsLen() > 0) {
+  const intptr_t type_args_len = desc.TypeArgsLen();
+  if (type_args_len > 0) {
     // Make dispatcher function generic, since type arguments are passed.
-    invocation.SetNumTypeParameters(desc.TypeArgsLen());
+    const auto& type_parameters =
+        TypeParameters::Handle(zone, TypeParameters::New(type_args_len));
+    // Allow any type, as any type checking is compiled into the dispatcher.
+    auto& bound = Type::Handle(
+        zone, IsolateGroup::Current()->object_store()->nullable_object_type());
+    for (intptr_t i = 0; i < type_args_len; i++) {
+      // The name of the type parameter does not matter, as a type error using
+      // it should never be thrown.
+      type_parameters.SetNameAt(i, Symbols::OptimizedOut());
+      type_parameters.SetBoundAt(i, bound);
+      // Type arguments will always be provided, so the default is not used.
+      type_parameters.SetDefaultAt(i, Object::dynamic_type());
+    }
+    signature.SetTypeParameters(type_parameters);
   }
 
-  invocation.set_num_fixed_parameters(desc.PositionalCount());
-  invocation.SetNumOptionalParameters(desc.NamedCount(),
-                                      false);  // Not positional.
+  signature.set_num_fixed_parameters(desc.PositionalCount());
+  signature.SetNumOptionalParameters(desc.NamedCount(),
+                                     false);  // Not positional.
   signature.set_parameter_types(
       Array::Handle(zone, Array::New(desc.Count(), Heap::kOld)));
-  signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  invocation.CreateNameArray();
+  signature.CreateNameArrayIncludingFlags();
   // Receiver.
   signature.SetParameterTypeAt(0, Object::dynamic_type());
-  signature.SetParameterNameAt(0, Symbols::This());
+  invocation.SetParameterNameAt(0, Symbols::This());
   // Remaining positional parameters.
   for (intptr_t i = 1; i < desc.PositionalCount(); i++) {
     signature.SetParameterTypeAt(i, Object::dynamic_type());
     char name[64];
     Utils::SNPrint(name, 64, ":p%" Pd, i);
-    signature.SetParameterNameAt(
+    invocation.SetParameterNameAt(
         i, String::Handle(zone, Symbols::New(thread, name)));
   }
 
@@ -3677,7 +3693,7 @@ FunctionPtr Class::CreateInvocationDispatcher(
     signature.SetParameterTypeAt(param_index, Object::dynamic_type());
     signature.SetParameterNameAt(param_index, param_name);
   }
-  signature.FinalizeNameArrays(invocation);
+  signature.FinalizeNameArray();
   signature.set_result_type(Object::dynamic_type());
   invocation.set_is_debuggable(false);
   invocation.set_is_visible(false);
@@ -3685,7 +3701,7 @@ FunctionPtr Class::CreateInvocationDispatcher(
   invocation.set_saved_args_desc(args_desc);
 
   signature ^= ClassFinalizer::FinalizeType(signature);
-  invocation.set_signature(signature);
+  invocation.SetSignature(signature);
 
   return invocation.ptr();
 }
@@ -3718,11 +3734,12 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
 
   // Initialize signature: receiver is a single fixed parameter.
   const intptr_t kNumParameters = 1;
-  extractor.set_num_fixed_parameters(kNumParameters);
-  extractor.SetNumOptionalParameters(0, false);
+  signature.set_num_fixed_parameters(kNumParameters);
+  signature.SetNumOptionalParameters(0, false);
   signature.set_parameter_types(Object::extractor_parameter_types());
-  signature.set_parameter_names(Object::extractor_parameter_names());
-  extractor.SetParameterNamesFrom(signature);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  extractor.set_positional_parameter_names(Object::extractor_parameter_names());
+#endif
   signature.set_result_type(Object::dynamic_type());
 
   extractor.InheritKernelOffsetFrom(*this);
@@ -3732,7 +3749,7 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_is_visible(false);
 
   signature ^= ClassFinalizer::FinalizeType(signature);
-  extractor.set_signature(signature);
+  extractor.SetSignature(signature);
 
   owner.AddFunction(extractor);
 
@@ -7724,20 +7741,17 @@ void Function::set_native_name(const String& value) const {
   set_data(pair);
 }
 
-void Function::set_signature(const FunctionType& value) const {
-  // Signature may be reset to null in aot to save space.
-  untag()->set_signature(value.ptr());
-  if (!value.IsNull()) {
-    ASSERT(NumImplicitParameters() == value.num_implicit_parameters());
-    if (IsClosureFunction() && value.IsGeneric()) {
-      const TypeParameters& type_params =
-          TypeParameters::Handle(value.type_parameters());
-      const TypeArguments& defaults =
-          TypeArguments::Handle(type_params.defaults());
-      auto kind = DefaultTypeArgumentsKindFor(defaults);
-      ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
-      set_default_type_arguments_kind(kind);
-    }
+void Function::SetSignature(const FunctionType& value) const {
+  set_signature(value);
+  ASSERT(NumImplicitParameters() == value.num_implicit_parameters());
+  if (IsClosureFunction() && value.IsGeneric()) {
+    const TypeParameters& type_params =
+        TypeParameters::Handle(value.type_parameters());
+    const TypeArguments& defaults =
+        TypeArguments::Handle(type_params.defaults());
+    auto kind = DefaultTypeArgumentsKindFor(defaults);
+    ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
+    set_default_type_arguments_kind(kind);
   }
 }
 
@@ -7761,9 +7775,8 @@ void FunctionType::set_result_type(const AbstractType& value) const {
 }
 
 AbstractTypePtr Function::ParameterTypeAt(intptr_t index) const {
-  const Array& parameter_types =
-      Array::Handle(untag()->signature()->untag()->parameter_types());
-  return AbstractType::RawCast(parameter_types.At(index));
+  const Array& types = Array::Handle(parameter_types());
+  return AbstractType::RawCast(types.At(index));
 }
 
 AbstractTypePtr FunctionType::ParameterTypeAt(intptr_t index) const {
@@ -7778,73 +7791,129 @@ void FunctionType::SetParameterTypeAt(intptr_t index,
   parameter_types.SetAt(index, value);
 }
 
-void Function::set_parameter_types(const Array& value) const {
-  ASSERT(value.IsNull() || value.Length() > 0);
-  untag()->signature()->untag()->set_parameter_types(value.ptr());
-}
-
 void FunctionType::set_parameter_types(const Array& value) const {
   ASSERT(value.IsNull() || value.Length() > 0);
   untag()->set_parameter_types(value.ptr());
 }
 
 StringPtr Function::ParameterNameAt(intptr_t index) const {
-  const Array& parameter_names = Array::Handle(untag()->parameter_names());
-  return String::RawCast(parameter_names.At(index));
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (signature() == FunctionType::null()) {
+    // Without the signature, we're guaranteed not to have any name information.
+    return Symbols::OptimizedOut().ptr();
+  }
+#endif
+  const intptr_t num_fixed = num_fixed_parameters();
+  if (HasOptionalNamedParameters() && index >= num_fixed) {
+    const Array& parameter_names =
+        Array::Handle(signature()->untag()->named_parameter_names());
+    return String::RawCast(parameter_names.At(index - num_fixed));
+  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Symbols::OptimizedOut().ptr();
+#else
+  const Array& names = Array::Handle(untag()->positional_parameter_names());
+  return String::RawCast(names.At(index));
+#endif
 }
 
-void Function::SetParameterNamesFrom(const FunctionType& signature) const {
-  untag()->set_parameter_names(signature.parameter_names());
+void Function::SetParameterNameAt(intptr_t index, const String& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  ASSERT(!value.IsNull() && value.IsSymbol());
+  if (HasOptionalNamedParameters() && index >= num_fixed_parameters()) {
+    // These should be set on the signature, not the function.
+    UNREACHABLE();
+  }
+  const Array& parameter_names =
+      Array::Handle(untag()->positional_parameter_names());
+  parameter_names.SetAt(index, value);
+#endif
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void Function::set_positional_parameter_names(const Array& value) const {
+  ASSERT(value.ptr() == Object::empty_array().ptr() || value.Length() > 0);
+  untag()->set_positional_parameter_names(value.ptr());
+}
+#endif
 
 StringPtr FunctionType::ParameterNameAt(intptr_t index) const {
-  const Array& parameter_names = Array::Handle(untag()->parameter_names());
-  return String::RawCast(parameter_names.At(index));
+  const intptr_t num_fixed = num_fixed_parameters();
+  if (!HasOptionalNamedParameters() || index < num_fixed) {
+    // The positional parameter names are stored on the function, not here.
+    UNREACHABLE();
+  }
+  const Array& parameter_names =
+      Array::Handle(untag()->named_parameter_names());
+  return String::RawCast(parameter_names.At(index - num_fixed));
 }
 
 void FunctionType::SetParameterNameAt(intptr_t index,
                                       const String& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(!value.IsNull() && value.IsSymbol());
-  const Array& parameter_names = Array::Handle(untag()->parameter_names());
-  parameter_names.SetAt(index, value);
+  const intptr_t num_fixed = num_fixed_parameters();
+  if (!HasOptionalNamedParameters() || index < num_fixed) {
+    UNREACHABLE();
+  }
+  const Array& parameter_names =
+      Array::Handle(untag()->named_parameter_names());
+  parameter_names.SetAt(index - num_fixed, value);
+#endif
 }
 
-void Function::set_parameter_names(const Array& value) const {
-  ASSERT(value.IsNull() || value.Length() > 0);
-  untag()->set_parameter_names(value.ptr());
+void FunctionType::set_named_parameter_names(const Array& value) const {
+  ASSERT(value.ptr() == Object::empty_array().ptr() || value.Length() > 0);
+  untag()->set_named_parameter_names(value.ptr());
 }
 
-void FunctionType::set_parameter_names(const Array& value) const {
-  ASSERT(value.IsNull() || value.Length() > 0);
-  untag()->set_parameter_names(value.ptr());
+void Function::CreateNameArray(Heap::Space space) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  const intptr_t num_positional_params =
+      num_fixed_parameters() + NumOptionalPositionalParameters();
+  if (num_positional_params == 0) {
+    set_positional_parameter_names(Object::empty_array());
+  } else {
+    set_positional_parameter_names(
+        Array::Handle(Array::New(num_positional_params, space)));
+  }
+#endif
 }
 
 void FunctionType::CreateNameArrayIncludingFlags(Heap::Space space) const {
-  // Currently, we only store flags for named parameters that are required.
-  const intptr_t num_parameters = NumParameters();
-  if (num_parameters == 0) return;
-  intptr_t num_total_slots = num_parameters;
-  if (HasOptionalNamedParameters()) {
-    const intptr_t last_index = (NumOptionalNamedParameters() - 1) /
-                                compiler::target::kNumParameterFlagsPerElement;
-    const intptr_t num_flag_slots = last_index + 1;
-    num_total_slots += num_flag_slots;
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  const intptr_t num_named_parameters = NumOptionalNamedParameters();
+  if (num_named_parameters == 0) {
+    return set_named_parameter_names(Object::empty_array());
   }
+  // Currently, we only store flags for named parameters.
+  const intptr_t last_index = (num_named_parameters - 1) /
+                              compiler::target::kNumParameterFlagsPerElement;
+  const intptr_t num_flag_slots = last_index + 1;
+  intptr_t num_total_slots = num_named_parameters + num_flag_slots;
   auto& array = Array::Handle(Array::New(num_total_slots, space));
-  if (num_total_slots > num_parameters) {
-    // Set flag slots to Smi 0 before handing off.
-    auto& empty_flags_smi = Smi::Handle(Smi::New(0));
-    for (intptr_t i = num_parameters; i < num_total_slots; i++) {
-      array.SetAt(i, empty_flags_smi);
-    }
+  // Set flag slots to Smi 0 before handing off.
+  auto& empty_flags_smi = Smi::Handle(Smi::New(0));
+  for (intptr_t i = num_named_parameters; i < num_total_slots; i++) {
+    array.SetAt(i, empty_flags_smi);
   }
-  set_parameter_names(array);
+  set_named_parameter_names(array);
+#endif
 }
 
 intptr_t FunctionType::GetRequiredFlagIndex(intptr_t index,
                                             intptr_t* flag_mask) const {
   // If these calculations change, also change
   // FlowGraphBuilder::BuildClosureCallHasRequiredNamedArgumentsCheck.
+  ASSERT(HasOptionalNamedParameters());
   ASSERT(flag_mask != nullptr);
   ASSERT(index >= num_fixed_parameters());
   index -= num_fixed_parameters();
@@ -7852,50 +7921,50 @@ intptr_t FunctionType::GetRequiredFlagIndex(intptr_t index,
                << ((static_cast<uintptr_t>(index) %
                     compiler::target::kNumParameterFlagsPerElement) *
                    compiler::target::kNumParameterFlags);
-  return NumParameters() +
+  return NumOptionalNamedParameters() +
          index / compiler::target::kNumParameterFlagsPerElement;
 }
 
 bool Function::HasRequiredNamedParameters() const {
-  const FunctionType& sig = FunctionType::Handle(signature());
 #if defined(DART_PRECOMPILED_RUNTIME)
-  if (sig.IsNull()) {
+  if (signature() == FunctionType::null()) {
     // Signature is not dropped in aot when any named parameter is required.
     return false;
   }
-#else
-  ASSERT(!sig.IsNull());
 #endif
-  const Array& parameter_names = Array::Handle(sig.parameter_names());
+  if (!HasOptionalNamedParameters()) {
+    return false;
+  }
+  const FunctionType& sig = FunctionType::Handle(signature());
+  const Array& parameter_names = Array::Handle(sig.named_parameter_names());
   if (parameter_names.IsNull()) {
     return false;
   }
-  return parameter_names.Length() > NumParameters();
+  return parameter_names.Length() > NumOptionalNamedParameters();
 }
 
 bool Function::IsRequiredAt(intptr_t index) const {
-  if (index < num_fixed_parameters() + NumOptionalPositionalParameters()) {
-    return false;
-  }
-  const FunctionType& sig = FunctionType::Handle(signature());
 #if defined(DART_PRECOMPILED_RUNTIME)
-  if (sig.IsNull()) {
+  if (signature() == FunctionType::null()) {
     // Signature is not dropped in aot when any named parameter is required.
     return false;
   }
-#else
-  ASSERT(!sig.IsNull());
 #endif
+  if (!HasOptionalNamedParameters() || index < num_fixed_parameters()) {
+    return false;
+  }
+  const FunctionType& sig = FunctionType::Handle(signature());
   return sig.IsRequiredAt(index);
 }
 
 bool FunctionType::IsRequiredAt(intptr_t index) const {
-  if (index < num_fixed_parameters() + NumOptionalPositionalParameters()) {
+  if (!HasOptionalNamedParameters() || index < num_fixed_parameters()) {
     return false;
   }
   intptr_t flag_mask;
   const intptr_t flag_index = GetRequiredFlagIndex(index, &flag_mask);
-  const Array& parameter_names = Array::Handle(untag()->parameter_names());
+  const Array& parameter_names =
+      Array::Handle(untag()->named_parameter_names());
   if (flag_index >= parameter_names.Length()) {
     return false;
   }
@@ -7905,56 +7974,40 @@ bool FunctionType::IsRequiredAt(intptr_t index) const {
 }
 
 void FunctionType::SetIsRequiredAt(intptr_t index) const {
+#if defined(DART_PRECOMPILER_RUNTIME)
+  UNREACHABLE();
+#else
   intptr_t flag_mask;
   const intptr_t flag_index = GetRequiredFlagIndex(index, &flag_mask);
-  const Array& parameter_names = Array::Handle(untag()->parameter_names());
+  const Array& parameter_names =
+      Array::Handle(untag()->named_parameter_names());
   ASSERT(flag_index < parameter_names.Length());
   const intptr_t flags =
       Smi::Value(Smi::RawCast(parameter_names.At(flag_index)));
   parameter_names.SetAt(flag_index, Smi::Handle(Smi::New(flags | flag_mask)));
+#endif
 }
 
-void FunctionType::TruncateUnusedParameterFlags() const {
-  const intptr_t num_params = NumParameters();
-  if (num_params == 0) return;
-  const Array& parameter_names = Array::Handle(untag()->parameter_names());
-  if (parameter_names.Length() == num_params) {
-    // No flag slots to truncate.
+void FunctionType::FinalizeNameArray() const {
+#if defined(DART_PRECOMPILER_RUNTIME)
+  UNREACHABLE();
+#else
+  const intptr_t num_named_parameters = NumOptionalNamedParameters();
+  if (num_named_parameters == 0) {
+    ASSERT(untag()->named_parameter_names() == Object::empty_array().ptr());
     return;
   }
+  const Array& parameter_names =
+      Array::Handle(untag()->named_parameter_names());
   // Truncate the parameter names array to remove unused flags from the end.
   intptr_t last_used = parameter_names.Length() - 1;
-  for (; last_used >= num_params; --last_used) {
+  for (; last_used >= num_named_parameters; --last_used) {
     if (Smi::Value(Smi::RawCast(parameter_names.At(last_used))) != 0) {
       break;
     }
   }
   parameter_names.Truncate(last_used + 1);
-}
-
-void FunctionType::FinalizeNameArrays(const Function& function) const {
-  TruncateUnusedParameterFlags();
-  if (!function.IsNull()) {
-    function.SetParameterNamesFrom(*this);
-    // Unless the function is a dispatcher, its number of type parameters
-    // must match the number of type parameters in its signature.
-    ASSERT(function.kind() == UntaggedFunction::kNoSuchMethodDispatcher ||
-           function.kind() == UntaggedFunction::kInvokeFieldDispatcher ||
-           function.kind() == UntaggedFunction::kDynamicInvocationForwarder ||
-           function.NumTypeParameters() == NumTypeParameters());
-  }
-}
-
-void FunctionType::set_type_parameters(const TypeParameters& value) const {
-  untag()->set_type_parameters(value.ptr());
-}
-
-static void ReportTooManyTypeParameters(const Function& function) {
-  Report::MessageF(Report::kError, Script::Handle(), TokenPosition::kNoSource,
-                   Report::AtLocation,
-                   "too many type parameters declared in function '%s'",
-                   function.UserVisibleNameCString());
-  UNREACHABLE();
+#endif
 }
 
 static void ReportTooManyTypeParameters(const FunctionType& sig) {
@@ -7966,37 +8019,22 @@ static void ReportTooManyTypeParameters(const FunctionType& sig) {
   UNREACHABLE();
 }
 
+void FunctionType::SetTypeParameters(const TypeParameters& value) const {
+  untag()->set_type_parameters(value.ptr());
+  const intptr_t count = value.Length();
+  if (!UntaggedFunctionType::PackedNumTypeParameters::is_valid(count)) {
+    ReportTooManyTypeParameters(*this);
+  }
+  untag()->packed_type_parameter_counts_.Update<PackedNumTypeParameters>(count);
+}
+
 void FunctionType::SetNumParentTypeArguments(intptr_t value) const {
   ASSERT(value >= 0);
-  if (!Utils::IsUint(UntaggedFunctionType::kMaxParentTypeArgumentsBits,
-                     value)) {
+  if (!PackedNumParentTypeArguments::is_valid(value)) {
     ReportTooManyTypeParameters(*this);
   }
-  const uint32_t* original = &untag()->packed_fields_;
-  StoreNonPointer(original,
-                  UntaggedFunctionType::PackedNumParentTypeArguments::update(
-                      value, *original));
-}
-
-void Function::SetNumTypeParameters(intptr_t value) const {
-  ASSERT(value >= 0);
-  if (!Utils::IsUint(UntaggedFunction::kMaxTypeParametersBits, value)) {
-    ReportTooManyTypeParameters(*this);
-  }
-  untag()->packed_fields_.Update<UntaggedFunction::PackedNumTypeParameters>(
+  untag()->packed_type_parameter_counts_.Update<PackedNumParentTypeArguments>(
       value);
-}
-
-intptr_t FunctionType::NumTypeParameters(Thread* thread) const {
-  if (type_parameters() == TypeParameters::null()) {
-    return 0;
-  }
-  REUSABLE_TYPE_PARAMETERS_HANDLESCOPE(thread);
-  TypeParameters& type_params = thread->TypeParametersHandle();
-  type_params = type_parameters();
-  // We require null to represent a non-generic signature.
-  ASSERT(type_params.Length() != 0);
-  return type_params.Length();
 }
 
 intptr_t Function::NumParentTypeArguments() const {
@@ -8720,7 +8758,7 @@ AbstractTypePtr FunctionType::InstantiateFrom(
             num_free_fun_type_params, space, trail);
       }
       sig_type_params.set_defaults(type_args);
-      sig.set_type_parameters(sig_type_params);
+      sig.SetTypeParameters(sig_type_params);
     }
   }
 
@@ -8756,7 +8794,7 @@ AbstractTypePtr FunctionType::InstantiateFrom(
     }
     sig.SetParameterTypeAt(i, type);
   }
-  sig.set_parameter_names(Array::Handle(zone, parameter_names()));
+  sig.set_named_parameter_names(Array::Handle(zone, named_parameter_names()));
 
   if (delete_type_parameters) {
     ASSERT(sig.IsInstantiated(kFunctions));
@@ -8795,11 +8833,10 @@ bool FunctionType::IsContravariantParameter(intptr_t parameter_position,
 bool FunctionType::HasSameTypeParametersAndBounds(const FunctionType& other,
                                                   TypeEquality kind,
                                                   TrailPtr trail) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
+  Zone* const zone = Thread::Current()->zone();
 
-  const intptr_t num_type_params = NumTypeParameters(thread);
-  if (num_type_params != other.NumTypeParameters(thread)) {
+  const intptr_t num_type_params = NumTypeParameters();
+  if (num_type_params != other.NumTypeParameters()) {
     return false;
   }
   if (num_type_params > 0) {
@@ -8996,6 +9033,7 @@ FunctionPtr Function::New(const FunctionType& signature,
                           TokenPosition token_pos,
                           Heap::Space space) {
   ASSERT(!owner.IsNull());
+  ASSERT(!signature.IsNull());
   const Function& result = Function::Handle(Function::New(space));
   result.set_kind_tag(0);
   result.set_packed_fields(0);
@@ -9051,12 +9089,10 @@ FunctionPtr Function::New(const FunctionType& signature,
   if (result.ForceOptimize()) {
     result.set_is_debuggable(false);
   }
-  if (!signature.IsNull()) {
-    signature.set_num_implicit_parameters(result.NumImplicitParameters());
-    result.set_signature(signature);
-  } else {
-    ASSERT(kind == UntaggedFunction::kFfiTrampoline);
-  }
+  signature.set_num_implicit_parameters(result.NumImplicitParameters());
+  result.SetSignature(signature);
+  NOT_IN_PRECOMPILED(
+      result.set_positional_parameter_names(Object::empty_array()));
   return result.ptr();
 }
 
@@ -9159,9 +9195,8 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   // This function cannot be local, therefore it has no generic parent.
   // Its implicit closure function therefore has no generic parent function
   // either. That is why it is safe to simply copy the type parameters.
-  closure_signature.set_type_parameters(
+  closure_signature.SetTypeParameters(
       TypeParameters::Handle(zone, type_parameters()));
-  closure_function.SetNumTypeParameters(NumTypeParameters());
 
   // Set closure function's result type to this result type.
   closure_signature.set_result_type(AbstractType::Handle(zone, result_type()));
@@ -9183,27 +9218,38 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   const int num_opt_params = NumOptionalParameters();
   const bool has_opt_pos_params = HasOptionalPositionalParameters();
   const int num_params = num_fixed_params + num_opt_params;
-  closure_function.set_num_fixed_parameters(num_fixed_params);
-  closure_function.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
+  const int num_pos_params = has_opt_pos_params ? num_params : num_fixed_params;
+  closure_signature.set_num_fixed_parameters(num_fixed_params);
+  closure_signature.SetNumOptionalParameters(num_opt_params,
+                                             has_opt_pos_params);
   closure_signature.set_parameter_types(
       Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-  closure_signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  closure_function.CreateNameArray();
+  closure_signature.CreateNameArrayIncludingFlags();
   AbstractType& param_type = AbstractType::Handle(zone);
   String& param_name = String::Handle(zone);
   // Add implicit closure object parameter.
   param_type = Type::DynamicType();
   closure_signature.SetParameterTypeAt(0, param_type);
-  closure_signature.SetParameterNameAt(0, Symbols::ClosureParameter());
-  for (int i = kClosure; i < num_params; i++) {
+  closure_function.SetParameterNameAt(0, Symbols::ClosureParameter());
+  for (int i = kClosure; i < num_pos_params; i++) {
     param_type = ParameterTypeAt(has_receiver - kClosure + i);
     closure_signature.SetParameterTypeAt(i, param_type);
     param_name = ParameterNameAt(has_receiver - kClosure + i);
+    // Set the name in the function for positional parameters.
+    closure_function.SetParameterNameAt(i, param_name);
+  }
+  for (int i = num_pos_params; i < num_params; i++) {
+    param_type = ParameterTypeAt(has_receiver - kClosure + i);
+    closure_signature.SetParameterTypeAt(i, param_type);
+    param_name = ParameterNameAt(has_receiver - kClosure + i);
+    // Set the name in the signature for named parameters.
     closure_signature.SetParameterNameAt(i, param_name);
     if (IsRequiredAt(has_receiver - kClosure + i)) {
       closure_signature.SetIsRequiredAt(i);
     }
   }
-  closure_signature.FinalizeNameArrays(closure_function);
+  closure_signature.FinalizeNameArray();
   closure_function.InheritKernelOffsetFrom(*this);
 
   // Change covariant parameter types to either Object? for an opted-in implicit
@@ -9230,7 +9276,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   }
   ASSERT(!closure_signature.IsFinalized());
   closure_signature ^= ClassFinalizer::FinalizeType(closure_signature);
-  closure_function.set_signature(closure_signature);
+  closure_function.SetSignature(closure_signature);
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.ptr();
@@ -9247,6 +9293,11 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 }
 
 StringPtr Function::InternalSignature() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (signature() == FunctionType::null()) {
+    return String::null();
+  }
+#endif
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
   const FunctionType& sig = FunctionType::Handle(signature());
@@ -9255,6 +9306,11 @@ StringPtr Function::InternalSignature() const {
 }
 
 StringPtr Function::UserVisibleSignature() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (signature() == FunctionType::null()) {
+    return String::null();
+  }
+#endif
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
   const FunctionType& sig = FunctionType::Handle(signature());
@@ -10140,8 +10196,14 @@ const char* Function::ToCString() const {
   return buffer.buffer();
 }
 
-void FunctionType::set_packed_fields(uint32_t packed_fields) const {
-  StoreNonPointer(&untag()->packed_fields_, packed_fields);
+void FunctionType::set_packed_parameter_counts(
+    uint32_t packed_parameter_counts) const {
+  untag()->packed_parameter_counts_ = packed_parameter_counts;
+}
+
+void FunctionType::set_packed_type_parameter_counts(
+    uint16_t packed_type_parameter_counts) const {
+  untag()->packed_type_parameter_counts_ = packed_type_parameter_counts;
 }
 
 intptr_t FunctionType::NumParameters() const {
@@ -10150,12 +10212,7 @@ intptr_t FunctionType::NumParameters() const {
 
 void FunctionType::set_num_implicit_parameters(intptr_t value) const {
   ASSERT(value >= 0);
-  ASSERT(
-      Utils::IsUint(UntaggedFunctionType::kMaxImplicitParametersBits, value));
-  const uint32_t* original = &untag()->packed_fields_;
-  StoreNonPointer(original,
-                  UntaggedFunctionType::PackedNumImplicitParameters::update(
-                      value, *original));
+  untag()->packed_parameter_counts_.Update<PackedNumImplicitParameters>(value);
 }
 
 ClosureData::DefaultTypeArgumentsKind ClosureData::default_type_arguments_kind()
@@ -10195,36 +10252,9 @@ const char* ClosureData::ToCString() const {
   return buffer.buffer();
 }
 
-void Function::set_num_fixed_parameters(intptr_t value) const {
-  ASSERT(value >= 0);
-  ASSERT(Utils::IsUint(UntaggedFunction::kMaxFixedParametersBits, value));
-  untag()->packed_fields_.Update<UntaggedFunction::PackedNumFixedParameters>(
-      value);
-  // Also store in signature.
-  FunctionType::Handle(signature()).set_num_fixed_parameters(value);
-}
-
 void FunctionType::set_num_fixed_parameters(intptr_t value) const {
   ASSERT(value >= 0);
-  ASSERT(Utils::IsUint(UntaggedFunctionType::kMaxFixedParametersBits, value));
-  const uint32_t* original = &untag()->packed_fields_;
-  StoreNonPointer(
-      original,
-      UntaggedFunctionType::PackedNumFixedParameters::update(value, *original));
-}
-
-void Function::SetNumOptionalParameters(intptr_t value,
-                                        bool are_optional_positional) const {
-  ASSERT(Utils::IsUint(UntaggedFunction::kMaxOptionalParametersBits, value));
-  untag()
-      ->packed_fields_
-      .Update<UntaggedFunction::PackedHasNamedOptionalParameters>(
-          (value > 0) && !are_optional_positional);
-  untag()->packed_fields_.Update<UntaggedFunction::PackedNumOptionalParameters>(
-      value);
-  // Also store in signature.
-  FunctionType::Handle(signature())
-      .SetNumOptionalParameters(value, are_optional_positional);
+  untag()->packed_parameter_counts_.Update<PackedNumFixedParameters>(value);
 }
 
 void FfiTrampolineData::set_callback_target(const Function& value) const {
@@ -10234,15 +10264,9 @@ void FfiTrampolineData::set_callback_target(const Function& value) const {
 void FunctionType::SetNumOptionalParameters(
     intptr_t value,
     bool are_optional_positional) const {
-  ASSERT(
-      Utils::IsUint(UntaggedFunctionType::kMaxOptionalParametersBits, value));
-  uint32_t packed_fields = untag()->packed_fields_;
-  packed_fields =
-      UntaggedFunctionType::PackedHasNamedOptionalParameters::update(
-          (value > 0) && !are_optional_positional, packed_fields);
-  packed_fields = UntaggedFunctionType::PackedNumOptionalParameters::update(
-      value, packed_fields);
-  StoreNonPointer(&untag()->packed_fields_, packed_fields);
+  untag()->packed_parameter_counts_.Update<PackedHasNamedOptionalParameters>(
+      (value > 0) && !are_optional_positional);
+  untag()->packed_parameter_counts_.Update<PackedNumOptionalParameters>(value);
 }
 
 FunctionTypePtr FunctionType::New(Heap::Space space) {
@@ -10258,10 +10282,10 @@ FunctionTypePtr FunctionType::New(intptr_t num_parent_type_arguments,
   Zone* Z = Thread::Current()->zone();
   const FunctionType& result =
       FunctionType::Handle(Z, FunctionType::New(space));
-  result.set_packed_fields(0);
+  result.set_packed_parameter_counts(0);
+  result.set_packed_type_parameter_counts(0);
+  result.set_named_parameter_names(Object::empty_array());
   result.SetNumParentTypeArguments(num_parent_type_arguments);
-  result.set_num_fixed_parameters(0);
-  result.SetNumOptionalParameters(0, false);
   result.set_nullability(nullability);
   result.SetHash(0);
   result.StoreNonPointer(&result.untag()->type_state_,
@@ -20712,8 +20736,10 @@ bool FunctionType::IsEquivalent(const Instance& other,
     return false;
   }
   const FunctionType& other_type = FunctionType::Cast(other);
-  if (packed_fields() != other_type.packed_fields()) {
-    // Different number of parent type arguments or of parameters.
+  if ((packed_parameter_counts() != other_type.packed_parameter_counts()) ||
+      (packed_type_parameter_counts() !=
+       other_type.packed_type_parameter_counts())) {
+    // Different number of type parameters or parameters.
     return false;
   }
   Nullability this_type_nullability = nullability();
@@ -20773,17 +20799,15 @@ bool FunctionType::IsEquivalent(const Instance& other,
       return false;
     }
   }
-  // Check the names and types of optional named parameters.
-  if (!HasOptionalNamedParameters()) {
-    ASSERT(!other_type.HasOptionalNamedParameters());  // Same packed_fields.
-    return true;
-  }
-  for (intptr_t i = num_fixed_parameters(); i < num_params; i++) {
-    if (ParameterNameAt(i) != other_type.ParameterNameAt(i)) {
-      return false;
-    }
-    if (IsRequiredAt(i) != other_type.IsRequiredAt(i)) {
-      return false;
+  if (HasOptionalNamedParameters()) {
+    ASSERT(other_type.HasOptionalNamedParameters());  // Same packed counts.
+    for (intptr_t i = num_fixed_parameters(); i < num_params; i++) {
+      if (ParameterNameAt(i) != other_type.ParameterNameAt(i)) {
+        return false;
+      }
+      if (IsRequiredAt(i) != other_type.IsRequiredAt(i)) {
+        return false;
+      }
     }
   }
   return true;
@@ -21040,7 +21064,8 @@ uword Type::ComputeHash() const {
 
 uword FunctionType::ComputeHash() const {
   ASSERT(IsFinalized());
-  uint32_t result = packed_fields();
+  uint32_t result =
+      CombineHashes(packed_parameter_counts(), packed_type_parameter_counts());
   // A legacy type should have the same hash as its non-nullable version to be
   // consistent with the definition of type equality in Dart code.
   Nullability type_nullability = nullability();
@@ -21242,7 +21267,7 @@ AbstractTypePtr FunctionType::Canonicalize(Thread* thread,
     ASSERT(type.IsOld());
     ASSERT(type.IsCanonical());
     ASSERT(Array::Handle(zone, parameter_types()).IsOld());
-    ASSERT(Array::Handle(zone, parameter_names()).IsOld());
+    ASSERT(Array::Handle(zone, named_parameter_names()).IsOld());
     const intptr_t num_params = NumParameters();
     for (intptr_t i = 0; i < num_params; i++) {
       type = ParameterTypeAt(i);
@@ -21291,7 +21316,7 @@ AbstractTypePtr FunctionType::Canonicalize(Thread* thread,
       SetHash(0);
     }
     ASSERT(Array::Handle(zone, parameter_types()).IsOld());
-    ASSERT(Array::Handle(zone, parameter_names()).IsOld());
+    ASSERT(Array::Handle(zone, named_parameter_names()).IsOld());
     const intptr_t num_params = NumParameters();
     for (intptr_t i = 0; i < num_params; i++) {
       type = ParameterTypeAt(i);

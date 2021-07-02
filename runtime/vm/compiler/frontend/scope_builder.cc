@@ -418,7 +418,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
             AbstractType::ZoneHandle(Z, function.IsFfiTrampoline()
                                             ? function.ParameterTypeAt(i)
                                             : Object::dynamic_type().ptr()));
-        scope_->InsertParameterAt(i, variable);
+        bool added = scope_->InsertParameterAt(i, variable);
+        ASSERT(added);
       }
       break;
     }
