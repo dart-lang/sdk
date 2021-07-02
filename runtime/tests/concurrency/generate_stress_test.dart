@@ -159,13 +159,19 @@ main() async {
   final shard = int.fromEnvironment(
       'shard', defaultValue: 0);
 
+  final repeat = int.fromEnvironment(
+      'repeat', defaultValue: 1);
+
   final parallelism = int.fromEnvironment(
       'parallelism', defaultValue: 0);
 
   final filteredTests = <Test>[];
   for (int i = 0; i < tests.length; ++i) {
     if ((i % shards) == shard) {
-      filteredTests.add(tests[i]);
+      final test = tests[i];
+      for (int j = 0; j < repeat; ++j) {
+        filteredTests.add(test);
+      }
     }
   }
 

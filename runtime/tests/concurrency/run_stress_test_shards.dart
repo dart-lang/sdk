@@ -94,6 +94,7 @@ final configurations = <TestRunner>[
   for (int i = 0; i < tsanShards; ++i)
     JitTestRunner('out/ReleaseTSANX64', [
       '--disable-dart-dev',
+      '-Drepeat=4',
       '-Dshard=$i',
       '-Dshards=$tsanShards',
       '--no-sound-null-safety',
