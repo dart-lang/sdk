@@ -1135,9 +1135,8 @@ class LibraryReader {
 
     TypeAliasElementImpl element;
     if (isFunctionTypeAliasBased) {
-      element =
-          // ignore: deprecated_member_use_from_same_package
-          FunctionTypeAliasElementImpl(name, -1);
+      element = TypeAliasElementImpl(name, -1);
+      element.isFunctionTypeAliasBased = true;
     } else {
       element = TypeAliasElementImpl(name, -1);
     }

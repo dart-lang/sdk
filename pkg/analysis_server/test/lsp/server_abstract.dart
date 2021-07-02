@@ -1439,7 +1439,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Position positionFromOffset(int offset, String contents) {
     final lineInfo = LineInfo.fromContent(withoutMarkers(contents));
-    return toPosition(lineInfo.getLocation(offset) as CharacterLocation);
+    return toPosition(lineInfo.getLocation(offset));
   }
 
   Future<RangeAndPlaceholder?> prepareRename(Uri uri, Position pos) {

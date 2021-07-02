@@ -756,17 +756,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }) {
     assertElement2(type.aliasElement, declaration: element);
     assertElementTypeStrings(type.aliasArguments, typeArguments);
-
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    if (type is FunctionType) {
-      assertElement2(
-        // ignore: deprecated_member_use_from_same_package
-        type.element,
-        declaration: element.aliasedElement as GenericFunctionTypeElement,
-      );
-      // ignore: deprecated_member_use_from_same_package
-      assertElementTypeStrings(type.typeArguments, typeArguments);
-    }
   }
 
   /// Assert that the given [identifier] is a reference to a type alias, in the

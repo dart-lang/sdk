@@ -802,14 +802,17 @@ class _ConstLiteralVerifier {
     }
 
     if (listValue != null) {
-      var elementType = value.type.typeArguments[0];
-      if (verifier._implementsEqualsWhenNotAllowed(elementType)) {
-        verifier._errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-          element,
-          [elementType],
-        );
-        return false;
+      var type = value.type;
+      if (type is InterfaceType) {
+        var elementType = type.typeArguments[0];
+        if (verifier._implementsEqualsWhenNotAllowed(elementType)) {
+          verifier._errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+            element,
+            [elementType],
+          );
+          return false;
+        }
       }
     }
 

@@ -962,12 +962,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// A list containing all of the mixins contained in this compilation unit.
   List<ClassElement> _mixins = const [];
 
-  /// A list containing all of the function type aliases contained in this
-  /// compilation unit.
-  @Deprecated('Use typeAliases instead')
-  List<FunctionTypeAliasElement> _functionTypeAliases =
-      _Sentinel.functionTypeAliasElement;
-
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
   List<TypeAliasElement> _typeAliases = const [];
@@ -1062,16 +1056,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       (function as FunctionElementImpl).enclosingElement = this;
     }
     _functions = functions;
-  }
-
-  @Deprecated('Use typeAliases instead')
-  @override
-  List<FunctionTypeAliasElement> get functionTypeAliases {
-    if (!identical(_functionTypeAliases, _Sentinel.functionTypeAliasElement)) {
-      return _functionTypeAliases;
-    }
-    return _functionTypeAliases =
-        typeAliases.whereType<FunctionTypeAliasElement>().toList();
   }
 
   @override
@@ -2962,7 +2946,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
-      element: this,
     );
   }
 
@@ -3331,42 +3314,6 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
-}
-
-@Deprecated('Use TypeAliasElement instead')
-class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
-    implements FunctionTypeAliasElement {
-  FunctionTypeAliasElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @Deprecated('Use aliasedElement instead')
-  @override
-  GenericFunctionTypeElementImpl get function {
-    return aliasedElement as GenericFunctionTypeElementImpl;
-  }
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    visitor.visitFunctionTypeAliasElement(this);
-    return visitor.visitTypeAliasElement(this);
-  }
-
-  @Deprecated('Use TypeAliasElement instead')
-  @override
-  FunctionType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    var type = super.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-    if (type is FunctionType) {
-      return type;
-    } else {
-      return _errorFunctionType(nullabilitySuffix);
-    }
-  }
 }
 
 /// Common internal interface shared by elements whose type is a function type.
@@ -5090,7 +5037,6 @@ class PropertyAccessorElementImpl_ImplicitGetter
       parameters: const <ParameterElement>[],
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
-      element: this,
     );
   }
 }
@@ -5157,7 +5103,6 @@ class PropertyAccessorElementImpl_ImplicitSetter
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
-      element: this,
     );
   }
 }
@@ -5818,9 +5763,6 @@ class _Sentinel {
       List.unmodifiable([]);
   static final List<ExportElement> exportElement = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
-  @Deprecated('Use TypeAliasElement instead')
-  static final List<FunctionTypeAliasElement> functionTypeAliasElement =
-      List.unmodifiable([]);
   static final List<ImportElement> importElement = List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =

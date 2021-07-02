@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -38,12 +37,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   })  : _libraryBuilder = libraryBuilder,
         _unitElement = unitElement,
         _enclosingContext = _EnclosingContext(unitReference, unitElement);
-
-  bool get _isNonFunctionTypeAliasesEnabled {
-    return _libraryElement.featureSet.isEnabled(
-      Feature.nonfunction_type_aliases,
-    );
-  }
 
   LibraryElementImpl get _libraryElement => _libraryBuilder.element;
 
@@ -448,8 +441,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameNode = node.name;
     var name = nameNode.name;
 
-    // ignore: deprecated_member_use_from_same_package
-    var element = FunctionTypeAliasElementImpl(name, nameNode.offset);
+    var element = TypeAliasElementImpl(name, nameNode.offset);
     element.isFunctionTypeAliasBased = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -552,15 +544,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameNode = node.name;
     var name = nameNode.name;
 
-    TypeAliasElementImpl element;
-    var aliasedType = node.type;
-    if (aliasedType is GenericFunctionType ||
-        !_isNonFunctionTypeAliasesEnabled) {
-      // ignore: deprecated_member_use_from_same_package
-      element = FunctionTypeAliasElementImpl(name, nameNode.offset);
-    } else {
-      element = TypeAliasElementImpl(name, nameNode.offset);
-    }
+    var element = TypeAliasElementImpl(name, nameNode.offset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);

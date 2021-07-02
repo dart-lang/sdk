@@ -118,11 +118,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R? visitFunctionElement(FunctionElement element) =>
       visitLocalElement(element);
 
-  @Deprecated('Override visitTypeAliasElement() instead')
-  @override
-  R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
-      visitElement(element);
-
   @override
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
       visitElement(element);
@@ -250,13 +245,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 
-  @Deprecated('Override visitTypeAliasElement() instead')
-  @override
-  R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
   @override
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) {
     element.visitChildren(this);
@@ -371,10 +359,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   @override
   R? visitFunctionElement(FunctionElement element) => null;
 
-  @Deprecated('Override visitTypeAliasElement() instead')
-  @override
-  R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
-
   @override
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
       null;
@@ -452,11 +436,6 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitFunctionElement(FunctionElement element) => _throw(element);
-
-  @Deprecated('Override visitTypeAliasElement() instead')
-  @override
-  R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
-      _throw(element);
 
   @override
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>

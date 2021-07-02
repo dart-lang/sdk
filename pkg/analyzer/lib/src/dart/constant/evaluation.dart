@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
@@ -100,8 +101,7 @@ class ConstantEvaluationEngine {
         if (!(secondArgument.name.label.name == _DEFAULT_VALUE_PARAM)) {
           return false;
         }
-        ParameterizedType defaultValueType =
-            namedArgumentValues[_DEFAULT_VALUE_PARAM]!.type;
+        var defaultValueType = namedArgumentValues[_DEFAULT_VALUE_PARAM]!.type;
         if (!(defaultValueType == expectedDefaultValueType ||
             defaultValueType == library.typeProvider.nullType)) {
           return false;
@@ -1597,10 +1597,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (variableElement is ExecutableElement) {
       var function = element as ExecutableElement;
       if (function.isStatic) {
-        var functionType = node.staticType as ParameterizedType;
         return DartObjectImpl(
           typeSystem,
-          functionType,
+          node.typeOrThrow,
           FunctionState(function),
         );
       }

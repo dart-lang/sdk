@@ -1,3 +1,17 @@
+## 2.0.0-dev (Not yet released - breaking changes)
+* Removed deprecated `Scope.lookup2()`.
+* Removed deprecated setters in API of AST.
+* Removed deprecated `FunctionTypeAliasElement`.
+* Updated `LineInfo.getLocation()` to return `CharacterLocation`.
+* Removed deprecated `LineInfo_Location`.
+* Removed deprecated methods from `AnalysisSession`.
+* Changed `DartObject.type` from `ParameterizedType?` to `DartType?`.
+* Changed `FunctionType` to implement `DartType`, not `ParameterizedType`.
+* Removed `FunctionType.element` and `FunctionType.typeArguments`.
+* Changed `DartObject.type` from `ParameterizedType?` to `DartType?`.
+* Changed `FunctionType` to implement `DartType`, not `ParameterizedType`.
+* Removed `FunctionType.element` and `FunctionType.typeArguments`.
+
 ## 1.8.0-dev
 * Added `StringInterpolation.firstString` and `lastString`, to express
   explicitly  that there are always (possibly empty) strings as the first
