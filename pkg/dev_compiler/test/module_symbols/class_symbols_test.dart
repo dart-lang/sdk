@@ -265,7 +265,7 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            String privateInstanceField = 'Cello';
+            String _privateInstanceField = 'Cello';
           }
           ''';
         setUpAll(() async {
@@ -279,7 +279,7 @@ void main() async {
           driver.cleanUp();
         });
         test('fieldId in classSymbol', () async {
-          expect(fieldId, endsWith('A|privateInstanceField'));
+          expect(fieldId, endsWith('A|Symbol(_privateInstanceField)'));
           expect(fieldId, fieldSymbol.id);
         });
         test('has class scopeId', () async {

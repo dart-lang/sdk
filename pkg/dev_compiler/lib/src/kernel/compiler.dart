@@ -2396,7 +2396,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var memberLibrary = member?.name?.library ??
           memberClass?.enclosingLibrary ??
           _currentLibrary;
-      // TODO(nshahan) Record the name for this member in memberNames.
+      // Wrap the name as a symbol here so it matches what you would find at
+      // runtime when you get all properties and symbols from an instance.
+      memberNames[member] = 'Symbol($name)';
       return getSymbol(emitPrivateNameSymbol(memberLibrary, name));
     }
 
