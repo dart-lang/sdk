@@ -74,11 +74,6 @@ static StackTracePtr CurrentSyncStackTrace(Thread* thread,
 }
 
 // Gets current stack trace for `thread`.
-// This functions itself handles the --causel-async-stacks case.
-// For --lazy-async-stacks see `CurrentSyncStackTraceLazy`.
-// For fallback see `CurrentSyncStackTrace`.
-// Extracts the causal async stack from the thread if any set, then prepends
-// the current sync. stack up until the current async function (if any).
 static StackTracePtr CurrentStackTrace(Thread* thread,
                                        bool for_async_function,
                                        intptr_t skip_frames = 1) {

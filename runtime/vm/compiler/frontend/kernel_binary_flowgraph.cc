@@ -5320,11 +5320,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
             break;
           case FunctionNodeHelper::kAsync:
             function.set_modifier(UntaggedFunction::kAsync);
-            function.set_is_inlinable(!FLAG_causal_async_stacks);
             break;
           case FunctionNodeHelper::kAsyncStar:
             function.set_modifier(UntaggedFunction::kAsyncGen);
-            function.set_is_inlinable(!FLAG_causal_async_stacks);
             break;
           default:
             // no special modifier
@@ -5343,8 +5341,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         }
         // Note: Is..() methods use the modifiers set above, so order matters.
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-          function.set_is_inlinable(!FLAG_causal_async_stacks &&
-                                    !FLAG_lazy_async_stacks);
+          function.set_is_inlinable(!FLAG_lazy_async_stacks);
         }
 
         function.set_end_token_pos(function_node_helper.end_position_);

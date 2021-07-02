@@ -8,7 +8,7 @@
 
 import 'package:async_helper/async_minitest.dart';
 
-import 'causal_async_exception_stack_helper.dart' as h;
+import 'lazy_async_exception_stack_helper.dart' as h;
 
 foo3() async => throw "foo";
 bar3() async => throw "bar";
@@ -95,7 +95,7 @@ test2() async {
 }
 
 main() async {
-  test('causal async exception stack', () async {
+  test('lazy async exception stack', () async {
     await test1();
     await test2();
   });
