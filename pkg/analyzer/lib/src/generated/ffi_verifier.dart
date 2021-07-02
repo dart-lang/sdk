@@ -137,9 +137,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (inCompound) {
+    if (!typeSystem.isNonNullableByDefault && inCompound) {
       _errorReporter.reportErrorForNode(
-          FfiCode.FIELD_INITIALIZER_IN_STRUCT, node);
+        FfiCode.FIELD_INITIALIZER_IN_STRUCT,
+        node,
+      );
     }
     super.visitConstructorFieldInitializer(node);
   }
@@ -626,8 +628,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (node.isStatic) {
       return;
     }
+
     VariableDeclarationList fields = node.fields;
     NodeList<Annotation> annotations = node.metadata;
+
+    if (typeSystem.isNonNullableByDefault) {
+      if (node.externalKeyword == null) {
+        _errorReporter.reportErrorForNode(
+          FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
+          fields.variables[0].name,
+        );
+      }
+    }
+
     var fieldType = fields.type;
     if (fieldType == null) {
       _errorReporter.reportErrorForNode(
@@ -667,10 +680,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             fieldType, [fieldType.toSource()]);
       }
     }
-    for (VariableDeclaration field in fields.variables) {
-      if (field.initializer != null) {
-        _errorReporter.reportErrorForNode(
-            FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, field.name);
+
+    if (!typeSystem.isNonNullableByDefault) {
+      for (VariableDeclaration field in fields.variables) {
+        if (field.initializer != null) {
+          _errorReporter.reportErrorForNode(
+            FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
+            field.name,
+          );
+        }
       }
     }
   }

@@ -19,7 +19,8 @@ class MismatchedAnnotationOnStructFieldTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  @Double() int x;
+  @Double()
+  external int x;
 }
 ''', [
       error(FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD, 46, 9),
@@ -30,7 +31,8 @@ class C extends Struct {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  @Int32() double x;
+  @Int32()
+  external double x;
 }
 ''', [
       error(FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD, 46, 8),

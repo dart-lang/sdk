@@ -88,6 +88,15 @@ class FfiCode extends AnalyzerErrorCode {
           " external.");
 
   /**
+   * No parameters.
+   */
+  static const FfiCode FIELD_MUST_BE_EXTERNAL_IN_STRUCT = FfiCode(
+      name: 'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
+      message:
+          "Fields of 'Struct' and 'Union' subclasses must be marked external.",
+      correction: "Try adding the 'external' modifier.");
+
+  /**
    * Parameters:
    * 0: the name of the struct class
    */

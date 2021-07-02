@@ -39,7 +39,7 @@ import 'dart:ffi';
 
 class MyStruct extends Struct {
   @Uint8()
-  int myField;
+  external int myField;
 }
 
 void main() {
@@ -55,7 +55,7 @@ import 'dart:ffi';
 
 class MyStruct extends Struct {
   @Uint8()
-  int myField;
+  external int myField;
 }
 
 void main() {
