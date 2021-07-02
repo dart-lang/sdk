@@ -200,7 +200,7 @@ static constexpr int kStringHashR = 24;
     (hash) ^= (part);                                                          \
   }
 
-uint32_t Utils::StringHash(const char* data, int length) {
+uint32_t Utils::StringHash(const void* data, int length) {
   int size = length;
   uint32_t hash = size;
 

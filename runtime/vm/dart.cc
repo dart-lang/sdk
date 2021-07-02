@@ -221,14 +221,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
       return error;
     }
   }
-  if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
-    return Utils::StrDup(
-        "To use --lazy-async-stacks, please disable --causal-async-stacks!");
-  }
-  // TODO(cskau): Remove once flag deprecation has been completed.
-  if (FLAG_causal_async_stacks) {
-    return Utils::StrDup("--causal-async-stacks is deprecated!");
-  }
 
   UntaggedFrame::Init();
 

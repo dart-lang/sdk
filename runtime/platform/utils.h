@@ -190,39 +190,51 @@ class Utils {
                                               int64_t* magic,
                                               int64_t* shift);
 
-  // Computes a hash value for the given string.
-  static uint32_t StringHash(const char* data, int length);
+  // Computes a hash value for the given series of bytes.
+  static uint32_t StringHash(const void* data, int length);
 
   // Computes a hash value for the given word.
   static uint32_t WordHash(intptr_t key);
 
   // Check whether an N-bit two's-complement representation can hold value.
   template <typename T>
-  static inline bool IsInt(int N, T value) {
-    ASSERT((0 < N) &&
-           (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
-    T limit = static_cast<T>(1) << (N - 1);
+  static inline bool IsInt(intptr_t N, T value) {
+    ASSERT(N >= 1);
+    constexpr intptr_t value_size_in_bits = kBitsPerByte * sizeof(T);
+    if constexpr (std::is_signed<T>::value) {
+      if (N >= value_size_in_bits) return true;  // Trivially fits.
+    } else {
+      if (N > value_size_in_bits) return true;  // Trivially fits.
+      if (N == value_size_in_bits) {
+        return static_cast<typename std::make_signed<T>::type>(value) >= 0;
+      }
+    }
+    const T limit = static_cast<T>(1) << (N - 1);
     return (-limit <= value) && (value < limit);
   }
 
   template <typename T>
-  static inline bool IsUint(int N, T value) {
-    ASSERT((0 < N) &&
-           (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
-    const auto limit =
-        (static_cast<typename std::make_unsigned<T>::type>(1) << N) - 1;
-    return (0 <= value) &&
-           (static_cast<typename std::make_unsigned<T>::type>(value) <= limit);
+  static inline bool IsUint(intptr_t N, T value) {
+    ASSERT(N >= 1);
+    constexpr intptr_t value_size_in_bits = kBitsPerByte * sizeof(T);
+    if constexpr (std::is_signed<T>::value) {
+      if (value < 0) return false;  // Not an unsigned value.
+      if (N >= value_size_in_bits - 1) {
+        return true;  // N can fit the magnitude bits.
+      }
+    } else {
+      if (N >= value_size_in_bits) return true;  // Trivially fits.
+    }
+    const T limit = (static_cast<T>(1) << N) - 1;
+    return value <= limit;
   }
 
   // Check whether the magnitude of value fits in N bits, i.e., whether an
   // (N+1)-bit sign-magnitude representation can hold value.
   template <typename T>
-  static inline bool IsAbsoluteUint(int N, T value) {
-    ASSERT((0 < N) &&
-           (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
-    if (value < 0) value = -value;
-    return IsUint(N, value);
+  static inline bool IsAbsoluteUint(intptr_t N, T value) {
+    ASSERT(N >= 1);
+    return IsInt(N + 1, value);
   }
 
   static inline int32_t Low16Bits(int32_t value) {

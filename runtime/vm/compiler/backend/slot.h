@@ -59,9 +59,9 @@ class ParsedFunction;
     FINAL)                                                                     \
   V(Closure, UntaggedClosure, delayed_type_arguments, TypeArguments, FINAL)    \
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
-  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
   V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
     FINAL)                                                                     \
+  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
   V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL)               \
   V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \
   V(TypeParameters, UntaggedTypeParameters, defaults, TypeArguments, FINAL)    \
@@ -87,7 +87,7 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, context, Context, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
   V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
-  V(FunctionType, UntaggedFunctionType, parameter_names, Array, FINAL)         \
+  V(FunctionType, UntaggedFunctionType, named_parameter_names, Array, FINAL)   \
   V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
@@ -145,7 +145,10 @@ class ParsedFunction;
   V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
-  V(FunctionType, UntaggedFunctionType, packed_fields, Uint32, FINAL)          \
+  V(FunctionType, UntaggedFunctionType, packed_parameter_counts, Uint32,       \
+    FINAL)                                                                     \
+  V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \
+    FINAL)                                                                     \
   V(Pointer, UntaggedPointer, data_field, FfiIntPtr, FINAL)                    \
   V(TypedDataBase, UntaggedTypedDataBase, data_field, IntPtr, VAR)             \
   V(TypeParameter, UntaggedTypeParameter, flags, Uint8, FINAL)

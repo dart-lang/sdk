@@ -958,7 +958,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
       // Remove this finalization code?
       signature = function.signature();
       signature ^= FinalizeType(signature);
-      function.set_signature(signature);
+      function.SetSignature(signature);
     }
   }
   // Finalize function signatures and check for conflicts in super classes and
@@ -969,7 +969,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     function ^= array.At(i);
     signature = function.signature();
     signature ^= FinalizeType(signature);
-    function.set_signature(signature);
+    function.SetSignature(signature);
     if (function.IsSetterFunction() || function.IsImplicitSetterFunction()) {
       continue;
     }

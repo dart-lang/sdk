@@ -1232,8 +1232,9 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     DartObjectImpl? result = expression.accept(
       ConstantVisitor(
         ConstantEvaluationEngine(
-          DeclaredVariables.fromMap(declaredVariables),
-          unit.featureSet.isEnabled(Feature.triple_shift),
+          declaredVariables: DeclaredVariables.fromMap(declaredVariables),
+          isNonNullableByDefault:
+              unit.featureSet.isEnabled(Feature.non_nullable),
         ),
         this.result.libraryElement as LibraryElementImpl,
         errorReporter,

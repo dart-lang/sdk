@@ -2097,7 +2097,7 @@ struct FlowGraphBuilder::ClosureCallInfo {
   LocalVariable* num_opt_params = nullptr;
   LocalVariable* num_max_params = nullptr;
   LocalVariable* has_named_params = nullptr;
-  LocalVariable* parameter_names = nullptr;
+  LocalVariable* named_parameter_names = nullptr;
   LocalVariable* parameter_types = nullptr;
   LocalVariable* type_parameters = nullptr;
   LocalVariable* num_type_parameters = nullptr;
@@ -2136,30 +2136,23 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   if (!IG->use_strict_null_safety_checks()) return not_set;
 
   Fragment check_required;
-  // First, we convert the index to be in terms of the number of optional
-  // parameters, not total parameters (to calculate the flag index and shift).
+  // We calculate the index to dereference in the parameter names array.
   check_required += LoadLocal(info.vars->current_param_index);
-  check_required += LoadLocal(info.num_fixed_params);
-  check_required += SmiBinaryOp(Token::kSUB, /*is_truncating=*/true);
-  LocalVariable* opt_index = MakeTemporary("opt_index");  // Read-only.
-
-  // Next, we calculate the index to dereference in the parameter names array.
-  check_required += LoadLocal(opt_index);
   check_required +=
       IntConstant(compiler::target::kNumParameterFlagsPerElementLog2);
   check_required += SmiBinaryOp(Token::kSHR);
-  check_required += LoadLocal(info.num_max_params);
+  check_required += LoadLocal(info.num_opt_params);
   check_required += SmiBinaryOp(Token::kADD);
   LocalVariable* flags_index = MakeTemporary("flags_index");  // Read-only.
 
-  // Two read-only stack values (opt_index, flag_index) that must be dropped
+  // One read-only stack value (flag_index) that must be dropped
   // after we rejoin at after_check.
   JoinEntryInstr* after_check = BuildJoinEntry();
 
   // Now we check to see if the flags index is within the bounds of the
   // parameters names array. If not, it cannot be required.
   check_required += LoadLocal(flags_index);
-  check_required += LoadLocal(info.parameter_names);
+  check_required += LoadLocal(info.named_parameter_names);
   check_required += LoadNativeField(Slot::Array_length());
   check_required += SmiRelationalOp(Token::kLT);
   TargetEntryInstr* valid_index;
@@ -2174,11 +2167,11 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   // the flag slots are non-null, so after loading we can immediate check
   // the required flag bit for the given named parameter.
   check_required.current = valid_index;
-  check_required += LoadLocal(info.parameter_names);
+  check_required += LoadLocal(info.named_parameter_names);
   check_required += LoadLocal(flags_index);
   check_required += LoadIndexed(
       kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
-  check_required += LoadLocal(opt_index);
+  check_required += LoadLocal(info.vars->current_param_index);
   check_required +=
       IntConstant(compiler::target::kNumParameterFlagsPerElement - 1);
   check_required += SmiBinaryOp(Token::kBIT_AND);
@@ -2206,7 +2199,6 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   // After rejoining, drop the introduced temporaries.
   check_required.current = after_check;
   check_required += DropTemporary(&flags_index);
-  check_required += DropTemporary(&opt_index);
   return check_required;
 }
 
@@ -2328,8 +2320,8 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
     // for named parameters. If this changes, we'll need to check each flag
     // entry appropriately for any set required bits.
     Fragment has_any;
-    has_any += LoadLocal(info.num_max_params);
-    has_any += LoadLocal(info.parameter_names);
+    has_any += LoadLocal(info.num_opt_params);
+    has_any += LoadLocal(info.named_parameter_names);
     has_any += LoadNativeField(Slot::Array_length());
     TargetEntryInstr* no_required;
     TargetEntryInstr* has_required;
@@ -2356,14 +2348,14 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   check_names += IntConstant(0);
   check_names += StoreLocal(info.vars->current_num_processed);
   check_names += Drop();
-  check_names += LoadLocal(info.num_fixed_params);
+  check_names += IntConstant(0);
   check_names += StoreLocal(info.vars->current_param_index);
   check_names += Drop();
   check_names += Goto(loop);
 
   Fragment loop_check(loop);
   loop_check += LoadLocal(info.vars->current_param_index);
-  loop_check += LoadLocal(info.num_max_params);
+  loop_check += LoadLocal(info.num_opt_params);
   loop_check += SmiRelationalOp(Token::kLT);
   TargetEntryInstr* no_more;
   TargetEntryInstr* more;
@@ -2373,7 +2365,7 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
 
   Fragment loop_body(more);
   // First load the name we need to check against.
-  loop_body += LoadLocal(info.parameter_names);
+  loop_body += LoadLocal(info.named_parameter_names);
   loop_body += LoadLocal(info.vars->current_param_index);
   loop_body += LoadIndexed(
       kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
@@ -2398,6 +2390,8 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
     // arguments. (No need to check the required bit for provided parameters.)
     Fragment matched(match);
     matched += LoadLocal(info.vars->current_param_index);
+    matched += LoadLocal(info.num_fixed_params);
+    matched += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
     matched += StoreLocal(info.vars->named_argument_parameter_indices.At(i));
     matched += Drop();
     matched += LoadLocal(info.vars->current_num_processed);
@@ -2460,9 +2454,10 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
     TargetEntryInstr* not_null;
     check_type_args_length += BranchIfNull(&null, &not_null);
     check_type_args_length.current = not_null;  // Continue in non-error case.
-    check_type_args_length += LoadLocal(info.type_parameters);
-    check_type_args_length += LoadNativeField(Slot::TypeParameters_names());
-    check_type_args_length += LoadNativeField(Slot::Array_length());
+    check_type_args_length += LoadLocal(info.signature);
+    check_type_args_length += BuildExtractUnboxedSlotBitFieldIntoSmi<
+        UntaggedFunctionType::PackedNumTypeParameters>(
+        Slot::FunctionType_packed_type_parameter_counts());
     check_type_args_length += IntConstant(info.descriptor.TypeArgsLen());
     TargetEntryInstr* equal;
     TargetEntryInstr* not_equal;
@@ -2749,13 +2744,13 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
       FunctionType::PackedNumFixedParameters>(
-      Slot::FunctionType_packed_fields());
+      Slot::FunctionType_packed_parameter_counts());
   info.num_fixed_params = MakeTemporary("num_fixed_params");
 
   body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
       FunctionType::PackedNumOptionalParameters>(
-      Slot::FunctionType_packed_fields());
+      Slot::FunctionType_packed_parameter_counts());
   info.num_opt_params = MakeTemporary("num_opt_params");
 
   body += LoadLocal(info.num_fixed_params);
@@ -2766,15 +2761,15 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
       FunctionType::PackedHasNamedOptionalParameters>(
-      Slot::FunctionType_packed_fields());
+      Slot::FunctionType_packed_parameter_counts());
 
   body += IntConstant(0);
   body += StrictCompare(Token::kNE_STRICT);
   info.has_named_params = MakeTemporary("has_named_params");
 
   body += LoadLocal(info.signature);
-  body += LoadNativeField(Slot::FunctionType_parameter_names());
-  info.parameter_names = MakeTemporary("parameter_names");
+  body += LoadNativeField(Slot::FunctionType_named_parameter_names());
+  info.named_parameter_names = MakeTemporary("named_parameter_names");
 
   body += LoadLocal(info.signature);
   body += LoadNativeField(Slot::FunctionType_parameter_types());
@@ -2814,13 +2809,14 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   generic += LoadLocal(info.signature);
   generic += BuildExtractUnboxedSlotBitFieldIntoSmi<
       UntaggedFunctionType::PackedNumParentTypeArguments>(
-      Slot::FunctionType_packed_fields());
+      Slot::FunctionType_packed_type_parameter_counts());
   info.num_parent_type_args = MakeTemporary("num_parent_type_args");
 
   // Hoist number of type parameters.
-  generic += LoadLocal(info.type_parameters);
-  generic += LoadNativeField(Slot::TypeParameters_names());
-  generic += LoadNativeField(Slot::Array_length());
+  generic += LoadLocal(info.signature);
+  generic += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      UntaggedFunctionType::PackedNumTypeParameters>(
+      Slot::FunctionType_packed_type_parameter_counts());
   info.num_type_parameters = MakeTemporary("num_type_parameters");
 
   // Hoist type parameter flags.
@@ -2877,7 +2873,7 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += DropTemporary(&info.instantiator_type_args);
   body += DropTemporary(&info.type_parameters);
   body += DropTemporary(&info.parameter_types);
-  body += DropTemporary(&info.parameter_names);
+  body += DropTemporary(&info.named_parameter_names);
   body += DropTemporary(&info.has_named_params);
   body += DropTemporary(&info.num_max_params);
   body += DropTemporary(&info.num_opt_params);

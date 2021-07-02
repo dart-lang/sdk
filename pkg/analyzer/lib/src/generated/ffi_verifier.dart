@@ -180,6 +180,20 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    var constructor = node.constructorName.staticElement;
+    var class_ = constructor?.enclosingElement;
+    if (class_.isStructSubclass || class_.isUnionSubclass) {
+      _errorReporter.reportErrorForNode(
+        FfiCode.CREATION_OF_STRUCT_OR_UNION,
+        node.constructorName,
+      );
+    }
+
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     var element = node.methodName.staticElement;
     if (element is MethodElement) {
@@ -1041,6 +1055,34 @@ extension on Element? {
         element.isFfiClass;
   }
 
+  /// Return `true` if this represents the class `Struct`.
+  bool get isStruct {
+    final element = this;
+    return element is ClassElement &&
+        element.name == 'Struct' &&
+        element.isFfiClass;
+  }
+
+  /// Return `true` if this represents a subclass of the class `Struct`.
+  bool get isStructSubclass {
+    final element = this;
+    return element is ClassElement && element.supertype.isStruct;
+  }
+
+  /// Return `true` if this represents the class `Union`.
+  bool get isUnion {
+    final element = this;
+    return element is ClassElement &&
+        element.name == 'Union' &&
+        element.isFfiClass;
+  }
+
+  /// Return `true` if this represents a subclass of the class `Struct`.
+  bool get isUnionSubclass {
+    final element = this;
+    return element is ClassElement && element.supertype.isUnion;
+  }
+
   /// If this is a class element from `dart:ffi`, return it.
   ClassElement? get ffiClass {
     var element = this;
@@ -1092,6 +1134,18 @@ extension on ClassElement {
 extension on ExtensionElement {
   bool get isFfiExtension {
     return library.name == FfiVerifier._dartFfiLibraryName;
+  }
+}
+
+extension on DartType? {
+  bool get isStruct {
+    final self = this;
+    return self is InterfaceType && self.element.isStruct;
+  }
+
+  bool get isUnion {
+    final self = this;
+    return self is InterfaceType && self.element.isUnion;
   }
 }
 

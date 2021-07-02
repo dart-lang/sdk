@@ -337,14 +337,6 @@ const f = const D('0.0');
     ]);
   }
 
-  test_symbolConstructor_badStringArgument() async {
-    await assertErrorsInCode(r'''
-var s1 = const Symbol('3');
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 17),
-    ]);
-  }
-
   test_symbolConstructor_nonStringArgument() async {
     await assertErrorsInCode(r'''
 var s2 = const Symbol(3);
@@ -352,6 +344,24 @@ var s2 = const Symbol(3);
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 15),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 22, 1),
     ]);
+  }
+
+  test_symbolConstructor_string_digit() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [], legacy: [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 17),
+    ]);
+    await assertErrorsInCode(r'''
+var s = const Symbol('3');
+''', expectedErrors);
+  }
+
+  test_symbolConstructor_string_underscore() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [], legacy: [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 17),
+    ]);
+    await assertErrorsInCode(r'''
+var s = const Symbol('_');
+''', expectedErrors);
   }
 
   test_unaryBitNot_null() async {

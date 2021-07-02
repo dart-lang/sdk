@@ -28,7 +28,6 @@ namespace dart {
   F(PatchClass, library_kernel_data_)                                          \
   F(Function, name_)                                                           \
   F(Function, owner_)                                                          \
-  F(Function, parameter_names_)                                                \
   F(Function, signature_)                                                      \
   F(Function, data_)                                                           \
   F(Function, ic_data_array_)                                                  \
@@ -137,7 +136,7 @@ namespace dart {
   F(FunctionType, hash_)                                                       \
   F(FunctionType, result_type_)                                                \
   F(FunctionType, parameter_types_)                                            \
-  F(FunctionType, parameter_names_)                                            \
+  F(FunctionType, named_parameter_names_)                                      \
   F(FunctionType, type_parameters_)                                            \
   F(TypeRef, type_test_stub_)                                                  \
   F(TypeRef, type_)                                                            \
@@ -214,6 +213,7 @@ namespace dart {
   F(Code, deopt_info_array_)                                                   \
   F(Code, static_calls_target_table_)                                          \
   F(ICData, receivers_static_type_)                                            \
+  F(Function, positional_parameter_names_)                                     \
   F(Function, unoptimized_code_)                                               \
   F(Field, type_test_cache_)
 

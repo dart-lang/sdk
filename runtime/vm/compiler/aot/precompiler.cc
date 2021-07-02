@@ -151,6 +151,22 @@ struct RetainReasons : public AllStatic {
   static constexpr const char* kEntryPointPragma = "entry point pragma";
   // The function is a target of FFI callback.
   static constexpr const char* kFfiCallbackTarget = "ffi callback target";
+  // The signature is used in a closure function.
+  static constexpr const char* kClosureSignature = "closure signature";
+  // The signature is used in an FFI trampoline.
+  static constexpr const char* kFfiTrampolineSignature =
+      "FFI trampoline signature";
+  // The signature is used in a native function.
+  static constexpr const char* kNativeSignature = "native function signature";
+  // The signature has required named parameters.
+  static constexpr const char* kRequiredNamedParameters =
+      "signature has required named parameters";
+  // The signature is used in a function that has dynamic calls.
+  static constexpr const char* kDynamicallyCalledSignature =
+      "signature of dynamically called function";
+  // The signature is used in a function with an entry point pragma.
+  static constexpr const char* kEntryPointPragmaSignature =
+      "signature of entry point function";
 };
 
 class RetainedReasonsWriter : public ValueObject {
@@ -267,6 +283,9 @@ class RetainedReasonsWriter : public ValueObject {
       if (key->IsClass()) {
         return Utils::WordHash(Class::Cast(*key).id());
       }
+      if (key->IsAbstractType()) {
+        return AbstractType::Cast(*key).Hash();
+      }
       return Utils::WordHash(key->GetClassId());
     }
 
@@ -285,6 +304,11 @@ class RetainedReasonsWriter : public ValueObject {
                             function.ToLibNamePrefixedQualifiedCString());
       writer_.PrintProperty("kind",
                             UntaggedFunction::KindToCString(function.kind()));
+      return;
+    } else if (obj.IsFunctionType()) {
+      writer_.PrintProperty("type", "FunctionType");
+      const auto& sig = FunctionType::Cast(obj);
+      writer_.PrintProperty("name", sig.ToCString());
       return;
     }
     FATAL("Unexpected object %s", obj.ToCString());
@@ -375,6 +399,8 @@ Precompiler::Precompiler(Thread* thread)
       sent_selectors_(),
       functions_called_dynamically_(
           HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
+      functions_with_entry_point_pragmas_(
+          HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       seen_functions_(HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       possibly_retained_functions_(
           HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
@@ -401,6 +427,7 @@ Precompiler::Precompiler(Thread* thread)
 Precompiler::~Precompiler() {
   // We have to call Release() in DEBUG mode.
   functions_called_dynamically_.Release();
+  functions_with_entry_point_pragmas_.Release();
   seen_functions_.Release();
   possibly_retained_functions_.Release();
   functions_to_retain_.Release();
@@ -1501,6 +1528,7 @@ void Precompiler::AddAnnotatedRoots() {
 
           if (type == EntryPointPragma::kAlways ||
               type == EntryPointPragma::kCallOnly) {
+            functions_with_entry_point_pragmas_.Insert(function);
             AddFunction(function, RetainReasons::kEntryPointPragma);
           }
 
@@ -1509,6 +1537,7 @@ void Precompiler::AddAnnotatedRoots() {
               function.kind() != UntaggedFunction::kConstructor &&
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
+            functions_with_entry_point_pragmas_.Insert(function2);
             AddFunction(function2, RetainReasons::kEntryPointPragma);
           }
 
@@ -1521,6 +1550,7 @@ void Precompiler::AddAnnotatedRoots() {
           for (intptr_t i = 0; i < implicit_getters.Length(); ++i) {
             field ^= implicit_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
+              functions_with_entry_point_pragmas_.Insert(function);
               AddFunction(function, RetainReasons::kImplicitGetter);
             }
           }
@@ -1530,6 +1560,7 @@ void Precompiler::AddAnnotatedRoots() {
           for (intptr_t i = 0; i < implicit_setters.Length(); ++i) {
             field ^= implicit_setters.At(i);
             if (function.accessor_field() == field.ptr()) {
+              functions_with_entry_point_pragmas_.Insert(function);
               AddFunction(function, RetainReasons::kImplicitSetter);
             }
           }
@@ -1539,6 +1570,7 @@ void Precompiler::AddAnnotatedRoots() {
           for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
             field ^= implicit_static_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
+              functions_with_entry_point_pragmas_.Insert(function);
               AddFunction(function, RetainReasons::kImplicitStaticGetter);
             }
           }
@@ -2051,6 +2083,51 @@ void Precompiler::DropFunctions() {
   Code& code = Code::Handle(Z);
   Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
+  auto& sig = FunctionType::Handle(Z);
+  auto& ref = Object::Handle(Z);
+
+  auto trim_function = [&](const Function& function) {
+    sig = function.signature();
+    // In the AOT runtime, most calls are direct or through the dispatch table,
+    // not resolved via dynamic lookup. Thus, we only need to retain the
+    // function signature in the following cases:
+    if (function.IsClosureFunction()) {
+      // Dynamic calls to closures go through dynamic closure call dispatchers,
+      // which need the signature.
+      return AddRetainReason(sig, RetainReasons::kClosureSignature);
+    }
+    if (function.IsFfiTrampoline()) {
+      // FFI trampolines may be dynamically called.
+      return AddRetainReason(sig, RetainReasons::kFfiTrampolineSignature);
+    }
+    if (function.is_native()) {
+      return AddRetainReason(sig, RetainReasons::kNativeSignature);
+    }
+    if (function.HasRequiredNamedParameters()) {
+      // Required named parameters must be checked, so a NoSuchMethod exception
+      // can be thrown if they are not provided.
+      return AddRetainReason(sig, RetainReasons::kRequiredNamedParameters);
+    }
+    if (functions_called_dynamically_.ContainsKey(function)) {
+      // Dynamic resolution of these functions checks for valid arguments.
+      return AddRetainReason(sig, RetainReasons::kDynamicallyCalledSignature);
+    }
+    if (functions_with_entry_point_pragmas_.ContainsKey(function)) {
+      // Dynamic resolution of entry points also checks for valid arguments.
+      return AddRetainReason(sig, RetainReasons::kEntryPointPragmaSignature);
+    }
+    if (FLAG_trace_precompiler) {
+      THR_Print("Clearing signature for function %s\n",
+                function.ToLibNamePrefixedQualifiedCString());
+    }
+    // Other functions not listed here may end up in dynamic resolution via
+    // UnlinkedCalls. However, since it is not a dynamic invocation and has
+    // been type checked at compile time, we already know the arguments are
+    // valid. Thus, we can skip checking arguments for functions with dropped
+    // signatures in ResolveDynamicForReceiverClassWithCustomLookup.
+    ref = WeakSerializationReference::New(sig, Object::null_function_type());
+    function.set_signature(ref);
+  };
 
   auto drop_function = [&](const Function& function) {
     if (function.HasCode()) {
@@ -2088,6 +2165,7 @@ void Precompiler::DropFunctions() {
         function ^= functions.At(j);
         function.DropUncompiledImplicitClosureFunction();
         if (functions_to_retain_.ContainsKey(function)) {
+          trim_function(function);
           retained_functions.Add(function);
         } else {
           drop_function(function);
@@ -2113,6 +2191,7 @@ void Precompiler::DropFunctions() {
           if (functions_to_retain_.ContainsKey(function)) {
             retained_functions.Add(name);
             retained_functions.Add(desc);
+            trim_function(function);
             retained_functions.Add(function);
           } else {
             drop_function(function);
@@ -2135,6 +2214,7 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
     if (functions_to_retain_.ContainsKey(function)) {
+      trim_function(function);
       retained_functions.Add(function);
     } else {
       drop_function(function);

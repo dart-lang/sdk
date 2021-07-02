@@ -113,8 +113,9 @@ class ConstantEvaluator {
     );
     var result = expression.accept(ConstantVisitor(
         ConstantEvaluationEngine(
-          DeclaredVariables(),
-          _library.featureSet.isEnabled(Feature.triple_shift),
+          declaredVariables: DeclaredVariables(),
+          isNonNullableByDefault:
+              _library.featureSet.isEnabled(Feature.non_nullable),
         ),
         _library,
         errorReporter));

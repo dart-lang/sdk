@@ -371,7 +371,9 @@ class LinterContextImpl implements LinterContext {
 
     var visitor = ConstantVisitor(
       ConstantEvaluationEngine(
-          declaredVariables, isEnabled(Feature.triple_shift)),
+        declaredVariables: declaredVariables,
+        isNonNullableByDefault: isEnabled(Feature.non_nullable),
+      ),
       libraryElement,
       errorReporter,
     );
