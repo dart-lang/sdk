@@ -43,11 +43,8 @@ class FromEnvironmentEvaluator {
       );
     }
 
-    if (namedValues.containsKey(_defaultValue)) {
-      return namedValues[_defaultValue]!;
-    }
-
-    return _defaultValueDefaultValue(constructor);
+    var defaultValue = namedValues[_defaultValue];
+    return defaultValue ?? _defaultValueDefaultValue(constructor);
   }
 
   /// Return the value of the variable with the given [name] interpreted as an
@@ -74,8 +71,9 @@ class FromEnvironmentEvaluator {
       }
     }
 
-    if (namedValues.containsKey(_defaultValue)) {
-      return namedValues[_defaultValue]!;
+    var defaultValue = namedValues[_defaultValue];
+    if (defaultValue != null) {
+      return defaultValue;
     }
 
     var defaultDefault = _defaultValueDefaultValue(constructor);
@@ -111,8 +109,9 @@ class FromEnvironmentEvaluator {
       );
     }
 
-    if (namedValues.containsKey(_defaultValue)) {
-      return namedValues[_defaultValue]!;
+    var defaultValue = namedValues[_defaultValue];
+    if (defaultValue != null) {
+      return defaultValue;
     }
 
     var defaultDefault = _defaultValueDefaultValue(constructor);
