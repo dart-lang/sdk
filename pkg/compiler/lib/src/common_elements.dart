@@ -646,6 +646,10 @@ abstract class JCommonElements implements CommonElements {
 
   bool isForeign(MemberEntity element);
 
+  /// Returns `true` if [member] is the `createSentinel` function defined in
+  /// dart:_internal.
+  bool isCreateSentinel(MemberEntity element);
+
   /// Returns `true` if the implementation of the 'operator ==' [function] is
   /// known to handle `null` as argument.
   bool operatorEqHandlesNullArgument(FunctionEntity function);
@@ -2144,6 +2148,14 @@ class CommonElementsImpl
   bool isForeignHelper(MemberEntity member) {
     return member.library == foreignLibrary ||
         isCreateInvocationMirrorHelper(member);
+  }
+
+  @override
+  bool isCreateSentinel(MemberEntity member) {
+    return member.isTopLevel &&
+        member.isFunction &&
+        member.library == internalLibrary &&
+        member.name == 'createSentinel';
   }
 
   @override

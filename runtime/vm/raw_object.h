@@ -1396,7 +1396,7 @@ class UntaggedFunction : public UntaggedObject {
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
   Tags<uint32_t> kind_tag_;  // See Function::KindTagBits.
-  uint32_t packed_fields_;
+  Tags<uint32_t> packed_fields_;
 
   // TODO(regis): Split packed_fields_ in 2 uint32_t if max values are too low.
 

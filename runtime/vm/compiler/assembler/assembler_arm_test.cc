@@ -1769,7 +1769,7 @@ ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
 //                                         10987654321098765432109876543210
 static constexpr uint32_t kBfxTestBits = 0b00010000001000001000010001001011;
 
-static constexpr int32_t ExpectedUbfxBitPattern(uint8_t lsb, uint8_t width) {
+static int32_t ExpectedUbfxBitPattern(uint8_t lsb, uint8_t width) {
   ASSERT(width >= 1);
   ASSERT(width < 32);
   ASSERT(lsb < 32);
@@ -1777,7 +1777,7 @@ static constexpr int32_t ExpectedUbfxBitPattern(uint8_t lsb, uint8_t width) {
   return (kBfxTestBits & (Utils::NBitMask(width) << lsb)) >> lsb;
 }
 
-static constexpr int32_t ExpectedSbfxBitPattern(uint8_t lsb, uint8_t width) {
+static int32_t ExpectedSbfxBitPattern(uint8_t lsb, uint8_t width) {
   const uint32_t no_extension = ExpectedUbfxBitPattern(lsb, width);
   const uint32_t sign_extension =
       Utils::TestBit(no_extension, width - 1) ? ~Utils::NBitMask(width) : 0;

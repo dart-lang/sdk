@@ -305,8 +305,8 @@ class DapTestClient {
   /// Creates a [DapTestClient] that connects the server listening on
   /// [host]:[port].
   static Future<DapTestClient> connect(
+    String host,
     int port, {
-    String host = 'localhost',
     bool captureVmServiceTraffic = false,
     Logger? logger,
   }) async {

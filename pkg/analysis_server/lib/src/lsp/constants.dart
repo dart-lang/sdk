@@ -58,11 +58,13 @@ abstract class Commands {
   static const serverSupportedCommands = [
     sortMembers,
     organizeImports,
+    fixAll,
     sendWorkspaceEdit,
     performRefactor,
   ];
   static const sortMembers = 'edit.sortMembers';
   static const organizeImports = 'edit.organizeImports';
+  static const fixAll = 'edit.fixAll';
   static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
   static const performRefactor = 'refactor.perform';
 }
@@ -171,11 +173,16 @@ abstract class DartCodeActionKind {
     CodeActionKind.Source,
     // We have to explicitly list this for the client to enable built-in command.
     CodeActionKind.SourceOrganizeImports,
+    FixAll,
     SortMembers,
     CodeActionKind.QuickFix,
     CodeActionKind.Refactor,
   ];
   static const SortMembers = CodeActionKind('source.sortMembers');
+  // TODO(dantup): Once this PR is merged into LSP and released, regenerated the
+  //   LSP protocol code and swap this code CodeActionKind.SourceFixAll
+  //   https://github.com/microsoft/language-server-protocol/pull/1308
+  static const FixAll = CodeActionKind('source.fixAll');
 }
 
 abstract class ServerErrorCodes {

@@ -983,12 +983,21 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     var leftResult = node.leftOperand.accept(this);
     // evaluate lazy operators
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      if (leftResult?.toBoolValue() == false) {
+        _reportNotPotentialConstants(node.rightOperand);
+      }
       return _dartObjectComputer.lazyAnd(
           node, leftResult, () => node.rightOperand.accept(this));
     } else if (operatorType == TokenType.BAR_BAR) {
+      if (leftResult?.toBoolValue() == true) {
+        _reportNotPotentialConstants(node.rightOperand);
+      }
       return _dartObjectComputer.lazyOr(
           node, leftResult, () => node.rightOperand.accept(this));
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
+      if (leftResult?.isNull != true) {
+        _reportNotPotentialConstants(node.rightOperand);
+      }
       return _dartObjectComputer.lazyQuestionQuestion(
           node, leftResult, () => node.rightOperand.accept(this));
     }

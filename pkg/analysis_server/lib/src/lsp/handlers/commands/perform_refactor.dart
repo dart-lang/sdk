@@ -24,7 +24,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Perform Refactor';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic>? arguments,
+  Future<ErrorOr<void>> handle(List<Object?>? arguments,
       ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
@@ -43,12 +43,12 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
       ));
     }
 
-    String kind = arguments[0];
-    String path = arguments[1];
-    int? docVersion = arguments[2];
-    int offset = arguments[3];
-    int length = arguments[4];
-    Map<String, dynamic>? options = arguments[5];
+    final kind = arguments[0] as String;
+    final path = arguments[1] as String;
+    final docVersion = arguments[2] as int?;
+    final offset = arguments[3] as int;
+    final length = arguments[4] as int;
+    final options = arguments[5] as Map<String, Object?>?;
 
     final result = await requireResolvedUnit(path);
     return result.mapResult((result) async {
@@ -82,6 +82,10 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
           if (cancellationToken.isCancellationRequested ||
               cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+          }
+
+          if (change.edits.isEmpty) {
+            return success(null);
           }
 
           // If the file changed while we were validating and preparing the change,

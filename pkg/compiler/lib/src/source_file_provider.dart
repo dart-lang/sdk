@@ -159,7 +159,7 @@ abstract class SourceFileProvider implements CompilerInput {
 }
 
 List<int> readAll(String filename, {bool zeroTerminated: true}) {
-  RandomAccessFile file = (new File(filename)).openSync();
+  RandomAccessFile file = File(filename).openSync();
   int length = file.lengthSync();
   int bufferLength = length;
   if (zeroTerminated) {
@@ -386,7 +386,8 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
     RandomAccessFile output;
     try {
-      output = new File(uri.toFilePath()).openSync(mode: FileMode.write);
+      output = (File(uri.toFilePath())..createSync(recursive: true))
+          .openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
     }
@@ -434,7 +435,8 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
     RandomAccessFile output;
     try {
-      output = new File(uri.toFilePath()).openSync(mode: FileMode.write);
+      output = (File(uri.toFilePath())..createSync(recursive: true))
+          .openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
     }

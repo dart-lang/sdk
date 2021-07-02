@@ -447,6 +447,41 @@ class VerifyDiagnosticsTest {
       }
     }
   }
+
+  @soloTest
+  test_published() {
+    // Verify that if _any_ error code is marked as having published docs then
+    // _all_ codes with the same name are also marked that way.
+    var nameToCodeMap = <String, List<ErrorCode>>{};
+    var nameToPublishedMap = <String, bool>{};
+    for (var code in errorCodeValues) {
+      var name = code.name;
+      nameToCodeMap.putIfAbsent(name, () => []).add(code);
+      nameToPublishedMap[name] =
+          (nameToPublishedMap[name] ?? false) || code.hasPublishedDocs;
+    }
+    var unpublished = <ErrorCode>[];
+    for (var entry in nameToCodeMap.entries) {
+      var name = entry.key;
+      if (nameToPublishedMap[name]!) {
+        for (var code in entry.value) {
+          if (!code.hasPublishedDocs) {
+            unpublished.add(code);
+          }
+        }
+      }
+    }
+    if (unpublished.isNotEmpty) {
+      var buffer = StringBuffer();
+      buffer.write("The following error codes have published docs but aren't "
+          "marked as such:");
+      for (var code in unpublished) {
+        buffer.writeln();
+        buffer.write('- ${code.runtimeType}.${code.uniqueName}');
+      }
+      fail(buffer.toString());
+    }
+  }
 }
 
 /// A data holder used to return multiple values when extracting an error range

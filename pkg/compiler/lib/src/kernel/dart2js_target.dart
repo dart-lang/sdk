@@ -58,19 +58,6 @@ bool maybeEnableNative(Uri uri) {
   return allowedNativeTest(uri) || allowedDartLibrary();
 }
 
-int _foldLateLowerings(List<int> lowerings) =>
-    lowerings.fold(LateLowering.none, (a, b) => a | b);
-
-/// Late lowerings which the frontend performs for dart2js.
-const List<int> _allEnabledLateLowerings = [
-  LateLowering.uninitializedNonFinalInstanceField,
-  LateLowering.uninitializedFinalInstanceField,
-  LateLowering.initializedNonFinalInstanceField,
-  LateLowering.initializedFinalInstanceField,
-];
-
-final int _enabledLateLowerings = _foldLateLowerings(_allEnabledLateLowerings);
-
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
   @override
@@ -88,10 +75,7 @@ class Dart2jsTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  int get enabledLateLowerings =>
-      (options != null && options.experimentLateInstanceVariables)
-          ? LateLowering.none
-          : _enabledLateLowerings;
+  int get enabledLateLowerings => LateLowering.none;
 
   @override
   bool get supportsLateLoweringSentinel => true;

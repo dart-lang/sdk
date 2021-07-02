@@ -6,6 +6,7 @@ import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
+import 'test_scripts.dart';
 import 'test_support.dart';
 
 main() {
@@ -47,11 +48,7 @@ void main(List<String> args) async {
 
       test('provides a list of threads', () async {
         final client = dap.client;
-        final testFile = dap.createTestFile(r'''
-void main(List<String> args) async {
-  print('Hello!'); // BREAKPOINT
-}
-    ''');
+        final testFile = dap.createTestFile(simpleBreakpointProgram);
         final breakpointLine = lineWith(testFile, '// BREAKPOINT');
 
         await client.hitBreakpoint(testFile, breakpointLine);
@@ -63,11 +60,7 @@ void main(List<String> args) async {
 
       test('runs with DDS', () async {
         final client = dap.client;
-        final testFile = dap.createTestFile(r'''
-void main(List<String> args) async {
-  print('Hello!'); // BREAKPOINT
-}
-    ''');
+        final testFile = dap.createTestFile(simpleBreakpointProgram);
         final breakpointLine = lineWith(testFile, '// BREAKPOINT');
 
         await client.hitBreakpoint(testFile, breakpointLine);
@@ -77,9 +70,7 @@ void main(List<String> args) async {
     }, timeout: Timeout.none);
 
     test('runs with auth codes enabled', () async {
-      final testFile = dap.createTestFile(r'''
-void main(List<String> args) {}
-    ''');
+      final testFile = dap.createTestFile(emptyProgram);
 
       final outputEvents = await dap.client.collectOutput(file: testFile);
       expect(_hasAuthCode(outputEvents.first), isTrue);
@@ -90,11 +81,7 @@ void main(List<String> args) {}
     group('debug mode', () {
       test('runs without DDS', () async {
         final client = dap.client;
-        final testFile = dap.createTestFile(r'''
-void main(List<String> args) async {
-  print('Hello!'); // BREAKPOINT
-}
-    ''');
+        final testFile = dap.createTestFile(simpleBreakpointProgram);
         final breakpointLine = lineWith(testFile, '// BREAKPOINT');
 
         await client.hitBreakpoint(testFile, breakpointLine);
@@ -103,9 +90,7 @@ void main(List<String> args) async {
       });
 
       test('runs with auth tokens disabled', () async {
-        final testFile = dap.createTestFile(r'''
-void main(List<String> args) {}
-    ''');
+        final testFile = dap.createTestFile(emptyProgram);
 
         final outputEvents = await dap.client.collectOutput(file: testFile);
         expect(_hasAuthCode(outputEvents.first), isFalse);
@@ -113,18 +98,39 @@ void main(List<String> args) {}
       // These tests can be slow due to starting up the external server process.
     }, timeout: Timeout.none);
   }, additionalArgs: ['--no-dds', '--no-auth-codes']);
+
+  testDap((dap) async {
+    group('debug mode', () {
+      test('can run with ipv6', () async {
+        final testFile = dap.createTestFile(emptyProgram);
+
+        final outputEvents = await dap.client.collectOutput(file: testFile);
+        final vmServiceUri = _extractVmServiceUri(outputEvents.first);
+
+        // Check DAP server host.
+        expect(dap.server.host, equals('::1'));
+        // Check VM Service/DDS host.
+        expect(vmServiceUri.host, equals('::1'));
+      });
+      // These tests can be slow due to starting up the external server process.
+    }, timeout: Timeout.none);
+  }, additionalArgs: ['--ipv6']);
+}
+
+/// Extracts the VM Service URI from the "Connecting to ..." banner output by
+/// the DAP server upon connection.
+Uri _extractVmServiceUri(OutputEventBody vmConnectionBanner) {
+  // TODO(dantup): Change this to use the dart.debuggerUris custom event
+  //   if implemented (whch VS Code also needs).
+  final vmServiceUriPattern = RegExp(r'Connecting to VM Service at ([^\s]+)\s');
+  final match = vmServiceUriPattern.firstMatch(vmConnectionBanner.output);
+  return Uri.parse(match!.group(1)!);
 }
 
 /// Checks for the presence of an auth token in a VM Service URI in the
 /// "Connecting to VM Service" [OutputEvent].
-bool _hasAuthCode(OutputEventBody vmConnection) {
-  // TODO(dantup): Change this to use the dart.debuggerUris custom event
-  //   if implemented (whch VS Code also needs).
-  final vmServiceUriPattern = RegExp(r'Connecting to VM Service at ([^\s]+)\s');
-  final authCodePattern = RegExp(r'ws://127.0.0.1:\d+/[\w=]{5,15}/ws');
-
-  final vmServiceUri =
-      vmServiceUriPattern.firstMatch(vmConnection.output)!.group(1);
-
-  return vmServiceUri != null && authCodePattern.hasMatch(vmServiceUri);
+bool _hasAuthCode(OutputEventBody vmConnectionBanner) {
+  final vmServiceUri = _extractVmServiceUri(vmConnectionBanner);
+  final authCodePattern = RegExp(r'^/[\w=]{5,15}/ws');
+  return authCodePattern.hasMatch(vmServiceUri.path);
 }

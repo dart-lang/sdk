@@ -2752,7 +2752,9 @@ bool Object::IsNotTemporaryScopedHandle() const {
   return (IsZoneHandle() || IsReadOnlyHandle());
 }
 
-ObjectPtr Object::Clone(const Object& orig, Heap::Space space) {
+ObjectPtr Object::Clone(const Object& orig,
+                        Heap::Space space,
+                        bool load_with_relaxed_atomics) {
   const Class& cls = Class::Handle(orig.clazz());
   intptr_t size = orig.ptr()->untag()->HeapSize();
   ObjectPtr raw_clone =
@@ -2762,9 +2764,19 @@ ObjectPtr Object::Clone(const Object& orig, Heap::Space space) {
   uword orig_addr = UntaggedObject::ToAddr(orig.ptr());
   uword clone_addr = UntaggedObject::ToAddr(raw_clone);
   static const intptr_t kHeaderSizeInBytes = sizeof(UntaggedObject);
-  memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
-          reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
-          size - kHeaderSizeInBytes);
+  if (load_with_relaxed_atomics) {
+    auto orig_atomics_ptr = reinterpret_cast<std::atomic<uword>*>(orig_addr);
+    auto clone_ptr = reinterpret_cast<uword*>(clone_addr);
+    for (intptr_t i = kHeaderSizeInBytes / kWordSize; i < size / kWordSize;
+         i++) {
+      *(clone_ptr + i) =
+          (orig_atomics_ptr + i)->load(std::memory_order_relaxed);
+    }
+  } else {
+    memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
+            reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
+            size - kHeaderSizeInBytes);
+  }
 
   // Add clone to store buffer, if needed.
   if (!raw_clone->IsOldObject()) {
@@ -7971,9 +7983,8 @@ void Function::SetNumTypeParameters(intptr_t value) const {
   if (!Utils::IsUint(UntaggedFunction::kMaxTypeParametersBits, value)) {
     ReportTooManyTypeParameters(*this);
   }
-  const uint32_t* original = &untag()->packed_fields_;
-  StoreNonPointer(original, UntaggedFunction::PackedNumTypeParameters::update(
-                                value, *original));
+  untag()->packed_fields_.Update<UntaggedFunction::PackedNumTypeParameters>(
+      value);
 }
 
 intptr_t FunctionType::NumTypeParameters(Thread* thread) const {
@@ -10187,9 +10198,8 @@ const char* ClosureData::ToCString() const {
 void Function::set_num_fixed_parameters(intptr_t value) const {
   ASSERT(value >= 0);
   ASSERT(Utils::IsUint(UntaggedFunction::kMaxFixedParametersBits, value));
-  const uint32_t* original = &untag()->packed_fields_;
-  StoreNonPointer(original, UntaggedFunction::PackedNumFixedParameters::update(
-                                value, *original));
+  untag()->packed_fields_.Update<UntaggedFunction::PackedNumFixedParameters>(
+      value);
   // Also store in signature.
   FunctionType::Handle(signature()).set_num_fixed_parameters(value);
 }
@@ -10206,12 +10216,12 @@ void FunctionType::set_num_fixed_parameters(intptr_t value) const {
 void Function::SetNumOptionalParameters(intptr_t value,
                                         bool are_optional_positional) const {
   ASSERT(Utils::IsUint(UntaggedFunction::kMaxOptionalParametersBits, value));
-  uint32_t packed_fields = untag()->packed_fields_;
-  packed_fields = UntaggedFunction::PackedHasNamedOptionalParameters::update(
-      (value > 0) && !are_optional_positional, packed_fields);
-  packed_fields = UntaggedFunction::PackedNumOptionalParameters::update(
-      value, packed_fields);
-  StoreNonPointer(&untag()->packed_fields_, packed_fields);
+  untag()
+      ->packed_fields_
+      .Update<UntaggedFunction::PackedHasNamedOptionalParameters>(
+          (value > 0) && !are_optional_positional);
+  untag()->packed_fields_.Update<UntaggedFunction::PackedNumOptionalParameters>(
+      value);
   // Also store in signature.
   FunctionType::Handle(signature())
       .SetNumOptionalParameters(value, are_optional_positional);
@@ -20312,6 +20322,7 @@ void AbstractType::InitializeTypeTestingStubNonAtomic(const Code& stub) const {
     untag()->set_type_test_stub(stub.ptr());
     return;
   }
+
   StoreNonPointer(&untag()->type_test_stub_entry_point_, stub.EntryPoint());
   untag()->set_type_test_stub(stub.ptr());
 }
@@ -20468,7 +20479,9 @@ TypePtr Type::ToNullability(Nullability value, Heap::Space space) const {
   Type& type = Type::Handle();
   // Always cloning in old space and removing space parameter would not satisfy
   // currently existing requests for type instantiation in new space.
-  type ^= Object::Clone(*this, space);
+  // Load with relaxed atomics to prevent data race with updating type
+  // testing stub.
+  type ^= Object::Clone(*this, space, /*load_with_relaxed_atomics=*/true);
   type.set_nullability(value);
   type.SetHash(0);
   type.InitializeTypeTestingStubNonAtomic(

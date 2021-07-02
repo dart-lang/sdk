@@ -1605,6 +1605,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't be used to name both a constructor and a static field "
               "in this class.",
           correction: "Try renaming either the constructor or the field.",
+          hasPublishedDocs: true,
           uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD');
 
   /**
@@ -1617,6 +1618,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't be used to name both a constructor and a static method "
               "in this class.",
           correction: "Try renaming either the constructor or the method.",
+          hasPublishedDocs: true,
           uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD');
 
   /**
@@ -1757,6 +1759,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and the class in "
         "which the type variable is defined.",
     correction: "Try renaming either the type variable or the class.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
   );
 
@@ -1770,6 +1773,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and the extension "
         "in which the type variable is defined.",
     correction: "Try renaming either the type variable or the extension.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
   );
 
@@ -1809,6 +1813,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and a member in "
         "this class.",
     correction: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
   );
 
@@ -1822,6 +1827,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and a member in "
         "this mixin.",
     correction: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
   );
 
@@ -1835,6 +1841,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and a member in "
         "this extension.",
     correction: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
   );
 
@@ -1848,6 +1855,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and the mixin in "
         "which the type variable is defined.",
     correction: "Try renaming either the type variable or the mixin.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
   );
 
@@ -3284,7 +3292,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The field '{0}' can't be initialized by multiple parameters in the "
               "same constructor.",
           correction: "Try removing one of the parameters, or "
-              "using different fields.");
+              "using different fields.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3590,7 +3599,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Remove the export directive.
   static const CompileTimeErrorCode EXPORT_INTERNAL_LIBRARY =
       CompileTimeErrorCode('EXPORT_INTERNAL_LIBRARY',
-          "The library '{0}' is internal and can't be exported.");
+          "The library '{0}' is internal and can't be exported.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3920,6 +3930,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try specifying a different superclass, or removing the extends "
               "clause.",
+          hasPublishedDocs: true,
           uniqueName: 'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
@@ -5521,6 +5532,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "A type alias that expands to a type parameter can't be implemented.",
           correction: "Try specifying a class or mixin, or removing the list.",
+          hasPublishedDocs: true,
           uniqueName: 'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
@@ -5844,7 +5856,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'INITIALIZER_FOR_STATIC_FIELD',
           "'{0}' is a static field in the enclosing class. Fields initialized "
               "in a constructor can't be static.",
-          correction: "Try removing the initialization.");
+          correction: "Try removing the initialization.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6203,7 +6216,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "precision: '{0}'.",
           correction:
               "Try using the class 'BigInt', or switch to the closest valid "
-              "double: '{1}'.");
+              "double: '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -6833,7 +6847,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
       CompileTimeErrorCode('INVALID_MODIFIER_ON_CONSTRUCTOR',
           "The modifier '{0}' can't be applied to the body of a constructor.",
-          correction: "Try removing the modifier.");
+          correction: "Try removing the modifier.", hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6877,7 +6891,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_SETTER =
       CompileTimeErrorCode('INVALID_MODIFIER_ON_SETTER',
           "The modifier '{0}' can't be applied to the body of a setter.",
-          correction: "Try removing the modifier.");
+          correction: "Try removing the modifier.", hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8130,7 +8144,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
           "The super-invoked member '{0}' has the type '{1}', and the concrete "
-              "member in the class has the type '{2}'.");
+              "member in the class has the type '{2}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8253,7 +8268,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
           "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement "
               "'{2}'.",
-          correction: "Try extending the class '{0}'.");
+          correction: "Try extending the class '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8312,7 +8328,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
           "The class '{0}' can't be used as a mixin because it declares a "
-              "constructor.");
+              "constructor.",
+          hasPublishedDocs: true);
 
   /**
    * The <i>mixinMember</i> production allows the same instance or static
@@ -8414,7 +8431,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'MIXIN_INHERITS_FROM_NOT_OBJECT',
           "The class '{0}' can't be used as a mixin because it extends a class "
-              "other than 'Object'.");
+              "other than 'Object'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -8496,6 +8514,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
           'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "A type alias that expands to a type parameter can't be mixed in.",
+          hasPublishedDocs: true,
           uniqueName: 'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
@@ -8506,6 +8525,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "A type alias that expands to a type parameter can't be used as a "
               "superclass constraint.",
+          hasPublishedDocs: true,
           uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
@@ -8678,7 +8698,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode MULTIPLE_SUPER_INITIALIZERS =
       CompileTimeErrorCode('MULTIPLE_SUPER_INITIALIZERS',
           "A constructor can have at most one 'super' initializer.",
-          correction: "Try removing all but one of the 'super' initializers.");
+          correction: "Try removing all but one of the 'super' initializers.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -9892,7 +9913,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "found.",
           correction:
               "Try calling a different constructor of the superclass, or "
-              "making the called constructor not be a factory constructor.");
+              "making the called constructor not be a factory constructor.",
+          hasPublishedDocs: true);
 
   /**
    * An error code for when a class has no explicit constructor, and therefore
@@ -10081,7 +10103,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_VOID_RETURN_FOR_OPERATOR =
       CompileTimeErrorCode('NON_VOID_RETURN_FOR_OPERATOR',
           "The return type of the operator []= must be 'void'.",
-          correction: "Try changing the return type to 'void'.");
+          correction: "Try changing the return type to 'void'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -10115,7 +10138,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('NON_VOID_RETURN_FOR_SETTER',
           "The return type of the setter must be 'void' or absent.",
           correction: "Try removing the return type, or "
-              "define a method rather than a setter.");
+              "define a method rather than a setter.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -10799,7 +10823,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode OPTIONAL_PARAMETER_IN_OPERATOR =
       CompileTimeErrorCode('OPTIONAL_PARAMETER_IN_OPERATOR',
           "Optional parameters aren't allowed when defining an operator.",
-          correction: "Try removing the optional parameters.");
+          correction: "Try removing the optional parameters.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -10936,7 +10961,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "'{0}', in the part-of directive.",
           correction:
               "Try changing the part-of directive to a URI, or try including a "
-              "different part.");
+              "different part.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -11106,7 +11132,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
           "The private name '{0}', defined by '{1}', "
               "conflicts with the same name defined by '{2}'.",
-          correction: "Try removing '{1}' from the 'with' clause.");
+          correction: "Try removing '{1}' from the 'with' clause.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -11329,6 +11356,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE =
       CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
           "'{0}' can't be a superinterface of itself: {1}.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE');
 
   /**
@@ -11347,6 +11375,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_EXTENDS =
       CompileTimeErrorCode(
           'RECURSIVE_INTERFACE_INHERITANCE', "'{0}' can't extend itself.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_EXTENDS');
 
   /**
@@ -11365,6 +11394,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS =
       CompileTimeErrorCode(
           'RECURSIVE_INTERFACE_INHERITANCE', "'{0}' can't implement itself.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS');
 
   /**
@@ -11374,6 +11404,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_ON =
       CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
           "'{0}' can't use itself as a superclass constraint.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_ON');
 
   /**
@@ -11392,6 +11423,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_WITH =
       CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
           "'{0}' can't use itself as a mixin.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_WITH');
 
   /**
@@ -11973,7 +12005,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       "Can't return a value from a generator function (using the '{0}' "
           "modifier).",
       correction: "Try removing the value, replacing 'return' with 'yield' or "
-          "changing the method body modifier.");
+          "changing the method body modifier.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -12166,7 +12199,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode SET_ELEMENT_TYPE_NOT_ASSIGNABLE =
       CompileTimeErrorCode('SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the set type '{1}'.");
+          "The element type '{0}' can't be assigned to the set type '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -12549,7 +12583,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "through the cycle: {1}.",
       correction:
           "Try adding an explicit type to one or more of the variables in the "
-          "cycle in order to break the cycle.");
+          "cycle in order to break the cycle.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -12582,7 +12617,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
           "Typedefs can't reference themselves directly or recursively via "
-              "another typedef.");
+              "another typedef.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -12770,7 +12806,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
           "'{0}' can't be a supertype of its upper bound.",
           correction:
-              "Try using a type that is the same as or a subclass of '{1}'.");
+              "Try using a type that is the same as or a subclass of '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -12826,7 +12863,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'TYPE_TEST_WITH_NON_TYPE',
           "The name '{0}' isn't a type and can't be used in an 'is' "
               "expression.",
-          correction: "Try correcting the name to match an existing type.");
+          correction: "Try correcting the name to match an existing type.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -13195,6 +13233,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The class '{0}' doesn't have an unnamed constructor.",
     correction: "Try defining an unnamed constructor in '{0}', or "
         "invoking a different constructor.",
+    hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
   );
 
@@ -13497,7 +13536,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_OPERATOR =
       CompileTimeErrorCode('UNDEFINED_EXTENSION_OPERATOR',
           "The operator '{0}' isn't defined for the extension '{1}'.",
-          correction: "Try defining the operator '{0}'.");
+          correction: "Try defining the operator '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -14640,7 +14680,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR =
       CompileTimeErrorCode('WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
           "The constructor '{0}.{1}' doesn't have type parameters.",
-          correction: "Try moving type arguments to after the type name.");
+          correction: "Try moving type arguments to after the type name.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -14689,7 +14730,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
           "The extension '{0}' is declared with {1} type parameters, "
               "but {2} type arguments were given.",
-          correction: "Try adjusting the number of type arguments.");
+          correction: "Try adjusting the number of type arguments.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -14836,6 +14878,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "(one marked with either 'async*' or 'sync*').",
           correction:
               "Try adding 'async*' or 'sync*' to the enclosing function.",
+          hasPublishedDocs: true,
           uniqueName: 'YIELD_EACH_IN_NON_GENERATOR');
 
   /**
@@ -14850,7 +14893,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Yield statements must be in a generator function "
               "(one marked with either 'async*' or 'sync*').",
           correction:
-              "Try adding 'async*' or 'sync*' to the enclosing function.");
+              "Try adding 'async*' or 'sync*' to the enclosing function.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:

@@ -877,7 +877,9 @@ class FragmentEmitter {
       for (StaticMethod method in library.statics) {
         Map<js.Name, js.Expression> propertyMap = emitStaticMethod(method);
         propertyMap.forEach((js.Name key, js.Expression value) {
-          var property = new js.Property(js.quoteName(key), value);
+          var property = _options.features.legacyJavaScript.isEnabled
+              ? js.Property(js.quoteName(key), value)
+              : js.MethodDefinition(js.quoteName(key), value);
           Entity holderKey;
           if (method is StaticStubMethod) {
             // [StaticStubMethod]s should only be created for interceptors.

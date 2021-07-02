@@ -105,6 +105,9 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// yet been made.
   DartDevelopmentService? _dds;
 
+  /// Whether to use IPv6 for DAP/Debugger services.
+  final bool ipv6;
+
   /// Whether to enable DDS for launched applications.
   final bool enableDds;
 
@@ -121,6 +124,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
 
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
+    this.ipv6 = false,
     this.enableDds = true,
     this.enableAuthCodes = true,
     this.logger,
@@ -194,8 +198,8 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       logger?.call('Starting a DDS instance for $uri');
       final dds = await DartDevelopmentService.startDartDevelopmentService(
         uri,
-        // TODO(dantup): Allow this to be disabled?
-        enableAuthCodes: true,
+        enableAuthCodes: enableAuthCodes,
+        ipv6: ipv6,
       );
       _dds = dds;
       uri = dds.wsUri!;

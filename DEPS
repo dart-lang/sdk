@@ -73,7 +73,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "d8fea36c10ef96797be02e3d132d572445cd86f4",
-  "async_rev": "92e7119aa068bfb86a6a9519d44037ffff5eece8",
+  "async_rev": "8193eac211905cf33ae1f514022fdbd843836be5",
   "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
@@ -85,7 +85,7 @@ vars = {
   "chrome_rev" : "19997",
   "cli_util_rev" : "8c504de5deb08fe32ecf51f9662bb37d8c708e57",
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
-  "collection_rev": "9967dcd3d7645db6de48d5abfab3018bb0c84236",
+  "collection_rev": "75a7a5510979a3cd70143af85bcc1667ee233674",
   "convert_rev": "413f591577419d8a8b95d445094a82c926650bd1",
   "crypto_rev": "1c8ccc07b83b100216dc6dede767371043385648",
   "csslib_rev": "e411d862fd8cc50415c1badf2632e017373b3f47",
@@ -105,7 +105,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "f17c23e0eea9a870601c19d904e2a9c1a7c81470",
 
-  "dartdoc_rev" : "b86cddcedf0737763d2e337c7474ad18d973fd4a",
+  "dartdoc_rev" : "c9621b92c738ec21a348cc2de032858276e9c774",
   "devtools_rev" : "64cffbed6366329ad05e44d48fa2298367643bb6",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",

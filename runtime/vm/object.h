@@ -756,7 +756,9 @@ class Object {
 #undef STORE_NON_POINTER_ILLEGAL_TYPE
 
   // Allocate an object and copy the body of 'orig'.
-  static ObjectPtr Clone(const Object& orig, Heap::Space space);
+  static ObjectPtr Clone(const Object& orig,
+                         Heap::Space space,
+                         bool load_with_relaxed_atomics = false);
 
   // End of field mutator guards.
 
@@ -3724,11 +3726,11 @@ class Function : public Object {
   //              some functions known to be execute infrequently and functions
   //              which have been de-optimized too many times.
   bool is_optimizable() const {
-    return UntaggedFunction::PackedOptimizable::decode(untag()->packed_fields_);
+    return untag()->packed_fields_.Read<UntaggedFunction::PackedOptimizable>();
   }
   void set_is_optimizable(bool value) const {
-    set_packed_fields(UntaggedFunction::PackedOptimizable::update(
-        value, untag()->packed_fields_));
+    untag()->packed_fields_.UpdateBool<UntaggedFunction::PackedOptimizable>(
+        value);
   }
 
   enum KindTagBits {
