@@ -344,26 +344,6 @@ final Matcher isContextData =
           'cacheEntryExceptions': isListOf(isString)
         }));
 
-/// DartFix
-///
-/// {
-///   "name": String
-///   "description": optional String
-/// }
-final Matcher isDartFix = LazyMatcher(() => MatchesJsonObject(
-    'DartFix', {'name': isString},
-    optionalFields: {'description': isString}));
-
-/// DartFixSuggestion
-///
-/// {
-///   "description": String
-///   "location": optional Location
-/// }
-final Matcher isDartFixSuggestion = LazyMatcher(() => MatchesJsonObject(
-    'DartFixSuggestion', {'description': isString},
-    optionalFields: {'location': isLocation}));
-
 /// DiagnosticMessage
 ///
 /// {
@@ -1429,7 +1409,6 @@ final Matcher isRequestError = LazyMatcher(() => MatchesJsonObject(
 ///   SERVER_ERROR
 ///   SORT_MEMBERS_INVALID_FILE
 ///   SORT_MEMBERS_PARSE_ERRORS
-///   UNKNOWN_FIX
 ///   UNKNOWN_REQUEST
 ///   UNSUPPORTED_FEATURE
 /// }
@@ -1466,7 +1445,6 @@ final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
   'SERVER_ERROR',
   'SORT_MEMBERS_INVALID_FILE',
   'SORT_MEMBERS_PARSE_ERRORS',
-  'UNKNOWN_FIX',
   'UNKNOWN_REQUEST',
   'UNSUPPORTED_FEATURE'
 ]);
@@ -2240,50 +2218,6 @@ final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
     'edit.bulkFixes result',
     {'edits': isListOf(isSourceFileEdit), 'details': isListOf(isBulkFix)}));
 
-/// edit.dartfix params
-///
-/// {
-///   "included": List<FilePath>
-///   "includedFixes": optional List<String>
-///   "includePedanticFixes": optional bool
-///   "excludedFixes": optional List<String>
-///   "port": optional int
-///   "outputDir": optional FilePath
-/// }
-final Matcher isEditDartfixParams =
-    LazyMatcher(() => MatchesJsonObject('edit.dartfix params', {
-          'included': isListOf(isFilePath)
-        }, optionalFields: {
-          'includedFixes': isListOf(isString),
-          'includePedanticFixes': isBool,
-          'excludedFixes': isListOf(isString),
-          'port': isInt,
-          'outputDir': isFilePath
-        }));
-
-/// edit.dartfix result
-///
-/// {
-///   "suggestions": List<DartFixSuggestion>
-///   "otherSuggestions": List<DartFixSuggestion>
-///   "hasErrors": bool
-///   "edits": List<SourceFileEdit>
-///   "details": optional List<String>
-///   "port": optional int
-///   "urls": optional List<String>
-/// }
-final Matcher isEditDartfixResult =
-    LazyMatcher(() => MatchesJsonObject('edit.dartfix result', {
-          'suggestions': isListOf(isDartFixSuggestion),
-          'otherSuggestions': isListOf(isDartFixSuggestion),
-          'hasErrors': isBool,
-          'edits': isListOf(isSourceFileEdit)
-        }, optionalFields: {
-          'details': isListOf(isString),
-          'port': isInt,
-          'urls': isListOf(isString)
-        }));
-
 /// edit.format params
 ///
 /// {
@@ -2349,21 +2283,6 @@ final Matcher isEditGetAvailableRefactoringsParams = LazyMatcher(() =>
 final Matcher isEditGetAvailableRefactoringsResult = LazyMatcher(() =>
     MatchesJsonObject('edit.getAvailableRefactorings result',
         {'kinds': isListOf(isRefactoringKind)}));
-
-/// edit.getDartfixInfo params
-///
-/// {
-/// }
-final Matcher isEditGetDartfixInfoParams =
-    LazyMatcher(() => MatchesJsonObject('edit.getDartfixInfo params', null));
-
-/// edit.getDartfixInfo result
-///
-/// {
-///   "fixes": List<DartFix>
-/// }
-final Matcher isEditGetDartfixInfoResult = LazyMatcher(() => MatchesJsonObject(
-    'edit.getDartfixInfo result', {'fixes': isListOf(isDartFix)}));
 
 /// edit.getFixes params
 ///

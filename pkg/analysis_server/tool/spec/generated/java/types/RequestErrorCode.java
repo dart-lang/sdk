@@ -198,12 +198,6 @@ public class RequestErrorCode {
   public static final String SORT_MEMBERS_PARSE_ERRORS = "SORT_MEMBERS_PARSE_ERRORS";
 
   /**
-   * A dartfix request was received containing the name of a fix which does not match the name of any
-   * known fixes.
-   */
-  public static final String UNKNOWN_FIX = "UNKNOWN_FIX";
-
-  /**
    * A request was received which the analysis server does not recognize, or cannot handle in its
    * current configuration.
    */

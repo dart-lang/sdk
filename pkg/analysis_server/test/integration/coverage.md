@@ -44,11 +44,9 @@ server calls. This file is validated by `coverage_test.dart`.
 
 ## edit domain
 - [x] edit.bulkFixes
-- [x] edit.dartfix
 - [x] edit.format
 - [x] edit.getAssists
 - [x] edit.getAvailableRefactorings
-- [x] edit.getDartfixInfo
 - [x] edit.getFixes
 - [x] edit.getPostfixCompletion
 - [x] edit.getRefactoring

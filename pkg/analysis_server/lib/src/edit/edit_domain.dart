@@ -11,8 +11,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
-import 'package:analysis_server/src/edit/edit_dartfix.dart' show EditDartFix;
-import 'package:analysis_server/src/edit/fix/dartfix_info.dart' show allFixes;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart'
@@ -115,23 +113,6 @@ class EditDomainHandler extends AbstractRequestHandler {
       server.sendResponse(response);
     } catch (exception, stackTrace) {
       server.sendServerErrorNotification('Exception while getting bulk fixes',
-          CaughtException(exception, stackTrace), stackTrace);
-    }
-  }
-
-  Future dartfix(Request request) async {
-    // TODO(danrubel): Add support for dartfix plugins
-
-    //
-    // Compute fixes
-    //
-    try {
-      var dartFix = EditDartFix(server, request);
-      var response = await dartFix.compute();
-
-      server.sendResponse(response);
-    } catch (exception, stackTrace) {
-      server.sendServerErrorNotification('Exception while running dartfix',
           CaughtException(exception, stackTrace), stackTrace);
     }
   }
@@ -243,10 +224,6 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     server.sendResponse(EditGetAssistsResult(changes).toResponse(request.id));
   }
-
-  Response getDartfixInfo(Request request) =>
-      EditGetDartfixInfoResult(allFixes.map((i) => i.asDartFix()).toList())
-          .toResponse(request.id);
 
   Future<void> getFixes(Request request) async {
     var params = EditGetFixesParams.fromRequest(request);
@@ -374,13 +351,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       } else if (requestName == EDIT_REQUEST_BULK_FIXES) {
         bulkFixes(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_GET_DARTFIX_INFO) {
-        return getDartfixInfo(request);
       } else if (requestName == EDIT_REQUEST_GET_FIXES) {
         getFixes(request);
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_DARTFIX) {
-        dartfix(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request);
