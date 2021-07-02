@@ -174,7 +174,7 @@ NativeStructType& NativeStructType::FromNativeTypes(Zone* zone,
   // If this struct is passed on the stack, it should be aligned to the largest
   // alignment of its members when passing those members on the stack.
   intptr_t alignment_stack = kAtLeast1ByteAligned;
-#if (defined(TARGET_OS_MACOS_IOS) || defined(TARGET_OS_MACOS)) &&              \
+#if (defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_MACOS)) &&    \
     defined(TARGET_ARCH_ARM64)
   // On iOS64 and MacOS arm64 stack values can be less aligned than wordSize,
   // which deviates from the arm64 ABI.

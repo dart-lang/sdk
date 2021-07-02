@@ -4,7 +4,7 @@
 
 #include "vm/bootstrap_natives.h"
 
-#include <math.h>
+#include <math.h>  // NOLINT
 
 #include "vm/dart_entry.h"
 #include "vm/double_conversion.h"
@@ -180,7 +180,7 @@ DEFINE_NATIVE_ENTRY(Double_truncate, 0, 1) {
   return Double::New(trunc(arg.value()));
 }
 
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 // MAC OSX math library produces old style cast warning.
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif

@@ -32,7 +32,7 @@ namespace compiler {
   intptr_t exp_len = strlen(expected);                                         \
   EXPECT_GT(dis_len, exp_len);                                                 \
   EXPECT_STREQ(expected, disassembly + dis_len - exp_len);
-#if defined(TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
 // Windows has different calling conventions on x64, which means the
 // disassembly looks different on some tests.  We skip testing the
 // disassembly output for those tests on Windows.
@@ -5435,7 +5435,7 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
   EnterTestFrame(assembler);
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   // First argument is code object, second argument is thread. MSVC passes
   // third argument in XMM2.
   __ DoubleAbs(XMM0, XMM2);

@@ -586,7 +586,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_regress46127) {
       RunSignatureTest(Z, "regress46127", arguments, struct_type);
 
 #if defined(TARGET_ARCH_IA32) &&                                               \
-    (defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX))
+    (defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_LINUX))
   // We must count the result pointer passed on the stack as well.
   EXPECT_EQ(4, native_calling_convention.StackTopInBytes());
 #else
@@ -610,7 +610,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct12bytesFloatx6) {
   const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
 
 #if defined(TARGET_ARCH_ARM64) &&                                              \
-    (defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS))
+    (defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS))
   EXPECT_EQ(4, struct_type.AlignmentInBytesStack());
 #endif
 

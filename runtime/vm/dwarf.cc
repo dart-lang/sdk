@@ -736,7 +736,7 @@ static const char* ConvertResolvedURI(const char* str) {
   const intptr_t len = strlen(str);
   if (len > kResolvedFileRootLen &&
       strncmp(str, kResolvedFileRoot, kResolvedFileRootLen) == 0) {
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
     return str + kResolvedFileRootLen;  // Strip off the entire prefix.
 #else
     return str + kResolvedFileRootLen - 1;  // Leave a '/' on the front.

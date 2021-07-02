@@ -962,20 +962,20 @@ class DwarfAssemblyStream : public DwarfWriteStream {
 
   // Methods for writing the assembly prologues for various DWARF sections.
   void AbbreviationsPrologue() {
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
     stream_->WriteString(".section __DWARF,__debug_abbrev,regular,debug\n");
-#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
-    defined(TARGET_OS_FUCHSIA)
+#elif defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||      \
+    defined(DART_TARGET_OS_FUCHSIA)
     stream_->WriteString(".section .debug_abbrev,\"\"\n");
 #else
     UNIMPLEMENTED();
 #endif
   }
   void DebugInfoPrologue() {
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
     stream_->WriteString(".section __DWARF,__debug_info,regular,debug\n");
-#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
-    defined(TARGET_OS_FUCHSIA)
+#elif defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||      \
+    defined(DART_TARGET_OS_FUCHSIA)
     stream_->WriteString(".section .debug_info,\"\"\n");
 #else
     UNIMPLEMENTED();
@@ -984,10 +984,10 @@ class DwarfAssemblyStream : public DwarfWriteStream {
     stream_->Printf("%s:\n", kDebugInfoLabel);
   }
   void LineNumberProgramPrologue() {
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
     stream_->WriteString(".section __DWARF,__debug_line,regular,debug\n");
-#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
-    defined(TARGET_OS_FUCHSIA)
+#elif defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||      \
+    defined(DART_TARGET_OS_FUCHSIA)
     stream_->WriteString(".section .debug_line,\"\"\n");
 #else
     UNIMPLEMENTED();
@@ -1132,10 +1132,10 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
       global_symbol = true;
       break;
     case ProgramSection::Data:
-#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                  \
-    defined(TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
+    defined(DART_TARGET_OS_FUCHSIA)
       assembly_stream_->WriteString(".section .rodata\n");
-#elif defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
       assembly_stream_->WriteString(".const\n");
 #else
       UNIMPLEMENTED();
@@ -1306,7 +1306,7 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
   // because DW_CFA_val_offset uses scaled operand and we don't know what
   // data alignment factor will be choosen by the assembler when emitting CIE.
-#if defined(TARGET_OS_ANDROID)
+#if defined(DART_TARGET_OS_ANDROID)
   // On Android libunwindstack has a bug (b/191113792): it does not push
   // CFA value to the expression stack before evaluating expression given
   // to DW_CFA_expression. We have to workaround this bug by manually pushing
@@ -1329,7 +1329,7 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 #endif
 
 #elif defined(TARGET_ARCH_ARM)
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
   assembly_stream_->WriteString(".cfi_def_cfa r7, 0\n");  // CFA is fp+0
   assembly_stream_->WriteString(".cfi_offset r7, 0\n");  // saved fp is *(CFA+0)
@@ -1345,7 +1345,7 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // newer than late 2016. Can't emit .cfi_value_offset using .cfi_scape
   // because DW_CFA_val_offset uses scaled operand and we don't know what
   // data alignment factor will be choosen by the assembler when emitting CIE.
-#if defined(TARGET_OS_ANDROID)
+#if defined(DART_TARGET_OS_ANDROID)
   // On Android libunwindstack has a bug (b/191113792): it does not push
   // CFA value to the expression stack before evaluating expression given
   // to DW_CFA_expression. We have to workaround this bug by manually pushing
@@ -1368,7 +1368,7 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 #endif
 
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
-#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R11);
   assembly_stream_->WriteString(".fnstart\n");
   assembly_stream_->WriteString(".save {r11, lr}\n");
@@ -1379,7 +1379,7 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 
 void AssemblyImageWriter::FrameUnwindEpilogue() {
 #if defined(TARGET_ARCH_ARM)
-#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   assembly_stream_->WriteString(".fnend\n");
 #endif
 #endif

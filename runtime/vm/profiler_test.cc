@@ -478,8 +478,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
   }
 }
 
-#if defined(DART_USE_TCMALLOC) && defined(HOST_OS_LINUX) && defined(DEBUG) &&  \
-    defined(HOST_ARCH_X64)
+#if defined(DART_USE_TCMALLOC) && defined(DART_HOST_OS_LINUX) &&               \
+    defined(DEBUG) && defined(HOST_ARCH_X64)
 
 DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
   ASSERT(result != NULL);
@@ -584,7 +584,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
       stack_trace_collection_enabled);
   FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
-#endif  // defined(DART_USE_TCMALLOC) && defined(HOST_OS_LINUX) &&             \
+#endif  // defined(DART_USE_TCMALLOC) && defined(DART_HOST_OS_LINUX) &&        \
         // defined(DEBUG) && defined(HOST_ARCH_X64)
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {

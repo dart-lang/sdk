@@ -4238,7 +4238,7 @@ static void RequestHeapSnapshot(Thread* thread, JSONStream* js) {
   PrintSuccess(js);
 }
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 struct VMMapping {
   char path[256];
   size_t size;
@@ -4404,7 +4404,7 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   }
 
   // On Android, malloc is better labeled by /proc/self/smaps.
-#if !defined(HOST_OS_ANDROID)
+#if !defined(DART_HOST_OS_ANDROID)
   intptr_t used, capacity;
   const char* implementation;
   if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
@@ -4432,7 +4432,7 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   }
 #endif
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   AddVMMappings(&rss_children);
 #endif
   // TODO(46166): Implement for other operating systems.
