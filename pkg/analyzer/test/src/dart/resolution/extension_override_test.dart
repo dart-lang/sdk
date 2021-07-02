@@ -14,13 +14,106 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionOverrideTest);
-    defineReflectiveTests(ExtensionOverrideWithNullSafetyTest);
+    defineReflectiveTests(ExtensionOverrideWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ExtensionOverrideTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ExtensionOverrideTestCases {
+  test_indexExpression_read_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int operator [](int index) => 0;
+}
+
+void f(int? a) {
+  E(a)?[0];
+}
+''');
+
+    assertIndexExpression(
+      findNode.index('[0]'),
+      readElement: findElement.method('[]', of: 'E'),
+      writeElement: null,
+      type: 'int?',
+    );
+  }
+
+  test_indexExpression_write_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  operator []=(int index, int value) {}
+}
+
+void f(int? a) {
+  E(a)?[0] = 1;
+}
+''');
+
+    assertAssignment(
+      findNode.assignment('[0] ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('[]=', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int?',
+    );
+  }
+
+  test_methodInvocation_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int foo() => 0;
+}
+
+void f(int? a) {
+  E(a)?.foo();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('foo();'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int?',
+    );
+  }
+
+  test_propertyAccess_getter_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int get foo => 0;
+}
+
+void f(int? a) {
+  E(a)?.foo;
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?.foo'),
+      element: findElement.getter('foo'),
+      type: 'int?',
+    );
+  }
+
+  test_propertyAccess_setter_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  set foo(int _) {}
+}
+
+void f(int? a) {
+  E(a)?.foo = 0;
+}
+''');
+  }
+}
+
+mixin ExtensionOverrideTestCases on PubPackageResolutionTest {
   late ExtensionElement extension;
   late ExtensionOverride extensionOverride;
 
@@ -720,96 +813,5 @@ f(C c) => E(c).a;
 }
 
 @reflectiveTest
-class ExtensionOverrideWithNullSafetyTest extends ExtensionOverrideTest
-    with WithNullSafetyMixin {
-  test_indexExpression_read_nullAware() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  int operator [](int index) => 0;
-}
-
-void f(int? a) {
-  E(a)?[0];
-}
-''');
-
-    assertIndexExpression(
-      findNode.index('[0]'),
-      readElement: findElement.method('[]', of: 'E'),
-      writeElement: null,
-      type: 'int?',
-    );
-  }
-
-  test_indexExpression_write_nullAware() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  operator []=(int index, int value) {}
-}
-
-void f(int? a) {
-  E(a)?[0] = 1;
-}
-''');
-
-    assertAssignment(
-      findNode.assignment('[0] ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]=', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int?',
-    );
-  }
-
-  test_methodInvocation_nullAware() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  int foo() => 0;
-}
-
-void f(int? a) {
-  E(a)?.foo();
-}
-''');
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('foo();'),
-      element: findElement.method('foo'),
-      typeArgumentTypes: [],
-      invokeType: 'int Function()',
-      type: 'int?',
-    );
-  }
-
-  test_propertyAccess_getter_nullAware() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  int get foo => 0;
-}
-
-void f(int? a) {
-  E(a)?.foo;
-}
-''');
-
-    assertPropertyAccess2(
-      findNode.propertyAccess('?.foo'),
-      element: findElement.getter('foo'),
-      type: 'int?',
-    );
-  }
-
-  test_propertyAccess_setter_nullAware() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  set foo(int _) {}
-}
-
-void f(int? a) {
-  E(a)?.foo = 0;
-}
-''');
-  }
-}
+class ExtensionOverrideWithoutNullSafetyTest extends PubPackageResolutionTest
+    with ExtensionOverrideTestCases, WithoutNullSafetyMixin {}
