@@ -602,6 +602,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentUnreachableMethodsThrow, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
     new OptionHandler(Flags.experimentNewRti, ignoreOption),
+    new OptionHandler(Flags.experimentLateInstanceVariables, passThrough),
     new OptionHandler('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
     // Wire up feature flags.
