@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 
 #include "bin/process.h"
 
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif
 #include <errno.h>      // NOLINT
@@ -468,7 +468,7 @@ class ProcessStarter {
       ReportChildError();
     }
 
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
     if (program_environment_ != NULL) {
       // On MacOS you have to do a bit of magic to get to the
       // environment strings.
@@ -521,7 +521,7 @@ class ProcessStarter {
               (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
             ReportChildError();
           }
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
           if (program_environment_ != NULL) {
             // On MacOS you have to do a bit of magic to get to the
             // environment strings.
@@ -1191,4 +1191,4 @@ void Process::Cleanup() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)

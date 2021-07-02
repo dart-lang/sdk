@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX)
 
 #include "platform/utils.h"
+#include "platform/utils_linux.h"
 
 namespace dart {
 
@@ -50,4 +51,4 @@ int Utils::Unlink(const char* path) {
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX)

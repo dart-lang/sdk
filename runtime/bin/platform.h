@@ -9,9 +9,9 @@
 #include "platform/globals.h"
 #include "platform/utils.h"
 
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 #include "bin/platform_macos.h"
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)
 
 namespace dart {
 namespace bin {

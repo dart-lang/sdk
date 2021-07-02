@@ -15,16 +15,16 @@
 #include "vm/os.h"
 #include "vm/os_thread.h"
 
-#if defined(FUCHSIA_SDK) || defined (HOST_OS_FUCHSIA)
+#if defined(FUCHSIA_SDK) || defined(DART_HOST_OS_FUCHSIA)
 #include <lib/trace-engine/context.h>
 #include <lib/trace-engine/instrumentation.h>
-#elif defined(HOST_OS_MACOS)
+#elif defined(DART_HOST_OS_MACOS)
 #include <os/availability.h>
 #if defined(__MAC_10_14) || defined (__IPHONE_12_0)
-#define HOST_OS_SUPPORTS_SIGNPOST 1
+#define DART_HOST_OS_SUPPORTS_SIGNPOST 1
 #endif
 // signpost.h exists in macOS 10.14, iOS 12 or above
-#if defined(HOST_OS_SUPPORTS_SIGNPOST)
+#if defined(DART_HOST_OS_SUPPORTS_SIGNPOST)
 #include <os/signpost.h>
 #else
 #include <os/log.h>
@@ -77,7 +77,7 @@ class TimelineStream {
   const char* fuchsia_name() const { return fuchsia_name_; }
 
   bool enabled() {
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
 #ifdef PRODUCT
     return trace_is_category_enabled(fuchsia_name_);
 #else
@@ -85,7 +85,7 @@ class TimelineStream {
 #endif  // PRODUCT
 #else
     return enabled_ != 0;
-#endif  // defined(HOST_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_FUCHSIA)
   }
 
   void set_enabled(bool enabled) { enabled_ = enabled ? 1 : 0; }
@@ -100,9 +100,9 @@ class TimelineStream {
     return OFFSET_OF(TimelineStream, enabled_);
   }
 
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
   trace_site_t* trace_site() { return &trace_site_; }
-#elif defined(HOST_OS_MACOS)
+#elif defined(DART_HOST_OS_MACOS)
   os_log_t macos_log() { return macos_log_; }
 #endif
 
@@ -114,9 +114,9 @@ class TimelineStream {
   // 0 or 1. If this becomes a BitField, the generated code must be updated.
   uintptr_t enabled_;
 
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
   trace_site_t trace_site_ = {};
-#elif defined(HOST_OS_MACOS)
+#elif defined(DART_HOST_OS_MACOS)
   os_log_t macos_log_ = {};
 #endif
 };
@@ -933,7 +933,7 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   void CompleteEvent(TimelineEvent* event);
 };
 
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
 // A recorder that sends events to Fuchsia's tracing app.
 class TimelineEventFuchsiaRecorder : public TimelineEventPlatformRecorder {
  public:
@@ -946,9 +946,9 @@ class TimelineEventFuchsiaRecorder : public TimelineEventPlatformRecorder {
  private:
   void OnEvent(TimelineEvent* event);
 };
-#endif  // defined(HOST_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_FUCHSIA)
 
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
 // A recorder that writes events to Android Systrace. This class is exposed in
 // this header file only so that PrintSystrace can be visible to
 // timeline_test.cc.
@@ -969,9 +969,9 @@ class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
 
   int systrace_fd_;
 };
-#endif  // defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
 
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 // A recorder that sends events to Macos's tracing app. See:
 // https://developer.apple.com/documentation/os/logging?language=objc
 class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
@@ -985,7 +985,7 @@ class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
  private:
   void OnEvent(TimelineEvent* event) API_AVAILABLE(ios(12.0), macos(10.14));
 };
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)
 
 class DartTimelineEventHelpers : public AllStatic {
  public:

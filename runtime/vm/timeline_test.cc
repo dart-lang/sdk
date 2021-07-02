@@ -163,7 +163,7 @@ TEST_CASE(TimelineEventDurationPrintJSON) {
   event.DurationEnd();
 }
 
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
 TEST_CASE(TimelineEventPrintSystrace) {
   const intptr_t kBufferLength = 1024;
   char buffer[kBufferLength];
@@ -209,7 +209,7 @@ TEST_CASE(TimelineEventPrintSystrace) {
                                                kBufferLength);
   EXPECT_STREQ("", buffer);
 }
-#endif  // defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
 
 TEST_CASE(TimelineEventArguments) {
   // Create a test stream.

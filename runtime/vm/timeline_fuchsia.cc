@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE)
+#if defined(DART_HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE)
 #include <lib/trace-engine/context.h>
 #include <lib/trace-engine/instrumentation.h>
 #include <zircon/syscalls.h>
@@ -121,4 +121,4 @@ void TimelineEventFuchsiaRecorder::OnEvent(TimelineEvent* event) {
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE)
+#endif  // defined(DART_HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE)
