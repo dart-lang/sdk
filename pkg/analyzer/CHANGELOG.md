@@ -9,6 +9,7 @@
 * `FieldElement.isFinal` is `true` only when the field is not synthetic.
 * Synthetic getters and setters now use `-1` as `nameOffset`.
 * Fixed bug that `defaultValueCode` is `null` for field formal parameters.
+* Updated `LibraryElement.name` so that it is non-nullable.
 
 ## 1.7.0
 * Require `meta: ^1.4.0`.
