@@ -362,6 +362,10 @@ class FindNode {
     return _node(search, (n) => n is TypedLiteral);
   }
 
+  TypeLiteral typeLiteral(String search) {
+    return _node(search, (n) => n is TypeLiteral);
+  }
+
   TypeName typeName(String search) {
     return _node(search, (n) => n is TypeName);
   }

@@ -340,6 +340,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node, type);
   }
 
+  void assertFunctionReference(
+      FunctionReference node, Element expectedElement, String expectedType) {
+    assertElement(node, expectedElement);
+    assertType(node, expectedType);
+  }
+
   void assertHasTestErrors() {
     expect(result.errors, isNotEmpty);
   }
@@ -796,6 +802,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expression!;
     NullabilitySuffix actual = expression.typeOrThrow.nullabilitySuffix;
     expect(actual, NullabilitySuffix.star);
+  }
+
+  void assertTypeLiteral(
+      TypeLiteral node, Element? expectedElement, String expectedType,
+      {Element? expectedPrefix}) {
+    assertType(node, 'Type');
+    assertTypeName(node.typeName, expectedElement, expectedType,
+        expectedPrefix: expectedPrefix);
   }
 
   void assertTypeName(

@@ -32,6 +32,9 @@ main() async {
     try {
       final buffers = [];
       for (int i = 0; i < 100 * 1000; ++i) {
+        if (i % 1000 == 0) {
+          print(i);
+        }
         // We issue a 1 MB read but get only a small typed data back. We hang on
         // to those buffers. If the implementation actually malloc()ed 1 MB then
         // we would hang on to 100 GB and this test would OOM.

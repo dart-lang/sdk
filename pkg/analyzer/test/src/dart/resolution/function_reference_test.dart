@@ -15,6 +15,36 @@ main() {
 
 @reflectiveTest
 class FunctionReferenceResolutionTest extends PubPackageResolutionTest {
+  test_explicitReceiver_unknown() async {
+    await assertErrorsInCode('''
+bar() {
+  a.foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
+  }
+
+  test_instanceGetter_explicitReceiver() async {
+    // This test is here to assert that the resolver does not throw, but in the
+    // future, an error should be reported here as well.
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+bar(A a) {
+  a.foo<int>;
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
+  }
+
   test_instanceMethod() async {
     await assertNoErrorsInCode('''
 class A {
@@ -26,9 +56,9 @@ class A {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
   }
 
   test_instanceMethod_explicitReceiver_field() async {
@@ -46,9 +76,9 @@ class B {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
   }
 
   test_instanceMethod_explicitReceiver_super() async {
@@ -63,9 +93,37 @@ class B extends A {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_instanceMethod_explicitReceiver_super_noMethod() async {
+    await assertErrorsInCode('''
+class A {
+  bar() {
+    super.foo<int>;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 30, 3),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
+  }
+
+  test_instanceMethod_explicitReceiver_super_noSuper() async {
+    await assertErrorsInCode('''
+bar() {
+  super.foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 10, 5),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
   }
 
   test_instanceMethod_explicitReceiver_this() async {
@@ -79,9 +137,9 @@ class A {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
   }
 
   test_instanceMethod_explicitReceiver_variable() async {
@@ -97,9 +155,9 @@ class B {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
   }
 
   test_localFunction() async {
@@ -111,9 +169,9 @@ void bar() {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.localFunction('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.localFunction('foo'), 'void Function(int)');
   }
 
   test_localVariable() async {
@@ -123,9 +181,9 @@ void bar(void Function<T>(T a) foo) {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.parameter('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.parameter('foo'), 'void Function(int)');
   }
 
   test_nonGenericFunction() async {
@@ -138,12 +196,13 @@ class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 44, 5),
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 44, 5),
     ]);
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function()');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function()');
   }
 
   test_staticMethod() async {
@@ -157,9 +216,9 @@ class A {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
   }
 
   @FailingTest(reason: 'Unresolved TODO in FunctionReferenceResolver')
@@ -174,9 +233,9 @@ class A {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertElement(reference, findElement.method('foo'));
+    assertType(reference, 'void Function(int)');
   }
 
   @FailingTest(reason: 'Unresolved TODO in FunctionReferenceResolver')
@@ -194,9 +253,9 @@ bar() {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertElement(reference, findElement.method('foo'));
+    assertType(reference, 'void Function(int)');
   }
 
   test_tooFewTypeArguments() async {
@@ -209,12 +268,13 @@ class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 58, 5),
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 58, 5),
     ]);
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(dynamic, dynamic)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(reference, findElement.method('foo'),
+        'void Function(dynamic, dynamic)');
   }
 
   test_tooManyTypeArguments() async {
@@ -227,12 +287,13 @@ class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 10),
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 50, 10),
     ]);
 
-    var identifier = findNode.functionReference('foo<int, int>;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(dynamic)');
+    var reference = findNode.functionReference('foo<int, int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(dynamic)');
   }
 
   test_topLevelFunction() async {
@@ -244,9 +305,9 @@ void bar() {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier, findElement.topFunction('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.topFunction('foo'), 'void Function(int)');
   }
 
   test_topLevelFunction_importPrefix() async {
@@ -261,10 +322,12 @@ void bar() {
 }
 ''');
 
-    var identifier = findNode.functionReference('foo<int>;');
-    assertElement(identifier,
-        findElement.importFind('package:test/a.dart').topFunction('foo'));
-    assertType(identifier, 'void Function(int)');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+      reference,
+      findElement.importFind('package:test/a.dart').topFunction('foo'),
+      'void Function(int)',
+    );
   }
 
   test_unknownIdentifier() async {

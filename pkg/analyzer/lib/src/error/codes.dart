@@ -14735,6 +14735,22 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the function being referenced
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION =
+      CompileTimeErrorCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+          "The function '{0}' is declared with {1} type parameters, "
+              "but {2} type arguments were given.",
+          correction:
+              "Try adjusting the number of type arguments to match the number "
+              "of type parameters.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
    * 0: the name of the method being referenced (<i>G</i>)
    * 1: the number of type parameters that were declared
    * 2: the number of type arguments provided
