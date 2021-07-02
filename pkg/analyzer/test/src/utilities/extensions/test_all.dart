@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'collection_test.dart' as collection;
 import 'string_test.dart' as string;
 
 main() {
   defineReflectiveSuite(() {
+    collection.main();
     string.main();
   }, name: 'extensions');
 }
