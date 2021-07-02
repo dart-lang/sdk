@@ -1,3 +1,7 @@
+## 1.5.0
+
+* Add `TargetKindExtension.displayString`.
+
 ## 1.4.0
 
 * Introduce `TargetKind.topLevelVariable` that indicates that an annotation
