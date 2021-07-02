@@ -65,50 +65,43 @@ class Elf : public ZoneAllocated {
     size_t size;
   };
 
-  intptr_t AddText(const char* name,
-                   const uint8_t* bytes,
-                   intptr_t size,
-                   const ZoneGrowableArray<Relocation>* relocations,
-                   const ZoneGrowableArray<SymbolData>* symbol);
-  intptr_t AddROData(const char* name,
-                     const uint8_t* bytes,
-                     intptr_t size,
-                     const ZoneGrowableArray<Relocation>* relocations,
-                     const ZoneGrowableArray<SymbolData>* symbols);
+  void AddText(const char* name,
+               const uint8_t* bytes,
+               intptr_t size,
+               const ZoneGrowableArray<Relocation>* relocations,
+               const ZoneGrowableArray<SymbolData>* symbol);
+  void AddROData(const char* name,
+                 const uint8_t* bytes,
+                 intptr_t size,
+                 const ZoneGrowableArray<Relocation>* relocations,
+                 const ZoneGrowableArray<SymbolData>* symbols);
 
   void Finalize();
 
  private:
   static constexpr const char* kBuildIdNoteName = ".note.gnu.build-id";
 
-  void CreateBSS(intptr_t size, const ZoneGrowableArray<SymbolData>* symbols);
-
   // Adds the section and also creates a PT_LOAD segment for the section if it
   // is an allocated section.
   //
-  // For allocated sections, if symbol_name is provided, a symbol for the
+  // For allocated sections, if a symbol_name is provided, a symbol for the
   // section will be added to the dynamic table (if allocated) and static
   // table (if not stripped) during finalization.
-  //
-  // Returns the memory offset if the section is allocated.
-  intptr_t AddSection(Section* section,
-                      const char* name,
-                      const char* symbol_name = nullptr);
-  // Replaces [old_section] with [new_section] in all appropriate places. If the
-  // section is allocated, the memory size of the section must be the same as
-  // the original to ensure any already-calculated memory offsets are unchanged.
-  void ReplaceSection(Section* old_section, Section* new_section);
+  void AddSection(Section* section,
+                  const char* name,
+                  const char* symbol_name = nullptr);
 
-  Segment* LastLoadSegment() const;
   const Section* FindSectionBySymbolName(const char* symbol_name) const;
-  Section* CreateBuildIdNote(const void* description_bytes,
-                             intptr_t description_length);
-  Section* GenerateFinalBuildId();
+
+  void CreateBSS();
+  void GenerateBuildId();
+
+  void OrderSectionsAndCreateSegments();
 
   void FinalizeSymbols();
   void FinalizeDwarfSections();
   void FinalizeProgramTable();
-  void ComputeFileOffsets();
+  void ComputeOffsets();
 
   void FinalizeEhFrame();
 
@@ -131,22 +124,22 @@ class Elf : public ZoneAllocated {
   StringTable* const dynstrtab_;
   SymbolTable* const dynsym_;
 
-  // We always create a BSS section for all Elf files, though it may be NOBITS
-  // if this is separate debugging information.
+  // The static tables are always created for use in relocation calculations,
+  // even though they may not end up in the final ELF file.
+  StringTable* const strtab_;
+  SymbolTable* const symtab_;
+
+  // We always create a BSS section for all Elf files to keep memory offsets
+  // consistent, though it is NOBITS for separate debugging information.
   Section* bss_ = nullptr;
 
-  // The static tables are lazily created when static symbols are added.
-  StringTable* strtab_ = nullptr;
-  SymbolTable* symtab_ = nullptr;
-
-  // We always create a GNU build ID for all Elf files. In order to create
-  // the appropriate offset to it in an InstructionsSection object, we create an
-  // initial build ID section as a placeholder and then replace that section
-  // during finalization once we have the information to calculate the real one.
-  Section* build_id_;
+  // We currently create a GNU build ID for all ELF snapshots and associated
+  // debugging information.
+  Section* build_id_ = nullptr;
 
   GrowableArray<Section*> sections_;
   GrowableArray<Segment*> segments_;
+
   intptr_t memory_offset_;
   intptr_t section_table_file_offset_ = -1;
   intptr_t section_table_file_size_ = -1;

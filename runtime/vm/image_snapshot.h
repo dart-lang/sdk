@@ -25,6 +25,7 @@
 namespace dart {
 
 // Forward declarations.
+class BitsContainer;
 class Code;
 class Dwarf;
 class Elf;
@@ -137,6 +138,7 @@ class Image : ValueObject {
 
   // For access to private constants.
   friend class AssemblyImageWriter;
+  friend class BitsContainer;
   friend class BlobImageWriter;
   friend class ImageWriter;
 
