@@ -16,7 +16,7 @@
 #include <malloc/malloc.h>
 #endif
 
-#if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_MACOS_IOS)
+#if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_HOST_OS_MACOS)
 extern "C" {
 __attribute__((weak)) uintptr_t __sanitizer_get_current_allocated_bytes();
 __attribute__((weak)) uintptr_t __sanitizer_get_heap_size();
@@ -60,7 +60,7 @@ bool MallocHooks::GetStats(intptr_t* used,
                            intptr_t* capacity,
                            const char** implementation) {
 #if !defined(PRODUCT)
-#if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_MACOS_IOS)
+#if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_HOST_OS_MACOS)
   if (__sanitizer_get_current_allocated_bytes != nullptr &&
       __sanitizer_get_heap_size != nullptr) {
     *used = __sanitizer_get_current_allocated_bytes();
