@@ -6593,7 +6593,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                     void* debug_callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(DART_TARGET_OS_WINDOWS)
+#elif defined(TARGET_OS_WINDOWS)
   return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
@@ -6621,7 +6621,7 @@ DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAsAssemblies(
     Dart_StreamingCloseCallback close_callback) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(DART_TARGET_OS_WINDOWS)
+#elif defined(TARGET_OS_WINDOWS)
   return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
@@ -6645,7 +6645,7 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                    void* callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(DART_TARGET_OS_WINDOWS)
+#elif defined(TARGET_OS_WINDOWS)
   return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(

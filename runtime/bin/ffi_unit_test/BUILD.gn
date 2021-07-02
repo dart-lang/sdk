@@ -50,23 +50,25 @@ config("define_target_arch_x64") {
 }
 
 config("define_target_os_android") {
-  defines = [ "DART_TARGET_OS_ANDROID" ]
+  defines = [ "TARGET_OS_ANDROID" ]
 }
 
 config("define_target_os_ios") {
-  defines = [ "DART_TARGET_OS_MACOS_IOS" ]
+  # This is TARGET_OS_MACOS_IOS instead of TARGET_OS_IOS because the latter is
+  # defined by Xcode already. See https://dartbug.com/24453.
+  defines = [ "TARGET_OS_MACOS_IOS" ]
 }
 
 config("define_target_os_linux") {
-  defines = [ "DART_TARGET_OS_LINUX" ]
+  defines = [ "TARGET_OS_LINUX" ]
 }
 
 config("define_target_os_macos") {
-  defines = [ "DART_TARGET_OS_MACOS" ]
+  defines = [ "TARGET_OS_MACOS" ]
 }
 
 config("define_target_os_windows") {
-  defines = [ "DART_TARGET_OS_WINDOWS" ]
+  defines = [ "TARGET_OS_WINDOWS" ]
 }
 
 build_run_ffi_unit_tests("run_ffi_unit_tests_arm_android") {

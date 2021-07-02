@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "bin/extensions.h"
 #include "bin/utils.h"
@@ -51,4 +51,4 @@ Dart_Handle Extensions::GetError() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

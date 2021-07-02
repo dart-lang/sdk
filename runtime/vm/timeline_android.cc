@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(DART_HOST_OS_ANDROID) && defined(SUPPORT_TIMELINE)
+#if defined(HOST_OS_ANDROID) && defined(SUPPORT_TIMELINE)
 
 #include <errno.h>
 #include <fcntl.h>
@@ -115,4 +115,4 @@ void TimelineEventSystraceRecorder::OnEvent(TimelineEvent* event) {
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_ANDROID) && !defined(PRODUCT)
+#endif  // defined(HOST_OS_ANDROID) && !defined(PRODUCT)

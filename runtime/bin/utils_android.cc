@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 
 #include <errno.h>     // NOLINT
 #include <netdb.h>     // NOLINT
@@ -115,4 +115,4 @@ void TimerUtils::Sleep(int64_t millis) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_ANDROID)
+#endif  // defined(HOST_OS_ANDROID)

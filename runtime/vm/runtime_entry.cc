@@ -3595,7 +3595,7 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
   return thread;
 }
 
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 #pragma intrinsic(_ReturnAddress)
 #endif
 
@@ -3606,7 +3606,7 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
 extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("GetThreadForNativeCallback %" Pd, callback_id);
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   void* return_address = _ReturnAddress();
 #else
   void* return_address = __builtin_return_address(0);

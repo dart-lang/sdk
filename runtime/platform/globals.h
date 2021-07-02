@@ -106,33 +106,33 @@
 #if defined(__ANDROID__)
 
 // Check for Android first, to determine its difference from Linux.
-#define DART_HOST_OS_ANDROID 1
+#define HOST_OS_ANDROID 1
 
 #elif defined(__linux__) || defined(__FreeBSD__)
 
 // Generic Linux.
-#define DART_HOST_OS_LINUX 1
+#define HOST_OS_LINUX 1
 
 #elif defined(__APPLE__)
 
 // Define the flavor of Mac OS we are running on.
 #include <TargetConditionals.h>
-// TODO(iposva): Rename DART_HOST_OS_MACOS to DART_HOST_OS_MAC to inherit
+// TODO(iposva): Rename HOST_OS_MACOS to HOST_OS_MAC to inherit
 // the value defined in TargetConditionals.h
-#define DART_HOST_OS_MACOS 1
-#if DART_TARGET_OS_IPHONE
-#define DART_HOST_OS_IOS 1
+#define HOST_OS_MACOS 1
+#if TARGET_OS_IPHONE
+#define HOST_OS_IOS 1
 #endif
 
 #elif defined(_WIN32)
 
 // Windows, both 32- and 64-bit, regardless of the check for _WIN32.
-#define DART_HOST_OS_WINDOWS 1
+#define HOST_OS_WINDOWS 1
 
 #elif defined(__Fuchsia__)
-#define DART_HOST_OS_FUCHSIA
+#define HOST_OS_FUCHSIA
 
-#elif !defined(DART_HOST_OS_FUCHSIA)
+#elif !defined(HOST_OS_FUCHSIA)
 #error Automatic target os detection failed.
 #endif
 
@@ -374,23 +374,23 @@ typedef simd128_value_t fpu_register_t;
 #error Unknown architecture.
 #endif
 
-#if !defined(DART_TARGET_OS_ANDROID) && !defined(DART_TARGET_OS_FUCHSIA) &&    \
-    !defined(DART_TARGET_OS_MACOS_IOS) && !defined(DART_TARGET_OS_LINUX) &&    \
-    !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_WINDOWS)
+#if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
+    !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_LINUX) &&              \
+    !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_WINDOWS)
 // No target OS specified; pick the one matching the host OS.
-#if defined(DART_HOST_OS_ANDROID)
-#define DART_TARGET_OS_ANDROID 1
-#elif defined(DART_HOST_OS_FUCHSIA)
-#define DART_TARGET_OS_FUCHSIA 1
-#elif defined(DART_HOST_OS_IOS)
-#define DART_TARGET_OS_MACOS 1
-#define DART_TARGET_OS_MACOS_IOS 1
-#elif defined(DART_HOST_OS_LINUX)
-#define DART_TARGET_OS_LINUX 1
-#elif defined(DART_HOST_OS_MACOS)
-#define DART_TARGET_OS_MACOS 1
-#elif defined(DART_HOST_OS_WINDOWS)
-#define DART_TARGET_OS_WINDOWS 1
+#if defined(HOST_OS_ANDROID)
+#define TARGET_OS_ANDROID 1
+#elif defined(HOST_OS_FUCHSIA)
+#define TARGET_OS_FUCHSIA 1
+#elif defined(HOST_OS_IOS)
+#define TARGET_OS_MACOS 1
+#define TARGET_OS_MACOS_IOS 1
+#elif defined(HOST_OS_LINUX)
+#define TARGET_OS_LINUX 1
+#elif defined(HOST_OS_MACOS)
+#define TARGET_OS_MACOS 1
+#elif defined(HOST_OS_WINDOWS)
+#define TARGET_OS_WINDOWS 1
 #else
 #error Automatic target OS detection failed.
 #endif
@@ -399,8 +399,8 @@ typedef simd128_value_t fpu_register_t;
 // Determine whether dual mapping of code pages is supported.
 // We test dual mapping on linux x64 and deploy it on fuchsia.
 #if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
-    (defined(DART_TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||              \
-     defined(DART_TARGET_OS_FUCHSIA))
+    (defined(TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||                   \
+     defined(TARGET_OS_FUCHSIA))
 #define DUAL_MAPPING_SUPPORTED 1
 #endif
 
@@ -670,19 +670,19 @@ inline D bit_copy(const S& source) {
 
 // On Windows the reentrent version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 #define snprintf _sprintf_p
 #define strtok_r strtok_s
 #endif
 
-#if !defined(DART_HOST_OS_WINDOWS)
+#if !defined(HOST_OS_WINDOWS)
 #if defined(TEMP_FAILURE_RETRY)
 // TEMP_FAILURE_RETRY is defined in unistd.h on some platforms. We should
 // not use that version, but instead the one in signal_blocker.h, to ensure
 // we disable signal interrupts.
 #undef TEMP_FAILURE_RETRY
 #endif  // defined(TEMP_FAILURE_RETRY)
-#endif  // !defined(DART_HOST_OS_WINDOWS)
+#endif  // !defined(HOST_OS_WINDOWS)
 
 #if __GNUC__
 // Tell the compiler to do printf format string checking if the

@@ -71,22 +71,22 @@ config("dart_os_config") {
   defines = []
 
   if (target_os == "android") {
-    defines += [ "DART_TARGET_OS_ANDROID" ]
+    defines += [ "TARGET_OS_ANDROID" ]
   } else if (target_os == "fuchsia") {
-    defines += [ "DART_TARGET_OS_FUCHSIA" ]
+    defines += [ "TARGET_OS_FUCHSIA" ]
   } else if (target_os == "ios") {
-    defines += [ "DART_TARGET_OS_MACOS" ]
-    defines += [ "DART_TARGET_OS_MACOS_IOS" ]
+    defines += [ "TARGET_OS_MACOS" ]
+    defines += [ "TARGET_OS_MACOS_IOS" ]
   } else if (target_os == "linux") {
-    defines += [ "DART_TARGET_OS_LINUX" ]
+    defines += [ "TARGET_OS_LINUX" ]
   } else if (target_os == "mac") {
-    defines += [ "DART_TARGET_OS_MACOS" ]
+    defines += [ "TARGET_OS_MACOS" ]
   } else if (target_os == "win") {
-    defines += [ "DART_TARGET_OS_WINDOWS" ]
+    defines += [ "TARGET_OS_WINDOWS" ]
   } else if (target_os == "winuwp") {
     defines += [
-      "DART_TARGET_OS_WINDOWS",
-      "DART_TARGET_OS_WINDOWS_UWP",
+      "TARGET_OS_WINDOWS",
+      "TARGET_OS_WINDOWS_UWP",
     ]
   } else {
     print("Unknown target_os: $target_os")
@@ -98,7 +98,7 @@ config("dart_os_config") {
 # targeting Mac and Linux. This configuration is used to unconditionally target
 # Fuchsia. It should not be combined with dart_os_config.
 config("dart_os_fuchsia_config") {
-  defines = [ "DART_TARGET_OS_FUCHSIA" ]
+  defines = [ "TARGET_OS_FUCHSIA" ]
 }
 
 config("dart_arch_config") {

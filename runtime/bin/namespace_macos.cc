@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "bin/namespace.h"
 
@@ -64,4 +64,4 @@ NamespaceScope::~NamespaceScope() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)

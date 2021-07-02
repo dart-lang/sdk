@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
-    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                        \
+    defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA)
 
 #include "bin/console.h"
 
@@ -88,5 +88,5 @@ void Console::RestoreConfig() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||       \
-        // defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||
+        // defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA)

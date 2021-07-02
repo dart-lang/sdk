@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "vm/thread_interrupter.h"
 
@@ -255,4 +255,4 @@ void ThreadInterrupter::RemoveSignalHandler() {
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)

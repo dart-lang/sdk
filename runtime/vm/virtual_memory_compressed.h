@@ -20,9 +20,9 @@ static constexpr intptr_t kCompressedHeapNumPages =
 static constexpr intptr_t kCompressedHeapBitmapSize =
     kCompressedHeapNumPages / 8;
 
-#if !defined(DART_HOST_OS_FUCHSIA)
+#if !defined(HOST_OS_FUCHSIA)
 #define DART_COMPRESSED_HEAP
-#endif  // !defined(DART_HOST_OS_FUCHSIA)
+#endif  // !defined(HOST_OS_FUCHSIA)
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
 #if defined(DART_COMPRESSED_HEAP)

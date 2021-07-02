@@ -797,7 +797,7 @@ static void CopyStackBuffer(Sample* sample, uword sp_addr) {
   }
 }
 
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 // On Windows this code is synchronously executed from the thread interrupter
 // thread. This means we can safely have a static fault_address.
 static uword fault_address = 0;
@@ -826,7 +826,7 @@ static void CollectSample(Isolate* isolate,
                           uword sp,
                           ProfilerCounters* counters) {
   ASSERT(counters != NULL);
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
 #endif
@@ -854,7 +854,7 @@ static void CollectSample(Isolate* isolate,
       sample->SetAt(0, pc);
     }
 
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
     // Use structured exception handling to trap guard page access.
   } __except (GuardPageExceptionFilter(GetExceptionInformation())) {  // NOLINT
     // Sample collection triggered a guard page fault:
@@ -1013,15 +1013,14 @@ void Profiler::DumpStackTrace(void* context) {
     DumpStackTrace(/*for_crash=*/true);
     return;
   }
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
-    defined(DART_HOST_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
   ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
   mcontext_t mcontext = ucontext->uc_mcontext;
   uword pc = SignalHandler::GetProgramCounter(mcontext);
   uword fp = SignalHandler::GetFramePointer(mcontext);
   uword sp = SignalHandler::GetCStackPointer(mcontext);
   DumpStackTrace(sp, fp, pc, /*for_crash=*/true);
-#elif defined(DART_HOST_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
   CONTEXT* ctx = reinterpret_cast<CONTEXT*>(context);
 #if defined(HOST_ARCH_IA32)
   uword pc = static_cast<uword>(ctx->Eip);

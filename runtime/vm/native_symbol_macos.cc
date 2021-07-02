@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(DART_HOST_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "vm/native_symbol.h"
 #include "vm/os.h"
@@ -66,4 +66,4 @@ void NativeSymbolResolver::AddSymbols(const char* dso_name,
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)

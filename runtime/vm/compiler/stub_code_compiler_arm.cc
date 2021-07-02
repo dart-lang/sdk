@@ -1226,7 +1226,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
-#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -27);
 #else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -28);

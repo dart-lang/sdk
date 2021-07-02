@@ -59,11 +59,11 @@ MagicNumberData kernel_list_magic_number = {
 MagicNumberData gzip_magic_number = {2, {0x1f, 0x8b, 0, 0}};
 
 static bool IsWindowsHost() {
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   return true;
-#else   // defined(DART_HOST_OS_WINDOWS)
+#else   // defined(HOST_OS_WINDOWS)
   return false;
-#endif  // defined(DART_HOST_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)
 }
 
 Dart_Handle CommandLineOptions::CreateRuntimeOptions() {

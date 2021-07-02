@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "bin/platform.h"
 #include "bin/platform_macos.h"
 
 #include <CoreFoundation/CoreFoundation.h>
 
-#if !DART_HOST_OS_IOS
+#if !HOST_OS_IOS
 #include <crt_externs.h>  // NOLINT
-#endif                    // !DART_HOST_OS_IOS
+#endif                    // !HOST_OS_IOS
 #include <errno.h>        // NOLINT
 #include <mach-o/dyld.h>
 #include <signal.h>        // NOLINT
@@ -107,7 +107,7 @@ int Platform::NumberOfProcessors() {
 }
 
 const char* Platform::OperatingSystem() {
-#if DART_HOST_OS_IOS
+#if HOST_OS_IOS
   return "ios";
 #else
   return "macos";
@@ -262,7 +262,7 @@ bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
 }
 
 char** Platform::Environment(intptr_t* count) {
-#if DART_HOST_OS_IOS
+#if HOST_OS_IOS
   // TODO(zra,chinmaygarde): On iOS, environment variables are seldom used. Wire
   // this up if someone needs it. In the meantime, we return an empty array.
   char** result;
@@ -343,4 +343,4 @@ void Platform::SetCoreDumpResourceLimit(int value) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)

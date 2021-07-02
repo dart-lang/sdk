@@ -106,13 +106,13 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
         THR_Print("Using the Systrace timeline recorder.\n");
       }
 
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
       return new TimelineEventSystraceRecorder();
-#elif defined(DART_HOST_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
       if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
         return new TimelineEventMacosRecorder();
       }
-#elif defined(DART_HOST_OS_FUCHSIA)
+#elif defined(HOST_OS_FUCHSIA)
       return new TimelineEventFuchsiaRecorder();
 #else
       OS::PrintErr(
@@ -754,13 +754,13 @@ TimelineStream::TimelineStream(const char* name,
                                bool enabled)
     : name_(name),
       fuchsia_name_(fuchsia_name),
-#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
       enabled_(static_cast<uintptr_t>(true))  // For generated code.
 #else
       enabled_(static_cast<uintptr_t>(enabled))
 #endif
 {
-#if defined(DART_HOST_OS_MACOS)
+#if defined(HOST_OS_MACOS)
   if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
     macos_log_ = os_log_create("Dart", name);
   }
@@ -1086,7 +1086,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 
 int64_t TimelineEventRecorder::GetNextAsyncId() {
   // TODO(johnmccutchan): Gracefully handle wrap around.
-#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
   return trace_generate_nonce();
 #else
   uint32_t next = static_cast<uint32_t>(async_id_.fetch_add(1u));

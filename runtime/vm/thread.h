@@ -1261,7 +1261,7 @@ class RuntimeCallDeoptScope : public StackResource {
   }
 };
 
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 // Clears the state of the current thread and frees the allocation.
 void WindowsThreadCleanUp();
 #endif

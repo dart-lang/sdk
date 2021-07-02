@@ -1454,7 +1454,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Now that we have THR, we can set CSP.
   __ SetupCSPFromThread(THR);
 
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(TARGET_OS_FUCHSIA)
   __ str(R18,
          compiler::Address(
              THR, compiler::target::Thread::saved_shadow_call_stack_offset()));

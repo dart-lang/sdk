@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(DART_HOST_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "vm/os.h"
 
@@ -15,7 +15,7 @@
 #include <sys/resource.h>    // NOLINT
 #include <sys/time.h>        // NOLINT
 #include <unistd.h>          // NOLINT
-#if DART_HOST_OS_IOS
+#if HOST_OS_IOS
 #include <syslog.h>  // NOLINT
 #endif
 
@@ -26,7 +26,7 @@
 namespace dart {
 
 const char* OS::Name() {
-#if DART_HOST_OS_IOS
+#if HOST_OS_IOS
   return "ios";
 #else
   return "macos";
@@ -126,7 +126,7 @@ int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
 }
 
 intptr_t OS::ActivationFrameAlignment() {
-#if DART_HOST_OS_IOS
+#if HOST_OS_IOS
 #if TARGET_ARCH_ARM
   // Even if we generate code that maintains a stronger alignment, we cannot
   // assert the stronger stack alignment because C++ code will not maintain it.
@@ -140,11 +140,11 @@ intptr_t OS::ActivationFrameAlignment() {
 #else
 #error Unimplemented
 #endif
-#else   // DART_HOST_OS_IOS
+#else   // HOST_OS_IOS
   // OS X activation frames must be 16 byte-aligned; see "Mac OS X ABI
   // Function Call Guide".
   return 16;
-#endif  // DART_HOST_OS_IOS
+#endif  // HOST_OS_IOS
 }
 
 int OS::NumberOfAvailableProcessors() {
@@ -190,7 +190,7 @@ DART_NOINLINE uintptr_t OS::GetProgramCounter() {
 }
 
 void OS::Print(const char* format, ...) {
-#if DART_HOST_OS_IOS
+#if HOST_OS_IOS
   va_list args;
   va_start(args, format);
   vsyslog(LOG_INFO, format, args);
@@ -267,7 +267,7 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 void OS::RegisterCodeObservers() {}
 
 void OS::PrintErr(const char* format, ...) {
-#if DART_HOST_OS_IOS
+#if HOST_OS_IOS
   va_list args;
   va_start(args, format);
   vsyslog(LOG_ERR, format, args);
@@ -312,4 +312,4 @@ void OS::Exit(int code) {
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)

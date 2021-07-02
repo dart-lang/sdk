@@ -356,7 +356,7 @@ const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
     R(R0) | R(R1) | R(R2) | R(R3) | R(R4) | R(R5) | R(R6) | R(R7);
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(TARGET_OS_FUCHSIA)
 // We rely on R18 not being touched by Dart generated assembly or stubs at all.
 // We rely on that any calls into C++ also preserve R18.
 const RegList kAbiPreservedCpuRegs = R(R18) | R(R19) | R(R20) | R(R21) |
@@ -433,7 +433,7 @@ class CallingConventions {
       kAlignedToWordSize;
 
   // How stack arguments are aligned.
-#if defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_MACOS)
+#if defined(TARGET_OS_MACOS_IOS) || defined(TARGET_OS_MACOS)
   // > Function arguments may consume slots on the stack that are not multiples
   // > of 8 bytes.
   // https://developer.apple.com/documentation/xcode/writing_arm64_code_for_apple_platforms
@@ -449,7 +449,7 @@ class CallingConventions {
 
   // Whether 1 or 2 byte-sized arguments or return values are passed extended
   // to 4 bytes.
-#if defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_MACOS)
+#if defined(TARGET_OS_MACOS_IOS) || defined(TARGET_OS_MACOS)
   static constexpr ExtensionStrategy kReturnRegisterExtension = kExtendedTo4;
   static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
 #else

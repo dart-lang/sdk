@@ -57,7 +57,7 @@ int Utils::CountLeadingZeros64(uint64_t x) {
     return CountLeadingZeros32(x_hi);
   }
   return 32 + CountLeadingZeros32(static_cast<uint32_t>(x));
-#elif defined(DART_HOST_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
   unsigned long position;  // NOLINT
   return (_BitScanReverse64(&position, x) == 0)
              ? 64
@@ -68,7 +68,7 @@ int Utils::CountLeadingZeros64(uint64_t x) {
 }
 
 int Utils::CountLeadingZeros32(uint32_t x) {
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   unsigned long position;  // NOLINT
   return (_BitScanReverse(&position, x) == 0) ? 32
                                               : 31 - static_cast<int>(position);
@@ -84,7 +84,7 @@ int Utils::CountTrailingZeros64(uint64_t x) {
     return CountTrailingZeros32(x_lo);
   }
   return 32 + CountTrailingZeros32(static_cast<uint32_t>(x >> 32));
-#elif defined(DART_HOST_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
   unsigned long position;  // NOLINT
   return (_BitScanForward64(&position, x) == 0) ? 64
                                                 : static_cast<int>(position);
@@ -94,7 +94,7 @@ int Utils::CountTrailingZeros64(uint64_t x) {
 }
 
 int Utils::CountTrailingZeros32(uint32_t x) {
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   unsigned long position;  // NOLINT
   return (_BitScanForward(&position, x) == 0) ? 32 : static_cast<int>(position);
 #else

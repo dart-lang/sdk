@@ -49,7 +49,7 @@ static const int kCallerSpSlotFromFp = 2;
 static const int kLastParamSlotFromEntrySp = 0;
 
 // Entry and exit frame layout.
-#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
 static const int kExitLinkSlotFromEntryFp = -27;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 6);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);

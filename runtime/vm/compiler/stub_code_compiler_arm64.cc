@@ -1343,7 +1343,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ldr(TMP, Address(R3, target::Thread::invoke_dart_code_stub_offset()));
   __ Push(TMP);
 
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(TARGET_OS_FUCHSIA)
   __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
@@ -1378,7 +1378,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(TARGET_OS_FUCHSIA)
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -24);
 #else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
@@ -3068,7 +3068,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mov(FP, R2);                 // Frame_pointer.
   __ mov(THR, R3);
   __ SetupCSPFromThread(THR);
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(TARGET_OS_FUCHSIA)
   __ ldr(R18, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented

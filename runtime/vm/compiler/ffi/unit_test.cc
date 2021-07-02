@@ -20,15 +20,15 @@ const char* kArch = "ia32";
 const char* kArch = "x64";
 #endif
 
-#if defined(DART_TARGET_OS_ANDROID)
+#if defined(TARGET_OS_ANDROID)
 const char* kOs = "android";
-#elif defined(DART_TARGET_OS_MACOS_IOS)
+#elif defined(TARGET_OS_MACOS_IOS)
 const char* kOs = "ios";
-#elif defined(DART_TARGET_OS_LINUX)
+#elif defined(TARGET_OS_LINUX)
 const char* kOs = "linux";
-#elif defined(DART_TARGET_OS_MACOS)
+#elif defined(TARGET_OS_MACOS)
 const char* kOs = "macos";
-#elif defined(DART_TARGET_OS_WINDOWS)
+#elif defined(TARGET_OS_WINDOWS)
 const char* kOs = "win";
 #endif
 

@@ -194,7 +194,7 @@ class ObjectPtr {
   uword heap_base() const {
     // TODO(rmacnak): Why does Windows have trouble linking GetClassId used
     // here?
-#if !defined(DART_HOST_OS_WINDOWS)
+#if !defined(HOST_OS_WINDOWS)
     ASSERT(IsHeapObject());
     ASSERT(!IsInstructions());
     ASSERT(!IsInstructionsSection());

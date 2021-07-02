@@ -262,7 +262,7 @@ class ListeningSocketRegistry {
                                  const char* path) {
     while (current != NULL) {
       ASSERT(current->address.addr.sa_family == AF_UNIX);
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
       bool condition;
       if (path[0] == '\0') {
         condition = current->address.un.sun_path[0] == '\0' &&
@@ -280,7 +280,7 @@ class ListeningSocketRegistry {
                              namespc, path) == File::kIdentical) {
         return current;
       }
-#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
       current = current->next;
     }
     return NULL;

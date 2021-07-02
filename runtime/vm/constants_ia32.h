@@ -345,7 +345,7 @@ class CallingConventions {
       kAlignedToWordSize;
 
   // How fields in compounds are aligned.
-#if defined(DART_TARGET_OS_WINDOWS)
+#if defined(TARGET_OS_WINDOWS)
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #else
   static constexpr AlignmentStrategy kFieldAlignment =

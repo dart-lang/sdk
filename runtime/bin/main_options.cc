@@ -225,13 +225,13 @@ void Options::PrintUsage() {
 "--root-certs-cache=<path>\n"
 "  The path to a cache directory containing the trusted root certificates to\n"
 "  use for secure socket connections.\n"
-#if defined(DART_HOST_OS_LINUX) || \
-    defined(DART_HOST_OS_ANDROID) || \
-    defined(DART_HOST_OS_FUCHSIA)
+#if defined(HOST_OS_LINUX) || \
+    defined(HOST_OS_ANDROID) || \
+    defined(HOST_OS_FUCHSIA)
 "--namespace=<path>\n"
 "  The path to a directory that dart:io calls will treat as the root of the\n"
 "  filesystem.\n"
-#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
 "\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");

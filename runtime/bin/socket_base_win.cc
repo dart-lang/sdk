@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "bin/socket_base.h"
 
@@ -489,4 +489,4 @@ bool SocketBase::LeaveMulticast(intptr_t fd,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

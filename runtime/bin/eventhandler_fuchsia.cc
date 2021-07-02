@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "bin/eventhandler.h"
 #include "bin/eventhandler_fuchsia.h"
@@ -659,4 +659,4 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)

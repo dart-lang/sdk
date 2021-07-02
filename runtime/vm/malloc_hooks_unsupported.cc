@@ -10,13 +10,13 @@
 
 #include "vm/json_stream.h"
 
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
 #include <malloc.h>
-#elif defined(DART_HOST_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
 #include <malloc/malloc.h>
 #endif
 
-#if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_IOS)
+#if !defined(HOST_OS_WINDOWS) && !defined(TARGET_OS_IOS)
 extern "C" {
 __attribute__((weak)) uintptr_t __sanitizer_get_current_allocated_bytes();
 __attribute__((weak)) uintptr_t __sanitizer_get_heap_size();
@@ -60,7 +60,7 @@ bool MallocHooks::GetStats(intptr_t* used,
                            intptr_t* capacity,
                            const char** implementation) {
 #if !defined(PRODUCT)
-#if !defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_IOS)
+#if !defined(HOST_OS_WINDOWS) && !defined(TARGET_OS_IOS)
   if (__sanitizer_get_current_allocated_bytes != nullptr &&
       __sanitizer_get_heap_size != nullptr) {
     *used = __sanitizer_get_current_allocated_bytes();
@@ -69,13 +69,13 @@ bool MallocHooks::GetStats(intptr_t* used,
     return true;
   }
 #endif
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
   struct mallinfo info = mallinfo();
   *used = info.uordblks;
   *capacity = *used + info.fordblks;
   *implementation = "unknown";
   return true;
-#elif defined(DART_HOST_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
   struct mstats stats = mstats();
   *used = stats.bytes_used;
   *capacity = stats.bytes_total;

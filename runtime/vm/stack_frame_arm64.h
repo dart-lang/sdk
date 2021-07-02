@@ -49,7 +49,7 @@ static const int kCallerSpSlotFromFp = 2;
 static const int kLastParamSlotFromEntrySp = 0;
 
 // Entry and exit frame layout.
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(TARGET_OS_FUCHSIA)
 static const int kExitLinkSlotFromEntryFp = -24;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 11);
 #else

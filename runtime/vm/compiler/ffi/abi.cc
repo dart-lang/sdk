@@ -28,14 +28,14 @@ static_assert(offsetof(AbiAlignmentDouble, d) == 8,
 static_assert(offsetof(AbiAlignmentUint64, i) == 8,
               "FFI transformation alignment");
 #elif (defined(HOST_ARCH_IA32) && /* NOLINT(whitespace/parens) */              \
-       (defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||          \
-        defined(DART_HOST_OS_ANDROID))) ||                                     \
-    (defined(HOST_ARCH_ARM) && defined(DART_HOST_OS_IOS))
+       (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                    \
+        defined(HOST_OS_ANDROID))) ||                                          \
+    (defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS))
 static_assert(offsetof(AbiAlignmentDouble, d) == 4,
               "FFI transformation alignment");
 static_assert(offsetof(AbiAlignmentUint64, i) == 4,
               "FFI transformation alignment");
-#elif defined(HOST_ARCH_IA32) && defined(DART_HOST_OS_WINDOWS) ||              \
+#elif defined(HOST_ARCH_IA32) && defined(HOST_OS_WINDOWS) ||                   \
     defined(HOST_ARCH_ARM)
 static_assert(offsetof(AbiAlignmentDouble, d) == 8,
               "FFI transformation alignment");
@@ -49,11 +49,11 @@ Abi TargetAbi() {
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
   return Abi::kWordSize64;
 #elif (defined(TARGET_ARCH_IA32) && /* NOLINT(whitespace/parens) */            \
-       (defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_MACOS) ||      \
-        defined(DART_TARGET_OS_ANDROID))) ||                                   \
-    (defined(TARGET_ARCH_ARM) && defined(DART_TARGET_OS_MACOS_IOS))
+       (defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                \
+        defined(TARGET_OS_ANDROID))) ||                                        \
+    (defined(TARGET_ARCH_ARM) && defined(TARGET_OS_MACOS_IOS))
   return Abi::kWordSize32Align32;
-#elif defined(TARGET_ARCH_IA32) && defined(DART_TARGET_OS_WINDOWS) ||          \
+#elif defined(TARGET_ARCH_IA32) && defined(TARGET_OS_WINDOWS) ||               \
     defined(TARGET_ARCH_ARM)
   return Abi::kWordSize32Align64;
 #else

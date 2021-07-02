@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "bin/process.h"
 
@@ -935,7 +935,7 @@ int64_t Process::CurrentRSS() {
 // https://docs.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-getprocessmemoryinfo
 // claims that GetProcessMemoryInfo is UWP compatible, it is actually not
 // hence this function cannot work when compiled in UWP mode.
-#ifdef DART_TARGET_OS_WINDOWS_UWP
+#ifdef TARGET_OS_WINDOWS_UWP
   return -1;
 #else
   PROCESS_MEMORY_COUNTERS pmc;
@@ -947,7 +947,7 @@ int64_t Process::CurrentRSS() {
 }
 
 int64_t Process::MaxRSS() {
-#ifdef DART_TARGET_OS_WINDOWS_UWP
+#ifdef TARGET_OS_WINDOWS_UWP
   return -1;
 #else
   PROCESS_MEMORY_COUNTERS pmc;
@@ -1140,4 +1140,4 @@ void Process::Cleanup() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

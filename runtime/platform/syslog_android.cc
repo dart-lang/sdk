@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 
 #include "platform/syslog.h"
 
@@ -35,4 +35,4 @@ void Syslog::VPrintErr(const char* format, va_list args) {
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_ANDROID)
+#endif  // defined(HOST_OS_ANDROID)

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if defined(DART_HOST_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 #include "bin/platform.h"
 #include "vm/unit_test.h"
 
@@ -50,4 +50,4 @@ TEST_CASE(Platform_ExtractsOSVersionFromString) {
 }
 
 }  // namespace dart
-#endif  // defined(DART_HOST_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "vm/os.h"
 #include "vm/os_thread.h"
@@ -492,4 +492,4 @@ void Monitor::NotifyAll() {
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)

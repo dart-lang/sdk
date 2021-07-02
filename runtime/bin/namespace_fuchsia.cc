@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "bin/namespace.h"
 #include "bin/namespace_fuchsia.h"
@@ -167,4 +167,4 @@ NamespaceScope::~NamespaceScope() {}
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)

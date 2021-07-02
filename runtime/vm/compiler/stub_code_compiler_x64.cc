@@ -121,7 +121,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
           Immediate(1 * target::kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset),
           RAX);  // Set retval in target::NativeArguments.
-#if defined(DART_TARGET_OS_WINDOWS)
+#if defined(TARGET_OS_WINDOWS)
   ASSERT(target::NativeArguments::StructSize() >
          CallingConventions::kRegisterTransferLimit);
   __ movq(CallingConventions::kArg1Reg, RSP);

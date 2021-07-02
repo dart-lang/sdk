@@ -5,7 +5,7 @@
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(DART_HOST_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "bin/security_context.h"
 
@@ -347,6 +347,6 @@ void SSLCertContext::TrustBuiltinRoots() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)
 
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

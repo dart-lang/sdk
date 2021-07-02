@@ -138,11 +138,11 @@ class PathSanitizer {
   const char* sanitized_uri() const;
 
  private:
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   std::unique_ptr<char[]> sanitized_uri_;
 #else
   const char* sanitized_uri_;
-#endif  // defined(DART_HOST_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)
 
   DISALLOW_COPY_AND_ASSIGN(PathSanitizer);
 };

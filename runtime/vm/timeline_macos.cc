@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(DART_HOST_OS_MACOS) && defined(SUPPORT_TIMELINE)
+#if defined(HOST_OS_MACOS) && defined(SUPPORT_TIMELINE)
+
 
 #include "vm/log.h"
 #include "vm/timeline.h"
@@ -21,7 +22,7 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
     return;
   }
 
-#if defined(DART_HOST_OS_SUPPORTS_SIGNPOST)
+#if defined(HOST_OS_SUPPORTS_SIGNPOST)
   os_log_t log = event->stream_->macos_log();
   if (!os_signpost_enabled(log)) {
     return;
@@ -74,9 +75,9 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
     default:
       break;
   }
-#endif  // defined(DART_HOST_OS_SUPPORTS_SIGNPOST)
+#endif  // defined(HOST_OS_SUPPORTS_SIGNPOST)
 }
 
 }  // namespace dart
 
-#endif  // defined(DART_HOST_OS_MACOS) && defined(SUPPORT_TIMELINE)
+#endif  // defined(HOST_OS_MACOS) && defined(SUPPORT_TIMELINE)
