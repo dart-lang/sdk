@@ -721,13 +721,13 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ movq(CODE_REG,
           Address(THR, target::Thread::fix_callers_target_code_offset()));
   __ EnterStubFrame();
-  __ pushq(RBX);           // Preserve cache (guarded CID as Smi).
-  __ pushq(RDX);           // Preserve receiver.
   __ pushq(Immediate(0));  // Result slot.
-  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
-  __ popq(CODE_REG);  // Get Code object.
+  __ pushq(RDX);           // Preserve receiver.
+  __ pushq(RBX);           // Preserve cache.
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 2);
+  __ popq(RBX);       // Restore cache.
   __ popq(RDX);       // Restore receiver.
-  __ popq(RBX);       // Restore cache (guarded CID as Smi).
+  __ popq(CODE_REG);  // Get target Code object.
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ LeaveStubFrame();

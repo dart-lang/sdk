@@ -344,6 +344,7 @@ namespace dart {
   V(Internal_allocateTwoByteString, 1)                                         \
   V(Internal_writeIntoOneByteString, 3)                                        \
   V(Internal_writeIntoTwoByteString, 3)                                        \
+  V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(WeakProperty_getKey, 1)                                                    \
