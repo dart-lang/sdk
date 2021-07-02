@@ -15,5 +15,5 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: Instantiation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:17:54 -> InstantiationConstant(id<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:8:54 -> InstantiationConstant(id<int*>)
 Extra constant evaluation: evaluated: 1, effectively constant: 1
