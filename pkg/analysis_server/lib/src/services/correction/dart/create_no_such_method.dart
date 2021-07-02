@@ -30,6 +30,9 @@ class CreateNoSuchMethod extends CorrectionProducer {
         }
         // append method
         builder.write(prefix);
+        builder.write('@override');
+        builder.write(eol);
+        builder.write(prefix);
         builder.write(
             'noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);');
         builder.write(eol);
