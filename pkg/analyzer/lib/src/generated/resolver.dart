@@ -371,7 +371,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         migratableAstInfoProvider: _migratableAstInfoProvider);
     inferenceContext = InferenceContext._(this);
     typeAnalyzer = StaticTypeAnalyzer(this, migrationResolutionHooks);
-    _functionReferenceResolver = FunctionReferenceResolver(this);
+    _functionReferenceResolver =
+        FunctionReferenceResolver(this, _isNonNullableByDefault);
   }
 
   /// Return the element representing the function containing the current node,

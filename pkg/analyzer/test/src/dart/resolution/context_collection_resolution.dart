@@ -424,6 +424,11 @@ mixin WithNullSafetyMixin on PubPackageResolutionTest {
   bool get typeToStringWithNullability => true;
 }
 
+mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '2.13';
+}
+
 mixin WithoutNullSafetyMixin on PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => '2.9';

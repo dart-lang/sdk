@@ -99,7 +99,8 @@ f(void Function<T, U>() foo) {
   foo<int>;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 36, 5),
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 36, 5),
     ]);
   }
 
@@ -109,7 +110,8 @@ f(void Function<T>() foo) {
   foo<int, int>;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 33, 10),
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 33, 10),
     ]);
   }
 
