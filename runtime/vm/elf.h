@@ -56,29 +56,32 @@ class Elf : public ZoneAllocated {
     intptr_t target_offset;
   };
 
+  // Stores the information needed to appropriately generate a symbol
+  // during finalization.
+  struct SymbolData {
+    const char* name;
+    intptr_t type;
+    intptr_t offset;
+    size_t size;
+  };
+
   intptr_t AddText(const char* name,
                    const uint8_t* bytes,
                    intptr_t size,
-                   const ZoneGrowableArray<Relocation>* relocations = nullptr);
-  intptr_t AddROData(
-      const char* name,
-      const uint8_t* bytes,
-      intptr_t size,
-      const ZoneGrowableArray<Relocation>* relocations = nullptr);
-
-  // Adds a local symbol for the given offset and size in the named section.
-  void AddLocalSymbol(const char* section_name,
-                      const char* name,
-                      intptr_t type,
-                      intptr_t offset,
-                      intptr_t size);
+                   const ZoneGrowableArray<Relocation>* relocations,
+                   const ZoneGrowableArray<SymbolData>* symbol);
+  intptr_t AddROData(const char* name,
+                     const uint8_t* bytes,
+                     intptr_t size,
+                     const ZoneGrowableArray<Relocation>* relocations,
+                     const ZoneGrowableArray<SymbolData>* symbols);
 
   void Finalize();
 
  private:
   static constexpr const char* kBuildIdNoteName = ".note.gnu.build-id";
 
-  static Section* CreateBSS(Zone* zone, Type type, intptr_t size);
+  void CreateBSS(intptr_t size, const ZoneGrowableArray<SymbolData>* symbols);
 
   // Adds the section and also creates a PT_LOAD segment for the section if it
   // is an allocated section.
@@ -96,28 +99,13 @@ class Elf : public ZoneAllocated {
   // the original to ensure any already-calculated memory offsets are unchanged.
   void ReplaceSection(Section* old_section, Section* new_section);
 
-  void AddStaticSymbol(const char* name,
-                       intptr_t binding,
-                       intptr_t type,
-                       intptr_t section_index,
-                       intptr_t address,
-                       intptr_t size);
-  void AddDynamicSymbol(const char* name,
-                        intptr_t binding,
-                        intptr_t type,
-                        intptr_t section_index,
-                        intptr_t address,
-                        intptr_t size);
-
   Segment* LastLoadSegment() const;
   const Section* FindSectionBySymbolName(const char* symbol_name) const;
-  const Section* FindSectionForAddress(intptr_t address) const;
   Section* CreateBuildIdNote(const void* description_bytes,
                              intptr_t description_length);
   Section* GenerateFinalBuildId();
 
   void FinalizeSymbols();
-  void FinalizeLocalSymbols();
   void FinalizeDwarfSections();
   void FinalizeProgramTable();
   void ComputeFileOffsets();
@@ -129,14 +117,6 @@ class Elf : public ZoneAllocated {
   void WriteProgramTable(ElfWriteStream* stream);
   void WriteSections(ElfWriteStream* stream);
 
-  struct LocalSymbol {
-    const char* section_name;
-    const char* name;
-    intptr_t type;
-    intptr_t offset;
-    intptr_t size;
-  };
-
   Zone* const zone_;
   BaseWriteStream* const unwrapped_stream_;
   const Type type_;
@@ -145,15 +125,15 @@ class Elf : public ZoneAllocated {
   // the static symbol table (and its corresponding string table).
   Dwarf* const dwarf_;
 
-  // We always create a BSS section for all Elf files, though it may be NOBITS
-  // if this is separate debugging information.
-  Section* const bss_;
-
   // All our strings would fit in a single page. However, we use separate
   // .shstrtab and .dynstr to work around a bug in Android's strip utility.
   StringTable* const shstrtab_;
   StringTable* const dynstrtab_;
   SymbolTable* const dynsym_;
+
+  // We always create a BSS section for all Elf files, though it may be NOBITS
+  // if this is separate debugging information.
+  Section* bss_ = nullptr;
 
   // The static tables are lazily created when static symbols are added.
   StringTable* strtab_ = nullptr;
@@ -165,7 +145,6 @@ class Elf : public ZoneAllocated {
   // during finalization once we have the information to calculate the real one.
   Section* build_id_;
 
-  GrowableArray<LocalSymbol> local_symbols_;
   GrowableArray<Section*> sections_;
   GrowableArray<Segment*> segments_;
   intptr_t memory_offset_;

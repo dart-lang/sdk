@@ -1115,13 +1115,22 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
                                        intptr_t alignment) {
   ASSERT(FLAG_precompiled_mode);
   ASSERT(current_section_symbol_ == nullptr);
+  ASSERT(current_symbols_ == nullptr);
   bool global_symbol = false;
   switch (section) {
     case ProgramSection::Text:
+      if (debug_elf_ != nullptr) {
+        current_symbols_ =
+            new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
+      }
       assembly_stream_->WriteString(".text\n");
       global_symbol = true;
       break;
     case ProgramSection::Data:
+      if (debug_elf_ != nullptr) {
+        current_symbols_ =
+            new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
+      }
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                  \
     defined(TARGET_OS_FUCHSIA)
       assembly_stream_->WriteString(".section .rodata\n");
@@ -1154,14 +1163,15 @@ static void ElfAddSection(
     const char* symbol,
     uint8_t* bytes,
     intptr_t size,
+    ZoneGrowableArray<Elf::SymbolData>* symbols,
     ZoneGrowableArray<Elf::Relocation>* relocations = nullptr) {
   if (elf == nullptr) return;
   switch (section) {
     case ImageWriter::ProgramSection::Text:
-      elf->AddText(symbol, bytes, size, relocations);
+      elf->AddText(symbol, bytes, size, relocations, symbols);
       break;
     case ImageWriter::ProgramSection::Data:
-      elf->AddROData(symbol, bytes, size, relocations);
+      elf->AddROData(symbol, bytes, size, relocations, symbols);
       break;
     default:
       // Other sections are handled by the Elf object internally.
@@ -1191,8 +1201,9 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
   // separate debugging information, we pass nullptr for the bytes, which
   // creates an appropriate NOBITS section instead of PROGBITS.
   ElfAddSection(debug_elf_, name, current_section_symbol_, /*bytes=*/nullptr,
-                size);
+                size, current_symbols_);
   current_section_symbol_ = nullptr;
+  current_symbols_ = nullptr;
 }
 
 intptr_t AssemblyImageWriter::WriteTargetWord(word value) {
@@ -1254,9 +1265,8 @@ void AssemblyImageWriter::AddCodeSymbol(const Code& code,
     assembly_dwarf_->AddCode(code, symbol);
   }
   if (debug_elf_ != nullptr) {
+    current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size()});
     debug_elf_->dwarf()->AddCode(code, symbol);
-    debug_elf_->AddLocalSymbol(current_section_symbol_, symbol, elf::STT_FUNC,
-                               offset, code.Size());
   }
   assembly_stream_->Printf("%s:\n", symbol);
 }
@@ -1453,6 +1463,7 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
 #if defined(DART_PRECOMPILER)
   ASSERT_EQUAL(elf_ != nullptr, FLAG_precompiled_mode);
   ASSERT(current_relocations_ == nullptr);
+  ASSERT(current_symbols_ == nullptr);
 #endif
   // For now, we set current_section_stream_ in ::WriteData.
   ASSERT(section == ProgramSection::Data || current_section_stream_ == nullptr);
@@ -1462,12 +1473,18 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
       current_section_stream_ =
           ASSERT_NOTNULL(vm ? vm_instructions_ : isolate_instructions_);
 #if defined(DART_PRECOMPILER)
-      current_relocations_ = new (zone_) ZoneGrowableArray<Elf::Relocation>();
+      current_relocations_ =
+          new (zone_) ZoneGrowableArray<Elf::Relocation>(zone_, 0);
+      current_symbols_ =
+          new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
 #endif
       break;
     case ProgramSection::Data:
 #if defined(DART_PRECOMPILER)
-      current_relocations_ = new (zone_) ZoneGrowableArray<Elf::Relocation>();
+      current_relocations_ =
+          new (zone_) ZoneGrowableArray<Elf::Relocation>(zone_, 0);
+      current_symbols_ =
+          new (zone_) ZoneGrowableArray<Elf::SymbolData>(zone_, 0);
 #endif
       break;
     case ProgramSection::Bss:
@@ -1490,12 +1507,15 @@ void BlobImageWriter::ExitSection(ProgramSection name, bool vm, intptr_t size) {
   ASSERT_EQUAL(strcmp(SectionSymbol(name, vm), current_section_symbol_), 0);
 #if defined(DART_PRECOMPILER)
   ElfAddSection(elf_, name, current_section_symbol_,
-                current_section_stream_->buffer(), size, current_relocations_);
+                current_section_stream_->buffer(), size, current_symbols_,
+                current_relocations_);
   // We create the corresponding segment in the debugging information as well,
   // since it needs the contents to create the correct build ID.
   ElfAddSection(debug_elf_, name, current_section_symbol_,
-                current_section_stream_->buffer(), size, current_relocations_);
+                current_section_stream_->buffer(), size, current_symbols_,
+                current_relocations_);
   current_relocations_ = nullptr;
+  current_symbols_ = nullptr;
 #endif
   current_section_symbol_ = nullptr;
   current_section_stream_ = nullptr;
@@ -1531,15 +1551,12 @@ intptr_t BlobImageWriter::Relocation(intptr_t section_offset,
 void BlobImageWriter::AddCodeSymbol(const Code& code,
                                     const char* symbol,
                                     intptr_t offset) {
+  current_symbols_->Add({symbol, elf::STT_FUNC, offset, code.Size()});
   if (elf_ != nullptr && elf_->dwarf() != nullptr) {
     elf_->dwarf()->AddCode(code, symbol);
-    elf_->AddLocalSymbol(current_section_symbol_, symbol, elf::STT_FUNC, offset,
-                         code.Size());
   }
   if (debug_elf_ != nullptr) {
     debug_elf_->dwarf()->AddCode(code, symbol);
-    debug_elf_->AddLocalSymbol(current_section_symbol_, symbol, elf::STT_FUNC,
-                               offset, code.Size());
   }
 }
 #endif  // defined(DART_PRECOMPILER)

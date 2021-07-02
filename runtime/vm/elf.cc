@@ -524,22 +524,27 @@ class Symbol : public ZoneAllocated {
          intptr_t name,
          intptr_t binding,
          intptr_t type,
-         intptr_t section,
-         intptr_t offset,
+         intptr_t section_index,
          intptr_t size)
       : name_index(name),
         binding(binding),
         type(type),
-        section_index(section),
-        offset(offset),
         size(size),
+        section_index(section_index),
         cstr_(cstr) {}
+
+  void Finalize(intptr_t offset) { offset_ = offset; }
+  intptr_t offset() const {
+    // Only the reserved initial symbol should have an offset of 0.
+    ASSERT_EQUAL(type == elf::STT_NOTYPE, offset_ == 0);
+    return offset_;
+  }
 
   void Write(ElfWriteStream* stream) const {
     const intptr_t start = stream->Position();
     stream->WriteWord(name_index);
 #if defined(TARGET_ARCH_IS_32_BIT)
-    stream->WriteAddr(offset);
+    stream->WriteAddr(offset());
     stream->WriteWord(size);
     stream->WriteByte(elf::SymbolInfo(binding, type));
     stream->WriteByte(0);
@@ -548,7 +553,7 @@ class Symbol : public ZoneAllocated {
     stream->WriteByte(elf::SymbolInfo(binding, type));
     stream->WriteByte(0);
     stream->WriteHalf(section_index);
-    stream->WriteAddr(offset);
+    stream->WriteAddr(offset());
     stream->WriteXWord(size);
 #endif
     ASSERT_EQUAL(stream->Position() - start, sizeof(elf::Symbol));
@@ -557,14 +562,14 @@ class Symbol : public ZoneAllocated {
   const intptr_t name_index;
   const intptr_t binding;
   const intptr_t type;
-  const intptr_t section_index;
-  const intptr_t offset;
   const intptr_t size;
+  const intptr_t section_index;
 
  private:
   friend class SymbolHashTable;  // For cstr_ access.
 
   const char* const cstr_;
+  intptr_t offset_ = 0;
 };
 
 class SymbolTable : public Section {
@@ -583,7 +588,7 @@ class SymbolTable : public Section {
     entry_size = sizeof(elf::Symbol);
     // The first symbol table entry is reserved and must be all zeros.
     // (String tables always have the empty string at the 0th index.)
-    AddSymbol("", elf::STB_LOCAL, elf::STT_NOTYPE, elf::SHN_UNDEF, /*offset=*/0,
+    AddSymbol(/*name=*/"", elf::STB_LOCAL, elf::STT_NOTYPE, /*section_index=*/0,
               /*size=*/0);
   }
 
@@ -603,13 +608,12 @@ class SymbolTable : public Section {
                  intptr_t binding,
                  intptr_t type,
                  intptr_t section_index,
-                 intptr_t offset,
                  intptr_t size) {
     ASSERT(!table_->HasBeenFinalized());
     auto const name_index = table_->AddString(name);
     ASSERT(by_name_index_.Lookup(name_index) == nullptr);
     auto const symbol = new (zone_)
-        Symbol(name, name_index, binding, type, section_index, offset, size);
+        Symbol(name, name_index, binding, type, section_index, size);
     symbols_.Add(symbol);
     by_name_index_.Insert(name_index, symbol);
     // The info field on a symbol table section holds the index of the first
@@ -627,6 +631,15 @@ class SymbolTable : public Section {
       info += 1;
     }
   }
+
+  void FinalizeSymbol(const char* name, intptr_t offset) {
+    const intptr_t name_index = table_->Lookup(name);
+    ASSERT(name_index != StringTable::kNotIndexed);
+    Symbol* symbol = by_name_index_.Lookup(name_index);
+    ASSERT(symbol != nullptr);
+    symbol->Finalize(offset);
+  }
+
   intptr_t Length() const { return symbols_.length(); }
   const Symbol* At(intptr_t i) const { return symbols_[i]; }
 
@@ -640,8 +653,8 @@ class SymbolTable : public Section {
   Zone* const zone_;
   StringTable* const table_;
   const bool dynamic_;
-  GrowableArray<const Symbol*> symbols_;
-  mutable IntMap<const Symbol*> by_name_index_;
+  GrowableArray<Symbol*> symbols_;
+  mutable IntMap<Symbol*> by_name_index_;
 };
 
 static uint32_t ElfHash(const unsigned char* name) {
@@ -795,12 +808,14 @@ class BitsContainer : public Section {
                 intptr_t size,
                 const uint8_t* bytes,
                 const ZoneGrowableArray<Elf::Relocation>* relocations,
+                const ZoneGrowableArray<Elf::SymbolData>* symbols,
                 int alignment = kDefaultAlignment)
       : Section(type, allocate, executable, writable, alignment),
         file_size_(type == elf::SectionHeaderType::SHT_NOBITS ? 0 : size),
         memory_size_(allocate ? size : 0),
         bytes_(bytes),
-        relocations_(relocations) {
+        relocations_(relocations),
+        symbols_(symbols) {
     ASSERT(type == elf::SectionHeaderType::SHT_NOBITS || bytes != nullptr);
   }
 
@@ -809,6 +824,7 @@ class BitsContainer : public Section {
                 intptr_t size,
                 const uint8_t* bytes,
                 const ZoneGrowableArray<Elf::Relocation>* relocations,
+                const ZoneGrowableArray<Elf::SymbolData>* symbols,
                 intptr_t alignment = kDefaultAlignment)
       : BitsContainer(type,
                       /*allocate=*/false,
@@ -817,6 +833,7 @@ class BitsContainer : public Section {
                       size,
                       bytes,
                       relocations,
+                      symbols,
                       alignment) {}
 
   // For BitsContainers used as segments whose type differ on the type of the
@@ -828,6 +845,7 @@ class BitsContainer : public Section {
                 intptr_t size,
                 const uint8_t* bytes,
                 const ZoneGrowableArray<Elf::Relocation>* relocations,
+                const ZoneGrowableArray<Elf::SymbolData>* symbols,
                 intptr_t alignment = kDefaultAlignment)
       : BitsContainer(t == Elf::Type::Snapshot
                           ? elf::SectionHeaderType::SHT_PROGBITS
@@ -838,9 +856,11 @@ class BitsContainer : public Section {
                       size,
                       bytes,
                       relocations,
+                      symbols,
                       alignment) {}
 
   const BitsContainer* AsBitsContainer() const { return this; }
+  const ZoneGrowableArray<Elf::SymbolData>* symbols() const { return symbols_; }
 
   void Write(ElfWriteStream* stream) {
     if (type == elf::SectionHeaderType::SHT_NOBITS) return;
@@ -864,11 +884,11 @@ class BitsContainer : public Section {
       // as an absolute offset in the ELF memory space.
       if (reloc.source_symbol != nullptr) {
         const Symbol* const source_symbol = symtab->Find(reloc.source_symbol);
-        source_address += source_symbol->offset;
+        source_address += source_symbol->offset();
       }
       if (reloc.target_symbol != nullptr) {
         const Symbol* const target_symbol = symtab->Find(reloc.target_symbol);
-        target_address += target_symbol->offset;
+        target_address += target_symbol->offset();
       }
       ASSERT(reloc.size_in_bytes <= kWordSize);
       const word to_write = target_address - source_address;
@@ -893,7 +913,8 @@ class BitsContainer : public Section {
   const intptr_t file_size_;
   const intptr_t memory_size_;
   const uint8_t* const bytes_;
-  const ZoneGrowableArray<Elf::Relocation>* relocations_ = nullptr;
+  const ZoneGrowableArray<Elf::Relocation>* const relocations_;
+  const ZoneGrowableArray<Elf::SymbolData>* const symbols_;
 };
 
 // We assume that the final program table fits in a single page of memory.
@@ -932,7 +953,6 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
       unwrapped_stream_(stream),
       type_(type),
       dwarf_(dwarf),
-      bss_(CreateBSS(zone, type, kBssSize)),
       shstrtab_(new (zone) StringTable(zone, /*allocate=*/false)),
       dynstrtab_(new (zone) StringTable(zone, /*allocate=*/true)),
       dynsym_(new (zone) SymbolTable(zone, dynstrtab_, /*dynamic=*/true)) {
@@ -943,6 +963,15 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
   // The first section in the section header table is always a reserved
   // entry containing only 0 values.
   sections_.Add(new (zone_) ReservedSection());
+  // For the BSS section, we add two local symbols to the static symbol table,
+  // one for each isolate. We use local symbols because these addresses are only
+  // used for relocation. (This matches the behavior in the assembly output,
+  // where these symbols are also local.)
+  auto* bss_symbols = new (zone_) ZoneGrowableArray<Elf::SymbolData>();
+  bss_symbols->Add({kVmSnapshotBssAsmSymbol, elf::STT_SECTION, 0, kBssVmSize});
+  bss_symbols->Add({kIsolateSnapshotBssAsmSymbol, elf::STT_SECTION, kBssVmSize,
+                    kBssIsolateSize});
+  CreateBSS(kBssSize, bss_symbols);
   // We always allocate static string and symbol tables for use in relocation
   // calculations, but we do not always add them to the final ELF file.
   strtab_ = new (zone_) StringTable(zone_, /* allocate= */ false);
@@ -975,16 +1004,7 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
   // We add it in all cases, even to the separate debugging information ELF,
   // to ensure that relocated addresses are consistent between ELF snapshots
   // and ELF separate debugging information.
-  auto const bss_start = AddSection(bss_, ".bss");
-  // For the BSS section, we add two local symbols to the static symbol table,
-  // one for each isolate. We use local symbols because these addresses are only
-  // used for relocation. (This matches the behavior in the assembly output,
-  // where these symbols are also local.)
-  AddStaticSymbol(kVmSnapshotBssAsmSymbol, elf::STB_LOCAL, elf::STT_SECTION,
-                  bss_->index(), bss_start, kBssVmSize);
-  AddStaticSymbol(kIsolateSnapshotBssAsmSymbol, elf::STB_LOCAL,
-                  elf::STT_SECTION, bss_->index(), bss_start + kBssVmSize,
-                  kBssIsolateSize);
+  AddSection(bss_, ".bss");
 }
 
 intptr_t Elf::AddSection(Section* section,
@@ -994,7 +1014,28 @@ intptr_t Elf::AddSection(Section* section,
   ASSERT(!shstrtab_->HasBeenFinalized());
   section->set_name(shstrtab_->AddString(name));
   section->set_index(sections_.length());
-  section->symbol_name = symbol_name;
+  if (symbol_name != nullptr) {
+    section->symbol_name = symbol_name;
+    // While elf::STT_SECTION might seem more appropriate, section symbols are
+    // usually local and dlsym won't return them.
+    ASSERT(!dynsym_->HasBeenFinalized());
+    dynsym_->AddSymbol(symbol_name, elf::STB_GLOBAL, elf::STT_FUNC,
+                       section->index(), section->MemorySize());
+    // Some tools assume the static symbol table is a superset of the dynamic
+    // symbol table when it exists (see dartbug.com/41783).
+    ASSERT(!symtab_->HasBeenFinalized());
+    symtab_->AddSymbol(symbol_name, elf::STB_GLOBAL, elf::STT_FUNC,
+                       section->index(), section->FileSize());
+  }
+  if (auto const container = section->AsBitsContainer()) {
+    if (container->symbols() != nullptr) {
+      for (const auto& symbol_data : *container->symbols()) {
+        ASSERT(!symtab_->HasBeenFinalized());
+        symtab_->AddSymbol(symbol_data.name, elf::STB_LOCAL, symbol_data.type,
+                           section->index(), symbol_data.size);
+      }
+    }
+  }
   sections_.Add(section);
 
   // No memory offset, so just return -1.
@@ -1039,71 +1080,42 @@ void Elf::ReplaceSection(Section* old_section, Section* new_section) {
 intptr_t Elf::AddText(const char* name,
                       const uint8_t* bytes,
                       intptr_t size,
-                      const ZoneGrowableArray<Relocation>* relocations) {
+                      const ZoneGrowableArray<Relocation>* relocations,
+                      const ZoneGrowableArray<SymbolData>* symbols) {
   auto const image =
       new (zone_) BitsContainer(type_, /*executable=*/true,
                                 /*writable=*/false, size, bytes, relocations,
-                                ImageWriter::kTextAlignment);
+                                symbols, ImageWriter::kTextAlignment);
   return AddSection(image, ".text", name);
 }
 
-Section* Elf::CreateBSS(Zone* zone, Type type, intptr_t size) {
+void Elf::CreateBSS(intptr_t size,
+                    const ZoneGrowableArray<SymbolData>* symbols) {
   uint8_t* bytes = nullptr;
-  if (type == Type::Snapshot) {
+  if (type_ == Type::Snapshot) {
     // Ideally the BSS segment would take no space in the object, but Android's
     // "strip" utility truncates the memory-size of our segments to their
     // file-size.
     //
     // Therefore we must insert zero-filled pages for the BSS.
-    bytes = zone->Alloc<uint8_t>(size);
+    bytes = zone_->Alloc<uint8_t>(size);
     memset(bytes, 0, size);
   }
-  return new (zone)
-      BitsContainer(type, /*executable=*/false, /*writable=*/true, kBssSize,
-                    bytes, /*relocations=*/nullptr, ImageWriter::kBssAlignment);
+  bss_ = new (zone_) BitsContainer(
+      type_, /*executable=*/false, /*writable=*/true, kBssSize, bytes,
+      /*relocations=*/nullptr, symbols, ImageWriter::kBssAlignment);
 }
 
 intptr_t Elf::AddROData(const char* name,
                         const uint8_t* bytes,
                         intptr_t size,
-                        const ZoneGrowableArray<Relocation>* relocations) {
+                        const ZoneGrowableArray<Relocation>* relocations,
+                        const ZoneGrowableArray<SymbolData>* symbols) {
   auto const image =
       new (zone_) BitsContainer(type_, /*executable=*/false,
                                 /*writable=*/false, size, bytes, relocations,
-                                ImageWriter::kRODataAlignment);
+                                symbols, ImageWriter::kRODataAlignment);
   return AddSection(image, ".rodata", name);
-}
-
-void Elf::AddLocalSymbol(const char* section_name,
-                         const char* name,
-                         intptr_t type,
-                         intptr_t offset,
-                         intptr_t size) {
-  local_symbols_.Add({section_name, name, type, offset, size});
-}
-
-void Elf::AddDynamicSymbol(const char* name,
-                           intptr_t binding,
-                           intptr_t type,
-                           intptr_t section_index,
-                           intptr_t address,
-                           intptr_t size) {
-  ASSERT(!dynsym_->HasBeenFinalized());
-  dynsym_->AddSymbol(name, binding, type, section_index, address, size);
-
-  // Some tools assume the static symbol table is a superset of the dynamic
-  // symbol table when it exists (see dartbug.com/41783).
-  AddStaticSymbol(name, binding, type, section_index, address, size);
-}
-
-void Elf::AddStaticSymbol(const char* name,
-                          intptr_t binding,
-                          intptr_t type,
-                          intptr_t section_index,
-                          intptr_t address,
-                          intptr_t size) {
-  ASSERT(!symtab_->HasBeenFinalized());
-  symtab_->AddSymbol(name, binding, type, section_index, address, size);
 }
 
 #if defined(DART_PRECOMPILER)
@@ -1222,34 +1234,20 @@ const Section* Elf::FindSectionBySymbolName(const char* name) const {
   return section;
 }
 
-const Section* Elf::FindSectionForAddress(intptr_t address) const {
-  for (auto const section : sections_) {
-    if (!section->IsAllocated()) continue;
-    auto const start = section->memory_offset();
-    auto const end = start + section->MemorySize();
-    if (address >= start && address < end) {
-      return section;
-    }
-  }
-  return nullptr;
-}
-
 void Elf::FinalizeSymbols() {
   for (const auto& section : sections_) {
     if (section->symbol_name != nullptr) {
-      // While elf::STT_SECTION might seem more appropriate, section symbols are
-      // usually local and dlsym won't return them.
-      AddDynamicSymbol(section->symbol_name, elf::STB_GLOBAL, elf::STT_FUNC,
-                       section->index(), section->memory_offset(),
-                       section->MemorySize());
+      dynsym_->FinalizeSymbol(section->symbol_name, section->memory_offset());
+      symtab_->FinalizeSymbol(section->symbol_name, section->memory_offset());
     }
-  }
-  for (const auto& local_symbol : local_symbols_) {
-    const auto* const symbol = symtab_->Find(local_symbol.section_name);
-    ASSERT(symbol != nullptr);
-    const uword address = symbol->offset + local_symbol.offset;
-    AddStaticSymbol(local_symbol.name, elf::STB_LOCAL, local_symbol.type,
-                    symbol->section_index, address, local_symbol.size);
+    if (auto const container = section->AsBitsContainer()) {
+      if (container->symbols() != nullptr) {
+        for (const auto& symbol_data : *container->symbols()) {
+          symtab_->FinalizeSymbol(
+              symbol_data.name, section->memory_offset() + symbol_data.offset);
+        }
+      }
+    }
   }
 }
 
@@ -1331,7 +1329,7 @@ void Elf::FinalizeEhFrame() {
   auto const eh_frame = new (zone_)
       BitsContainer(type_, /*writable=*/false, /*executable=*/false,
                     dwarf_stream.bytes_written(), dwarf_stream.buffer(),
-                    dwarf_stream.relocations());
+                    dwarf_stream.relocations(), /*symbols=*/nullptr);
   AddSection(eh_frame, ".eh_frame");
 #endif  // defined(DART_PRECOMPILER) && \
         //   (defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64))
@@ -1343,7 +1341,7 @@ void Elf::FinalizeDwarfSections() {
   auto add_debug = [&](const char* name, const DwarfElfStream& stream) {
     auto const image = new (zone_) BitsContainer(
         elf::SectionHeaderType::SHT_PROGBITS, stream.bytes_written(),
-        stream.buffer(), stream.relocations());
+        stream.buffer(), stream.relocations(), /*symbols=*/nullptr);
     AddSection(image, name);
   };
   {
@@ -1424,6 +1422,11 @@ void Elf::Finalize() {
   FinalizeProgramTable();
   ComputeFileOffsets();
 
+  // Must be done prior to writing the symbol tables and any sections with
+  // relocations. This doesn't change the size of the symbol tables, so can
+  // (and should) be done after file and memory offsets have been calculated.
+  FinalizeSymbols();
+
   // Finally, write the ELF file contents.
   ElfWriteStream wrapped(unwrapped_stream_, *this);
   WriteHeader(&wrapped);
@@ -1480,11 +1483,11 @@ Section* Elf::CreateBuildIdNote(const void* description_bytes,
   // BSS section are allocated segments at the same time. Having the same flags
   // ensures they will be combined in the same segment and not unnecessarily
   // aligned into a new page.
-  return new (zone_)
-      BitsContainer(elf::SectionHeaderType::SHT_NOTE,
-                    /*allocate=*/true, /*executable=*/false,
-                    /*writable=*/true, stream.bytes_written(), stream.buffer(),
-                    /*relocations=*/nullptr, kNoteAlignment);
+  return new (zone_) BitsContainer(
+      elf::SectionHeaderType::SHT_NOTE,
+      /*allocate=*/true, /*executable=*/false,
+      /*writable=*/true, stream.bytes_written(), stream.buffer(),
+      /*relocations=*/nullptr, /*symbols=*/nullptr, kNoteAlignment);
 }
 
 void Elf::FinalizeProgramTable() {

@@ -567,6 +567,9 @@ class AssemblyImageWriter : public ImageWriter {
   // Used in Relocation to output "(.)" for relocations involving the current
   // section position and creating local symbols in AddCodeSymbol.
   const char* current_section_symbol_ = nullptr;
+  // Used for creating local symbols for code objects in the debugging info,
+  // if separately written.
+  ZoneGrowableArray<Elf::SymbolData>* current_symbols_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
@@ -608,6 +611,9 @@ class BlobImageWriter : public ImageWriter {
   // Set on section entrance to a new array containing the relocations for the
   // current section.
   ZoneGrowableArray<Elf::Relocation>* current_relocations_ = nullptr;
+  // Set on section entrance to a new array containing the local symbol data
+  // for the current section.
+  ZoneGrowableArray<Elf::SymbolData>* current_symbols_ = nullptr;
 
 #endif
 
