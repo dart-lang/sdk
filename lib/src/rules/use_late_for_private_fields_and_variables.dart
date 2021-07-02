@@ -78,6 +78,18 @@ class _Visitor extends UnifyingAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    // See: https://dart.dev/tools/diagnostic-messages#late_final_field_with_const_constructor
+    for (var member in node.members) {
+      if (member is ConstructorDeclaration && member.constKeyword != null) {
+        return;
+      }
+    }
+
+    super.visitClassDeclaration(node);
+  }
+
+  @override
   void visitCompilationUnit(CompilationUnit node) {
     if (node.featureSet.isEnabled(Feature.non_nullable)) {
       var declaredElement = node.declaredElement;
