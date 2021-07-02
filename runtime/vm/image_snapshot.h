@@ -402,15 +402,13 @@ class ImageWriter : public ValueObject {
   // relocated address of the target section and S is the final relocated
   // address of the source, the final value is:
   //   (T + target_offset + target_addend) - (S + source_offset)
+  // If either symbol is nullptr, then the corresponding is treated as an
+  // absolute address.
   virtual intptr_t Relocation(intptr_t section_offset,
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
-                              intptr_t target_offset,
-                              intptr_t target_addend) = 0;
-  // Returns the final relocated address for the section represented by the
-  // symbol. May not be supported by some writers.
-  virtual uword RelocatedAddress(const char* symbol) = 0;
+                              intptr_t target_offset) = 0;
   // Creates a static symbol for the given Code object when appropriate.
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
@@ -423,7 +421,12 @@ class ImageWriter : public ValueObject {
   intptr_t Relocation(intptr_t section_offset,
                       const char* source_symbol,
                       const char* target_symbol) {
-    return Relocation(section_offset, source_symbol, 0, target_symbol, 0, 0);
+    return Relocation(section_offset, source_symbol, 0, target_symbol, 0);
+  }
+  // An overload of Relocation for outputting the relocated address of the
+  // target symbol at the given section offset.
+  intptr_t Relocation(intptr_t section_offset, const char* target_symbol) {
+    return Relocation(section_offset, nullptr, 0, target_symbol, 0);
   }
 #endif
   // Writes a fixed-sized value of type T to the section contents.
@@ -435,7 +438,8 @@ class ImageWriter : public ValueObject {
   // instruction for the target architecture is used.
   intptr_t AlignWithBreakInstructions(intptr_t alignment, intptr_t offset);
 
-  Heap* heap_;  // Used for mapping InstructionsPtr to object ids.
+  Thread* const thread_;
+  Zone* const zone_;
   intptr_t next_data_offset_;
   intptr_t next_text_offset_;
   GrowableArray<ObjectData> objects_;
@@ -549,13 +553,7 @@ class AssemblyImageWriter : public ImageWriter {
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
-                              intptr_t target_offset,
-                              intptr_t target_addend);
-  // We can't generate the relocated address in assembly, so it'll be
-  // retrieved and stored in the BSS during BSS initialization instead.
-  virtual uword RelocatedAddress(const char* symbol) {
-    return Image::kNoRelocatedAddress;
-  }
+                              intptr_t target_offset);
   virtual void FrameUnwindPrologue();
   virtual void FrameUnwindEpilogue();
   virtual void AddCodeSymbol(const Code& code,
@@ -602,12 +600,15 @@ class BlobImageWriter : public ImageWriter {
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
-                              intptr_t target_offset,
-                              intptr_t target_addend);
-  virtual uword RelocatedAddress(const char* symbol);
+                              intptr_t target_offset);
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
                              intptr_t offset);
+
+  // Set on section entrance to a new array containing the relocations for the
+  // current section.
+  ZoneGrowableArray<Elf::Relocation>* current_relocations_ = nullptr;
+
 #endif
 
   NonStreamingWriteStream* const vm_instructions_;

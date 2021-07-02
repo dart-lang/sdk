@@ -39,25 +39,36 @@ class Elf : public ZoneAllocated {
 
   bool IsStripped() const { return dwarf_ == nullptr; }
 
-  Zone* zone() { return zone_; }
+  Zone* zone() const { return zone_; }
   const Dwarf* dwarf() const { return dwarf_; }
   Dwarf* dwarf() { return dwarf_; }
+  const SymbolTable* symtab() const { return symtab_; }
 
-  // Returns the relocated address for the symbol with the given name or
-  // kNoSectionStart if the symbol was not found.
-  uword SymbolAddress(const char* name) const;
+  // Stores the information needed to appropriately generate a
+  // relocation from the target to the source at the given section offset.
+  // If a given symbol is nullptr, then the offset is absolute (from 0).
+  struct Relocation {
+    size_t size_in_bytes;
+    intptr_t section_offset;
+    const char* source_symbol;
+    intptr_t source_offset;
+    const char* target_symbol;
+    intptr_t target_offset;
+  };
 
-  // What the next memory offset for an appropriately aligned section would be.
-  //
-  // Only used by AssemblyImageWriter and BlobImageWriter methods.
-  intptr_t NextMemoryOffset(intptr_t alignment) const;
-  intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
-  intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
-  void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
+  intptr_t AddText(const char* name,
+                   const uint8_t* bytes,
+                   intptr_t size,
+                   const ZoneGrowableArray<Relocation>* relocations = nullptr);
+  intptr_t AddROData(
+      const char* name,
+      const uint8_t* bytes,
+      intptr_t size,
+      const ZoneGrowableArray<Relocation>* relocations = nullptr);
 
-  // Adds a local symbol for the given offset and size in the "current" section,
-  // that is, the section index for the symbol is for the next added section.
-  void AddLocalSymbol(const char* name,
+  // Adds a local symbol for the given offset and size in the named section.
+  void AddLocalSymbol(const char* section_name,
+                      const char* name,
                       intptr_t type,
                       intptr_t offset,
                       intptr_t size);
@@ -99,12 +110,14 @@ class Elf : public ZoneAllocated {
                         intptr_t size);
 
   Segment* LastLoadSegment() const;
+  const Section* FindSectionBySymbolName(const char* symbol_name) const;
   const Section* FindSectionForAddress(intptr_t address) const;
   Section* CreateBuildIdNote(const void* description_bytes,
                              intptr_t description_length);
   Section* GenerateFinalBuildId();
 
-  void AddSectionSymbols();
+  void FinalizeSymbols();
+  void FinalizeLocalSymbols();
   void FinalizeDwarfSections();
   void FinalizeProgramTable();
   void ComputeFileOffsets();
@@ -115,6 +128,14 @@ class Elf : public ZoneAllocated {
   void WriteSectionTable(ElfWriteStream* stream);
   void WriteProgramTable(ElfWriteStream* stream);
   void WriteSections(ElfWriteStream* stream);
+
+  struct LocalSymbol {
+    const char* section_name;
+    const char* name;
+    intptr_t type;
+    intptr_t offset;
+    intptr_t size;
+  };
 
   Zone* const zone_;
   BaseWriteStream* const unwrapped_stream_;
@@ -144,6 +165,7 @@ class Elf : public ZoneAllocated {
   // during finalization once we have the information to calculate the real one.
   Section* build_id_;
 
+  GrowableArray<LocalSymbol> local_symbols_;
   GrowableArray<Section*> sections_;
   GrowableArray<Segment*> segments_;
   intptr_t memory_offset_;
