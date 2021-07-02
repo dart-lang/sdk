@@ -110,7 +110,7 @@ class DapTestSession {
     var attempt = 1;
     while (attempt++ <= 100) {
       try {
-        return await DapTestClient.connect(server.port);
+        return await DapTestClient.connect(server.host, server.port);
       } catch (e) {
         await Future.delayed(const Duration(milliseconds: 200));
       }

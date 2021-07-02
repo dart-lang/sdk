@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 import 'test_client.dart';
+import 'test_scripts.dart';
 import 'test_support.dart';
 
 main() {
@@ -12,11 +13,7 @@ main() {
     group('debug mode breakpoints', () {
       test('stops at a line breakpoint', () async {
         final client = dap.client;
-        final testFile = dap.createTestFile(r'''
-void main(List<String> args) async {
-  print('Hello!'); // BREAKPOINT
-}
-    ''');
+        final testFile = dap.createTestFile(simpleBreakpointProgram);
         final breakpointLine = lineWith(testFile, '// BREAKPOINT');
 
         await client.hitBreakpoint(testFile, breakpointLine);
@@ -24,11 +21,7 @@ void main(List<String> args) async {
 
       test('stops at a line breakpoint and can be resumed', () async {
         final client = dap.client;
-        final testFile = dap.createTestFile(r'''
-void main(List<String> args) async {
-  print('Hello!'); // BREAKPOINT
-}
-    ''');
+        final testFile = dap.createTestFile(simpleBreakpointProgram);
         final breakpointLine = lineWith(testFile, '// BREAKPOINT');
 
         // Hit the initial breakpoint.

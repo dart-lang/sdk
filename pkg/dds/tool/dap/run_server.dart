@@ -25,6 +25,7 @@ Future<void> main(List<String> arguments) async {
 class DapCommand extends Command {
   static const argHost = 'host';
   static const argPort = 'port';
+  static const argIpv6 = 'ipv6';
   static const argDds = 'dds';
   static const argAuthCodes = 'auth-codes';
   static const argVerbose = 'verbose';
@@ -39,14 +40,19 @@ class DapCommand extends Command {
     argParser
       ..addOption(
         argHost,
-        defaultsTo: 'localhost',
-        help: 'The hostname/IP to bind the server to',
+        help: 'The hostname/IP to bind the server to. If not supplied, will'
+            ' use the appropriate loopback address depending on whether'
+            ' --ipv6 is set',
       )
       ..addOption(
         argPort,
         abbr: 'p',
         defaultsTo: '0',
         help: 'The port to bind the server to',
+      )
+      ..addFlag(
+        argIpv6,
+        help: 'Whether to bind DAP/VM Service/DDS to IPv6 addresses',
       )
       ..addFlag(
         argDds,
@@ -69,10 +75,12 @@ class DapCommand extends Command {
     final args = argResults!;
     final port = int.parse(args[argPort]);
     final host = args[argHost];
+    final ipv6 = args[argIpv6] as bool;
 
     final server = await DapServer.create(
       host: host,
       port: port,
+      ipv6: ipv6,
       enableDdds: args[argDds],
       enableAuthCodes: args[argAuthCodes],
       logger: args[argVerbose] ? print : null,

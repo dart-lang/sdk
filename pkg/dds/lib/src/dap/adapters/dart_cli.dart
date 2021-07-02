@@ -43,11 +43,13 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
 
   DartCliDebugAdapter(
     ByteStreamServerChannel channel, {
+    bool ipv6 = false,
     bool enableDds = true,
     bool enableAuthCodes = true,
     Logger? logger,
   }) : super(
           channel,
+          ipv6: ipv6,
           enableDds: enableDds,
           enableAuthCodes: enableAuthCodes,
           logger: logger,
@@ -109,7 +111,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
     final vmServiceInfoFile = _vmServiceInfoFile;
     final vmArgs = <String>[
       if (debug) ...[
-        '--enable-vm-service=${args.vmServicePort ?? 0}',
+        '--enable-vm-service=${args.vmServicePort ?? 0}${ipv6 ? '/::1' : ''}',
         '--pause_isolates_on_start=true',
         if (!enableAuthCodes) '--disable-service-auth-codes'
       ],

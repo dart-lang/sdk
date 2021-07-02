@@ -6,6 +6,7 @@ import 'package:dds/src/dap/adapters/dart.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
+import 'test_scripts.dart';
 import 'test_support.dart';
 
 main() {
@@ -30,10 +31,7 @@ void main(List<String> args) {
 
       test('evaluates expressions with complex results', () async {
         final client = dap.client;
-        final testFile = await dap.createTestFile(r'''
-void main(List<String> args) {
-  print('Hello!'); // BREAKPOINT
-}''');
+        final testFile = await dap.createTestFile(simpleBreakpointProgram);
         final breakpointLine = lineWith(testFile, '// BREAKPOINT');
 
         final stop = await client.hitBreakpoint(testFile, breakpointLine);
@@ -57,10 +55,7 @@ void main(List<String> args) {
           'evaluates complex expressions expressions with evaluateToStringInDebugViews=true',
           () async {
         final client = dap.client;
-        final testFile = await dap.createTestFile(r'''
-void main(List<String> args) {
-  print('Hello!'); // BREAKPOINT
-}''');
+        final testFile = await dap.createTestFile(simpleBreakpointProgram);
         final breakpointLine = lineWith(testFile, '// BREAKPOINT');
 
         final stop = await client.hitBreakpoint(

@@ -16,6 +16,7 @@ import 'protocol_stream_transformers.dart';
 /// A DAP server that binds to a port and runs in multi-session mode.
 class DapServer {
   final ServerSocket _socket;
+  final bool ipv6;
   final bool enableDds;
   final bool enableAuthCodes;
   final Logger? logger;
@@ -24,6 +25,7 @@ class DapServer {
 
   DapServer._(
     this._socket, {
+    this.ipv6 = false,
     this.enableDds = true,
     this.enableAuthCodes = true,
     this.logger,
@@ -55,6 +57,7 @@ class DapServer {
     final channel = ByteStreamServerChannel(_input, _output, logger);
     final adapter = DartCliDebugAdapter(
       channel,
+      ipv6: ipv6,
       enableDds: enableDds,
       enableAuthCodes: enableAuthCodes,
       logger: logger,
@@ -70,15 +73,19 @@ class DapServer {
 
   /// Starts a DAP Server listening on [host]:[port].
   static Future<DapServer> create({
-    String host = 'localhost',
+    String? host,
     int port = 0,
+    bool ipv6 = false,
     bool enableDdds = true,
     bool enableAuthCodes = true,
     Logger? logger,
   }) async {
-    final _socket = await ServerSocket.bind(host, port);
+    final hostFallback =
+        ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4;
+    final _socket = await ServerSocket.bind(host ?? hostFallback, port);
     return DapServer._(
       _socket,
+      ipv6: ipv6,
       enableDds: enableDdds,
       enableAuthCodes: enableAuthCodes,
       logger: logger,
