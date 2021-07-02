@@ -67,8 +67,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     this._typeSystem,
     this._typeProvider,
     this.declaredVariables,
-  ) : _evaluationEngine = ConstantEvaluationEngine(declaredVariables,
-            _currentLibrary.featureSet.isEnabled(Feature.triple_shift));
+  ) : _evaluationEngine = ConstantEvaluationEngine(
+          declaredVariables: declaredVariables,
+          isNonNullableByDefault:
+              _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
+        );
 
   bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
 
@@ -311,8 +314,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///        reference
   /// @param errorCode the error code to be used if the expression is or
   ///        consists of a reference to a deferred library
-  void _reportErrorIfFromDeferredLibrary(Expression expression,
-      ErrorCode errorCode,
+  void _reportErrorIfFromDeferredLibrary(
+      Expression expression, ErrorCode errorCode,
       [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     DeferredLibraryReferenceDetector referenceDetector =
         DeferredLibraryReferenceDetector();
