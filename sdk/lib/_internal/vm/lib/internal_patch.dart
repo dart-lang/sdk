@@ -193,9 +193,6 @@ void spawnFunction(
 abstract class VMInternalsForTesting {
   // This function can be used by tests to enforce garbage collection.
   static void collectAllGarbage() native "Internal_collectAllGarbage";
-
-  static void deoptimizeFunctionsOnStack()
-      native "Internal_deoptimizeFunctionsOnStack";
 }
 
 @patch
