@@ -109,33 +109,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     required List<ParameterElement> parameters,
     required DartType returnType,
     required NullabilitySuffix nullabilitySuffix,
-    Element? element,
     TypeAliasElement? aliasElement,
     List<DartType>? aliasArguments,
   })  : typeFormals = typeFormals,
         parameters = _sortNamedParameters(parameters),
         returnType = returnType,
         nullabilitySuffix = nullabilitySuffix,
-        super(element,
-            aliasElement: aliasElement, aliasArguments: aliasArguments);
-
-  @Deprecated('Use aliasElement instead')
-  @override
-  FunctionTypedElement? get element {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    // TODO(scheglov) Can we just construct it with the right element?
-    var aliasedElement = aliasElement?.aliasedElement;
-    if (aliasedElement is GenericFunctionTypeElement) {
-      return aliasedElement;
-    }
-
-    var element = super.element;
-    if (element is FunctionTypedElement) {
-      return element;
-    }
-
-    return null;
-  }
+        super(null, aliasElement: aliasElement, aliasArguments: aliasArguments);
 
   @override
   int get hashCode {
@@ -204,13 +184,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       types.add(type);
     });
     return types;
-  }
-
-  @Deprecated('Use aliasArguments instead')
-  @override
-  List<DartType> get typeArguments {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    return aliasArguments ?? const <DartType>[];
   }
 
   @override

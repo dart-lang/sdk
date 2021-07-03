@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -46,33 +45,6 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
     var session = contextFor(file.path).currentSession;
     var result = await session.getErrorsValid(file.path);
-    expect(result.state, ResultState.VALID);
-    expect(result.path, file.path);
-    expect(result.errors, hasLength(1));
-    expect(result.uri.toString(), 'package:dart.my/a.dart');
-  }
-
-  @deprecated
-  void test_getErrors_notFileOfUri() async {
-    var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath');
-
-    var path = convertPath('$workspaceRootPath/$relPath');
-    var session = contextFor(path).currentSession;
-    var result = await session.getErrors(path);
-    expect(result.state, ResultState.NOT_FILE_OF_URI);
-    expect(() => result.errors, throwsStateError);
-  }
-
-  @deprecated
-  void test_getErrors_valid() async {
-    var file = newFile(
-      '$workspaceRootPath/dart/my/lib/a.dart',
-      content: 'var x = 0',
-    );
-
-    var session = contextFor(file.path).currentSession;
-    var result = await session.getErrors(file.path);
     expect(result.state, ResultState.VALID);
     expect(result.path, file.path);
     expect(result.errors, hasLength(1));
@@ -124,33 +96,6 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 
-  @deprecated
-  void test_getResolvedUnit_notFileOfUri() async {
-    var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath');
-
-    var path = convertPath('$workspaceRootPath/$relPath');
-    var session = contextFor(path).currentSession;
-    var result = await session.getResolvedUnit(path);
-    expect(result.state, ResultState.NOT_FILE_OF_URI);
-    expect(() => result.errors, throwsStateError);
-  }
-
-  @deprecated
-  void test_getResolvedUnit_valid() async {
-    var file = newFile(
-      '$workspaceRootPath/dart/my/lib/a.dart',
-      content: 'class A {}',
-    );
-
-    var session = contextFor(file.path).currentSession;
-    var result = await session.getResolvedUnit(file.path);
-    expect(result.state, ResultState.VALID);
-    expect(result.path, file.path);
-    expect(result.errors, isEmpty);
-    expect(result.uri.toString(), 'package:dart.my/a.dart');
-  }
-
   void test_getUnitElement2_invalidPath_notAbsolute() async {
     var file = newFile(
       '$workspaceRootPath/dart/my/lib/a.dart',
@@ -183,33 +128,6 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     expect(result.state, ResultState.VALID);
     expect(result.path, file.path);
     expect(result.element.classes, hasLength(1));
-    expect(result.uri.toString(), 'package:dart.my/a.dart');
-  }
-
-  @deprecated
-  void test_getUnitElement_notFileOfUri() async {
-    var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath');
-
-    var path = convertPath('$workspaceRootPath/$relPath');
-    var session = contextFor(path).currentSession;
-    var result = await session.getUnitElement(path);
-    expect(result.state, ResultState.NOT_FILE_OF_URI);
-    expect(() => result.element, throwsStateError);
-  }
-
-  @deprecated
-  void test_getUnitElement_valid() async {
-    var file = newFile(
-      '$workspaceRootPath/dart/my/lib/a.dart',
-      content: 'class A {}',
-    );
-
-    var session = contextFor(file.path).currentSession;
-    var result = await session.getUnitElement(file.path);
-    expect(result.state, ResultState.VALID);
-    expect(result.path, file.path);
-    expect(result.element.types, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 }
@@ -248,15 +166,6 @@ test:lib/
     testPath = convertPath('/home/test/lib/test.dart');
   }
 
-  @deprecated
-  test_getErrors() async {
-    newFile(testPath, content: 'class C {');
-    var errorsResult = await session.getErrors(testPath);
-    expect(errorsResult.session, session);
-    expect(errorsResult.path, testPath);
-    expect(errorsResult.errors, isNotEmpty);
-  }
-
   test_getErrors2() async {
     newFile(testPath, content: 'class C {');
     var errorsResult = await session.getErrorsValid(testPath);
@@ -293,19 +202,6 @@ test:lib/
     expect(file.isPart, isTrue);
   }
 
-  @deprecated
-  test_getLibraryByUri() async {
-    newFile(testPath, content: r'''
-class A {}
-class B {}
-''');
-
-    var library = await session.getLibraryByUri('package:test/test.dart');
-    expect(library.getType('A'), isNotNull);
-    expect(library.getType('B'), isNotNull);
-    expect(library.getType('C'), isNull);
-  }
-
   test_getLibraryByUri2() async {
     newFile(testPath, content: r'''
 class A {}
@@ -322,35 +218,6 @@ class B {}
   test_getLibraryByUri2_unresolvedUri() async {
     var result = await session.getLibraryByUri2('package:foo/foo.dart');
     expect(result, isA<CannotResolveUriResult>());
-  }
-
-  @deprecated
-  test_getLibraryByUri_unresolvedUri() async {
-    expect(() async {
-      await session.getLibraryByUri('package:foo/foo.dart');
-    }, throwsArgumentError);
-  }
-
-  @deprecated
-  test_getParsedLibrary() async {
-    newFile(testPath, content: r'''
-class A {}
-class B {}
-''');
-
-    var parsedLibrary = session.getParsedLibrary(testPath);
-    expect(parsedLibrary.session, session);
-    expect(parsedLibrary.path, testPath);
-    expect(parsedLibrary.uri, Uri.parse('package:test/test.dart'));
-
-    expect(parsedLibrary.units, hasLength(1));
-    {
-      var parsedUnit = parsedLibrary.units![0];
-      expect(parsedUnit.session, session);
-      expect(parsedUnit.path, testPath);
-      expect(parsedUnit.uri, Uri.parse('package:test/test.dart'));
-      expect(parsedUnit.unit.declarations, hasLength(2));
-    }
   }
 
   test_getParsedLibrary2() async {
@@ -461,21 +328,6 @@ class B {}
     expect(node.length, 10);
   }
 
-  @deprecated
-  test_getParsedLibrary_getElementDeclaration_notThisLibrary() async {
-    newFile(testPath, content: '');
-
-    var resolvedUnit = await session.getResolvedUnit(testPath);
-    var typeProvider = resolvedUnit.typeProvider;
-    var intClass = typeProvider.intType.element;
-
-    var parsedLibrary = session.getParsedLibrary(testPath);
-
-    expect(() {
-      parsedLibrary.getElementDeclaration(intClass);
-    }, throwsArgumentError);
-  }
-
   test_getParsedLibrary_getElementDeclaration_notThisLibrary2() async {
     newFile(testPath, content: '');
 
@@ -498,34 +350,8 @@ int foo = 0;
 
     var parsedLibrary = session.getParsedLibraryValid(testPath);
 
-    var unitResult = await session.getUnitElement2(testPath);
-    var unitElement = (unitResult as UnitElementResult).element;
-    var fooElement = unitElement.topLevelVariables[0];
-    expect(fooElement.name, 'foo');
-
-    // We can get the variable element declaration.
-    var fooDeclaration = parsedLibrary.getElementDeclaration(fooElement)!;
-    var fooNode = fooDeclaration.node as VariableDeclaration;
-    expect(fooNode.name.name, 'foo');
-    expect(fooNode.offset, 4);
-    expect(fooNode.length, 7);
-    expect(fooNode.name.staticElement, isNull);
-
-    // Synthetic elements don't have nodes.
-    expect(parsedLibrary.getElementDeclaration(fooElement.getter!), isNull);
-    expect(parsedLibrary.getElementDeclaration(fooElement.setter!), isNull);
-  }
-
-  @deprecated
-  test_getParsedLibrary_getElementDeclaration_synthetic_deprecated() async {
-    newFile(testPath, content: r'''
-int foo = 0;
-''');
-
-    var parsedLibrary = session.getParsedLibrary(testPath);
-
-    var unitElement = (await session.getUnitElement(testPath)).element;
-    var fooElement = unitElement.topLevelVariables[0];
+    var unitResult = await session.getUnitElementValid(testPath);
+    var fooElement = unitResult.element.topLevelVariables[0];
     expect(fooElement.name, 'foo');
 
     // We can get the variable element declaration.
@@ -565,90 +391,6 @@ part 'c.dart';
     );
   }
 
-  @deprecated
-  test_getParsedLibrary_notLibrary() async {
-    newFile(testPath, content: 'part of "a.dart";');
-
-    expect(() {
-      session.getParsedLibrary(testPath);
-    }, throwsArgumentError);
-  }
-
-  @deprecated
-  test_getParsedLibrary_parts() async {
-    var a = convertPath('/home/test/lib/a.dart');
-    var b = convertPath('/home/test/lib/b.dart');
-    var c = convertPath('/home/test/lib/c.dart');
-
-    var aContent = r'''
-part 'b.dart';
-part 'c.dart';
-
-class A {}
-''';
-
-    var bContent = r'''
-part of 'a.dart';
-
-class B1 {}
-class B2 {}
-''';
-
-    var cContent = r'''
-part of 'a.dart';
-
-class C1 {}
-class C2 {}
-class C3 {}
-''';
-
-    newFile(a, content: aContent);
-    newFile(b, content: bContent);
-    newFile(c, content: cContent);
-
-    var parsedLibrary = session.getParsedLibrary(a);
-    expect(parsedLibrary.path, a);
-    expect(parsedLibrary.uri, Uri.parse('package:test/a.dart'));
-    expect(parsedLibrary.units, hasLength(3));
-
-    {
-      var aUnit = parsedLibrary.units![0];
-      expect(aUnit.path, a);
-      expect(aUnit.uri, Uri.parse('package:test/a.dart'));
-      expect(aUnit.unit.declarations, hasLength(1));
-    }
-
-    {
-      var bUnit = parsedLibrary.units![1];
-      expect(bUnit.path, b);
-      expect(bUnit.uri, Uri.parse('package:test/b.dart'));
-      expect(bUnit.unit.declarations, hasLength(2));
-    }
-
-    {
-      var cUnit = parsedLibrary.units![2];
-      expect(cUnit.path, c);
-      expect(cUnit.uri, Uri.parse('package:test/c.dart'));
-      expect(cUnit.unit.declarations, hasLength(3));
-    }
-  }
-
-  @deprecated
-  test_getParsedLibraryByElement() async {
-    newFile(testPath, content: '');
-
-    var libraryResult = await session.getLibraryByUriValid(
-      'package:test/test.dart',
-    );
-    var element = libraryResult.element;
-
-    var parsedLibrary = session.getParsedLibraryByElement(element);
-    expect(parsedLibrary.session, session);
-    expect(parsedLibrary.path, testPath);
-    expect(parsedLibrary.uri, Uri.parse('package:test/test.dart'));
-    expect(parsedLibrary.units, hasLength(1));
-  }
-
   test_getParsedLibraryByElement2() async {
     newFile(testPath, content: '');
 
@@ -677,37 +419,6 @@ class C3 {}
 
     var result = aaaSession.getParsedLibraryByElement2(element);
     expect(result, isA<NotElementOfThisSessionResult>());
-  }
-
-  @deprecated
-  test_getParsedLibraryByElement_differentSession() async {
-    newFile(testPath, content: '');
-
-    var libraryResult = await session.getLibraryByUriValid(
-      'package:test/test.dart',
-    );
-    var element = libraryResult.element;
-
-    var aaaSession =
-        contextCollection.contextFor(aaaContextPath).currentSession;
-
-    expect(() {
-      aaaSession.getParsedLibraryByElement(element);
-    }, throwsArgumentError);
-  }
-
-  @deprecated
-  test_getParsedUnit() async {
-    newFile(testPath, content: r'''
-class A {}
-class B {}
-''');
-
-    var unitResult = session.getParsedUnit(testPath);
-    expect(unitResult.session, session);
-    expect(unitResult.path, testPath);
-    expect(unitResult.uri, Uri.parse('package:test/test.dart'));
-    expect(unitResult.unit.declarations, hasLength(2));
   }
 
   test_getParsedUnit2() async {
@@ -865,29 +576,6 @@ part 'c.dart';
     );
   }
 
-  @deprecated
-  test_getResolvedLibrary_notLibrary() async {
-    newFile(testPath, content: 'part of "a.dart";');
-
-    expect(() async {
-      await session.getResolvedLibrary(testPath);
-    }, throwsArgumentError);
-  }
-
-  @deprecated
-  test_getResolvedLibraryByElement() async {
-    newFile(testPath, content: '');
-
-    var element = await session.getLibraryByUri('package:test/test.dart');
-
-    var resolvedLibrary = await session.getResolvedLibraryByElement(element);
-    expect(resolvedLibrary.session, session);
-    expect(resolvedLibrary.path, testPath);
-    expect(resolvedLibrary.uri, Uri.parse('package:test/test.dart'));
-    expect(resolvedLibrary.units, hasLength(1));
-    expect(resolvedLibrary.units![0].unit!.declaredElement, isNotNull);
-  }
-
   test_getResolvedLibraryByElement2() async {
     newFile(testPath, content: '');
 
@@ -919,36 +607,6 @@ part 'c.dart';
     expect(result, isA<NotElementOfThisSessionResult>());
   }
 
-  @deprecated
-  test_getResolvedLibraryByElement_differentSession() async {
-    newFile(testPath, content: '');
-
-    var element = await session.getLibraryByUri('package:test/test.dart');
-
-    var aaaSession =
-        contextCollection.contextFor(aaaContextPath).currentSession;
-
-    expect(() async {
-      await aaaSession.getResolvedLibraryByElement(element);
-    }, throwsArgumentError);
-  }
-
-  @deprecated
-  test_getResolvedUnit() async {
-    newFile(testPath, content: r'''
-class A {}
-class B {}
-''');
-
-    var unitResult = await session.getResolvedUnit(testPath);
-    expect(unitResult.session, session);
-    expect(unitResult.path, testPath);
-    expect(unitResult.uri, Uri.parse('package:test/test.dart'));
-    expect(unitResult.unit!.declarations, hasLength(2));
-    expect(unitResult.typeProvider, isNotNull);
-    expect(unitResult.libraryElement, isNotNull);
-  }
-
   test_getResolvedUnit2() async {
     newFile(testPath, content: r'''
 class A {}
@@ -963,39 +621,6 @@ class B {}
     expect(unitResult.unit!.declarations, hasLength(2));
     expect(unitResult.typeProvider, isNotNull);
     expect(unitResult.libraryElement, isNotNull);
-  }
-
-  @deprecated
-  test_getSourceKind() async {
-    newFile(testPath, content: 'class C {}');
-
-    var kind = await session.getSourceKind(testPath);
-    expect(kind, SourceKind.LIBRARY);
-  }
-
-  @deprecated
-  test_getSourceKind_part() async {
-    newFile(testPath, content: 'part of "a.dart";');
-
-    var kind = await session.getSourceKind(testPath);
-    expect(kind, SourceKind.PART);
-  }
-
-  @deprecated
-  test_getUnitElement() async {
-    newFile(testPath, content: r'''
-class A {}
-class B {}
-''');
-
-    var unitResult = await session.getUnitElement(testPath);
-    expect(unitResult.session, session);
-    expect(unitResult.path, testPath);
-    expect(unitResult.uri, Uri.parse('package:test/test.dart'));
-    expect(unitResult.element.types, hasLength(2));
-
-    var signature = await session.getUnitElementSignature(testPath);
-    expect(unitResult.signature, signature);
   }
 
   test_getUnitElement2() async {

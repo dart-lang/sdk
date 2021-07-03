@@ -154,7 +154,7 @@ class DartObjectImpl implements DartObject {
   final TypeSystemImpl _typeSystem;
 
   @override
-  final ParameterizedType type;
+  final DartType type;
 
   /// The state of the object.
   final InstanceState _state;

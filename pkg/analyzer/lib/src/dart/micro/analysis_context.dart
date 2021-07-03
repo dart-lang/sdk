@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
 MicroContextObjects createMicroContextObjects({
@@ -178,21 +177,6 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
     return _UriConverterImpl(
       analysisContext.contextRoot.resourceProvider,
       sourceFactory,
-    );
-  }
-
-  @override
-  FileResult getFile(String path) {
-    var fileContext = analysisContext.fileResolver.getFileContext(
-      path: path,
-      performance: OperationPerformanceImpl('<default>'),
-    );
-    return FileResultImpl(
-      this,
-      path,
-      fileContext.file.uri,
-      fileContext.file.lineInfo,
-      false,
     );
   }
 

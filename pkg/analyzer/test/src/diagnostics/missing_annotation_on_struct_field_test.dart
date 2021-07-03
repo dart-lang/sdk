@@ -19,10 +19,10 @@ class MissingAnnotationOnStructFieldTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  int x;
+  external int x;
 }
 ''', [
-      error(FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, 46, 3),
+      error(FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, 55, 3),
     ]);
   }
 
@@ -30,7 +30,8 @@ class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  @Int32() int x;
+  @Int32()
+  external int x;
 }
 ''');
   }

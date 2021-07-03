@@ -7,15 +7,15 @@
 
 #include "platform/globals.h"
 // Declare the OS-specific types ahead of defining the generic class.
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
 #include "bin/socket_base_android.h"
-#elif defined(HOST_OS_FUCHSIA)
+#elif defined(DART_HOST_OS_FUCHSIA)
 #include "bin/socket_base_fuchsia.h"
-#elif defined(HOST_OS_LINUX)
+#elif defined(DART_HOST_OS_LINUX)
 #include "bin/socket_base_linux.h"
-#elif defined(HOST_OS_MACOS)
+#elif defined(DART_HOST_OS_MACOS)
 #include "bin/socket_base_macos.h"
-#elif defined(HOST_OS_WINDOWS)
+#elif defined(DART_HOST_OS_WINDOWS)
 #include "bin/socket_base_win.h"
 #else
 #error Unknown target os.
@@ -86,7 +86,8 @@ class SocketAddress {
   static intptr_t GetAddrScope(const RawAddr& addr);
 
  private:
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
+    defined(DART_HOST_OS_ANDROID)
   // Unix domain address is only on Linux, Mac OS and Android now.
   // unix(7) require sun_path to be 108 bytes on Linux and Android, 104 bytes on
   // Mac OS.
@@ -95,8 +96,8 @@ class SocketAddress {
   char as_string_[kMaxUnixPathLength];
 #else
   char as_string_[INET6_ADDRSTRLEN];
-#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                 \
-        // defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||       \
+        // defined(DART_HOST_OS_ANDROID)
   RawAddr addr_;
 
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);

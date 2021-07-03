@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 
 #include "bin/file_system_watcher.h"
 
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
 
 #include <CoreServices/CoreServices.h>  // NOLINT
 #include <errno.h>                      // NOLINT
@@ -350,7 +350,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace bin
 }  // namespace dart
 
-#else  // !HOST_OS_IOS
+#else  // !DART_HOST_OS_IOS
 
 namespace dart {
 namespace bin {
@@ -387,5 +387,5 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // !HOST_OS_IOS
-#endif  // defined(HOST_OS_MACOS)
+#endif  // !DART_HOST_OS_IOS
+#endif  // defined(DART_HOST_OS_MACOS)

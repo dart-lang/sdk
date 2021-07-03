@@ -2816,13 +2816,9 @@ main() {}
       if (!unbounded.isNull) {
         expect(bounded.isNull, true);
         assertType(unbounded.type, 'Unbounded<dynamic>');
-        expect(unbounded.type!.typeArguments, hasLength(1));
-        expect(unbounded.type!.typeArguments[0].isDynamic, isTrue);
       } else {
         expect(unbounded.isNull, true);
         assertType(bounded.type, 'Bounded<String>');
-        expect(bounded.type!.typeArguments, hasLength(1));
-        assertType(bounded.type!.typeArguments[0], 'String');
       }
     });
   }

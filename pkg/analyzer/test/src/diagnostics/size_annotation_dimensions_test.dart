@@ -21,7 +21,7 @@ import 'dart:ffi';
 
 class C extends Struct {
   @Array(8, 8)
-  Array<Array<Array<Uint8>>> a0;
+  external Array<Array<Array<Uint8>>> a0;
 }
 ''', [
       error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 47, 12),
@@ -34,7 +34,7 @@ import 'dart:ffi';
 
 class C extends Struct {
   @Array(8, 8, 8)
-  Array<Array<Uint8>> a0;
+  external Array<Array<Uint8>> a0;
 }
 ''', [
       error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 47, 15),
@@ -47,7 +47,7 @@ import 'dart:ffi';
 
 class C extends Struct {
   @Array.multi([8, 8])
-  Array<Array<Array<Uint8>>> a0;
+  external Array<Array<Array<Uint8>>> a0;
 }
 ''', [
       error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 47, 20),
@@ -60,7 +60,7 @@ import 'dart:ffi';
 
 class C extends Struct {
   @Array(8, 8)
-  Array<Array<Uint8>> a0;
+  external Array<Array<Uint8>> a0;
 }
 ''');
   }

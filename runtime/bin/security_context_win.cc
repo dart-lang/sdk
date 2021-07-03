@@ -5,7 +5,7 @@
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 
 #include "bin/security_context.h"
 
@@ -20,7 +20,7 @@
 #include "bin/secure_socket_utils.h"
 #include "platform/syslog.h"
 
-#ifndef TARGET_OS_WINDOWS_UWP
+#ifndef DART_TARGET_OS_WINDOWS_UWP
 #pragma comment(lib, "crypt32.lib")
 #endif
 
@@ -42,7 +42,7 @@ static void PrintSSLErr(const char* str) {
   Syslog::PrintErr("%s %s\n", str, error_string);
 }
 
-#ifndef TARGET_OS_WINDOWS_UWP
+#ifndef DART_TARGET_OS_WINDOWS_UWP
 static bool AddCertificatesFromNamedSystemStore(const wchar_t* name,
                                                 DWORD store_type,
                                                 X509_STORE* store) {
@@ -158,13 +158,13 @@ static bool AddCertificatesFromSystemStore(DWORD store_type,
   }
   return true;
 }
-#endif  // ifdef TARGET_OS_WINDOWS_UWP
+#endif  // ifdef DART_TARGET_OS_WINDOWS_UWP
 
 // Add certificates from Windows trusted root store.
 static bool AddCertificatesFromRootStore(X509_STORE* store) {
 // The UWP platform doesn't support CertEnumCertificatesInStore hence
 // this function cannot work when compiled in UWP mode.
-#ifdef TARGET_OS_WINDOWS_UWP
+#ifdef DART_TARGET_OS_WINDOWS_UWP
   return false;
 #else
   if (!AddCertificatesFromSystemStore(CERT_SYSTEM_STORE_CURRENT_USER, store)) {
@@ -176,7 +176,7 @@ static bool AddCertificatesFromRootStore(X509_STORE* store) {
   }
 
   return true;
-#endif  // ifdef TARGET_OS_WINDOWS_UWP
+#endif  // ifdef DART_TARGET_OS_WINDOWS_UWP
 }
 
 void SSLCertContext::TrustBuiltinRoots() {
@@ -226,6 +226,6 @@ TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() const {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS)
 
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

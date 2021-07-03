@@ -23,7 +23,7 @@ const EIGHT = 8;
 
 class Struct8BytesInlineArrayInt extends Struct {
   @Array(EIGHT)
-  Array<Uint8> a0;
+  external Array<Uint8> a0;
 }
 ''');
   }
@@ -34,7 +34,7 @@ import 'dart:ffi';
 
 class C extends Struct {
   @Array(8)
-  Array<Uint8> a0;
+  external Array<Uint8> a0;
 }
 ''');
   }
@@ -46,7 +46,7 @@ import 'dart:ffi';
 class C extends Struct {
   @Array(8)
   @Array(8)
-  Array<Uint8> a0;
+  external Array<Uint8> a0;
 }
 ''', [
       error(FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY, 59, 9),

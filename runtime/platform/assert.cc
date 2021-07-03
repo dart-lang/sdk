@@ -8,9 +8,9 @@
 #include "platform/globals.h"
 #include "platform/syslog.h"
 
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
 extern "C" __attribute__((weak)) void android_set_abort_message(const char*);
-#endif  // defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_ANDROID)
 
 namespace dart {
 
@@ -36,11 +36,11 @@ void DynamicAssertionHelper::Print(const char* format,
 
   // Print the buffer on stderr and/or syslog.
   Syslog::PrintErr("%s\n", buffer);
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
   if (will_abort && (&android_set_abort_message != nullptr)) {
     android_set_abort_message(buffer);
   }
-#endif  // defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_ANDROID)
 }
 
 void Assert::Fail(const char* format, ...) {

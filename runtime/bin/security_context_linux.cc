@@ -5,7 +5,7 @@
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX)
 
 #include "bin/security_context.h"
 
@@ -83,6 +83,6 @@ TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() const {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX)
 
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

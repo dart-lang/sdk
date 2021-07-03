@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if !defined(HOST_OS_MACOS)
+#if !defined(DART_HOST_OS_MACOS)
 #include "vm/cpuid.h"
 
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 // GetCpuId() on Windows, __get_cpuid() on Linux
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 #include <intrin.h>  // NOLINT
 #else
 #include <cpuid.h>  // NOLINT
@@ -28,7 +28,7 @@ const char* CpuId::brand_string_ = nullptr;
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 
 void CpuId::GetCpuId(int32_t level, uint32_t info[4]) {
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   // The documentation for __cpuid is at:
   // http://msdn.microsoft.com/en-us/library/hskdteyh(v=vs.90).aspx
   __cpuid(reinterpret_cast<int*>(info), level);
@@ -127,4 +127,4 @@ const char* CpuId::field(CpuInfoIndices idx) {
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 }  // namespace dart
 
-#endif  // !defined(HOST_OS_MACOS)
+#endif  // !defined(DART_HOST_OS_MACOS)

@@ -45,12 +45,6 @@ class EnclosedScope implements Scope {
     return _parent.lookup(id);
   }
 
-  @Deprecated('Use lookup() instead')
-  @override
-  ScopeLookupResult lookup2(String id) {
-    return lookup(id);
-  }
-
   void _addGetter(Element element) {
     _addTo(_getters, element);
   }
@@ -199,12 +193,6 @@ class PrefixScope implements Scope {
     return ScopeLookupResult(getter, setter);
   }
 
-  @Deprecated('Use lookup() instead')
-  @override
-  ScopeLookupResult lookup2(String id) {
-    return lookup(id);
-  }
-
   void _add(Element element) {
     if (element is PropertyAccessorElement && element.isSetter) {
       _addTo(map: _setters, element: element);
@@ -305,11 +293,5 @@ class _LibraryImportScope implements Scope {
   @override
   ScopeLookupResult lookup(String id) {
     return _nullPrefixScope.lookup(id);
-  }
-
-  @Deprecated('Use lookup() instead')
-  @override
-  ScopeLookupResult lookup2(String id) {
-    return lookup(id);
   }
 }

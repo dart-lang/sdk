@@ -99,7 +99,7 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 
 // Aliases.
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   FP = R7,
   NOTFP = R11,
 #else
@@ -505,7 +505,7 @@ const RegList kAllCpuRegistersList = 0xFFFF;
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 const RegList kAbiPreservedCpuRegs =
     (1 << R4) | (1 << R5) | (1 << R6) | (1 << R8) | (1 << R10) | (1 << R11);
 const int kAbiPreservedCpuRegCount = 6;
@@ -532,7 +532,7 @@ const intptr_t kStoreBufferWrapperSize = 24;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 const int kDartVolatileCpuRegCount = 6;
 #else
 const int kDartVolatileCpuRegCount = 5;
@@ -572,7 +572,7 @@ class CallingConventions {
       kAlignedToWordSizeBut8AlignedTo8;
 
   // How fields in compounds are aligned.
-#if defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS_IOS)
   static constexpr AlignmentStrategy kFieldAlignment =
       kAlignedToValueSizeBut8AlignedTo4;
 #else

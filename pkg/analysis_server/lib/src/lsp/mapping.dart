@@ -1166,8 +1166,8 @@ lsp.Position toPosition(server.CharacterLocation location) {
 }
 
 lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
-  final start = lineInfo.getLocation(offset) as server.CharacterLocation;
-  final end = lineInfo.getLocation(offset + length) as server.CharacterLocation;
+  final start = lineInfo.getLocation(offset);
+  final end = lineInfo.getLocation(offset + length);
 
   return lsp.Range(
     start: toPosition(start),

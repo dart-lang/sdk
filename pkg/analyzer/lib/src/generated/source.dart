@@ -92,24 +92,6 @@ class DartUriResolver extends UriResolver {
   static bool isDartUri(Uri uri) => DART_SCHEME == uri.scheme;
 }
 
-/// Instances of the class `Location` represent the location of a character as a
-/// line and column pair.
-@deprecated
-class LineInfo_Location {
-  /// The one-based index of the line containing the character.
-  final int lineNumber;
-
-  /// The one-based index of the column containing the character.
-  final int columnNumber;
-
-  /// Initialize a newly created location to represent the location of the
-  /// character at the given [lineNumber] and [columnNumber].
-  LineInfo_Location(this.lineNumber, this.columnNumber);
-
-  @override
-  String toString() => '$lineNumber:$columnNumber';
-}
-
 /// An implementation of an non-existing [Source].
 class NonExistingSource extends Source {
   static final unknown = NonExistingSource(

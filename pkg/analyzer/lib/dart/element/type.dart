@@ -194,11 +194,7 @@ abstract class DynamicType implements DartType {}
 ///   T<sub>xk</sub> xk}) &rarr; T</i>.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionType implements ParameterizedType {
-  @Deprecated('Use aliasElement instead')
-  @override
-  FunctionTypedElement? get element;
-
+abstract class FunctionType implements DartType {
   /// Return a map from the names of named parameters to the types of the named
   /// parameters of this type of function. The entries in the map will be
   /// iterated in the same order as the order in which the named parameters were
@@ -233,10 +229,6 @@ abstract class FunctionType implements ParameterizedType {
 
   /// Return the type of object returned by this type of function.
   DartType get returnType;
-
-  @Deprecated('Use aliasArguments instead')
-  @override
-  List<DartType> get typeArguments;
 
   /// The formal type parameters of this generic function.
   /// For example `<T> T -> T`.

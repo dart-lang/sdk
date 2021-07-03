@@ -405,11 +405,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// compilation unit.
   List<FunctionElement> get functions;
 
-  /// Return a list containing all of the function type aliases contained in
-  /// this compilation unit.
-  @Deprecated('Use typeAliases instead')
-  List<FunctionTypeAliasElement> get functionTypeAliases;
-
   /// Return `true` if this compilation unit defines a top-level function named
   /// `loadLibrary`.
   @Deprecated('Not useful for clients')
@@ -1034,9 +1029,6 @@ abstract class ElementVisitor<R> {
 
   R? visitFunctionElement(FunctionElement element);
 
-  @Deprecated('Override visitTypeAliasElement() instead')
-  R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
-
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element);
 
   R? visitImportElement(ImportElement element);
@@ -1230,31 +1222,6 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// Return `true` if the function is an entry point, i.e. a top-level function
   /// and has the name `main`.
   bool get isEntryPoint;
-}
-
-/// A function type alias (`typedef`).
-///
-/// This class models a type alias whose body specifies a function type, as
-/// is the only possible kind of type alias before the generalization that
-/// allows the body to be an arbitrary type.
-///
-/// This class will be deprecated and [TypeAliasElement] will replace it
-/// when non-function type aliases are enabled by default.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TypeAliasElement instead')
-abstract class FunctionTypeAliasElement implements TypeAliasElement {
-  /// Return the generic function type element representing the generic function
-  /// type on the right side of the equals.
-  @Deprecated('Use aliasedElement instead')
-  GenericFunctionTypeElement get function;
-
-  @Deprecated('Use TypeAliasElement instead')
-  @override
-  FunctionType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  });
 }
 
 /// An element that has a [FunctionType] as its [type].

@@ -39,6 +39,7 @@ abstract class A {
 class B extends A {
   existing() {}
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 ''');
