@@ -1,3 +1,9 @@
+## 1.6.0
+
+* Remove `TargetKindExtension`. Adding it was a breaking change, because there
+  are clients, e.g. `analyze 1.7.0`, that also declare an extension on
+  `TargetKind`, and also declare `get displayString`. This causes a conflict.
+
 ## 1.5.0
 
 * Add `TargetKindExtension.displayString`.
