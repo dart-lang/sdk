@@ -168,7 +168,8 @@ class BulkFixProcessor {
     for (var context in contexts) {
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       for (var path in context.contextRoot.analyzedFiles()) {
-        if (!file_paths.isDart(pathContext, path)) {
+        if (!file_paths.isDart(pathContext, path) ||
+            file_paths.isGenerated(path)) {
           continue;
         }
         var library = await context.currentSession.getResolvedLibrary2(path);
