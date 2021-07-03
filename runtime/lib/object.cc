@@ -308,11 +308,6 @@ DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
-  DeoptimizeFunctionsOnStack();
-  return Object::null();
-}
-
 static bool ExtractInterfaceTypeArgs(Zone* zone,
                                      const Class& instance_cls,
                                      const TypeArguments& instance_type_args,
