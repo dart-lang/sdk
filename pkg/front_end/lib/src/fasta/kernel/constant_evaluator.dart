@@ -712,7 +712,8 @@ class ConstantsTransformer extends RemovingTransformer {
   TreeNode visitInstantiation(Instantiation node, TreeNode? removalSentinel) {
     Instantiation result =
         super.visitInstantiation(node, removalSentinel) as Instantiation;
-    if (result.expression is ConstantExpression &&
+    if (enableConstructorTearOff &&
+        result.expression is ConstantExpression &&
         result.typeArguments.every(isInstantiated)) {
       return evaluateAndTransformWithContext(node, result);
     }

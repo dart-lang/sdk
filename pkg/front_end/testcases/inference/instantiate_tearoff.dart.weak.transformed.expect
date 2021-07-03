@@ -36,16 +36,19 @@ static method test() → void {
   function h<T extends core::Object* = dynamic>(T* x) → T*
     return x;
   (core::int*) →* core::int* func;
-  func = #C2;
+  func = #C1<core::int*>;
   func = new self::C::•().{self::C::f}{<T extends core::Object* = dynamic>(T*) →* T*}<core::int*>;
-  func = #C4;
+  func = #C2<core::int*>;
   func = h<core::int*>;
 }
 static method main() → dynamic {}
 
 constants  {
   #C1 = tearoff self::f
-  #C2 = partial-instantiation self::f <core::int*>
-  #C3 = tearoff self::C::g
-  #C4 = partial-instantiation self::C::g <core::int*>
+  #C2 = tearoff self::C::g
 }
+
+Extra constant evaluation status:
+Evaluated: Instantiation @ org-dartlang-testcase:///instantiate_tearoff.dart:25:10 -> InstantiationConstant(f<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///instantiate_tearoff.dart:27:12 -> InstantiationConstant(C.g<int*>)
+Extra constant evaluation: evaluated: 18, effectively constant: 2
