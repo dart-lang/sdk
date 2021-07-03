@@ -1,3 +1,7 @@
+## 2.0.0
+
+* Restore `TargetKindExtension` and `get displayString`.
+
 ## 1.6.0
 
 * Remove `TargetKindExtension`. Adding it was a breaking change, because there
