@@ -4,7 +4,7 @@
 
 /// The set of constants and utilities to check file paths.
 ///
-/// The recommended import prefix in `file_paths`.
+/// The recommended import prefix is `file_paths`.
 import 'package:path/path.dart' as p;
 
 /// The file name used for analysis options files.
@@ -68,6 +68,26 @@ bool isDotPackages(p.Context pathContext, String path) {
 /// Such files specify data-driven fixes.
 bool isFixDataYaml(p.Context pathContext, String path) {
   return pathContext.basename(path) == fixDataYaml;
+}
+
+/// Return `true` if the given [path] refers to a file that is assumed to be
+/// generated.
+bool isGenerated(String path) {
+  // TODO(brianwilkerson) Generalize this mechanism.
+  const List<String> suffixes = <String>[
+    '.g.dart',
+    '.pb.dart',
+    '.pbenum.dart',
+    '.pbserver.dart',
+    '.pbjson.dart',
+    '.template.dart'
+  ];
+  for (var suffix in suffixes) {
+    if (path.endsWith(suffix)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /// Return `true` if [path] is a `.dart_tool/package_config.json` file.
