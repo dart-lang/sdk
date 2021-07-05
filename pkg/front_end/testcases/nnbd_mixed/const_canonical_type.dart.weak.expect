@@ -111,9 +111,9 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///const_canonical_type.dart:
 - A. (from org-dartlang-testcase:///const_canonical_type_lib.dart:10:9)
-- Check. (from org-dartlang-testcase:///const_canonical_type.dart:11:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Check. (from org-dartlang-testcase:///const_canonical_type.dart:11:9)
 
 org-dartlang-testcase:///const_canonical_type_lib.dart:
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - A. (from org-dartlang-testcase:///const_canonical_type_lib.dart:10:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

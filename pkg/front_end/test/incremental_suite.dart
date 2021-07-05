@@ -1000,7 +1000,9 @@ class NewWorldTest {
         }
       }
 
-      if (!noFullComponent && incrementalSerialization == true) {
+      if (!noFullComponent &&
+          (incrementalSerialization == true ||
+              world["compareWithFromScratch"] == true)) {
         // Do compile from scratch and compare.
         clearPrevErrorsEtc();
         TestIncrementalCompiler compilerFromScratch;
@@ -1036,9 +1038,12 @@ class NewWorldTest {
         await util.throwOnInsufficientUriToSource(component3);
         print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
-        util.postProcess(component3);
+        List<int> thisWholeComponent = util.postProcess(component3);
         print("*****\n\ncomponent3:\n"
             "${componentToStringSdkFiltered(component3)}\n\n\n");
+        if (world["compareWithFromScratch"] == true) {
+          checkIsEqual(newestWholeComponentData, thisWholeComponent);
+        }
         checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
             prevFormattedWarnings, formattedWarnings);
 

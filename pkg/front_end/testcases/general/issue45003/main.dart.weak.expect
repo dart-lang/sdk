@@ -51,9 +51,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///main.dart:
 - Bar. (from org-dartlang-testcase:///bar_lib.dart:8:9)
-
-org-dartlang-testcase:///foo_lib.dart:
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
-
-org-dartlang-testcase:///bar_lib.dart:
 - Foo. (from org-dartlang-testcase:///foo_lib.dart:10:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

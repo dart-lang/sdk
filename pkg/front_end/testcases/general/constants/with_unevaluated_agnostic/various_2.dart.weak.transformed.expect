@@ -140,7 +140,8 @@ Extra constant evaluation: evaluated: 41, effectively constant: 4
 Constructor coverage from constants:
 org-dartlang-testcase:///various_2.dart:
 - Class. (from org-dartlang-testcase:///various_2_lib.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 
 org-dartlang-testcase:///various_2_lib.dart:
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - Class. (from org-dartlang-testcase:///various_2_lib.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
