@@ -1,3 +1,8 @@
+# 1.7.1
+
+- Update `analyzer` constraint to `>=1.7.0 <3.0.0`.
+- Update `meta` constraint to `>=1.3.0 <3.0.0`.
+
 # 1.7.0
 
 - fixed case-sensitive false positive in `use_full_hex_values_for_flutter_colors`
