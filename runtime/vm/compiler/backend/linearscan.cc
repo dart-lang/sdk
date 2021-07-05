@@ -471,7 +471,7 @@ void LiveRange::Print() {
   SafepointPosition* safepoint = first_safepoint();
   while (safepoint != NULL) {
     THR_Print("    Safepoint [%" Pd "]: ", safepoint->pos());
-    safepoint->locs()->stack_bitmap()->Print();
+    safepoint->locs()->stack_bitmap().Print();
     THR_Print("\n");
     safepoint = safepoint->next();
   }
