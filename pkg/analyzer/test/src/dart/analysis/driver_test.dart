@@ -1545,6 +1545,13 @@ main() {
     expect(result.errors, isEmpty);
   }
 
+  test_getResult_dartAsyncPart() async {
+    var path = convertPath('/sdk/lib/async/stream.dart');
+    var result = await driver.getResultValid(path);
+    expect(result.path, path);
+    expect(result.unit, isNotNull);
+  }
+
   test_getResult_doesNotExist() async {
     var a = convertPath('/test/lib/a.dart');
 

@@ -239,6 +239,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// TODO(scheglov) We probably should tie it into the session.
   LibraryContext? _libraryContext;
 
+  /// Whether `dart:core` has been transitively discovered.
+  bool _hasDartCoreDiscovered = false;
+
   /// This function is invoked when the current session is about to be discarded.
   /// The argument represents the path of the resource causing the session
   /// to be discarded or `null` if there are multiple or this is unknown.
@@ -972,6 +975,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return;
     }
 
+    if (!_hasDartCoreDiscovered) {
+      _hasDartCoreDiscovered = true;
+      _discoverDartCore();
+    }
+
     // Analyze a requested file.
     if (_requestedFiles.isNotEmpty) {
       String path = _requestedFiles.keys.first;
@@ -1583,6 +1591,29 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// potentially available, so that they are included in [knownFiles].
   void _discoverAvailableFiles() {
     _discoverAvailableFilesTask ??= _DiscoverAvailableFilesTask(this);
+  }
+
+  /// When we look at a part that has a `part of name;` directive, we
+  /// usually don't know the library (in contrast to `part of uri;`).
+  /// So, we have no choice than to resolve this part as its own library.
+  /// TODO(scheglov) Maybe just return an error result instead?
+  ///
+  /// But parts of `dart:xyz` libraries are special. The reason is that
+  /// `dart:core` is always implicitly imported. So, when we start building
+  /// the library cycle of such "part as a library", we discover `dart:core`,
+  /// and see that it contains our part. So, we don't add it as a library on
+  /// its own. But have already committed that it is a library. This causes
+  /// an exception in `LinkedElementFactory`.
+  ///
+  /// The current workaround for this is to discover `dart:core` before any
+  /// analysis.
+  void _discoverDartCore() {
+    _fsState.getFileForUri(Uri.parse('dart:core')).map(
+      (file) {
+        file?.transitiveFiles;
+      },
+      (externalLibrary) {},
+    );
   }
 
   void _fillSalt() {
