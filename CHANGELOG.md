@@ -25,6 +25,10 @@
     `Object` class. These can be used to combine the hash codes of
     multiple objects in a consistent way.
 
+*   The `Symbol` constructor now accepts any string as argument.
+    Symbols are equal if they were created from the same string.
+
+
 #### `dart:ffi`
 
 *   Adds the `DynamicLibrary.providesSymbol` function to check whether a symbol
