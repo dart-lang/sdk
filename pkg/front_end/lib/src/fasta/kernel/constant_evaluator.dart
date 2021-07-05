@@ -1874,8 +1874,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           assert(_gotError == null);
           // ignore: unnecessary_null_comparison
           assert(namedArguments != null);
-          error = handleConstructorInvocation(init.target, types,
-              positionalArguments, namedArguments, constructor);
+          error = handleConstructorInvocation(
+              init.target, types, positionalArguments, namedArguments, caller);
           if (error != null) return error;
         } else if (init is RedirectingInitializer) {
           // Since a redirecting constructor targets a constructor of the same
@@ -1905,7 +1905,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           assert(namedArguments != null);
 
           error = handleConstructorInvocation(init.target, typeArguments,
-              positionalArguments, namedArguments, constructor);
+              positionalArguments, namedArguments, caller);
           if (error != null) return error;
         } else if (init is AssertInitializer) {
           AbortConstant? error = checkAssert(init.statement);
