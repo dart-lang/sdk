@@ -1,0 +1,9 @@
+NOTICE: Stream was rewritten by parser!
+
+class A {
+Stream<List<Y>> x() {}
+}
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Y[StringToken]>[SimpleToken]>[SimpleToken] x[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken][SimpleToken]
