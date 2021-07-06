@@ -752,6 +752,12 @@ class Forest {
     assert(fileOffset != null);
     return new ParenthesizedExpression(expression)..fileOffset = fileOffset;
   }
+
+  ConstructorTearOff createConstructorTearOff(
+      int fileOffset, Constructor constructor) {
+    assert(fileOffset != null);
+    return new ConstructorTearOff(constructor)..fileOffset = fileOffset;
+  }
 }
 
 class _VariablesDeclaration extends Statement {

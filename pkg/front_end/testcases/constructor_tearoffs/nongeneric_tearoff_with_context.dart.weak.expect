@@ -2,13 +2,10 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart:11:27: Error: Getter not found: 'foo1'.
-// A Function() test1() => A.foo1; // Ok.
-//                           ^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart:12:27: Error: Getter not found: 'foo2'.
+// pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart:12:25: Error: A value of type 'A Function(int)' can't be returned from a function with return type 'A Function()'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart'.
 // A Function() test2() => A.foo2; // Error.
-//                           ^^^^
+//                         ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart:13:27: Error: Getter not found: 'new'.
 // A Function() test3() => A.new; // Ok.
@@ -30,13 +27,12 @@ class A extends core::Object {
     : super core::Object::•() {}
 }
 static method test1() → () → self::A
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart:11:27: Error: Getter not found: 'foo1'.
-A Function() test1() => A.foo1; // Ok.
-                          ^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} () → self::A;
+  return self::A::foo1;
 static method test2() → () → self::A
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart:12:27: Error: Getter not found: 'foo2'.
+  return let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart:12:25: Error: A value of type 'A Function(int)' can't be returned from a function with return type 'A Function()'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart'.
 A Function() test2() => A.foo2; // Error.
-                          ^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} () → self::A;
+                        ^" in self::A::foo2 as{TypeError,ForNonNullableByDefault} () → self::A;
 static method test3() → () → self::A
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_with_context.dart:13:27: Error: Getter not found: 'new'.
 A Function() test3() => A.new; // Ok.

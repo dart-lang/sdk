@@ -2,14 +2,6 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:10:35: Error: Getter not found: 'foo'.
-// A<num> Function(num) test1() => A.foo; // Ok.
-//                                   ^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:11:35: Error: Getter not found: 'foo'.
-// A<int> Function(int) test2() => A.foo; // Ok.
-//                                   ^^^
-//
 // pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:12:35: Error: Getter not found: 'new'.
 // A<num> Function(num) test3() => A.new; // Ok.
 //                                   ^^^
@@ -18,17 +10,18 @@ library /*isNonNullableByDefault*/;
 // A<int> Function(int) test4() => A.new; // Ok.
 //                                   ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:15:42: Error: Getter not found: 'foo'.
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:15:40: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/instantiation.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
 // A<dynamic> Function(String) test5() => A.foo; // Error.
-//                                          ^^^
+//                                        ^
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends num> {
+//         ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:16:42: Error: Getter not found: 'new'.
 // A<dynamic> Function(String) test6() => A.new; // Error.
 //                                          ^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:17:44: Error: Getter not found: 'foo'.
-// A<dynamic> Function(num) test7() => A<num>.foo; // Error.
-//                                            ^^^
 //
 // pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:18:44: Error: Getter not found: 'new'.
 // A<dynamic> Function(num) test8() => A<num>.new; // Error.
@@ -44,13 +37,9 @@ class A<X extends core::num> extends core::Object {
     : super core::Object::•() {}
 }
 static method test1() → (core::num) → self::A<core::num>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:10:35: Error: Getter not found: 'foo'.
-A<num> Function(num) test1() => A.foo; // Ok.
-                                  ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::num) → self::A<core::num>;
+  return self::A::foo<core::num>;
 static method test2() → (core::int) → self::A<core::int>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:11:35: Error: Getter not found: 'foo'.
-A<int> Function(int) test2() => A.foo; // Ok.
-                                  ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::int) → self::A<core::int>;
+  return self::A::foo<core::int>;
 static method test3() → (core::num) → self::A<core::num>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:12:35: Error: Getter not found: 'new'.
 A<num> Function(num) test3() => A.new; // Ok.
@@ -60,17 +49,13 @@ static method test4() → (core::int) → self::A<core::int>
 A<int> Function(int) test4() => A.new; // Ok.
                                   ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::int) → self::A<core::int>;
 static method test5() → (core::String) → self::A<dynamic>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:15:42: Error: Getter not found: 'foo'.
-A<dynamic> Function(String) test5() => A.foo; // Error.
-                                         ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::String) → self::A<dynamic>;
+  return self::A::foo<core::String>;
 static method test6() → (core::String) → self::A<dynamic>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:16:42: Error: Getter not found: 'new'.
 A<dynamic> Function(String) test6() => A.new; // Error.
                                          ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::String) → self::A<dynamic>;
 static method test7() → (core::num) → self::A<dynamic>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:17:44: Error: Getter not found: 'foo'.
-A<dynamic> Function(num) test7() => A<num>.foo; // Error.
-                                           ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::num) → self::A<dynamic>;
+  return self::A::foo<core::num>;
 static method test8() → (core::num) → self::A<dynamic>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:18:44: Error: Getter not found: 'new'.
 A<dynamic> Function(num) test8() => A<num>.new; // Error.

@@ -452,6 +452,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return libraryBuilder.enableConstFunctionsInLibrary;
   }
 
+  @override
+  bool get enableConstructorTearOffsInLibrary {
+    return libraryBuilder.enableConstructorTearOffsInLibrary;
+  }
+
   void _enterLocalState({bool inLateLocalInitializer: false}) {
     _localInitializerState =
         _localInitializerState.prepend(inLateLocalInitializer);
