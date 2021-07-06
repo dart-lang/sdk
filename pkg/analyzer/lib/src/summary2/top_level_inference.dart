@@ -46,7 +46,7 @@ class ConstantInitializersResolver {
         unit.extensions.forEach(_resolveExtensionFields);
         unit.mixins.forEach(_resolveClassFields);
 
-        _scope = builder.scope;
+        _scope = builder.element.scope;
         unit.topLevelVariables.forEach(_resolveVariable);
       }
     }
@@ -338,7 +338,7 @@ class _InitializerInference {
         unit.extensions.forEach(_addExtensionElementFields);
         unit.mixins.forEach(_addClassElementFields);
 
-        _scope = builder.scope;
+        _scope = builder.element.scope;
         for (var element in unit.topLevelVariables) {
           _addVariableNode(element);
         }
