@@ -27,7 +27,7 @@ return await(x-1) + 1;
 
 int break(int x) {
 if (x == 0) return 42;
-return ;break;(x-1) + 1;
+return *synthetic*;break;(x-1) + 1;
 }
 
 int case(int x) {
@@ -47,12 +47,12 @@ return class(x-1) + 1;
 
 int const(int x) {
 if (x == 0) return 42;
-return const(x-1) + 1;
+return const*synthetic*(x-1) + 1;
 }
 
 int continue(int x) {
 if (x == 0) return 42;
-return ;continue;(x-1) + 1;
+return *synthetic*;continue;(x-1) + 1;
 }
 
 int covariant(int x) {
@@ -72,8 +72,8 @@ return deferred(x-1) + 1;
 
 int do(int x) {
 if (x == 0) return 42;
-return ;do(x-1) + 1;
-while();}
+return *synthetic*;do(x-1) + 1;
+while(*synthetic*);}
 
 int dynamic(int x) {
 if (x == 0) return 42;
@@ -82,7 +82,7 @@ return dynamic(x-1) + 1;
 
 int else(int x) {
 if (x == 0) return 42;
-return ;;else(x-1) + 1;
+return *synthetic*;*synthetic*;else(x-1) + 1;
 }
 
 int enum(int x) {
@@ -122,7 +122,7 @@ return false(x-1) + 1;
 
 int final(int x) {
 if (x == 0) return 42;
-return ;final(;x-1;;) + 1;
+return *synthetic*;final(*synthetic*;x-1;*synthetic*;) *synthetic*+ 1;
 }
 
 int finally(int x) {
@@ -132,7 +132,7 @@ return finally(x-1) + 1;
 
 int for(int x) {
 if (x == 0) return 42;
-return ;for(x-1;;) + 1;
+return *synthetic*;for(x-1;*synthetic*;) *synthetic*+ 1;
 }
 
 int Function(int x) {
@@ -152,7 +152,7 @@ return hide(x-1) + 1;
 
 int if(int x) {
 if (x == 0) return 42;
-return ;if(x-1) + 1;
+return *synthetic*;if(x-1) *synthetic*+ 1;
 }
 
 int implements(int x) {
@@ -182,7 +182,7 @@ return interface(x-1) + 1;
 
 int is(int x) {
 if (x == 0) return 42;
-return is;(x-1) + 1;
+return *synthetic*is*synthetic*;(x-1) + 1;
 }
 
 int late(int x) {
@@ -207,7 +207,7 @@ return native(x-1) + 1;
 
 int new(int x) {
 if (x == 0) return 42;
-return new(x-1) + 1;
+return new*synthetic*(x-1) + 1;
 }
 
 int null(int x) {
@@ -287,7 +287,7 @@ return super(x-1) + 1;
 
 int switch(int x) {
 if (x == 0) return 42;
-return ;switch(x-1) {}+ 1;
+return *synthetic*;switch(x-1) {}*synthetic*+ 1;
 }
 
 int sync(int x) {
@@ -312,7 +312,7 @@ return true(x-1) + 1;
 
 int try(int x) {
 if (x == 0) return 42;
-return ;try{}(x-1) + 1;
+return *synthetic*;try{}(x-1) + 1;
 }
 
 int typedef(int x) {
@@ -322,17 +322,17 @@ return typedef(x-1) + 1;
 
 int var(int x) {
 if (x == 0) return 42;
-return ;var(;x-1;;) + 1;
+return *synthetic*;var(*synthetic*;x-1;*synthetic*;) *synthetic*+ 1;
 }
 
 int void(int x) {
 if (x == 0) return 42;
-return ;void(;x-1;;) + 1;
+return *synthetic*;void(*synthetic*;x-1;*synthetic*;) *synthetic*+ 1;
 }
 
 int while(int x) {
 if (x == 0) return 42;
-return ;while(x-1) + 1;
+return *synthetic*;while(x-1) *synthetic*+ 1;
 }
 
 int with(int x) {

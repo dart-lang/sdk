@@ -131,7 +131,7 @@ typedef typedef = void Function();
 typedef void var();
 typedef var = void Function();
 typedef void void();
-typedef void ();= void Function();
+typedef void *synthetic*();= void Function();
 typedef void while();
 typedef while = void Function();
 typedef void with();

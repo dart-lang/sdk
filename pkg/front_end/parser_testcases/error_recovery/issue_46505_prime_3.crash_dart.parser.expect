@@ -1,7 +1,7 @@
 NOTICE: Stream was rewritten by parser!
 
 class A {
-Stream<List<Set<>>>
+Stream<List<Set<*synthetic*>>>
 (){}}
 
 class[KeywordToken] A[StringToken] {[BeginToken]

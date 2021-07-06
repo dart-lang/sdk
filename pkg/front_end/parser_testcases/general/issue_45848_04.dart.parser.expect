@@ -3,7 +3,7 @@ NOTICE: Stream was rewritten by parser!
 void f<T>() {}
 
 void m() {
-f<>();
+f<*synthetic*>();
 }
 
 void[KeywordToken] f[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]

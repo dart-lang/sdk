@@ -5,7 +5,7 @@ C.new();
 
 
 
-C.constructor_field_initializer() : =this.{}new operator= (){}null;
+C.constructor_field_initializer() : *synthetic*=this.*synthetic*{}new operator= (){}null;
 }
 
 class D {

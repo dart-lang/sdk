@@ -10,7 +10,7 @@ void good() {
 void bad() {
 [
 (
-])
+*synthetic*])
 ];
 }
 
