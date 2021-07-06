@@ -4,7 +4,7 @@ f() {
 var a, b;
 
 a?.call(b);
-a?(b):;
+a?(b):*synthetic*;
 }
 
 f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
