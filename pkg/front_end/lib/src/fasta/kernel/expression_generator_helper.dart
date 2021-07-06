@@ -66,6 +66,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool get enableConstFunctionsInLibrary;
 
+  bool get enableConstructorTearOffsInLibrary;
+
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
 

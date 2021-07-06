@@ -68,10 +68,6 @@ library /*isNonNullableByDefault*/;
 //   var f1 = A.new;
 //              ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:28:14: Error: Getter not found: 'new'.
-//   var f1 = A.new;
-//              ^^^
-//
 // pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:29:14: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
 // Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
 //   var f2 = B.new;
@@ -83,10 +79,6 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:30:14: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
 // Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-//   var f3 = C.new;
-//              ^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:30:14: Error: Getter not found: 'new'.
 //   var f3 = C.new;
 //              ^^^
 //
@@ -104,10 +96,6 @@ library /*isNonNullableByDefault*/;
 //   A Function() g1 = A.new;
 //                       ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:37:23: Error: Getter not found: 'new'.
-//   A Function() g1 = A.new;
-//                       ^^^
-//
 // pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:38:23: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
 // Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
 //   B Function() g2 = B.new;
@@ -119,10 +107,6 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:39:28: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
 // Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-//   C Function(int x) g3 = C.new;
-//                            ^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:39:28: Error: Getter not found: 'new'.
 //   C Function(int x) g3 = C.new;
 //                            ^^^
 //
@@ -179,31 +163,23 @@ static method test() → dynamic {
     ^^^";
   #C2;
   new self::C::new(1);
-  dynamic f1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:28:14: Error: Getter not found: 'new'.
-  var f1 = A.new;
-             ^^^";
+  () → self::A f1 = self::A::new;
   dynamic f2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:29:14: Error: Getter not found: 'new'.
   var f2 = B.new;
              ^^^";
-  dynamic f3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:30:14: Error: Getter not found: 'new'.
-  var f3 = C.new;
-             ^^^";
+  (core::int) → self::C f3 = self::C::new;
   dynamic f4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:31:14: Error: Getter not found: 'new'.
   var f4 = D.new;
              ^^^";
-  f1{dynamic}.call();
+  f1(){() → self::A};
   f2{dynamic}.call();
-  f3{dynamic}.call(1);
+  f3(1){(core::int) → self::C};
   f4{dynamic}.call(1);
-  () → self::A g1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:37:23: Error: Getter not found: 'new'.
-  A Function() g1 = A.new;
-                      ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} () → self::A;
+  () → self::A g1 = self::A::new;
   () → self::B g2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:38:23: Error: Getter not found: 'new'.
   B Function() g2 = B.new;
                       ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} () → self::B;
-  (core::int) → self::C g3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:39:28: Error: Getter not found: 'new'.
-  C Function(int x) g3 = C.new;
-                           ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::int) → self::C;
+  (core::int) → self::C g3 = self::C::new;
   (core::int) → self::D g4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:40:28: Error: Getter not found: 'new'.
   D Function(int x) g4 = D.new;
                            ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::int) → self::D;

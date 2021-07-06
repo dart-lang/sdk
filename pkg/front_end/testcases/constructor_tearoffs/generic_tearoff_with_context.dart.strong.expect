@@ -2,13 +2,12 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:11:34: Error: Getter not found: 'foo1'.
-// A<X> Function<X>(X) test1() => A.foo1; // Ok.
-//                                  ^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:12:34: Error: Getter not found: 'foo2'.
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:12:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*2*/' is from 'unknown'.
 // A<X> Function<X>(X) test2() => A.foo2; // Error.
-//                                  ^^^^
+//                                ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:34: Error: Getter not found: 'new'.
 // A<X> Function<X>(X) test3() => A.new; // Error.
@@ -22,21 +21,19 @@ library /*isNonNullableByDefault*/;
 // A<X> Function<X>(X) test5() => A<int, String>.new; // Error.
 //                                               ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:16:39: Error: Getter not found: 'foo1'.
-// A<X> Function<X>(X) test6() => A<int>.foo1; // Error.
-//                                       ^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:17:47: Error: Getter not found: 'foo1'.
-// A<X> Function<X>(X) test7() => A<int, String>.foo1; // Error.
-//                                               ^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:18:39: Error: Getter not found: 'foo2'.
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:18:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*2*/' is from 'unknown'.
 // A<X> Function<X>(X) test8() => A<int>.foo2; // Error.
-//                                       ^^^^
+//                                ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:19:47: Error: Getter not found: 'foo2'.
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:19:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*2*/' is from 'unknown'.
 // A<X> Function<X>(X) test9() => A<int, String>.foo2; // Error.
-//                                               ^^^^
+//                                ^
 //
 import self as self;
 import "dart:core" as core;
@@ -51,13 +48,14 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     ;
 }
 static method test1() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:11:34: Error: Getter not found: 'foo1'.
-A<X> Function<X>(X) test1() => A.foo1; // Ok.
-                                 ^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} <X extends core::Object? = dynamic>(X%) → self::A<X%>;
+  return self::A::foo1;
 static method test2() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:12:34: Error: Getter not found: 'foo2'.
+  return let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:12:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test2() => A.foo2; // Error.
-                                 ^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} <X extends core::Object? = dynamic>(X%) → self::A<X%>;
+                               ^" in self::A::foo2 as{TypeError,ForNonNullableByDefault} Never;
 static method test3() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:34: Error: Getter not found: 'new'.
 A<X> Function<X>(X) test3() => A.new; // Error.
@@ -71,19 +69,21 @@ static method test5() → <X extends core::Object? = dynamic>(X%) → self::A<X%
 A<X> Function<X>(X) test5() => A<int, String>.new; // Error.
                                               ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} <X extends core::Object? = dynamic>(X%) → self::A<X%>;
 static method test6() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:16:39: Error: Getter not found: 'foo1'.
-A<X> Function<X>(X) test6() => A<int>.foo1; // Error.
-                                      ^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} <X extends core::Object? = dynamic>(X%) → self::A<X%>;
+  return self::A::foo1;
 static method test7() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:17:47: Error: Getter not found: 'foo1'.
-A<X> Function<X>(X) test7() => A<int, String>.foo1; // Error.
-                                              ^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} <X extends core::Object? = dynamic>(X%) → self::A<X%>;
+  return self::A::foo1;
 static method test8() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:18:39: Error: Getter not found: 'foo2'.
+  return let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:18:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test8() => A<int>.foo2; // Error.
-                                      ^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} <X extends core::Object? = dynamic>(X%) → self::A<X%>;
+                               ^" in self::A::foo2 as{TypeError,ForNonNullableByDefault} Never;
 static method test9() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:19:47: Error: Getter not found: 'foo2'.
+  return let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:19:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test9() => A<int, String>.foo2; // Error.
-                                              ^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} <X extends core::Object? = dynamic>(X%) → self::A<X%>;
+                               ^" in self::A::foo2 as{TypeError,ForNonNullableByDefault} Never;
 static method main() → dynamic {}
