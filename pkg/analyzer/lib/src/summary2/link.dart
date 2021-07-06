@@ -160,10 +160,6 @@ class Linker {
     for (var library in builders.values) {
       library.storeExportScope();
     }
-
-    for (var library in builders.values) {
-      library.buildScope();
-    }
   }
 
   void _createTypeSystem() {
