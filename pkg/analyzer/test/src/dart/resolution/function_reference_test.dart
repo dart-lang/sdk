@@ -142,16 +142,69 @@ class A {
         reference, findElement.method('foo'), 'void Function(int)');
   }
 
+  test_instanceMethod_explicitReceiver_topLevelVariable() async {
+    await assertNoErrorsInCode('''
+class A {
+  void foo<T>(T a) {}
+}
+var a = A();
+
+void bar() {
+  a.foo<int>;
+}
+''');
+
+    assertIdentifierTopGetRef(findNode.simple('a.'), 'a');
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_instanceMethod_explicitReceiver_topLevelVariable_prefix() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  void foo<T>(T a) {}
+}
+var a = A();
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.a.foo<int>;
+}
+''');
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference,
+        findElement.importFind('package:test/a.dart').method('foo'),
+        'void Function(int)');
+  }
+
+  test_instanceMethod_explicitReceiver_typeParameter() async {
+    await assertErrorsInCode('''
+bar<T>() {
+  T.foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 15, 3),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
+  }
+
   test_instanceMethod_explicitReceiver_variable() async {
     await assertNoErrorsInCode('''
 class A {
   void foo<T>(T a) {}
 }
 
-class B {
-  bar(A a) {
-    a.foo<int>;
-  }
+bar(A a) {
+  a.foo<int>;
 }
 ''');
 
@@ -221,24 +274,23 @@ class A {
         reference, findElement.method('foo'), 'void Function(int)');
   }
 
-  @FailingTest(reason: 'Unresolved TODO in FunctionReferenceResolver')
   test_staticMethod_explicitReceiver() async {
     await assertNoErrorsInCode('''
 class A {
   static void foo<T>(T a) {}
+}
 
-  bar() {
-    A.foo<int>;
-  }
+bar() {
+  A.foo<int>;
 }
 ''');
 
+    assertClassRef(findNode.simple('A.'), findElement.class_('A'));
     var reference = findNode.functionReference('foo<int>;');
     assertElement(reference, findElement.method('foo'));
     assertType(reference, 'void Function(int)');
   }
 
-  @FailingTest(reason: 'Unresolved TODO in FunctionReferenceResolver')
   test_staticMethod_explicitReceiver_importPrefix() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A {
@@ -253,9 +305,79 @@ bar() {
 }
 ''');
 
+    assertImportPrefix(findNode.simple('a.A'), findElement.prefix('a'));
+    assertClassRef(findNode.simple('A.'),
+        findElement.importFind('package:test/a.dart').class_('A'));
     var reference = findNode.functionReference('foo<int>;');
-    assertElement(reference, findElement.method('foo'));
-    assertType(reference, 'void Function(int)');
+    assertFunctionReference(
+        reference,
+        findElement.importFind('package:test/a.dart').method('foo'),
+        'void Function(int)');
+  }
+
+  test_staticMethod_explicitReceiver_prefix_typeAlias() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  static void foo<T>(T a) {}
+}
+typedef TA = A;
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.TA.foo<int>;
+}
+''');
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference,
+        findElement.importFind('package:test/a.dart').method('foo'),
+        'void Function(int)');
+  }
+
+  test_staticMethod_explicitReceiver_typeAlias() async {
+    await assertNoErrorsInCode('''
+class A {
+  static void foo<T>(T a) {}
+}
+typedef TA = A;
+
+bar() {
+  TA.foo<int>;
+}
+''');
+
+    assertTypeAliasRef(findNode.simple('TA.'), findElement.typeAlias('TA'));
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_staticMethod_explicitReciver_prefix() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  static void foo<T>(T a) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.A.foo<int>;
+}
+''');
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference,
+        findElement.importFind('package:test/a.dart').method('foo'),
+        'void Function(int)');
   }
 
   test_tooFewTypeArguments() async {
@@ -322,12 +444,39 @@ void bar() {
 }
 ''');
 
+    assertImportPrefix(findNode.simple('a.f'), findElement.prefix('a'));
     var reference = findNode.functionReference('foo<int>;');
     assertFunctionReference(
       reference,
       findElement.importFind('package:test/a.dart').topFunction('foo'),
       'void Function(int)',
     );
+  }
+
+  test_typeAlias_function_unknownProperty() async {
+    await assertErrorsInCode('''
+typedef Cb = void Function();
+
+var a = Cb.foo<int>;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
+  }
+
+  test_typeAlias_typeVariable_unknownProperty() async {
+    await assertErrorsInCode('''
+typedef T<E> = E;
+
+var a = T.foo<int>;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 29, 3),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
   }
 
   test_unknownIdentifier() async {
