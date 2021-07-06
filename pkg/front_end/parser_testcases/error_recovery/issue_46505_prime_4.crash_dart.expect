@@ -1,14 +1,14 @@
 Problems reported:
 
-parser/error_recovery/issue_46505.crash:2:10: Expected '>' after this.
-  Stream<List<>>
+parser/error_recovery/issue_46505_prime_4.crash:2:10: Expected '>' after this.
+  Stream<List<Set<List<>>>>
          ^^^^
 
-parser/error_recovery/issue_46505.crash:2:3: A method declaration needs an explicit list of parameters.
-  Stream<List<>>
+parser/error_recovery/issue_46505_prime_4.crash:2:3: A method declaration needs an explicit list of parameters.
+  Stream<List<Set<List<>>>>
   ^^^^^^
 
-parser/error_recovery/issue_46505.crash:3:1: Expected a function body, but got '}'.
+parser/error_recovery/issue_46505_prime_4.crash:3:1: Expected a function body, but got '}'.
 }
 ^
 
