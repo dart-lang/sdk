@@ -13,7 +13,7 @@ const _details = r'''
 **DO** follow the conventions in the 
 [Effective Dart Guide](https://dart.dev/guides/language/effective-dart/style#ordering)
 
-**DO** place “dart:” imports before other imports.
+**DO** place `dart:` imports before other imports.
 
 **BAD:**
 ```dart
@@ -42,7 +42,7 @@ import 'package:bar/bar.dart';
 import 'package:foo/foo.dart';
 ```
 
-**DO** place “package:” imports before relative imports.
+**DO** place `package:` imports before relative imports.
 
 **BAD:**
 ```dart
@@ -106,7 +106,7 @@ import 'package:foo/bar.dart'; // OK
 
 import 'a.dart'; // OK
 import 'a/b.dart'; // OK
-
+```
 ''';
 const _directiveSectionOrderedAlphabetically =
     'Sort directive sections alphabetically.';
