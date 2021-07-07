@@ -164,13 +164,9 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   @notNull
-  String substring(@nullCheck int startIndex, [int? _endIndex]) {
-    var length = this.length;
-    final endIndex = _endIndex ?? length;
-    if (startIndex < 0) throw RangeError.value(startIndex);
-    if (startIndex > endIndex) throw RangeError.value(startIndex);
-    if (endIndex > length) throw RangeError.value(endIndex);
-    return JS<String>('!', r'#.substring(#, #)', this, startIndex, endIndex);
+  String substring(@nullCheck int start, [int? end]) {
+    end = RangeError.checkValidRange(start, end, this.length);
+    return JS<String>('!', r'#.substring(#, #)', this, start, end);
   }
 
   @notNull
