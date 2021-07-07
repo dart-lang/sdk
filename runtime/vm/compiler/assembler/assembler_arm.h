@@ -238,7 +238,7 @@ class Address : public ValueObject {
   }
 
   explicit Address(Register rn, int32_t offset = 0, Mode am = Offset) {
-    ASSERT(Utils::MagnitudeIsUint(12, offset));
+    ASSERT(Utils::IsAbsoluteUint(12, offset));
     kind_ = Immediate;
     if (offset < 0) {
       encoding_ = (am ^ (1 << kUShift)) | -offset;  // Flip U to adjust sign.
