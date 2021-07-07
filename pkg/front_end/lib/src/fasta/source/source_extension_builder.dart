@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
@@ -41,22 +39,28 @@ const String extensionThisName = '#this';
 class SourceExtensionBuilder extends ExtensionBuilderImpl {
   final Extension _extension;
 
-  SourceExtensionBuilder _origin;
-  SourceExtensionBuilder patchForTesting;
+  SourceExtensionBuilder? _origin;
+  SourceExtensionBuilder? patchForTesting;
+
+  @override
+  final List<TypeVariableBuilder>? typeParameters;
+
+  @override
+  final TypeBuilder onType;
 
   SourceExtensionBuilder(
-      List<MetadataBuilder> metadata,
+      List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
-      List<TypeVariableBuilder> typeParameters,
-      TypeBuilder onType,
+      this.typeParameters,
+      this.onType,
       Scope scope,
-      LibraryBuilder parent,
+      SourceLibraryBuilder parent,
       bool isExtensionTypeDeclaration,
       int startOffset,
       int nameOffset,
       int endOffset,
-      Extension referenceFrom)
+      Extension? referenceFrom)
       : _extension = new Extension(
             name: name,
             fileUri: parent.fileUri,
@@ -65,11 +69,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
             reference: referenceFrom?.reference)
           ..isExtensionTypeDeclaration = isExtensionTypeDeclaration
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset, scope,
-            typeParameters, onType);
+        super(metadata, modifiers, name, parent, nameOffset, scope);
 
   @override
-  SourceLibraryBuilder get library => super.library;
+  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
 
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
@@ -86,17 +89,17 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   /// library.
   Extension build(
       SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary,
-      {bool addMembersToLibrary}) {
+      {required bool addMembersToLibrary}) {
     SourceLibraryBuilder.checkMemberConflicts(library, scope,
         checkForInstanceVsStaticConflict: true,
         checkForMethodVsSetterConflict: true);
 
     ClassBuilder objectClassBuilder =
-        coreLibrary.lookupLocalMember('Object', required: true);
-    void buildBuilders(String name, Builder declaration) {
-      do {
-        Builder objectGetter = objectClassBuilder.lookupLocalMember(name);
-        Builder objectSetter =
+        coreLibrary.lookupLocalMember('Object', required: true) as ClassBuilder;
+    void buildBuilders(String name, Builder? declaration) {
+      while (declaration != null) {
+        Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
+        Builder? objectSetter =
             objectClassBuilder.lookupLocalMember(name, setter: true);
         if (objectGetter != null || objectSetter != null) {
           addProblem(
@@ -106,11 +109,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
               name.length);
         }
         if (declaration.parent != this) {
-          if (fileUri != declaration.parent.fileUri) {
-            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+          if (fileUri != declaration.parent!.fileUri) {
+            unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
                 fileUri);
           } else {
-            unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
+            unexpected(fullNameForErrors, declaration.parent!.fullNameForErrors,
                 charOffset, fileUri);
           }
         } else if (declaration is MemberBuilderImpl) {
@@ -131,9 +134,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
                   unhandled(
                       "${member.runtimeType}:${memberKind}",
                       "buildMembers",
-                      declaration.charOffset,
-                      declaration.fileUri);
-                  break;
+                      memberBuilder.charOffset,
+                      memberBuilder.fileUri);
                 case BuiltMemberKind.ExtensionField:
                 case BuiltMemberKind.LateIsSetField:
                   kind = ExtensionMemberKind.Field;
@@ -156,6 +158,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
                   kind = ExtensionMemberKind.TearOff;
                   break;
               }
+              // ignore: unnecessary_null_comparison
               assert(kind != null);
               Reference memberReference;
               if (member is Field) {
@@ -171,7 +174,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
               extension.members.add(new ExtensionMemberDescriptor(
                   name: new Name(name, libraryBuilder.library),
                   member: memberReference,
-                  isStatic: declaration.isStatic,
+                  isStatic: memberBuilder.isStatic,
                   kind: kind));
             }
           });
@@ -180,7 +183,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
               declaration.charOffset, declaration.fileUri);
         }
         declaration = declaration.next;
-      } while (declaration != null);
+      }
     }
 
     scope.forEach(buildBuilders);
@@ -198,14 +201,15 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         patchForTesting = patch;
       }
       scope.forEachLocalMember((String name, Builder member) {
-        Builder memberPatch =
+        Builder? memberPatch =
             patch.scope.lookupLocalMember(name, setter: false);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
       scope.forEachLocalSetter((String name, Builder member) {
-        Builder memberPatch = patch.scope.lookupLocalMember(name, setter: true);
+        Builder? memberPatch =
+            patch.scope.lookupLocalMember(name, setter: true);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
@@ -238,9 +242,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         typeEnvironment, extension.typeParameters, fileUri);
 
     // Check on clause.
+    // ignore: unnecessary_null_comparison
     if (_extension.onType != null) {
       library.checkBoundsInType(_extension.onType, typeEnvironment,
-          onType.fileUri, onType.charOffset);
+          onType.fileUri!, onType.charOffset!);
     }
 
     forEach((String name, Builder builder) {
@@ -251,11 +256,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         // Check procedures
         library.checkTypesInProcedureBuilder(builder, typeEnvironment);
         if (builder.isGetter) {
-          Builder setterDeclaration =
+          Builder? setterDeclaration =
               scope.lookupLocalMember(builder.name, setter: true);
           if (setterDeclaration != null) {
-            library.checkGetterSetterTypes(
-                builder, setterDeclaration, typeEnvironment);
+            library.checkGetterSetterTypes(builder,
+                setterDeclaration as ProcedureBuilder, typeEnvironment);
           }
         }
       } else {
@@ -265,19 +270,21 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
         metadata, library, this, null, fileUri);
     if (typeParameters != null) {
-      for (int i = 0; i < typeParameters.length; i++) {
-        typeParameters[i].buildOutlineExpressions(
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(
             library, this, null, coreTypes, delayedActionPerformers);
       }
     }
 
     void build(String ignore, Builder declaration) {
-      MemberBuilder member = declaration;
+      MemberBuilder member = declaration as MemberBuilder;
       member.buildOutlineExpressions(
           library, coreTypes, delayedActionPerformers);
     }

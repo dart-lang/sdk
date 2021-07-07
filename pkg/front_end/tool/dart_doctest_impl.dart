@@ -33,7 +33,6 @@ import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/combinator.dart';
 
@@ -872,11 +871,11 @@ class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
   LibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
-      Uri packageUri,
+      Uri? packageUri,
       LanguageVersion packageLanguageVersion,
-      covariant LibraryBuilder origin,
-      kernel.Library referencesFrom,
-      bool referenceIsPartOwner) {
+      SourceLibraryBuilder origin,
+      kernel.Library? referencesFrom,
+      bool? referenceIsPartOwner) {
     if (uri == DocTestIncrementalCompiler.dartDocTestUri) {
       HybridFileSystem hfs = compiler.userCode.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
@@ -886,13 +885,7 @@ class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
       return compiler
           .createDartDocTestLibrary(compiler._dartDocTestLibraryBuilder!);
     }
-    return super.createLibraryBuilder(
-        uri,
-        fileUri,
-        packageUri,
-        packageLanguageVersion,
-        origin as SourceLibraryBuilder,
-        referencesFrom,
-        referenceIsPartOwner);
+    return super.createLibraryBuilder(uri, fileUri, packageUri,
+        packageLanguageVersion, origin, referencesFrom, referenceIsPartOwner);
   }
 }

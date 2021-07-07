@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.future_or_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, FutureOrType, Nullability;
@@ -21,10 +19,11 @@ class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   String get debugName => "FutureOrTypeDeclarationBuilder";
 
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     return new FutureOrType(
-        arguments.single.build(library, null, notInstanceContext),
+        arguments!.single
+            .build(library, nonInstanceContext: nonInstanceContext),
         nullabilityBuilder.build(library));
   }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.prefix_builder;
 
 import 'package:kernel/ast.dart' show LibraryDependency;
@@ -13,17 +11,17 @@ import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 import '../fasta_codes.dart';
 
 import '../scope.dart';
+import '../source/source_library_builder.dart';
 
 import 'builder.dart';
 import 'extension_builder.dart';
-import 'library_builder.dart';
 
 class PrefixBuilder extends BuilderImpl {
   final String name;
 
   final Scope exportScope = new Scope.top();
 
-  final LibraryBuilder parent;
+  final SourceLibraryBuilder parent;
 
   final bool deferred;
 
@@ -32,22 +30,22 @@ class PrefixBuilder extends BuilderImpl {
 
   final int importIndex;
 
-  final LibraryDependency dependency;
+  final LibraryDependency? dependency;
 
-  LoadLibraryBuilder loadLibraryBuilder;
+  LoadLibraryBuilder? loadLibraryBuilder;
 
   PrefixBuilder(this.name, this.deferred, this.parent, this.dependency,
       this.charOffset, this.importIndex) {
     if (deferred) {
       loadLibraryBuilder =
-          new LoadLibraryBuilder(parent, dependency, charOffset);
-      addToExportScope('loadLibrary', loadLibraryBuilder, charOffset);
+          new LoadLibraryBuilder(parent, dependency!, charOffset);
+      addToExportScope('loadLibrary', loadLibraryBuilder!, charOffset);
     }
   }
 
   Uri get fileUri => parent.fileUri;
 
-  Builder lookup(String name, int charOffset, Uri fileUri) {
+  Builder? lookup(String name, int charOffset, Uri fileUri) {
     return exportScope.lookup(name, charOffset, fileUri);
   }
 
@@ -57,7 +55,7 @@ class PrefixBuilder extends BuilderImpl {
           charOffset, noLength, fileUri);
     }
 
-    Builder existing =
+    Builder? existing =
         exportScope.lookupLocalMember(name, setter: member.isSetter);
     Builder result;
     if (existing != null) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// This file declares a "shadow hierarchy" of concrete classes which extend
 /// the kernel class hierarchy, adding methods and fields needed by the
 /// BodyBuilder.
@@ -34,9 +32,6 @@ import '../names.dart';
 
 import '../problems.dart' show unsupported;
 
-import '../source/source_class_builder.dart' show SourceClassBuilder;
-
-import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 
 import '../type_inference/type_schema.dart' show UnknownType;
@@ -61,7 +56,7 @@ int getExtensionTypeArgumentCount(Arguments arguments) {
   }
 }
 
-List<DartType> getExplicitExtensionTypeArguments(Arguments arguments) {
+List<DartType>? getExplicitExtensionTypeArguments(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
     if (arguments._explicitExtensionTypeArgumentCount == 0) {
       return null;
@@ -144,7 +139,7 @@ TypeArgumentsInfo getTypeArgumentsInfo(Arguments arguments) {
   }
 }
 
-List<DartType> getExplicitTypeArguments(Arguments arguments) {
+List<DartType>? getExplicitTypeArguments(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
     if (arguments._explicitTypeArgumentCount == 0) {
       return null;
@@ -167,24 +162,6 @@ bool hasExplicitTypeArguments(Arguments arguments) {
   return getExplicitTypeArguments(arguments) != null;
 }
 
-/// Information associated with a class during type inference.
-class ClassInferenceInfo {
-  /// The builder associated with this class.
-  final SourceClassBuilder builder;
-
-  /// The visitor for determining if a given type makes covariant use of one of
-  /// the class's generic parameters, and therefore requires covariant checks.
-  IncludesTypeParametersNonCovariantly needsCheckVisitor;
-
-  /// Getters and methods in the class's API.  May include forwarding nodes.
-  final gettersAndMethods = <Member>[];
-
-  /// Setters in the class's API.  May include forwarding nodes.
-  final setters = <Member>[];
-
-  ClassInferenceInfo(this.builder);
-}
-
 /// Common base class for internal statements.
 abstract class InternalStatement extends Statement {
   @override
@@ -204,25 +181,27 @@ abstract class InternalStatement extends Statement {
 }
 
 class ForInStatementWithSynthesizedVariable extends InternalStatement {
-  VariableDeclaration variable;
+  VariableDeclaration? variable;
   Expression iterable;
-  Expression syntheticAssignment;
-  Statement expressionEffects;
+  Expression? syntheticAssignment;
+  Statement? expressionEffects;
   Statement body;
   final bool isAsync;
   final bool hasProblem;
-  int bodyOffset;
+  int bodyOffset = TreeNode.noOffset;
 
   ForInStatementWithSynthesizedVariable(this.variable, this.iterable,
       this.syntheticAssignment, this.expressionEffects, this.body,
-      {this.isAsync, this.hasProblem})
+      {required this.isAsync, required this.hasProblem})
+      // ignore: unnecessary_null_comparison
       : assert(isAsync != null),
+        // ignore: unnecessary_null_comparison
         assert(hasProblem != null) {
     variable?.parent = this;
-    iterable?.parent = this;
+    iterable.parent = this;
     syntheticAssignment?.parent = this;
     expressionEffects?.parent = this;
-    body?.parent = this;
+    body.parent = this;
   }
 
   @override
@@ -233,57 +212,61 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
   @override
   void visitChildren(Visitor<dynamic> v) {
     variable?.accept(v);
-    iterable?.accept(v);
+    iterable.accept(v);
     syntheticAssignment?.accept(v);
     expressionEffects?.accept(v);
-    body?.accept(v);
+    body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = v.transform(variable);
+      variable = v.transform(variable!);
       variable?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (iterable != null) {
       iterable = v.transform(iterable);
-      iterable?.parent = this;
+      iterable.parent = this;
     }
     if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment);
+      syntheticAssignment = v.transform(syntheticAssignment!);
       syntheticAssignment?.parent = this;
     }
     if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects);
+      expressionEffects = v.transform(expressionEffects!);
       expressionEffects?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (body != null) {
       body = v.transform(body);
-      body?.parent = this;
+      body.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     if (variable != null) {
-      variable = v.transform(variable);
+      variable = v.transform(variable!);
       variable?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (iterable != null) {
       iterable = v.transform(iterable);
-      iterable?.parent = this;
+      iterable.parent = this;
     }
     if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment);
+      syntheticAssignment = v.transform(syntheticAssignment!);
       syntheticAssignment?.parent = this;
     }
     if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects);
+      expressionEffects = v.transform(expressionEffects!);
       expressionEffects?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (body != null) {
       body = v.transform(body);
-      body?.parent = this;
+      body.parent = this;
     }
   }
 
@@ -301,10 +284,14 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
 class TryStatement extends InternalStatement {
   Statement tryBlock;
   List<Catch> catchBlocks;
-  Statement finallyBlock;
+  Statement? finallyBlock;
 
-  TryStatement(this.tryBlock, this.catchBlocks, this.finallyBlock) {
-    tryBlock?.parent = this;
+  TryStatement(this.tryBlock, this.catchBlocks, this.finallyBlock)
+      // ignore: unnecessary_null_comparison
+      : assert(tryBlock != null),
+        // ignore: unnecessary_null_comparison
+        assert(catchBlocks != null) {
+    tryBlock.parent = this;
     setParents(catchBlocks, this);
     finallyBlock?.parent = this;
   }
@@ -316,33 +303,35 @@ class TryStatement extends InternalStatement {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    tryBlock?.accept(v);
+    tryBlock.accept(v);
     visitList(catchBlocks, v);
     finallyBlock?.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (tryBlock != null) {
       tryBlock = v.transform(tryBlock);
-      tryBlock?.parent = this;
+      tryBlock.parent = this;
     }
     v.transformList(catchBlocks, this);
     if (finallyBlock != null) {
-      finallyBlock = v.transform(finallyBlock);
+      finallyBlock = v.transform(finallyBlock!);
       finallyBlock?.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (tryBlock != null) {
-      tryBlock = v.transformOrRemoveStatement(tryBlock);
-      tryBlock?.parent = this;
+      tryBlock = v.transform(tryBlock);
+      tryBlock.parent = this;
     }
     v.transformCatchList(catchBlocks, this);
     if (finallyBlock != null) {
-      finallyBlock = v.transformOrRemoveStatement(finallyBlock);
+      finallyBlock = v.transformOrRemoveStatement(finallyBlock!);
       finallyBlock?.parent = this;
     }
   }
@@ -362,7 +351,7 @@ class TryStatement extends InternalStatement {
     }
     if (finallyBlock != null) {
       printer.write(' finally ');
-      printer.writeStatement(finallyBlock);
+      printer.writeStatement(finallyBlock!);
     }
   }
 }
@@ -372,7 +361,8 @@ class SwitchCaseImpl extends SwitchCase {
 
   SwitchCaseImpl(
       List<Expression> expressions, List<int> expressionOffsets, Statement body,
-      {bool isDefault: false, this.hasLabel})
+      {bool isDefault: false, required this.hasLabel})
+      // ignore: unnecessary_null_comparison
       : assert(hasLabel != null),
         super(expressions, expressionOffsets, body, isDefault: isDefault);
 
@@ -383,12 +373,13 @@ class SwitchCaseImpl extends SwitchCase {
 }
 
 class BreakStatementImpl extends BreakStatement {
-  Statement targetStatement;
+  Statement? targetStatement;
   final bool isContinue;
 
-  BreakStatementImpl({this.isContinue})
+  BreakStatementImpl({required this.isContinue})
+      // ignore: unnecessary_null_comparison
       : assert(isContinue != null),
-        super(null);
+        super(dummyLabeledStatement);
 
   @override
   String toString() {
@@ -486,12 +477,12 @@ class ArgumentsImpl extends Arguments {
 
   final int _explicitExtensionTypeArgumentCount;
 
-  final int _extensionTypeArgumentOffset;
+  final int? _extensionTypeArgumentOffset;
 
   int _explicitTypeArgumentCount;
 
   ArgumentsImpl(List<Expression> positional,
-      {List<DartType> types, List<NamedExpression> named})
+      {List<DartType>? types, List<NamedExpression>? named})
       : _explicitTypeArgumentCount = types?.length ?? 0,
         _extensionTypeParameterCount = 0,
         _explicitExtensionTypeArgumentCount = 0,
@@ -502,7 +493,7 @@ class ArgumentsImpl extends Arguments {
   ArgumentsImpl.forExtensionMethod(int extensionTypeParameterCount,
       int typeParameterCount, Expression receiver,
       {List<DartType> extensionTypeArguments = const <DartType>[],
-      int extensionTypeArgumentOffset,
+      int? extensionTypeArgumentOffset,
       List<DartType> typeArguments = const <DartType>[],
       List<Expression> positionalArguments = const <Expression>[],
       List<NamedExpression> namedArguments = const <NamedExpression>[]})
@@ -575,8 +566,12 @@ class Cascade extends InternalExpression {
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  Cascade(this.variable, {this.isNullAware}) : assert(isNullAware != null) {
-    variable?.parent = this;
+  Cascade(this.variable, {required this.isNullAware})
+      // ignore: unnecessary_null_comparison
+      : assert(variable != null),
+        // ignore: unnecessary_null_comparison
+        assert(isNullAware != null) {
+    variable.parent = this;
   }
 
   @override
@@ -596,24 +591,26 @@ class Cascade extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
+    variable.accept(v);
     visitList(expressions, v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
       variable = v.transform(variable);
-      variable?.parent = this;
+      variable.parent = this;
     }
     v.transformList(expressions, this);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable);
-      variable?.parent = this;
+      variable = v.transform(variable);
+      variable.parent = this;
     }
     v.transformExpressionList(expressions, this);
   }
@@ -650,9 +647,13 @@ class DeferredCheck extends InternalExpression {
   VariableDeclaration variable;
   Expression expression;
 
-  DeferredCheck(this.variable, this.expression) {
-    variable?.parent = this;
-    expression?.parent = this;
+  DeferredCheck(this.variable, this.expression)
+      // ignore: unnecessary_null_comparison
+      : assert(variable != null),
+        // ignore: unnecessary_null_comparison
+        assert(expression != null) {
+    variable.parent = this;
+    expression.parent = this;
   }
 
   @override
@@ -665,31 +666,35 @@ class DeferredCheck extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    expression?.accept(v);
+    variable.accept(v);
+    expression.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
       variable = v.transform(variable);
-      variable?.parent = this;
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
       expression = v.transform(expression);
-      expression?.parent = this;
+      expression.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable);
-      variable?.parent = this;
+      variable = v.transform(variable);
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
-      expression = v.transformOrRemoveExpression(expression);
-      expression?.parent = this;
+      expression = v.transform(expression);
+      expression.parent = this;
     }
   }
 
@@ -722,8 +727,7 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
     implements ExpressionJudgment {
   bool hasBeenInferred = false;
 
-  FactoryConstructorInvocationJudgment(
-      Procedure target, ArgumentsImpl arguments,
+  FactoryConstructorInvocationJudgment(Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -745,7 +749,7 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
     } else {
       printer.write('new ');
     }
-    printer.writeClassName(target.enclosingClass.reference);
+    printer.writeClassName(target.enclosingClass!.reference);
     printer.writeTypeArguments(arguments.types);
     if (target.name.text.isNotEmpty) {
       printer.write('.');
@@ -763,7 +767,7 @@ class TypeAliasedConstructorInvocationJudgment extends ConstructorInvocation
   final TypeAliasBuilder typeAliasBuilder;
 
   TypeAliasedConstructorInvocationJudgment(
-      this.typeAliasBuilder, Constructor target, ArgumentsImpl arguments,
+      this.typeAliasBuilder, Constructor target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -793,7 +797,7 @@ class TypeAliasedFactoryInvocationJudgment extends StaticInvocation
   final TypeAliasBuilder typeAliasBuilder;
 
   TypeAliasedFactoryInvocationJudgment(
-      this.typeAliasBuilder, Procedure target, ArgumentsImpl arguments,
+      this.typeAliasBuilder, Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -818,8 +822,7 @@ class TypeAliasedFactoryInvocationJudgment extends StaticInvocation
 class FunctionDeclarationImpl extends FunctionDeclaration {
   bool hasImplicitReturnType = false;
 
-  FunctionDeclarationImpl(
-      VariableDeclarationImpl variable, FunctionNode function)
+  FunctionDeclarationImpl(VariableDeclaration variable, FunctionNode function)
       : super(variable, function);
 
   static void setHasImplicitReturnType(
@@ -864,9 +867,13 @@ class IfNullExpression extends InternalExpression {
   Expression left;
   Expression right;
 
-  IfNullExpression(this.left, this.right) {
-    left?.parent = this;
-    right?.parent = this;
+  IfNullExpression(this.left, this.right)
+      // ignore: unnecessary_null_comparison
+      : assert(left != null),
+        // ignore: unnecessary_null_comparison
+        assert(right != null) {
+    left.parent = this;
+    right.parent = this;
   }
 
   @override
@@ -880,31 +887,35 @@ class IfNullExpression extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    left?.accept(v);
-    right?.accept(v);
+    left.accept(v);
+    right.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (left != null) {
       left = v.transform(left);
-      left?.parent = this;
+      left.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (right != null) {
       right = v.transform(right);
-      right?.parent = this;
+      right.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (left != null) {
-      left = v.transformOrRemoveExpression(left);
-      left?.parent = this;
+      left = v.transform(left);
+      left.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (right != null) {
-      right = v.transformOrRemoveExpression(right);
-      right?.parent = this;
+      right = v.transform(right);
+      right.parent = this;
     }
   }
 
@@ -930,8 +941,8 @@ abstract class InitializerJudgment implements Initializer {
   void acceptInference(InferenceVisitor visitor);
 }
 
-Expression checkWebIntLiteralsErrorIfUnexact(
-    TypeInferrerImpl inferrer, int value, String literal, int charOffset) {
+Expression? checkWebIntLiteralsErrorIfUnexact(
+    TypeInferrerImpl inferrer, int value, String? literal, int charOffset) {
   if (value >= 0 && value <= (1 << 53)) return null;
   if (inferrer.isTopLevel) return null;
   if (!inferrer.library.loader.target.backendTarget
@@ -944,7 +955,7 @@ Expression checkWebIntLiteralsErrorIfUnexact(
       ? '0x${asDouble.toRadixString(16)}'
       : asDouble.toString();
   int length = literal?.length ?? noLength;
-  return inferrer.helper.buildProblem(
+  return inferrer.helper!.buildProblem(
       templateWebLiteralCannotBeRepresentedExactly.withArguments(text, nearest),
       charOffset,
       length);
@@ -952,12 +963,14 @@ Expression checkWebIntLiteralsErrorIfUnexact(
 
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
-  final String literal;
+  final String? literal;
 
   IntJudgment(int value, this.literal) : super(value);
 
-  double asDouble({bool negated: false}) {
-    if (value == 0 && negated) return -0.0;
+  double? asDouble({bool negated: false}) {
+    if (value == 0 && negated) {
+      return -0.0;
+    }
     BigInt intValue = new BigInt.from(negated ? -value : value);
     double doubleValue = intValue.toDouble();
     return intValue == new BigInt.from(doubleValue) ? doubleValue : null;
@@ -979,7 +992,7 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
     if (literal == null) {
       printer.write('$value');
     } else {
-      printer.write(literal);
+      printer.write(literal!);
     }
   }
 }
@@ -991,9 +1004,11 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
 
   ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
 
-  double asDouble({bool negated: false}) {
-    BigInt intValue = BigInt.tryParse(negated ? '-${literal}' : literal);
-    if (intValue == null) return null;
+  double? asDouble({bool negated: false}) {
+    BigInt? intValue = BigInt.tryParse(negated ? '-${literal}' : literal);
+    if (intValue == null) {
+      return null;
+    }
     double doubleValue = intValue.toDouble();
     return !doubleValue.isNaN &&
             !doubleValue.isInfinite &&
@@ -1002,7 +1017,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
         : null;
   }
 
-  int asInt64({bool negated: false}) {
+  int? asInt64({bool negated: false}) {
     return int.tryParse(negated ? '-${literal}' : literal);
   }
 
@@ -1047,8 +1062,10 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
 
   ShadowInvalidFieldInitializer(
       this.field, this.value, VariableDeclaration variable)
-      : super(variable) {
-    value?.parent = this;
+      // ignore: unnecessary_null_comparison
+      : assert(value != null),
+        super(variable) {
+    value.parent = this;
   }
 
   @override
@@ -1066,9 +1083,13 @@ class ExpressionInvocation extends InternalExpression {
   Expression expression;
   Arguments arguments;
 
-  ExpressionInvocation(this.expression, this.arguments) {
-    expression?.parent = this;
-    arguments?.parent = this;
+  ExpressionInvocation(this.expression, this.arguments)
+      // ignore: unnecessary_null_comparison
+      : assert(expression != null),
+        // ignore: unnecessary_null_comparison
+        assert(arguments != null) {
+    expression.parent = this;
+    arguments.parent = this;
   }
 
   @override
@@ -1083,31 +1104,35 @@ class ExpressionInvocation extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    expression?.accept(v);
-    arguments?.accept(v);
+    expression.accept(v);
+    arguments.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
       expression = v.transform(expression);
-      expression?.parent = this;
+      expression.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (arguments != null) {
       arguments = v.transform(arguments);
-      arguments?.parent = this;
+      arguments.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
-      expression = v.transformOrRemoveExpression(expression);
-      expression?.parent = this;
+      expression = v.transform(expression);
+      expression.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (arguments != null) {
-      arguments = v.transformOrRemove(arguments, dummyArguments);
-      arguments?.parent = this;
+      arguments = v.transform(arguments);
+      arguments.parent = this;
     }
   }
 
@@ -1134,7 +1159,7 @@ class ExpressionInvocation extends InternalExpression {
 ///     let f = () { ... } in f
 class NamedFunctionExpressionJudgment extends Let
     implements ExpressionJudgment {
-  NamedFunctionExpressionJudgment(VariableDeclarationImpl variable)
+  NamedFunctionExpressionJudgment(VariableDeclaration variable)
       : super(variable, new VariableGet(variable));
 
   @override
@@ -1157,14 +1182,18 @@ class NamedFunctionExpressionJudgment extends Let
 ///
 class NullAwareMethodInvocation extends InternalExpression {
   /// The synthetic variable whose initializer hold the receiver.
-  VariableDeclaration variable;
+  VariableDeclarationImpl variable;
 
   /// The expression that invokes the method on [variable].
   Expression invocation;
 
-  NullAwareMethodInvocation(this.variable, this.invocation) {
-    variable?.parent = this;
-    invocation?.parent = this;
+  NullAwareMethodInvocation(this.variable, this.invocation)
+      // ignore: unnecessary_null_comparison
+      : assert(variable != null),
+        // ignore: unnecessary_null_comparison
+        assert(invocation != null) {
+    variable.parent = this;
+    invocation.parent = this;
   }
 
   @override
@@ -1179,31 +1208,35 @@ class NullAwareMethodInvocation extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    invocation?.accept(v);
+    variable.accept(v);
+    invocation.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
       variable = v.transform(variable);
-      variable?.parent = this;
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (invocation != null) {
       invocation = v.transform(invocation);
-      invocation?.parent = this;
+      invocation.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable);
-      variable?.parent = this;
+      variable = v.transform(variable);
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (invocation != null) {
-      invocation = v.transformOrRemoveExpression(invocation);
-      invocation?.parent = this;
+      invocation = v.transform(invocation);
+      invocation.parent = this;
     }
   }
 
@@ -1219,7 +1252,7 @@ class NullAwareMethodInvocation extends InternalExpression {
       Expression receiver = methodInvocation.receiver;
       if (receiver is VariableGet && receiver.variable == variable) {
         // Special-case the usual use of this node.
-        printer.writeExpression(variable.initializer);
+        printer.writeExpression(variable.initializer!);
         printer.write('?.');
         printer.writeInterfaceMemberName(
             methodInvocation.interfaceTargetReference, methodInvocation.name);
@@ -1242,14 +1275,18 @@ class NullAwareMethodInvocation extends InternalExpression {
 ///
 class NullAwarePropertyGet extends InternalExpression {
   /// The synthetic variable whose initializer hold the receiver.
-  VariableDeclaration variable;
+  VariableDeclarationImpl variable;
 
   /// The expression that reads the property from [variable].
   Expression read;
 
-  NullAwarePropertyGet(this.variable, this.read) {
-    variable?.parent = this;
-    read?.parent = this;
+  NullAwarePropertyGet(this.variable, this.read)
+      // ignore: unnecessary_null_comparison
+      : assert(variable != null),
+        // ignore: unnecessary_null_comparison
+        assert(read != null) {
+    variable.parent = this;
+    read.parent = this;
   }
 
   @override
@@ -1264,31 +1301,35 @@ class NullAwarePropertyGet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    read?.accept(v);
+    variable.accept(v);
+    read.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
       variable = v.transform(variable);
-      variable?.parent = this;
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (read != null) {
       read = v.transform(read);
-      read?.parent = this;
+      read.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
       variable = v.transform(variable);
-      variable?.parent = this;
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (read != null) {
       read = v.transform(read);
-      read?.parent = this;
+      read.parent = this;
     }
   }
 
@@ -1304,7 +1345,7 @@ class NullAwarePropertyGet extends InternalExpression {
       Expression receiver = propertyGet.receiver;
       if (receiver is VariableGet && receiver.variable == variable) {
         // Special-case the usual use of this node.
-        printer.writeExpression(variable.initializer);
+        printer.writeExpression(variable.initializer!);
         printer.write('?.');
         printer.writeInterfaceMemberName(
             propertyGet.interfaceTargetReference, propertyGet.name);
@@ -1326,14 +1367,18 @@ class NullAwarePropertyGet extends InternalExpression {
 ///
 class NullAwarePropertySet extends InternalExpression {
   /// The synthetic variable whose initializer hold the receiver.
-  VariableDeclaration variable;
+  VariableDeclarationImpl variable;
 
   /// The expression that writes the value to the property in [variable].
   Expression write;
 
-  NullAwarePropertySet(this.variable, this.write) {
-    variable?.parent = this;
-    write?.parent = this;
+  NullAwarePropertySet(this.variable, this.write)
+      // ignore: unnecessary_null_comparison
+      : assert(variable != null),
+        // ignore: unnecessary_null_comparison
+        assert(write != null) {
+    variable.parent = this;
+    write.parent = this;
   }
 
   @override
@@ -1348,31 +1393,35 @@ class NullAwarePropertySet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    write?.accept(v);
+    variable.accept(v);
+    write.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
       variable = v.transform(variable);
-      variable?.parent = this;
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
       write = v.transform(write);
-      write?.parent = this;
+      write.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable);
-      variable?.parent = this;
+      variable = v.transform(variable);
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
-      write = v.transformOrRemoveExpression(write);
-      write?.parent = this;
+      write = v.transform(write);
+      write.parent = this;
     }
   }
 
@@ -1388,7 +1437,7 @@ class NullAwarePropertySet extends InternalExpression {
       Expression receiver = propertySet.receiver;
       if (receiver is VariableGet && receiver.variable == variable) {
         // Special-case the usual use of this node.
-        printer.writeExpression(variable.initializer);
+        printer.writeExpression(variable.initializer!);
         printer.write('?.');
         printer.writeInterfaceMemberName(
             propertySet.interfaceTargetReference, propertySet.name);
@@ -1408,7 +1457,7 @@ class NullAwarePropertySet extends InternalExpression {
 class ReturnStatementImpl extends ReturnStatement {
   final bool isArrow;
 
-  ReturnStatementImpl(this.isArrow, [Expression expression])
+  ReturnStatementImpl(this.isArrow, [Expression? expression])
       : super(expression);
 
   @override
@@ -1425,7 +1474,7 @@ class ReturnStatementImpl extends ReturnStatement {
     }
     if (expression != null) {
       printer.write(' ');
-      printer.writeExpression(expression);
+      printer.writeExpression(expression!);
     }
     printer.write(';');
   }
@@ -1476,11 +1525,11 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// used.
   bool isStaticLate;
 
-  VariableDeclarationImpl(String name, this.functionNestingLevel,
+  VariableDeclarationImpl(String? name, this.functionNestingLevel,
       {this.forSyntheticToken: false,
       this.hasDeclaredInitializer: false,
-      Expression initializer,
-      DartType type,
+      Expression? initializer,
+      DartType? type,
       bool isFinal: false,
       bool isConst: false,
       bool isFieldFormal: false,
@@ -1525,14 +1574,14 @@ class VariableDeclarationImpl extends VariableDeclaration {
   //
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late
   // lowering is enabled.
-  VariableDeclaration lateGetter;
+  VariableDeclaration? lateGetter;
 
   // The synthesized local setter function for an assignable lowered late
   // variable.
   //
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late
   // lowering is enabled.
-  VariableDeclaration lateSetter;
+  VariableDeclaration? lateSetter;
 
   // Is `true` if this a lowered late final variable without an initializer.
   //
@@ -1544,13 +1593,13 @@ class VariableDeclarationImpl extends VariableDeclaration {
   //
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late
   // lowering is enabled.
-  DartType lateType;
+  DartType? lateType;
 
   // The original name of a lowered late variable.
   //
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late
   // lowering is enabled.
-  String lateName;
+  String? lateName;
 
   @override
   bool get isAssignable {
@@ -1577,7 +1626,9 @@ class VariableGetImpl extends VariableGet {
   // expressions explicitly.
   final bool forNullGuardedAccess;
 
-  VariableGetImpl(VariableDeclaration variable, {this.forNullGuardedAccess})
+  VariableGetImpl(VariableDeclaration variable,
+      {required this.forNullGuardedAccess})
+      // ignore: unnecessary_null_comparison
       : assert(forNullGuardedAccess != null),
         super(variable);
 
@@ -1589,7 +1640,7 @@ class VariableGetImpl extends VariableGet {
 
 /// Front end specific implementation of [LoadLibrary].
 class LoadLibraryImpl extends LoadLibrary {
-  final Arguments arguments;
+  final Arguments? arguments;
 
   LoadLibraryImpl(LibraryDependency import, this.arguments) : super(import);
 
@@ -1600,9 +1651,13 @@ class LoadLibraryImpl extends LoadLibrary {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(import.name);
+    printer.write(import.name!);
     printer.write('.loadLibrary');
-    printer.writeArguments(arguments);
+    if (arguments != null) {
+      printer.writeArguments(arguments!);
+    } else {
+      printer.write('()');
+    }
   }
 }
 
@@ -1640,7 +1695,7 @@ class LoadLibraryTearOff extends InternalExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(import.name);
+    printer.write(import.name!);
     printer.write('.loadLibrary');
   }
 }
@@ -1676,10 +1731,21 @@ class IfNullPropertySet extends InternalExpression {
   final int writeOffset;
 
   IfNullPropertySet(this.receiver, this.propertyName, this.rhs,
-      {this.forEffect, this.readOffset, this.writeOffset})
-      : assert(forEffect != null) {
-    receiver?.parent = this;
-    rhs?.parent = this;
+      {required this.forEffect,
+      required this.readOffset,
+      required this.writeOffset})
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(rhs != null),
+        // ignore: unnecessary_null_comparison
+        assert(forEffect != null),
+        // ignore: unnecessary_null_comparison
+        assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
+        assert(writeOffset != null) {
+    receiver.parent = this;
+    rhs.parent = this;
   }
 
   @override
@@ -1693,31 +1759,35 @@ class IfNullPropertySet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    rhs?.accept(v);
+    receiver.accept(v);
+    rhs.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
       rhs = v.transform(rhs);
-      rhs?.parent = this;
+      rhs.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
-      rhs = v.transformOrRemoveExpression(rhs);
-      rhs?.parent = this;
+      rhs = v.transform(rhs);
+      rhs.parent = this;
     }
   }
 
@@ -1757,10 +1827,15 @@ class IfNullSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullSet(this.read, this.write, {this.forEffect})
-      : assert(forEffect != null) {
-    read?.parent = this;
-    write?.parent = this;
+  IfNullSet(this.read, this.write, {required this.forEffect})
+      // ignore: unnecessary_null_comparison
+      : assert(read != null),
+        // ignore: unnecessary_null_comparison
+        assert(write != null),
+        // ignore: unnecessary_null_comparison
+        assert(forEffect != null) {
+    read.parent = this;
+    write.parent = this;
   }
 
   @override
@@ -1774,31 +1849,35 @@ class IfNullSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    read?.accept(v);
-    write?.accept(v);
+    read.accept(v);
+    write.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (read != null) {
       read = v.transform(read);
-      read?.parent = this;
+      read.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
       write = v.transform(write);
-      write?.parent = this;
+      write.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (read != null) {
-      read = v.transformOrRemoveExpression(read);
-      read?.parent = this;
+      read = v.transform(read);
+      read.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
-      write = v.transformOrRemoveExpression(write);
-      write?.parent = this;
+      write = v.transform(write);
+      write.parent = this;
     }
   }
 
@@ -1844,7 +1923,7 @@ class CompoundExtensionSet extends InternalExpression {
 
   /// The explicit type arguments for the type parameters declared in
   /// [extension].
-  final List<DartType> explicitTypeArguments;
+  final List<DartType>? explicitTypeArguments;
 
   /// The receiver used for the read/write operations.
   Expression receiver;
@@ -1853,7 +1932,7 @@ class CompoundExtensionSet extends InternalExpression {
   final Name propertyName;
 
   /// The member used for the read operation.
-  final Member getter;
+  final Member? getter;
 
   /// The binary operation performed on the getter result and [rhs].
   final Name binaryName;
@@ -1862,7 +1941,7 @@ class CompoundExtensionSet extends InternalExpression {
   Expression rhs;
 
   /// The member used for the write operation.
-  final Member setter;
+  final Member? setter;
 
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
@@ -1885,16 +1964,24 @@ class CompoundExtensionSet extends InternalExpression {
       this.binaryName,
       this.rhs,
       this.setter,
-      {this.forEffect,
-      this.readOffset,
-      this.binaryOffset,
-      this.writeOffset})
-      : assert(forEffect != null),
+      {required this.forEffect,
+      required this.readOffset,
+      required this.binaryOffset,
+      required this.writeOffset})
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(rhs != null),
+        // ignore: unnecessary_null_comparison
+        assert(forEffect != null),
+        // ignore: unnecessary_null_comparison
         assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(binaryOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(writeOffset != null) {
-    receiver?.parent = this;
-    rhs?.parent = this;
+    receiver.parent = this;
+    rhs.parent = this;
   }
 
   @override
@@ -1909,31 +1996,35 @@ class CompoundExtensionSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    rhs?.accept(v);
+    receiver.accept(v);
+    rhs.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
       rhs = v.transform(rhs);
-      rhs?.parent = this;
+      rhs.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
-      rhs = v.transformOrRemoveExpression(rhs);
-      rhs?.parent = this;
+      rhs = v.transform(rhs);
+      rhs.parent = this;
     }
   }
 
@@ -1981,13 +2072,24 @@ class CompoundPropertySet extends InternalExpression {
 
   CompoundPropertySet(
       this.receiver, this.propertyName, this.binaryName, this.rhs,
-      {this.forEffect, this.readOffset, this.binaryOffset, this.writeOffset})
-      : assert(forEffect != null),
+      {required this.forEffect,
+      required this.readOffset,
+      required this.binaryOffset,
+      required this.writeOffset})
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(rhs != null),
+        // ignore: unnecessary_null_comparison
+        assert(forEffect != null),
+        // ignore: unnecessary_null_comparison
         assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(binaryOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(writeOffset != null) {
-    receiver?.parent = this;
-    rhs?.parent = this;
+    receiver.parent = this;
+    rhs.parent = this;
   }
 
   @override
@@ -2001,31 +2103,35 @@ class CompoundPropertySet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    rhs?.accept(v);
+    receiver.accept(v);
+    rhs.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
       rhs = v.transform(rhs);
-      rhs?.parent = this;
+      rhs.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
-      rhs = v.transformOrRemoveExpression(rhs);
-      rhs?.parent = this;
+      rhs = v.transform(rhs);
+      rhs.parent = this;
     }
   }
 
@@ -2058,23 +2164,27 @@ class PropertyPostIncDec extends InternalExpression {
   ///
   /// This is `null` if the receiver is read-only and therefore does not need to
   /// be stored in a temporary variable.
-  VariableDeclaration variable;
+  VariableDeclarationImpl? variable;
 
   /// The expression that reads the property on [variable].
-  VariableDeclaration read;
+  VariableDeclarationImpl read;
 
   /// The expression that writes the result of the binary operation to the
   /// property on [variable].
-  VariableDeclaration write;
+  VariableDeclarationImpl write;
 
-  PropertyPostIncDec(this.variable, this.read, this.write) {
+  PropertyPostIncDec(this.variable, this.read, this.write)
+      // ignore: unnecessary_null_comparison
+      : assert(read != null),
+        // ignore: unnecessary_null_comparison
+        assert(write != null) {
     variable?.parent = this;
-    read?.parent = this;
-    write?.parent = this;
+    read.parent = this;
+    write.parent = this;
   }
 
   PropertyPostIncDec.onReadOnly(
-      VariableDeclaration read, VariableDeclaration write)
+      VariableDeclarationImpl read, VariableDeclarationImpl write)
       : this(null, read, write);
 
   @override
@@ -2089,31 +2199,36 @@ class PropertyPostIncDec extends InternalExpression {
   @override
   void visitChildren(Visitor<dynamic> v) {
     variable?.accept(v);
-    read?.accept(v);
-    write?.accept(v);
+    read.accept(v);
+    write.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
-      variable = v.transform(variable);
+      variable = v.transform(variable!);
       variable?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
       write = v.transform(write);
-      write?.parent = this;
+      write.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable);
+      variable = v.transformOrRemoveVariableDeclaration(variable!)
+          as VariableDeclarationImpl?;
       variable?.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
-      write = v.transformOrRemoveVariableDeclaration(write);
-      write?.parent = this;
+      write = v.transform(write);
+      write.parent = this;
     }
   }
 
@@ -2132,15 +2247,19 @@ class PropertyPostIncDec extends InternalExpression {
 ///
 class LocalPostIncDec extends InternalExpression {
   /// The expression that reads the local variable.
-  VariableDeclaration read;
+  VariableDeclarationImpl read;
 
   /// The expression that writes the result of the binary operation to the
   /// local variable.
-  VariableDeclaration write;
+  VariableDeclarationImpl write;
 
-  LocalPostIncDec(this.read, this.write) {
-    read?.parent = this;
-    write?.parent = this;
+  LocalPostIncDec(this.read, this.write)
+      // ignore: unnecessary_null_comparison
+      : assert(read != null),
+        // ignore: unnecessary_null_comparison
+        assert(write != null) {
+    read.parent = this;
+    write.parent = this;
   }
 
   @override
@@ -2154,31 +2273,35 @@ class LocalPostIncDec extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    read?.accept(v);
-    write?.accept(v);
+    read.accept(v);
+    write.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (read != null) {
       read = v.transform(read);
-      read?.parent = this;
+      read.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
       write = v.transform(write);
-      write?.parent = this;
+      write.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (read != null) {
-      read = v.transformOrRemoveVariableDeclaration(read);
-      read?.parent = this;
+      read = v.transform(read);
+      read.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
-      write = v.transformOrRemoveVariableDeclaration(write);
-      write?.parent = this;
+      write = v.transform(write);
+      write.parent = this;
     }
   }
 
@@ -2197,15 +2320,19 @@ class LocalPostIncDec extends InternalExpression {
 ///
 class StaticPostIncDec extends InternalExpression {
   /// The expression that reads the static member.
-  VariableDeclaration read;
+  VariableDeclarationImpl read;
 
   /// The expression that writes the result of the binary operation to the
   /// static member.
-  VariableDeclaration write;
+  VariableDeclarationImpl write;
 
-  StaticPostIncDec(this.read, this.write) {
-    read?.parent = this;
-    write?.parent = this;
+  StaticPostIncDec(this.read, this.write)
+      // ignore: unnecessary_null_comparison
+      : assert(read != null),
+        // ignore: unnecessary_null_comparison
+        assert(write != null) {
+    read.parent = this;
+    write.parent = this;
   }
 
   @override
@@ -2219,31 +2346,35 @@ class StaticPostIncDec extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    read?.accept(v);
-    write?.accept(v);
+    read.accept(v);
+    write.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (read != null) {
       read = v.transform(read);
-      read?.parent = this;
+      read.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
       write = v.transform(write);
-      write?.parent = this;
+      write.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (read != null) {
       read = v.transform(read);
-      read?.parent = this;
+      read.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
       write = v.transform(write);
-      write?.parent = this;
+      write.parent = this;
     }
   }
 
@@ -2262,15 +2393,19 @@ class StaticPostIncDec extends InternalExpression {
 ///
 class SuperPostIncDec extends InternalExpression {
   /// The expression that reads the static member.
-  VariableDeclaration read;
+  VariableDeclarationImpl read;
 
   /// The expression that writes the result of the binary operation to the
   /// static member.
-  VariableDeclaration write;
+  VariableDeclarationImpl write;
 
-  SuperPostIncDec(this.read, this.write) {
-    read?.parent = this;
-    write?.parent = this;
+  SuperPostIncDec(this.read, this.write)
+      // ignore: unnecessary_null_comparison
+      : assert(read != null),
+        // ignore: unnecessary_null_comparison
+        assert(write != null) {
+    read.parent = this;
+    write.parent = this;
   }
 
   @override
@@ -2284,31 +2419,35 @@ class SuperPostIncDec extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    read?.accept(v);
-    write?.accept(v);
+    read.accept(v);
+    write.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (read != null) {
       read = v.transform(read);
-      read?.parent = this;
+      read.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
       write = v.transform(write);
-      write?.parent = this;
+      write.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (read != null) {
-      read = v.transformOrRemoveVariableDeclaration(read);
-      read?.parent = this;
+      read = v.transform(read);
+      read.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (write != null) {
-      write = v.transformOrRemoveVariableDeclaration(write);
-      write?.parent = this;
+      write = v.transform(write);
+      write.parent = this;
     }
   }
 
@@ -2326,9 +2465,13 @@ class IndexGet extends InternalExpression {
   /// The index expression of the operation.
   Expression index;
 
-  IndexGet(this.receiver, this.index) {
-    receiver?.parent = this;
-    index?.parent = this;
+  IndexGet(this.receiver, this.index)
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(index != null) {
+    receiver.parent = this;
+    index.parent = this;
   }
 
   @override
@@ -2342,31 +2485,35 @@ class IndexGet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    index?.accept(v);
+    receiver.accept(v);
+    index.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
   }
 
@@ -2401,11 +2548,18 @@ class IndexSet extends InternalExpression {
 
   final bool forEffect;
 
-  IndexSet(this.receiver, this.index, this.value, {this.forEffect})
-      : assert(forEffect != null) {
-    receiver?.parent = this;
-    index?.parent = this;
-    value?.parent = this;
+  IndexSet(this.receiver, this.index, this.value, {required this.forEffect})
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(index != null),
+        // ignore: unnecessary_null_comparison
+        assert(value != null),
+        // ignore: unnecessary_null_comparison
+        assert(forEffect != null) {
+    receiver.parent = this;
+    index.parent = this;
+    value.parent = this;
   }
 
   @override
@@ -2419,40 +2573,46 @@ class IndexSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    index?.accept(v);
-    value?.accept(v);
+    receiver.accept(v);
+    index.accept(v);
+    value.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
       value = v.transform(value);
-      value?.parent = this;
+      value.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
-      value = v.transformOrRemoveExpression(value);
-      value?.parent = this;
+      value = v.transform(value);
+      value.parent = this;
     }
   }
 
@@ -2477,7 +2637,7 @@ class IndexSet extends InternalExpression {
 ///
 class SuperIndexSet extends InternalExpression {
   /// The []= member.
-  Member setter;
+  Member? setter;
 
   /// The index expression of the operation.
   Expression index;
@@ -2485,9 +2645,13 @@ class SuperIndexSet extends InternalExpression {
   /// The value expression of the operation.
   Expression value;
 
-  SuperIndexSet(this.setter, this.index, this.value) {
-    index?.parent = this;
-    value?.parent = this;
+  SuperIndexSet(this.setter, this.index, this.value)
+      // ignore: unnecessary_null_comparison
+      : assert(index != null),
+        // ignore: unnecessary_null_comparison
+        assert(value != null) {
+    index.parent = this;
+    value.parent = this;
   }
 
   @override
@@ -2501,31 +2665,35 @@ class SuperIndexSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    index?.accept(v);
-    value?.accept(v);
+    index.accept(v);
+    value.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
       value = v.transform(value);
-      value?.parent = this;
+      value.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
-      value = v.transformOrRemoveExpression(value);
-      value?.parent = this;
+      value = v.transform(value);
+      value.parent = this;
     }
   }
 
@@ -2559,7 +2727,7 @@ class ExtensionIndexSet extends InternalExpression {
 
   /// The explicit type arguments for the type parameters declared in
   /// [extension].
-  final List<DartType> explicitTypeArguments;
+  final List<DartType>? explicitTypeArguments;
 
   /// The receiver of the extension access.
   Expression receiver;
@@ -2576,10 +2744,16 @@ class ExtensionIndexSet extends InternalExpression {
   ExtensionIndexSet(this.extension, this.explicitTypeArguments, this.receiver,
       this.setter, this.index, this.value)
       : assert(explicitTypeArguments == null ||
-            explicitTypeArguments.length == extension.typeParameters.length) {
-    receiver?.parent = this;
-    index?.parent = this;
-    value?.parent = this;
+            explicitTypeArguments.length == extension.typeParameters.length),
+        // ignore: unnecessary_null_comparison
+        assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(index != null),
+        // ignore: unnecessary_null_comparison
+        assert(value != null) {
+    receiver.parent = this;
+    index.parent = this;
+    value.parent = this;
   }
 
   @override
@@ -2593,40 +2767,46 @@ class ExtensionIndexSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    index?.accept(v);
-    value?.accept(v);
+    receiver.accept(v);
+    index.accept(v);
+    value.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
       value = v.transform(value);
-      value?.parent = this;
+      value.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
-      value = v.transformOrRemoveExpression(value);
-      value?.parent = this;
+      value = v.transform(value);
+      value.parent = this;
     }
   }
 
@@ -2639,7 +2819,7 @@ class ExtensionIndexSet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write(extension.name);
     if (explicitTypeArguments != null) {
-      printer.writeTypeArguments(explicitTypeArguments);
+      printer.writeTypeArguments(explicitTypeArguments!);
     }
     printer.write('(');
     printer.writeExpression(receiver);
@@ -2696,14 +2876,27 @@ class IfNullIndexSet extends InternalExpression {
   final bool forEffect;
 
   IfNullIndexSet(this.receiver, this.index, this.value,
-      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
-      : assert(readOffset != null),
+      {required this.readOffset,
+      required this.testOffset,
+      required this.writeOffset,
+      required this.forEffect})
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(index != null),
+        // ignore: unnecessary_null_comparison
+        assert(value != null),
+        // ignore: unnecessary_null_comparison
+        assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(testOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(writeOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(forEffect != null) {
-    receiver?.parent = this;
-    index?.parent = this;
-    value?.parent = this;
+    receiver.parent = this;
+    index.parent = this;
+    value.parent = this;
   }
 
   @override
@@ -2717,40 +2910,46 @@ class IfNullIndexSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    index?.accept(v);
-    value?.accept(v);
+    receiver.accept(v);
+    index.accept(v);
+    value.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
       value = v.transform(value);
-      value?.parent = this;
+      value.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
-      value = v.transformOrRemoveExpression(value);
-      value?.parent = this;
+      value = v.transform(value);
+      value.parent = this;
     }
   }
 
@@ -2781,10 +2980,10 @@ class IfNullIndexSet extends InternalExpression {
 ///
 class IfNullSuperIndexSet extends InternalExpression {
   /// The [] member;
-  Member getter;
+  Member? getter;
 
   /// The []= member;
-  Member setter;
+  Member? setter;
 
   /// The index expression of the operation.
   Expression index;
@@ -2805,13 +3004,24 @@ class IfNullSuperIndexSet extends InternalExpression {
   final bool forEffect;
 
   IfNullSuperIndexSet(this.getter, this.setter, this.index, this.value,
-      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
-      : assert(readOffset != null),
+      {required this.readOffset,
+      required this.testOffset,
+      required this.writeOffset,
+      required this.forEffect})
+      // ignore: unnecessary_null_comparison
+      : assert(index != null),
+        // ignore: unnecessary_null_comparison
+        assert(value != null),
+        // ignore: unnecessary_null_comparison
+        assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(testOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(writeOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(forEffect != null) {
-    index?.parent = this;
-    value?.parent = this;
+    index.parent = this;
+    value.parent = this;
   }
 
   @override
@@ -2825,31 +3035,35 @@ class IfNullSuperIndexSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    index?.accept(v);
-    value?.accept(v);
+    index.accept(v);
+    value.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
       value = v.transform(value);
-      value?.parent = this;
+      value.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
-      value = v.transformOrRemoveExpression(value);
-      value?.parent = this;
+      value = v.transform(value);
+      value.parent = this;
     }
   }
 
@@ -2881,16 +3095,16 @@ class IfNullSuperIndexSet extends InternalExpression {
 class IfNullExtensionIndexSet extends InternalExpression {
   final Extension extension;
 
-  final List<DartType> explicitTypeArguments;
+  final List<DartType>? explicitTypeArguments;
 
   /// The extension receiver;
   Expression receiver;
 
   /// The [] member;
-  Member getter;
+  Member? getter;
 
   /// The []= member;
-  Member setter;
+  Member? setter;
 
   /// The index expression of the operation.
   Expression index;
@@ -2912,16 +3126,29 @@ class IfNullExtensionIndexSet extends InternalExpression {
 
   IfNullExtensionIndexSet(this.extension, this.explicitTypeArguments,
       this.receiver, this.getter, this.setter, this.index, this.value,
-      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
+      {required this.readOffset,
+      required this.testOffset,
+      required this.writeOffset,
+      required this.forEffect})
       : assert(explicitTypeArguments == null ||
             explicitTypeArguments.length == extension.typeParameters.length),
+        // ignore: unnecessary_null_comparison
+        assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(index != null),
+        // ignore: unnecessary_null_comparison
+        assert(value != null),
+        // ignore: unnecessary_null_comparison
         assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(testOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(writeOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(forEffect != null) {
-    receiver?.parent = this;
-    index?.parent = this;
-    value?.parent = this;
+    receiver.parent = this;
+    index.parent = this;
+    value.parent = this;
   }
 
   @override
@@ -2936,40 +3163,46 @@ class IfNullExtensionIndexSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    index?.accept(v);
-    value?.accept(v);
+    receiver.accept(v);
+    index.accept(v);
+    value.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
       value = v.transform(value);
-      value?.parent = this;
+      value.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
-      value = v.transformOrRemoveExpression(value);
-      value?.parent = this;
+      value = v.transform(value);
+      value.parent = this;
     }
   }
 
@@ -3022,15 +3255,30 @@ class CompoundIndexSet extends InternalExpression {
   final bool forPostIncDec;
 
   CompoundIndexSet(this.receiver, this.index, this.binaryName, this.rhs,
-      {this.readOffset,
-      this.binaryOffset,
-      this.writeOffset,
-      this.forEffect,
-      this.forPostIncDec})
-      : assert(forEffect != null) {
-    receiver?.parent = this;
-    index?.parent = this;
-    rhs?.parent = this;
+      {required this.readOffset,
+      required this.binaryOffset,
+      required this.writeOffset,
+      required this.forEffect,
+      required this.forPostIncDec})
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(index != null),
+        // ignore: unnecessary_null_comparison
+        assert(rhs != null),
+        // ignore: unnecessary_null_comparison
+        assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
+        assert(binaryOffset != null),
+        // ignore: unnecessary_null_comparison
+        assert(writeOffset != null),
+        // ignore: unnecessary_null_comparison
+        assert(forEffect != null),
+        // ignore: unnecessary_null_comparison
+        assert(forPostIncDec != null) {
+    receiver.parent = this;
+    index.parent = this;
+    rhs.parent = this;
     fileOffset = binaryOffset;
   }
 
@@ -3045,40 +3293,46 @@ class CompoundIndexSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    index?.accept(v);
-    rhs?.accept(v);
+    receiver.accept(v);
+    index.accept(v);
+    rhs.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
       rhs = v.transform(rhs);
-      rhs?.parent = this;
+      rhs.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
-      rhs = v.transformOrRemoveExpression(rhs);
-      rhs?.parent = this;
+      rhs = v.transform(rhs);
+      rhs.parent = this;
     }
   }
 
@@ -3174,18 +3428,27 @@ class NullAwareCompoundSet extends InternalExpression {
 
   NullAwareCompoundSet(
       this.receiver, this.propertyName, this.binaryName, this.rhs,
-      {this.readOffset,
-      this.binaryOffset,
-      this.writeOffset,
-      this.forEffect,
-      this.forPostIncDec})
-      : assert(readOffset != null),
+      {required this.readOffset,
+      required this.binaryOffset,
+      required this.writeOffset,
+      required this.forEffect,
+      required this.forPostIncDec})
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(rhs != null),
+        // ignore: unnecessary_null_comparison
+        assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(binaryOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(writeOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(forEffect != null),
+        // ignore: unnecessary_null_comparison
         assert(forPostIncDec != null) {
-    receiver?.parent = this;
-    rhs?.parent = this;
+    receiver.parent = this;
+    rhs.parent = this;
     fileOffset = binaryOffset;
   }
 
@@ -3201,31 +3464,35 @@ class NullAwareCompoundSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    rhs?.accept(v);
+    receiver.accept(v);
+    rhs.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
       rhs = v.transform(rhs);
-      rhs?.parent = this;
+      rhs.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
-      rhs = v.transformOrRemoveExpression(rhs);
-      rhs?.parent = this;
+      rhs = v.transform(rhs);
+      rhs.parent = this;
     }
   }
 
@@ -3302,13 +3569,24 @@ class NullAwareIfNullSet extends InternalExpression {
   final bool forEffect;
 
   NullAwareIfNullSet(this.receiver, this.name, this.value,
-      {this.readOffset, this.writeOffset, this.testOffset, this.forEffect})
-      : assert(readOffset != null),
+      {required this.readOffset,
+      required this.writeOffset,
+      required this.testOffset,
+      required this.forEffect})
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(value != null),
+        // ignore: unnecessary_null_comparison
+        assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(writeOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(testOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(forEffect != null) {
-    receiver?.parent = this;
-    value?.parent = this;
+    receiver.parent = this;
+    value.parent = this;
   }
 
   @override
@@ -3322,31 +3600,35 @@ class NullAwareIfNullSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    value?.accept(v);
+    receiver.accept(v);
+    value.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
       value = v.transform(value);
-      value?.parent = this;
+      value.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
-      value = v.transformOrRemoveExpression(value);
-      value?.parent = this;
+      value = v.transform(value);
+      value.parent = this;
     }
   }
 
@@ -3380,10 +3662,10 @@ class NullAwareIfNullSet extends InternalExpression {
 ///
 class CompoundSuperIndexSet extends InternalExpression {
   /// The [] member.
-  Member getter;
+  Member? getter;
 
   /// The []= member.
-  Member setter;
+  Member? setter;
 
   /// The index expression of the operation.
   Expression index;
@@ -3411,14 +3693,27 @@ class CompoundSuperIndexSet extends InternalExpression {
 
   CompoundSuperIndexSet(
       this.getter, this.setter, this.index, this.binaryName, this.rhs,
-      {this.readOffset,
-      this.binaryOffset,
-      this.writeOffset,
-      this.forEffect,
-      this.forPostIncDec})
-      : assert(forEffect != null) {
-    index?.parent = this;
-    rhs?.parent = this;
+      {required this.readOffset,
+      required this.binaryOffset,
+      required this.writeOffset,
+      required this.forEffect,
+      required this.forPostIncDec})
+      // ignore: unnecessary_null_comparison
+      : assert(index != null),
+        // ignore: unnecessary_null_comparison
+        assert(rhs != null),
+        // ignore: unnecessary_null_comparison
+        assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
+        assert(binaryOffset != null),
+        // ignore: unnecessary_null_comparison
+        assert(writeOffset != null),
+        // ignore: unnecessary_null_comparison
+        assert(forEffect != null),
+        // ignore: unnecessary_null_comparison
+        assert(forPostIncDec != null) {
+    index.parent = this;
+    rhs.parent = this;
     fileOffset = binaryOffset;
   }
 
@@ -3434,31 +3729,35 @@ class CompoundSuperIndexSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    index?.accept(v);
-    rhs?.accept(v);
+    index.accept(v);
+    rhs.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
       rhs = v.transform(rhs);
-      rhs?.parent = this;
+      rhs.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
-      rhs = v.transformOrRemoveExpression(rhs);
-      rhs?.parent = this;
+      rhs = v.transform(rhs);
+      rhs.parent = this;
     }
   }
 
@@ -3490,15 +3789,15 @@ class CompoundSuperIndexSet extends InternalExpression {
 class CompoundExtensionIndexSet extends InternalExpression {
   final Extension extension;
 
-  final List<DartType> explicitTypeArguments;
+  final List<DartType>? explicitTypeArguments;
 
   Expression receiver;
 
   /// The [] member.
-  Member getter;
+  Member? getter;
 
   /// The []= member.
-  Member setter;
+  Member? setter;
 
   /// The index expression of the operation.
   Expression index;
@@ -3533,21 +3832,32 @@ class CompoundExtensionIndexSet extends InternalExpression {
       this.index,
       this.binaryName,
       this.rhs,
-      {this.readOffset,
-      this.binaryOffset,
-      this.writeOffset,
-      this.forEffect,
-      this.forPostIncDec})
+      {required this.readOffset,
+      required this.binaryOffset,
+      required this.writeOffset,
+      required this.forEffect,
+      required this.forPostIncDec})
       : assert(explicitTypeArguments == null ||
             explicitTypeArguments.length == extension.typeParameters.length),
+        // ignore: unnecessary_null_comparison
+        assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(index != null),
+        // ignore: unnecessary_null_comparison
+        assert(rhs != null),
+        // ignore: unnecessary_null_comparison
         assert(readOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(binaryOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(writeOffset != null),
+        // ignore: unnecessary_null_comparison
         assert(forEffect != null),
+        // ignore: unnecessary_null_comparison
         assert(forPostIncDec != null) {
-    receiver?.parent = this;
-    index?.parent = this;
-    rhs?.parent = this;
+    receiver.parent = this;
+    index.parent = this;
+    rhs.parent = this;
     fileOffset = binaryOffset;
   }
 
@@ -3563,40 +3873,46 @@ class CompoundExtensionIndexSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    index?.accept(v);
-    rhs?.accept(v);
+    receiver.accept(v);
+    index.accept(v);
+    rhs.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
       index = v.transform(index);
-      index?.parent = this;
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
       rhs = v.transform(rhs);
-      rhs?.parent = this;
+      rhs.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
-      receiver = v.transformOrRemoveExpression(receiver);
-      receiver?.parent = this;
+      receiver = v.transform(receiver);
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (index != null) {
-      index = v.transformOrRemoveExpression(index);
-      index?.parent = this;
+      index = v.transform(index);
+      index.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (rhs != null) {
-      rhs = v.transformOrRemoveExpression(rhs);
-      rhs?.parent = this;
+      rhs = v.transform(rhs);
+      rhs.parent = this;
     }
   }
 
@@ -3630,13 +3946,13 @@ class CompoundExtensionIndexSet extends InternalExpression {
 class ExtensionSet extends InternalExpression {
   final Extension extension;
 
-  final List<DartType> explicitTypeArguments;
+  final List<DartType>? explicitTypeArguments;
 
   /// The receiver for the assignment.
   Expression receiver;
 
   /// The extension member called for the assignment.
-  Member target;
+  Procedure target;
 
   /// The right-hand side value of the assignment.
   Expression value;
@@ -3647,12 +3963,17 @@ class ExtensionSet extends InternalExpression {
 
   ExtensionSet(this.extension, this.explicitTypeArguments, this.receiver,
       this.target, this.value,
-      {this.forEffect})
+      {required this.forEffect})
       : assert(explicitTypeArguments == null ||
             explicitTypeArguments.length == extension.typeParameters.length),
+        // ignore: unnecessary_null_comparison
+        assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(value != null),
+        // ignore: unnecessary_null_comparison
         assert(forEffect != null) {
-    receiver?.parent = this;
-    value?.parent = this;
+    receiver.parent = this;
+    value.parent = this;
   }
 
   @override
@@ -3666,31 +3987,35 @@ class ExtensionSet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    receiver?.accept(v);
-    value?.accept(v);
+    receiver.accept(v);
+    value.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
       value = v.transform(value);
-      value?.parent = this;
+      value.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (receiver != null) {
       receiver = v.transform(receiver);
-      receiver?.parent = this;
+      receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (value != null) {
       value = v.transform(value);
-      value?.parent = this;
+      value.parent = this;
     }
   }
 
@@ -3710,12 +4035,16 @@ class ExtensionSet extends InternalExpression {
 ///
 /// where `expression` is an encoding of `receiverVariable.target`.
 class NullAwareExtension extends InternalExpression {
-  VariableDeclaration variable;
+  VariableDeclarationImpl variable;
   Expression expression;
 
-  NullAwareExtension(this.variable, this.expression) {
-    variable?.parent = this;
-    expression?.parent = this;
+  NullAwareExtension(this.variable, this.expression)
+      // ignore: unnecessary_null_comparison
+      : assert(variable != null),
+        // ignore: unnecessary_null_comparison
+        assert(expression != null) {
+    variable.parent = this;
+    expression.parent = this;
   }
 
   @override
@@ -3729,31 +4058,35 @@ class NullAwareExtension extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    expression?.accept(v);
+    variable.accept(v);
+    expression.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
       variable = v.transform(variable);
-      variable?.parent = this;
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
       expression = v.transform(expression);
-      expression?.parent = this;
+      expression.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (variable != null) {
-      variable = v.transformOrRemoveVariableDeclaration(variable);
-      variable?.parent = this;
+      variable = v.transform(variable);
+      variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
-      expression = v.transformOrRemoveExpression(expression);
-      expression?.parent = this;
+      expression = v.transform(expression);
+      expression.parent = this;
     }
   }
 
@@ -3773,9 +4106,12 @@ class PropertySetImpl extends PropertySet {
   final bool readOnlyReceiver;
 
   PropertySetImpl(Expression receiver, Name name, Expression value,
-      {Member interfaceTarget, this.forEffect, this.readOnlyReceiver})
+      {required this.forEffect, required this.readOnlyReceiver})
+      // ignore: unnecessary_null_comparison
       : assert(forEffect != null),
-        super(receiver, name, value, interfaceTarget);
+        // ignore: unnecessary_null_comparison
+        assert(readOnlyReceiver != null),
+        super(receiver, name, value);
 
   @override
   String toString() {
@@ -3797,13 +4133,15 @@ class PropertySetImpl extends PropertySet {
 /// extension instance getter being read.
 class ExtensionTearOff extends InternalExpression {
   /// The top-level method that is that target for the read operation.
-  Member target;
+  Procedure target;
 
   /// The arguments provided to the top-level method.
   Arguments arguments;
 
-  ExtensionTearOff(this.target, this.arguments) {
-    arguments?.parent = this;
+  ExtensionTearOff(this.target, this.arguments)
+      // ignore: unnecessary_null_comparison
+      : assert(arguments != null) {
+    arguments.parent = this;
   }
 
   @override
@@ -3817,22 +4155,24 @@ class ExtensionTearOff extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    arguments?.accept(v);
+    arguments.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (arguments != null) {
       arguments = v.transform(arguments);
-      arguments?.parent = this;
+      arguments.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (arguments != null) {
-      arguments = v.transformOrRemove(arguments, dummyArguments);
-      arguments?.parent = this;
+      arguments = v.transform(arguments);
+      arguments.parent = this;
     }
   }
 
@@ -3848,10 +4188,15 @@ class EqualsExpression extends InternalExpression {
   Expression right;
   bool isNot;
 
-  EqualsExpression(this.left, this.right, {this.isNot})
-      : assert(isNot != null) {
-    left?.parent = this;
-    right?.parent = this;
+  EqualsExpression(this.left, this.right, {required this.isNot})
+      // ignore: unnecessary_null_comparison
+      : assert(left != null),
+        // ignore: unnecessary_null_comparison
+        assert(right != null),
+        // ignore: unnecessary_null_comparison
+        assert(isNot != null) {
+    left.parent = this;
+    right.parent = this;
   }
 
   @override
@@ -3865,31 +4210,35 @@ class EqualsExpression extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    left?.accept(v);
-    right?.accept(v);
+    left.accept(v);
+    right.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (left != null) {
       left = v.transform(left);
-      left?.parent = this;
+      left.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (right != null) {
       right = v.transform(right);
-      right?.parent = this;
+      right.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (left != null) {
-      left = v.transformOrRemoveExpression(left);
-      left?.parent = this;
+      left = v.transform(left);
+      left.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (right != null) {
-      right = v.transformOrRemoveExpression(right);
-      right?.parent = this;
+      right = v.transform(right);
+      right.parent = this;
     }
   }
 
@@ -3916,9 +4265,13 @@ class BinaryExpression extends InternalExpression {
   Name binaryName;
   Expression right;
 
-  BinaryExpression(this.left, this.binaryName, this.right) {
-    left?.parent = this;
-    right?.parent = this;
+  BinaryExpression(this.left, this.binaryName, this.right)
+      // ignore: unnecessary_null_comparison
+      : assert(left != null),
+        // ignore: unnecessary_null_comparison
+        assert(right != null) {
+    left.parent = this;
+    right.parent = this;
   }
 
   @override
@@ -3932,31 +4285,35 @@ class BinaryExpression extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    left?.accept(v);
-    right?.accept(v);
+    left.accept(v);
+    right.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (left != null) {
       left = v.transform(left);
-      left?.parent = this;
+      left.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (right != null) {
       right = v.transform(right);
-      right?.parent = this;
+      right.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (left != null) {
-      left = v.transformOrRemoveExpression(left);
-      left?.parent = this;
+      left = v.transform(left);
+      left.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (right != null) {
-      right = v.transformOrRemoveExpression(right);
-      right?.parent = this;
+      right = v.transform(right);
+      right.parent = this;
     }
   }
 
@@ -3966,7 +4323,7 @@ class BinaryExpression extends InternalExpression {
   }
 
   @override
-  int get precedence => Precedence.binaryPrecedence[binaryName.text];
+  int get precedence => Precedence.binaryPrecedence[binaryName.text]!;
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -3981,8 +4338,10 @@ class UnaryExpression extends InternalExpression {
   Name unaryName;
   Expression expression;
 
-  UnaryExpression(this.unaryName, this.expression) {
-    expression?.parent = this;
+  UnaryExpression(this.unaryName, this.expression)
+      // ignore: unnecessary_null_comparison
+      : assert(expression != null) {
+    expression.parent = this;
   }
 
   @override
@@ -3996,22 +4355,24 @@ class UnaryExpression extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    expression?.accept(v);
+    expression.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
       expression = v.transform(expression);
-      expression?.parent = this;
+      expression.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
-      expression = v.transformOrRemoveExpression(expression);
-      expression?.parent = this;
+      expression = v.transform(expression);
+      expression.parent = this;
     }
   }
 
@@ -4038,8 +4399,10 @@ class UnaryExpression extends InternalExpression {
 class ParenthesizedExpression extends InternalExpression {
   Expression expression;
 
-  ParenthesizedExpression(this.expression) {
-    expression?.parent = this;
+  ParenthesizedExpression(this.expression)
+      // ignore: unnecessary_null_comparison
+      : assert(expression != null) {
+    expression.parent = this;
   }
 
   @override
@@ -4053,22 +4416,24 @@ class ParenthesizedExpression extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    expression?.accept(v);
+    expression.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
       expression = v.transform(expression);
-      expression?.parent = this;
+      expression.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
     if (expression != null) {
-      expression = v.transformOrRemoveExpression(expression);
-      expression?.parent = this;
+      expression = v.transform(expression);
+      expression.parent = this;
     }
   }
 

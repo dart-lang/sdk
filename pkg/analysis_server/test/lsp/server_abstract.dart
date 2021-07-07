@@ -102,7 +102,7 @@ abstract class AbstractLspAnalysisServerTest
       throw error;
     } else {
       // resp.result should only be null when error != null if T allows null.
-      return resp.result == null ? null as T : fromJson(resp.result);
+      return resp.result == null ? null as T : fromJson(resp.result as R);
     }
   }
 
@@ -122,7 +122,8 @@ abstract class AbstractLspAnalysisServerTest
   ) {
     return registrations.singleWhere((r) =>
         r.method == method.toJson() &&
-        (TextDocumentRegistrationOptions.fromJson(r.registerOptions)
+        (TextDocumentRegistrationOptions.fromJson(
+                    r.registerOptions as Map<String, Object?>)
                 .documentSelector
                 ?.any((selector) => selector.language == dartLanguageId) ??
             false));
@@ -875,7 +876,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final notificationFromServer = await firstError.timeout(timeout);
 
     expect(notificationFromServer, isNotNull);
-    return ShowMessageParams.fromJson(notificationFromServer.params);
+    return ShowMessageParams.fromJson(
+        notificationFromServer.params as Map<String, Object?>);
   }
 
   Future<T> expectNotification<T>(
@@ -1253,7 +1255,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     });
 
     // Handle the request from the server and send the response back.
-    final clientsResponse = await handler(fromJson(incomingRequest.params));
+    final clientsResponse =
+        await handler(fromJson(incomingRequest.params as Map<String, Object?>));
     respondTo(incomingRequest, clientsResponse);
 
     // Return a future that completes when the response to the original request
@@ -1649,7 +1652,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
                 'but client supports workDoneProgress');
           }
 
-          final params = AnalyzerStatusParams.fromJson(message.params);
+          final params = AnalyzerStatusParams.fromJson(
+              message.params as Map<String, Object?>);
           return params.isAnalyzing == analyzing;
         } else if (message.method == Method.progress) {
           if (_clientCapabilities!.window?.workDoneProgress != true) {
@@ -1658,7 +1662,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
                 'but client supports workDoneProgress');
           }
 
-          final params = ProgressParams.fromJson(message.params);
+          final params =
+              ProgressParams.fromJson(message.params as Map<String, Object?>);
 
           // Skip unrelated progress notifications.
           if (params.token != analyzingProgressToken) {
@@ -1688,8 +1693,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == CustomMethods.publishClosingLabels) {
-        closingLabelsParams =
-            PublishClosingLabelsParams.fromJson(message.params);
+        closingLabelsParams = PublishClosingLabelsParams.fromJson(
+            message.params as Map<String, Object?>);
 
         return closingLabelsParams.uri == uri.toString();
       }
@@ -1704,7 +1709,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         (message) {
       if (message is NotificationMessage &&
           message.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams = PublishDiagnosticsParams.fromJson(message.params);
+        diagnosticParams = PublishDiagnosticsParams.fromJson(
+            message.params as Map<String, Object?>);
         return diagnosticParams!.uri == uri.toString();
       }
       return false;
@@ -1717,7 +1723,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == CustomMethods.publishFlutterOutline) {
-        outlineParams = PublishFlutterOutlineParams.fromJson(message.params);
+        outlineParams = PublishFlutterOutlineParams.fromJson(
+            message.params as Map<String, Object?>);
 
         return outlineParams.uri == uri.toString();
       }
@@ -1731,7 +1738,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == CustomMethods.publishOutline) {
-        outlineParams = PublishOutlineParams.fromJson(message.params);
+        outlineParams = PublishOutlineParams.fromJson(
+            message.params as Map<String, Object?>);
 
         return outlineParams.uri == uri.toString();
       }
@@ -1760,7 +1768,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       (input) => input.cast<Map<String, dynamic>>().map(fromJson).toList();
 
   Future<void> _handleProgress(NotificationMessage request) async {
-    final params = ProgressParams.fromJson(request.params);
+    final params =
+        ProgressParams.fromJson(request.params as Map<String, Object?>);
     if (params.token != clientProvidedTestWorkDoneToken &&
         !validProgressTokens.contains(params.token)) {
       throw Exception('Server sent a progress notification for a token '
@@ -1777,7 +1786,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       throw Exception('Server sent ${Method.window_workDoneProgress_create} '
           'but client capabilities do not allow');
     }
-    final params = WorkDoneProgressCreateParams.fromJson(request.params);
+    final params = WorkDoneProgressCreateParams.fromJson(
+        request.params as Map<String, Object?>);
     if (validProgressTokens.contains(params.token)) {
       throw Exception('Server tried to create already-active progress token');
     }

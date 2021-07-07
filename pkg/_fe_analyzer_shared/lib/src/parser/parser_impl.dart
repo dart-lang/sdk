@@ -3455,7 +3455,7 @@ class Parser {
   /// method takes the next token to be consumed rather than the last consumed
   /// token and returns the token after the last consumed token rather than the
   /// last consumed token.
-  Token parseClassMember(Token token, String className) {
+  Token parseClassMember(Token token, String? className) {
     return parseClassOrMixinOrExtensionMemberImpl(
             syntheticPreviousToken(token), DeclarationKind.Class, className)
         .next!;

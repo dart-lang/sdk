@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.invalid_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, InvalidType, Nullability;
@@ -22,23 +20,28 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   final LocatedMessage message;
 
-  final List<LocatedMessage> context;
+  final List<LocatedMessage>? context;
 
   final bool suppressMessage;
 
   InvalidTypeDeclarationBuilder(String name, this.message,
       {this.context, this.suppressMessage: true})
-      : super(null, 0, name, null, message.charOffset, message.uri);
+      : super(null, 0, name, null, message.charOffset);
 
+  @override
+  Uri? get fileUri => message.uri;
+
+  @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     return buildTypesWithBuiltArguments(library, null, null);
   }
 
   /// [Arguments] have already been built.
+  @override
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments) {
+      Nullability? nullability, List<DartType>? arguments) {
     if (!suppressMessage) {
       library.addProblem(message.messageObject, message.charOffset,
           message.length, message.uri,

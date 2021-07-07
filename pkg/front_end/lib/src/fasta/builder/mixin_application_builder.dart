@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.mixin_application_builder;
 
 import 'package:kernel/ast.dart' show InterfaceType, Supertype, TypedefType;
@@ -17,18 +15,18 @@ import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
 class MixinApplicationBuilder extends TypeBuilder {
-  final TypeBuilder supertype;
+  final TypeBuilder? supertype;
   final List<TypeBuilder> mixins;
   final Uri fileUri;
   final int charOffset;
-  Supertype builtType;
+  Supertype? builtType;
 
-  List<TypeVariableBuilder> typeVariables;
+  List<TypeVariableBuilder>? typeVariables;
 
   MixinApplicationBuilder(
       this.supertype, this.mixins, this.fileUri, this.charOffset);
 
-  String get name => null;
+  String? get name => null;
 
   NullabilityBuilder get nullabilityBuilder {
     return unsupported("nullabilityBuilder", -1, null);
@@ -52,9 +50,9 @@ class MixinApplicationBuilder extends TypeBuilder {
 
   @override
   InterfaceType build(LibraryBuilder library,
-      [TypedefType origin, bool notInstanceContext]) {
+      {TypedefType? origin, bool? nonInstanceContext}) {
     int charOffset = -1; // TODO(ahe): Provide these.
-    Uri fileUri = null; // TODO(ahe): Provide these.
+    Uri? fileUri = null; // TODO(ahe): Provide these.
     return unsupported("build", charOffset, fileUri);
   }
 
@@ -81,7 +79,7 @@ class MixinApplicationBuilder extends TypeBuilder {
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     int charOffset = -1; // TODO(dmitryas): Provide these.
-    Uri fileUri = null; // TODO(dmitryas): Provide these.
+    Uri? fileUri = null; // TODO(dmitryas): Provide these.
     return unsupported("clone", charOffset, fileUri);
   }
 }

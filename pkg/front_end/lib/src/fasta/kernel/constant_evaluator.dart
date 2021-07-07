@@ -121,7 +121,7 @@ Component transformComponent(
 ConstantCoverage transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
-    Map<String, String> environmentDefines,
+    Map<String, String>? environmentDefines,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
@@ -160,7 +160,7 @@ ConstantCoverage transformLibraries(
 void transformProcedure(
     Procedure procedure,
     ConstantsBackend backend,
-    Map<String, String> environmentDefines,
+    Map<String, String>? environmentDefines,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
@@ -376,7 +376,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
   ConstantsTransformer(
       this.backend,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       this.evaluateAnnotations,
       this.enableTripleShift,
       this.enableConstFunctions,

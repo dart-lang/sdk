@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.member_builder;
 
 import 'package:kernel/ast.dart';
@@ -14,6 +12,7 @@ import '../../base/common.dart';
 import '../kernel/class_hierarchy_builder.dart';
 import '../modifier.dart';
 import '../problems.dart' show unsupported;
+import '../source/source_library_builder.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
 import '../util/helpers.dart' show DelayedActionPerformer;
@@ -26,9 +25,12 @@ import 'library_builder.dart';
 import 'modifier_builder.dart';
 
 abstract class MemberBuilder implements ModifierBuilder {
+  @override
+  String get name;
+
   bool get isAssignable;
 
-  void set parent(Builder value);
+  void set parent(Builder? value);
 
   LibraryBuilder get library;
 
@@ -40,20 +42,20 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// For a field, a getter or a regular method this is the [member] itself.
   /// For an instance extension method this is special tear-off function. For
   /// a constructor, an operator, a factory or a setter this is `null`.
-  Member get readTarget;
+  Member? get readTarget;
 
   /// The [Member] to use when write to this member builder.
   ///
   /// For an assignable field or a setter this is the [member] itself. For
   /// a constructor, a non-assignable field, a getter, an operator or a regular
   /// method this is `null`.
-  Member get writeTarget;
+  Member? get writeTarget;
 
   /// The [Member] to use when invoking this member builder.
   ///
   /// For a constructor, a field, a regular method, a getter an operator or
   /// a factory this is the [member] itself. For a setter this is `null`.
-  Member get invokeTarget;
+  Member? get invokeTarget;
 
   /// The members from this builder that are accessible in exports through
   /// the name of the builder.
@@ -63,7 +65,7 @@ abstract class MemberBuilder implements ModifierBuilder {
   Iterable<Member> get exportedMembers;
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  ProcedureKind get kind;
+  ProcedureKind? get kind;
 
   bool get isExternal;
 
@@ -73,7 +75,9 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// setter of a field.
   bool get isConflictingSetter;
 
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
@@ -97,17 +101,21 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   /// construction. However, for class members, the parent is initially the
   /// library and updated later.
   @override
-  Builder parent;
+  Builder? parent;
 
   @override
   String get name;
 
-  MemberDataForTesting dataForTesting;
+  @override
+  final Uri fileUri;
 
-  MemberBuilderImpl(this.parent, int charOffset, [Uri fileUri])
+  MemberDataForTesting? dataForTesting;
+
+  MemberBuilderImpl(this.parent, int charOffset, [Uri? fileUri])
       : dataForTesting =
             retainDataForTesting ? new MemberDataForTesting() : null,
-        super(parent, charOffset, fileUri);
+        this.fileUri = (fileUri ?? parent?.fileUri)!,
+        super(parent, charOffset);
 
   @override
   bool get isDeclarationInstanceMember => isDeclarationMember && !isStatic;
@@ -141,7 +149,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
 
-  bool _isConflictingSetter;
+  bool? _isConflictingSetter;
 
   @override
   bool get isConflictingSetter {
@@ -157,28 +165,30 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   LibraryBuilder get library {
     if (parent is LibraryBuilder) {
-      LibraryBuilder library = parent;
+      LibraryBuilder library = parent as LibraryBuilder;
       return library.partOfLibrary ?? library;
     } else if (parent is ExtensionBuilder) {
-      ExtensionBuilder extension = parent;
+      ExtensionBuilder extension = parent as ExtensionBuilder;
       return extension.library;
     } else {
-      ClassBuilder cls = parent;
+      ClassBuilder cls = parent as ClassBuilder;
       return cls.library;
     }
   }
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   @override
-  ProcedureKind get kind => unsupported("kind", charOffset, fileUri);
+  ProcedureKind? get kind => unsupported("kind", charOffset, fileUri);
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers) {}
 
   /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(
-      LibraryBuilder library, void Function(Member, BuiltMemberKind) f);
+      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f);
 
   @override
   String get fullNameForErrors => name;
@@ -186,14 +196,15 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   StringBuffer printOn(StringBuffer buffer) {
     if (isClassMember) {
-      buffer.write(classBuilder.name);
+      buffer.write(classBuilder!.name);
       buffer.write('.');
     }
     buffer.write(name);
     return buffer;
   }
 
-  ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
+  ClassBuilder? get classBuilder =>
+      parent is ClassBuilder ? parent as ClassBuilder : null;
 }
 
 enum BuiltMemberKind {
@@ -215,7 +226,7 @@ enum BuiltMemberKind {
 class MemberDataForTesting {
   final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
 
-  MemberBuilder patchForTesting;
+  MemberBuilder? patchForTesting;
 }
 
 /// Base class for implementing [ClassMember] for a [MemberBuilder].
@@ -226,7 +237,7 @@ abstract class BuilderClassMember implements ClassMember {
   int get charOffset => memberBuilder.charOffset;
 
   @override
-  ClassBuilder get classBuilder => memberBuilder.classBuilder;
+  ClassBuilder get classBuilder => memberBuilder.classBuilder!;
 
   @override
   Uri get fileUri => memberBuilder.fileUri;
@@ -237,7 +248,8 @@ abstract class BuilderClassMember implements ClassMember {
   @override
   String get fullName {
     String suffix = isSetter ? "=" : "";
-    String className = classBuilder?.fullNameForErrors;
+    String className = classBuilder.fullNameForErrors;
+    // ignore: unnecessary_null_comparison
     return className == null
         ? "${fullNameForErrors}$suffix"
         : "${className}.${fullNameForErrors}$suffix";

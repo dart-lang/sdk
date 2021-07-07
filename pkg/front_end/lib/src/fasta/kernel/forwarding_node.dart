@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "package:kernel/ast.dart"
     show
         Arguments,
@@ -38,9 +36,9 @@ class ForwardingNode {
 
   final ProcedureKind kind;
 
-  final ClassMember _superClassMember;
+  final ClassMember? _superClassMember;
 
-  final ClassMember _mixedInMember;
+  final ClassMember? _mixedInMember;
 
   ForwardingNode(this._combinedMemberSignature, this.kind,
       this._superClassMember, this._mixedInMember);
@@ -49,7 +47,7 @@ class ForwardingNode {
   /// forwarding stubs if necessary.
   ///
   /// If a stub is created, this is returned. Otherwise `null` is returned.
-  Procedure finalize() => _computeCovarianceFixes();
+  Procedure? finalize() => _computeCovarianceFixes();
 
   /// Tag the parameters of [interfaceMember] that need type checks
   ///
@@ -63,9 +61,9 @@ class ForwardingNode {
   /// stub is introduced as a place to put the checks.
   ///
   /// If a stub is created, this is returned. Otherwise `null` is returned.
-  Procedure _computeCovarianceFixes() {
+  Procedure? _computeCovarianceFixes() {
     SourceClassBuilder classBuilder = _combinedMemberSignature.classBuilder;
-    ClassMember canonicalMember = _combinedMemberSignature.canonicalMember;
+    ClassMember canonicalMember = _combinedMemberSignature.canonicalMember!;
     Member interfaceMember =
         canonicalMember.getMember(_combinedMemberSignature.hierarchy);
 
@@ -101,11 +99,11 @@ class ForwardingNode {
             needsTypeOrCovarianceUpdate) ||
         needMixinStub;
     bool needsSuperImpl = _superClassMember != null &&
-        _superClassMember.getCovariance(_combinedMemberSignature.hierarchy) !=
+        _superClassMember!.getCovariance(_combinedMemberSignature.hierarchy) !=
             _combinedMemberSignature.combinedMemberSignatureCovariance;
     if (stubNeeded) {
       Procedure stub = _combinedMemberSignature.createMemberFromSignature(
-          copyLocation: false);
+          copyLocation: false)!;
       bool needsForwardingStub =
           _combinedMemberSignature.needsCovarianceMerging || needsSuperImpl;
       if (needsForwardingStub || needMixinStub) {
@@ -124,7 +122,7 @@ class ForwardingNode {
               case ProcedureStubKind.MemberSignature:
               case ProcedureStubKind.AbstractMixinStub:
               case ProcedureStubKind.ConcreteMixinStub:
-                finalTarget = interfaceMember.stubTarget;
+                finalTarget = interfaceMember.stubTarget!;
                 break;
             }
           } else {
@@ -133,7 +131,7 @@ class ForwardingNode {
         } else {
           stubKind = ProcedureStubKind.AbstractMixinStub;
           finalTarget =
-              _mixedInMember.getMember(_combinedMemberSignature.hierarchy);
+              _mixedInMember!.getMember(_combinedMemberSignature.hierarchy);
         }
 
         stub.stubKind = stubKind;
@@ -149,12 +147,12 @@ class ForwardingNode {
       return stub;
     } else {
       if (_combinedMemberSignature.needsCovarianceMerging) {
-        _combinedMemberSignature.combinedMemberSignatureCovariance
+        _combinedMemberSignature.combinedMemberSignatureCovariance!
             .applyCovariance(interfaceMember);
       }
       if (needsSuperImpl) {
         _createForwardingImplIfNeeded(
-            interfaceMember.function, interfaceMember.name, classBuilder.cls,
+            interfaceMember.function!, interfaceMember.name, classBuilder.cls,
             isForwardingStub: true);
       }
       return null;
@@ -163,7 +161,8 @@ class ForwardingNode {
 
   void _createForwardingImplIfNeeded(
       FunctionNode function, Name name, Class enclosingClass,
-      {bool isForwardingStub}) {
+      {required bool isForwardingStub}) {
+    // ignore: unnecessary_null_comparison
     assert(isForwardingStub != null);
     if (function.body != null) {
       // There is already an implementation; nothing further needs to be done.
@@ -174,12 +173,12 @@ class ForwardingNode {
     if (_superClassMember == null) {
       return;
     }
-    Procedure procedure = function.parent;
+    Procedure procedure = function.parent as Procedure;
     Member superTarget =
-        _superClassMember.getMember(_combinedMemberSignature.hierarchy);
+        _superClassMember!.getMember(_combinedMemberSignature.hierarchy);
     if (superTarget is Procedure && superTarget.isForwardingStub) {
       Procedure superProcedure = superTarget;
-      superTarget = superProcedure.concreteForwardingStubTarget;
+      superTarget = superProcedure.concreteForwardingStubTarget!;
     } else {
       superTarget = superTarget.memberSignatureOrigin ?? superTarget;
     }
@@ -189,7 +188,7 @@ class ForwardingNode {
         .toList();
     List<NamedExpression> namedArguments = function.namedParameters
         .map((parameter) =>
-            new NamedExpression(parameter.name, new VariableGet(parameter)))
+            new NamedExpression(parameter.name!, new VariableGet(parameter)))
         .toList();
     List<DartType> typeArguments = function.typeParameters
         .map<DartType>((typeParameter) =>
@@ -199,6 +198,7 @@ class ForwardingNode {
     Arguments arguments = new Arguments(positionalArguments,
         types: typeArguments, named: namedArguments);
     Expression superCall;
+    // ignore: unnecessary_null_comparison
     assert(superTarget != null,
         "No super target found for '${name}' in ${enclosingClass}.");
     assert(
@@ -208,7 +208,8 @@ class ForwardingNode {
     switch (kind) {
       case ProcedureKind.Method:
       case ProcedureKind.Operator:
-        superCall = new SuperMethodInvocation(name, arguments, superTarget);
+        superCall = new SuperMethodInvocation(
+            name, arguments, superTarget as Procedure);
         break;
       case ProcedureKind.Getter:
         superCall = new SuperPropertyGet(name, superTarget);
@@ -219,7 +220,6 @@ class ForwardingNode {
         break;
       default:
         unhandled('$kind', '_createForwardingImplIfNeeded', -1, null);
-        break;
     }
     function.body = new ReturnStatement(superCall)..parent = function;
     procedure.transformerFlags |= TransformerFlag.superCalls;

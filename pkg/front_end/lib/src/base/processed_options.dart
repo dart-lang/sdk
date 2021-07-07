@@ -427,7 +427,7 @@ class ProcessedOptions {
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<Component?> loadSdkSummary(CanonicalName nameRoot) async {
+  Future<Component?> loadSdkSummary(CanonicalName? nameRoot) async {
     if (_sdkSummaryComponent == null) {
       if (sdkSummary == null) return null;
       List<int>? bytes = await loadSdkSummaryBytes();
@@ -478,7 +478,7 @@ class ProcessedOptions {
   }
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
-  Component loadComponent(List<int> bytes, CanonicalName nameRoot,
+  Component loadComponent(List<int> bytes, CanonicalName? nameRoot,
       {bool? alwaysCreateNewNamedNodes, Uri? fileUri}) {
     Component component =
         target.configureComponent(new Component(nameRoot: nameRoot));

@@ -40,12 +40,14 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     // `window/showMessage`.
     _serverToClient.stream.listen((message) {
       if (message is lsp.NotificationMessage &&
-          message.method == Method.window_showMessage &&
-          message.params is lsp.ShowMessageParams) {
-        if (message.params?.type == MessageType.Error) {
-          shownErrors.add(message.params);
-        } else if (message.params?.type == MessageType.Warning) {
-          shownWarnings.add(message.params);
+          message.method == Method.window_showMessage) {
+        final params = message.params;
+        if (params is lsp.ShowMessageParams) {
+          if (params.type == MessageType.Error) {
+            shownErrors.add(params);
+          } else if (params.type == MessageType.Warning) {
+            shownWarnings.add(params);
+          }
         }
       }
     });
@@ -170,7 +172,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
         (throwOnError &&
             message is lsp.NotificationMessage &&
             message.method == Method.window_showMessage &&
-            lsp.ShowMessageParams.fromJson(message.params).type ==
+            lsp.ShowMessageParams.fromJson(
+                        message.params as Map<String, Object?>)
+                    .type ==
                 MessageType.Error));
 
     if (response is lsp.ResponseMessage) {

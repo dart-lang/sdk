@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.type_builder_computer;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -24,6 +22,8 @@ import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
+
+import '../kernel/utils.dart';
 
 import '../loader.dart' show Loader;
 
@@ -94,13 +94,12 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   TypeBuilder visitInterfaceType(InterfaceType node) {
     ClassBuilder cls =
         loader.computeClassBuilderFromTargetClass(node.classNode);
-    List<TypeBuilder> arguments;
+    List<TypeBuilder>? arguments;
     List<DartType> kernelArguments = node.typeArguments;
     if (kernelArguments.isNotEmpty) {
-      arguments = new List<TypeBuilder>.filled(kernelArguments.length, null);
-      for (int i = 0; i < kernelArguments.length; i++) {
-        arguments[i] = kernelArguments[i].accept(this);
-      }
+      arguments = new List<TypeBuilder>.generate(
+          kernelArguments.length, (int i) => kernelArguments[i].accept(this),
+          growable: false);
     }
     return new NamedTypeBuilder(
         cls.name,
@@ -133,12 +132,13 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     TypeBuilder returnType = node.returnType.accept(this);
     // We could compute the type variables here. However, the current
     // implementation of [visitTypeParameterType] is sufficient.
-    List<TypeVariableBuilder> typeVariables = null;
+    List<TypeVariableBuilder>? typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
     List<FormalParameterBuilder> formals =
         new List<FormalParameterBuilder>.filled(
-            positionalParameters.length + namedParameters.length, null);
+            positionalParameters.length + namedParameters.length,
+            dummyFormalParameterBuilder);
     for (int i = 0; i < positionalParameters.length; i++) {
       TypeBuilder type = positionalParameters[i].accept(this);
       FormalParameterKind kind = FormalParameterKind.mandatory;
@@ -149,7 +149,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
           /* metadata = */ null,
           /* modifiers = */ 0,
           type,
-          /* name = */ null,
+          /* name = */ '',
           /* compilationUnit = */ null,
           /* charOffset = */ TreeNode.noOffset)
         ..kind = kind;
@@ -177,16 +177,16 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   TypeBuilder visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
-    TreeNode kernelClassOrTypeDef = parameter.parent;
-    Library kernelLibrary;
+    TreeNode? kernelClassOrTypeDef = parameter.parent;
+    Library? kernelLibrary;
     if (kernelClassOrTypeDef is Class) {
       kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
     } else if (kernelClassOrTypeDef is Typedef) {
       kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
     }
-    LibraryBuilder library = loader.builders[kernelLibrary.importUri];
+    LibraryBuilder library = loader.builders[kernelLibrary!.importUri]!;
     return new NamedTypeBuilder(
-        parameter.name,
+        parameter.name!,
         new NullabilityBuilder.fromNullability(node.nullability),
         /* arguments = */ null,
         /* fileUri = */ null,

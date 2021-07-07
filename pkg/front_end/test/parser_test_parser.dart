@@ -975,7 +975,7 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token parseClassMember(Token token, String className) {
+  Token parseClassMember(Token token, String? className) {
     doPrint('parseClassMember(' '$token, ' '$className)');
     indent++;
     var result = super.parseClassMember(token, className);

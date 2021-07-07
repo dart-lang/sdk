@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
@@ -29,12 +27,13 @@ Statement createGetterWithInitializer(
     DartType type,
     Expression initializer,
     bool useNewMethodInvocationEncoding,
-    {Expression createVariableRead(bool useNewMethodInvocationEncoding,
+    {required Expression createVariableRead(bool useNewMethodInvocationEncoding,
         {bool needsPromotion}),
-    Expression createVariableWrite(Expression value),
-    Expression createIsSetRead(),
-    Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding}) {
+    required Expression createVariableWrite(Expression value),
+    required Expression createIsSetRead(),
+    required Expression createIsSetWrite(Expression value),
+    required IsSetEncoding isSetEncoding}) {
+  // ignore: unnecessary_null_comparison
   assert(isSetEncoding != null);
   switch (isSetEncoding) {
     case IsSetEncoding.useIsSetField:
@@ -129,7 +128,6 @@ Statement createGetterWithInitializer(
         ..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Creates the body for the synthesized getter used to encode the lowering
@@ -141,13 +139,14 @@ Statement createGetterWithInitializerWithRecheck(
     DartType type,
     Expression initializer,
     bool useNewMethodInvocationEncoding,
-    {Expression createVariableRead(bool useNewMethodInvocationEncoding,
+    {required Expression createVariableRead(bool useNewMethodInvocationEncoding,
         {bool needsPromotion}),
-    Expression createVariableWrite(Expression value),
-    Expression createIsSetRead(),
-    Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding,
-    bool forField}) {
+    required Expression createVariableWrite(Expression value),
+    required Expression createIsSetRead(),
+    required Expression createIsSetWrite(Expression value),
+    required IsSetEncoding isSetEncoding,
+    required bool forField}) {
+  // ignore: unnecessary_null_comparison
   assert(forField != null);
   Constructor constructor = forField
       ? coreTypes.lateInitializationFieldAssignedDuringInitializationConstructor
@@ -313,7 +312,6 @@ Statement createGetterWithInitializerWithRecheck(
         ..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Creates the body for the synthesized getter used to encode the lowering
@@ -324,12 +322,14 @@ Statement createGetterBodyWithoutInitializer(
     String name,
     DartType type,
     bool useNewMethodInvocationEncoding,
-    {Expression createVariableRead(bool useNewMethodInvocationEncoding,
+    {required Expression createVariableRead(bool useNewMethodInvocationEncoding,
         {bool needsPromotion}),
-    Expression createIsSetRead(),
-    IsSetEncoding isSetEncoding,
-    bool forField}) {
+    required Expression createIsSetRead(),
+    required IsSetEncoding isSetEncoding,
+    required bool forField}) {
+  // ignore: unnecessary_null_comparison
   assert(forField != null);
+  // ignore: unnecessary_null_comparison
   assert(isSetEncoding != null);
   Expression exception = new Throw(
       new ConstructorInvocation(
@@ -413,17 +413,17 @@ Statement createGetterBodyWithoutInitializer(
         ..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Creates the body for the synthesized setter used to encode the lowering
 /// of a non-final late field or local.
 Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
     VariableDeclaration parameter, DartType type,
-    {bool shouldReturnValue,
-    Expression createVariableWrite(Expression value),
-    Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding}) {
+    {required bool shouldReturnValue,
+    required Expression createVariableWrite(Expression value),
+    required Expression createIsSetWrite(Expression value),
+    required IsSetEncoding isSetEncoding}) {
+  // ignore: unnecessary_null_comparison
   assert(isSetEncoding != null);
   Statement createReturn(Expression value) {
     if (shouldReturnValue) {
@@ -460,7 +460,6 @@ Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
       //
       return assignment;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Creates the body for the synthesized setter used to encode the lowering
@@ -472,14 +471,16 @@ Statement createSetterBodyFinal(
     VariableDeclaration parameter,
     DartType type,
     bool useNewMethodInvocationEncoding,
-    {bool shouldReturnValue,
-    Expression createVariableRead(bool useNewMethodInvocationEncoding),
-    Expression createVariableWrite(Expression value),
-    Expression createIsSetRead(),
-    Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding,
-    bool forField}) {
+    {required bool shouldReturnValue,
+    required Expression createVariableRead(bool useNewMethodInvocationEncoding),
+    required Expression createVariableWrite(Expression value),
+    required Expression createIsSetRead(),
+    required Expression createIsSetWrite(Expression value),
+    required IsSetEncoding isSetEncoding,
+    required bool forField}) {
+  // ignore: unnecessary_null_comparison
   assert(forField != null);
+  // ignore: unnecessary_null_comparison
   assert(isSetEncoding != null);
   Expression exception = new Throw(
       new ConstructorInvocation(
@@ -574,7 +575,6 @@ Statement createSetterBodyFinal(
         new ExpressionStatement(exception)..fileOffset = fileOffset,
       )..fileOffset = fileOffset;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Strategies for encoding whether a late field/local has been initialized.
@@ -648,7 +648,6 @@ IsSetEncoding computeIsSetEncoding(DartType type, IsSetStrategy isSetStrategy) {
           ? IsSetEncoding.useSentinel
           : IsSetEncoding.useNull;
   }
-  throw new UnsupportedError("Unexpected IsSetStrategy $isSetStrategy");
 }
 
 /// Returns the name used for the variable that holds the value of a late

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.stack_listener_impl;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
@@ -11,9 +9,10 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart';
+
+import '../../api_prototype/experimental_flags.dart';
 
 import '../fasta_codes.dart';
 
@@ -25,7 +24,7 @@ import 'source_library_builder.dart';
 abstract class StackListenerImpl extends StackListener {
   SourceLibraryBuilder get libraryBuilder;
 
-  AsyncMarker asyncMarkerFromTokens(Token asyncToken, Token starToken) {
+  AsyncMarker asyncMarkerFromTokens(Token? asyncToken, Token? starToken) {
     if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
       if (starToken == null) {
         return AsyncMarker.Sync;
@@ -50,7 +49,7 @@ abstract class StackListenerImpl extends StackListener {
   // and ast_builder.dart.
   void finishFunction(
       covariant formals, AsyncMarker asyncModifier, covariant body) {
-    return problems.unsupported("finishFunction", -1, uri);
+    problems.unsupported("finishFunction", -1, uri);
   }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
@@ -61,7 +60,7 @@ abstract class StackListenerImpl extends StackListener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  List<Expression> finishMetadata(Annotatable parent) {
+  List<Expression> finishMetadata(Annotatable? parent) {
     return problems.unsupported("finishMetadata", -1, uri);
   }
 
@@ -82,12 +81,13 @@ abstract class StackListenerImpl extends StackListener {
 
   /// Used to report an unexpected situation encountered in the stack
   /// listener.
-  dynamic unhandled(String what, String where, int charOffset, Uri uri) {
+  Never unhandled(String what, String where, int charOffset, Uri? uri) {
     return problems.unhandled(what, where, charOffset, uri);
   }
 
   void reportMissingNonNullableSupport(Token token) {
     assert(!libraryBuilder.isNonNullableByDefault);
+    // ignore: unnecessary_null_comparison
     assert(token != null);
     if (libraryBuilder.enableNonNullableInLibrary) {
       if (libraryBuilder.languageVersion.isExplicit) {
@@ -98,7 +98,7 @@ abstract class StackListenerImpl extends StackListener {
             token.charCount,
             context: <LocatedMessage>[
               messageNonNullableOptOutComment.withLocation(
-                  libraryBuilder.languageVersion.fileUri,
+                  libraryBuilder.languageVersion.fileUri!,
                   libraryBuilder.languageVersion.charOffset,
                   libraryBuilder.languageVersion.charCount)
             ]);
@@ -144,13 +144,13 @@ abstract class StackListenerImpl extends StackListener {
     }
   }
 
-  void reportErrorIfNullableType(Token questionMark) {
+  void reportErrorIfNullableType(Token? questionMark) {
     if (questionMark != null) {
       reportMissingNonNullableSupport(questionMark);
     }
   }
 
-  void reportNonNullableModifierError(Token modifierToken) {
+  void reportNonNullableModifierError(Token? modifierToken) {
     assert(!libraryBuilder.isNonNullableByDefault);
     if (modifierToken != null) {
       reportMissingNonNullableSupport(modifierToken);
@@ -164,6 +164,6 @@ abstract class StackListenerImpl extends StackListener {
 
 /// A null-aware alternative to `token.offset`.  If [token] is `null`, returns
 /// `TreeNode.noOffset`.
-int offsetForToken(Token token) {
+int offsetForToken(Token? token) {
   return token == null ? TreeNode.noOffset : token.offset;
 }

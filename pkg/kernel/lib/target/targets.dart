@@ -250,11 +250,11 @@ abstract class Target {
       List<Library> libraries,
       // TODO(askesc): Consider how to generally pass compiler options to
       // transformations.
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
       {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier});
+      ChangedStructureNotifier? changedStructureNotifier});
 
   /// Perform target-specific modular transformations on the given program.
   ///
@@ -267,7 +267,7 @@ abstract class Target {
       Procedure procedure,
       // TODO(askesc): Consider how to generally pass compiler options to
       // transformations.
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       {void Function(String msg)? logger}) {}
 
   /// Whether a platform library may define a restricted type, such as `bool`,
@@ -466,7 +466,7 @@ class NoneTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,

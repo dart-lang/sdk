@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.dill_member_builder;
 
 import 'package:kernel/ast.dart'
@@ -41,7 +39,7 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   bool get isConstructor => member is Constructor;
 
-  ProcedureKind get kind {
+  ProcedureKind? get kind {
     final Member member = this.member;
     return member is Procedure ? member.kind : null;
   }
@@ -58,7 +56,7 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   bool get isRedirectingGenerativeConstructor {
     return isConstructor &&
-        isRedirectingGenerativeConstructorImplementation(member);
+        isRedirectingGenerativeConstructorImplementation(member as Constructor);
   }
 
   bool get isSynthetic {
@@ -75,8 +73,8 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
     throw new UnsupportedError('DillMemberBuilder.buildMembers');
   }
 
-  List<ClassMember> _localMembers;
-  List<ClassMember> _localSetters;
+  List<ClassMember>? _localMembers;
+  List<ClassMember>? _localSetters;
 
   @override
   List<ClassMember> get localMembers => _localMembers ??= isSetter
@@ -98,12 +96,13 @@ class DillFieldBuilder extends DillMemberBuilder {
   Member get member => field;
 
   @override
-  Member get readTarget => field;
-  @override
-  Member get writeTarget => isAssignable ? field : null;
+  Member? get readTarget => field;
 
   @override
-  Member get invokeTarget => field;
+  Member? get writeTarget => isAssignable ? field : null;
+
+  @override
+  Member? get invokeTarget => field;
 
   bool get isField => true;
 
@@ -124,7 +123,7 @@ class DillGetterBuilder extends DillMemberBuilder {
   Member get readTarget => procedure;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Member get invokeTarget => procedure;
@@ -140,13 +139,13 @@ class DillSetterBuilder extends DillMemberBuilder {
   Member get member => procedure;
 
   @override
-  Member get readTarget => null;
+  Member? get readTarget => null;
 
   @override
   Member get writeTarget => procedure;
 
   @override
-  Member get invokeTarget => null;
+  Member? get invokeTarget => null;
 }
 
 class DillMethodBuilder extends DillMemberBuilder {
@@ -162,7 +161,7 @@ class DillMethodBuilder extends DillMemberBuilder {
   Member get readTarget => procedure;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Member get invokeTarget => procedure;
@@ -178,10 +177,10 @@ class DillOperatorBuilder extends DillMemberBuilder {
   Member get member => procedure;
 
   @override
-  Member get readTarget => null;
+  Member? get readTarget => null;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Member get invokeTarget => procedure;
@@ -195,10 +194,10 @@ class DillFactoryBuilder extends DillMemberBuilder {
   Member get member => procedure;
 
   @override
-  Member get readTarget => null;
+  Member? get readTarget => null;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Member get invokeTarget => procedure;
@@ -214,10 +213,10 @@ class DillConstructorBuilder extends DillMemberBuilder {
   Constructor get member => constructor;
 
   @override
-  Member get readTarget => null;
+  Member? get readTarget => null;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Constructor get invokeTarget => constructor;
@@ -227,12 +226,13 @@ class DillClassMember extends BuilderClassMember {
   @override
   final DillMemberBuilder memberBuilder;
 
-  Covariance _covariance;
+  Covariance? _covariance;
 
   @override
   final bool forSetter;
 
-  DillClassMember(this.memberBuilder, {this.forSetter})
+  DillClassMember(this.memberBuilder, {required this.forSetter})
+      // ignore: unnecessary_null_comparison
       : assert(forSetter != null);
 
   @override

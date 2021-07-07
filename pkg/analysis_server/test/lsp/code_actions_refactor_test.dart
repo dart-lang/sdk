@@ -37,7 +37,8 @@ class ExtractMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
     requestsFromServer
         .where((r) => r.method == Method.window_workDoneProgress_create)
         .listen((request) async {
-      final params = WorkDoneProgressCreateParams.fromJson(request.params);
+      final params = WorkDoneProgressCreateParams.fromJson(
+          request.params as Map<String, Object?>);
       if (params.token != analyzingProgressToken) {
         controller.add('CREATE');
       }
@@ -45,7 +46,8 @@ class ExtractMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
     notificationsFromServer
         .where((n) => n.method == Method.progress)
         .listen((notification) {
-      final params = ProgressParams.fromJson(notification.params);
+      final params =
+          ProgressParams.fromJson(notification.params as Map<String, Object?>);
       if (params.token != analyzingProgressToken) {
         if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
           controller.add('BEGIN');
@@ -118,7 +120,8 @@ void newMethod() {
     late WorkspaceEdit edit;
     requestsFromServer.listen((request) async {
       if (request.method == Method.workspace_applyEdit) {
-        final params = ApplyWorkspaceEditParams.fromJson(request.params);
+        final params = ApplyWorkspaceEditParams.fromJson(
+            request.params as Map<String, Object?>);
         edit = params.edit;
         respondTo(request, ApplyWorkspaceEditResponse(applied: true));
       }

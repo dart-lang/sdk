@@ -14276,6 +14276,13 @@ final Catch dummyCatch = new Catch(null, dummyStatement);
 /// constructor.
 final Constant dummyConstant = new NullConstant();
 
+/// Non-nullable [LabeledStatement] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final LabeledStatement dummyLabeledStatement = new LabeledStatement(null);
+
 /// Of the dummy nodes, some are tree nodes. `TreeNode`s has a parent pointer
 /// and that can be set when the dummy is used. This means that we can leak
 /// through them. This list will (at least as a stopgap) allow us to null-out
@@ -14307,6 +14314,7 @@ final List<TreeNode> dummyTreeNodes = [
   dummyAssertStatement,
   dummySwitchCase,
   dummyCatch,
+  dummyLabeledStatement,
 ];
 
 /// Sentinel value used to signal that a node cannot be removed through the

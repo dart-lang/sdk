@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
@@ -25,7 +23,7 @@ abstract class DillExtensionMemberBuilder extends DillMemberBuilder {
   String get name => _descriptor.name.text;
 
   @override
-  ProcedureKind get kind {
+  ProcedureKind? get kind {
     switch (_descriptor.kind) {
       case ExtensionMemberKind.Method:
         return ProcedureKind.Method;
@@ -55,7 +53,7 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
   Member get readTarget => field;
 
   @override
-  Member get writeTarget => isAssignable ? field : null;
+  Member? get writeTarget => isAssignable ? field : null;
 
   @override
   Member get invokeTarget => field;
@@ -78,13 +76,13 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
   Member get member => procedure;
 
   @override
-  Member get readTarget => null;
+  Member? get readTarget => null;
 
   @override
   Member get writeTarget => procedure;
 
   @override
-  Member get invokeTarget => null;
+  Member? get invokeTarget => null;
 }
 
 class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
@@ -101,7 +99,7 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
   Member get readTarget => procedure;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Member get invokeTarget => procedure;
@@ -118,10 +116,10 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
   Member get member => procedure;
 
   @override
-  Member get readTarget => null;
+  Member? get readTarget => null;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Member get invokeTarget => procedure;
@@ -143,7 +141,7 @@ class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
   Member get readTarget => procedure;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Member get invokeTarget => procedure;
@@ -173,7 +171,7 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
   Member get readTarget => _extensionTearOff;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Member get invokeTarget => procedure;

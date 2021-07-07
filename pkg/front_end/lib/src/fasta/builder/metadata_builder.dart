@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.metadata_builder;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
@@ -28,10 +26,10 @@ class MetadataBuilder {
 
   static void buildAnnotations(
       Annotatable parent,
-      List<MetadataBuilder> metadata,
+      List<MetadataBuilder>? metadata,
       SourceLibraryBuilder library,
-      DeclarationBuilder classOrExtensionBuilder,
-      MemberBuilder member,
+      DeclarationBuilder? classOrExtensionBuilder,
+      MemberBuilder? member,
       Uri fileUri) {
     if (metadata == null) return;
     Scope scope = parent is Library ||
@@ -41,8 +39,8 @@ class MetadataBuilder {
         ? library.scope
         : classOrExtensionBuilder.scope;
     BodyBuilder bodyBuilder = library.loader
-        .createBodyBuilderForOutlineExpression(
-            library, classOrExtensionBuilder, member, scope, fileUri);
+        .createBodyBuilderForOutlineExpression(library, classOrExtensionBuilder,
+            member ?? classOrExtensionBuilder ?? library, scope, fileUri);
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
       parent.addAnnotation(

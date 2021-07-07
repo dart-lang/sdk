@@ -402,8 +402,8 @@ let dynamic foo = dynamic () {} in foo''');
 }
 
 void _testNullAwareMethodInvocation() {
-  VariableDeclaration variable =
-      new VariableDeclaration.forValue(new IntLiteral(0));
+  VariableDeclarationImpl variable =
+      new VariableDeclarationImpl.forValue(new IntLiteral(0));
 
   // The usual use of this node.
   testExpression(
@@ -423,8 +423,8 @@ let final dynamic #0 = 0 in null-aware #0.foo''');
 }
 
 void _testNullAwarePropertyGet() {
-  VariableDeclaration variable =
-      new VariableDeclaration.forValue(new IntLiteral(0));
+  VariableDeclarationImpl variable =
+      new VariableDeclarationImpl.forValue(new IntLiteral(0));
 
   // The usual use of this node.
   testExpression(
@@ -444,8 +444,8 @@ let final dynamic #0 = 0 in null-aware #0.foo()''');
 }
 
 void _testNullAwarePropertySet() {
-  VariableDeclaration variable =
-      new VariableDeclaration.forValue(new IntLiteral(0));
+  VariableDeclarationImpl variable =
+      new VariableDeclarationImpl.forValue(new IntLiteral(0));
 
   testExpression(
       new NullAwarePropertySet(
@@ -553,13 +553,13 @@ void _testIfNullPropertySet() {
   testExpression(
       new IfNullPropertySet(
           new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          forEffect: false),
+          readOffset: -1, writeOffset: -1, forEffect: false),
       '0.foo ??= 1');
 
   testExpression(
       new IfNullPropertySet(
           new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          forEffect: true),
+          readOffset: -1, writeOffset: -1, forEffect: true),
       '0.foo ??= 1');
 }
 
@@ -643,31 +643,51 @@ void _testCompoundIndexSet() {
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
           new IntLiteral(2),
-          forEffect: false, forPostIncDec: false),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: false),
       '''
 0[1] += 2''');
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
           new IntLiteral(1),
-          forEffect: false, forPostIncDec: true),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true),
       '''
 0[1]++''');
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('-'),
           new IntLiteral(1),
-          forEffect: false, forPostIncDec: true),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true),
       '''
 0[1]--''');
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('*'),
           new IntLiteral(1),
-          forEffect: false, forPostIncDec: true),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true),
       '''
 0[1] *= 1''');
   testExpression(
       new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
           new IntLiteral(2),
-          forEffect: false, forPostIncDec: true),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true),
       '''
 0[1] += 2''');
 }

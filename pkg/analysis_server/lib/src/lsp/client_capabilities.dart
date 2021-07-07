@@ -132,8 +132,9 @@ class LspClientCapabilities {
             raw.workspace?.symbol?.symbolKind?.valueSet,
             defaults: defaultSupportedSymbolKinds),
         experimentalSnippetTextEdit =
-            raw.experimental is Map<String, dynamic> &&
-                raw.experimental['snippetTextEdit'] == true;
+            raw.experimental is Map<String, Object?> &&
+                (raw.experimental as Map<String, Object?>)['snippetTextEdit'] ==
+                    true;
 
   static Set<MarkupKind>? _completionDocumentationFormats(
       ClientCapabilities raw) {
