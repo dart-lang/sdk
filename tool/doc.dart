@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -19,7 +20,8 @@ import 'since.dart';
 /// Generates lint rule docs for publishing to https://dart-lang.github.io/
 void main(List<String> args) async {
   var parser = ArgParser()
-    ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
+    ..addOption('out', abbr: 'o', help: 'Specifies output directory.')
+    ..addOption('token', abbr: 't', help: 'Specifies a github auth token.');
 
   ArgResults options;
   try {
@@ -30,7 +32,11 @@ void main(List<String> args) async {
   }
 
   var outDir = options['out'] as String?;
-  await generateDocs(outDir);
+
+  var token = options['token'];
+  var auth = token is String ? Authentication.withToken(token) : null;
+
+  await generateDocs(outDir, auth: auth);
 }
 
 const ruleFootMatter = '''
@@ -64,10 +70,10 @@ These rules are under active development.  Feedback is
 const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
 final coreRules = <String?>[];
-final recommendedRules = <String?>[];
 final effectiveDartRules = <String?>[];
 final flutterRules = <String?>[];
 final pedanticRules = <String?>[];
+final recommendedRules = <String?>[];
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
@@ -165,11 +171,11 @@ Future<LintConfig?> fetchConfig(String url) async {
   return processAnalysisOptionsFile(req.body);
 }
 
-Future<void> fetchSinceInfo() async {
-  sinceInfo = await sinceMap;
+Future<void> fetchSinceInfo(Authentication? auth) async {
+  sinceInfo = await getSinceMap(auth);
 }
 
-Future<void> generateDocs(String? dir) async {
+Future<void> generateDocs(String? dir, {Authentication? auth}) async {
   var outDir = dir;
   if (outDir != null) {
     var d = Directory(outDir);
@@ -194,7 +200,7 @@ Future<void> generateDocs(String? dir) async {
   await fetchBadgeInfo();
 
   // Fetch since info.
-  await fetchSinceInfo();
+  await fetchSinceInfo(auth);
 
   // Generate rule files.
   for (var l in rules) {

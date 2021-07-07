@@ -17,37 +17,38 @@ import 'package:yaml/yaml.dart';
 /// todo (pq): reign in the nullable types
 
 const _allPathSuffix = '/example/all.yaml';
+
+/// We don't care about SDKs previous to this bottom.
+final Version bottomDartSdk = Version(2, 0, 0);
+Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
+
 final _effectiveDartOptionsRootUrl = Uri.https(
     'raw.githubusercontent.com', '/tenhobi/effective_dart/master/lib/');
 final _effectiveDartOptionsUrl =
     _effectiveDartOptionsRootUrl.resolve('analysis_options.yaml');
-
+List<String>? _effectiveDartRules;
 final _flutterOptionsUrl = Uri.https('raw.githubusercontent.com',
     '/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
 final _flutterRepoOptionsUrl = Uri.https('raw.githubusercontent.com',
     '/flutter/flutter/master/analysis_options.yaml');
+
+List<String>? _flutterRepoRules;
+
+List<String>? _flutterRules;
+
+int? _latestMinor;
+Iterable<LintRule>? _registeredLints;
 final _repoPathPrefix =
     Uri.https('raw.githubusercontent.com', '/dart-lang/linter/');
 final _rulePathPrefix =
     Uri.https('raw.githubusercontent.com', '/dart-lang/linter/');
-final _stagehandOptionsUrl = Uri.https('raw.githubusercontent.com',
-    '/dart-lang/stagehand/master/templates/analysis_options.yaml');
-
-/// We don't care about SDKs previous to this bottom.
-final Version bottomDartSdk = Version(2, 0, 0);
-
-Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
-
-List<String>? _effectiveDartRules;
-List<String>? _flutterRepoRules;
-List<String>? _flutterRules;
-int? _latestMinor;
-
-Iterable<LintRule>? _registeredLints;
 
 List<String>? _sdkTags;
 
 Map<String, List<String?>> _sinceMap = <String, List<String>>{};
+
+final _stagehandOptionsUrl = Uri.https('raw.githubusercontent.com',
+    '/dart-lang/stagehand/master/templates/analysis_options.yaml');
 
 List<String>? _stagehandRules;
 
@@ -73,14 +74,12 @@ Iterable<LintRule> get registeredLints {
   return _registeredLints!;
 }
 
-Future<List<String>> get sdkTags async => _sdkTags ??= await _fetchSdkTags();
-
 Future<List<String>> get stagehandRules async =>
     _stagehandRules ??= await score_utils.fetchRules(_stagehandOptionsUrl);
 
-Future<String?> dartSdkForLinter(String version) async {
+Future<String?> dartSdkForLinter(String version, Authentication? auth) async {
   var sdkVersions = <String>[];
-  var sdks = await sdkTags;
+  var sdks = await getSdkTags(auth);
   for (var sdk in sdks) {
     var linterVersion = await linterForDartSdk(sdk);
     if (linterVersion == version) {
@@ -95,10 +94,11 @@ Future<String?> dartSdkForLinter(String version) async {
 Future<List<String>> fetchRulesForVersion(String version) async =>
     score_utils.fetchRules(_repoPathPrefix.resolve('$version$_allPathSuffix'));
 
-Future<String?> findSinceDartSdk(String linterVersion) async =>
-    await dartSdkForLinter(linterVersion);
+Future<String?> findSinceDartSdk(String linterVersion,
+        {Authentication? auth}) async =>
+    await dartSdkForLinter(linterVersion, auth);
 
-Future<String?> findSinceLinter(String lint) async {
+Future<String?> findSinceLinter(String lint, {Authentication? auth}) async {
   // History recorded in `all.yaml` starts in minor 31.
   var rules_31 = await rulesForVersion(31);
   if (rules_31 != null) {
@@ -122,6 +122,9 @@ Future<String?> findSinceLinter(String lint) async {
 
   return null;
 }
+
+Future<List<String>> getSdkTags(Authentication? auth) async =>
+    _sdkTags ??= await _fetchSdkTags(auth);
 
 Future<String?> linterForDartSdk(String sdk) async =>
     _dartSdkToLinterMap[sdk] ??= await _fetchLinterForVersion(sdk);
@@ -180,11 +183,12 @@ Future<String?> _fetchLinterForVersion(String version) async {
   return null;
 }
 
-Future<List<String>> _fetchSdkTags() async {
-  var github = GitHub();
+Future<List<String>> _fetchSdkTags(Authentication? auth) async {
+  var github = GitHub(auth: auth);
   var slug = RepositorySlug('dart-lang', 'sdk');
 
   print('list repository tags: $slug');
+  print('authentication:  ${auth != null ? "(token)" : "(anonymous)"}');
 
   var tags = await github.repositories
       .listTags(slug)
