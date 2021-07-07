@@ -51,9 +51,6 @@ class ExecuteCommandHandler
         : server.clientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
-    // TODO(dantup): Remove this cast and update codegen to use `Object?` in
-    //   place of the `dynamics`.
-    return handler.handle(
-        params.arguments?.cast<Object?>(), progress, cancellationToken);
+    return handler.handle(params.arguments, progress, cancellationToken);
   }
 }

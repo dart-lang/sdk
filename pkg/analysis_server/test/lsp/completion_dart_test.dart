@@ -154,7 +154,8 @@ void f() {
 
     // By default, there should be no commit characters.
     var reg = registration(Method.textDocument_completion);
-    var options = CompletionRegistrationOptions.fromJson(reg.registerOptions);
+    var options = CompletionRegistrationOptions.fromJson(
+        reg.registerOptions as Map<String, Object?>);
     expect(options.allCommitCharacters, isNull);
 
     // When we change config, we should get a re-registration (unregister then
@@ -162,7 +163,8 @@ void f() {
     await monitorDynamicReregistration(
         registrations, () => updateConfig({'previewCommitCharacters': true}));
     reg = registration(Method.textDocument_completion);
-    options = CompletionRegistrationOptions.fromJson(reg.registerOptions);
+    options = CompletionRegistrationOptions.fromJson(
+        reg.registerOptions as Map<String, Object?>);
     expect(options.allCommitCharacters, equals(dartCompletionCommitCharacters));
   }
 
