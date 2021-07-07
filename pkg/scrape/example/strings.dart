@@ -54,7 +54,7 @@ class StringVisitor extends ScrapeVisitor {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    if (node.uri != null) _record('Directive', node.uri);
+    if (node.uri != null) _record('Directive', node.uri!);
     // Don't recurse so that we don't treat the URI as a string expression.
   }
 

@@ -34,7 +34,7 @@ void main(List<String> arguments) {
     ..runCommandLine(arguments);
 
   var methods = buildMethods.keys.toList();
-  methods.sort((a, b) => buildMethods[b].compareTo(buildMethods[a]));
+  methods.sort((a, b) => buildMethods[b]!.compareTo(buildMethods[a]!));
   for (var method in methods) {
     print('${buildMethods[method].toString().padLeft(3)}: $method');
   }
@@ -48,7 +48,7 @@ class NestingVisitor extends ScrapeVisitor {
   bool _pushed = false;
   int _deepestNesting = 0;
 
-  NestingVisitor({bool allCode}) : _allCode = allCode ?? false;
+  NestingVisitor({bool? allCode}) : _allCode = allCode ?? false;
 
   @override
   void beforeVisitBuildMethod(Declaration node) {
@@ -65,7 +65,7 @@ class NestingVisitor extends ScrapeVisitor {
   void visitArgumentList(ArgumentList node) {
     // Only argument lists with trailing commas get indentation.
     if (node.arguments.isNotEmpty &&
-        node.arguments.last.endToken.next.type == TokenType.COMMA) {
+        node.arguments.last.endToken.next!.type == TokenType.COMMA) {
       String name;
       var parent = node.parent;
       if (parent is MethodInvocation) {

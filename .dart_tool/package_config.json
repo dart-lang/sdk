@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-06-24T14:38:26.203286",
+  "generated": "2021-07-02T15:48:57.033703",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -569,7 +569,7 @@
       "name": "scrape",
       "rootUri": "../pkg/scrape",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.13"
     },
     {
       "name": "sdk_library_metadata",
