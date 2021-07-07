@@ -79,10 +79,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     var declaredElement = node.declaredElement;
-    if (declaredElement != null &&
-        node.members.isNotEmpty &&
+    if (declaredElement == null) {
+      return;
+    }
+
+    if (node.members.isNotEmpty &&
         node.members.every(_isStaticMember) &&
-        declaredElement.fields.any(_isNonConst)) {
+        (declaredElement.methods.isNotEmpty ||
+            declaredElement.fields.any(_isNonConst))) {
       rule.reportLint(node);
     }
   }
