@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.target_implementation;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -44,16 +42,19 @@ abstract class TargetImplementation extends Target {
   /// Shared with [CompilerContext].
   final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
-  MemberBuilder cachedAbstractClassInstantiationError;
-  MemberBuilder cachedCompileTimeError;
-  MemberBuilder cachedDuplicatedFieldInitializerError;
-  MemberBuilder cachedNativeAnnotation;
+  MemberBuilder? cachedAbstractClassInstantiationError;
+  MemberBuilder? cachedCompileTimeError;
+  MemberBuilder? cachedDuplicatedFieldInitializerError;
+  MemberBuilder? cachedNativeAnnotation;
 
   final ProcessedOptions _options;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
+      // ignore: unnecessary_null_comparison
       : assert(ticker != null),
+        // ignore: unnecessary_null_comparison
         assert(uriTranslator != null),
+        // ignore: unnecessary_null_comparison
         assert(backendTarget != null),
         _options = CompilerContext.current.options,
         super(ticker);
@@ -111,31 +112,28 @@ abstract class TargetImplementation extends Target {
   /// [packageLanguageVersion] is the language version defined by the package
   /// which the library belongs to, or the current sdk version if the library
   /// doesn't belong to a package.
-  LibraryBuilder createLibraryBuilder(
+  LibraryBuilder? createLibraryBuilder(
       Uri uri,
       Uri fileUri,
-      Uri packageUri,
+      Uri? packageUri,
       LanguageVersion packageLanguageVersion,
-      covariant LibraryBuilder origin,
-      Library referencesFrom,
-      bool referenceIsPartOwner);
+      covariant LibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner);
 
   /// The class [cls] is involved in a cyclic definition. This method should
   /// ensure that the cycle is broken, for example, by removing superclass and
   /// implemented interfaces.
   void breakCycle(ClassBuilder cls);
 
-  Uri translateUri(Uri uri) => uriTranslator.translate(uri);
+  Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
 
   /// Returns a reference to the constructor of
   /// [AbstractClassInstantiationError] error.  The constructor is expected to
   /// accept a single argument of type String, which is the name of the
   /// abstract class.
   MemberBuilder getAbstractClassInstantiationError(Loader loader) {
-    if (cachedAbstractClassInstantiationError != null) {
-      return cachedAbstractClassInstantiationError;
-    }
-    return cachedAbstractClassInstantiationError =
+    return cachedAbstractClassInstantiationError ??=
         loader.coreLibrary.getConstructor("AbstractClassInstantiationError");
   }
 
@@ -143,8 +141,7 @@ abstract class TargetImplementation extends Target {
   /// error. The constructor is expected to accept a single argument of type
   /// String, which is the compile-time error message.
   MemberBuilder getCompileTimeError(Loader loader) {
-    if (cachedCompileTimeError != null) return cachedCompileTimeError;
-    return cachedCompileTimeError = loader.coreLibrary
+    return cachedCompileTimeError ??= loader.coreLibrary
         .getConstructor("_CompileTimeError", bypassLibraryPrivacy: true);
   }
 
@@ -152,10 +149,7 @@ abstract class TargetImplementation extends Target {
   /// when a final field is initialized twice. The constructor is expected to
   /// accept a single argument which is the name of the field.
   MemberBuilder getDuplicatedFieldInitializerError(Loader loader) {
-    if (cachedDuplicatedFieldInitializerError != null) {
-      return cachedDuplicatedFieldInitializerError;
-    }
-    return cachedDuplicatedFieldInitializerError = loader.coreLibrary
+    return cachedDuplicatedFieldInitializerError ??= loader.coreLibrary
         .getConstructor("_DuplicatedFieldInitializerError",
             bypassLibraryPrivacy: true);
   }
@@ -164,7 +158,7 @@ abstract class TargetImplementation extends Target {
   /// annotations. The constructor is expected to accept a single argument of
   /// type String, which is the name of the native method.
   MemberBuilder getNativeAnnotation(Loader loader) {
-    if (cachedNativeAnnotation != null) return cachedNativeAnnotation;
+    if (cachedNativeAnnotation != null) return cachedNativeAnnotation!;
     LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"), -1,
         accessor: loader.coreLibrary);
     return cachedNativeAnnotation = internal.getConstructor("ExternalName");
@@ -190,13 +184,15 @@ abstract class TargetImplementation extends Target {
       Message message,
       int charOffset,
       int length,
-      Uri fileUri,
-      List<LocatedMessage> messageContext,
+      Uri? fileUri,
+      List<LocatedMessage>? messageContext,
       Severity severity,
-      {List<Uri> involvedFiles}) {
+      {List<Uri>? involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
-        message.withLocation(fileUri, charOffset, length),
+        fileUri != null
+            ? message.withLocation(fileUri, charOffset, length)
+            : message.withoutLocation(),
         severity,
         messageContext,
         involvedFiles: involvedFiles);
@@ -206,20 +202,22 @@ abstract class TargetImplementation extends Target {
     return CompilerContext.current.options.currentSdkVersion;
   }
 
-  Version _currentSdkVersion;
+  Version? _currentSdkVersion;
   Version get currentSdkVersion {
-    if (_currentSdkVersion != null) return _currentSdkVersion;
-    _parseCurrentSdkVersion();
-    return _currentSdkVersion;
+    if (_currentSdkVersion == null) {
+      _parseCurrentSdkVersion();
+    }
+    return _currentSdkVersion!;
   }
 
   void _parseCurrentSdkVersion() {
     bool good = false;
+    // ignore: unnecessary_null_comparison
     if (currentSdkVersionString != null) {
       List<String> dotSeparatedParts = currentSdkVersionString.split(".");
       if (dotSeparatedParts.length >= 2) {
-        _currentSdkVersion = new Version(int.tryParse(dotSeparatedParts[0]),
-            int.tryParse(dotSeparatedParts[1]));
+        _currentSdkVersion = new Version(int.tryParse(dotSeparatedParts[0])!,
+            int.tryParse(dotSeparatedParts[1])!);
         good = true;
       }
     }

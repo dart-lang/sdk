@@ -64,7 +64,7 @@ class QualifiedName extends Identifier {
 }
 
 void flattenQualifiedNameOn(
-    QualifiedName name, StringBuffer buffer, int charOffset, Uri fileUri) {
+    QualifiedName name, StringBuffer buffer, int charOffset, Uri? fileUri) {
   final Object qualifier = name.qualifier;
   if (qualifier is QualifiedName) {
     flattenQualifiedNameOn(qualifier, buffer, charOffset, fileUri);
@@ -80,7 +80,7 @@ void flattenQualifiedNameOn(
   buffer.write(name.name);
 }
 
-String flattenName(Object name, int charOffset, Uri fileUri) {
+String flattenName(Object name, int charOffset, Uri? fileUri) {
   if (name is String) {
     return name;
   } else if (name is QualifiedName) {

@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:kernel/ast.dart';
 import '../api_prototype/lowering_predicates.dart';
 
 /// Compute a canonical [Id] for kernel-based nodes.
-Id computeMemberId(Member node) {
-  String className;
+MemberId computeMemberId(Member node) {
+  String? className;
   if (node.enclosingClass != null) {
-    className = node.enclosingClass.name;
+    className = node.enclosingClass!.name;
   }
   String memberName = node.name.text;
   if (node is Procedure && node.kind == ProcedureKind.Setter) {
@@ -21,7 +19,7 @@ Id computeMemberId(Member node) {
   return new MemberId.internal(memberName, className: className);
 }
 
-TreeNode computeTreeNodeWithOffset(TreeNode node) {
+TreeNode? computeTreeNodeWithOffset(TreeNode? node) {
   while (node != null) {
     if (node.fileOffset != TreeNode.noOffset) {
       return node;
@@ -41,70 +39,66 @@ abstract class DataExtractor<T> extends Visitor<void>
   /// Implement this to compute the data corresponding to [library].
   ///
   /// If `null` is returned, [library] has no associated data.
-  T computeLibraryValue(Id id, Library library) => null;
+  T? computeLibraryValue(Id id, Library library) => null;
 
   /// Implement this to compute the data corresponding to [cls].
   ///
   /// If `null` is returned, [cls] has no associated data.
-  T computeClassValue(Id id, Class cls) => null;
+  T? computeClassValue(Id id, Class cls) => null;
 
   /// Implement this to compute the data corresponding to [extension].
   ///
   /// If `null` is returned, [extension] has no associated data.
-  T computeExtensionValue(Id id, Extension extension) => null;
+  T? computeExtensionValue(Id id, Extension extension) => null;
 
   /// Implement this to compute the data corresponding to [member].
   ///
   /// If `null` is returned, [member] has no associated data.
-  T computeMemberValue(Id id, Member member) => null;
+  T? computeMemberValue(Id id, Member member) => null;
 
   /// Implement this to compute the data corresponding to [node].
   ///
   /// If `null` is returned, [node] has no associated data.
-  T computeNodeValue(Id id, TreeNode node) => null;
+  T? computeNodeValue(Id id, TreeNode node) => null;
 
   DataExtractor(this.actualMap);
 
   void computeForLibrary(Library library) {
     LibraryId id = new LibraryId(library.fileUri);
-    T value = computeLibraryValue(id, library);
-    registerValue(library.fileUri, null, id, value, library);
+    T? value = computeLibraryValue(id, library);
+    registerValue(library.fileUri, -1, id, value, library);
   }
 
   void computeForClass(Class cls) {
     ClassId id = new ClassId(cls.name);
-    T value = computeClassValue(id, cls);
-    TreeNode nodeWithOffset = computeTreeNodeWithOffset(cls);
-    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
-        id, value, cls);
+    T? value = computeClassValue(id, cls);
+    registerValue(cls.fileUri, cls.fileOffset, id, value, cls);
   }
 
   void computeForExtension(Extension extension) {
     ClassId id = new ClassId(extension.name);
-    T value = computeExtensionValue(id, extension);
-    TreeNode nodeWithOffset = computeTreeNodeWithOffset(extension);
-    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
-        id, value, extension);
+    T? value = computeExtensionValue(id, extension);
+    registerValue(
+        extension.fileUri, extension.fileOffset, id, value, extension);
   }
 
   void computeForMember(Member member) {
     MemberId id = computeMemberId(member);
+    // ignore: unnecessary_null_comparison
     if (id == null) return;
-    T value = computeMemberValue(id, member);
-    TreeNode nodeWithOffset = computeTreeNodeWithOffset(member);
-    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
-        id, value, member);
+    T? value = computeMemberValue(id, member);
+    registerValue(member.fileUri, member.fileOffset, id, value, member);
   }
 
-  void computeForNode(TreeNode node, NodeId id) {
+  void computeForNode(TreeNode node, NodeId? id) {
     if (id == null) return;
-    T value = computeNodeValue(id, node);
-    TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
-    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
-        id, value, node);
+    T? value = computeNodeValue(id, node);
+    TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
+    registerValue(nodeWithOffset.location!.file, nodeWithOffset.fileOffset, id,
+        value, node);
   }
 
-  NodeId computeDefaultNodeId(TreeNode node,
+  NodeId? computeDefaultNodeId(TreeNode node,
       {bool skipNodeWithNoOffset: false}) {
     if (skipNodeWithNoOffset && node.fileOffset == TreeNode.noOffset) {
       return null;
@@ -144,7 +138,7 @@ abstract class DataExtractor<T> extends Visitor<void>
     return new NodeId(node.fileOffset, IdKind.moveNext);
   }
 
-  NodeId createExpressionStatementId(ExpressionStatement node) {
+  NodeId? createExpressionStatementId(ExpressionStatement node) {
     if (node.expression.fileOffset == TreeNode.noOffset) {
       // TODO(johnniwinther): Find out why we something have no offset.
       return null;
@@ -152,15 +146,15 @@ abstract class DataExtractor<T> extends Visitor<void>
     return new NodeId(node.expression.fileOffset, IdKind.stmt);
   }
 
-  NodeId createLabeledStatementId(LabeledStatement node) =>
+  NodeId? createLabeledStatementId(LabeledStatement node) =>
       computeDefaultNodeId(node.body);
-  NodeId createLoopId(TreeNode node) => computeDefaultNodeId(node);
-  NodeId createGotoId(TreeNode node) => computeDefaultNodeId(node);
-  NodeId createSwitchId(SwitchStatement node) => computeDefaultNodeId(node);
+  NodeId? createLoopId(TreeNode node) => computeDefaultNodeId(node);
+  NodeId? createGotoId(TreeNode node) => computeDefaultNodeId(node);
+  NodeId? createSwitchId(SwitchStatement node) => computeDefaultNodeId(node);
   NodeId createSwitchCaseId(SwitchCase node) =>
       new NodeId(node.expressionOffsets.first, IdKind.node);
 
-  NodeId createImplicitAsId(AsExpression node) {
+  NodeId? createImplicitAsId(AsExpression node) {
     if (node.fileOffset == TreeNode.noOffset) {
       // TODO(johnniwinther): Find out why we something have no offset.
       return null;
@@ -533,7 +527,7 @@ abstract class DataExtractor<T> extends Visitor<void>
 
   @override
   visitThisExpression(ThisExpression node) {
-    TreeNode parent = node.parent;
+    TreeNode parent = node.parent!;
     if (node.fileOffset == TreeNode.noOffset ||
         (parent is PropertyGet ||
                 parent is InstanceGet ||

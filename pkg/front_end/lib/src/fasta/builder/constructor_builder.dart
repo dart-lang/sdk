@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart';
@@ -36,34 +34,25 @@ import '../messages.dart'
 
 import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
-import 'class_builder.dart';
 import 'field_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
-import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
 abstract class ConstructorBuilder implements FunctionBuilder {
-  int get charOpenParenOffset;
-
-  bool hasMovedSuperInitializer;
-
-  SuperInitializer superInitializer;
-
-  RedirectingInitializer redirectingInitializer;
-
-  Token beginInitializers;
+  abstract Token? beginInitializers;
 
   @override
-  ConstructorBuilder get actualOrigin;
+  ConstructorBuilder? get actualOrigin;
 
-  ConstructorBuilder get patchForTesting;
+  ConstructorBuilder? get patchForTesting;
 
   Constructor get actualConstructor;
 
@@ -97,50 +86,46 @@ abstract class ConstructorBuilder implements FunctionBuilder {
   /// Returns the set of fields previously registered via
   /// [registerInitializedField] and passes on the ownership of the collection
   /// to the caller.
-  Set<FieldBuilder> takeInitializedFields();
+  Set<FieldBuilder>? takeInitializedFields();
 }
 
 class ConstructorBuilderImpl extends FunctionBuilderImpl
     implements ConstructorBuilder {
   final Constructor _constructor;
 
-  Set<FieldBuilder> _initializedFields;
+  Set<FieldBuilder>? _initializedFields;
 
-  @override
   final int charOpenParenOffset;
 
-  @override
   bool hasMovedSuperInitializer = false;
 
-  @override
-  SuperInitializer superInitializer;
+  SuperInitializer? superInitializer;
+
+  RedirectingInitializer? redirectingInitializer;
 
   @override
-  RedirectingInitializer redirectingInitializer;
+  Token? beginInitializers;
 
   @override
-  Token beginInitializers;
-
-  @override
-  ConstructorBuilder actualOrigin;
+  ConstructorBuilder? actualOrigin;
 
   @override
   Constructor get actualConstructor => _constructor;
 
   ConstructorBuilderImpl(
-      List<MetadataBuilder> metadata,
+      List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder returnType,
+      TypeBuilder? returnType,
       String name,
-      List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals,
+      List<TypeVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder compilationUnit,
       int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      Member referenceFrom,
-      [String nativeMethodName])
+      Member? referenceFrom,
+      [String? nativeMethodName])
       : _constructor = new Constructor(new FunctionNode(null),
             name: new Name(name, compilationUnit.library),
             fileUri: compilationUnit.fileUri,
@@ -153,10 +138,10 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
             compilationUnit, charOffset, nativeMethodName);
 
   @override
-  Member get readTarget => null;
+  Member? get readTarget => null;
 
   @override
-  Member get writeTarget => null;
+  Member? get writeTarget => null;
 
   @override
   Member get invokeTarget => constructor;
@@ -170,7 +155,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   ConstructorBuilder get origin => actualOrigin ?? this;
 
   @override
-  ConstructorBuilder get patchForTesting => dataForTesting?.patchForTesting;
+  ConstructorBuilder? get patchForTesting =>
+      dataForTesting?.patchForTesting as ConstructorBuilder?;
 
   @override
   bool get isDeclarationInstanceMember => false;
@@ -185,7 +171,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   AsyncMarker get asyncModifier => AsyncMarker.Sync;
 
   @override
-  ProcedureKind get kind => null;
+  ProcedureKind? get kind => null;
 
   @override
   bool get isRedirectingGenerativeConstructor {
@@ -194,7 +180,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
   @override
   void buildMembers(
-      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
     f(member, BuiltMemberKind.Constructor);
   }
@@ -215,9 +201,9 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     }
     if (formals != null) {
       bool needsInference = false;
-      for (FormalParameterBuilder formal in formals) {
+      for (FormalParameterBuilder formal in formals!) {
         if (formal.type == null && formal.isInitializingFormal) {
-          formal.variable.type = null;
+          formal.variable!.type = const UnknownType();
           needsInference = true;
         }
       }
@@ -236,28 +222,29 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   @override
   void inferFormalTypes() {
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals) {
+      for (FormalParameterBuilder formal in formals!) {
         if (formal.type == null && formal.isInitializingFormal) {
-          formal.finalizeInitializingFormal(classBuilder);
+          formal.finalizeInitializingFormal(classBuilder!);
         }
       }
     }
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers) {
     super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline.
     if (isConst && beginInitializers != null) {
-      ClassBuilder classBuilder = parent;
       BodyBuilder bodyBuilder = library.loader
           .createBodyBuilderForOutlineExpression(
-              library, classBuilder, this, classBuilder.scope, fileUri);
+              library, classBuilder!, this, classBuilder!.scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
-      bodyBuilder.parseInitializers(beginInitializers);
+      bodyBuilder.parseInitializers(beginInitializers!);
       bodyBuilder.resolveRedirectingFactoryTargets();
     }
     beginInitializers = null;
@@ -268,8 +255,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     // According to the specification §9.3 the return type of a constructor
     // function is its enclosing class.
     super.buildFunction(library);
-    ClassBuilder enclosingClassBuilder = parent;
-    Class enclosingClass = enclosingClassBuilder.cls;
+    Class enclosingClass = classBuilder!.cls;
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
@@ -323,7 +309,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
         // Point to the existing super initializer.
         injectInvalidInitializer(
             messageRedirectingConstructorWithSuperInitializer,
-            superInitializer.fileOffset,
+            superInitializer!.fileOffset,
             "super".length,
             helper);
       } else if (redirectingInitializer != null) {
@@ -438,33 +424,33 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  Set<FieldBuilder> takeInitializedFields() {
-    Set<FieldBuilder> result = _initializedFields;
+  Set<FieldBuilder>? takeInitializedFields() {
+    Set<FieldBuilder>? result = _initializedFields;
     _initializedFields = null;
     return result;
   }
 }
 
 class SyntheticConstructorBuilder extends DillConstructorBuilder {
-  MemberBuilderImpl _origin;
-  ClonedFunctionNode _clonedFunctionNode;
+  MemberBuilderImpl? _origin;
+  ClonedFunctionNode? _clonedFunctionNode;
 
   SyntheticConstructorBuilder(
       SourceClassBuilder parent, Constructor constructor,
-      {MemberBuilder origin, ClonedFunctionNode clonedFunctionNode})
+      {MemberBuilderImpl? origin, ClonedFunctionNode? clonedFunctionNode})
       : _origin = origin,
         _clonedFunctionNode = clonedFunctionNode,
         super(constructor, parent);
 
   void buildOutlineExpressions(
-      LibraryBuilder libraryBuilder,
+      SourceLibraryBuilder libraryBuilder,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers) {
     if (_origin != null) {
       // Ensure that default value expressions have been created for [_origin].
-      _origin.buildOutlineExpressions(
+      _origin!.buildOutlineExpressions(
           libraryBuilder, coreTypes, delayedActionPerformers);
-      _clonedFunctionNode.cloneDefaultValues();
+      _clonedFunctionNode!.cloneDefaultValues();
       _clonedFunctionNode = null;
       _origin = null;
     }

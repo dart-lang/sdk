@@ -1148,6 +1148,7 @@ stacktraces
 stale
 stand
 starter
+stated
 statics
 stderr
 stdin

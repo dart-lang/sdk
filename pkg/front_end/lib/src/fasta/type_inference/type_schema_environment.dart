@@ -243,11 +243,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// If non-null values for [formalTypes] and [actualTypes] are provided, this
   /// is upwards inference.  Otherwise it is downward inference.
   void inferGenericFunctionOrType(
-      DartType declaredReturnType,
+      DartType? declaredReturnType,
       List<TypeParameter> typeParametersToInfer,
       List<DartType>? formalTypes,
       List<DartType>? actualTypes,
-      DartType returnContextType,
+      DartType? returnContextType,
       List<DartType> inferredTypes,
       Library clientLibrary,
       {bool isConst: false}) {
@@ -272,9 +272,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
                 clientLibrary.isNonNullableByDefault
                     ? objectNullableRawType
                     : objectLegacyRawType)
-            .substituteType(returnContextType);
+            .substituteType(returnContextType!);
       }
-      gatherer.tryConstrainUpper(declaredReturnType, returnContextType);
+      gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!);
     }
 
     if (formalTypes != null) {

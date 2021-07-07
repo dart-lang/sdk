@@ -115,7 +115,7 @@ String safeToString(Object object) {
 }
 
 Future<T> withCrashReporting<T>(
-    Future<T> Function() action, Uri Function() currentUri) async {
+    Future<T> Function() action, Uri? Function() currentUri) async {
   resetCrashReporting();
   try {
     return await action();

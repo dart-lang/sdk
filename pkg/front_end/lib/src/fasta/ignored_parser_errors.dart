@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'fasta_codes.dart' show Code, codeNonPartOfDirectiveInPart;
 
-bool isIgnoredParserError(Code<Object> code, Token token) {
+bool isIgnoredParserError(Code<dynamic> code, Token token) {
   if (code == codeNonPartOfDirectiveInPart) {
     // Ignored. This error is handled in the outline phase (part resolution).
     return optional("part", token);

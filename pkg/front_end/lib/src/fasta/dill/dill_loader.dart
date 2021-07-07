@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.dill_loader;
 
 import 'package:kernel/ast.dart' show Class, Component, DartType, Library;
@@ -30,7 +28,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_target.dart' show DillTarget;
 
 class DillLoader extends Loader {
-  SourceLoader currentSourceLoader;
+  SourceLoader? currentSourceLoader;
 
   DillLoader(TargetImplementation target) : super(target);
 
@@ -40,11 +38,11 @@ class DillLoader extends Loader {
   /// Append compiled libraries from the given [component]. If the [filter] is
   /// provided, append only libraries whose [Uri] is accepted by the [filter].
   List<DillLibraryBuilder> appendLibraries(Component component,
-      {bool filter(Uri uri), int byteCount: 0}) {
+      {bool Function(Uri uri)? filter, int byteCount: 0}) {
     List<Library> componentLibraries = component.libraries;
     List<Uri> requestedLibraries = <Uri>[];
     List<Uri> requestedLibrariesFileUri = <Uri>[];
-    DillTarget target = this.target;
+    DillTarget target = this.target as DillTarget;
     for (int i = 0; i < componentLibraries.length; i++) {
       Library library = componentLibraries[i];
       Uri uri = library.importUri;
@@ -57,8 +55,9 @@ class DillLoader extends Loader {
     }
     List<DillLibraryBuilder> result = <DillLibraryBuilder>[];
     for (int i = 0; i < requestedLibraries.length; i++) {
-      result.add(read(requestedLibraries[i], -1,
-          fileUri: requestedLibrariesFileUri[i]));
+      result.add(
+          read(requestedLibraries[i], -1, fileUri: requestedLibrariesFileUri[i])
+              as DillLibraryBuilder);
     }
     target.uriToSource.addAll(component.uriToSource);
     this.byteCount += byteCount;
@@ -74,16 +73,18 @@ class DillLoader extends Loader {
     libraries.add(library);
 
     // Weird interaction begins.
-    DillTarget target = this.target;
+    DillTarget target = this.target as DillTarget;
     // Create dill library builder (adds it to a map where it's fetched
     // again momentarily).
     target.addLibrary(library);
     // Set up the dill library builder (fetch it from the map again, add it to
     // another map and setup some auxiliary things).
-    return read(library.importUri, -1, fileUri: library.fileUri);
+    return read(library.importUri, -1, fileUri: library.fileUri)
+        as DillLibraryBuilder;
   }
 
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
+    // ignore: unnecessary_null_comparison
     if (builder.library == null) {
       unhandled("null", "builder.library", 0, builder.fileUri);
     }
@@ -96,7 +97,7 @@ class DillLoader extends Loader {
 
   void finalizeExports({bool suppressFinalizationErrors: false}) {
     for (LibraryBuilder builder in builders.values) {
-      DillLibraryBuilder library = builder;
+      DillLibraryBuilder library = builder as DillLibraryBuilder;
       library.markAsReadyToFinalizeExports(
           suppressFinalizationErrors: suppressFinalizationErrors);
     }
@@ -105,11 +106,11 @@ class DillLoader extends Loader {
   @override
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
-    LibraryBuilder library = builders[kernelLibrary.importUri];
+    LibraryBuilder? library = builders[kernelLibrary.importUri];
     if (library == null) {
       library = currentSourceLoader?.builders[kernelLibrary.importUri];
     }
-    return library.lookupLocalMember(cls.name, required: true);
+    return library!.lookupLocalMember(cls.name, required: true) as ClassBuilder;
   }
 
   @override

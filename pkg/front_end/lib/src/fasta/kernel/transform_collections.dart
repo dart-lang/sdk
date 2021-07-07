@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.transform_collections;
 
 import 'package:kernel/ast.dart';
@@ -38,69 +36,81 @@ class CollectionTransformer extends Transformer {
   final SourceLoader _loader;
   final TypeEnvironment _typeEnvironment;
   final Procedure _listAdd;
-  FunctionType _listAddFunctionType;
+  late final FunctionType _listAddFunctionType;
   final Procedure _listAddAll;
-  FunctionType _listAddAllFunctionType;
+  late final FunctionType _listAddAllFunctionType;
   final Procedure _listOf;
   final Procedure _setFactory;
   final Procedure _setAdd;
-  FunctionType _setAddFunctionType;
+  late final FunctionType _setAddFunctionType;
   final Procedure _setAddAll;
-  FunctionType _setAddAllFunctionType;
+  late final FunctionType _setAddAllFunctionType;
   final Procedure _setOf;
   final Procedure _objectEquals;
   final Procedure _mapEntries;
   final Procedure _mapPut;
-  FunctionType _mapPutFunctionType;
+  late final FunctionType _mapPutFunctionType;
   final Class _mapEntryClass;
   final Field _mapEntryKey;
   final Field _mapEntryValue;
-  final SourceLoaderDataForTesting _dataForTesting;
+  final SourceLoaderDataForTesting? _dataForTesting;
   final bool useNewMethodInvocationEncoding;
 
   /// Library that contains the transformed nodes.
   ///
   /// The transformation of the nodes is affected by the NNBD opt-in status of
   /// the library.
-  Library _currentLibrary;
+  Library? _currentLibrary;
 
   static Procedure _findSetFactory(CoreTypes coreTypes, String name) {
-    Procedure factory = coreTypes.index.getMember('dart:core', 'Set', name);
-    RedirectingFactoryBody body = factory?.function?.body;
-    return body?.target;
+    Procedure factory = coreTypes.index.getProcedure('dart:core', 'Set', name);
+    RedirectingFactoryBody body =
+        factory.function.body as RedirectingFactoryBody;
+    return body.target as Procedure;
   }
 
   CollectionTransformer(this._loader)
       : _typeEnvironment = _loader.typeInferenceEngine.typeSchemaEnvironment,
         _listAdd =
-            _loader.coreTypes.index.getMember('dart:core', 'List', 'add'),
+            _loader.coreTypes.index.getProcedure('dart:core', 'List', 'add'),
         _listAddAll =
-            _loader.coreTypes.index.getMember('dart:core', 'List', 'addAll'),
-        _listOf = _loader.coreTypes.index.getMember('dart:core', 'List', 'of'),
+            _loader.coreTypes.index.getProcedure('dart:core', 'List', 'addAll'),
+        _listOf =
+            _loader.coreTypes.index.getProcedure('dart:core', 'List', 'of'),
         _setFactory = _findSetFactory(_loader.coreTypes, ''),
-        _setAdd = _loader.coreTypes.index.getMember('dart:core', 'Set', 'add'),
+        _setAdd =
+            _loader.coreTypes.index.getProcedure('dart:core', 'Set', 'add'),
         _setAddAll =
-            _loader.coreTypes.index.getMember('dart:core', 'Set', 'addAll'),
+            _loader.coreTypes.index.getProcedure('dart:core', 'Set', 'addAll'),
         _setOf = _findSetFactory(_loader.coreTypes, 'of'),
         _objectEquals =
-            _loader.coreTypes.index.getMember('dart:core', 'Object', '=='),
+            _loader.coreTypes.index.getProcedure('dart:core', 'Object', '=='),
         _mapEntries = _loader.coreTypes.index
-            .getMember('dart:core', 'Map', 'get:entries'),
-        _mapPut = _loader.coreTypes.index.getMember('dart:core', 'Map', '[]='),
+            .getProcedure('dart:core', 'Map', 'get:entries'),
+        _mapPut =
+            _loader.coreTypes.index.getProcedure('dart:core', 'Map', '[]='),
         _mapEntryClass =
             _loader.coreTypes.index.getClass('dart:core', 'MapEntry'),
         _mapEntryKey =
-            _loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'key'),
+            _loader.coreTypes.index.getField('dart:core', 'MapEntry', 'key'),
         _mapEntryValue =
-            _loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'value'),
+            _loader.coreTypes.index.getField('dart:core', 'MapEntry', 'value'),
         _dataForTesting = _loader.dataForTesting,
         useNewMethodInvocationEncoding =
             _loader.target.backendTarget.supportsNewMethodInvocationEncoding {
-    _listAddFunctionType = _listAdd.getterType;
-    _listAddAllFunctionType = _listAddAll.getterType;
-    _setAddFunctionType = _setAdd.getterType;
-    _setAddAllFunctionType = _setAddAll.getterType;
-    _mapPutFunctionType = _mapPut.getterType;
+    _listAddFunctionType = _listAdd.getterType as FunctionType;
+    _listAddAllFunctionType = _listAddAll.getterType as FunctionType;
+    _setAddFunctionType = _setAdd.getterType as FunctionType;
+    _setAddAllFunctionType = _setAddAll.getterType as FunctionType;
+    _mapPutFunctionType = _mapPut.getterType as FunctionType;
+  }
+
+  T? _transformNullable<T extends TreeNode>(T? node) {
+    if (node == null) {
+      return null;
+    } else {
+      return transform(node);
+    }
   }
 
   TreeNode _translateListOrSet(
@@ -110,24 +120,24 @@ class CollectionTransformer extends Transformer {
     int index = 0;
     for (; index < elements.length; ++index) {
       if (elements[index] is ControlFlowElement) break;
-      elements[index] = elements[index].accept<TreeNode>(this)..parent = node;
+      elements[index] = transform(elements[index])..parent = node;
     }
 
     // If there were only expressions, we are done.
     if (index == elements.length) return node;
 
     InterfaceType receiverType = isSet
-        ? _typeEnvironment.setType(elementType, _currentLibrary.nonNullable)
-        : _typeEnvironment.listType(elementType, _currentLibrary.nonNullable);
-    VariableDeclaration result;
+        ? _typeEnvironment.setType(elementType, _currentLibrary!.nonNullable)
+        : _typeEnvironment.listType(elementType, _currentLibrary!.nonNullable);
+    VariableDeclaration? result;
     if (index == 0 && elements[index] is SpreadElement) {
-      SpreadElement initialSpread = elements[index];
+      SpreadElement initialSpread = elements[index] as SpreadElement;
       final bool typeMatches = initialSpread.elementType != null &&
-          _typeEnvironment.isSubtypeOf(initialSpread.elementType, elementType,
+          _typeEnvironment.isSubtypeOf(initialSpread.elementType!, elementType,
               SubtypeCheckMode.withNullabilities);
       if (typeMatches && !initialSpread.isNullAware) {
         // Create a list or set of the initial spread element.
-        Expression value = initialSpread.expression.accept<TreeNode>(this);
+        Expression value = transform(initialSpread.expression);
         index++;
         if (isSet) {
           result = _createVariable(
@@ -148,7 +158,7 @@ class CollectionTransformer extends Transformer {
         }
       }
     }
-    List<Statement> body;
+    List<Statement>? body;
     if (result == null) {
       // Create a list or set with the elements up to the first non-expression.
       if (isSet) {
@@ -174,8 +184,8 @@ class CollectionTransformer extends Transformer {
           body = [result];
           // Add the elements up to the first non-expression.
           for (int j = 0; j < index; ++j) {
-            _addExpressionElement(
-                elements[j], receiverType, isSet, result, body);
+            _addExpressionElement(elements[j], receiverType, result, body,
+                isSet: isSet);
           }
         }
       } else {
@@ -191,90 +201,84 @@ class CollectionTransformer extends Transformer {
     // Translate the elements starting with the first non-expression.
     for (; index < elements.length; ++index) {
       _translateElement(
-          elements[index], receiverType, elementType, isSet, result, body);
+          elements[index], receiverType, elementType, result, body,
+          isSet: isSet);
     }
 
     return _createBlockExpression(
         node.fileOffset, _createBlock(body), _createVariableGet(result));
   }
 
-  void _translateElement(
-      Expression element,
-      InterfaceType receiverType,
-      DartType elementType,
-      bool isSet,
-      VariableDeclaration result,
-      List<Statement> body) {
+  void _translateElement(Expression element, InterfaceType receiverType,
+      DartType elementType, VariableDeclaration result, List<Statement> body,
+      {required bool isSet}) {
     if (element is SpreadElement) {
-      _translateSpreadElement(
-          element, receiverType, elementType, isSet, result, body);
+      _translateSpreadElement(element, receiverType, elementType, result, body,
+          isSet: isSet);
     } else if (element is IfElement) {
-      _translateIfElement(
-          element, receiverType, elementType, isSet, result, body);
+      _translateIfElement(element, receiverType, elementType, result, body,
+          isSet: isSet);
     } else if (element is ForElement) {
-      _translateForElement(
-          element, receiverType, elementType, isSet, result, body);
+      _translateForElement(element, receiverType, elementType, result, body,
+          isSet: isSet);
     } else if (element is ForInElement) {
-      _translateForInElement(
-          element, receiverType, elementType, isSet, result, body);
+      _translateForInElement(element, receiverType, elementType, result, body,
+          isSet: isSet);
     } else {
-      _addExpressionElement(
-          element.accept<TreeNode>(this), receiverType, isSet, result, body);
+      _addExpressionElement(transform(element), receiverType, result, body,
+          isSet: isSet);
     }
   }
 
   void _addExpressionElement(Expression element, InterfaceType receiverType,
-      bool isSet, VariableDeclaration result, List<Statement> body) {
-    body.add(_createExpressionStatement(
-        _createAdd(_createVariableGet(result), receiverType, element, isSet)));
+      VariableDeclaration result, List<Statement> body,
+      {required bool isSet}) {
+    body.add(_createExpressionStatement(_createAdd(
+        _createVariableGet(result), receiverType, element,
+        isSet: isSet)));
   }
 
-  void _translateIfElement(
-      IfElement element,
-      InterfaceType receiverType,
-      DartType elementType,
-      bool isSet,
-      VariableDeclaration result,
-      List<Statement> body) {
+  void _translateIfElement(IfElement element, InterfaceType receiverType,
+      DartType elementType, VariableDeclaration result, List<Statement> body,
+      {required bool isSet}) {
     List<Statement> thenStatements = [];
     _translateElement(
-        element.then, receiverType, elementType, isSet, result, thenStatements);
-    List<Statement> elseStatements;
+        element.then, receiverType, elementType, result, thenStatements,
+        isSet: isSet);
+    List<Statement>? elseStatements;
     if (element.otherwise != null) {
-      _translateElement(element.otherwise, receiverType, elementType, isSet,
-          result, elseStatements = <Statement>[]);
+      _translateElement(element.otherwise!, receiverType, elementType, result,
+          elseStatements = <Statement>[],
+          isSet: isSet);
     }
     Statement thenBody = thenStatements.length == 1
         ? thenStatements.first
         : _createBlock(thenStatements);
-    Statement elseBody;
+    Statement? elseBody;
     if (elseStatements != null && elseStatements.isNotEmpty) {
       elseBody = elseStatements.length == 1
           ? elseStatements.first
           : _createBlock(elseStatements);
     }
-    IfStatement ifStatement = _createIf(element.fileOffset,
-        element.condition.accept<TreeNode>(this), thenBody, elseBody);
+    IfStatement ifStatement = _createIf(
+        element.fileOffset, transform(element.condition), thenBody, elseBody);
     _dataForTesting?.registerAlias(element, ifStatement);
     body.add(ifStatement);
   }
 
-  void _translateForElement(
-      ForElement element,
-      InterfaceType receiverType,
-      DartType elementType,
-      bool isSet,
-      VariableDeclaration result,
-      List<Statement> body) {
+  void _translateForElement(ForElement element, InterfaceType receiverType,
+      DartType elementType, VariableDeclaration result, List<Statement> body,
+      {required bool isSet}) {
     List<Statement> statements = <Statement>[];
     _translateElement(
-        element.body, receiverType, elementType, isSet, result, statements);
+        element.body, receiverType, elementType, result, statements,
+        isSet: isSet);
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     ForStatement loop = _createForStatement(
         element.fileOffset,
         element.variables,
-        element.condition?.accept<TreeNode>(this),
+        _transformNullable(element.condition),
         element.updates,
         loopBody);
     transformList(loop.variables, loop);
@@ -283,32 +287,28 @@ class CollectionTransformer extends Transformer {
     body.add(loop);
   }
 
-  void _translateForInElement(
-      ForInElement element,
-      InterfaceType receiverType,
-      DartType elementType,
-      bool isSet,
-      VariableDeclaration result,
-      List<Statement> body) {
+  void _translateForInElement(ForInElement element, InterfaceType receiverType,
+      DartType elementType, VariableDeclaration result, List<Statement> body,
+      {required bool isSet}) {
     List<Statement> statements;
-    Statement prologue = element.prologue;
+    Statement? prologue = element.prologue;
     if (prologue == null) {
       statements = <Statement>[];
     } else {
-      prologue = prologue.accept<TreeNode>(this);
+      prologue = transform(prologue);
       statements =
           prologue is Block ? prologue.statements : <Statement>[prologue];
     }
     _translateElement(
-        element.body, receiverType, elementType, isSet, result, statements);
+        element.body, receiverType, elementType, result, statements,
+        isSet: isSet);
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     if (element.problem != null) {
-      body.add(
-          _createExpressionStatement(element.problem.accept<TreeNode>(this)));
+      body.add(_createExpressionStatement(transform(element.problem!)));
     }
     ForInStatement loop = _createForInStatement(element.fileOffset,
-        element.variable, element.iterable.accept<TreeNode>(this), loopBody,
+        element.variable, transform(element.iterable), loopBody,
         isAsync: element.isAsync);
     _dataForTesting?.registerAlias(element, loop);
     body.add(loop);
@@ -318,26 +318,26 @@ class CollectionTransformer extends Transformer {
       SpreadElement element,
       InterfaceType receiverType,
       DartType elementType,
-      bool isSet,
       VariableDeclaration result,
-      List<Statement> body) {
-    Expression value = element.expression.accept<TreeNode>(this);
+      List<Statement> body,
+      {required bool isSet}) {
+    Expression value = transform(element.expression);
 
     final bool typeMatches = element.elementType != null &&
-        _typeEnvironment.isSubtypeOf(element.elementType, elementType,
+        _typeEnvironment.isSubtypeOf(element.elementType!, elementType,
             SubtypeCheckMode.withNullabilities);
     if (typeMatches) {
       // If the type guarantees that all elements are of the required type, use
       // a single 'addAll' call instead of a for-loop with calls to 'add'.
 
       // Null-aware spreads require testing the subexpression's value.
-      VariableDeclaration temp;
+      VariableDeclaration? temp;
       if (element.isNullAware) {
         temp = _createVariable(
             value,
             _typeEnvironment.iterableType(
                 typeMatches ? elementType : const DynamicType(),
-                _currentLibrary.nullable));
+                _currentLibrary!.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -347,20 +347,20 @@ class CollectionTransformer extends Transformer {
 
       if (element.isNullAware) {
         statement = _createIf(
-            temp.fileOffset,
+            temp!.fileOffset,
             _createEqualsNull(_createVariableGet(temp), notEquals: true),
             statement);
       }
       body.add(statement);
     } else {
       // Null-aware spreads require testing the subexpression's value.
-      VariableDeclaration temp;
+      VariableDeclaration? temp;
       if (element.isNullAware) {
         temp = _createVariable(
             value,
             _typeEnvironment.iterableType(
                 typeMatches ? elementType : const DynamicType(),
-                _currentLibrary.nullable));
+                _currentLibrary!.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -377,7 +377,8 @@ class CollectionTransformer extends Transformer {
         loopBody = _createBlock(<Statement>[
           castedVar,
           _createExpressionStatement(_createAdd(_createVariableGet(result),
-              receiverType, _createVariableGet(castedVar), isSet))
+              receiverType, _createVariableGet(castedVar),
+              isSet: isSet))
         ]);
       } else {
         variable = _createForInVariable(element.fileOffset, elementType);
@@ -385,14 +386,14 @@ class CollectionTransformer extends Transformer {
             _createVariableGet(result),
             receiverType,
             _createVariableGet(variable),
-            isSet));
+            isSet: isSet));
       }
       Statement statement =
           _createForInStatement(element.fileOffset, variable, value, loopBody);
 
       if (element.isNullAware) {
         statement = _createIf(
-            temp.fileOffset,
+            temp!.fileOffset,
             _createEqualsNull(_createVariableGet(temp), notEquals: true),
             statement);
       }
@@ -432,7 +433,7 @@ class CollectionTransformer extends Transformer {
     int i = 0;
     for (; i < node.entries.length; ++i) {
       if (node.entries[i] is ControlFlowMapEntry) break;
-      node.entries[i] = node.entries[i].accept<TreeNode>(this)..parent = node;
+      node.entries[i] = transform(node.entries[i])..parent = node;
     }
 
     // If there were no control-flow entries we are done.
@@ -440,7 +441,7 @@ class CollectionTransformer extends Transformer {
 
     // Build a block expression and create an empty map.
     InterfaceType receiverType = _typeEnvironment.mapType(
-        node.keyType, node.valueType, _currentLibrary.nonNullable);
+        node.keyType, node.valueType, _currentLibrary!.nonNullable);
     VariableDeclaration result = _createVariable(
         _createMapLiteral(node.fileOffset, node.keyType, node.valueType, []),
         receiverType);
@@ -476,7 +477,7 @@ class CollectionTransformer extends Transformer {
       _translateForInEntry(
           entry, receiverType, keyType, valueType, result, body);
     } else {
-      _addNormalEntry(entry.accept<TreeNode>(this), receiverType, result, body);
+      _addNormalEntry(transform(entry), receiverType, result, body);
     }
   }
 
@@ -496,20 +497,20 @@ class CollectionTransformer extends Transformer {
     List<Statement> thenBody = [];
     _translateEntry(
         entry.then, receiverType, keyType, valueType, result, thenBody);
-    List<Statement> elseBody;
+    List<Statement>? elseBody;
     if (entry.otherwise != null) {
-      _translateEntry(entry.otherwise, receiverType, keyType, valueType, result,
-          elseBody = <Statement>[]);
+      _translateEntry(entry.otherwise!, receiverType, keyType, valueType,
+          result, elseBody = <Statement>[]);
     }
     Statement thenStatement =
         thenBody.length == 1 ? thenBody.first : _createBlock(thenBody);
-    Statement elseStatement;
+    Statement? elseStatement;
     if (elseBody != null && elseBody.isNotEmpty) {
       elseStatement =
           elseBody.length == 1 ? elseBody.first : _createBlock(elseBody);
     }
     IfStatement ifStatement = _createIf(entry.fileOffset,
-        entry.condition.accept<TreeNode>(this), thenStatement, elseStatement);
+        transform(entry.condition), thenStatement, elseStatement);
     _dataForTesting?.registerAlias(entry, ifStatement);
     body.add(ifStatement);
   }
@@ -527,7 +528,7 @@ class CollectionTransformer extends Transformer {
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
-        entry.condition?.accept<TreeNode>(this), entry.updates, loopBody);
+        _transformNullable(entry.condition), entry.updates, loopBody);
     _dataForTesting?.registerAlias(entry, loop);
     transformList(loop.variables, loop);
     transformList(loop.updates, loop);
@@ -542,11 +543,11 @@ class CollectionTransformer extends Transformer {
       VariableDeclaration result,
       List<Statement> body) {
     List<Statement> statements;
-    Statement prologue = entry.prologue;
+    Statement? prologue = entry.prologue;
     if (prologue == null) {
       statements = <Statement>[];
     } else {
-      prologue = prologue.accept<TreeNode>(this);
+      prologue = transform(prologue);
       statements =
           prologue is Block ? prologue.statements : <Statement>[prologue];
     }
@@ -555,11 +556,10 @@ class CollectionTransformer extends Transformer {
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     if (entry.problem != null) {
-      body.add(
-          _createExpressionStatement(entry.problem.accept<TreeNode>(this)));
+      body.add(_createExpressionStatement(transform(entry.problem!)));
     }
-    ForInStatement loop = _createForInStatement(entry.fileOffset,
-        entry.variable, entry.iterable.accept<TreeNode>(this), loopBody,
+    ForInStatement loop = _createForInStatement(
+        entry.fileOffset, entry.variable, transform(entry.iterable), loopBody,
         isAsync: entry.isAsync);
     _dataForTesting?.registerAlias(entry, loop);
     body.add(loop);
@@ -572,23 +572,23 @@ class CollectionTransformer extends Transformer {
       DartType valueType,
       VariableDeclaration result,
       List<Statement> body) {
-    Expression value = entry.expression.accept<TreeNode>(this);
+    Expression value = transform(entry.expression);
 
     final InterfaceType entryType = new InterfaceType(_mapEntryClass,
-        _currentLibrary.nonNullable, <DartType>[keyType, valueType]);
+        _currentLibrary!.nonNullable, <DartType>[keyType, valueType]);
     final bool typeMatches = entry.entryType != null &&
         _typeEnvironment.isSubtypeOf(
-            entry.entryType, entryType, SubtypeCheckMode.withNullabilities);
+            entry.entryType!, entryType, SubtypeCheckMode.withNullabilities);
 
     // Null-aware spreads require testing the subexpression's value.
-    VariableDeclaration temp;
+    VariableDeclaration? temp;
     if (entry.isNullAware) {
       temp = _createVariable(
           value,
           _typeEnvironment.mapType(
               typeMatches ? keyType : const DynamicType(),
               typeMatches ? valueType : const DynamicType(),
-              _currentLibrary.nullable));
+              _currentLibrary!.nullable));
       body.add(temp);
       value = _createNullCheckedVariableGet(temp);
     }
@@ -598,7 +598,7 @@ class CollectionTransformer extends Transformer {
     if (!typeMatches) {
       final InterfaceType variableType = new InterfaceType(
           _mapEntryClass,
-          _currentLibrary.nonNullable,
+          _currentLibrary!.nonNullable,
           <DartType>[const DynamicType(), const DynamicType()]);
       variable = _createForInVariable(entry.fileOffset, variableType);
       VariableDeclaration keyVar = _createVariable(
@@ -641,7 +641,7 @@ class CollectionTransformer extends Transformer {
 
     if (entry.isNullAware) {
       statement = _createIf(
-          temp.fileOffset,
+          temp!.fileOffset,
           _createEqualsNull(_createVariableGet(temp), notEquals: true),
           statement);
     }
@@ -655,7 +655,7 @@ class CollectionTransformer extends Transformer {
     int i = 0;
     for (; i < elements.length; ++i) {
       if (elements[i] is ControlFlowElement) break;
-      elements[i] = elements[i].accept<TreeNode>(this)..parent = node;
+      elements[i] = transform(elements[i])..parent = node;
     }
 
     // If there were only expressions, we are done.
@@ -673,10 +673,10 @@ class CollectionTransformer extends Transformer {
 
     // Build a concatenation node.
     List<Expression> parts = [];
-    List<Expression> currentPart = i > 0 ? elements.sublist(0, i) : null;
+    List<Expression>? currentPart = i > 0 ? elements.sublist(0, i) : null;
 
-    DartType iterableType =
-        _typeEnvironment.iterableType(elementType, _currentLibrary.nonNullable);
+    DartType iterableType = _typeEnvironment.iterableType(
+        elementType, _currentLibrary!.nonNullable);
 
     for (; i < elements.length; ++i) {
       Expression element = elements[i];
@@ -685,12 +685,12 @@ class CollectionTransformer extends Transformer {
           parts.add(makeLiteral(node.fileOffset, currentPart));
           currentPart = null;
         }
-        Expression spreadExpression = element.expression.accept<TreeNode>(this);
+        Expression spreadExpression = transform(element.expression);
         if (element.isNullAware) {
           VariableDeclaration temp = _createVariable(
               spreadExpression,
               _typeEnvironment.iterableType(
-                  elementType, _currentLibrary.nullable));
+                  elementType, _currentLibrary!.nullable));
           parts.add(_createNullAwareGuard(element.fileOffset, temp,
               makeLiteral(element.fileOffset, []), iterableType));
         } else {
@@ -701,12 +701,12 @@ class CollectionTransformer extends Transformer {
           parts.add(makeLiteral(node.fileOffset, currentPart));
           currentPart = null;
         }
-        Expression condition = element.condition.accept<TreeNode>(this);
-        Expression then = makeLiteral(element.then.fileOffset, [element.then])
-            .accept<TreeNode>(this);
+        Expression condition = transform(element.condition);
+        Expression then =
+            transform(makeLiteral(element.then.fileOffset, [element.then]));
         Expression otherwise = element.otherwise != null
-            ? makeLiteral(element.otherwise.fileOffset, [element.otherwise])
-                .accept<TreeNode>(this)
+            ? transform(makeLiteral(
+                element.otherwise!.fileOffset, [element.otherwise!]))
             : makeLiteral(element.fileOffset, []);
         parts.add(_createConditionalExpression(
             element.fileOffset, condition, then, otherwise, iterableType));
@@ -716,7 +716,7 @@ class CollectionTransformer extends Transformer {
             element.fileOffset, getFileUri(element));
       } else {
         currentPart ??= <Expression>[];
-        currentPart.add(element.accept<TreeNode>(this));
+        currentPart.add(transform(element));
       }
     }
     if (currentPart != null) {
@@ -736,7 +736,7 @@ class CollectionTransformer extends Transformer {
     int i = 0;
     for (; i < node.entries.length; ++i) {
       if (node.entries[i] is ControlFlowMapEntry) break;
-      node.entries[i] = node.entries[i].accept<TreeNode>(this)..parent = node;
+      node.entries[i] = transform(node.entries[i])..parent = node;
     }
 
     // If there were no control-flow entries we are done.
@@ -750,11 +750,11 @@ class CollectionTransformer extends Transformer {
 
     // Build a concatenation node.
     List<Expression> parts = [];
-    List<MapLiteralEntry> currentPart =
+    List<MapLiteralEntry>? currentPart =
         i > 0 ? node.entries.sublist(0, i) : null;
 
     DartType collectionType = _typeEnvironment.mapType(
-        node.keyType, node.valueType, _currentLibrary.nonNullable);
+        node.keyType, node.valueType, _currentLibrary!.nonNullable);
 
     for (; i < node.entries.length; ++i) {
       MapLiteralEntry entry = node.entries[i];
@@ -763,10 +763,12 @@ class CollectionTransformer extends Transformer {
           parts.add(makeLiteral(node.fileOffset, currentPart));
           currentPart = null;
         }
-        Expression spreadExpression = entry.expression.accept<TreeNode>(this);
+        Expression spreadExpression = transform(entry.expression);
         if (entry.isNullAware) {
-          VariableDeclaration temp = _createVariable(spreadExpression,
-              collectionType.withDeclaredNullability(_currentLibrary.nullable));
+          VariableDeclaration temp = _createVariable(
+              spreadExpression,
+              collectionType
+                  .withDeclaredNullability(_currentLibrary!.nullable));
           parts.add(_createNullAwareGuard(entry.fileOffset, temp,
               makeLiteral(entry.fileOffset, []), collectionType));
         } else {
@@ -777,12 +779,12 @@ class CollectionTransformer extends Transformer {
           parts.add(makeLiteral(node.fileOffset, currentPart));
           currentPart = null;
         }
-        Expression condition = entry.condition.accept<TreeNode>(this);
-        Expression then = makeLiteral(entry.then.fileOffset, [entry.then])
-            .accept<TreeNode>(this);
+        Expression condition = transform(entry.condition);
+        Expression then =
+            transform(makeLiteral(entry.then.fileOffset, [entry.then]));
         Expression otherwise = entry.otherwise != null
-            ? makeLiteral(entry.otherwise.fileOffset, [entry.otherwise])
-                .accept<TreeNode>(this)
+            ? transform(
+                makeLiteral(entry.otherwise!.fileOffset, [entry.otherwise!]))
             : makeLiteral(node.fileOffset, []);
         parts.add(_createConditionalExpression(
             entry.fileOffset, condition, then, otherwise, collectionType));
@@ -792,7 +794,7 @@ class CollectionTransformer extends Transformer {
             entry.fileOffset, getFileUri(entry));
       } else {
         currentPart ??= <MapLiteralEntry>[];
-        currentPart.add(entry.accept<TreeNode>(this));
+        currentPart.add(transform(entry));
       }
     }
     if (currentPart != null) {
@@ -806,7 +808,7 @@ class CollectionTransformer extends Transformer {
     assert(
         _currentLibrary == null,
         "Attempting to enter library '${library.fileUri}' "
-        "without having exited library '${_currentLibrary.fileUri}'.");
+        "without having exited library '${_currentLibrary!.fileUri}'.");
     _currentLibrary = library;
   }
 
@@ -817,6 +819,7 @@ class CollectionTransformer extends Transformer {
   }
 
   VariableDeclaration _createVariable(Expression expression, DartType type) {
+    // ignore: unnecessary_null_comparison
     assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
     return new VariableDeclaration.forValue(expression, type: type)
@@ -830,16 +833,18 @@ class CollectionTransformer extends Transformer {
   }
 
   VariableGet _createVariableGet(VariableDeclaration variable) {
+    // ignore: unnecessary_null_comparison
     assert(variable != null);
     assert(variable.fileOffset != TreeNode.noOffset);
     return new VariableGet(variable)..fileOffset = variable.fileOffset;
   }
 
   VariableGet _createNullCheckedVariableGet(VariableDeclaration variable) {
+    // ignore: unnecessary_null_comparison
     assert(variable != null);
     assert(variable.fileOffset != TreeNode.noOffset);
     DartType promotedType =
-        variable.type.withDeclaredNullability(_currentLibrary.nonNullable);
+        variable.type.withDeclaredNullability(_currentLibrary!.nonNullable);
     if (promotedType != variable.type) {
       return new VariableGet(variable, promotedType)
         ..fileOffset = variable.fileOffset;
@@ -850,6 +855,7 @@ class CollectionTransformer extends Transformer {
   MapLiteral _createMapLiteral(int fileOffset, DartType keyType,
       DartType valueType, List<MapLiteralEntry> entries,
       {bool isConst: false}) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new MapLiteral(entries,
@@ -860,6 +866,7 @@ class CollectionTransformer extends Transformer {
   ListLiteral _createListLiteral(
       int fileOffset, DartType elementType, List<Expression> elements,
       {bool isConst: false}) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new ListLiteral(elements,
@@ -870,6 +877,7 @@ class CollectionTransformer extends Transformer {
   Expression _createSetLiteral(
       int fileOffset, DartType elementType, List<Expression> elements,
       {bool isConst: false}) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     if (isConst) {
@@ -884,27 +892,31 @@ class CollectionTransformer extends Transformer {
   }
 
   ExpressionStatement _createExpressionStatement(Expression expression) {
+    // ignore: unnecessary_null_comparison
     assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
     return new ExpressionStatement(expression)
       ..fileOffset = expression.fileOffset;
   }
 
-  Expression _createAdd(Expression receiver, InterfaceType receiverType,
-      Expression argument, bool isSet) {
+  Expression _createAdd(
+      Expression receiver, InterfaceType receiverType, Expression argument,
+      {required bool isSet}) {
+    // ignore: unnecessary_null_comparison
     assert(receiver != null);
+    // ignore: unnecessary_null_comparison
     assert(argument != null);
     assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     if (useNewMethodInvocationEncoding) {
-      FunctionType functionType = Substitution.fromInterfaceType(receiverType)
+      DartType functionType = Substitution.fromInterfaceType(receiverType)
           .substituteType(isSet ? _setAddFunctionType : _listAddFunctionType);
-      if (!_currentLibrary.isNonNullableByDefault) {
+      if (!_currentLibrary!.isNonNullableByDefault) {
         functionType = legacyErasure(functionType);
       }
       return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
           new Name('add'), new Arguments([argument]),
-          functionType: functionType,
+          functionType: functionType as FunctionType,
           interfaceTarget: isSet ? _setAdd : _listAdd)
         ..fileOffset = argument.fileOffset
         ..isInvariant = true;
@@ -918,20 +930,22 @@ class CollectionTransformer extends Transformer {
 
   Expression _createAddAll(Expression receiver, InterfaceType receiverType,
       Expression argument, bool isSet) {
+    // ignore: unnecessary_null_comparison
     assert(receiver != null);
+    // ignore: unnecessary_null_comparison
     assert(argument != null);
     assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     if (useNewMethodInvocationEncoding) {
-      FunctionType functionType = Substitution.fromInterfaceType(receiverType)
+      DartType functionType = Substitution.fromInterfaceType(receiverType)
           .substituteType(
               isSet ? _setAddAllFunctionType : _listAddAllFunctionType);
-      if (!_currentLibrary.isNonNullableByDefault) {
+      if (!_currentLibrary!.isNonNullableByDefault) {
         functionType = legacyErasure(functionType);
       }
       return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
           new Name('addAll'), new Arguments([argument]),
-          functionType: functionType,
+          functionType: functionType as FunctionType,
           interfaceTarget: isSet ? _setAddAll : _listAddAll)
         ..fileOffset = argument.fileOffset
         ..isInvariant = true;
@@ -944,6 +958,7 @@ class CollectionTransformer extends Transformer {
   }
 
   Expression _createEqualsNull(Expression expression, {bool notEquals: false}) {
+    // ignore: unnecessary_null_comparison
     assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
     Expression check;
@@ -966,17 +981,18 @@ class CollectionTransformer extends Transformer {
 
   Expression _createIndexSet(int fileOffset, Expression receiver,
       InterfaceType receiverType, Expression key, Expression value) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     if (useNewMethodInvocationEncoding) {
-      FunctionType functionType = Substitution.fromInterfaceType(receiverType)
+      DartType functionType = Substitution.fromInterfaceType(receiverType)
           .substituteType(_mapPutFunctionType);
-      if (!_currentLibrary.isNonNullableByDefault) {
+      if (!_currentLibrary!.isNonNullableByDefault) {
         functionType = legacyErasure(functionType);
       }
       return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
           new Name('[]='), new Arguments([key, value]),
-          functionType: functionType, interfaceTarget: _mapPut)
+          functionType: functionType as FunctionType, interfaceTarget: _mapPut)
         ..fileOffset = fileOffset
         ..isInvariant = true;
     } else {
@@ -989,16 +1005,18 @@ class CollectionTransformer extends Transformer {
 
   AsExpression _createImplicitAs(
       int fileOffset, Expression expression, DartType type) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new AsExpression(expression, type)
       ..isTypeError = true
-      ..isForNonNullableByDefault = _currentLibrary.isNonNullableByDefault
+      ..isForNonNullableByDefault = _currentLibrary!.isNonNullableByDefault
       ..fileOffset = fileOffset;
   }
 
   IfStatement _createIf(int fileOffset, Expression condition, Statement then,
-      [Statement otherwise]) {
+      [Statement? otherwise]) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new IfStatement(condition, then, otherwise)..fileOffset = fileOffset;
@@ -1006,6 +1024,7 @@ class CollectionTransformer extends Transformer {
 
   Expression _createGetKey(
       int fileOffset, Expression receiver, InterfaceType entryType) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     if (useNewMethodInvocationEncoding) {
@@ -1023,6 +1042,7 @@ class CollectionTransformer extends Transformer {
 
   Expression _createGetValue(
       int fileOffset, Expression receiver, InterfaceType entryType) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     if (useNewMethodInvocationEncoding) {
@@ -1040,6 +1060,7 @@ class CollectionTransformer extends Transformer {
 
   Expression _createGetEntries(
       int fileOffset, Expression receiver, InterfaceType mapType) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     if (useNewMethodInvocationEncoding) {
@@ -1058,9 +1079,10 @@ class CollectionTransformer extends Transformer {
   ForStatement _createForStatement(
       int fileOffset,
       List<VariableDeclaration> variables,
-      Expression condition,
+      Expression? condition,
       List<Expression> updates,
       Statement body) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new ForStatement(variables, condition, updates, body)
@@ -1070,6 +1092,7 @@ class CollectionTransformer extends Transformer {
   ForInStatement _createForInStatement(int fileOffset,
       VariableDeclaration variable, Expression iterable, Statement body,
       {bool isAsync: false}) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new ForInStatement(variable, iterable, body, isAsync: isAsync)
@@ -1095,6 +1118,7 @@ class CollectionTransformer extends Transformer {
 
   BlockExpression _createBlockExpression(
       int fileOffset, Block body, Expression value) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new BlockExpression(body, value)..fileOffset = fileOffset;
@@ -1106,6 +1130,7 @@ class CollectionTransformer extends Transformer {
       Expression then,
       Expression otherwise,
       DartType type) {
+    // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new ConditionalExpression(condition, then, otherwise, type)

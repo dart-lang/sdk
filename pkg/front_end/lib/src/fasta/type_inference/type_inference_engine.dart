@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 
@@ -40,7 +38,7 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
   final List<TypeParameter> _typeParametersToSearchFor;
 
   IncludesTypeParametersNonCovariantly(this._typeParametersToSearchFor,
-      {int initialVariance})
+      {required int initialVariance})
       : _variance = initialVariance;
 
   @override
@@ -101,11 +99,11 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
 /// (e.g. DietListener).  Derived classes should derive from
 /// [TypeInferenceEngineImpl].
 abstract class TypeInferenceEngine {
-  ClassHierarchy classHierarchy;
+  late ClassHierarchy classHierarchy;
 
-  ClassHierarchyBuilder hierarchyBuilder;
+  late ClassHierarchyBuilder hierarchyBuilder;
 
-  CoreTypes coreTypes;
+  late CoreTypes coreTypes;
 
   // TODO(johnniwinther): Shared this with the BodyBuilder.
   final Forest forest = const Forest();
@@ -113,7 +111,7 @@ abstract class TypeInferenceEngine {
   /// Indicates whether the "prepare" phase of type inference is complete.
   bool isTypeInferencePrepared = false;
 
-  TypeSchemaEnvironment typeSchemaEnvironment;
+  late TypeSchemaEnvironment typeSchemaEnvironment;
 
   /// A map containing constructors with initializing formals whose types
   /// need to be inferred.
@@ -130,19 +128,19 @@ abstract class TypeInferenceEngine {
   /// is used to report errors.
   final Map<Constructor, ConstructorBuilder> beingInferred = {};
 
-  final Instrumentation instrumentation;
+  final Instrumentation? instrumentation;
 
   TypeInferenceEngine(this.instrumentation);
 
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
-  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting);
+  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType? thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
-  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting);
+  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType? thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting);
 
   /// Performs the third phase of top level inference, which is to visit all
   /// constructors still needing inference and infer the types of their
@@ -165,7 +163,7 @@ abstract class TypeInferenceEngine {
         new TypeSchemaEnvironment(coreTypes, hierarchy);
   }
 
-  static Member resolveInferenceNode(Member member) {
+  static Member? resolveInferenceNode(Member? member) {
     if (member is Field) {
       DartType type = member.type;
       if (type is ImplicitFieldType) {
@@ -179,12 +177,12 @@ abstract class TypeInferenceEngine {
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
-  TypeInferenceEngineImpl(Instrumentation instrumentation)
+  TypeInferenceEngineImpl(Instrumentation? instrumentation)
       : super(instrumentation);
 
   @override
-  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType? thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
       assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
@@ -198,8 +196,8 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   @override
-  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType? thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
       assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
@@ -239,7 +237,7 @@ class FlowAnalysisResult {
   final List<TreeNode> definitelyUnassignedNodes = [];
 
   /// The assigned variables information that computed for the member.
-  AssignedVariablesForTesting<TreeNode, VariableDeclaration> assignedVariables;
+  AssignedVariablesForTesting<TreeNode, VariableDeclaration>? assignedVariables;
 
   /// For each expression that led to an error because it was not promoted, a
   /// string describing the reason it was not promoted.
@@ -257,7 +255,7 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   TypeOperationsCfe(this.typeEnvironment);
 
   @override
-  TypeClassification classifyType(DartType type) {
+  TypeClassification classifyType(DartType? type) {
     if (type == null) {
       // Note: this can happen during top-level inference.
       return TypeClassification.potentiallyNullable;

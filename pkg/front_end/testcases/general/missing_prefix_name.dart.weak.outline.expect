@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/missing_prefix_name.dart:5:37: Error: Expected an identifier, but got ';'.
+// Try inserting an identifier before ';'.
+// import "missing_prefix_name.dart" as;
+//                                     ^
+//
+import self as self;
+
+static method main() → dynamic
+  ;

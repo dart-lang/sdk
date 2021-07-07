@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.function_type_alias_builder;
 
 import 'package:kernel/ast.dart';
@@ -34,12 +32,12 @@ import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
 abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
-  TypeBuilder get type;
+  TypeBuilder? get type;
 
   /// The [Typedef] built by this builder.
   Typedef get typedef;
 
-  DartType thisType;
+  DartType? thisType;
 
   String get debugName;
 
@@ -47,7 +45,9 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   LibraryBuilder get library;
 
-  List<TypeVariableBuilder> get typeVariables;
+  Uri get fileUri;
+
+  List<TypeVariableBuilder>? get typeVariables;
 
   int varianceAt(int index);
 
@@ -57,19 +57,19 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments);
+      Nullability nullability, List<DartType>? arguments);
 
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder> arguments,
-      [bool notInstanceContext]);
+      LibraryBuilder library, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext});
 
   /// Returns `true` if this typedef is an alias of the `Null` type.
   bool get isNullAlias;
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]);
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext});
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
   /// based on the given [typeArguments]. It expands type aliases repeatedly
@@ -90,10 +90,10 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// `const InvalidType()`). If `this` type alias expands to a
   /// [TypeVariableBuilder] then the type alias cannot be used in a constructor
   /// invocation. Then an error is emitted and `this` is returned.
-  TypeDeclarationBuilder unaliasDeclaration(List<TypeBuilder> typeArguments,
+  TypeDeclarationBuilder? unaliasDeclaration(List<TypeBuilder>? typeArguments,
       {bool isUsedAsClass = false,
-      int usedAsClassCharOffset,
-      Uri usedAsClassFileUri});
+      int? usedAsClassCharOffset,
+      Uri? usedAsClassFileUri});
 
   /// Compute type arguments passed to [ClassBuilder] from unaliasDeclaration.
   /// This method does not check for cycles and may only be called if an
@@ -109,36 +109,46 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// [this], such that the returned [TypeBuilder]s are appropriate type
   /// arguments for passing to the [ClassBuilder] which is the end of the
   /// unaliasing chain.
-  List<TypeBuilder> unaliasTypeArguments(List<TypeBuilder> typeArguments);
+  // TODO(johnniwinther): Should we enforce that [typeArguments] are non-null
+  // as stated in the docs? It is not needed for the implementation.
+  List<TypeBuilder>? unaliasTypeArguments(List<TypeBuilder>? typeArguments);
 
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers);
 }
 
 abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     implements TypeAliasBuilder {
-  TypeAliasBuilderImpl(List<MetadataBuilder> metadata, String name,
+  @override
+  final Uri fileUri;
+
+  TypeAliasBuilderImpl(List<MetadataBuilder>? metadata, String name,
       LibraryBuilder parent, int charOffset)
-      : super(metadata, 0, name, parent, charOffset);
+      : fileUri = parent.fileUri,
+        super(metadata, 0, name, parent, charOffset);
 
   String get debugName => "TypeAliasBuilder";
 
-  LibraryBuilder get parent => super.parent;
+  LibraryBuilder get parent => super.parent as LibraryBuilder;
 
-  LibraryBuilder get library => super.parent;
+  LibraryBuilder get library => super.parent as LibraryBuilder;
 
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments) {
+      Nullability nullability, List<DartType>? arguments) {
     DartType thisType = buildThisType();
     if (const DynamicType() == thisType) return thisType;
     Nullability adjustedNullability =
         isNullAlias ? Nullability.nullable : nullability;
     DartType result = thisType.withDeclaredNullability(adjustedNullability);
+    // TODO(johnniwinther): Couldn't [arguments] be null and
+    // `typedef.typeParameters` be non-empty?
     if (typedef.typeParameters.isEmpty && arguments == null) return result;
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < typedef.typeParameters.length; i++) {
-      substitution[typedef.typeParameters[i]] = arguments[i];
+      substitution[typedef.typeParameters[i]] = arguments![i];
     }
     // The following adds the built type to the list of unchecked typedef types
     // of the client library. It is needed because the type is built unaliased,
@@ -146,7 +156,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     // arguments to the generic typedef conform to the bounds without preserving
     // the TypedefType for the delayed check.
     if (library is SourceLibraryBuilder &&
-        arguments.isNotEmpty &&
+        arguments!.isNotEmpty &&
         thisType is! FunctionType) {
       library.uncheckedTypedefTypes.add(new UncheckedTypedefType(
           new TypedefType(typedef, nullability, arguments)));
@@ -156,23 +166,23 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
-    return buildTypeInternal(
-        library, nullabilityBuilder, arguments, notInstanceContext, true);
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
+    return buildTypeInternal(library, nullabilityBuilder, arguments,
+        nonInstanceContext: nonInstanceContext, performLegacyErasure: true);
   }
 
   @override
   DartType buildTypeLiteralType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
-    return buildTypeInternal(
-        library, nullabilityBuilder, arguments, notInstanceContext, false);
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
+    return buildTypeInternal(library, nullabilityBuilder, arguments,
+        nonInstanceContext: nonInstanceContext, performLegacyErasure: false);
   }
 
   DartType buildTypeInternal(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext, bool performLegacyErasure]) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext, required bool performLegacyErasure}) {
     DartType thisType = buildThisType();
     if (thisType is InvalidType) return thisType;
 
@@ -205,7 +215,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     return result;
   }
 
-  TypeDeclarationBuilder _cachedUnaliasedDeclaration;
+  TypeDeclarationBuilder? _cachedUnaliasedDeclaration;
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
   /// based on the given [typeArguments]. It expands type aliases repeatedly
@@ -233,16 +243,18 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// `const InvalidType()`). If `this` type alias expands to a
   /// [TypeVariableBuilder] then the type alias cannot be used as a class, in
   /// which case an error is emitted and `this` is returned.
-  TypeDeclarationBuilder unaliasDeclaration(List<TypeBuilder> typeArguments,
+  TypeDeclarationBuilder? unaliasDeclaration(List<TypeBuilder>? typeArguments,
       {bool isUsedAsClass = false,
-      int usedAsClassCharOffset,
-      Uri usedAsClassFileUri}) {
-    if (_cachedUnaliasedDeclaration != null) return _cachedUnaliasedDeclaration;
+      int? usedAsClassCharOffset,
+      Uri? usedAsClassFileUri}) {
+    if (_cachedUnaliasedDeclaration != null) {
+      return _cachedUnaliasedDeclaration;
+    }
     Set<TypeDeclarationBuilder> builders = {this};
     TypeDeclarationBuilder current = this;
     while (current is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = current;
-      TypeDeclarationBuilder next = currentAliasBuilder.type?.declaration;
+      TypeDeclarationBuilder? next = currentAliasBuilder.type?.declaration;
       if (next != null) {
         current = next;
       } else {
@@ -273,7 +285,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         if (isUsedAsClass) {
           List<TypeBuilder> freshTypeArguments = [
             if (typeVariables != null)
-              for (TypeVariableBuilder typeVariable in typeVariables)
+              for (TypeVariableBuilder typeVariable in typeVariables!)
                 new NamedTypeBuilder.fromTypeDeclarationBuilder(
                   typeVariable,
                   library.nonNullableBuilder,
@@ -282,7 +294,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                   charOffset,
                 ),
           ];
-          TypeDeclarationBuilder typeDeclarationBuilder =
+          TypeDeclarationBuilder? typeDeclarationBuilder =
               _unaliasDeclaration(freshTypeArguments);
           bool found = false;
           for (TypeBuilder typeBuilder in freshTypeArguments) {
@@ -292,11 +304,14 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             }
           }
           if (found) {
-            library.addProblem(messageTypedefTypeVariableNotConstructor,
-                usedAsClassCharOffset, noLength, usedAsClassFileUri,
+            library.addProblem(
+                messageTypedefTypeVariableNotConstructor,
+                usedAsClassCharOffset ?? TreeNode.noOffset,
+                noLength,
+                usedAsClassFileUri,
                 context: [
                   messageTypedefTypeVariableNotConstructorCause.withLocation(
-                      current.fileUri, current.charOffset, noLength),
+                      current.fileUri!, current.charOffset, noLength),
                 ]);
             return this;
           }
@@ -326,26 +341,24 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   // arguments, for all i in 1 .. k-1, and the right hand side of F_k is a type
   // variable. In this case, the unaliased declaration must be obtained from
   // the type argument, which is the reason why we must trace them.
-  TypeDeclarationBuilder _unaliasDeclaration(List<TypeBuilder> typeArguments) {
-    TypeDeclarationBuilder currentDeclarationBuilder = this;
-    TypeAliasBuilder previousAliasBuilder = null;
-    List<TypeBuilder> currentTypeArguments = typeArguments;
+  TypeDeclarationBuilder? _unaliasDeclaration(
+      List<TypeBuilder>? typeArguments) {
+    TypeDeclarationBuilder? currentDeclarationBuilder = this;
+    TypeAliasBuilder? previousAliasBuilder = null;
+    List<TypeBuilder>? currentTypeArguments = typeArguments;
     while (currentDeclarationBuilder is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = currentDeclarationBuilder;
-      TypeBuilder nextTypeBuilder = currentAliasBuilder.type;
+      TypeBuilder? nextTypeBuilder = currentAliasBuilder.type;
       if (nextTypeBuilder is NamedTypeBuilder) {
         Map<TypeVariableBuilder, TypeBuilder> substitution = {};
         int index = 0;
         if (currentTypeArguments == null || currentTypeArguments.isEmpty) {
           if (currentAliasBuilder.typeVariables != null) {
             List<TypeBuilder> defaultTypeArguments =
-                new List<TypeBuilder>.filled(
-                    currentAliasBuilder.typeVariables.length, null,
-                    growable: true);
-            for (int i = 0; i < defaultTypeArguments.length; ++i) {
-              defaultTypeArguments[i] =
-                  currentAliasBuilder.typeVariables[i].defaultType;
-            }
+                new List<TypeBuilder>.generate(
+                    currentAliasBuilder.typeVariables!.length, (int i) {
+              return currentAliasBuilder.typeVariables![i].defaultType!;
+            }, growable: true);
             currentTypeArguments = defaultTypeArguments;
           } else {
             currentTypeArguments = <TypeBuilder>[];
@@ -374,7 +387,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           substitution[typeVariableBuilder] = currentTypeArguments[index];
           ++index;
         }
-        TypeDeclarationBuilder nextDeclarationBuilder =
+        TypeDeclarationBuilder? nextDeclarationBuilder =
             nextTypeBuilder.declaration;
         TypeBuilder substitutedBuilder = nextTypeBuilder.subst(substitution);
         if (nextDeclarationBuilder is TypeVariableBuilder) {
@@ -385,7 +398,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           // cyclic; we want to do it as well, because the result could be
           // cached.
           if (substitutedBuilder is NamedTypeBuilder) {
-            TypeDeclarationBuilder declarationBuilder =
+            TypeDeclarationBuilder? declarationBuilder =
                 substitutedBuilder.declaration;
             if (declarationBuilder is TypeAliasBuilder) {
               return declarationBuilder
@@ -397,7 +410,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           return substitutedBuilder.declaration;
         }
         // Not yet at the end of the chain, more named builders to come.
-        NamedTypeBuilder namedBuilder = substitutedBuilder;
+        NamedTypeBuilder namedBuilder = substitutedBuilder as NamedTypeBuilder;
         currentDeclarationBuilder = namedBuilder.declaration;
         currentTypeArguments = namedBuilder.arguments;
         previousAliasBuilder = currentAliasBuilder;
@@ -424,25 +437,24 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// [this], such that the returned [TypeBuilder]s are appropriate type
   /// arguments for passing to the [ClassBuilder] which is the end of the
   /// unaliasing chain.
-  List<TypeBuilder> unaliasTypeArguments(List<TypeBuilder> typeArguments) {
-    TypeDeclarationBuilder currentDeclarationBuilder = this;
-    List<TypeBuilder> currentTypeArguments = typeArguments;
+  List<TypeBuilder>? unaliasTypeArguments(List<TypeBuilder>? typeArguments) {
+    TypeDeclarationBuilder? currentDeclarationBuilder = this;
+    List<TypeBuilder>? currentTypeArguments = typeArguments;
     while (currentDeclarationBuilder is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = currentDeclarationBuilder;
-      TypeBuilder nextTypeBuilder = currentAliasBuilder.type;
+      TypeBuilder? nextTypeBuilder = currentAliasBuilder.type;
       assert(nextTypeBuilder is NamedTypeBuilder);
-      NamedTypeBuilder namedNextTypeBuilder = nextTypeBuilder;
+      NamedTypeBuilder namedNextTypeBuilder =
+          nextTypeBuilder as NamedTypeBuilder;
       Map<TypeVariableBuilder, TypeBuilder> substitution = {};
       int index = 0;
       if (currentTypeArguments == null || currentTypeArguments.isEmpty) {
         if (currentAliasBuilder.typeVariables != null) {
-          List<TypeBuilder> defaultTypeArguments = new List<TypeBuilder>.filled(
-              currentAliasBuilder.typeVariables.length, null,
-              growable: true);
-          for (int i = 0; i < defaultTypeArguments.length; ++i) {
-            defaultTypeArguments[i] =
-                currentAliasBuilder.typeVariables[i].defaultType;
-          }
+          List<TypeBuilder> defaultTypeArguments =
+              new List<TypeBuilder>.generate(
+                  currentAliasBuilder.typeVariables!.length, (int i) {
+            return currentAliasBuilder.typeVariables![i].defaultType!;
+          }, growable: false);
           currentTypeArguments = defaultTypeArguments;
         } else {
           currentTypeArguments = <TypeBuilder>[];
@@ -455,7 +467,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         substitution[typeVariableBuilder] = currentTypeArguments[index];
         ++index;
       }
-      TypeDeclarationBuilder nextDeclarationBuilder =
+      TypeDeclarationBuilder? nextDeclarationBuilder =
           namedNextTypeBuilder.declaration;
       TypeBuilder substitutedBuilder = nextTypeBuilder.subst(substitution);
       if (nextDeclarationBuilder is TypeVariableBuilder) {
@@ -463,8 +475,9 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // type argument, which may become a type alias, possibly with its
         // own similar chain.
         assert(substitutedBuilder is NamedTypeBuilder);
-        NamedTypeBuilder namedSubstitutedBuilder = substitutedBuilder;
-        TypeDeclarationBuilder declarationBuilder =
+        NamedTypeBuilder namedSubstitutedBuilder =
+            substitutedBuilder as NamedTypeBuilder;
+        TypeDeclarationBuilder? declarationBuilder =
             namedSubstitutedBuilder.declaration;
         if (declarationBuilder is TypeAliasBuilder) {
           return declarationBuilder
@@ -474,7 +487,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         return namedSubstitutedBuilder.arguments ?? [];
       }
       // Not yet at the end of the chain, more named builders to come.
-      NamedTypeBuilder namedBuilder = substitutedBuilder;
+      NamedTypeBuilder namedBuilder = substitutedBuilder as NamedTypeBuilder;
       currentDeclarationBuilder = namedBuilder.declaration;
       currentTypeArguments = namedBuilder.arguments ?? [];
     }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.scope_listener;
 
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart' show BlockKind;
@@ -28,11 +26,11 @@ enum JumpTargetKind {
 abstract class ScopeListener<J> extends StackListenerImpl {
   Scope scope;
 
-  J breakTarget;
+  J? breakTarget;
 
-  J continueTarget;
+  J? continueTarget;
 
-  ScopeListener(Scope scope) : scope = scope ?? new Scope.immutable();
+  ScopeListener(Scope? scope) : scope = scope ?? new Scope.immutable();
 
   J createJumpTarget(JumpTargetKind kind, int charOffset);
 
@@ -48,36 +46,37 @@ abstract class ScopeListener<J> extends StackListenerImpl {
     return createJumpTarget(JumpTargetKind.Goto, charOffset);
   }
 
-  void enterLocalScope(String debugName, [Scope newScope]) {
+  void enterLocalScope(String debugName, [Scope? newScope]) {
     push(scope);
     scope = newScope ?? scope.createNestedScope(debugName);
   }
 
   @override
   void exitLocalScope() {
-    scope = pop();
+    scope = pop() as Scope;
+    // ignore: unnecessary_null_comparison
     assert(scope != null);
   }
 
-  void enterBreakTarget(int charOffset, [J target]) {
+  void enterBreakTarget(int charOffset, [J? target]) {
     push(breakTarget ?? NullValue.BreakTarget);
     breakTarget = target ?? createBreakTarget(charOffset);
   }
 
-  void enterContinueTarget(int charOffset, [J target]) {
+  void enterContinueTarget(int charOffset, [J? target]) {
     push(continueTarget ?? NullValue.ContinueTarget);
     continueTarget = target ?? createContinueTarget(charOffset);
   }
 
-  J exitBreakTarget() {
-    J current = breakTarget;
-    breakTarget = pop();
+  J? exitBreakTarget() {
+    J? current = breakTarget;
+    breakTarget = pop() as J?;
     return current;
   }
 
-  J exitContinueTarget() {
-    J current = continueTarget;
-    continueTarget = pop();
+  J? exitContinueTarget() {
+    J? current = continueTarget;
+    continueTarget = pop() as J?;
     return current;
   }
 
@@ -100,7 +99,7 @@ abstract class ScopeListener<J> extends StackListenerImpl {
   }
 
   @override
-  void beginForControlFlow(Token awaitToken, Token forToken) {
+  void beginForControlFlow(Token? awaitToken, Token forToken) {
     debugEvent("beginForControlFlow");
     enterLocalScope("for in a collection");
   }
@@ -139,7 +138,7 @@ abstract class ScopeListener<J> extends StackListenerImpl {
   @override
   void endDoWhileStatementBody(Token token) {
     debugEvent("endDoWhileStatementBody");
-    Object body = pop();
+    Object? body = pop();
     exitLocalScope();
     push(body);
   }
@@ -153,7 +152,7 @@ abstract class ScopeListener<J> extends StackListenerImpl {
   @override
   void endWhileStatementBody(Token token) {
     debugEvent("endWhileStatementBody");
-    Object body = pop();
+    Object? body = pop();
     exitLocalScope();
     push(body);
   }
@@ -167,7 +166,7 @@ abstract class ScopeListener<J> extends StackListenerImpl {
   @override
   void endForStatementBody(Token token) {
     debugEvent("endForStatementBody");
-    Object body = pop();
+    Object? body = pop();
     exitLocalScope();
     push(body);
   }
@@ -181,7 +180,7 @@ abstract class ScopeListener<J> extends StackListenerImpl {
   @override
   void endForInBody(Token token) {
     debugEvent("endForInBody");
-    Object body = pop();
+    Object? body = pop();
     exitLocalScope();
     push(body);
   }
@@ -195,7 +194,7 @@ abstract class ScopeListener<J> extends StackListenerImpl {
   @override
   void endThenStatement(Token token) {
     debugEvent("endThenStatement");
-    Object body = pop();
+    Object? body = pop();
     exitLocalScope();
     push(body);
   }
@@ -209,7 +208,7 @@ abstract class ScopeListener<J> extends StackListenerImpl {
   @override
   void endElseStatement(Token token) {
     debugEvent("endElseStatement");
-    Object body = pop();
+    Object? body = pop();
     exitLocalScope();
     push(body);
   }
