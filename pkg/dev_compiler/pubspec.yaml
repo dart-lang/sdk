@@ -11,6 +11,7 @@ dependencies:
   _js_interop_checks:
     path: ../_js_interop_checks
   args: any
+  async: any
   bazel_worker: any
   build_integration:
     path: ../build_integration
@@ -22,10 +23,9 @@ dependencies:
   meta:
     path: ../meta
   path: any
+  pedantic: ^1.11.0
   source_maps: any
   source_span: any
-  vm:
-    path: ../vm
 
 dev_dependencies:
   browser_launcher: ^0.1.9
@@ -38,7 +38,6 @@ dev_dependencies:
   modular_test:
     path: ../modular_test
   package_config: any
-  pedantic: ^1.11.0
   sourcemap_testing:
     path: ../sourcemap_testing
   stack_trace: any
@@ -47,5 +46,7 @@ dev_dependencies:
   test: any
   testing:
     path: ../testing
+  vm:
+    path: ../vm
   webkit_inspection_protocol: ^0.7.4
 

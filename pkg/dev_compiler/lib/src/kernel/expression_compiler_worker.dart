@@ -21,9 +21,9 @@ import 'package:kernel/src/tool/find_referenced_libraries.dart'
     show duplicateLibrariesReachable;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:meta/meta.dart';
-import 'package:vm/http_filesystem.dart';
 
 import '../compiler/js_names.dart';
+import 'asset_file_system.dart';
 import 'command.dart';
 
 /// The service that handles expression compilation requests from
@@ -304,7 +304,8 @@ class ExpressionCompilerWorker {
     // Note that this doesn't actually re-load it if it's already fully loaded.
     if (!await _loadAndUpdateComponent(
         _fullModules[moduleName], moduleName, false)) {
-      throw ArgumentError('Failed to load full dill for module $moduleName');
+      throw ArgumentError('Failed to load full dill for module $moduleName: '
+          '${_fullModules[moduleName]}');
     }
 
     var originalComponent = _moduleCache.componentForModuleName[moduleName];
@@ -565,29 +566,6 @@ class ExpressionCompilerWorker {
     var printer = BinaryPrinter(byteSink);
     printer.writeComponentFile(component);
     return true;
-  }
-}
-
-/// A wrapper around asset server that redirects file read requests
-/// to http get requests to the asset server.
-class AssetFileSystem extends HttpAwareFileSystem {
-  final String server;
-  final String port;
-
-  AssetFileSystem(FileSystem original, this.server, this.port)
-      : super(original);
-
-  Uri resourceUri(Uri uri) =>
-      Uri.parse('http://$server:$port/getResource?uri=${uri.toString()}');
-
-  @override
-  FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'file') {
-      return super.entityForUri(uri);
-    }
-
-    // Pass the uri to the asset server in the debugger.
-    return HttpFileSystemEntity(this, resourceUri(uri));
   }
 }
 
