@@ -136,7 +136,6 @@ ISOLATE_UNIT_TEST_CASE(Class) {
     cls.Finalize();
   }
 
-
   function_name = String::New("Foo");
   function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(function.IsNull());
@@ -4359,13 +4358,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ASSERT(strlen(json_str) < kBufferSize);
     ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
+    StripTokenPositions(buffer);
 
     EXPECT_STREQ(
         "{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"bool\","
         "\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":\"@"
         "Script\","
         "\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core\\/bool.dart\","
-        "\"_kind\":\"kernel\"},\"tokenPos\":436,\"endTokenPos\":4432},"
+        "\"_kind\":\"kernel\"}},"
         "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}}",
         buffer);
@@ -4384,6 +4384,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ASSERT(strlen(json_str) < kBufferSize);
     ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"toString\",\"owner\":{\"type\":\"@Class\","
@@ -4391,15 +4392,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"location\":{\"type\":\"SourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"\",\"uri\":\"dart:core\\/bool.dart\","
-        "\"_kind\":\"kernel\"},\"tokenPos\":436,\"endTokenPos\":4432},"
+        "\"_kind\":\"kernel\"}},"
         "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"_kind\":\"RegularFunction\",\"static\":false,\"const\":false,"
         "\"_intrinsic\":false,\"_native\":false,"
         "\"location\":{\"type\":\"SourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-        "\"uri\":\"dart:core\\/bool.dart\",\"_kind\":\"kernel\"},"
-        "\"tokenPos\":4372,\"endTokenPos\":4430}}",
+        "\"uri\":\"dart:core\\/bool.dart\",\"_kind\":\"kernel\"}}}",
         buffer);
   }
   // Library reference
@@ -4424,12 +4424,13 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ASSERT(strlen(json_str) < kBufferSize);
     ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"Bool\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"bool\",\"location\":{"
         "\"type\":\"SourceLocation\",\"script\":{\"type\":\"@Script\","
         "\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core\\/bool.dart\",\"_"
-        "kind\":\"kernel\"},\"tokenPos\":436,\"endTokenPos\":4432},\"library\":"
+        "kind\":\"kernel\"}},\"library\":"
         "{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\",\"name\":\"dart."
         "core\",\"uri\":\"dart:core\"}},\"identityHashCode\":0,\"kind\":"
         "\"Bool\",\"fixedId\":true,\"id\":\"objects\\/bool-true\","
@@ -4446,13 +4447,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("_Smi@", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"Smi\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_Smi\",\"_vmName\":"
         "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
         "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
-        "patch\\/integers.dart\",\"_kind\":\"kernel\"},\"tokenPos\":16466,"
-        "\"endTokenPos\":24948},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "patch\\/integers.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":0,\"kind\":\"Int\",\"fixedId\":true,\"id\":"
         "\"objects\\/int-7\",\"valueAsString\":\"7\"}",
@@ -4469,13 +4471,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_Mint@", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"Mint\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_Mint\",\"_vmName\":"
         "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
         "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
-        "patch\\/integers.dart\",\"_kind\":\"kernel\"},\"tokenPos\":25029,"
-        "\"endTokenPos\":25413},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "patch\\/integers.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":0,\"kind\":\"Int\",\"id\":\"\",\"valueAsString\":"
         "\"-9223372036854775808\"}",
@@ -4492,13 +4495,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_Double@", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"Double\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_Double\",\"_vmName\":"
         "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
         "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
-        "patch\\/double.dart\",\"_kind\":\"kernel\"},\"tokenPos\":248,"
-        "\"endTokenPos\":12248},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "patch\\/double.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":0,\"kind\":\"Double\",\"id\":\"\","
         "\"valueAsString\":\"0.1234\"}",
@@ -4515,13 +4519,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_OneByteString@", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"String\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_OneByteString\",\"_"
         "vmName\":\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
         "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
-        "patch\\/string_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":32339,"
-        "\"endTokenPos\":44628},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "patch\\/string_patch.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":0,\"kind\":\"String\",\"id\":\"\",\"length\":2,"
         "\"valueAsString\":\"dw\"}",
@@ -4538,13 +4543,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_List@", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"Array\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_List\",\"_vmName\":"
         "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
         "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
-        "patch\\/array.dart\",\"_kind\":\"kernel\"},\"tokenPos\":248,"
-        "\"endTokenPos\":7758},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "patch\\/array.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":0,\"kind\":\"List\",\"id\":\"\",\"length\":0}",
         buffer);
@@ -4561,13 +4567,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_GrowableList@", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"GrowableObjectArray\",\"class\":"
         "{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_"
         "GrowableList\",\"_vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"\",\"uri\":\"dart:core-patch\\/growable_array.dart\",\"_"
-        "kind\":\"kernel\"},\"tokenPos\":248,\"endTokenPos\":18485},"
+        "kind\":\"kernel\"}},"
         "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"identityHashCode\":0,"
         "\"kind\":\"List\",\"id\":\"\",\"length\":0}",
@@ -4585,17 +4592,17 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_InternalLinkedHashMap@", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"LinkedHashMap\",\"class\":{"
         "\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_"
         "InternalLinkedHashMap\",\"_vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-        "\"id\":\"\",\"uri\":\"dart:collection-patch\\/"
-        "compact_hash.dart\",\"_kind\":\"kernel\"},\"tokenPos\":6399,"
-        "\"endTokenPos\":6786},\"library\":{\"type\":\"@Library\",\"fixedId\":"
-        "true,\"id\":\"\",\"name\":\"dart.collection\",\"uri\":\"dart:"
-        "collection\"}},\"identityHashCode\":0,\"kind\":\"Map\",\"id\":\"\","
-        "\"length\":0}",
+        "\"id\":\"\",\"uri\":\"dart:collection-patch\\/compact_hash.dart\",\"_"
+        "kind\":\"kernel\"}},"
+        "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.collection\",\"uri\":\"dart:collection\"}},"
+        "\"identityHashCode\":0,\"kind\":\"Map\",\"id\":\"\",\"length\":0}",
         buffer);
   }
   // UserTag reference
@@ -4609,13 +4616,15 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_UserTag@", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_SUBSTRING(
         "\"type\":\"@Instance\",\"_vmType\":\"UserTag\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_UserTag\",\"_"
         "vmName\":\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
         "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:"
-        "developer-patch\\/profiler.dart\",\"_kind\":\"kernel\"},\"tokenPos\":"
-        "414,\"endTokenPos\":628},\"library\":{\"type\":\"@Library\","
+        "developer-patch\\/"
+        "profiler.dart\",\"_kind\":\"kernel\"}},\"library\":{\"type\":\"@"
+        "Library\","
         "\"fixedId\":true,\"id\":\"\",\"name\":\"dart.developer\",\"uri\":"
         "\"dart:developer\"}},"
         // Handle non-zero identity hash.
@@ -4639,13 +4648,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_Type@", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\",\"_vmType\":\"Type\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_Type\",\"_vmName\":"
         "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
         "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
-        "patch\\/type_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":493,"
-        "\"endTokenPos\":898},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "patch\\/type_patch.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         // Handle non-zero identity hash.
         "\"identityHashCode\":",
@@ -4656,8 +4666,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"typeClass\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"bool\",\"location\":{\"type\":\"SourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":"
-        "\"dart:core\\/bool.dart\",\"_kind\":\"kernel\"},\"tokenPos\":436,"
-        "\"endTokenPos\":4432},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "\"dart:core\\/bool.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"name\":\"bool\"}",
         buffer);
@@ -4670,12 +4680,13 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ASSERT(strlen(json_str) < kBufferSize);
     ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"null\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"Null\",\"location\":{"
         "\"type\":\"SourceLocation\",\"script\":{\"type\":\"@Script\","
         "\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core\\/null.dart\",\"_"
-        "kind\":\"kernel\"},\"tokenPos\":925,\"endTokenPos\":1165},\"library\":"
+        "kind\":\"kernel\"}},\"library\":"
         "{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\",\"name\":\"dart."
         "core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\",\"fixedId\":true,"
         "\"id\":\"objects\\/null\",\"valueAsString\":\"null\"}",

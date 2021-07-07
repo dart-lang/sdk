@@ -1855,7 +1855,7 @@ static bool CanBeImmediateIndex(Value* value,
   const intptr_t base_offset =
       (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
   const int64_t offset = index * scale + base_offset;
-  if (!Utils::MagnitudeIsUint(12, offset)) {
+  if (!Utils::IsAbsoluteUint(12, offset)) {
     return false;
   }
   if (compiler::Address::CanHoldImmediateOffset(is_load, cid, offset)) {

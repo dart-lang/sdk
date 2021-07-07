@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.library_graph;
 
 import 'package:kernel/kernel.dart'
@@ -21,7 +19,7 @@ class LibraryGraph implements Graph<Uri> {
   Iterable<Uri> get vertices => libraries.keys;
 
   Iterable<Uri> neighborsOf(Uri vertex) sync* {
-    Library library = libraries[vertex];
+    Library? library = libraries[vertex];
     if (library == null) {
       throw "Library not found: $vertex";
     }
@@ -32,6 +30,7 @@ class LibraryGraph implements Graph<Uri> {
       Uri uri2 = dependency.targetLibrary.fileUri;
       if (libraries.containsKey(uri1)) {
         yield uri1;
+        // ignore: unnecessary_null_comparison
       } else if (uri2 != null) {
         if (libraries.containsKey(uri2)) {
           yield uri2;

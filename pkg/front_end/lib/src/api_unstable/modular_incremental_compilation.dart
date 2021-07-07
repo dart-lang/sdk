@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
@@ -39,7 +37,7 @@ import 'util.dart' show equalMaps, equalSets;
 ///   [outputLoadedAdditionalDills] after this call corresponds to the component
 ///   loaded from the `i`-th entry in [additionalDills].
 Future<InitializedCompilerState> initializeIncrementalCompiler(
-    InitializedCompilerState oldState,
+    InitializedCompilerState? oldState,
     Set<String> tags,
     List<Component> outputLoadedAdditionalDills,
     Uri sdkSummary,
@@ -49,11 +47,11 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Map<Uri, List<int>> workerInputDigests,
     Target target,
     {bool compileSdk: false,
-    Uri sdkRoot: null,
-    FileSystem fileSystem,
-    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+    Uri? sdkRoot: null,
+    required FileSystem fileSystem,
+    required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     Map<String, String> environmentDefines: const {},
-    bool outlineOnly,
+    bool? outlineOnly,
     bool omitPlatform: false,
     bool trackNeededDillLibraries: false,
     bool verbose: false,
@@ -61,7 +59,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   bool isRetry = false;
   while (true) {
     try {
-      final List<int> sdkDigest = workerInputDigests[sdkSummary];
+      final List<int>? sdkDigest = workerInputDigests[sdkSummary];
       if (sdkDigest == null) {
         throw new StateError("Expected to get digest for $sdkSummary");
       }
@@ -71,7 +69,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       Map<Uri, Uri> workerInputCacheLibs =
           oldState?.workerInputCacheLibs ?? new Map<Uri, Uri>();
 
-      WorkerInputComponent cachedSdkInput = workerInputCache[sdkSummary];
+      WorkerInputComponent? cachedSdkInput = workerInputCache[sdkSummary];
 
       IncrementalCompiler incrementalCompiler;
       CompilerOptions options;
@@ -80,7 +78,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       if (oldState == null ||
           oldState.incrementalCompiler == null ||
           oldState.options.compileSdk != compileSdk ||
-          oldState.incrementalCompiler.outlineOnly != outlineOnly ||
+          oldState.incrementalCompiler!.outlineOnly != outlineOnly ||
           oldState.options.nnbdMode != nnbdMode ||
           !equalMaps(oldState.options.explicitExperimentalFlags,
               explicitExperimentalFlags) ||
@@ -110,7 +108,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
         processedOpts = new ProcessedOptions(options: options);
         cachedSdkInput = new WorkerInputComponent(
-            sdkDigest, await processedOpts.loadSdkSummary(null));
+            sdkDigest, (await processedOpts.loadSdkSummary(null))!);
         workerInputCache[sdkSummary] = cachedSdkInput;
         for (Library lib in cachedSdkInput.component.libraries) {
           if (workerInputCacheLibs.containsKey(lib.importUri)) {
@@ -144,7 +142,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         }
 
         // Reuse the incremental compiler, but reset as needed.
-        incrementalCompiler = oldState.incrementalCompiler;
+        incrementalCompiler = oldState.incrementalCompiler!;
         incrementalCompiler.invalidateAllSources();
         incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
         options.packagesFileUri = packagesFile;
@@ -154,7 +152,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
       // Then read all the input summary components.
       CanonicalName nameRoot = cachedSdkInput.component.root;
-      Map<Uri, Uri> libraryToInputDill;
+      Map<Uri, Uri>? libraryToInputDill;
       if (trackNeededDillLibraries) {
         libraryToInputDill = new Map<Uri, Uri>();
       }
@@ -169,8 +167,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       for (int i = 0; i < additionalDills.length; i++) {
         Uri summaryUri = additionalDills[i];
         additionalDillsSet.add(summaryUri);
-        WorkerInputComponent cachedInput = workerInputCache[summaryUri];
-        List<int> digest = workerInputDigests[summaryUri];
+        WorkerInputComponent? cachedInput = workerInputCache[summaryUri];
+        List<int>? digest = workerInputDigests[summaryUri];
         if (digest == null) {
           throw new StateError("Expected to get digest for $summaryUri");
         }
@@ -178,7 +176,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
             cachedInput.component.root != nameRoot ||
             !digestsEqual(digest, cachedInput.digest)) {
           // Remove any old libraries from workerInputCacheLibs.
-          Component component = cachedInput?.component;
+          Component? component = cachedInput?.component;
           if (component != null) {
             for (Library lib in component.libraries) {
               workerInputCacheLibs.remove(lib.importUri);
@@ -191,7 +189,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           Component component = cachedInput.component;
           if (trackNeededDillLibraries) {
             for (Library lib in component.libraries) {
-              libraryToInputDill[lib.importUri] = summaryUri;
+              libraryToInputDill![lib.importUri] = summaryUri;
             }
           }
           component.computeCanonicalNames(); // this isn't needed, is it?
@@ -202,7 +200,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       for (int i = 0; i < loadFromDillIndexes.length; i++) {
         int index = loadFromDillIndexes[i];
         Uri additionalDillUri = additionalDills[index];
-        List<int> digest = workerInputDigests[additionalDillUri];
+        List<int>? digest = workerInputDigests[additionalDillUri];
         if (digest == null) {
           throw new StateError("Expected to get digest for $additionalDillUri");
         }
@@ -217,7 +215,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         outputLoadedAdditionalDills[index] = cachedInput.component;
         for (Library lib in cachedInput.component.libraries) {
           if (workerInputCacheLibs.containsKey(lib.importUri)) {
-            Uri fromSummary = workerInputCacheLibs[lib.importUri];
+            Uri fromSummary = workerInputCacheLibs[lib.importUri]!;
             if (additionalDillsSet.contains(fromSummary)) {
               throw new StateError(
                   "Asked to load several summaries that contain the same "
@@ -225,7 +223,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
             } else {
               // Library contained in old cached component. Flush that cache.
               Component component =
-                  workerInputCache.remove(fromSummary).component;
+                  workerInputCache.remove(fromSummary)!.component;
               for (Library lib in component.libraries) {
                 workerInputCacheLibs.remove(lib.importUri);
               }
@@ -235,7 +233,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           }
 
           if (trackNeededDillLibraries) {
-            libraryToInputDill[lib.importUri] = additionalDillUri;
+            libraryToInputDill![lib.importUri] = additionalDillUri;
           }
         }
       }

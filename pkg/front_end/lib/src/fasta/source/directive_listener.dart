@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Listener used in combination with `TopLevelParser` to extract the URIs of
 /// import, part, and export directives.
 library front_end.src.fasta.source.directive_listener;
@@ -29,12 +27,12 @@ class DirectiveListener extends Listener {
   final List<NamespaceDirective> exports = <NamespaceDirective>[];
 
   /// Collects URIs that occur on any part directive.
-  final Set<String> parts = new Set<String>();
+  final Set<String?> parts = new Set<String?>();
 
   bool _inPart = false;
-  String _uri;
-  List<NamespaceCombinator> _combinators;
-  List<String> _combinatorNames;
+  String? _uri;
+  List<NamespaceCombinator>? _combinators;
+  List<String>? _combinatorNames;
 
   DirectiveListener();
 
@@ -79,12 +77,12 @@ class DirectiveListener extends Listener {
 
   @override
   void endHide(Token hide) {
-    _combinators.add(new NamespaceCombinator.hide(_combinatorNames));
+    _combinators!.add(new NamespaceCombinator.hide(_combinatorNames!));
     _combinatorNames = null;
   }
 
   @override
-  endImport(Token import, Token semicolon) {
+  endImport(Token? import, Token? semicolon) {
     imports.add(new NamespaceDirective.import(_uri, _combinators));
     _uri = null;
     _combinators = null;
@@ -99,14 +97,14 @@ class DirectiveListener extends Listener {
 
   @override
   void endShow(Token show) {
-    _combinators.add(new NamespaceCombinator.show(_combinatorNames));
+    _combinators!.add(new NamespaceCombinator.show(_combinatorNames!));
     _combinatorNames = null;
   }
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     if (_combinatorNames != null && context == IdentifierContext.combinator) {
-      _combinatorNames.add(token.lexeme);
+      _combinatorNames!.add(token.lexeme);
     }
   }
 
@@ -133,8 +131,8 @@ class NamespaceCombinator {
 
 class NamespaceDirective {
   final bool isImport;
-  final String uri;
-  final List<NamespaceCombinator> combinators;
+  final String? uri;
+  final List<NamespaceCombinator>? combinators;
 
   NamespaceDirective.export(this.uri, this.combinators) : isImport = false;
 
