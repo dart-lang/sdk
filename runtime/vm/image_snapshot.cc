@@ -1207,8 +1207,7 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
 }
 
 intptr_t AssemblyImageWriter::WriteTargetWord(word value) {
-  ASSERT(compiler::target::kBitsPerWord == kBitsPerWord ||
-         Utils::IsAbsoluteUint(compiler::target::kBitsPerWord, value));
+  ASSERT(Utils::IsInt(compiler::target::kBitsPerWord, value));
   // Padding is helpful for comparing the .S with --disassemble.
   assembly_stream_->Printf("%s 0x%.*" Px "\n", kWordDirective,
                            2 * compiler::target::kWordSize, value);

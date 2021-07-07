@@ -2336,19 +2336,20 @@ bool Address::CanHoldLoadOffset(OperandSize size,
     case kUnsignedTwoBytes:
     case kWordPair: {
       *offset_mask = 0xff;
-      return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
+      return Utils::MagnitudeIsUint(8, offset);  // Addressing mode 3.
     }
     case kUnsignedByte:
     case kFourBytes:
     case kUnsignedFourBytes: {
       *offset_mask = 0xfff;
-      return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
+      return Utils::MagnitudeIsUint(12, offset);  // Addressing mode 2.
     }
     case kSWord:
     case kDWord: {
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
-      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+      return (Utils::MagnitudeIsUint(10, offset) &&
+              Utils::IsAligned(offset, 4));
     }
     case kRegList: {
       *offset_mask = 0x0;
@@ -2369,20 +2370,21 @@ bool Address::CanHoldStoreOffset(OperandSize size,
     case kUnsignedTwoBytes:
     case kWordPair: {
       *offset_mask = 0xff;
-      return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
+      return Utils::MagnitudeIsUint(8, offset);  // Addressing mode 3.
     }
     case kByte:
     case kUnsignedByte:
     case kFourBytes:
     case kUnsignedFourBytes: {
       *offset_mask = 0xfff;
-      return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
+      return Utils::MagnitudeIsUint(12, offset);  // Addressing mode 2.
     }
     case kSWord:
     case kDWord: {
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
-      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+      return (Utils::MagnitudeIsUint(10, offset) &&
+              Utils::IsAligned(offset, 4));
     }
     case kRegList: {
       *offset_mask = 0x0;
