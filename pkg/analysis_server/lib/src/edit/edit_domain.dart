@@ -699,17 +699,23 @@ error.errorCode: ${error.errorCode}
     if (driver == null) {
       return errorFixesList;
     }
-    var sourceFactory = driver.sourceFactory;
-    var pubspec = _getOptions(sourceFactory, content);
-    if (pubspec == null) {
+    YamlDocument document;
+    try {
+      document = loadYamlDocument(content);
+    } catch (exception) {
       return errorFixesList;
+    }
+    var yamlContent = document.contents;
+    if (yamlContent is! YamlMap) {
+      yamlContent = YamlMap();
     }
     var validator =
         PubspecValidator(server.resourceProvider, pubspecFile.createSource());
     var session = driver.currentSession;
-    var errors = validator.validate(pubspec.nodes);
+    var errors = validator.validate(yamlContent.nodes);
     for (var error in errors) {
-      var generator = PubspecFixGenerator(error, content, pubspec);
+      var generator = PubspecFixGenerator(
+          server.resourceProvider, error, content, document);
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);

@@ -106,6 +106,7 @@ import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'make_variable_nullable_test.dart' as make_variable_nullable;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'organize_imports_test.dart' as organize_imports;
+import 'pubspec/test_all.dart' as pubspec;
 import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
@@ -281,6 +282,7 @@ void main() {
     make_variable_nullable.main();
     move_type_arguments_to_class.main();
     organize_imports.main();
+    pubspec.main();
     qualify_reference.main();
     remove_annotation.main();
     remove_argument.main();

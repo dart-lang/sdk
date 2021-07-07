@@ -95,6 +95,8 @@ class PubspecValidator {
 
   /// Validate the given [contents].
   List<AnalysisError> validate(Map<dynamic, YamlNode> contents) {
+    // TODO(brianwilkerson) This method needs to take a `YamlDocument` rather
+    //  than the contents of the document so that it can validate an empty file.
     RecordingErrorListener recorder = RecordingErrorListener();
     ErrorReporter reporter = ErrorReporter(
       recorder,
