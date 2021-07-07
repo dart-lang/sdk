@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/string_scanner.dart'
     show StringScanner;
 
@@ -28,9 +26,9 @@ export '../fasta/incremental_serializer.dart' show IncrementalSerializer;
 
 abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint,
-      [Uri initializeFromDillUri,
-      bool outlineOnly,
-      IncrementalSerializer incrementalSerializer]) {
+      [Uri? initializeFromDillUri,
+      bool? outlineOnly,
+      IncrementalSerializer? incrementalSerializer]) {
     return new IncrementalCompiler(
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [entryPoint])),
@@ -45,7 +43,7 @@ abstract class IncrementalKernelGenerator {
   /// platform will be loaded.
   factory IncrementalKernelGenerator.fromComponent(
       CompilerOptions options, Uri entryPoint, Component component,
-      [bool outlineOnly, IncrementalSerializer incrementalSerializer]) {
+      [bool? outlineOnly, IncrementalSerializer? incrementalSerializer]) {
     return new IncrementalCompiler.fromComponent(
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [entryPoint])),
@@ -78,11 +76,11 @@ abstract class IncrementalKernelGenerator {
 
   /// Returns [CoreTypes] used during compilation.
   /// Valid after [computeDelta] is called.
-  CoreTypes getCoreTypes();
+  CoreTypes? getCoreTypes();
 
   /// Returns [ClassHierarchy] used during compilation.
   /// Valid after [computeDelta] is called.
-  ClassHierarchy getClassHierarchy();
+  ClassHierarchy? getClassHierarchy();
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the
@@ -132,7 +130,7 @@ abstract class IncrementalKernelGenerator {
   /// [compileExpression] will return [null] if the library or class for
   /// [enclosingNode] could not be found. Otherwise, errors are reported in the
   /// normal way.
-  Future<Procedure> compileExpression(
+  Future<Procedure?> compileExpression(
       String expression,
       Map<String, DartType> definitions,
       List<TypeParameter> typeDefinitions,
