@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain;
 
@@ -25,7 +23,7 @@ import '../api_prototype/compiler_options.dart'
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
-import '../api_prototype/file_system.dart' show FileSystem;
+import '../api_prototype/file_system.dart' show FileSystem, NullFileSystem;
 
 import '../api_prototype/kernel_generator.dart' show CompilerResult;
 
@@ -139,14 +137,14 @@ void clearStringTokenCanonicalizer() {
 }
 
 InitializedCompilerState initializeCompiler(
-    InitializedCompilerState oldState,
+    InitializedCompilerState? oldState,
     Target target,
     Uri librariesSpecificationUri,
     List<Uri> additionalDills,
     Uri packagesFileUri,
-    {Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+    {required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     bool verify: false,
-    NnbdMode nnbdMode,
+    NnbdMode? nnbdMode,
     Set<InvocationMode> invocationModes: const <InvocationMode>{},
     Verbosity verbosity: Verbosity.all}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
@@ -183,7 +181,7 @@ InitializedCompilerState initializeCompiler(
   return new InitializedCompilerState(options, processedOpts);
 }
 
-Future<Component> compile(
+Future<Component?> compile(
     InitializedCompilerState state,
     bool verbose,
     FileSystem fileSystem,
@@ -200,10 +198,10 @@ Future<Component> compile(
   processedOpts.inputs.add(input);
   processedOpts.clearFileSystemCache();
 
-  CompilerResult compilerResult = await CompilerContext.runWithOptions(
+  CompilerResult? compilerResult = await CompilerContext.runWithOptions(
       processedOpts, (CompilerContext context) async {
     CompilerResult compilerResult = await generateKernelInternal();
-    Component component = compilerResult?.component;
+    Component? component = compilerResult.component;
     if (component == null) return null;
     if (component.mainMethod == null) {
       context.options.report(
@@ -216,7 +214,7 @@ Future<Component> compile(
   // Remove these parameters from [options] - they are no longer needed and
   // retain state from the previous compile. (http://dartbug.com/33708)
   options.onDiagnostic = null;
-  options.fileSystem = null;
+  options.fileSystem = const NullFileSystem();
   return compilerResult?.component;
 }
 
@@ -246,7 +244,7 @@ Iterable<String> getSupportedLibraryNames(
 // is implemented correctly for patch files (Issue #33495).
 bool isRedirectingFactory(ir.Procedure member) {
   if (member.kind == ir.ProcedureKind.Factory) {
-    Statement body = member.function.body;
+    Statement? body = member.function.body;
     if (body is redirecting.RedirectingFactoryBody) return true;
     if (body is ir.ExpressionStatement) {
       ir.Expression expression = body.expression;

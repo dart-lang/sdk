@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -42,13 +40,14 @@ Future<VersionAndPackageUri> languageVersionForUri(
     // Get largest valid version / default version.
     String currentSdkVersion = context.options.currentSdkVersion;
     bool good = false;
-    int currentSdkVersionMajor;
-    int currentSdkVersionMinor;
+    late final int currentSdkVersionMajor;
+    late final int currentSdkVersionMinor;
+    // ignore: unnecessary_null_comparison
     if (currentSdkVersion != null) {
       List<String> dotSeparatedParts = currentSdkVersion.split(".");
       if (dotSeparatedParts.length >= 2) {
-        currentSdkVersionMajor = int.tryParse(dotSeparatedParts[0]);
-        currentSdkVersionMinor = int.tryParse(dotSeparatedParts[1]);
+        currentSdkVersionMajor = int.parse(dotSeparatedParts[0]);
+        currentSdkVersionMinor = int.parse(dotSeparatedParts[1]);
         good = true;
       }
     }
@@ -58,8 +57,8 @@ Future<VersionAndPackageUri> languageVersionForUri(
 
     // Get file uri.
     UriTranslator uriTranslator = await context.options.getUriTranslator();
-    Uri fileUri;
-    Package package;
+    Uri? fileUri;
+    Package? package;
     if (uri.scheme == "package") {
       fileUri = uriTranslator.translate(uri);
       package = uriTranslator.getPackage(uri);
@@ -71,15 +70,16 @@ Future<VersionAndPackageUri> languageVersionForUri(
     if (packageUri.scheme != 'dart' &&
         packageUri.scheme != 'package' &&
         package != null &&
+        // ignore: unnecessary_null_comparison
         package.name != null) {
       packageUri = new Uri(scheme: 'package', path: package.name);
     }
 
     // Check file content for @dart annotation.
-    int major;
-    int minor;
+    int? major;
+    int? minor;
     if (fileUri != null) {
-      List<int> rawBytes;
+      List<int>? rawBytes;
       try {
         FileSystem fileSystem = context.options.fileSystem;
         rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
@@ -103,32 +103,34 @@ Future<VersionAndPackageUri> languageVersionForUri(
 
     if (major != null && minor != null) {
       // Verify OK.
-      if (major > currentSdkVersionMajor ||
-          (major == currentSdkVersionMajor && minor > currentSdkVersionMinor)) {
+      if (major! > currentSdkVersionMajor ||
+          (major == currentSdkVersionMajor &&
+              minor! > currentSdkVersionMinor)) {
         major = null;
         minor = null;
       }
     }
     if (major != null && minor != null) {
       // The file decided. Return result.
-      return new VersionAndPackageUri(new Version(major, minor), packageUri);
+      return new VersionAndPackageUri(new Version(major!, minor!), packageUri);
     }
 
     // Check package.
     if (package != null &&
         package.languageVersion != null &&
         package.languageVersion is! InvalidLanguageVersion) {
-      major = package.languageVersion.major;
-      minor = package.languageVersion.minor;
-      if (major > currentSdkVersionMajor ||
-          (major == currentSdkVersionMajor && minor > currentSdkVersionMinor)) {
+      major = package.languageVersion!.major;
+      minor = package.languageVersion!.minor;
+      if (major! > currentSdkVersionMajor ||
+          (major == currentSdkVersionMajor &&
+              minor! > currentSdkVersionMinor)) {
         major = null;
         minor = null;
       }
     }
     if (major != null && minor != null) {
       // The package decided. Return result.
-      return new VersionAndPackageUri(new Version(major, minor), packageUri);
+      return new VersionAndPackageUri(new Version(major!, minor!), packageUri);
     }
 
     // Return default.

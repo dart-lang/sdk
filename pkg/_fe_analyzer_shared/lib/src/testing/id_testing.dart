@@ -637,11 +637,11 @@ Future<TestResult<T>> checkCode<T>(
 
 typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(TestData testData,
     {required bool testAfterFailures,
-    bool verbose,
-    bool succinct,
-    bool printCode,
+    required bool verbose,
+    required bool succinct,
+    required bool printCode,
     Map<String, List<String>>? skipMap,
-    Uri nullUri});
+    required Uri nullUri});
 
 /// Compute the file: URI of the file located at `path`, where `path` is
 /// relative to the root of the SDK repository.

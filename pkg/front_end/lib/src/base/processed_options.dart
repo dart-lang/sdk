@@ -450,7 +450,7 @@ class ProcessedOptions {
   /// Get the components for each of the underlying `additionalDill`
   /// provided via [CompilerOptions].
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Component>> loadAdditionalDills(CanonicalName nameRoot) async {
+  Future<List<Component>> loadAdditionalDills(CanonicalName? nameRoot) async {
     if (_additionalDillComponents == null) {
       List<Uri> uris = _raw.additionalDills;
       // ignore: unnecessary_null_comparison

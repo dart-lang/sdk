@@ -104,3 +104,12 @@ class FileSystemException implements Exception {
   @override
   String toString() => 'FileSystemException(uri=$uri; message=$message)';
 }
+
+class NullFileSystem implements FileSystem {
+  const NullFileSystem();
+
+  @override
+  FileSystemEntity entityForUri(Uri uri) {
+    throw new UnsupportedError('$runtimeType.entityForUri');
+  }
+}

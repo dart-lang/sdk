@@ -364,7 +364,7 @@ class CompilerOptions {
 
 /// Parse experimental flag arguments of the form 'flag' or 'no-flag' into a map
 /// from 'flag' to `true` or `false`, respectively.
-Map<String, bool> parseExperimentalArguments(List<String>? arguments) {
+Map<String, bool> parseExperimentalArguments(Iterable<String>? arguments) {
   Map<String, bool> result = {};
   if (arguments != null) {
     for (String argument in arguments) {

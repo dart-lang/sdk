@@ -14080,6 +14080,12 @@ final Name dummyName = new _PublicName('');
 /// Non-nullable [Reference] dummy value.
 final Reference dummyReference = new Reference();
 
+/// Non-nullable [Component] dummy value.
+///
+/// This can be used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final Component dummyComponent = new Component();
+
 /// Non-nullable [Library] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
@@ -14290,6 +14296,7 @@ final LabeledStatement dummyLabeledStatement = new LabeledStatement(null);
 ///
 /// This should manually be kept up to date.
 final List<TreeNode> dummyTreeNodes = [
+  dummyComponent,
   dummyLibrary,
   dummyLibraryDependency,
   dummyCombinator,
