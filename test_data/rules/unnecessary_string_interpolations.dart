@@ -4,6 +4,12 @@
 
 // test w/ `dart test -N unnecessary_string_interpolations`
 
+class Node {
+  final String? text;
+  @override
+  String toString() => '$text'; // OK
+}
+
 String o;
 
 f() {

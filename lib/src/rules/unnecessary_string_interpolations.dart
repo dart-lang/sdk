@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
 
@@ -57,7 +58,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       var end = node.elements[2] as InterpolationString;
       if (start.value.isEmpty && end.value.isEmpty) {
         var staticType = interpolation.expression.staticType;
-        if (staticType != null && staticType.isDartCoreString) {
+        if (staticType != null &&
+            staticType.isDartCoreString &&
+            staticType.nullabilitySuffix != NullabilitySuffix.question) {
           rule.reportLint(node);
         }
       }
