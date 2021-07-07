@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N avoid_returning_null`
 
+// @dart=2.9
+
 bool check = true;
 
 bool getBool1() => null; // LINT

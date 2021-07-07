@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -62,9 +63,14 @@ class AvoidReturningNull extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
-    registry.addFunctionExpression(this, visitor);
-    registry.addMethodDeclaration(this, visitor);
+    // This lint does not make sense in the context of nullability.
+    // Long-term it should be deprecated and slated for removal.
+    // See: https://github.com/dart-lang/linter/issues/2636
+    if (!context.isEnabled(Feature.non_nullable)) {
+      var visitor = _Visitor(this);
+      registry.addFunctionExpression(this, visitor);
+      registry.addMethodDeclaration(this, visitor);
+    }
   }
 }
 
