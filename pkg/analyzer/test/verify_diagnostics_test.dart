@@ -448,7 +448,6 @@ class VerifyDiagnosticsTest {
     }
   }
 
-  @soloTest
   test_published() {
     // Verify that if _any_ error code is marked as having published docs then
     // _all_ codes with the same name are also marked that way.
