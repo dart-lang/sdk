@@ -712,7 +712,7 @@ void FlowGraphCompiler::EmitDispatchTableCall(
     } else {
       __ add(LR, DISPATCH_TABLE_REG,
              compiler::Operand(cid_reg, LSL, compiler::target::kWordSizeLog2));
-      if (!Utils::IsAbsoluteUint(12, offset)) {
+      if (!Utils::MagnitudeIsUint(12, offset)) {
         const intptr_t adjust = offset & -(1 << 12);
         __ AddImmediate(LR, LR, adjust);
         offset -= adjust;

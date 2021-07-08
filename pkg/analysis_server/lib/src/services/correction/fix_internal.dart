@@ -456,6 +456,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_final_locals: [
       MakeFinal.newInstance,
     ],
+    LintNames.prefer_final_parameters: [
+      MakeFinal.newInstance,
+    ],
     LintNames.prefer_for_elements_to_map_fromIterable: [
       ConvertMapFromIterableToForLiteral.newInstance,
     ],

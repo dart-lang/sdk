@@ -1135,7 +1135,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     if (instanceClass != null) {
       for (Constructor constructor in instanceClass.constructors) {
-        if (constructor.name == name) return constructor;
+        if (constructor.name == name) {
+          return constructor;
+        }
       }
     }
 

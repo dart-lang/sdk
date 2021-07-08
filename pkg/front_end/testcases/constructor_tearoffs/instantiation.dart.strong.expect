@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:15:40: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:16:40: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
 //  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/instantiation.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // A<dynamic> Function(String) test5() => A.foo; // Error.
@@ -11,7 +11,7 @@ library /*isNonNullableByDefault*/;
 // class A<X extends num> {
 //         ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:16:40: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:17:40: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
 //  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/instantiation.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // A<dynamic> Function(String) test6() => A.new; // Error.
@@ -19,6 +19,12 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends num> {
 //         ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:23:41: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/instantiation.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// A<dynamic> Function(String) test11() => A.bar; // Error.
+//                                         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -28,6 +34,8 @@ class A<X extends core::num> extends core::Object {
     : super core::Object::•() {}
   constructor •(self::A::X x) → self::A<self::A::X>
     : super core::Object::•() {}
+  static factory bar<X extends core::num>(self::A::bar::X x) → self::A<self::A::bar::X>
+    return new self::A::•<self::A::bar::X>(x);
 }
 static method test1() → (core::num) → self::A<core::num>
   return self::A::foo<core::num>;
@@ -45,4 +53,12 @@ static method test7() → (core::num) → self::A<dynamic>
   return self::A::foo<core::num>;
 static method test8() → (core::num) → self::A<dynamic>
   return self::A::•<core::num>;
+static method test9() → (core::num) → self::A<core::num>
+  return self::A::bar<core::num>;
+static method test10() → (core::int) → self::A<core::int>
+  return self::A::bar<core::int>;
+static method test11() → (core::String) → self::A<dynamic>
+  return self::A::bar<core::String>;
+static method test12() → (core::num) → self::A<dynamic>
+  return self::A::bar<core::num>;
 static method main() → dynamic {}

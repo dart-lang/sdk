@@ -16,6 +16,8 @@ void main() {
     defineReflectiveTests(PreferFinalFieldsWithNullSafetyTest);
     defineReflectiveTests(PreferFinalInForEachTest);
     defineReflectiveTests(PreferFinalLocalsBulkTest);
+    defineReflectiveTests(PreferFinalParametersTest);
+    defineReflectiveTests(PreferFinalParametersBulkTest);
   });
 }
 
@@ -182,6 +184,202 @@ f() {
 f() {
   final x = 0;
   final y = x;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class PreferFinalParametersBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_final_parameters;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void fn(String test, int other) {
+  print(test);
+  print(other);
+}
+''');
+    await assertHasFix('''
+void fn(final String test, final int other) {
+  print(test);
+  print(other);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class PreferFinalParametersTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.MAKE_FINAL;
+
+  @override
+  String get lintCode => LintNames.prefer_final_parameters;
+
+  Future<void> test_class_constructor() async {
+    await resolveTestCode('''
+class C {
+  C(String content) {
+    print(content);
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  C(final String content) {
+    print(content);
+  }
+}
+''');
+  }
+
+  Future<void> test_class_requiredCovariant() async {
+    await resolveTestCode('''
+class C {
+  void fn({required covariant String test}) {
+    print(test);
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  void fn({required covariant final String test}) {
+    print(test);
+  }
+}
+''');
+  }
+
+  Future<void> test_closure_hasType() async {
+    await resolveTestCode('''
+void fn() {
+  ['1', '2', '3'].forEach((String string) => print(string));
+}
+''');
+    await assertHasFix('''
+void fn() {
+  ['1', '2', '3'].forEach((final String string) => print(string));
+}
+''');
+  }
+
+  Future<void> test_closure_noType() async {
+    await resolveTestCode('''
+void fn() {
+  ['1', '2', '3'].forEach((string) => print(string));
+}
+''');
+    await assertHasFix('''
+void fn() {
+  ['1', '2', '3'].forEach((final string) => print(string));
+}
+''');
+  }
+
+  Future<void> test_functionLiteral() async {
+    await resolveTestCode('''
+var fn = (String test) {
+  print(test);
+};
+''');
+    await assertHasFix('''
+var fn = (final String test) {
+  print(test);
+};
+''');
+  }
+
+  Future<void> test_named_optional() async {
+    await resolveTestCode('''
+void fn({String? test}) {
+  print(test);
+}
+''');
+    await assertHasFix('''
+void fn({final String? test}) {
+  print(test);
+}
+''');
+  }
+
+  Future<void> test_named_required() async {
+    await resolveTestCode('''
+void fn({required String test}) {
+  print(test);
+}
+''');
+    await assertHasFix('''
+void fn({required final String test}) {
+  print(test);
+}
+''');
+  }
+
+  Future<void> test_positional_optional() async {
+    await resolveTestCode('''
+void fn([String? test]) {
+  print(test);
+}
+''');
+    await assertHasFix('''
+void fn([final String? test]) {
+  print(test);
+}
+''');
+  }
+
+  Future<void> test_simple_hasType() async {
+    await resolveTestCode('''
+void fn(String test) {
+  print(test);
+}
+''');
+    await assertHasFix('''
+void fn(final String test) {
+  print(test);
+}
+''');
+  }
+
+  Future<void> test_simple_noType() async {
+    await resolveTestCode('''
+void fn(test) {
+  print(test);
+}
+''');
+    await assertHasFix('''
+void fn(final test) {
+  print(test);
+}
+''');
+  }
+
+  Future<void> test_simple_second() async {
+    await resolveTestCode('''
+void fn(final String test, String other) {
+  print(test);
+  print(other);
+}
+''');
+    await assertHasFix('''
+void fn(final String test, final String other) {
+  print(test);
+  print(other);
+}
+''');
+  }
+
+  Future<void> test_simple_var() async {
+    await resolveTestCode('''
+void fn(var test) {
+  print(test);
+}
+''');
+    await assertHasFix('''
+void fn(final test) {
+  print(test);
 }
 ''');
   }

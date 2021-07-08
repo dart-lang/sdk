@@ -9,6 +9,8 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     ;
   constructor •() → self::A<self::A::X%>
     ;
+  static factory bar1<X extends core::Object? = dynamic>() → self::A<self::A::bar1::X%>
+    ;
 }
 static method test1() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   ;
@@ -27,6 +29,14 @@ static method test7() → <X extends core::Object? = dynamic>(X%) → self::A<X%
 static method test8() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   ;
 static method test9() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  ;
+static method test10() → <X extends core::Object? = dynamic>() → self::A<X%>
+  ;
+static method test11() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  ;
+static method test12() → () → self::A<core::int>
+  ;
+static method test13() → () → self::A<core::int>
   ;
 static method main() → dynamic
   ;

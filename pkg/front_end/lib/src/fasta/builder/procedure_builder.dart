@@ -313,10 +313,10 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
         return extensionTearOff ?? procedure;
       case ProcedureKind.Getter:
         return procedure;
+      case ProcedureKind.Factory:
+        return procedure;
       case ProcedureKind.Operator:
       case ProcedureKind.Setter:
-      case ProcedureKind.Factory:
-        return null;
     }
   }
 

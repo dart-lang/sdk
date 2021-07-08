@@ -229,12 +229,22 @@ class Utils {
     return value <= limit;
   }
 
-  // Check whether the magnitude of value fits in N bits, i.e., whether an
-  // (N+1)-bit sign-magnitude representation can hold value.
+  // Check whether the magnitude of value fits in N bits. This differs from
+  // IsInt(N + 1, value) only in that this returns false for the minimum value
+  // of a N+1 bit two's complement value.
+  //
+  // Primarily used for testing whether a two's complement value can be used in
+  // a place where the sign is replaced with a marker that says whether the
+  // magnitude is added or subtracted, e.g., the U bit (bit 23) in some ARM7
+  // instructions.
   template <typename T>
-  static inline bool IsAbsoluteUint(intptr_t N, T value) {
+  static inline bool MagnitudeIsUint(intptr_t N, T value) {
     ASSERT(N >= 1);
-    return IsInt(N + 1, value);
+    if constexpr (std::is_signed<T>::value) {
+      using Unsigned = typename std::make_unsigned<T>::type;
+      if (value < 0) return IsUint<Unsigned>(N, -value);
+    }
+    return IsUint(N, value);
   }
 
   static inline int32_t Low16Bits(int32_t value) {
