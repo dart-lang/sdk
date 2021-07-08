@@ -2788,8 +2788,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       Definition::InferRange(analysis, range);
       break;
 
-    case Slot::Kind::kLinkedHashMap_index:
-    case Slot::Kind::kLinkedHashMap_data:
+    case Slot::Kind::kLinkedHashBase_index:
+    case Slot::Kind::kLinkedHashBase_data:
     case Slot::Kind::kGrowableObjectArray_data:
     case Slot::Kind::kContext_parent:
     case Slot::Kind::kTypeArguments:
@@ -2834,9 +2834,9 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       break;
 
     case Slot::Kind::kClosure_hash:
-    case Slot::Kind::kLinkedHashMap_hash_mask:
-    case Slot::Kind::kLinkedHashMap_used_data:
-    case Slot::Kind::kLinkedHashMap_deleted_keys:
+    case Slot::Kind::kLinkedHashBase_hash_mask:
+    case Slot::Kind::kLinkedHashBase_used_data:
+    case Slot::Kind::kLinkedHashBase_deleted_keys:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
 

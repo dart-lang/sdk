@@ -195,15 +195,15 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 36;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 24;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 24;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     12;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 8;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 4;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     20;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -513,7 +513,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 28;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 28;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     24;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -737,15 +737,15 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 72;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 32;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 48;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 48;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     24;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     40;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -1061,7 +1061,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 56;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 56;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     48;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -1284,15 +1284,15 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 36;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 24;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 24;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     12;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 8;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 4;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     20;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -1599,7 +1599,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 28;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 28;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     24;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -1823,15 +1823,15 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 72;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 32;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 48;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 48;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     24;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     40;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -2148,7 +2148,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 56;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 56;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     48;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -2371,15 +2371,15 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 72;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 20;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 20;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 28;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 28;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     16;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 12;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 12;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     24;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -2695,7 +2695,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 32;
 static constexpr dart::compiler::target::word Library_InstanceSize = 112;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 24;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 32;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     48;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -2918,15 +2918,15 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 72;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 20;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 20;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 28;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 28;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     16;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 12;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 12;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     24;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -3243,7 +3243,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 32;
 static constexpr dart::compiler::target::word Library_InstanceSize = 112;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 24;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 32;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     48;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -3462,15 +3462,15 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 24;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 24;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     12;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 8;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 4;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     20;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -3780,7 +3780,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 28;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 28;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     24;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -3998,15 +3998,15 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 32;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 48;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 48;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     24;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     40;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -4322,7 +4322,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 56;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 56;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     48;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -4539,15 +4539,15 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 24;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 24;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     12;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 8;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 4;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     20;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -4854,7 +4854,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 28;
 static constexpr dart::compiler::target::word Library_InstanceSize = 88;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 20;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 28;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 28;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     24;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -5072,15 +5072,15 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 32;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 48;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 48;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     24;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     40;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -5397,7 +5397,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 48;
 static constexpr dart::compiler::target::word Library_InstanceSize = 168;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 40;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 56;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 56;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     48;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -5614,15 +5614,15 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 20;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 20;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 28;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 28;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     16;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 12;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 12;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     24;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -5938,7 +5938,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 32;
 static constexpr dart::compiler::target::word Library_InstanceSize = 112;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 24;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 32;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     48;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -6155,15 +6155,15 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashMap_data_offset = 20;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 20;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_deleted_keys_offset = 28;
-static constexpr dart::compiler::target::word LinkedHashMap_hash_mask_offset =
+    LinkedHashBase_deleted_keys_offset = 28;
+static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
     16;
-static constexpr dart::compiler::target::word LinkedHashMap_index_offset = 12;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 12;
 static constexpr dart::compiler::target::word
-    LinkedHashMap_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
+    LinkedHashBase_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
     24;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
@@ -6480,7 +6480,7 @@ static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 32;
 static constexpr dart::compiler::target::word Library_InstanceSize = 112;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 24;
-static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize = 32;
 static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
     48;
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
@@ -6722,18 +6722,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     36;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 24;
+    AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 12;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 12;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 4;
+    AOT_LinkedHashBase_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 20;
+    AOT_LinkedHashBase_used_data_offset = 20;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 8;
@@ -7081,7 +7081,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 84;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     20;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     28;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 24;
@@ -7329,18 +7329,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     72;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     32;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 48;
+    AOT_LinkedHashBase_deleted_keys_offset = 48;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 24;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 24;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 8;
+    AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 40;
+    AOT_LinkedHashBase_used_data_offset = 40;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -7691,7 +7691,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     56;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 48;
@@ -7942,18 +7942,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     72;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     32;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 48;
+    AOT_LinkedHashBase_deleted_keys_offset = 48;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 24;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 24;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 8;
+    AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 40;
+    AOT_LinkedHashBase_used_data_offset = 40;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -8305,7 +8305,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     56;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 48;
@@ -8552,18 +8552,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     72;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     20;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 28;
+    AOT_LinkedHashBase_deleted_keys_offset = 28;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 16;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 16;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     12;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 8;
+    AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 24;
+    AOT_LinkedHashBase_used_data_offset = 24;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -8914,7 +8914,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 104;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     24;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 48;
@@ -9161,18 +9161,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     72;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     20;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 28;
+    AOT_LinkedHashBase_deleted_keys_offset = 28;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 16;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 16;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     12;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 8;
+    AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 24;
+    AOT_LinkedHashBase_used_data_offset = 24;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -9524,7 +9524,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 104;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     24;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 48;
@@ -9766,18 +9766,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 24;
+    AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 12;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 12;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 4;
+    AOT_LinkedHashBase_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 20;
+    AOT_LinkedHashBase_used_data_offset = 20;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 8;
@@ -10125,7 +10125,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 84;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     20;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     28;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 24;
@@ -10366,18 +10366,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     32;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 48;
+    AOT_LinkedHashBase_deleted_keys_offset = 48;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 24;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 24;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 8;
+    AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 40;
+    AOT_LinkedHashBase_used_data_offset = 40;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -10728,7 +10728,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     56;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 48;
@@ -10972,18 +10972,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     32;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 48;
+    AOT_LinkedHashBase_deleted_keys_offset = 48;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 24;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 24;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 8;
+    AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 40;
+    AOT_LinkedHashBase_used_data_offset = 40;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -11335,7 +11335,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 160;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     40;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     56;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 48;
@@ -11575,18 +11575,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     20;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 28;
+    AOT_LinkedHashBase_deleted_keys_offset = 28;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 16;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 16;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     12;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 8;
+    AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 24;
+    AOT_LinkedHashBase_used_data_offset = 24;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -11937,7 +11937,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 104;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     24;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 48;
@@ -12177,18 +12177,18 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
     20;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_deleted_keys_offset = 28;
+    AOT_LinkedHashBase_deleted_keys_offset = 28;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_hash_mask_offset = 16;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    AOT_LinkedHashBase_hash_mask_offset = 16;
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
     12;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_type_arguments_offset = 8;
+    AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashMap_used_data_offset = 24;
+    AOT_LinkedHashBase_used_data_offset = 24;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -12540,7 +12540,7 @@ static constexpr dart::compiler::target::word AOT_LanguageError_InstanceSize =
 static constexpr dart::compiler::target::word AOT_Library_InstanceSize = 104;
 static constexpr dart::compiler::target::word AOT_LibraryPrefix_InstanceSize =
     24;
-static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+static constexpr dart::compiler::target::word AOT_LinkedHashBase_InstanceSize =
     32;
 static constexpr dart::compiler::target::word
     AOT_MegamorphicCache_InstanceSize = 48;

@@ -200,11 +200,11 @@ bool Slot::IsImmutableLengthSlot() const {
   case Slot::Kind::k##Class##_##Field:
       UNBOXED_NATIVE_SLOTS_LIST(UNBOXED_NATIVE_SLOT_CASE)
 #undef UNBOXED_NATIVE_SLOT_CASE
-    case Slot::Kind::kLinkedHashMap_index:
-    case Slot::Kind::kLinkedHashMap_data:
-    case Slot::Kind::kLinkedHashMap_hash_mask:
-    case Slot::Kind::kLinkedHashMap_used_data:
-    case Slot::Kind::kLinkedHashMap_deleted_keys:
+    case Slot::Kind::kLinkedHashBase_index:
+    case Slot::Kind::kLinkedHashBase_data:
+    case Slot::Kind::kLinkedHashBase_hash_mask:
+    case Slot::Kind::kLinkedHashBase_used_data:
+    case Slot::Kind::kLinkedHashBase_deleted_keys:
     case Slot::Kind::kArgumentsDescriptor_type_args_len:
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:

@@ -2896,7 +2896,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       switch (call->function().recognized_kind()) {
         case MethodRecognizer::kByteDataFactory:
-        case MethodRecognizer::kLinkedHashMap_getData:
+        case MethodRecognizer::kLinkedHashBase_getData:
           return flow_graph->constant_null();
         default:
           break;
@@ -2917,7 +2917,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
           break;
         }
 
-        case Slot::Kind::kLinkedHashMap_data:
+        case Slot::Kind::kLinkedHashBase_data:
           return flow_graph->constant_null();
 
         default:
@@ -6502,14 +6502,11 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       // Find the native location where this individual definition should be
       // moved to.
       const auto& def_target =
-          arg_target.payload_type().IsPrimitive()
-              ? arg_target
-              : arg_target.IsMultiple()
-                    ? *arg_target.AsMultiple().locations()[i]
-                    : arg_target.IsPointerToMemory()
-                          ? arg_target.AsPointerToMemory().pointer_location()
-                          : /*arg_target.IsStack()*/ arg_target.Split(
-                                zone_, num_defs, i);
+          arg_target.payload_type().IsPrimitive() ? arg_target
+          : arg_target.IsMultiple() ? *arg_target.AsMultiple().locations()[i]
+          : arg_target.IsPointerToMemory()
+              ? arg_target.AsPointerToMemory().pointer_location()
+              : /*arg_target.IsStack()*/ arg_target.Split(zone_, num_defs, i);
 
       ConstantTemporaryAllocator temp_alloc(temp);
       if (origin.IsConstant()) {
