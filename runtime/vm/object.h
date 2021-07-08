@@ -10832,17 +10832,21 @@ class ByteBuffer : public AllStatic {
 
   static InstancePtr Data(const Instance& view_obj) {
     ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<InstancePtr const*>(view_obj.untag() +
-                                                 kDataOffset);
+    return reinterpret_cast<CompressedInstancePtr*>(
+               reinterpret_cast<uword>(view_obj.untag()) + data_offset())
+        ->Decompress(view_obj.untag()->heap_base());
   }
 
-  static intptr_t NumberOfFields() { return kDataOffset; }
+  static intptr_t NumberOfFields() { return kNumFields; }
 
-  static intptr_t data_offset() { return kWordSize * kDataOffset; }
+  static intptr_t data_offset() {
+    return sizeof(UntaggedObject) + (kCompressedWordSize * kDataIndex);
+  }
 
  private:
   enum {
-    kDataOffset = 1,
+    kDataIndex = 0,
+    kNumFields = 1,
   };
 };
 

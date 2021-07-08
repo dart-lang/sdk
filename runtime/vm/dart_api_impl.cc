@@ -585,8 +585,10 @@ bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
     intptr_t cid = raw_obj->GetClassId();
     if (cid >= kNumPredefinedCids) {
       ASSERT(Instance::Cast(Object::Handle(raw_obj)).IsValidNativeIndex(0));
-      TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
-          UntaggedObject::ToAddr(raw_obj) + sizeof(UntaggedObject));
+      TypedDataPtr native_fields =
+          reinterpret_cast<CompressedTypedDataPtr*>(
+              UntaggedObject::ToAddr(raw_obj) + sizeof(UntaggedObject))
+              ->Decompress(raw_obj->heap_base());
       if (native_fields == TypedData::null()) {
         *value = 0;
       } else {
@@ -673,8 +675,10 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
     // No native fields or mismatched native field count.
     return false;
   }
-  TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
-      UntaggedObject::ToAddr(raw_obj) + sizeof(UntaggedObject));
+  TypedDataPtr native_fields =
+      reinterpret_cast<CompressedTypedDataPtr*>(
+          UntaggedObject::ToAddr(raw_obj) + sizeof(UntaggedObject))
+          ->Decompress(raw_obj->heap_base());
   if (native_fields == TypedData::null()) {
     // Native fields not initialized.
     memset(field_values, 0, (num_fields * sizeof(field_values[0])));
