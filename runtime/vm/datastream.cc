@@ -10,8 +10,7 @@
 namespace dart {
 
 void BaseWriteStream::WriteTargetWord(word value) {
-  ASSERT(compiler::target::kBitsPerWord == kBitsPerWord ||
-         Utils::IsAbsoluteUint(compiler::target::kBitsPerWord, value));
+  ASSERT(Utils::BitLength(value) <= compiler::target::kBitsPerWord);
   WriteFixed(static_cast<compiler::target::word>(value));
 }
 

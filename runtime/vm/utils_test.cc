@@ -290,22 +290,26 @@ VM_UNIT_TEST_CASE(IsUint) {
   EXPECT(!Utils::IsUint(32, 4294967296LL));
 }
 
-VM_UNIT_TEST_CASE(IsAbsoluteUint) {
-  EXPECT(Utils::IsAbsoluteUint(8, 16));
-  EXPECT(Utils::IsAbsoluteUint(8, 0));
-  EXPECT(Utils::IsAbsoluteUint(8, -128));
-  EXPECT(Utils::IsAbsoluteUint(8, 255));
-  EXPECT(!Utils::IsAbsoluteUint(8, 256));
-  EXPECT(Utils::IsAbsoluteUint(16, 16));
-  EXPECT(Utils::IsAbsoluteUint(16, 0));
-  EXPECT(Utils::IsAbsoluteUint(16, 65535));
-  EXPECT(Utils::IsAbsoluteUint(16, -32768));
-  EXPECT(!Utils::IsAbsoluteUint(16, 65536));
-  EXPECT(Utils::IsAbsoluteUint(32, 16LL));
-  EXPECT(Utils::IsAbsoluteUint(32, 0LL));
-  EXPECT(Utils::IsAbsoluteUint(32, -2147483648LL));
-  EXPECT(Utils::IsAbsoluteUint(32, 4294967295LL));
-  EXPECT(!Utils::IsAbsoluteUint(32, 4294967296LL));
+VM_UNIT_TEST_CASE(MagnitudeIsUint) {
+  EXPECT(Utils::MagnitudeIsUint(8, 16));
+  EXPECT(Utils::MagnitudeIsUint(8, 0));
+  EXPECT(Utils::MagnitudeIsUint(8, -128));
+  EXPECT(Utils::MagnitudeIsUint(8, 255));
+  EXPECT(!Utils::MagnitudeIsUint(8, 256));
+  EXPECT(Utils::MagnitudeIsUint(12, 4095));
+  EXPECT(Utils::MagnitudeIsUint(12, -4095));
+  EXPECT(!Utils::MagnitudeIsUint(12, 4096));
+  EXPECT(!Utils::MagnitudeIsUint(12, -4096));
+  EXPECT(Utils::MagnitudeIsUint(16, 16));
+  EXPECT(Utils::MagnitudeIsUint(16, 0));
+  EXPECT(Utils::MagnitudeIsUint(16, 65535));
+  EXPECT(Utils::MagnitudeIsUint(16, -32768));
+  EXPECT(!Utils::MagnitudeIsUint(16, 65536));
+  EXPECT(Utils::MagnitudeIsUint(32, 16LL));
+  EXPECT(Utils::MagnitudeIsUint(32, 0LL));
+  EXPECT(Utils::MagnitudeIsUint(32, -2147483648LL));
+  EXPECT(Utils::MagnitudeIsUint(32, 4294967295LL));
+  EXPECT(!Utils::MagnitudeIsUint(32, 4294967296LL));
 }
 
 VM_UNIT_TEST_CASE(LowBits) {
