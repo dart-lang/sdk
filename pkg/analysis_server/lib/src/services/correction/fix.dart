@@ -96,6 +96,7 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.prefer_equal_for_default_values ||
             errorCode.name == LintNames.prefer_final_fields ||
             errorCode.name == LintNames.prefer_final_locals ||
+            errorCode.name == LintNames.prefer_final_parameters ||
             errorCode.name == LintNames.prefer_is_not_empty ||
             errorCode.name == LintNames.type_init_formals ||
             errorCode.name == LintNames.unawaited_futures ||
