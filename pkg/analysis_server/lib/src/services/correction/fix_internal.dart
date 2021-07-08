@@ -48,6 +48,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_expressi
 import 'package:analysis_server/src/services/correction/dart/convert_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_initializing_formal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
@@ -467,6 +468,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.prefer_if_elements_to_conditional_expressions: [
       ConvertConditionalExpressionToIfElement.newInstance,
+    ],
+    LintNames.prefer_initializing_formals: [
+      ConvertToInitializingFormal.newInstance,
     ],
     LintNames.prefer_is_empty: [
       ReplaceWithIsEmpty.newInstance,

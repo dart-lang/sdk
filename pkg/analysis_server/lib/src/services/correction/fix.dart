@@ -234,6 +234,10 @@ class DartFixKind {
       'dart.fix.convert.toIfNull.multi',
       DartFixKindPriority.IN_FILE,
       "Convert to '??'s everywhere in file");
+  static const CONVERT_TO_INITIALIZING_FORMAL = FixKind(
+      'dart.fix.convert.toInitializingFormal',
+      DartFixKindPriority.DEFAULT,
+      'Convert to an initializing formal parameter');
   static const CONVERT_TO_INT_LITERAL = FixKind('dart.fix.convert.toIntLiteral',
       DartFixKindPriority.DEFAULT, 'Convert to an int literal');
   static const CONVERT_TO_INT_LITERAL_MULTI = FixKind(

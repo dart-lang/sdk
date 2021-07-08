@@ -55,6 +55,8 @@ import 'convert_to_generic_function_syntax_test.dart'
     as convert_to_generic_function_syntax;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_if_null_test.dart' as convert_to_if_null;
+import 'convert_to_initializing_formal_test.dart'
+    as convert_to_initializing_formal;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
@@ -233,6 +235,7 @@ void main() {
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
     convert_to_if_null.main();
+    convert_to_initializing_formal.main();
     convert_to_int_literal.main();
     convert_to_list_literal.main();
     convert_to_map_literal.main();
