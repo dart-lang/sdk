@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math' as math;
-
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_kind.dart';
@@ -138,8 +136,8 @@ class PubspecFixGenerator {
   Future<void> _addNameEntry() async {
     var context = resourceProvider.pathContext;
     var packageName = _identifierFrom(context.basename(context.dirname(file)));
-    var builder =
-        ChangeBuilder(workspace: _NonDartChangeWorkspace(), eol: endOfLine);
+    var builder = ChangeBuilder(
+        workspace: _NonDartChangeWorkspace(resourceProvider), eol: endOfLine);
     var firstOffset = _initialOffset(document.contents);
     if (firstOffset < 0) {
       // The document contains a list, and we don't support converting it to a
@@ -185,17 +183,6 @@ class PubspecFixGenerator {
         identical(next, $_);
   }
 
-  // ignore: unused_element
-  SourceRange _lines(int start, int end) {
-    var startLocation = lineInfo.getLocation(start);
-    var startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
-    var endLocation = lineInfo.getLocation(end);
-    var endOffset = lineInfo.getOffsetOfLine(
-        math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
-    return SourceRange(startOffset, endOffset - startOffset);
-  }
-
-  // ignore: unused_element
   int _offsetOfFirstKey(YamlMap map) {
     var firstOffset = -1;
     for (var key in map.nodeMap.keys) {
@@ -212,6 +199,11 @@ class PubspecFixGenerator {
 }
 
 class _NonDartChangeWorkspace implements ChangeWorkspace {
+  @override
+  ResourceProvider resourceProvider;
+
+  _NonDartChangeWorkspace(this.resourceProvider);
+
   @override
   bool containsFile(String path) {
     return true;

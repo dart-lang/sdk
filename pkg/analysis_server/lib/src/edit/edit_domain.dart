@@ -546,7 +546,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   Future<List<AnalysisErrorFixes>> _computeAnalysisOptionsFixes(
       String file, int offset) async {
     var errorFixesList = <AnalysisErrorFixes>[];
-    var optionsFile = server.resourceProvider.getFile(file);
+    var resourceProvider = server.resourceProvider;
+    var optionsFile = resourceProvider.getFile(file);
     var content = _safelyRead(optionsFile);
     if (content == null) {
       return errorFixesList;
@@ -568,7 +569,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       return errorFixesList;
     }
     for (var error in errors) {
-      var generator = AnalysisOptionsFixGenerator(error, content, options);
+      var generator = AnalysisOptionsFixGenerator(
+          resourceProvider, error, content, options);
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
@@ -690,7 +692,8 @@ error.errorCode: ${error.errorCode}
   Future<List<AnalysisErrorFixes>> _computePubspecFixes(
       String file, int offset) async {
     var errorFixesList = <AnalysisErrorFixes>[];
-    var pubspecFile = server.resourceProvider.getFile(file);
+    var resourceProvider = server.resourceProvider;
+    var pubspecFile = resourceProvider.getFile(file);
     var content = _safelyRead(pubspecFile);
     if (content == null) {
       return errorFixesList;
@@ -710,12 +713,12 @@ error.errorCode: ${error.errorCode}
       yamlContent = YamlMap();
     }
     var validator =
-        PubspecValidator(server.resourceProvider, pubspecFile.createSource());
+        PubspecValidator(resourceProvider, pubspecFile.createSource());
     var session = driver.currentSession;
     var errors = validator.validate(yamlContent.nodes);
     for (var error in errors) {
-      var generator = PubspecFixGenerator(
-          server.resourceProvider, error, content, document);
+      var generator =
+          PubspecFixGenerator(resourceProvider, error, content, document);
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
