@@ -7,6 +7,8 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
+import '../builder/library_builder.dart';
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../dill/dill_member_builder.dart';
@@ -484,8 +486,13 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder {
       List<DelayedActionPerformer> delayedActionPerformers) {
     if (_origin != null) {
       // Ensure that default value expressions have been created for [_origin].
-      _origin!.buildOutlineExpressions(
-          libraryBuilder, coreTypes, delayedActionPerformers);
+      LibraryBuilder originLibraryBuilder = _origin!.library;
+      if (originLibraryBuilder is SourceLibraryBuilder) {
+        // If [_origin] is from a source library, we need to build the default
+        // values and initializers first.
+        _origin!.buildOutlineExpressions(
+            originLibraryBuilder, coreTypes, delayedActionPerformers);
+      }
       _clonedFunctionNode!.cloneDefaultValues();
       _clonedFunctionNode = null;
       _origin = null;

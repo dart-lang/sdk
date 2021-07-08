@@ -1,0 +1,8 @@
+import 'main_lib.dart';
+
+class TestClass extends MyClass with MyMixin {
+  TestClass() : super.named();
+}
+
+mixin MyMixin {}
+void main() {}
