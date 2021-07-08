@@ -7,6 +7,8 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•() {}
   constructor •() → self::A<self::A::X%>
     : super core::Object::•() {}
+  static factory bar<X extends core::Object? = dynamic>() → self::A<self::A::bar::X%>
+    return new self::A::•<self::A::bar::X%>();
 }
 static method testFoo() → dynamic
   return self::A::foo;
@@ -16,8 +18,14 @@ static method testNew() → dynamic
   return self::A::•;
 static method testNewArgs() → dynamic
   return self::A::•;
+static method testBar() → dynamic
+  return self::A::bar;
+static method testBarArgs() → dynamic
+  return self::A::bar;
 static method testFooExtraArgs() → dynamic
   return self::A::foo;
 static method testNewExtraArgs() → dynamic
   return self::A::•;
+static method testBarExtraArgs() → dynamic
+  return self::A::bar;
 static method main() → dynamic {}
