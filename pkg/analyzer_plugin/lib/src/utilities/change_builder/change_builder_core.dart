@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
@@ -602,6 +603,9 @@ class _SingleSessionWorkspace extends ChangeWorkspace {
   final AnalysisSession session;
 
   _SingleSessionWorkspace(this.session);
+
+  @override
+  ResourceProvider get resourceProvider => session.resourceProvider;
 
   @override
   bool? containsFile(String path) {

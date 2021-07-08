@@ -2113,8 +2113,8 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
     TokenPosition begin_pos =
         TokenPosition::kNoSource;  // Token position of scope start.
     TokenPosition end_pos =
-        TokenPosition::kNoSource;   // Token position of scope end.
-    int16_t scope_id;               // Scope to which the variable belongs.
+        TokenPosition::kNoSource;  // Token position of scope end.
+    int16_t scope_id;              // Scope to which the variable belongs.
 
     VarInfoKind kind() const {
       return static_cast<VarInfoKind>(KindBits::decode(index_kind));
@@ -2986,8 +2986,8 @@ class UntaggedGrowableObjectArray : public UntaggedInstance {
   friend class ReversePc;
 };
 
-class UntaggedLinkedHashMap : public UntaggedInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+class UntaggedLinkedHashBase : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashBase);
 
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
@@ -2998,6 +2998,10 @@ class UntaggedLinkedHashMap : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(SmiPtr, deleted_keys)
   VISIT_TO(deleted_keys)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+};
+
+class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
 
   friend class SnapshotReader;
 };

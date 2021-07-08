@@ -1548,7 +1548,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     Selector selector = _elementMap.getSelector(node);
     if (_closedWorld.commonElements.isForeign(member)) {
       return handleForeignInvoke(node, member, arguments, selector);
-    } else if (_closedWorld.commonElements.isCreateSentinel(member)) {
+    } else if (!_options.useLegacySubtyping &&
+        _closedWorld.commonElements.isCreateSentinel(member)) {
+      // TODO(fishythefish): Support this for --no-sound-null-safety too.
       // `T createSentinel<T>()` ostensibly returns a `T` based on its static
       // type. However, we need to handle this specially for a couple of
       // reasons:

@@ -95,11 +95,11 @@ class ParsedFunction;
   V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
   V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL)                \
   V(String, UntaggedString, length, Smi, FINAL)                                \
-  V(LinkedHashMap, UntaggedLinkedHashMap, index, TypedDataUint32Array, VAR)    \
-  V(LinkedHashMap, UntaggedLinkedHashMap, data, Array, VAR)                    \
-  V(LinkedHashMap, UntaggedLinkedHashMap, hash_mask, Smi, VAR)                 \
-  V(LinkedHashMap, UntaggedLinkedHashMap, used_data, Smi, VAR)                 \
-  V(LinkedHashMap, UntaggedLinkedHashMap, deleted_keys, Smi, VAR)              \
+  V(LinkedHashBase, UntaggedLinkedHashBase, index, TypedDataUint32Array, VAR)  \
+  V(LinkedHashBase, UntaggedLinkedHashBase, data, Array, VAR)                  \
+  V(LinkedHashBase, UntaggedLinkedHashBase, hash_mask, Smi, VAR)               \
+  V(LinkedHashBase, UntaggedLinkedHashBase, used_data, Smi, VAR)               \
+  V(LinkedHashBase, UntaggedLinkedHashBase, deleted_keys, Smi, VAR)            \
   V(ArgumentsDescriptor, UntaggedArray, type_args_len, Smi, FINAL)             \
   V(ArgumentsDescriptor, UntaggedArray, positional_count, Smi, FINAL)          \
   V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
@@ -338,7 +338,7 @@ class Slot : public ZoneAllocated {
   static const Slot& GetNativeSlot(Kind kind);
 
   const Kind kind_;
-  const int8_t flags_;  // is_immutable, is_nullable
+  const int8_t flags_;        // is_immutable, is_nullable
   const ClassIdTagType cid_;  // Concrete cid of a value or kDynamicCid.
 
   const intptr_t offset_in_bytes_;

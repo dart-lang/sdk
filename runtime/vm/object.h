@@ -3712,8 +3712,7 @@ class Function : public Object {
   V(IsExtensionMember, is_extension_member)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
-#define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V)                                 \
-  V(Inlinable, is_inlinable)
+#define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V) V(Inlinable, is_inlinable)
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \
@@ -3753,9 +3752,9 @@ class Function : public Object {
 // Single bit sized fields start here.
 #define DECLARE_BIT(name, _) k##name##Bit,
     FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
-    FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DECLARE_BIT)
+        FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DECLARE_BIT)
 #undef DECLARE_BIT
-        kNumTagBits
+            kNumTagBits
   };
 
   COMPILE_ASSERT(MethodRecognizer::kNumRecognizedMethods <
@@ -10832,17 +10831,21 @@ class ByteBuffer : public AllStatic {
 
   static InstancePtr Data(const Instance& view_obj) {
     ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<InstancePtr const*>(view_obj.untag() +
-                                                 kDataOffset);
+    return reinterpret_cast<CompressedInstancePtr*>(
+               reinterpret_cast<uword>(view_obj.untag()) + data_offset())
+        ->Decompress(view_obj.untag()->heap_base());
   }
 
-  static intptr_t NumberOfFields() { return kDataOffset; }
+  static intptr_t NumberOfFields() { return kNumFields; }
 
-  static intptr_t data_offset() { return kWordSize * kDataOffset; }
+  static intptr_t data_offset() {
+    return sizeof(UntaggedObject) + (kCompressedWordSize * kDataIndex);
+  }
 
  private:
   enum {
-    kDataOffset = 1,
+    kDataIndex = 0,
+    kNumFields = 1,
   };
 };
 
@@ -10916,11 +10919,50 @@ class DynamicLibrary : public Instance {
   friend class Class;
 };
 
+class LinkedHashBase : public Instance {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedLinkedHashBase));
+  }
+
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, type_arguments_);
+  }
+
+  static intptr_t index_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, index_);
+  }
+
+  static intptr_t data_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, data_);
+  }
+
+  static intptr_t hash_mask_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, hash_mask_);
+  }
+
+  static intptr_t used_data_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, used_data_);
+  }
+
+  static intptr_t deleted_keys_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, deleted_keys_);
+  }
+
+ protected:
+  // Keep this in sync with Dart implementation (lib/compact_hash.dart).
+  static const intptr_t kInitialIndexBits = 2;
+  static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
+
+  friend class Class;
+  friend class LinkedHashBaseDeserializationCluster;
+};
+
 // Corresponds to
 // - "new Map()",
 // - non-const map literals, and
 // - the default constructor of LinkedHashMap in dart:collection.
-class LinkedHashMap : public Instance {
+class LinkedHashMap : public LinkedHashBase {
  public:
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLinkedHashMap));
@@ -10946,47 +10988,29 @@ class LinkedHashMap : public Instance {
     // as canonical. See for example tests/isolate/message3_test.dart.
     untag()->set_type_arguments(value.ptr());
   }
-  static intptr_t type_arguments_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, type_arguments_);
-  }
 
   TypedDataPtr index() const { return untag()->index(); }
   void SetIndex(const TypedData& value) const {
     ASSERT(!value.IsNull());
     untag()->set_index(value.ptr());
   }
-  static intptr_t index_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, index_);
-  }
 
   ArrayPtr data() const { return untag()->data(); }
   void SetData(const Array& value) const { untag()->set_data(value.ptr()); }
-  static intptr_t data_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, data_);
-  }
 
   SmiPtr hash_mask() const { return untag()->hash_mask(); }
   void SetHashMask(intptr_t value) const {
     untag()->set_hash_mask(Smi::New(value));
-  }
-  static intptr_t hash_mask_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, hash_mask_);
   }
 
   SmiPtr used_data() const { return untag()->used_data(); }
   void SetUsedData(intptr_t value) const {
     untag()->set_used_data(Smi::New(value));
   }
-  static intptr_t used_data_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, used_data_);
-  }
 
   SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
   void SetDeletedKeys(intptr_t value) const {
     untag()->set_deleted_keys(Smi::New(value));
-  }
-  static intptr_t deleted_keys_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_);
   }
 
   intptr_t Length() const {
@@ -11038,11 +11062,7 @@ class LinkedHashMap : public Instance {
   };
 
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, Instance);
-
-  // Keep this in sync with Dart implementation (lib/compact_hash.dart).
-  static const intptr_t kInitialIndexBits = 2;
-  static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, LinkedHashBase);
 
   // Allocate a map, but leave all fields set to null.
   // Used during deserialization (since map might contain itself as key/value).

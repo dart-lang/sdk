@@ -146,7 +146,7 @@ vars = {
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
-  "shelf_static_rev": "fa30419055279a00c9e428439b1abe362d18f25d",
+  "shelf_static_rev": "fb6b7d0ee4ad936a84e503ae6b3703cc99e61d52",
   "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",
   "shelf_proxy_tag": "v1.0.0",
   "shelf_rev": "46483f896cc4308ee3d8e997030ae799b72aa16a",

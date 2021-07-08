@@ -10,6 +10,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -21,6 +22,9 @@ import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in analysis options files.
 class AnalysisOptionsFixGenerator {
+  /// The resource provider used to access the file system.
+  final ResourceProvider resourceProvider;
+
   final AnalysisError error;
 
   final int errorOffset;
@@ -35,7 +39,8 @@ class AnalysisOptionsFixGenerator {
 
   final List<Fix> fixes = <Fix>[];
 
-  AnalysisOptionsFixGenerator(this.error, this.content, this.options)
+  AnalysisOptionsFixGenerator(
+      this.resourceProvider, this.error, this.content, this.options)
       : errorOffset = error.offset,
         errorLength = error.length,
         lineInfo = LineInfo.fromContent(content);
@@ -169,7 +174,7 @@ class AnalysisOptionsFixGenerator {
     deletionRange ??=
         _lines(nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
     var builder = ChangeBuilder(
-      workspace: _NonDartChangeWorkspace(),
+      workspace: _NonDartChangeWorkspace(resourceProvider),
     );
 
     final deletionRange_final = deletionRange;
@@ -197,6 +202,11 @@ class AnalysisOptionsFixGenerator {
 }
 
 class _NonDartChangeWorkspace implements ChangeWorkspace {
+  @override
+  ResourceProvider resourceProvider;
+
+  _NonDartChangeWorkspace(this.resourceProvider);
+
   @override
   bool containsFile(String path) {
     return true;

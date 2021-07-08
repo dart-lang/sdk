@@ -634,7 +634,7 @@ class TypedDataView : public AllStatic {
   static word NextFieldOffset();
 };
 
-class LinkedHashMap : public AllStatic {
+class LinkedHashBase : public AllStatic {
  public:
   static word index_offset();
   static word data_offset();
@@ -643,6 +643,10 @@ class LinkedHashMap : public AllStatic {
   static word deleted_keys_offset();
   static word type_arguments_offset();
   static word InstanceSize();
+};
+
+class LinkedHashMap : public LinkedHashBase {
+ public:
   static word NextFieldOffset();
 };
 

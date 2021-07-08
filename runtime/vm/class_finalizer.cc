@@ -1453,7 +1453,7 @@ void ClassFinalizer::SortClasses() {
   }
   ASSERT(next_new_cid == num_cids);
   RemapClassIds(old_to_new_cid.get());
-  RehashTypes();         // Types use cid's as part of their hashes.
+  RehashTypes();          // Types use cid's as part of their hashes.
   IG->RehashConstants();  // Const objects use cid's as part of their hashes.
 
   // Ensure any newly spawned isolate will apply this permutation map right
