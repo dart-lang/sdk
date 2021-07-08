@@ -205,15 +205,17 @@ class DillFactoryBuilder extends DillMemberBuilder {
 
 class DillConstructorBuilder extends DillMemberBuilder {
   final Constructor constructor;
+  final Procedure? _constructorTearOff;
 
-  DillConstructorBuilder(this.constructor, Builder parent)
+  DillConstructorBuilder(
+      this.constructor, this._constructorTearOff, Builder parent)
       : super(constructor, parent);
 
   @override
   Constructor get member => constructor;
 
   @override
-  Member? get readTarget => null;
+  Member? get readTarget => _constructorTearOff ?? constructor;
 
   @override
   Member? get writeTarget => null;

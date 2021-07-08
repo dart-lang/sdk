@@ -14,7 +14,6 @@ import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
@@ -3092,6 +3091,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   @override
   buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    int nameOffset = offsetForToken(send.token);
     Name name = send.name;
     Arguments? arguments = send.arguments;
 
@@ -3107,8 +3107,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     if (declarationBuilder is DeclarationBuilder) {
       DeclarationBuilder declaration = declarationBuilder;
       Builder? member = declaration.findStaticBuilder(
-          name.text, offsetForToken(send.token), _uri, _helper.libraryBuilder);
-
+          name.text, nameOffset, _uri, _helper.libraryBuilder);
       Generator generator;
       if (member == null) {
         // If we find a setter, [member] is an [AccessErrorBuilder], not null.
@@ -3116,19 +3115,25 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           if (_helper.enableConstructorTearOffsInLibrary &&
               declarationBuilder is ClassBuilder) {
             MemberBuilder? constructor =
-                declarationBuilder.findConstructorOrFactory(name.text,
-                    offsetForToken(send.token), _uri, _helper.libraryBuilder);
-            if (constructor is ConstructorBuilder) {
-              return _helper.forest.createConstructorTearOff(
-                  token.charOffset, constructor.constructor);
-            } else {
-              // TODO(dmitryas): Add support for factories.
-              generator =
-                  new UnresolvedNameGenerator(_helper, send.token, name);
+                declarationBuilder.findConstructorOrFactory(
+                    name.text, nameOffset, _uri, _helper.libraryBuilder);
+            Member? tearOff = constructor?.readTarget;
+            if (tearOff is Constructor) {
+              if (declarationBuilder.isAbstract) {
+                return _helper.buildProblem(
+                    messageAbstractClassConstructorTearOff,
+                    nameOffset,
+                    name.text.length);
+              }
+              return _helper.forest
+                  .createConstructorTearOff(token.charOffset, tearOff);
+            } else if (tearOff is Procedure) {
+              return _helper.forest
+                  .createStaticTearOff(token.charOffset, tearOff);
             }
-          } else {
-            generator = new UnresolvedNameGenerator(_helper, send.token, name);
+            // TODO(dmitryas): Add support for factories.
           }
+          generator = new UnresolvedNameGenerator(_helper, send.token, name);
         } else {
           return _helper.buildConstructorInvocation(
               declaration,

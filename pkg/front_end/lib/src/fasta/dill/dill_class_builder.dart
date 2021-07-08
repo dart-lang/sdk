@@ -98,7 +98,8 @@ class DillClassBuilder extends ClassBuilderImpl {
           break;
       }
     } else if (member is Constructor) {
-      DillConstructorBuilder builder = new DillConstructorBuilder(member, this);
+      DillConstructorBuilder builder =
+          new DillConstructorBuilder(member, null, this);
       String name = member.name.text;
       constructorScopeBuilder.addMember(name, builder);
     } else {

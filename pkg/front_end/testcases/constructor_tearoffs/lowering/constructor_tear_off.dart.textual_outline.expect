@@ -1,0 +1,37 @@
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+
+class Class1 {}
+
+class Class2 {
+  Class2.named();
+}
+
+testNoArgs() {}
+
+class Class3 {
+  final int field;
+  Class3(this.field);
+}
+
+class Class4 {
+  final int? field;
+  Class4([this.field]);
+}
+
+class Class5 {
+  final int field1;
+  final int? field2;
+  Class5(this.field1, [this.field2]);
+}
+
+class Class6 {
+  final int field1;
+  final int? field2;
+  final int field3;
+  Class6(this.field1, {this.field2, required this.field3});
+}
+
+testArgs() {}
+expect(expected, actual) {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}

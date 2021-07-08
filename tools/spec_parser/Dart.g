@@ -420,11 +420,11 @@ constructorSignature
     ;
 
 constructorName
-    :    typeIdentifier ('.' identifier)?
+    :    typeIdentifier ('.' (identifier | NEW))?
     ;
 
 redirection
-    :    ':' THIS ('.' identifier)? arguments
+    :    ':' THIS ('.' (identifier | NEW))? arguments
     ;
 
 initializers
@@ -433,7 +433,7 @@ initializers
 
 initializerListEntry
     :    SUPER arguments
-    |    SUPER '.' identifier arguments
+    |    SUPER '.' (identifier | NEW) arguments
     |    fieldInitializer
     |    assertion
     ;
@@ -519,10 +519,12 @@ primary
     |    '(' expression ')'
     |    literal
     |    identifier
+    |    constructorTearoff
     ;
 
 constructorInvocation
-    :    typeName typeArguments '.' identifier arguments
+    :    typeName typeArguments '.' NEW arguments
+    |    typeName '.' NEW arguments
     ;
 
 literal
@@ -596,6 +598,10 @@ ifElement
 
 forElement
     : AWAIT? FOR '(' forLoopParts ')' element
+    ;
+
+constructorTearoff
+    :    typeName typeArguments? '.' NEW
     ;
 
 throwExpression
@@ -850,6 +856,7 @@ selector
     :    '!'
     |    assignableSelector
     |    argumentPart
+    |    typeArguments
     ;
 
 argumentPart
@@ -900,8 +907,8 @@ identifier
     ;
 
 qualifiedName
-    :    typeIdentifier '.' identifier
-    |    typeIdentifier '.' typeIdentifier '.' identifier
+    :    typeIdentifier '.' (identifier | NEW)
+    |    typeIdentifier '.' typeIdentifier '.' (identifier | NEW)
     ;
 
 typeIdentifier
@@ -1249,7 +1256,7 @@ typedIdentifier
 constructorDesignation
     :    typeIdentifier
     |    qualifiedName
-    |    typeName typeArguments ('.' identifier)?
+    |    typeName typeArguments ('.' (identifier | NEW))?
     ;
 
 symbolLiteral

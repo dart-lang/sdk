@@ -2324,7 +2324,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOpenParenOffset,
       int charEndOffset,
       String? nativeMethodName,
-      {Token? beginInitializers}) {
+      {Token? beginInitializers,
+      required bool forAbstractClass}) {
     Member? referenceFrom;
     if (_currentClassReferencesFromIndexed != null) {
       referenceFrom = _currentClassReferencesFromIndexed!.lookupConstructor(
@@ -2344,7 +2345,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charOpenParenOffset,
         charEndOffset,
         referenceFrom,
-        nativeMethodName);
+        nativeMethodName: nativeMethodName,
+        forAbstractClassOrEnum: forAbstractClass);
     checkTypeVariables(typeVariables, constructorBuilder);
     addBuilder(constructorName, constructorBuilder, charOffset,
         getterReference: referenceFrom?.reference);

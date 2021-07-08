@@ -53,7 +53,13 @@ import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 
 import 'package:kernel/target/targets.dart'
-    show LateLowering, Target, getTarget, TargetFlags, targets;
+    show
+        ConstructorTearOffLowering,
+        LateLowering,
+        Target,
+        TargetFlags,
+        getTarget,
+        targets;
 
 class CommandLineProblem {
   final Message message;
@@ -181,6 +187,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.forceLateLowering: const BoolValue(false),
   Flags.forceStaticFieldLowering: const BoolValue(false),
   Flags.forceNoExplicitGetterCalls: const BoolValue(false),
+  Flags.forceConstructorTearOffLowering: const BoolValue(false),
   Flags.help: const BoolValue(false),
   Flags.librariesJson: const UriValue(),
   Flags.noDefines: const BoolValue(false),
@@ -254,6 +261,10 @@ ProcessedOptions analyzeCommandLine(String programName,
           options[Flags.forceStaticFieldLowering],
       forceNoExplicitGetterCallsForTesting:
           options[Flags.forceNoExplicitGetterCalls],
+      forceConstructorTearOffLoweringForTesting:
+          options[Flags.forceConstructorTearOffLowering]
+              ? ConstructorTearOffLowering.all
+              : ConstructorTearOffLowering.none,
       enableNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
           explicitExperimentalFlags: explicitExperimentalFlags));
 

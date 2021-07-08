@@ -36,9 +36,9 @@ library /*isNonNullableByDefault*/;
 //   D(int x) : super.new(x * 2);
 //                    ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:8:41: Error: Redirection constructor target not found: 'B.new'
-//   factory A.redirectingFactoryChild() = B.new;
-//                                         ^
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:7:36: Error: Redirection constructor target not found: 'A.new'
+//   factory A.redirectingFactory() = A.new;
+//                                    ^
 //
 import self as self;
 import "dart:core" as core;
@@ -50,9 +50,9 @@ class A extends core::Object {
   constructor redirecting() → self::A
     ;
   static factory redirectingFactory() → self::A
-    let dynamic #redirecting_factory = self::A::new in invalid-expression;
+    let dynamic #redirecting_factory = "A.new" in invalid-expression;
   static factory redirectingFactoryChild() → self::A
-    let dynamic #redirecting_factory = "B.new" in invalid-expression;
+    let dynamic #redirecting_factory = self::B::• in invalid-expression;
 }
 class B extends self::A {
   synthetic constructor •() → self::B

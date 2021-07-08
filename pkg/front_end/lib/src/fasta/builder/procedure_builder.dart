@@ -580,7 +580,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   Procedure? get extensionTearOff => _extensionTearOff;
 
   @override
-  VariableDeclaration? getExtensionTearOffParameter(int index) {
+  VariableDeclaration? getTearOffParameter(int index) {
     return _extensionTearOffParameterMap?[getFormalParameter(index)];
   }
 

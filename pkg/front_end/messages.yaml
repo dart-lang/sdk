@@ -5232,3 +5232,10 @@ InstantiationTooManyArguments:
   script: |
     f<X>() {}
     main() => f<int, String>;
+
+AbstractClassConstructorTearOff:
+  template: "Constructors on abstract classes can't be torn off."
+  experiments: constructor-tearoffs
+  script: |
+    abstract class Class {}
+    main() => Class.new;

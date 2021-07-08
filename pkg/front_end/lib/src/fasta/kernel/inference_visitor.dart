@@ -191,7 +191,9 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitStaticTearOff(
       StaticTearOff node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
+    DartType type =
+        node.target.function.computeFunctionType(inferrer.library.nonNullable);
+    return inferrer.instantiateTearOff(type, typeContext, node);
   }
 
   @override

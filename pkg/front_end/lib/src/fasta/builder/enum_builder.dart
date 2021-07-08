@@ -288,7 +288,8 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charOffset,
         charEndOffset,
-        constructorReference);
+        constructorReference,
+        forAbstractClassOrEnum: true);
     constructors[""] = constructorBuilder;
     FieldBuilder valuesBuilder = new SourceFieldBuilder(
         /* metadata = */ null,

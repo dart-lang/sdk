@@ -408,7 +408,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         name.startsWith("_")) {
       return null;
     }
-    MemberBuilder? declaration = constructors.lookup(name, charOffset, uri);
+    MemberBuilder? declaration =
+        constructors.lookup(name == 'new' ? '' : name, charOffset, uri);
     if (declaration == null && isPatch) {
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);

@@ -998,15 +998,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 libraryBuilder.library);
           }
 
-          VariableDeclaration? extensionTearOffParameter =
-              builder.getExtensionTearOffParameter(i);
-          if (extensionTearOffParameter != null) {
+          VariableDeclaration? tearOffParameter =
+              builder.getTearOffParameter(i);
+          if (tearOffParameter != null) {
             cloner ??= new CloneVisitorNotMembers();
             Expression tearOffInitializer = cloner!.clone(initializer!);
-            extensionTearOffParameter.initializer = tearOffInitializer
-              ..parent = extensionTearOffParameter;
+            tearOffParameter.initializer = tearOffInitializer
+              ..parent = tearOffParameter;
             libraryBuilder.loader.transformPostInference(
-                extensionTearOffParameter,
+                tearOffParameter,
                 transformSetLiterals,
                 transformCollections,
                 libraryBuilder.library);
@@ -6680,13 +6680,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleNewAsIdentifier(Token token) {
-    // TODO(johnniwinther, paulberry): disable this error when the
-    // "constructor-tearoffs" feature is enabled.
-    addProblem(
-        templateExperimentNotEnabled.withArguments('constructor-tearoffs',
-            libraryBuilder.enableConstructorTearOffsVersionInLibrary.toText()),
-        token.charOffset,
-        token.length);
+    if (!libraryBuilder.enableConstructorTearOffsInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'constructor-tearoffs',
+              libraryBuilder.enableConstructorTearOffsVersionInLibrary
+                  .toText()),
+          token.charOffset,
+          token.length);
+    }
   }
 }
 

@@ -110,13 +110,13 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// this parameter on extension instance members.
   VariableDeclaration getFormalParameter(int index);
 
-  /// If this is an extension instance method, the tear off closure parameter
-  /// corresponding to the [index]th parameter on the instance method is
-  /// returned.
+  /// If this is an extension instance method or constructor with lowering
+  /// enabled, the tear off parameter corresponding to the [index]th parameter
+  /// on the instance method or constructor is returned.
   ///
   /// This is used to update the default value for the closure parameter when
   /// it has been computed for the original parameter.
-  VariableDeclaration? getExtensionTearOffParameter(int index);
+  VariableDeclaration? getTearOffParameter(int index);
 
   /// Returns the parameter for 'this' synthetically added to extension
   /// instance members.
@@ -474,7 +474,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   }
 
   @override
-  VariableDeclaration? getExtensionTearOffParameter(int index) => null;
+  VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
   VariableDeclaration? get extensionThis {

@@ -17,9 +17,9 @@ library /*isNonNullableByDefault*/;
 //   factory A.redirectingFactoryChild() = B.new;
 //                                           ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:8:41: Error: Redirection constructor target not found: 'B.new'
-//   factory A.redirectingFactoryChild() = B.new;
-//                                         ^
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:7:36: Error: Redirection constructor target not found: 'A.new'
+//   factory A.redirectingFactory() = A.new;
+//                                    ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:15:23: Error: Getter not found: 'redirectingFactory'.
 //   A Function() f1 = A.redirectingFactory;
@@ -50,9 +50,9 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   static factory redirectingFactory() → self::A
-    let dynamic #redirecting_factory = self::A::new in invalid-expression;
+    let dynamic #redirecting_factory = "A.new" in invalid-expression;
   static factory redirectingFactoryChild() → self::A
-    let dynamic #redirecting_factory = "B.new" in invalid-expression;
+    let dynamic #redirecting_factory = self::B::• in invalid-expression;
   static factory redirectingTwice() → self::A
     let dynamic #redirecting_factory = self::A::redirectingFactory in invalid-expression;
 }

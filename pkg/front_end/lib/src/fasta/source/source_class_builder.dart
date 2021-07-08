@@ -558,7 +558,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     constructorScopeBuilder.addMember(name, constructorBuilder);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
-    cls.addConstructor(constructorBuilder.member);
+    cls.addConstructor(constructorBuilder.invokeTarget);
+    if (constructorBuilder.readTarget != null &&
+        constructorBuilder.readTarget != constructorBuilder.invokeTarget) {
+      cls.addProcedure(constructorBuilder.readTarget as Procedure);
+    }
     if (constructorBuilder.isConst) {
       cls.hasConstConstructor = true;
     }

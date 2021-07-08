@@ -53,6 +53,9 @@ class DevCompilerTarget extends Target {
   bool get supportsNewMethodInvocationEncoding => true;
 
   @override
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
+
+  @override
   String get name => 'dartdevc';
 
   @override
