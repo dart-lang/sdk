@@ -832,6 +832,12 @@ class Forest {
     assert(fileOffset != null);
     return new ConstructorTearOff(constructor)..fileOffset = fileOffset;
   }
+
+  StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new StaticTearOff(procedure)..fileOffset = fileOffset;
+  }
 }
 
 class _VariablesDeclaration extends Statement {

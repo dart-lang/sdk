@@ -108,6 +108,9 @@ class Dart2jsTarget extends Target {
   bool get supportsNewMethodInvocationEncoding => true;
 
   @override
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
+
+  @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
 
   @override

@@ -68,6 +68,10 @@ class VmTarget extends Target {
   bool get supportsNewMethodInvocationEncoding => true;
 
   @override
+  int get enabledConstructorTearOffLowerings =>
+      flags.forceConstructorTearOffLoweringForTesting;
+
+  @override
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to

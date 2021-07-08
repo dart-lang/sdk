@@ -13,9 +13,9 @@ import '../dill/dill_member_builder.dart';
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart'
     show ExpressionGeneratorHelper;
-
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../kernel/kernel_target.dart' show ClonedFunctionNode;
@@ -92,6 +92,7 @@ abstract class ConstructorBuilder implements FunctionBuilder {
 class ConstructorBuilderImpl extends FunctionBuilderImpl
     implements ConstructorBuilder {
   final Constructor _constructor;
+  final Procedure? _constructorTearOff;
 
   Set<FieldBuilder>? _initializedFields;
 
@@ -134,11 +135,15 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
+        _constructorTearOff = createConstructorTearOffProcedure(
+            name, compilationUnit, charOffset),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
+  SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+
   @override
-  Member? get readTarget => null;
+  Member? get readTarget => _constructorTearOff ?? _constructor;
 
   @override
   Member? get writeTarget => null;
@@ -183,6 +188,9 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
     f(member, BuiltMemberKind.Constructor);
+    if (_constructorTearOff != null) {
+      f(_constructorTearOff!, BuiltMemberKind.Method);
+    }
   }
 
   bool _hasBeenBuilt = false;
@@ -197,6 +205,12 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       _constructor.isConst = isConst;
       _constructor.isExternal = isExternal;
       updatePrivateMemberName(_constructor, libraryBuilder);
+
+      if (_constructorTearOff != null) {
+        buildConstructorTearOffProcedure(_constructorTearOff!, _constructor,
+            classBuilder!.cls, libraryBuilder);
+      }
+
       _hasBeenBuilt = true;
     }
     if (formals != null) {
@@ -246,6 +260,10 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       bodyBuilder.constantContext = ConstantContext.required;
       bodyBuilder.parseInitializers(beginInitializers!);
       bodyBuilder.resolveRedirectingFactoryTargets();
+    }
+    if (_constructorTearOff != null) {
+      buildConstructorTearOffOutline(
+          _constructorTearOff!, constructor, classBuilder!.cls);
     }
     beginInitializers = null;
   }
@@ -355,6 +373,21 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
+  VariableDeclaration? getTearOffParameter(int index) {
+    if (_constructorTearOff != null) {
+      if (index < _constructorTearOff!.function.positionalParameters.length) {
+        return _constructorTearOff!.function.positionalParameters[index];
+      } else {
+        index -= _constructorTearOff!.function.positionalParameters.length;
+        if (index < _constructorTearOff!.function.namedParameters.length) {
+          return _constructorTearOff!.function.namedParameters[index];
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
   int finishPatch() {
     if (!isPatch) return 0;
 
@@ -435,13 +468,14 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder {
   MemberBuilderImpl? _origin;
   ClonedFunctionNode? _clonedFunctionNode;
 
-  SyntheticConstructorBuilder(
-      SourceClassBuilder parent, Constructor constructor,
+  SyntheticConstructorBuilder(SourceClassBuilder parent,
+      Constructor constructor, Procedure? constructorTearOff,
       {MemberBuilderImpl? origin, ClonedFunctionNode? clonedFunctionNode})
       : _origin = origin,
         _clonedFunctionNode = clonedFunctionNode,
-        super(constructor, parent);
+        super(constructor, constructorTearOff, parent);
 
+  @override
   void buildOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
       CoreTypes coreTypes,

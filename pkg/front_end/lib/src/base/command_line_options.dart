@@ -15,6 +15,8 @@ class Flags {
       "--force-static-field-lowering";
   static const String forceNoExplicitGetterCalls =
       "--force-no-explicit-getter-calls";
+  static const String forceConstructorTearOffLowering =
+      "--force-constructor-tear-off-lowering";
 
   static const String target = "--target";
 

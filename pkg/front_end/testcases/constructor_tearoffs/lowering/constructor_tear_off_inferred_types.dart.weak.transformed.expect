@@ -1,0 +1,2 @@
+library /*isNonNullableByDefault*/;
+import self as self;

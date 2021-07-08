@@ -14,7 +14,6 @@ import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
@@ -3118,17 +3117,17 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             MemberBuilder? constructor =
                 declarationBuilder.findConstructorOrFactory(name.text,
                     offsetForToken(send.token), _uri, _helper.libraryBuilder);
-            if (constructor is ConstructorBuilder) {
-              return _helper.forest.createConstructorTearOff(
-                  token.charOffset, constructor.constructor);
-            } else {
-              // TODO(dmitryas): Add support for factories.
-              generator =
-                  new UnresolvedNameGenerator(_helper, send.token, name);
+            Member? tearOff = constructor?.readTarget;
+            if (tearOff is Constructor) {
+              return _helper.forest
+                  .createConstructorTearOff(token.charOffset, tearOff);
+            } else if (tearOff is Procedure) {
+              return _helper.forest
+                  .createStaticTearOff(token.charOffset, tearOff);
             }
-          } else {
-            generator = new UnresolvedNameGenerator(_helper, send.token, name);
+            // TODO(dmitryas): Add support for factories.
           }
+          generator = new UnresolvedNameGenerator(_helper, send.token, name);
         } else {
           return _helper.buildConstructorInvocation(
               declaration,

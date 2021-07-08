@@ -111,31 +111,38 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   List<TypeParameter> freshParameters = new List<TypeParameter>.generate(
       typeParameters.length, (i) => new TypeParameter(typeParameters[i].name),
       growable: true);
-  Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
-  for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] = new TypeParameterType.forAlphaRenaming(
+  List<DartType> freshTypeArguments =
+      new List<DartType>.generate(typeParameters.length, (int i) {
+    return new TypeParameterType.forAlphaRenaming(
         typeParameters[i], freshParameters[i]);
-  }
+  }, growable: true);
+  Substitution substitution =
+      Substitution.fromPairs(typeParameters, freshTypeArguments);
   for (int i = 0; i < typeParameters.length; ++i) {
     TypeParameter typeParameter = typeParameters[i];
     TypeParameter freshTypeParameter = freshParameters[i];
 
-    freshTypeParameter.bound = substitute(typeParameter.bound, map);
-    freshTypeParameter.defaultType = substitute(typeParameter.defaultType, map);
+    freshTypeParameter.bound = substitution.substituteType(typeParameter.bound);
+    freshTypeParameter.defaultType =
+        substitution.substituteType(typeParameter.defaultType);
     freshTypeParameter.variance =
         typeParameter.isLegacyCovariant ? null : typeParameter.variance;
     // Annotations on a type parameter are specific to the declaration of the
     // type parameter, rather than the type parameter as such, and therefore
     // should not be copied here.
   }
-  return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
+  return new FreshTypeParameters(
+      freshParameters, freshTypeArguments, substitution);
 }
 
 class FreshTypeParameters {
+  ///
   final List<TypeParameter> freshTypeParameters;
+  final List<DartType> freshTypeArguments;
   final Substitution substitution;
 
-  FreshTypeParameters(this.freshTypeParameters, this.substitution);
+  FreshTypeParameters(
+      this.freshTypeParameters, this.freshTypeArguments, this.substitution);
 
   FunctionType applyToFunctionType(FunctionType type) {
     return new FunctionType(type.positionalParameters.map(substitute).toList(),

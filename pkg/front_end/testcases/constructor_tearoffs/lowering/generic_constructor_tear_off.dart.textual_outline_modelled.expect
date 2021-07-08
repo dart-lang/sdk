@@ -1,0 +1,16 @@
+class Class1<T> {}
+
+class Class2<T extends num> {}
+
+class Class3<T extends S, S> {}
+
+class Class4<T extends Class4<T>> {}
+
+class Class4int extends Class4<Class4int> {}
+
+expect(expected, actual) {}
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+testBounded() {}
+testGeneric() {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}

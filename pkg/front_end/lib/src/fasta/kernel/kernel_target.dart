@@ -43,6 +43,7 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../dill/dill_target.dart' show DillTarget;
 import '../fasta_codes.dart' show LocatedMessage, Message;
+import '../kernel/constructor_tearoff_lowering.dart';
 import '../loader.dart' show Loader;
 import '../messages.dart'
     show
@@ -778,6 +779,7 @@ class KernelTarget extends TargetImplementation {
             fileUri: cls.fileUri)
           ..isNonNullableByDefault =
               cls.enclosingLibrary.isNonNullableByDefault,
+        null,
         // If the constructor is constant, the default values must be part of
         // the outline expressions. We pass on the original constructor and
         // cloned function nodes to ensure that the default values are computed
@@ -797,17 +799,24 @@ class KernelTarget extends TargetImplementation {
   SyntheticConstructorBuilder _makeDefaultConstructor(
       SourceClassBuilder classBuilder, Constructor? referenceFrom) {
     Class enclosingClass = classBuilder.cls;
+    Constructor constructor = new Constructor(
+        new FunctionNode(new EmptyStatement(),
+            returnType: makeConstructorReturnType(enclosingClass)),
+        name: new Name(""),
+        isSynthetic: true,
+        reference: referenceFrom?.reference,
+        fileUri: enclosingClass.fileUri)
+      ..fileOffset = enclosingClass.fileOffset
+      ..isNonNullableByDefault =
+          enclosingClass.enclosingLibrary.isNonNullableByDefault;
+    Procedure? constructorTearOff = createConstructorTearOffProcedure(
+        '', classBuilder.library, constructor.fileOffset);
+    if (constructorTearOff != null) {
+      buildConstructorTearOffProcedure(constructorTearOff, constructor,
+          classBuilder.cls, classBuilder.library);
+    }
     return new SyntheticConstructorBuilder(
-        classBuilder,
-        new Constructor(
-            new FunctionNode(new EmptyStatement(),
-                returnType: makeConstructorReturnType(enclosingClass)),
-            name: new Name(""),
-            isSynthetic: true,
-            reference: referenceFrom?.reference,
-            fileUri: enclosingClass.fileUri)
-          ..isNonNullableByDefault =
-              enclosingClass.enclosingLibrary.isNonNullableByDefault);
+        classBuilder, constructor, constructorTearOff);
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
