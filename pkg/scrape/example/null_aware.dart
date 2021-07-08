@@ -22,7 +22,7 @@ class NullVisitor extends ScrapeVisitor {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.operator != null &&
-        node.operator.type == TokenType.QUESTION_PERIOD) {
+        node.operator!.type == TokenType.QUESTION_PERIOD) {
       _nullAware(node);
     }
 
@@ -52,7 +52,7 @@ class NullVisitor extends ScrapeVisitor {
             parent.target == node ||
         parent is MethodInvocation &&
             parent.operator != null &&
-            parent.operator.type == TokenType.QUESTION_PERIOD &&
+            parent.operator!.type == TokenType.QUESTION_PERIOD &&
             parent.target == node) {
       // This node is not the root of a null-aware chain, so skip it.
       return;
@@ -60,15 +60,15 @@ class NullVisitor extends ScrapeVisitor {
 
     // This node is the root of a null-aware chain. See how long the chain is.
     var length = 0;
-    var chain = node;
+    AstNode? chain = node;
     while (true) {
       if (chain is PropertyAccess &&
           chain.operator.type == TokenType.QUESTION_PERIOD) {
-        chain = (chain as PropertyAccess).target;
+        chain = chain.target;
       } else if (chain is MethodInvocation &&
           chain.operator != null &&
-          chain.operator.type == TokenType.QUESTION_PERIOD) {
-        chain = (chain as MethodInvocation).target;
+          chain.operator!.type == TokenType.QUESTION_PERIOD) {
+        chain = chain.target;
       } else {
         break;
       }
@@ -242,14 +242,14 @@ class NullVisitor extends ScrapeVisitor {
 
     // Find the surrounding statement containing the null-aware.
     while (node is Expression) {
-      node = node.parent;
+      node = node.parent!;
     }
 
     printNode(node);
   }
 
   void _checkCondition(AstNode node) {
-    String expression;
+    String? expression;
 
     // Look at the expression that immediately wraps the null-aware to see if
     // it deals with it somehow, like "foo?.bar ?? otherwise".
@@ -262,17 +262,16 @@ class NullVisitor extends ScrapeVisitor {
             parent.operator.type == TokenType.QUESTION_QUESTION) &&
         (parent.rightOperand is NullLiteral ||
             parent.rightOperand is BooleanLiteral)) {
-      var binary = parent as BinaryExpression;
-      expression = 'foo?.bar ${binary.operator} ${binary.rightOperand}';
+      expression = 'foo?.bar ${parent.operator} ${parent.rightOperand}';
 
       // This does handle it, so see the context where it appears.
-      node = parent as Expression;
+      node = parent;
       if (node is ParenthesizedExpression) node = node.parent as Expression;
       parent = node.parent;
       if (parent is ParenthesizedExpression) parent = parent.parent;
     }
 
-    String context;
+    String? context;
     if (parent is IfStatement && node == parent.condition) {
       context = 'if';
     } else if (parent is BinaryExpression &&

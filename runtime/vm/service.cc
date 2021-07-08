@@ -2136,15 +2136,16 @@ static void PrintInboundReferences(Thread* thread,
       jselement.AddProperty("source", source);
       if (source.IsArray()) {
         intptr_t element_index =
-            slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
+            (slot_offset.Value() - Array::element_offset(0)) /
+            Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
       } else {
         if (source.IsInstance()) {
           source_class = source.clazz();
           parent_field_map = source_class.OffsetToFieldMap();
-          intptr_t offset = slot_offset.Value();
-          if (offset > 0 && offset < parent_field_map.Length()) {
-            field ^= parent_field_map.At(offset);
+          intptr_t index = slot_offset.Value() >> kCompressedWordSizeLog2;
+          if (index > 0 && index < parent_field_map.Length()) {
+            field ^= parent_field_map.At(index);
             if (!field.IsNull()) {
               jselement.AddProperty("parentField", field);
               continue;
@@ -2152,7 +2153,7 @@ static void PrintInboundReferences(Thread* thread,
           }
         }
         const char* field_name = offsets_table.FieldNameForOffset(
-            source.GetClassId(), slot_offset.Value() * kWordSize);
+            source.GetClassId(), slot_offset.Value());
         if (field_name != nullptr) {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
           // TODO(vm-service): Adjust RPC type to allow returning a field name
@@ -2161,8 +2162,8 @@ static void PrintInboundReferences(Thread* thread,
           // jselement.AddProperty("_parentFieldName", field_name);
         } else if (source.IsContext()) {
           intptr_t element_index =
-              slot_offset.Value() -
-              (Context::variable_offset(0) >> kWordSizeLog2);
+              (slot_offset.Value() - Context::variable_offset(0)) /
+              Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
@@ -2254,13 +2255,15 @@ static void PrintRetainingPath(Thread* thread,
       slot_offset ^= path.At((i * 2) - 1);
       if (element.IsArray() || element.IsGrowableObjectArray()) {
         intptr_t element_index =
-            slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
+            (slot_offset.Value() - Array::element_offset(0)) /
+            Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
       } else if (element.IsLinkedHashMap()) {
         map = static_cast<LinkedHashMapPtr>(path.At(i * 2));
         map_data = map.data();
         intptr_t element_index =
-            slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
+            (slot_offset.Value() - Array::element_offset(0)) /
+            Array::kBytesPerElement;
         LinkedHashMap::Iterator iterator(map);
         while (iterator.MoveNext()) {
           if (iterator.CurrentKey() == map_data.At(element_index) ||
@@ -2278,9 +2281,9 @@ static void PrintRetainingPath(Thread* thread,
         if (element.IsInstance()) {
           element_class = element.clazz();
           element_field_map = element_class.OffsetToFieldMap();
-          intptr_t offset = slot_offset.Value();
-          if ((offset > 0) && (offset < element_field_map.Length())) {
-            field ^= element_field_map.At(offset);
+          intptr_t index = slot_offset.Value() >> kCompressedWordSizeLog2;
+          if ((index > 0) && (index < element_field_map.Length())) {
+            field ^= element_field_map.At(index);
             if (!field.IsNull()) {
               name ^= field.name();
               jselement.AddProperty("parentField", name.ToCString());
@@ -2289,13 +2292,13 @@ static void PrintRetainingPath(Thread* thread,
           }
         }
         const char* field_name = offsets_table.FieldNameForOffset(
-            element.GetClassId(), slot_offset.Value() * kWordSize);
+            element.GetClassId(), slot_offset.Value());
         if (field_name != nullptr) {
           jselement.AddProperty("parentField", field_name);
         } else if (element.IsContext()) {
           intptr_t element_index =
-              slot_offset.Value() -
-              (Context::variable_offset(0) >> kWordSizeLog2);
+              (slot_offset.Value() - Context::variable_offset(0)) /
+              Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());

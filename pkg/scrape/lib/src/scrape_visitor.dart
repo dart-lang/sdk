@@ -17,7 +17,6 @@ import '../scrape.dart';
 /// need to define a pass-through constructor.
 void bindVisitor(ScrapeVisitor visitor, Scrape scrape, String path,
     String source, LineInfo info) {
-  assert(visitor._scrape == null, 'Should only bind once.');
   visitor._scrape = scrape;
   visitor._path = path;
   visitor._source = source;
@@ -26,11 +25,11 @@ void bindVisitor(ScrapeVisitor visitor, Scrape scrape, String path,
 
 /// Base Visitor class with some utility functionality.
 class ScrapeVisitor extends RecursiveAstVisitor<void> {
-  // These final-ish fields are initialized by [bindVisitor()].
-  Scrape _scrape;
-  String _path;
-  String _source;
-  LineInfo lineInfo;
+  // These are initialized by [bindVisitor()].
+  late final Scrape _scrape;
+  late final String _path;
+  late final String _source;
+  late final LineInfo lineInfo;
 
   /// How many levels deep the visitor is currently nested inside build methods.
   int _inFlutterBuildMethods = 0;
@@ -47,8 +46,8 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
   /// "BuildContext context".
   bool get isInFlutterBuildMethod => _inFlutterBuildMethods > 0;
 
-  bool _isBuildMethod(TypeAnnotation returnType, SimpleIdentifier name,
-      FormalParameterList parameters) {
+  bool _isBuildMethod(TypeAnnotation? returnType, SimpleIdentifier name,
+      FormalParameterList? parameters) {
     var parameterString = parameters.toString();
 
     if (returnType.toString() == 'void') return false;
@@ -79,8 +78,8 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
     var startLine = lineInfo.getLocation(node.offset).lineNumber;
     var endLine = lineInfo.getLocation(node.end).lineNumber;
 
-    startLine = startLine.clamp(0, lineInfo.lineCount - 1) as int;
-    endLine = endLine.clamp(0, lineInfo.lineCount - 1) as int;
+    startLine = startLine.clamp(0, lineInfo.lineCount - 1);
+    endLine = endLine.clamp(0, lineInfo.lineCount - 1);
 
     var buffer = StringBuffer();
     buffer.writeln('// $path:$startLine');

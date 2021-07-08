@@ -1,4 +1,4 @@
-## 2.0.0-dev (Not yet released - breaking changes)
+## 2.0.0
 * Removed deprecated `Scope.lookup2()`.
 * Removed deprecated setters in API of AST.
 * Removed deprecated `FunctionTypeAliasElement`.
@@ -11,8 +11,6 @@
 * Changed `DartObject.type` from `ParameterizedType?` to `DartType?`.
 * Changed `FunctionType` to implement `DartType`, not `ParameterizedType`.
 * Removed `FunctionType.element` and `FunctionType.typeArguments`.
-
-## 1.8.0-dev
 * Added `StringInterpolation.firstString` and `lastString`, to express
   explicitly  that there are always (possibly empty) strings as the first
   and the last elements of an interpolation.

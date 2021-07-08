@@ -24,20 +24,23 @@ class ClassReuseVisitor extends ScrapeVisitor {
       record('Declarations', 'class');
     }
 
-    if (node.extendsClause != null) {
+    var extendsClause = node.extendsClause;
+    if (extendsClause != null) {
       record('Uses', 'extend');
-      record('Superclass names', node.extendsClause.superclass.toString());
+      record('Superclass names', extendsClause.superclass.toString());
     }
 
-    if (node.withClause != null) {
-      for (var mixin in node.withClause.mixinTypes) {
+    var withClause = node.withClause;
+    if (withClause != null) {
+      for (var mixin in withClause.mixinTypes) {
         record('Uses', 'mixin');
         record('Mixin names', mixin.toString());
       }
     }
 
-    if (node.implementsClause != null) {
-      for (var type in node.implementsClause.interfaces) {
+    var implementsClause = node.implementsClause;
+    if (implementsClause != null) {
+      for (var type in implementsClause.interfaces) {
         record('Uses', 'implement');
         record('Superinterface names', type.toString());
       }

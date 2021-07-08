@@ -1,4 +1,9 @@
-## 2.0.0
+## 1.7.0
+
+* Restore `TargetKindExtension` and `get displayString`.
+  We published `analyzer 1.7.2` that is compatible with `TargetKindExtension`.
+
+## 2.0.0 - removed
 
 * Restore `TargetKindExtension` and `get displayString`.
 
