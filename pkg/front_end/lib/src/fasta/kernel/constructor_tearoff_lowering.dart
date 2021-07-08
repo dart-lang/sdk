@@ -21,9 +21,11 @@ Name constructorTearOffName(String constructorName, Library library) {
 ///
 /// If constructor tear off lowering is not enabled, `null` is returned.
 Procedure? createConstructorTearOffProcedure(
-    String name, SourceLibraryBuilder compilationUnit, int fileOffset) {
-  if (compilationUnit
-      .loader.target.backendTarget.isConstructorTearOffLoweringEnabled) {
+    String name, SourceLibraryBuilder compilationUnit, int fileOffset,
+    {required bool forAbstractClassOrEnum}) {
+  if (!forAbstractClassOrEnum &&
+      compilationUnit
+          .loader.target.backendTarget.isConstructorTearOffLoweringEnabled) {
     return new Procedure(constructorTearOffName(name, compilationUnit.library),
         ProcedureKind.Method, new FunctionNode(null),
         fileUri: compilationUnit.fileUri, isStatic: true)

@@ -105,6 +105,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   final bool enableNative;
   final bool stringExpectedAfterNative;
+  bool inAbstractClass = false;
   bool inConstructor = false;
   bool inConstructorName = false;
   int importIndex = 0;
@@ -470,6 +471,7 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
     libraryBuilder.setCurrentClassName(name.lexeme);
+    inAbstractClass = abstractToken != null;
     push(abstractToken != null ? abstractMask : 0);
   }
 
@@ -584,6 +586,7 @@ class OutlineBuilder extends StackListenerImpl {
       supertype.typeVariables = typeVariables;
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
+    inAbstractClass = false;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
       libraryBuilder
@@ -1240,7 +1243,8 @@ class OutlineBuilder extends StackListenerImpl {
           formalsOffset,
           endToken.charOffset,
           nativeMethodName,
-          beginInitializers: beginInitializers);
+          beginInitializers: beginInitializers,
+          forAbstractClass: inAbstractClass);
     } else {
       if (isConst) {
         // TODO(danrubel): consider removing this

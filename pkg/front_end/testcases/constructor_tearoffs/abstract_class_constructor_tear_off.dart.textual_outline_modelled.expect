@@ -1,0 +1,13 @@
+abstract class AbstractClass {}
+
+abstract class AbstractNamedMixinApplication = Object with Mixin;
+
+class ConcreteClass {}
+
+class NamedMixinApplication = Object with Mixin;
+
+extension Extension on int {}
+
+main() {}
+mixin Mixin {}
+test() {}

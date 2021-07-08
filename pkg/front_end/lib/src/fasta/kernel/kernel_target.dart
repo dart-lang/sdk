@@ -810,7 +810,9 @@ class KernelTarget extends TargetImplementation {
       ..isNonNullableByDefault =
           enclosingClass.enclosingLibrary.isNonNullableByDefault;
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        '', classBuilder.library, constructor.fileOffset);
+        '', classBuilder.library, constructor.fileOffset,
+        forAbstractClassOrEnum:
+            enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
           classBuilder.cls, classBuilder.library);

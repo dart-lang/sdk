@@ -6,6 +6,7 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+constructor_tearoffs/abstract_class_constructor_tear_off: TextSerializationFailure
 constructor_tearoffs/generic_tearoff_with_context: TextSerializationFailure
 constructor_tearoffs/generic_tearoff_without_context: TextSerializationFailure
 constructor_tearoffs/instantiation: TypeCheckError

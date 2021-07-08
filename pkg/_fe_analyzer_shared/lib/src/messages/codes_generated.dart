@@ -12,6 +12,15 @@
 part of _fe_analyzer_shared.messages.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractClassConstructorTearOff =
+    messageAbstractClassConstructorTearOff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractClassConstructorTearOff = const MessageCode(
+    "AbstractClassConstructorTearOff",
+    message: r"""Constructors on abstract classes can't be torn off.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateAbstractClassInstantiation =
     const Template<Message Function(String name)>(

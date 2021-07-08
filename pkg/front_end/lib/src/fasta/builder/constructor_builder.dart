@@ -126,7 +126,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       this.charOpenParenOffset,
       int charEndOffset,
       Member? referenceFrom,
-      [String? nativeMethodName])
+      {String? nativeMethodName,
+      required bool forAbstractClassOrEnum})
       : _constructor = new Constructor(new FunctionNode(null),
             name: new Name(name, compilationUnit.library),
             fileUri: compilationUnit.fileUri,
@@ -136,7 +137,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         _constructorTearOff = createConstructorTearOffProcedure(
-            name, compilationUnit, charOffset),
+            name, compilationUnit, charOffset,
+            forAbstractClassOrEnum: forAbstractClassOrEnum),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
