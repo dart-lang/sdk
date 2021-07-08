@@ -28,6 +28,7 @@ void main() {
           if (test is! File) continue;
           var testFile = test;
           var ruleName = p.basenameWithoutExtension(test.path);
+          if (ruleName.startsWith('.')) continue;
           testRule(ruleName, testFile, analysisOptions: analysisOptions);
         }
       });

@@ -66,8 +66,8 @@ String _metaLibName = 'meta';
 /// type args.
 String _optionalTypeArgsVarName = 'optionalTypeArgs';
 
-bool _isOptionallyParameterized(InterfaceType type) {
-  var metadata = type.element.metadata;
+bool _isOptionallyParameterized(TypeParameterizedElement element) {
+  var metadata = element.metadata;
   return metadata.any((ElementAnnotation a) => _isOptionalTypeArgs(a.element));
 }
 
@@ -127,10 +127,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitNamedType(NamedType namedType) {
     var type = namedType.type;
     if (type is InterfaceType) {
-      if (type.element.typeParameters.isNotEmpty &&
+      var element = type.aliasElement ?? type.element;
+      if (element.typeParameters.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
-          !_isOptionallyParameterized(type)) {
+          !_isOptionallyParameterized(element)) {
         rule.reportLint(namedType);
       }
     }
