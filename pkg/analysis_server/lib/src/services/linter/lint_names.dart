@@ -60,6 +60,8 @@ class LintNames {
   static const String prefer_const_constructors_in_immutables =
       'prefer_const_constructors_in_immutables';
   static const String prefer_const_declarations = 'prefer_const_declarations';
+  static const String prefer_const_literals_to_create_immutables =
+      'prefer_const_literals_to_create_immutables';
   static const String prefer_contains = 'prefer_contains';
   static const String prefer_equal_for_default_values =
       'prefer_equal_for_default_values';

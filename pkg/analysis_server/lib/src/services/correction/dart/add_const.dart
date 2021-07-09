@@ -37,6 +37,25 @@ class AddConst extends CorrectionProducer {
       });
       return;
     }
+
+    Future<void> insertAtOffset(AstNode targetNode) async {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(targetNode.offset, 'const ');
+      });
+    }
+
+    // todo(pq):consider removing nested `const` declarations
+    // made unnecessary by outer ones in List, Set literal and
+    // instance creations.
+
+    if (targetNode is ListLiteral) {
+      await insertAtOffset(targetNode);
+      return;
+    }
+    if (targetNode is SetOrMapLiteral) {
+      await insertAtOffset(targetNode);
+      return;
+    }
     if (targetNode is TypeName) {
       targetNode = targetNode.parent;
     }
@@ -45,10 +64,8 @@ class AddConst extends CorrectionProducer {
     }
     if (targetNode is InstanceCreationExpression) {
       if (targetNode.keyword == null) {
-        var node_final = targetNode;
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleInsertion(node_final.offset, 'const ');
-        });
+        await insertAtOffset(targetNode);
+        return;
       }
     }
   }
@@ -61,4 +78,7 @@ class AddConst extends CorrectionProducer {
   //  with the `unnecessary_const` lint. Fix it and then enable it for both
   //  uses.
   static AddConst toInvocation() => AddConst(false, false);
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static AddConst toLiteral() => AddConst(true, true);
 }
