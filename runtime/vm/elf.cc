@@ -478,71 +478,6 @@ class StringTable : public Section {
   CStringIntMap text_indices_;
 };
 
-class Symbol : public ZoneAllocated {
- public:
-  Symbol(const char* cstr,
-         intptr_t name,
-         intptr_t binding,
-         intptr_t type,
-         intptr_t initial_section_index,
-         intptr_t size)
-      : name_index(name),
-        binding(binding),
-        type(type),
-        size(size),
-        section_index(initial_section_index),
-        cstr_(cstr) {}
-
-  void Finalize(intptr_t final_section_index, intptr_t offset) {
-    ASSERT(!HasBeenFinalized());  // No symbol should be re-finalized.
-    section_index = final_section_index;
-    offset_ = offset;
-  }
-  bool HasBeenFinalized() const { return offset_ != kNotFinalizedMarker; }
-  intptr_t offset() const {
-    ASSERT(HasBeenFinalized());
-    // Only the reserved initial symbol should have an offset of 0.
-    ASSERT_EQUAL(type == elf::STT_NOTYPE, offset_ == 0);
-    return offset_;
-  }
-
-  void Write(ElfWriteStream* stream) const {
-    const intptr_t start = stream->Position();
-    stream->WriteWord(name_index);
-#if defined(TARGET_ARCH_IS_32_BIT)
-    stream->WriteAddr(offset());
-    stream->WriteWord(size);
-    stream->WriteByte(elf::SymbolInfo(binding, type));
-    stream->WriteByte(0);
-    stream->WriteHalf(section_index);
-#else
-    stream->WriteByte(elf::SymbolInfo(binding, type));
-    stream->WriteByte(0);
-    stream->WriteHalf(section_index);
-    stream->WriteAddr(offset());
-    stream->WriteXWord(size);
-#endif
-    ASSERT_EQUAL(stream->Position() - start, sizeof(elf::Symbol));
-  }
-
-  const intptr_t name_index;
-  const intptr_t binding;
-  const intptr_t type;
-  const intptr_t size;
-  // Is set twice: once in Elf::AddSection to the section's initial index into
-  // sections_, and then in Elf::FinalizeSymbols to the section's final index
-  // into sections_ after reordering.
-  intptr_t section_index;
-
- private:
-  static const intptr_t kNotFinalizedMarker = -1;
-
-  const char* const cstr_;
-  intptr_t offset_ = kNotFinalizedMarker;
-
-  friend class SymbolHashTable;  // For cstr_ access.
-};
-
 class SymbolTable : public Section {
  public:
   SymbolTable(Zone* zone, StringTable* table, bool dynamic)
@@ -567,6 +502,71 @@ class SymbolTable : public Section {
 
   intptr_t FileSize() const { return Length() * entry_size; }
   intptr_t MemorySize() const { return dynamic_ ? FileSize() : 0; }
+
+  class Symbol : public ZoneAllocated {
+   public:
+    Symbol(const char* cstr,
+           intptr_t name,
+           intptr_t binding,
+           intptr_t type,
+           intptr_t initial_section_index,
+           intptr_t size)
+        : name_index(name),
+          binding(binding),
+          type(type),
+          size(size),
+          section_index(initial_section_index),
+          cstr_(cstr) {}
+
+    void Finalize(intptr_t final_section_index, intptr_t offset) {
+      ASSERT(!HasBeenFinalized());  // No symbol should be re-finalized.
+      section_index = final_section_index;
+      offset_ = offset;
+    }
+    bool HasBeenFinalized() const { return offset_ != kNotFinalizedMarker; }
+    intptr_t offset() const {
+      ASSERT(HasBeenFinalized());
+      // Only the reserved initial symbol should have an offset of 0.
+      ASSERT_EQUAL(type == elf::STT_NOTYPE, offset_ == 0);
+      return offset_;
+    }
+
+    void Write(ElfWriteStream* stream) const {
+      const intptr_t start = stream->Position();
+      stream->WriteWord(name_index);
+#if defined(TARGET_ARCH_IS_32_BIT)
+      stream->WriteAddr(offset());
+      stream->WriteWord(size);
+      stream->WriteByte(elf::SymbolInfo(binding, type));
+      stream->WriteByte(0);
+      stream->WriteHalf(section_index);
+#else
+      stream->WriteByte(elf::SymbolInfo(binding, type));
+      stream->WriteByte(0);
+      stream->WriteHalf(section_index);
+      stream->WriteAddr(offset());
+      stream->WriteXWord(size);
+#endif
+      ASSERT_EQUAL(stream->Position() - start, sizeof(elf::Symbol));
+    }
+
+    const intptr_t name_index;
+    const intptr_t binding;
+    const intptr_t type;
+    const intptr_t size;
+    // Is set twice: once in Elf::AddSection to the section's initial index into
+    // sections_, and then in Elf::FinalizeSymbols to the section's final index
+    // into sections_ after reordering.
+    intptr_t section_index;
+
+   private:
+    static const intptr_t kNotFinalizedMarker = -1;
+
+    const char* const cstr_;
+    intptr_t offset_ = kNotFinalizedMarker;
+
+    friend class SymbolHashTable;  // For cstr_ access.
+  };
 
   void Write(ElfWriteStream* stream) {
     for (intptr_t i = 0; i < Length(); i++) {
@@ -878,7 +878,7 @@ class BitsContainer : public Section {
         if (strcmp(reloc.source_symbol, ".") == 0) {
           source_address += memory_offset() + reloc.section_offset;
         } else {
-          const Symbol* const source_symbol = symtab->Find(reloc.source_symbol);
+          auto* const source_symbol = symtab->Find(reloc.source_symbol);
           ASSERT(source_symbol != nullptr);
           source_address += source_symbol->offset();
         }
@@ -887,7 +887,7 @@ class BitsContainer : public Section {
         if (strcmp(reloc.target_symbol, ".") == 0) {
           target_address += memory_offset() + reloc.section_offset;
         } else {
-          const Symbol* const target_symbol = symtab->Find(reloc.target_symbol);
+          auto* const target_symbol = symtab->Find(reloc.target_symbol);
           if (target_symbol == nullptr) {
             ASSERT_EQUAL(strcmp(reloc.target_symbol, kSnapshotBuildIdAsmSymbol),
                          0);
@@ -1144,7 +1144,7 @@ static constexpr intptr_t kInitialDwarfBufferSize = 64 * KB;
 #endif
 
 const Section* Elf::FindSectionBySymbolName(const char* name) const {
-  const Symbol* const symbol = symtab_->Find(name);
+  auto* const symbol = symtab_->Find(name);
   if (symbol == nullptr) return nullptr;
   // Should not be run between OrderSectionsAndCreateSegments (when section
   // indices may change) and FinalizeSymbols() (sets the final section index).
