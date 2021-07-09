@@ -439,6 +439,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_const_declarations: [
       ReplaceFinalWithConst.newInstance,
     ],
+    LintNames.prefer_const_literals_to_create_immutables: [
+      AddConst.toLiteral,
+    ],
     LintNames.prefer_contains: [
       ConvertToContains.newInstance,
     ],

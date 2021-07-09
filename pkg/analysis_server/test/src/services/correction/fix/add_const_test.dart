@@ -11,10 +11,13 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddConst_PreferConstConstructorsBulkTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsInImmutablesBulkTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsInImmutablesTest);
+    defineReflectiveTests(AddConst_PreferConstConstructorsBulkTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsTest);
+    defineReflectiveTests(
+        AddConst_PreferConstLiteralsToCreateImmutablesBulkTest);
+    defineReflectiveTests(AddConst_PreferConstLiteralsToCreateImmutablesTest);
   });
 }
 
@@ -170,6 +173,162 @@ class C {
 }
 void f() {
   var c = const C();
+  print(c);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddConst_PreferConstLiteralsToCreateImmutablesBulkTest
+    extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_const_literals_to_create_immutables;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      meta: true,
+    );
+  }
+
+  Future<void> test_map() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  final Map children;
+  const C({required this.children});
+}
+void f() {
+  var c = C(children: {
+    1 : {}
+  });
+  print(c);
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  final Map children;
+  const C({required this.children});
+}
+void f() {
+  var c = C(children: const {
+    1 : const {}
+  });
+  print(c);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddConst_PreferConstLiteralsToCreateImmutablesTest
+    extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_CONST;
+
+  @override
+  String get lintCode => LintNames.prefer_const_literals_to_create_immutables;
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      meta: true,
+    );
+  }
+
+  Future<void> test_list() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  final List<C> children;
+  const C({required this.children});
+}
+void f() {
+  var c = C(children: []);
+  print(c);
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  final List<C> children;
+  const C({required this.children});
+}
+void f() {
+  var c = C(children: const []);
+  print(c);
+}
+''');
+  }
+
+  Future<void> test_map() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  final Map children;
+  const C({required this.children});
+}
+void f() {
+  var c = C(children: {
+    1 : const {}
+  });
+  print(c);
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  final Map children;
+  const C({required this.children});
+}
+void f() {
+  var c = C(children: const {
+    1 : const {}
+  });
+  print(c);
+}
+''');
+  }
+
+  Future<void> test_set() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  final Set<C> children;
+  const C({required this.children});
+}
+void f() {
+  var c = C(children: {});
+  print(c);
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  final Set<C> children;
+  const C({required this.children});
+}
+void f() {
+  var c = C(children: const {});
   print(c);
 }
 ''');
