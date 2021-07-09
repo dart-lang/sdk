@@ -478,71 +478,6 @@ class StringTable : public Section {
   CStringIntMap text_indices_;
 };
 
-class Symbol : public ZoneAllocated {
- public:
-  Symbol(const char* cstr,
-         intptr_t name,
-         intptr_t binding,
-         intptr_t type,
-         intptr_t initial_section_index,
-         intptr_t size)
-      : name_index(name),
-        binding(binding),
-        type(type),
-        size(size),
-        section_index(initial_section_index),
-        cstr_(cstr) {}
-
-  void Finalize(intptr_t final_section_index, intptr_t offset) {
-    ASSERT(!HasBeenFinalized());  // No symbol should be re-finalized.
-    section_index = final_section_index;
-    offset_ = offset;
-  }
-  bool HasBeenFinalized() const { return offset_ != kNotFinalizedMarker; }
-  intptr_t offset() const {
-    ASSERT(HasBeenFinalized());
-    // Only the reserved initial symbol should have an offset of 0.
-    ASSERT_EQUAL(type == elf::STT_NOTYPE, offset_ == 0);
-    return offset_;
-  }
-
-  void Write(ElfWriteStream* stream) const {
-    const intptr_t start = stream->Position();
-    stream->WriteWord(name_index);
-#if defined(TARGET_ARCH_IS_32_BIT)
-    stream->WriteAddr(offset());
-    stream->WriteWord(size);
-    stream->WriteByte(elf::SymbolInfo(binding, type));
-    stream->WriteByte(0);
-    stream->WriteHalf(section_index);
-#else
-    stream->WriteByte(elf::SymbolInfo(binding, type));
-    stream->WriteByte(0);
-    stream->WriteHalf(section_index);
-    stream->WriteAddr(offset());
-    stream->WriteXWord(size);
-#endif
-    ASSERT_EQUAL(stream->Position() - start, sizeof(elf::Symbol));
-  }
-
-  const intptr_t name_index;
-  const intptr_t binding;
-  const intptr_t type;
-  const intptr_t size;
-  // Is set twice: once in Elf::AddSection to the section's initial index into
-  // sections_, and then in Elf::FinalizeSymbols to the section's final index
-  // into sections_ after reordering.
-  intptr_t section_index;
-
- private:
-  static const intptr_t kNotFinalizedMarker = -1;
-
-  const char* const cstr_;
-  intptr_t offset_ = kNotFinalizedMarker;
-
-  friend class SymbolHashTable;  // For cstr_ access.
-};
-
 class SymbolTable : public Section {
  public:
   SymbolTable(Zone* zone, StringTable* table, bool dynamic)
@@ -567,6 +502,71 @@ class SymbolTable : public Section {
 
   intptr_t FileSize() const { return Length() * entry_size; }
   intptr_t MemorySize() const { return dynamic_ ? FileSize() : 0; }
+
+  class Symbol : public ZoneAllocated {
+   public:
+    Symbol(const char* cstr,
+           intptr_t name,
+           intptr_t binding,
+           intptr_t type,
+           intptr_t initial_section_index,
+           intptr_t size)
+        : name_index(name),
+          binding(binding),
+          type(type),
+          size(size),
+          section_index(initial_section_index),
+          cstr_(cstr) {}
+
+    void Finalize(intptr_t final_section_index, intptr_t offset) {
+      ASSERT(!HasBeenFinalized());  // No symbol should be re-finalized.
+      section_index = final_section_index;
+      offset_ = offset;
+    }
+    bool HasBeenFinalized() const { return offset_ != kNotFinalizedMarker; }
+    intptr_t offset() const {
+      ASSERT(HasBeenFinalized());
+      // Only the reserved initial symbol should have an offset of 0.
+      ASSERT_EQUAL(type == elf::STT_NOTYPE, offset_ == 0);
+      return offset_;
+    }
+
+    void Write(ElfWriteStream* stream) const {
+      const intptr_t start = stream->Position();
+      stream->WriteWord(name_index);
+#if defined(TARGET_ARCH_IS_32_BIT)
+      stream->WriteAddr(offset());
+      stream->WriteWord(size);
+      stream->WriteByte(elf::SymbolInfo(binding, type));
+      stream->WriteByte(0);
+      stream->WriteHalf(section_index);
+#else
+      stream->WriteByte(elf::SymbolInfo(binding, type));
+      stream->WriteByte(0);
+      stream->WriteHalf(section_index);
+      stream->WriteAddr(offset());
+      stream->WriteXWord(size);
+#endif
+      ASSERT_EQUAL(stream->Position() - start, sizeof(elf::Symbol));
+    }
+
+    const intptr_t name_index;
+    const intptr_t binding;
+    const intptr_t type;
+    const intptr_t size;
+    // Is set twice: once in Elf::AddSection to the section's initial index into
+    // sections_, and then in Elf::FinalizeSymbols to the section's final index
+    // into sections_ after reordering.
+    intptr_t section_index;
+
+   private:
+    static const intptr_t kNotFinalizedMarker = -1;
+
+    const char* const cstr_;
+    intptr_t offset_ = kNotFinalizedMarker;
+
+    friend class SymbolHashTable;  // For cstr_ access.
+  };
 
   void Write(ElfWriteStream* stream) {
     for (intptr_t i = 0; i < Length(); i++) {
@@ -875,28 +875,36 @@ class BitsContainer : public Section {
       // Null symbols denote that the corresponding offset should be treated
       // as an absolute offset in the ELF memory space.
       if (reloc.source_symbol != nullptr) {
-        const Symbol* const source_symbol = symtab->Find(reloc.source_symbol);
-        ASSERT(source_symbol != nullptr);
-        source_address += source_symbol->offset();
+        if (strcmp(reloc.source_symbol, ".") == 0) {
+          source_address += memory_offset() + reloc.section_offset;
+        } else {
+          auto* const source_symbol = symtab->Find(reloc.source_symbol);
+          ASSERT(source_symbol != nullptr);
+          source_address += source_symbol->offset();
+        }
       }
       if (reloc.target_symbol != nullptr) {
-        const Symbol* const target_symbol = symtab->Find(reloc.target_symbol);
-        if (target_symbol == nullptr) {
-          ASSERT_EQUAL(strcmp(reloc.target_symbol, kSnapshotBuildIdAsmSymbol),
-                       0);
-          ASSERT_EQUAL(reloc.target_offset, 0);
-          ASSERT_EQUAL(reloc.source_offset, 0);
-          ASSERT_EQUAL(reloc.size_in_bytes, compiler::target::kWordSize);
-          // TODO(dartbug.com/43516): Special case for snapshots with deferred
-          // sections that handles the build ID relocation in an
-          // InstructionsSection when there is no build ID.
-          const word to_write = Image::kNoRelocatedAddress;
-          stream->WriteBytes(reinterpret_cast<const uint8_t*>(&to_write),
-                             reloc.size_in_bytes);
-          current_pos = reloc.section_offset + reloc.size_in_bytes;
-          continue;
+        if (strcmp(reloc.target_symbol, ".") == 0) {
+          target_address += memory_offset() + reloc.section_offset;
+        } else {
+          auto* const target_symbol = symtab->Find(reloc.target_symbol);
+          if (target_symbol == nullptr) {
+            ASSERT_EQUAL(strcmp(reloc.target_symbol, kSnapshotBuildIdAsmSymbol),
+                         0);
+            ASSERT_EQUAL(reloc.target_offset, 0);
+            ASSERT_EQUAL(reloc.source_offset, 0);
+            ASSERT_EQUAL(reloc.size_in_bytes, compiler::target::kWordSize);
+            // TODO(dartbug.com/43516): Special case for snapshots with deferred
+            // sections that handles the build ID relocation in an
+            // InstructionsSection when there is no build ID.
+            const word to_write = Image::kNoRelocatedAddress;
+            stream->WriteBytes(reinterpret_cast<const uint8_t*>(&to_write),
+                               reloc.size_in_bytes);
+            current_pos = reloc.section_offset + reloc.size_in_bytes;
+            continue;
+          }
+          target_address += target_symbol->offset();
         }
-        target_address += target_symbol->offset();
       }
       ASSERT(reloc.size_in_bytes <= kWordSize);
       const word to_write = target_address - source_address;
@@ -1074,7 +1082,7 @@ class DwarfElfStream : public DwarfWriteStream {
     stream_->SetPosition(fixup);
     u4(end - start);
     stream_->SetPosition(end);
-    return EncodedPosition(start);
+    return EncodedPosition(fixup);
   }
   // Shorthand for when working directly with DwarfElfStreams.
   intptr_t WritePrefixedLength(std::function<void()> body) {
@@ -1088,9 +1096,8 @@ class DwarfElfStream : public DwarfWriteStream {
     addr(0);  // Resolved later.
   }
   template <typename T>
-  void SizedOffsetFromSymbol(const char* symbol, intptr_t offset) {
-    relocations_->Add(
-        {sizeof(T), stream_->Position(), nullptr, 0, symbol, offset});
+  void RelativeSymbolOffset(const char* symbol) {
+    relocations_->Add({sizeof(T), stream_->Position(), ".", 0, symbol, 0});
     stream_->WriteFixed<T>(0);  // Resolved later.
   }
   void InitializeAbstractOrigins(intptr_t size) {
@@ -1137,7 +1144,7 @@ static constexpr intptr_t kInitialDwarfBufferSize = 64 * KB;
 #endif
 
 const Section* Elf::FindSectionBySymbolName(const char* name) const {
-  const Symbol* const symbol = symtab_->Find(name);
+  auto* const symbol = symtab_->Find(name);
   if (symbol == nullptr) return nullptr;
   // Should not be run between OrderSectionsAndCreateSegments (when section
   // indices may change) and FinalizeSymbols() (sets the final section index).
@@ -1212,10 +1219,8 @@ void Elf::FinalizeEhFrame() {
       // Offset to CIE. Note that unlike pcrel this offset is encoded
       // backwards: it will be subtracted from the current position.
       dwarf_stream.u4(stream.Position() - cie_start);
-      // Start address. 4 bytes because DW_EH_PE_sdata4 used in FDE encoding.
-      // Note: If (DW_EH_PE_pcrel | DW_EH_PE_absptr) can be used instead, we
-      // wouldn't need a special version of OffsetForSymbol just for this.
-      dwarf_stream.SizedOffsetFromSymbol<int32_t>(section->symbol_name, 0);
+      // Start address as a PC relative reference.
+      dwarf_stream.RelativeSymbolOffset<int32_t>(section->symbol_name);
       dwarf_stream.u4(section->MemorySize());  // Size.
       dwarf_stream.u1(0);                      // Augmentation Data length.
 

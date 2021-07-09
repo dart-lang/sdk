@@ -246,7 +246,7 @@ class DwarfWriteStream : public ValueObject {
 
   // Prefixes the content added by body with its length. Returns an
   // appropriately encoded representation of the start of the content added by
-  // the body (_not_ the start of the prefixed length).
+  // the body (including the length prefix).
   //
   // symbol_prefix is used when a local symbol is created for the length.
   virtual EncodedPosition WritePrefixedLength(const char* symbol_prefix,
