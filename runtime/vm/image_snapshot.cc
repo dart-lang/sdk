@@ -914,17 +914,20 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   EncodedPosition WritePrefixedLength(const char* prefix,
                                       std::function<void()> body) {
     ASSERT(prefix != nullptr);
-    const char* const start_symbol = OS::SCreate(zone_, ".L%s_start", prefix);
+    const char* const length_prefix_symbol =
+        OS::SCreate(zone_, ".L%s_length_prefix", prefix);
     // Assignment to temp works around buggy Mac assembler.
-    stream_->Printf("L%s_size = .L%s_end - %s\n", prefix, prefix, start_symbol);
+    stream_->Printf("L%s_size = .L%s_end - .L%s_start\n", prefix, prefix,
+                    prefix);
     // We assume DWARF v2 currently, so all sizes are 32-bit.
-    stream_->Printf("%s L%s_size\n", kSizeDirectives[kInt32SizeLog2], prefix);
+    stream_->Printf("%s: %s L%s_size\n", length_prefix_symbol,
+                    kSizeDirectives[kInt32SizeLog2], prefix);
     // All sizes for DWARF sections measure the size of the section data _after_
     // the size value.
-    stream_->Printf("%s:\n", start_symbol);
+    stream_->Printf(".L%s_start:\n", prefix);
     body();
     stream_->Printf(".L%s_end:\n", prefix);
-    return EncodedPosition(start_symbol);
+    return EncodedPosition(length_prefix_symbol);
   }
   void OffsetFromSymbol(const char* symbol, intptr_t offset) {
     if (offset == 0) {

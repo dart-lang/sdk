@@ -1074,7 +1074,7 @@ class DwarfElfStream : public DwarfWriteStream {
     stream_->SetPosition(fixup);
     u4(end - start);
     stream_->SetPosition(end);
-    return EncodedPosition(start);
+    return EncodedPosition(fixup);
   }
   // Shorthand for when working directly with DwarfElfStreams.
   intptr_t WritePrefixedLength(std::function<void()> body) {
