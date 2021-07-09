@@ -633,8 +633,6 @@
         "csp": true,
         "timeout": 240,
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -662,8 +660,6 @@
         "timeout": 240,
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -715,11 +711,7 @@
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-weak",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-weak"
       }
     },
     "dart2js-hostasserts-weak-max-fragments-(linux|win)-x64-(d8|chrome)": {
@@ -728,8 +720,6 @@
         "timeout": 240,
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -739,22 +729,14 @@
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-weak",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=xcodebuild/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-weak"
       }
     },
     "dart2js-hostasserts-strong-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-strong",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-strong"
       }
     },
     "dart2js-hostasserts-strong-max-fragments-(linux|win)-x64-(d8|chrome)": {
@@ -763,8 +745,6 @@
         "timeout": 240,
         "builder-tag": "dart2js-strong",
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -774,11 +754,7 @@
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-strong",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=xcodebuild/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-strong"
       }
     },
     "dartkp-android-(debug|product|release)-arm_x64": {
