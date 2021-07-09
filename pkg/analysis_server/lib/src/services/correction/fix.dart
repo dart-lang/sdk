@@ -724,6 +724,12 @@ class DartFixKind {
       'dart.fix.replace.finalWithVar.multi',
       DartFixKindPriority.IN_FILE,
       "Replace 'final' with 'var' where possible in file");
+  static const REPLACE_NULL_WITH_VOID = FixKind('dart.fix.replace.nullWithVoid',
+      DartFixKindPriority.DEFAULT, "Replace 'Null' with 'void'");
+  static const REPLACE_NULL_WITH_VOID_MULTI = FixKind(
+      'dart.fix.replace.nullWithVoid.multi',
+      DartFixKindPriority.DEFAULT,
+      "Replace 'Null' with 'void' everywhere in file");
   static const REPLACE_RETURN_TYPE_FUTURE = FixKind(
       'dart.fix.replace.returnTypeFuture',
       DartFixKindPriority.DEFAULT,
