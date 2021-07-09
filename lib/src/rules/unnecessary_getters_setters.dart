@@ -103,7 +103,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         isSimpleGetter(getter) &&
         getterElement.metadata.isEmpty &&
         setterElement.metadata.isEmpty) {
-      rule..reportLint(getter.name)..reportLint(setter.name);
+      rule
+        ..reportLint(getter.name)
+        ..reportLint(setter.name);
     }
   }
 }

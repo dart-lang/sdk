@@ -246,7 +246,10 @@ class SimpleFormatter implements ReportFormatter {
     var tableWidth = max(_summaryLength, longest + largestCountGuess);
     var pad = tableWidth - longest;
     var line = ''.padLeft(tableWidth, '-');
-    out..writeln(line)..writeln('Counts')..writeln(line);
+    out
+      ..writeln(line)
+      ..writeln('Counts')
+      ..writeln(line);
     for (var code in codes) {
       out
         ..write(code.padRight(longest))

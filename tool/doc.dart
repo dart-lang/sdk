@@ -487,7 +487,7 @@ linter:
         .where((r) => r.maturity != Maturity.deprecated)
         .map((r) => r.name)
         .toList()
-          ..sort();
+      ..sort();
     for (var rule in sortedRules) {
       sb.write('    - $rule\n');
     }

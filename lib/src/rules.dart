@@ -69,6 +69,7 @@ import 'rules/do_not_use_environment.dart';
 import 'rules/empty_catches.dart';
 import 'rules/empty_constructor_bodies.dart';
 import 'rules/empty_statements.dart';
+import 'rules/eol_at_end_of_file.dart';
 import 'rules/exhaustive_cases.dart';
 import 'rules/file_names.dart';
 import 'rules/flutter_style_todos.dart';
@@ -266,6 +267,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(EmptyCatches())
     ..register(EmptyConstructorBodies())
     ..register(EmptyStatements())
+    ..register(EolAtEndOfFile())
     ..register(ExhaustiveCases())
     ..register(FileNames())
     ..register(FlutterStyleTodos())
