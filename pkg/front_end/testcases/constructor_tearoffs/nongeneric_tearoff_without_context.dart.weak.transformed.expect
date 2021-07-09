@@ -1,4 +1,25 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart:15:23: Error: The static type of the explicit instantiation operand must be a generic function type but is 'A Function()'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart'.
+// Try changing the operand or remove the type arguments.
+// testFooExtraArgs() => A<int>.foo; // Error.
+//                       ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart:16:23: Error: The static type of the explicit instantiation operand must be a generic function type but is 'A Function()'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart'.
+// Try changing the operand or remove the type arguments.
+// testNewExtraArgs() => A<int>.new; // Error.
+//                       ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart:17:23: Error: The static type of the explicit instantiation operand must be a generic function type but is 'A Function()'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart'.
+// Try changing the operand or remove the type arguments.
+// testBarExtraArgs() => A<int>.bar; // Error.
+//                       ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -17,9 +38,21 @@ static method testNew() → dynamic
 static method testBar() → dynamic
   return self::A::bar;
 static method testFooExtraArgs() → dynamic
-  return self::A::foo;
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart:15:23: Error: The static type of the explicit instantiation operand must be a generic function type but is 'A Function()'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart'.
+Try changing the operand or remove the type arguments.
+testFooExtraArgs() => A<int>.foo; // Error.
+                      ^";
 static method testNewExtraArgs() → dynamic
-  return self::A::•;
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart:16:23: Error: The static type of the explicit instantiation operand must be a generic function type but is 'A Function()'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart'.
+Try changing the operand or remove the type arguments.
+testNewExtraArgs() => A<int>.new; // Error.
+                      ^";
 static method testBarExtraArgs() → dynamic
-  return self::A::bar;
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart:17:23: Error: The static type of the explicit instantiation operand must be a generic function type but is 'A Function()'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart'.
+Try changing the operand or remove the type arguments.
+testBarExtraArgs() => A<int>.bar; // Error.
+                      ^";
 static method main() → dynamic {}

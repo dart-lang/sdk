@@ -3112,12 +3112,18 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       if (member == null) {
         // If we find a setter, [member] is an [AccessErrorBuilder], not null.
         if (send is IncompletePropertyAccessGenerator) {
+          assert(
+              send.typeArguments == null,
+              "Unexpected non-null typeArguments of "
+              "an IncompletePropertyAccessGenerator object: "
+              "'${send.typeArguments.runtimeType}'.");
           if (_helper.enableConstructorTearOffsInLibrary &&
               declarationBuilder is ClassBuilder) {
             MemberBuilder? constructor =
                 declarationBuilder.findConstructorOrFactory(
                     name.text, nameOffset, _uri, _helper.libraryBuilder);
             Member? tearOff = constructor?.readTarget;
+            Expression? tearOffExpression;
             if (tearOff is Constructor) {
               if (declarationBuilder.isAbstract) {
                 return _helper.buildProblem(
@@ -3125,13 +3131,23 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     nameOffset,
                     name.text.length);
               }
-              return _helper.forest
+              tearOffExpression = _helper.forest
                   .createConstructorTearOff(token.charOffset, tearOff);
             } else if (tearOff is Procedure) {
-              return _helper.forest
-                  .createStaticTearOff(token.charOffset, tearOff);
+              tearOffExpression =
+                  _helper.forest.createStaticTearOff(token.charOffset, tearOff);
+            } else if (tearOff != null) {
+              unhandled("${tearOff.runtimeType}", "buildPropertyAccess",
+                  operatorOffset, _helper.uri);
             }
-            // TODO(dmitryas): Add support for factories.
+            if (tearOffExpression != null) {
+              return typeArguments != null
+                  ? _helper.forest.createInstantiation(
+                      token.charOffset,
+                      tearOffExpression,
+                      _helper.buildDartTypeArguments(typeArguments))
+                  : tearOffExpression;
+            }
           }
           generator = new UnresolvedNameGenerator(_helper, send.token, name);
         } else {

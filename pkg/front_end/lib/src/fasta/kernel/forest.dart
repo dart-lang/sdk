@@ -838,6 +838,14 @@ class Forest {
     assert(fileOffset != null);
     return new StaticTearOff(procedure)..fileOffset = fileOffset;
   }
+
+  Instantiation createInstantiation(
+      int fileOffset, Expression expression, List<DartType> typeArguments) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new Instantiation(expression, typeArguments)
+      ..fileOffset = fileOffset;
+  }
 }
 
 class _VariablesDeclaration extends Statement {
