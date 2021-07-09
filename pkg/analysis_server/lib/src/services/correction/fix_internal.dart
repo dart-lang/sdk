@@ -77,6 +77,7 @@ import 'package:analysis_server/src/services/correction/dart/create_no_such_meth
 import 'package:analysis_server/src/services/correction/dart/create_setter.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
+import 'package:analysis_server/src/services/correction/dart/flutter_remove_widget.dart';
 import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
@@ -378,6 +379,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_unused_constructor_parameters: [
       // TODO(brianwilkerson) Consider applying in bulk.
       RemoveUnusedParameter.newInstance,
+    ],
+    LintNames.avoid_unnecessary_containers: [
+      FlutterRemoveWidget.newInstance,
     ],
     LintNames.await_only_futures: [
       RemoveAwait.newInstance,

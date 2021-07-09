@@ -606,6 +606,14 @@ class DartFixKind {
       'dart.fix.remove.unnecessaryNew.multi',
       DartFixKindPriority.IN_FILE,
       'Remove unnecessary new keywords everywhere in file');
+  static const REMOVE_UNNECESSARY_CONTAINER = FixKind(
+      'dart.fix.remove.unnecessaryContainer',
+      DartFixKindPriority.DEFAULT,
+      "Remove unnecessary 'Container'");
+  static const REMOVE_UNNECESSARY_CONTAINER_MULTI = FixKind(
+      'dart.fix.remove.unnecessaryContainer.multi',
+      DartFixKindPriority.IN_FILE,
+      "Remove unnecessary 'Container's in file");
   static const REMOVE_UNNECESSARY_PARENTHESES = FixKind(
       'dart.fix.remove.unnecessaryParentheses',
       DartFixKindPriority.DEFAULT,
