@@ -234,6 +234,63 @@ Updated the Linter to `1.7.0`, which includes changes that
 - Incremental compilation is now used for compilation of executables from
   dependencies when using `dart run <package>:<command>`.
 
+#### Dart2JS
+
+*   **Breaking Change** [#46545][]: Dart2JS emits ES6+ JavaScript by default,
+    thereby no longer supporting legacy browsers. Passing the
+    `--legacy-javascript` flag will let you opt out of this update, but this
+    flag will be removed in a future release. Modern browsers will not be
+    affected, as Dart2JS continues to support [last two major releases][1] of
+    Edge, Safari, Firefox, and Chrome. 
+
+[#46545]: https://github.com/dart-lang/sdk/issues/46545
+[1]: https://dart.dev/faq#q-what-browsers-do-you-support-as-javascript-compilation-targets
+
+### Language
+
+*   Add an unsigned shift right operator `>>>`. Pad with zeroes, ignoring the
+    sign bit. On the web platform `int.>>>` shifts the low 32 bits interpreted
+    as an unsigned integer, so `a >>> b` gives the same result as
+    `a.toUnsigned(32) >>> b` on the VM.
+
+*   Prior to Dart 2.14, metadata (annotations) were not permitted to be
+    specified with generic type arguments.  This restriction is lifted in Dart
+    Dart 2.14.
+
+    ```dart
+    class C<T> {
+      const C();
+    }
+    @C();      // Previously permitted.
+    @C<int>(); // Previously an error, now permitted.
+    ```
+
+*   Prior to Dart 2.14, generic function types were not permitted as arguments
+    to generic classes or functions, nor to be used as generic bounds.  This
+    restriction is lifted in Dart 2.14.
+
+    ```dart
+    T wrapWithLogging<T>(T f) {
+      if (f is void Function<T>(T x)) {
+        return <S>(S x) {
+          print("Call: f<$S>($x)");
+          var r = f<S>(x);
+          print("Return: $x");
+          return r;
+        } as T;
+      } // More cases here
+      return f;
+    }
+    void foo<T>(T x) {
+      print("Foo!");
+    }
+    void main() {
+      // Previously an error, now permitted.
+      var f = wrapWithLogging<void Function<T>(T)>(foo);
+      f<int>(3);
+    }
+    ```
+
 ## 2.13.4 - 2021-06-28
 
 This is a patch release that fixes:

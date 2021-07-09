@@ -25,7 +25,7 @@ main() {
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
 
-    RegExp regexp2 = RegExp(r'A\$\w+: function');
+    RegExp regexp2 = RegExp(r'A\$\w+\(\w+\) {');
     Iterator<Match> matches2 = regexp2.allMatches(generated).iterator;
     checkNumberOfMatches(matches2, 1);
   }

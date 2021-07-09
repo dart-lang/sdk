@@ -26,7 +26,7 @@ main() {
 main() {
   runTest() async {
     String generated = await compileAll(CODE);
-    RegExp regexp = new RegExp(r'A\$0: function');
+    RegExp regexp = new RegExp(r'A\$0\(\) {');
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
   }
