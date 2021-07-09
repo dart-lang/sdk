@@ -4766,6 +4766,166 @@ TEST_CASE(HashCode) {
   EXPECT(result.IsIdenticalTo(expected));
 }
 
+const uint32_t kCalculateCanonizalizeHash = 0;
+
+// Checks that the .hashCode equals the VM CanonicalizeHash() for keys in
+// constant maps.
+//
+// Expects a script with a method named `value`.
+//
+// If `hashcode_canonicalize_vm` is non-zero, the VM CanonicalizeHash()
+// is not executed but the provided value is used.
+static bool HashCodeEqualsCanonicalizeHash(
+    const char* value_script,
+    uint32_t hashcode_canonicalize_vm = kCalculateCanonizalizeHash,
+    bool check_identity = true,
+    bool check_hashcode = true,
+    bool print_failure = true) {
+  auto kScriptChars = Utils::CStringUniquePtr(
+      OS::SCreate(nullptr,
+                  "%s"
+                  "\n"
+                  "valueHashCode() {\n"
+                  "  return value().hashCode;\n"
+                  "}\n"
+                  "\n"
+                  "valueIdentityHashCode() {\n"
+                  "  return identityHashCode(value());\n"
+                  "}\n",
+                  value_script),
+      std::free);
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars.get(), nullptr);
+  EXPECT_VALID(lib);
+  Dart_Handle value_result = Dart_Invoke(lib, NewString("value"), 0, nullptr);
+  EXPECT_VALID(value_result);
+  Dart_Handle hashcode_result;
+  if (check_hashcode) {
+    hashcode_result = Dart_Invoke(lib, NewString("valueHashCode"), 0, nullptr);
+    EXPECT_VALID(hashcode_result);
+  }
+  Dart_Handle identity_hashcode_result =
+      Dart_Invoke(lib, NewString("valueIdentityHashCode"), 0, nullptr);
+  EXPECT_VALID(identity_hashcode_result);
+
+  TransitionNativeToVM transition(Thread::Current());
+
+  const auto& value_dart = Instance::CheckedHandle(
+      Thread::Current()->zone(), Api::UnwrapHandle(value_result));
+  int64_t hashcode_dart;
+  if (check_hashcode) {
+    hashcode_dart =
+        Integer::Cast(Object::Handle(Api::UnwrapHandle(hashcode_result)))
+            .AsInt64Value();
+  }
+  const int64_t identity_hashcode_dart =
+      Integer::Cast(Object::Handle(Api::UnwrapHandle(identity_hashcode_result)))
+          .AsInt64Value();
+  if (hashcode_canonicalize_vm == 0) {
+    hashcode_canonicalize_vm = Instance::Cast(value_dart).CanonicalizeHash();
+  }
+
+  bool success = true;
+
+  if (check_hashcode) {
+    success &= hashcode_dart == hashcode_canonicalize_vm;
+  }
+  if (check_identity) {
+    success &= identity_hashcode_dart == hashcode_canonicalize_vm;
+  }
+
+  if (!success && print_failure) {
+    LogBlock lb;
+    THR_Print(
+        "Dart hashCode or Dart identityHashCode does not equal VM "
+        "CanonicalizeHash for %s\n",
+        value_dart.ToCString());
+    THR_Print("Dart hashCode %" Px64 " %" Pd64 "\n", hashcode_dart,
+              hashcode_dart);
+    THR_Print("Dart identityHashCode %" Px64 " %" Pd64 "\n",
+              identity_hashcode_dart, identity_hashcode_dart);
+    THR_Print("VM CanonicalizeHash %" Px32 " %" Pd32 "\n",
+              hashcode_canonicalize_vm, hashcode_canonicalize_vm);
+  }
+
+  return success;
+}
+
+TEST_CASE(HashCode_Double) {
+  const char* kScript =
+      "value() {\n"
+      "  return 1.0;\n"
+      "}\n";
+  // Double VM CanonicalizeHash is not equal to hashCode, because doubles
+  // cannot be used as keys in constant sets and maps. However, doubles
+  // _can_ be used for lookups in which case they are equal to their integer
+  // value.
+  const uint32_t kInt1HashCode = 1;
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kInt1HashCode));
+}
+
+TEST_CASE(HashCode_Mint) {
+  const char* kScript =
+      "value() {\n"
+      "  return 0x8000000;\n"
+      "}\n";
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
+}
+
+TEST_CASE(HashCode_Null) {
+  const char* kScript =
+      "value() {\n"
+      "  return null;\n"
+      "}\n";
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
+}
+
+TEST_CASE(HashCode_Smi) {
+  const char* kScript =
+      "value() {\n"
+      "  return 123;\n"
+      "}\n";
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
+}
+
+TEST_CASE(HashCode_String) {
+  const char* kScript =
+      "value() {\n"
+      "  return 'asdf';\n"
+      "}\n";
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
+}
+
+TEST_CASE(HashCode_True) {
+  const char* kScript =
+      "value() {\n"
+      "  return true;\n"
+      "}\n";
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
+}
+
+TEST_CASE(HashCode_Type_Dynamic) {
+  const char* kScript =
+      "const type = dynamic;\n"
+      "\n"
+      "value() {\n"
+      "  return type;\n"
+      "}\n";
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+                                        /*check_identity=*/false));
+}
+
+TEST_CASE(HashCode_Type_Int) {
+  const char* kScript =
+      "const type = int;\n"
+      "\n"
+      "value() {\n"
+      "  return type;\n"
+      "}\n";
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+                                        /*check_identity=*/false));
+}
+
 TEST_CASE(LinkedHashMap_iteration) {
   const char* kScript =
       "makeMap() {\n"
