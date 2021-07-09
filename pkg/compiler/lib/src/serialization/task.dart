@@ -170,12 +170,10 @@ class SerializationTask extends CompilerTask {
           "null safety and is incompatible with the '$option' option");
     }
 
-    if (component.mode == ir.NonNullableByDefaultCompiledMode.Strong) {
-      assert(_options.enableNonNullable);
-      _options.nullSafetyMode = NullSafetyMode.sound;
-    } else {
-      _options.nullSafetyMode = NullSafetyMode.unsound;
-    }
+    _options.nullSafetyMode =
+        component.mode == ir.NonNullableByDefaultCompiledMode.Strong
+            ? NullSafetyMode.sound
+            : NullSafetyMode.unsound;
   }
 
   Future<ir.Component> deserializeComponentAndUpdateOptions() async {

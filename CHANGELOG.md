@@ -105,6 +105,14 @@
 * The `dartanalyzer` command's JSON output mode has been changed to emit the JSON
   output on stdout instead of stderr.
 
+#### dart format
+
+*   Simplify and optimize cascade formatting.
+    See: https://github.com/dart-lang/dart_style/pull/1033
+*   Don't unnecessarily split argument lists with `/* */` comments.
+*   Return correct exit code from `FormatCommand` when formatting stdin.
+*   Split empty catch blocks with finally clauses or catches after them.
+
 #### Linter
 
 Updated the Linter to `1.7.0`, which includes changes that

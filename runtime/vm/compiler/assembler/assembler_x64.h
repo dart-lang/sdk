@@ -562,7 +562,9 @@ class Assembler : public AssemblerBase {
     return CompareImmediate(reg, Immediate(immediate), width);
   }
 
-  void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
+  void testl(Register reg, const Immediate& imm) {
+    testq(reg, Immediate(imm.value() & 0xFFFFFFFF));
+  }
   void testb(const Address& address, const Immediate& imm);
   void testb(const Address& address, Register reg);
 

@@ -76,6 +76,8 @@ class LintNames {
   static const String prefer_if_elements_to_conditional_expressions =
       'prefer_if_elements_to_conditional_expressions';
   static const String prefer_if_null_operators = 'prefer_if_null_operators';
+  static const String prefer_initializing_formals =
+      'prefer_initializing_formals';
   static const String prefer_inlined_adds = 'prefer_inlined_adds';
   static const String prefer_int_literals = 'prefer_int_literals';
   static const String prefer_interpolation_to_compose_strings =
@@ -91,6 +93,7 @@ class LintNames {
   static const String prefer_spread_collections = 'prefer_spread_collections';
   static const String prefer_typing_uninitialized_variables =
       'prefer_typing_uninitialized_variables';
+  static const String prefer_void_to_null = 'prefer_void_to_null';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';
   static const String sort_constructors_first = 'sort_constructors_first';

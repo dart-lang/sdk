@@ -75,18 +75,14 @@ class KernelLoaderTask extends CompilerTask {
       var isDill = resolvedUri.path.endsWith('.dill');
 
       void inferNullSafetyMode(bool isSound) {
-        if (isSound) assert(_options.enableNonNullable);
         if (_options.nullSafetyMode == NullSafetyMode.unspecified) {
           _options.nullSafetyMode =
               isSound ? NullSafetyMode.sound : NullSafetyMode.unsound;
         }
       }
 
-      void validateNullSafety() {
+      void validateNullSafetyMode() {
         assert(_options.nullSafetyMode != NullSafetyMode.unspecified);
-        if (_options.nullSafetyMode == NullSafetyMode.sound) {
-          assert(_options.enableNonNullable);
-        }
       }
 
       if (isDill) {
@@ -111,7 +107,7 @@ class KernelLoaderTask extends CompilerTask {
               "safety and is incompatible with the '$option' option");
         }
         inferNullSafetyMode(isStrongDill);
-        validateNullSafety();
+        validateNullSafetyMode();
 
         if (_options.dillDependencies != null) {
           // Modular compiles do not include the platform on the input dill
@@ -157,7 +153,7 @@ class KernelLoaderTask extends CompilerTask {
           ..verbosity = verbosity;
         bool isLegacy =
             await fe.uriUsesLegacyLanguageVersion(resolvedUri, options);
-        inferNullSafetyMode(_options.enableNonNullable && !isLegacy);
+        inferNullSafetyMode(!isLegacy);
 
         List<Uri> dependencies = [];
         if (_options.platformBinaries != null) {
@@ -183,7 +179,7 @@ class KernelLoaderTask extends CompilerTask {
         component = await fe.compile(initializedCompilerState, verbose,
             fileSystem, onDiagnostic, resolvedUri);
         if (component == null) return null;
-        validateNullSafety();
+        validateNullSafetyMode();
       }
 
       if (_options.cfeOnly) {

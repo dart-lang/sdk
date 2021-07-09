@@ -204,11 +204,6 @@ class CompilerOptions implements DiagnosticOptions {
       fe.isExperimentEnabled(fe.ExperimentalFlag.variance,
           explicitExperimentalFlags: explicitExperimentalFlags);
 
-  /// Whether `--enable-experiment=non-nullable` is provided.
-  bool get enableNonNullable =>
-      fe.isExperimentEnabled(fe.ExperimentalFlag.nonNullable,
-          explicitExperimentalFlags: explicitExperimentalFlags);
-
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 
@@ -493,7 +488,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool get useLegacySubtyping {
     assert(nullSafetyMode != NullSafetyMode.unspecified,
         "Null safety mode unspecified");
-    return !enableNonNullable || (nullSafetyMode == NullSafetyMode.unsound);
+    return nullSafetyMode == NullSafetyMode.unsound;
   }
 
   /// If specified, a bundle of optimizations to enable (or disable).
@@ -673,10 +668,6 @@ class CompilerOptions implements DiagnosticOptions {
     if (_soundNullSafety && _noSoundNullSafety) {
       throw ArgumentError("'${Flags.soundNullSafety}' incompatible with "
           "'${Flags.noSoundNullSafety}'");
-    }
-    if (!enableNonNullable && _soundNullSafety) {
-      throw ArgumentError("'${Flags.soundNullSafety}' requires the "
-          "'non-nullable' experiment to be enabled");
     }
     if (nativeNullAssertions && _noNativeNullAssertions) {
       throw ArgumentError("'${Flags.nativeNullAssertions}' incompatible with "

@@ -48,6 +48,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_expressi
 import 'package:analysis_server/src/services/correction/dart/convert_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_initializing_formal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
@@ -129,6 +130,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_label
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_Null_with_void.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
@@ -468,6 +470,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_if_elements_to_conditional_expressions: [
       ConvertConditionalExpressionToIfElement.newInstance,
     ],
+    LintNames.prefer_initializing_formals: [
+      ConvertToInitializingFormal.newInstance,
+    ],
     LintNames.prefer_is_empty: [
       ReplaceWithIsEmpty.newInstance,
     ],
@@ -508,6 +513,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.prefer_typing_uninitialized_variables: [
       AddTypeAnnotation.newInstance,
+    ],
+    LintNames.prefer_void_to_null: [
+      ReplaceNullWithVoid.newInstance,
     ],
     LintNames.slash_for_doc_comments: [
       ConvertDocumentationIntoLine.newInstance,

@@ -55,6 +55,8 @@ import 'convert_to_generic_function_syntax_test.dart'
     as convert_to_generic_function_syntax;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_if_null_test.dart' as convert_to_if_null;
+import 'convert_to_initializing_formal_test.dart'
+    as convert_to_initializing_formal;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
@@ -154,6 +156,7 @@ import 'remove_unused_label_test.dart' as remove_unused_label;
 import 'remove_unused_local_variable_test.dart' as remove_unused_local_variable;
 import 'remove_unused_parameter_test.dart' as remove_unused_parameter;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
+import 'replace_Null_with_void_test.dart' as replace_null_with_void;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
@@ -233,6 +236,7 @@ void main() {
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
     convert_to_if_null.main();
+    convert_to_initializing_formal.main();
     convert_to_int_literal.main();
     convert_to_list_literal.main();
     convert_to_map_literal.main();
@@ -331,6 +335,7 @@ void main() {
     replace_final_with_var.main();
     replace_new_with_const.main();
     replace_null_with_closure.main();
+    replace_null_with_void.main();
     replace_return_type_future.main();
     replace_var_with_dynamic.main();
     replace_with_brackets.main();
