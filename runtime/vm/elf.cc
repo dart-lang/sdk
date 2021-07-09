@@ -875,28 +875,36 @@ class BitsContainer : public Section {
       // Null symbols denote that the corresponding offset should be treated
       // as an absolute offset in the ELF memory space.
       if (reloc.source_symbol != nullptr) {
-        const Symbol* const source_symbol = symtab->Find(reloc.source_symbol);
-        ASSERT(source_symbol != nullptr);
-        source_address += source_symbol->offset();
+        if (strcmp(reloc.source_symbol, ".") == 0) {
+          source_address += memory_offset() + reloc.section_offset;
+        } else {
+          const Symbol* const source_symbol = symtab->Find(reloc.source_symbol);
+          ASSERT(source_symbol != nullptr);
+          source_address += source_symbol->offset();
+        }
       }
       if (reloc.target_symbol != nullptr) {
-        const Symbol* const target_symbol = symtab->Find(reloc.target_symbol);
-        if (target_symbol == nullptr) {
-          ASSERT_EQUAL(strcmp(reloc.target_symbol, kSnapshotBuildIdAsmSymbol),
-                       0);
-          ASSERT_EQUAL(reloc.target_offset, 0);
-          ASSERT_EQUAL(reloc.source_offset, 0);
-          ASSERT_EQUAL(reloc.size_in_bytes, compiler::target::kWordSize);
-          // TODO(dartbug.com/43516): Special case for snapshots with deferred
-          // sections that handles the build ID relocation in an
-          // InstructionsSection when there is no build ID.
-          const word to_write = Image::kNoRelocatedAddress;
-          stream->WriteBytes(reinterpret_cast<const uint8_t*>(&to_write),
-                             reloc.size_in_bytes);
-          current_pos = reloc.section_offset + reloc.size_in_bytes;
-          continue;
+        if (strcmp(reloc.target_symbol, ".") == 0) {
+          target_address += memory_offset() + reloc.section_offset;
+        } else {
+          const Symbol* const target_symbol = symtab->Find(reloc.target_symbol);
+          if (target_symbol == nullptr) {
+            ASSERT_EQUAL(strcmp(reloc.target_symbol, kSnapshotBuildIdAsmSymbol),
+                         0);
+            ASSERT_EQUAL(reloc.target_offset, 0);
+            ASSERT_EQUAL(reloc.source_offset, 0);
+            ASSERT_EQUAL(reloc.size_in_bytes, compiler::target::kWordSize);
+            // TODO(dartbug.com/43516): Special case for snapshots with deferred
+            // sections that handles the build ID relocation in an
+            // InstructionsSection when there is no build ID.
+            const word to_write = Image::kNoRelocatedAddress;
+            stream->WriteBytes(reinterpret_cast<const uint8_t*>(&to_write),
+                               reloc.size_in_bytes);
+            current_pos = reloc.section_offset + reloc.size_in_bytes;
+            continue;
+          }
+          target_address += target_symbol->offset();
         }
-        target_address += target_symbol->offset();
       }
       ASSERT(reloc.size_in_bytes <= kWordSize);
       const word to_write = target_address - source_address;
@@ -1088,9 +1096,8 @@ class DwarfElfStream : public DwarfWriteStream {
     addr(0);  // Resolved later.
   }
   template <typename T>
-  void SizedOffsetFromSymbol(const char* symbol, intptr_t offset) {
-    relocations_->Add(
-        {sizeof(T), stream_->Position(), nullptr, 0, symbol, offset});
+  void RelativeSymbolOffset(const char* symbol) {
+    relocations_->Add({sizeof(T), stream_->Position(), ".", 0, symbol, 0});
     stream_->WriteFixed<T>(0);  // Resolved later.
   }
   void InitializeAbstractOrigins(intptr_t size) {
@@ -1212,10 +1219,8 @@ void Elf::FinalizeEhFrame() {
       // Offset to CIE. Note that unlike pcrel this offset is encoded
       // backwards: it will be subtracted from the current position.
       dwarf_stream.u4(stream.Position() - cie_start);
-      // Start address. 4 bytes because DW_EH_PE_sdata4 used in FDE encoding.
-      // Note: If (DW_EH_PE_pcrel | DW_EH_PE_absptr) can be used instead, we
-      // wouldn't need a special version of OffsetForSymbol just for this.
-      dwarf_stream.SizedOffsetFromSymbol<int32_t>(section->symbol_name, 0);
+      // Start address as a PC relative reference.
+      dwarf_stream.RelativeSymbolOffset<int32_t>(section->symbol_name);
       dwarf_stream.u4(section->MemorySize());  // Size.
       dwarf_stream.u1(0);                      // Augmentation Data length.
 
