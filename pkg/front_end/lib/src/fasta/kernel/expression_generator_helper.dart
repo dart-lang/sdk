@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import '../builder/builder.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/library_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/unresolved_type.dart';
@@ -17,6 +16,7 @@ import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show LocatedMessage;
 import '../messages.dart' show Message;
 import '../scope.dart';
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
 import 'constness.dart' show Constness;
@@ -39,7 +39,7 @@ import 'kernel_ast_api.dart'
         VariableDeclaration;
 
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
-  LibraryBuilder get libraryBuilder;
+  SourceLibraryBuilder get libraryBuilder;
 
   ConstantContext get constantContext;
 

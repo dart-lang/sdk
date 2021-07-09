@@ -1,0 +1,122 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:28:25: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'DA2'.
+// Try changing type arguments so that they conform to the bounds.
+// A Function() test5() => DA2<String>.new; // Error.
+//                         ^
+// pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:15:13: Context: This is the type variable whose bound isn't conformed to.
+// typedef DA2<X extends num> = A;
+//             ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:33:30: Error: A value of type 'B<String> Function()' can't be returned from a function with return type 'B<num> Function()'.
+//  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+// B<num> Function() test9() => DB1.new; // Error.
+//                              ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:41:44: Error: A value of type 'B<num> Function()' can't be returned from a function with return type 'B<Y> Function<Y extends num>()'.
+//  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+// B<Y> Function<Y extends num>() test16() => DB2.new; // Ok.
+//                                            ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<num> Function()' can't be returned from a function with return type 'B<Y> Function<Y>()'.
+//  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+// B<Y> Function<Y>() test17() => DB2.new; // Error.
+//                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:48:62: Error: A value of type 'B<num> Function()' can't be returned from a function with return type 'B<Y> Function<Y extends num, Z extends String>()'.
+//  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+// B<Y> Function<Y extends num, Z extends String>() test22() => DB2.new; // Ok.
+//                                                              ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<num> Function()' can't be returned from a function with return type 'B<Y> Function<Y, Z>()'.
+//  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+// B<Y> Function<Y, Z>() test23() => DB2.new; // Error.
+//                                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef DA1 = self::A;
+typedef DA2<unrelated X extends core::num> = self::A;
+typedef DB1 = self::B<core::String>;
+typedef DB2<X extends core::num> = self::B<X>;
+typedef DB3<X extends core::num, unrelated Y extends core::String> = self::B<X>;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B<X extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::B<self::B::X%>
+    : super core::Object::•()
+    ;
+  constructor foo() → self::B<self::B::X%>
+    : super core::Object::•()
+    ;
+  static factory bar<X extends core::Object? = dynamic>() → self::B<self::B::bar::X%>
+    return new self::B::•<self::B::bar::X%>();
+}
+static method test1() → () → self::A
+  return self::A::•;
+static method test2() → () → self::A
+  return self::A::•;
+static method test3() → () → self::A
+  return self::A::•;
+static method test4() → () → self::A
+  return self::A::•;
+static method test5() → () → self::A
+  return self::A::•;
+static method test6() → () → self::A
+  return self::A::•;
+static method test7() → () → self::B<core::String>
+  return self::B::•<core::String>;
+static method test8() → () → self::B<core::String>
+  return self::B::•<core::String>;
+static method test9() → () → self::B<core::num>
+  return let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:33:30: Error: A value of type 'B<String> Function()' can't be returned from a function with return type 'B<num> Function()'.
+ - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+B<num> Function() test9() => DB1.new; // Error.
+                             ^" in (self::B::•<core::String>) as{TypeError,ForNonNullableByDefault} () → self::B<core::num>;
+static method test10() → () → self::B<core::String>
+  return self::B::foo<core::String>;
+static method test11() → () → self::B<core::String>
+  return self::B::bar<core::String>;
+static method test12() → () → self::B<core::num>
+  return self::B::•<core::num>;
+static method test13() → () → self::B<core::num>
+  return self::B::foo<core::num>;
+static method test14() → () → self::B<core::num>
+  return self::B::bar<core::num>;
+static method test15() → () → self::B<core::num>
+  return self::B::•<core::num>;
+static method test16() → <Y extends core::num = dynamic>() → self::B<Y>
+  return let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:41:44: Error: A value of type 'B<num> Function()' can't be returned from a function with return type 'B<Y> Function<Y extends num>()'.
+ - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+B<Y> Function<Y extends num>() test16() => DB2.new; // Ok.
+                                           ^" in (self::B::•<core::num>) as{TypeError,ForNonNullableByDefault} <Y extends core::num = dynamic>() → self::B<Y>;
+static method test17() → <Y extends core::Object? = dynamic>() → self::B<Y%>
+  return let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<num> Function()' can't be returned from a function with return type 'B<Y> Function<Y>()'.
+ - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+B<Y> Function<Y>() test17() => DB2.new; // Error.
+                               ^" in (self::B::•<core::num>) as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic>() → self::B<Y%>;
+static method test18() → () → self::B<core::num>
+  return self::B::•<core::num>;
+static method test19() → () → self::B<core::num>
+  return self::B::foo<core::num>;
+static method test20() → () → self::B<core::num>
+  return self::B::bar<core::num>;
+static method test21() → () → self::B<core::num>
+  return self::B::•<core::num>;
+static method test22() → <Y extends core::num = dynamic, Z extends core::String = dynamic>() → self::B<Y>
+  return let final Never #t4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:48:62: Error: A value of type 'B<num> Function()' can't be returned from a function with return type 'B<Y> Function<Y extends num, Z extends String>()'.
+ - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+B<Y> Function<Y extends num, Z extends String>() test22() => DB2.new; // Ok.
+                                                             ^" in (self::B::•<core::num>) as{TypeError,ForNonNullableByDefault} <Y extends core::num = dynamic, Z extends core::String = dynamic>() → self::B<Y>;
+static method test23() → <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>
+  return let final Never #t5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<num> Function()' can't be returned from a function with return type 'B<Y> Function<Y, Z>()'.
+ - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
+B<Y> Function<Y, Z>() test23() => DB2.new; // Error.
+                                  ^" in (self::B::•<core::num>) as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>;
+static method main() → dynamic {}
