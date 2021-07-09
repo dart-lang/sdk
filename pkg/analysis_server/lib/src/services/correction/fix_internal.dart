@@ -134,6 +134,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_Null_with_v
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_container_with_sized_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
@@ -519,6 +520,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.prefer_void_to_null: [
       ReplaceNullWithVoid.newInstance,
+    ],
+    LintNames.sized_box_for_whitespace: [
+      ReplaceContainerWithSizedBox.newInstance,
     ],
     LintNames.slash_for_doc_comments: [
       ConvertDocumentationIntoLine.newInstance,

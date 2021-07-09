@@ -734,6 +734,14 @@ class DartFixKind {
       'dart.fix.replace.returnTypeFuture',
       DartFixKindPriority.DEFAULT,
       "Return 'Future' from 'async' function");
+  static const REPLACE_CONTAINER_WITH_SIZED_BOX = FixKind(
+      'dart.fix.replace.containerWithSizedBox',
+      DartFixKindPriority.DEFAULT,
+      "Replace with 'SizedBox'");
+  static const REPLACE_CONTAINER_WITH_SIZED_BOX_MULTI = FixKind(
+      'dart.fix.replace.containerWithSizedBox.multi',
+      DartFixKindPriority.DEFAULT,
+      "Replace with 'SizedBox' everywhere in file");
   static const REPLACE_VAR_WITH_DYNAMIC = FixKind(
       'dart.fix.replace.varWithDynamic',
       DartFixKindPriority.DEFAULT,
