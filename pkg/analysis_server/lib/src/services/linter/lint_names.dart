@@ -36,6 +36,8 @@ class LintNames {
   static const String avoid_unused_constructor_parameters =
       'avoid_unused_constructor_parameters';
   static const String await_only_futures = 'await_only_futures';
+  static const String avoid_unnecessary_containers =
+      'avoid_unnecessary_containers';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
   static const String diagnostic_describe_all_properties =
@@ -96,6 +98,7 @@ class LintNames {
   static const String prefer_typing_uninitialized_variables =
       'prefer_typing_uninitialized_variables';
   static const String prefer_void_to_null = 'prefer_void_to_null';
+  static const String sized_box_for_whitespace = 'sized_box_for_whitespace';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';
   static const String sort_constructors_first = 'sort_constructors_first';

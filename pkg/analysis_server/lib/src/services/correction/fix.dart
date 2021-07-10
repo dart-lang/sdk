@@ -606,6 +606,14 @@ class DartFixKind {
       'dart.fix.remove.unnecessaryNew.multi',
       DartFixKindPriority.IN_FILE,
       'Remove unnecessary new keywords everywhere in file');
+  static const REMOVE_UNNECESSARY_CONTAINER = FixKind(
+      'dart.fix.remove.unnecessaryContainer',
+      DartFixKindPriority.DEFAULT,
+      "Remove unnecessary 'Container'");
+  static const REMOVE_UNNECESSARY_CONTAINER_MULTI = FixKind(
+      'dart.fix.remove.unnecessaryContainer.multi',
+      DartFixKindPriority.IN_FILE,
+      "Remove unnecessary 'Container's in file");
   static const REMOVE_UNNECESSARY_PARENTHESES = FixKind(
       'dart.fix.remove.unnecessaryParentheses',
       DartFixKindPriority.DEFAULT,
@@ -734,6 +742,14 @@ class DartFixKind {
       'dart.fix.replace.returnTypeFuture',
       DartFixKindPriority.DEFAULT,
       "Return 'Future' from 'async' function");
+  static const REPLACE_CONTAINER_WITH_SIZED_BOX = FixKind(
+      'dart.fix.replace.containerWithSizedBox',
+      DartFixKindPriority.DEFAULT,
+      "Replace with 'SizedBox'");
+  static const REPLACE_CONTAINER_WITH_SIZED_BOX_MULTI = FixKind(
+      'dart.fix.replace.containerWithSizedBox.multi',
+      DartFixKindPriority.DEFAULT,
+      "Replace with 'SizedBox' everywhere in file");
   static const REPLACE_VAR_WITH_DYNAMIC = FixKind(
       'dart.fix.replace.varWithDynamic',
       DartFixKindPriority.DEFAULT,
