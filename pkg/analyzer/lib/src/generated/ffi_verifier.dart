@@ -750,10 +750,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (arg is NamedExpression) {
           if (arg.element?.name == _isLeafParamName) {
             if (_maybeGetBoolConstValue(arg.expression) == null) {
-              final AstNode errorNode = node;
               _errorReporter.reportErrorForNode(
                   FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
-                  errorNode,
+                  arg.expression,
                   [_isLeafParamName]);
             }
           }
