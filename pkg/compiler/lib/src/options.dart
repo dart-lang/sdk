@@ -81,8 +81,8 @@ class FeatureOptions {
 
   // Initialize feature lists.
   FeatureOptions() {
-    shipping = [];
-    canary = [legacyJavaScript, newHolders];
+    shipping = [legacyJavaScript];
+    canary = [newHolders];
   }
 
   void parse(List<String> options) {

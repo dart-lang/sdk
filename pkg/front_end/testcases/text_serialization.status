@@ -13,6 +13,7 @@ constructor_tearoffs/instantiation: TypeCheckError
 constructor_tearoffs/nongeneric_tearoff_with_context: TextSerializationFailure
 constructor_tearoffs/nongeneric_tearoff_without_context: TextSerializationFailure
 constructor_tearoffs/redirecting_constructors: RuntimeError
+constructor_tearoffs/typedef_tearoffs: TextSerializationFailure
 constructor_tearoffs/unnamed_constructor: TextSerializationFailure
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.

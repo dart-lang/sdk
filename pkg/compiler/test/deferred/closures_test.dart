@@ -25,14 +25,14 @@ runTest() async {
   String mainOutput = collector.getOutput("", OutputType.js);
   String deferredOutput = collector.getOutput("out_1", OutputType.jsPart);
 
-  Expect.isTrue(mainOutput.contains("other_method_name:"));
-  Expect.isFalse(mainOutput.contains("unique_method_name:"));
-  Expect.isFalse(mainOutput.contains("unique_method_name_closure:"));
+  Expect.isTrue(mainOutput.contains("other_method_name() {"));
+  Expect.isFalse(mainOutput.contains("unique_method_name() {"));
+  Expect.isFalse(mainOutput.contains("unique_method_name_closure() {"));
   Expect.isFalse(mainOutput.contains("unique-string"));
 
-  Expect.isFalse(deferredOutput.contains("other_method_name:"));
-  Expect.isTrue(deferredOutput.contains("unique_method_name:"));
-  Expect.isTrue(deferredOutput.contains("unique_method_name_closure:"));
+  Expect.isFalse(deferredOutput.contains("other_method_name() {"));
+  Expect.isTrue(deferredOutput.contains("unique_method_name() {"));
+  Expect.isTrue(deferredOutput.contains("unique_method_name_closure() {"));
   Expect.isTrue(deferredOutput.contains("unique-string"));
 }
 

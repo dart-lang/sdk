@@ -443,7 +443,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     while (currentDeclarationBuilder is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = currentDeclarationBuilder;
       TypeBuilder? nextTypeBuilder = currentAliasBuilder.type;
-      assert(nextTypeBuilder is NamedTypeBuilder);
+      assert(nextTypeBuilder is NamedTypeBuilder,
+          "Expected NamedTypeBuilder, got '${nextTypeBuilder.runtimeType}'.");
       NamedTypeBuilder namedNextTypeBuilder =
           nextTypeBuilder as NamedTypeBuilder;
       Map<TypeVariableBuilder, TypeBuilder> substitution = {};

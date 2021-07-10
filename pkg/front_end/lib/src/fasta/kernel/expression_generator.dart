@@ -54,6 +54,7 @@ import '../problems.dart';
 
 import '../scope.dart';
 
+import '../source/source_library_builder.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import 'body_builder.dart' show noLocation;
@@ -3097,12 +3098,39 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
 
     TypeDeclarationBuilder? declarationBuilder = declaration;
     TypeAliasBuilder? aliasBuilder;
+    List<TypeBuilder>? unaliasedTypeArguments;
     if (declarationBuilder is TypeAliasBuilder) {
       aliasBuilder = declarationBuilder;
       declarationBuilder = aliasBuilder.unaliasDeclaration(null,
           isUsedAsClass: true,
           usedAsClassCharOffset: this.fileOffset,
           usedAsClassFileUri: _uri);
+      List<TypeBuilder>? aliasedTypeArguments =
+          typeArguments?.map((unknownType) => unknownType.builder).toList();
+      if (aliasedTypeArguments != null &&
+          aliasedTypeArguments.length != aliasBuilder.typeVariablesCount) {
+        _helper.libraryBuilder.addProblem(
+            templateTypeArgumentMismatch
+                .withArguments(aliasBuilder.typeVariablesCount),
+            fileOffset,
+            noLength,
+            _uri);
+      } else {
+        if (declarationBuilder is DeclarationBuilder) {
+          unaliasedTypeArguments =
+              aliasBuilder.unaliasTypeArguments(aliasedTypeArguments);
+          if (aliasedTypeArguments != null) {
+            _helper.libraryBuilder.uncheckedTypedefTypes.add(
+                new UncheckedTypedefType(new TypedefType(
+                    aliasBuilder.typedef,
+                    _helper.libraryBuilder.nonNullable,
+                    aliasBuilder.buildTypeArguments(
+                        _helper.libraryBuilder, aliasedTypeArguments)))
+                  ..fileUri = _uri
+                  ..offset = fileOffset);
+          }
+        }
+      }
     }
     if (declarationBuilder is DeclarationBuilder) {
       DeclarationBuilder declaration = declarationBuilder;
@@ -3141,11 +3169,17 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   operatorOffset, _helper.uri);
             }
             if (tearOffExpression != null) {
-              return typeArguments != null
+              List<DartType>? builtTypeArguments;
+              if (unaliasedTypeArguments != null) {
+                builtTypeArguments = declarationBuilder.buildTypeArguments(
+                    _helper.libraryBuilder, unaliasedTypeArguments);
+              } else if (typeArguments != null) {
+                builtTypeArguments =
+                    _helper.buildDartTypeArguments(typeArguments);
+              }
+              return builtTypeArguments != null && builtTypeArguments.isNotEmpty
                   ? _helper.forest.createInstantiation(
-                      token.charOffset,
-                      tearOffExpression,
-                      _helper.buildDartTypeArguments(typeArguments))
+                      token.charOffset, tearOffExpression, builtTypeArguments)
                   : tearOffExpression;
             }
           }
