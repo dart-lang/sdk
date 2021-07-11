@@ -463,7 +463,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _unitElementRequestedParts.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
-    clearLibraryContext();
     return AnalysisDriverPriority.nothing;
   }
 
