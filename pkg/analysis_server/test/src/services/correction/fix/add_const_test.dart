@@ -177,6 +177,27 @@ void f() {
 }
 ''');
   }
+
+  Future<void> test_withConstList() async {
+    await resolveTestCode('''
+class C {
+  const C(List<int> l);
+}
+void f() {
+  var c = C(const <int>[]);
+  print(c);
+}
+''');
+    await assertHasFix('''
+class C {
+  const C(List<int> l);
+}
+void f() {
+  var c = const C(<int>[]);
+  print(c);
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -272,6 +293,27 @@ void f() {
 ''');
   }
 
+  Future<void> test_list_list() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  const C(List<C> children);
+}
+C c = C([C(const [])]);
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  const C(List<C> children);
+}
+C c = C(const [C([])]);
+''');
+  }
+
   Future<void> test_map() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';
@@ -282,9 +324,7 @@ class C {
   const C({required this.children});
 }
 void f() {
-  var c = C(children: {
-    1 : const {}
-  });
+  var c = C(children: {});
   print(c);
 }
 ''');
@@ -297,11 +337,30 @@ class C {
   const C({required this.children});
 }
 void f() {
-  var c = C(children: const {
-    1 : const {}
-  });
+  var c = C(children: const {});
   print(c);
 }
+''');
+  }
+
+  Future<void> test_map_map() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  const C(Map<String, C> children);
+}
+C c = C({'c': C(const {})});
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  const C(Map<String, C> children);
+}
+C c = C(const {'c': C({})});
 ''');
   }
 
@@ -331,6 +390,27 @@ void f() {
   var c = C(children: const {});
   print(c);
 }
+''');
+  }
+
+  Future<void> test_set_set() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  const C(Set<C> children);
+}
+C c = C({C(const {})});
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  const C(Set<C> children);
+}
+C c = C(const {C({})});
 ''');
   }
 }
