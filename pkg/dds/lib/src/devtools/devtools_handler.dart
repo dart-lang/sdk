@@ -5,13 +5,13 @@
 import 'dart:async';
 
 import 'package:dds/src/constants.dart';
+import 'package:devtools_shared/devtools_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
 
 import '../dds_impl.dart';
 import 'devtools_client.dart';
-import 'server_api.dart';
 
 /// Returns a [Handler] which handles serving DevTools and the DevTools server
 /// API under $DDS_URI/devtools/.
