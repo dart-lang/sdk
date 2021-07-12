@@ -315,8 +315,8 @@ const word kOldPageSizeInWords = dart::kOldPageSize / kWordSize;
 const word kOldPageMask = dart::kOldPageMask;
 
 static word TranslateOffsetInWordsToHost(word offset) {
-  RELEASE_ASSERT((offset % kWordSize) == 0);
-  return (offset / kWordSize) * dart::kWordSize;
+  RELEASE_ASSERT((offset % kCompressedWordSize) == 0);
+  return (offset / kCompressedWordSize) * dart::kCompressedWordSize;
 }
 
 bool SizeFitsInSizeTag(uword instance_size) {
