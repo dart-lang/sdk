@@ -3006,6 +3006,12 @@ class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
   friend class SnapshotReader;
 };
 
+class UntaggedLinkedHashSet : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet);
+
+  friend class SnapshotReader;
+};
+
 class UntaggedFloat32x4 : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float32x4);
   VISIT_NOTHING();

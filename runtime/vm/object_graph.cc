@@ -944,6 +944,10 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
           Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data()));
+    } else if (cid == kLinkedHashSetCid) {
+      writer_->WriteUnsigned(kLengthData);
+      writer_->WriteUnsigned(
+          Smi::Value(static_cast<LinkedHashSetPtr>(obj)->untag()->used_data()));
     } else if (cid == kObjectPoolCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(static_cast<ObjectPoolPtr>(obj)->untag()->length_);
@@ -1308,6 +1312,7 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
     case kInstructionsSectionCid:
     case kInstructionsTableCid:
     case kLinkedHashMapCid:
+    case kLinkedHashSetCid:
     case kMintCid:
     case kNeverCid:
     case kSentinelCid:

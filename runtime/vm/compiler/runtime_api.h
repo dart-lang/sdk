@@ -650,6 +650,11 @@ class LinkedHashMap : public LinkedHashBase {
   static word NextFieldOffset();
 };
 
+class LinkedHashSet : public LinkedHashBase {
+ public:
+  static word NextFieldOffset();
+};
+
 class FutureOr : public AllStatic {
  public:
   static word type_arguments_offset();

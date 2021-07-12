@@ -1390,6 +1390,41 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void LinkedHashSet::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "PlainInstance");
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
+  {
+    JSONArray jsarr(&jsobj, "elements");
+    Object& object = Object::Handle();
+    LinkedHashSet::Iterator iterator(*this);
+    int i = 0;
+    while (iterator.MoveNext() && i < limit) {
+      if (i >= offset) {
+        object = iterator.CurrentKey();
+        jsarr.AddValue(object);
+      }
+      i++;
+    }
+  }
+}
+
 void Float32x4::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);

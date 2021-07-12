@@ -6473,7 +6473,11 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
     case kWeakPropertyCid:
       return new (Z) WeakPropertySerializationCluster();
     case kLinkedHashMapCid:
-      return new (Z) LinkedHashMapSerializationCluster();
+      // We do not have mutable hash maps in snapshots.
+      UNREACHABLE();
+    case kLinkedHashSetCid:
+      // We do not have mutable hash sets in snapshots.
+      UNREACHABLE();
     case kArrayCid:
       return new (Z) ArraySerializationCluster(is_canonical, kArrayCid);
     case kImmutableArrayCid:
@@ -7380,7 +7384,11 @@ DeserializationCluster* Deserializer::ReadCluster() {
       ASSERT(!is_canonical);
       return new (Z) WeakPropertyDeserializationCluster();
     case kLinkedHashMapCid:
-      return new (Z) LinkedHashMapDeserializationCluster(is_canonical);
+      // We do not have mutable hash maps in snapshots.
+      UNREACHABLE();
+    case kLinkedHashSetCid:
+      // We do not have mutable hash sets in snapshots.
+      UNREACHABLE();
     case kArrayCid:
       return new (Z) ArrayDeserializationCluster(is_canonical, kArrayCid);
     case kImmutableArrayCid:

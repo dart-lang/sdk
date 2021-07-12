@@ -410,6 +410,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return TypedDataBase::InstanceSize();
     case kLinkedHashMapCid:
       return LinkedHashMap::InstanceSize();
+    case kLinkedHashSetCid:
+      return LinkedHashSet::InstanceSize();
     case kUnhandledExceptionCid:
       return UnhandledException::InstanceSize();
     case kWeakPropertyCid:
@@ -1022,6 +1024,10 @@ word TypedDataView::NextFieldOffset() {
 }
 
 word LinkedHashMap::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word LinkedHashSet::NextFieldOffset() {
   return -kWordSize;
 }
 

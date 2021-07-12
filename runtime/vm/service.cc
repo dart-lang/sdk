@@ -5211,7 +5211,12 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   }
   {
     JSONArray internals(&map, "Map");
-    DEFINE_ADD_VALUE_F_CID(LinkedHashMap)
+    CLASS_LIST_MAPS(DEFINE_ADD_VALUE_F_CID)
+  }
+
+  {
+    JSONArray internals(&map, "Set");
+    CLASS_LIST_SETS(DEFINE_ADD_VALUE_F_CID)
   }
 #define DEFINE_ADD_MAP_KEY(clazz)                                              \
   {                                                                            \
