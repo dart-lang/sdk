@@ -372,7 +372,9 @@ declaration
     |    EXTERNAL? operatorSignature
     |    STATIC (FINAL | CONST) type? staticFinalDeclarationList
     |    STATIC LATE FINAL type? initializedIdentifierList
-    |    (STATIC | COVARIANT) LATE? varOrType initializedIdentifierList
+    |    STATIC LATE? varOrType initializedIdentifierList
+    |    COVARIANT LATE FINAL type? identifierList
+    |    COVARIANT LATE? varOrType initializedIdentifierList
     |    LATE? (FINAL type? | varOrType) initializedIdentifierList
     |    redirectingFactoryConstructorSignature
     |    constantConstructorSignature (redirection | initializers)?
