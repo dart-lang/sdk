@@ -1148,7 +1148,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           // last time, so we don't need to produce it again now.
         } else {
           _resultController.add(result);
-          _lastProducedSignatures[result.path!] = result._signature;
+          _lastProducedSignatures[result.path] = result._signature;
         }
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);

@@ -1093,7 +1093,7 @@ class _FixCodeProcessor extends Object {
     });
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
-      if (_migrationCli.shouldBeMigrated(result.path!)) {
+      if (_migrationCli.shouldBeMigrated(result.path)) {
         await _task!.finalizeUnit(result);
       }
     });

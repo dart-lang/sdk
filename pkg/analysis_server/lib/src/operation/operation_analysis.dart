@@ -112,7 +112,7 @@ void sendAnalysisNotificationOutline(
 
     // send notification
     var params = protocol.AnalysisOutlineParams(
-        resolvedUnit.path!, fileKind, outline,
+        resolvedUnit.path, fileKind, outline,
         libraryName: libraryName);
     server.sendNotification(params.toNotification());
   });

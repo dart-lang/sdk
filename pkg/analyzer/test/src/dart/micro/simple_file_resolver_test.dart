@@ -1007,7 +1007,7 @@ void func() {
 }
 ''');
 
-    _assertDiscoveredLibraryForParts([result.path!]);
+    _assertDiscoveredLibraryForParts([result.path]);
   }
 
   test_resolve_part_of_uri() async {
@@ -1028,7 +1028,7 @@ void func() {
 }
 ''');
 
-    _assertDiscoveredLibraryForParts([result.path!]);
+    _assertDiscoveredLibraryForParts([result.path]);
   }
 
   test_resolveFile_cache() async {

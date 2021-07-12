@@ -32,8 +32,7 @@ class ImportElementsComputer {
   Future<SourceChange> createEdits(
       List<ImportedElements> importedElementsList) async {
     var unit = libraryResult.unit;
-    var path = libraryResult.path;
-    if (unit == null || path == null) {
+    if (unit == null) {
       // We should never reach this point because the libraryResult should be
       // valid.
       return SourceChange('');
@@ -50,7 +49,7 @@ class ImportElementsComputer {
     }
 
     var builder = ChangeBuilder(session: libraryResult.session);
-    await builder.addDartFileEdit(path, (builder) {
+    await builder.addDartFileEdit(libraryResult.path, (builder) {
       for (var importedElements in filteredImportedElements) {
         var matchingImports =
             _findMatchingImports(existingImports, importedElements);

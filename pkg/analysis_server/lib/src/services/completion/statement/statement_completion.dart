@@ -120,7 +120,7 @@ class StatementCompletionProcessor {
 
   String get eol => utils.endOfLine;
 
-  String get file => statementContext.resolveResult.path!;
+  String get file => statementContext.resolveResult.path;
 
   LineInfo get lineInfo => statementContext.resolveResult.lineInfo;
 

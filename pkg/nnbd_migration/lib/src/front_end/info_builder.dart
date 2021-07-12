@@ -111,7 +111,7 @@ class InfoBuilder {
           // referenced (we'll just skip the entire library because we'll only
           // ever see its parts).
           sourceInfo ??= SourceInformation();
-          var edit = listener!.sourceChange.getFileEdit(unitResult.path!);
+          var edit = listener!.sourceChange.getFileEdit(unitResult.path);
           var unit = _explainUnit(sourceInfo, unitResult, edit);
           if (_pathsToProcess!.contains(unitResult.path)) {
             units.add(unit);

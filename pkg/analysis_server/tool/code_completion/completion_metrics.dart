@@ -1315,7 +1315,7 @@ class CompletionMetricsComputer {
     }
     for (var result in results) {
       _resolvedUnitResult = result;
-      var filePath = result.path!;
+      var filePath = result.path;
       // Use the ExpectedCompletionsVisitor to compute the set of expected
       // completions for this CompilationUnit.
       final visitor = ExpectedCompletionsVisitor(filePath);

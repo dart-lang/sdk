@@ -33,7 +33,7 @@ abstract class BaseProcessor {
     this.selectionLength = 0,
     required this.resolvedResult,
     required this.workspace,
-  })  : file = resolvedResult.path!,
+  })  : file = resolvedResult.path,
         session = resolvedResult.session,
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,
