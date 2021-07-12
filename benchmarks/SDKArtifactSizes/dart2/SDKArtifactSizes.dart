@@ -34,8 +34,13 @@ const snapshots = <String>[
 ];
 
 Future<void> reportArtifactSize(String path, String name) async {
-  final size = await File(path).length();
-  print('SDKArtifactSizes.$name(CodeSize): $size');
+  try {
+    final size = await File(path).length();
+    print('SDKArtifactSizes.$name(CodeSize): $size');
+  } on FileSystemException {
+    // Report dummy data for artifacts that don't exist for specific platforms.
+    print('SDKArtifactSizes.$name(CodeSize): 0');
+  }
 }
 
 Future<void> main() async {
