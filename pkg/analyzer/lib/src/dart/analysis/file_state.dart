@@ -414,12 +414,8 @@ class FileState {
   /// Read the file content and ensure that all of the file properties are
   /// consistent with the read content, including API signature.
   ///
-  /// If [allowCached] is `true`, don't read the content of the file if it
-  /// is already cached (in another [FileSystemState], because otherwise we
-  /// would not create this new instance of [FileState] and refresh it).
-  ///
   /// Return `true` if the API signature changed since the last refresh.
-  bool refresh({bool allowCached = false}) {
+  bool refresh() {
     counterFileStateRefresh++;
 
     var timerWasRunning = timerFileStateRefresh.isRunning;
@@ -428,10 +424,6 @@ class FileState {
     }
 
     _invalidateCurrentUnresolvedData();
-
-    if (!allowCached) {
-      _fsState.markFileForReading(path);
-    }
 
     {
       var rawFileState = _fsState._fileContentCache.get(path);
@@ -862,7 +854,7 @@ class FileSystemState {
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
-      file.refresh(allowCached: true);
+      file.refresh();
     }
     return file;
   }
@@ -908,7 +900,7 @@ class FileSystemState {
           packageLanguageVersion);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
-      file.refresh(allowCached: true);
+      file.refresh();
     }
     return Either2.t1(file);
   }
