@@ -440,7 +440,7 @@ class Serializer : public ThreadStackResource {
 
   V8SnapshotProfileWriter* profile_writer() const { return profile_writer_; }
 
-  // If the given [obj] was not included into the snaposhot and have not
+  // If the given [obj] was not included into the snapshot and have not
   // yet gotten an artificial node created for it create an artificial node
   // in the profile representing this object.
   // Returns true if [obj] has an artificial profile node associated with it.

@@ -321,8 +321,8 @@ class SnapshotReader : public BaseReader {
   void RunDelayedTypePostprocessing();
 
   void EnqueueRehashingOfMap(const LinkedHashMap& map);
-  void EnqueueRehashingOfSet(const Object& set);
-  ObjectPtr RunDelayedRehashingOfMaps();
+  void EnqueueRehashingOfSet(const LinkedHashSet& set);
+  ObjectPtr RunDelayedRehashingOfMapsAndSets();
 
   ClassPtr ReadClassId(intptr_t object_id);
   ObjectPtr ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
@@ -349,6 +349,14 @@ class SnapshotReader : public BaseReader {
                      intptr_t len,
                      intptr_t tags);
 
+  void MapReadFrom(intptr_t object_id,
+                   const LinkedHashMap& result,
+                   intptr_t tags);
+
+  void SetReadFrom(intptr_t object_id,
+                   const LinkedHashSet& result,
+                   intptr_t tags);
+
   intptr_t NextAvailableObjectId() const;
 
   void SetReadException(const char* msg);
@@ -357,32 +365,32 @@ class SnapshotReader : public BaseReader {
 
   bool is_vm_isolate() const;
 
-  Snapshot::Kind kind_;            // Indicates type of the snapshot.
-  Thread* thread_;                 // Current thread.
-  Zone* zone_;                     // Zone for allocations while reading.
-  Heap* heap_;                     // Heap of the current isolate.
-  PageSpace* old_space_;           // Old space of the current isolate.
-  Class& cls_;                     // Temporary Class handle.
-  Code& code_;                     // Temporary Code handle.
-  Instance& instance_;             // Temporary Instance handle
-  Instructions& instructions_;     // Temporary Instructions handle
-  Object& obj_;                    // Temporary Object handle.
-  PassiveObject& pobj_;            // Temporary PassiveObject handle.
-  Array& array_;                   // Temporary Array handle.
-  Field& field_;                   // Temporary Field handle.
-  String& str_;                    // Temporary String handle.
-  Library& library_;               // Temporary library handle.
-  AbstractType& type_;             // Temporary type handle.
-  TypeArguments& type_arguments_;  // Temporary type argument handle.
-  GrowableObjectArray& tokens_;    // Temporary tokens handle.
-  ExternalTypedData& data_;        // Temporary stream data handle.
+  Snapshot::Kind kind_;             // Indicates type of the snapshot.
+  Thread* thread_;                  // Current thread.
+  Zone* zone_;                      // Zone for allocations while reading.
+  Heap* heap_;                      // Heap of the current isolate.
+  PageSpace* old_space_;            // Old space of the current isolate.
+  Class& cls_;                      // Temporary Class handle.
+  Code& code_;                      // Temporary Code handle.
+  Instance& instance_;              // Temporary Instance handle
+  Instructions& instructions_;      // Temporary Instructions handle
+  Object& obj_;                     // Temporary Object handle.
+  PassiveObject& pobj_;             // Temporary PassiveObject handle.
+  Array& array_;                    // Temporary Array handle.
+  Field& field_;                    // Temporary Field handle.
+  String& str_;                     // Temporary String handle.
+  Library& library_;                // Temporary library handle.
+  AbstractType& type_;              // Temporary type handle.
+  TypeArguments& type_arguments_;   // Temporary type argument handle.
+  GrowableObjectArray& tokens_;     // Temporary tokens handle.
+  ExternalTypedData& data_;         // Temporary stream data handle.
   TypedDataBase& typed_data_base_;  // Temporary typed data base handle.
-  TypedData& typed_data_;          // Temporary typed data handle.
+  TypedData& typed_data_;           // Temporary typed data handle.
   TypedDataView& typed_data_view_;  // Temporary typed data view handle.
-  Function& function_;             // Temporary function handle.
-  Smi& smi_;                       // Temporary Smi handle.
-  UnhandledException& error_;      // Error handle.
-  const Class& set_class_;         // The LinkedHashSet class.
+  Function& function_;              // Temporary function handle.
+  Smi& smi_;                        // Temporary Smi handle.
+  UnhandledException& error_;       // Error handle.
+  const Class& set_class_;          // The LinkedHashSet class.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;
   GrowableObjectArray& types_to_postprocess_;
@@ -406,6 +414,7 @@ class SnapshotReader : public BaseReader {
   friend class Library;
   friend class LibraryPrefix;
   friend class LinkedHashMap;
+  friend class LinkedHashSet;
   friend class MirrorReference;
   friend class Namespace;
   friend class PatchClass;
@@ -649,6 +658,22 @@ class SnapshotWriter : public BaseWriter {
                     TypeArgumentsPtr type_arguments,
                     CompressedObjectPtr data[],
                     bool as_reference);
+  void MapWriteTo(intptr_t object_id,
+                  intptr_t class_id,
+                  intptr_t tags,
+                  TypeArgumentsPtr type_arguments,
+                  SmiPtr used_data_smi,
+                  SmiPtr deleted_keys_smi,
+                  ArrayPtr data,
+                  bool as_reference);
+  void SetWriteTo(intptr_t object_id,
+                  intptr_t class_id,
+                  intptr_t tags,
+                  TypeArgumentsPtr type_arguments,
+                  SmiPtr used_data_smi,
+                  SmiPtr deleted_keys_smi,
+                  ArrayPtr data,
+                  bool as_reference);
   ClassPtr GetFunctionOwner(FunctionPtr func);
   void CheckForNativeFields(ClassPtr cls);
   void SetWriteException(Exceptions::ExceptionType type, const char* msg);
@@ -686,6 +711,7 @@ class SnapshotWriter : public BaseWriter {
   friend class UntaggedInstructions;
   friend class UntaggedLibrary;
   friend class UntaggedLinkedHashMap;
+  friend class UntaggedLinkedHashSet;
   friend class UntaggedLocalVarDescriptors;
   friend class UntaggedMirrorReference;
   friend class UntaggedObjectPool;

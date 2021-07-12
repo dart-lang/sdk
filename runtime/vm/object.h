@@ -10874,8 +10874,6 @@ class Pointer : public Instance {
     return OFFSET_OF(UntaggedPointer, type_arguments_);
   }
 
-  static intptr_t NextFieldOffset() { return sizeof(UntaggedPointer); }
-
   static const intptr_t kNativeTypeArgPos = 0;
 
   // Fetches the NativeType type argument.
@@ -10885,7 +10883,7 @@ class Pointer : public Instance {
   }
 
  private:
-  HEAP_OBJECT_IMPLEMENTATION(Pointer, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Pointer, Instance);
 
   friend class Class;
 };
@@ -11070,6 +11068,113 @@ class LinkedHashMap : public LinkedHashBase {
 
   friend class Class;
   friend class LinkedHashMapDeserializationCluster;
+};
+
+class LinkedHashSet : public LinkedHashBase {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedLinkedHashSet));
+  }
+
+  // Allocates a set with some default capacity, just like "new Set()".
+  static LinkedHashSetPtr NewDefault(Heap::Space space = Heap::kNew);
+  static LinkedHashSetPtr New(const Array& data,
+                              const TypedData& index,
+                              intptr_t hash_mask,
+                              intptr_t used_data,
+                              intptr_t deleted_keys,
+                              Heap::Space space = Heap::kNew);
+
+  virtual TypeArgumentsPtr GetTypeArguments() const {
+    return untag()->type_arguments();
+  }
+  virtual void SetTypeArguments(const TypeArguments& value) const {
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 1) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/message3_test.dart.
+    untag()->set_type_arguments(value.ptr());
+  }
+
+  TypedDataPtr index() const { return untag()->index(); }
+  void SetIndex(const TypedData& value) const {
+    ASSERT(!value.IsNull());
+    untag()->set_index(value.ptr());
+  }
+
+  ArrayPtr data() const { return untag()->data(); }
+  void SetData(const Array& value) const { untag()->set_data(value.ptr()); }
+
+  SmiPtr hash_mask() const { return untag()->hash_mask(); }
+  void SetHashMask(intptr_t value) const {
+    untag()->set_hash_mask(Smi::New(value));
+  }
+
+  SmiPtr used_data() const { return untag()->used_data(); }
+  void SetUsedData(intptr_t value) const {
+    untag()->set_used_data(Smi::New(value));
+  }
+
+  SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
+  void SetDeletedKeys(intptr_t value) const {
+    untag()->set_deleted_keys(Smi::New(value));
+  }
+
+  intptr_t Length() const {
+    // The map may be uninitialized.
+    if (untag()->used_data() == Object::null()) return 0;
+    if (untag()->deleted_keys() == Object::null()) return 0;
+
+    intptr_t used = Smi::Value(untag()->used_data());
+    intptr_t deleted = Smi::Value(untag()->deleted_keys());
+    return used - deleted;
+  }
+
+  // This iterator differs somewhat from its Dart counterpart (_CompactIterator
+  // in runtime/lib/compact_hash.dart):
+  //  - There are no checks for concurrent modifications.
+  //  - Accessing a key or value before the first call to MoveNext and after
+  //    MoveNext returns false will result in crashes.
+  class Iterator : ValueObject {
+   public:
+    explicit Iterator(const LinkedHashSet& set)
+        : data_(Array::Handle(set.data())),
+          scratch_(Object::Handle()),
+          offset_(-1),
+          length_(Smi::Value(set.used_data())) {}
+
+    bool MoveNext() {
+      while (true) {
+        offset_++;
+        if (offset_ >= length_) {
+          return false;
+        }
+        scratch_ = data_.At(offset_);
+        if (scratch_.ptr() != data_.ptr()) {
+          // Slot is not deleted (self-reference indicates deletion).
+          return true;
+        }
+      }
+    }
+
+    ObjectPtr CurrentKey() const { return data_.At(offset_); }
+
+   private:
+    const Array& data_;
+    Object& scratch_;
+    intptr_t offset_;
+    const intptr_t length_;
+  };
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet, LinkedHashBase);
+
+  // Allocate a set, but leave all fields set to null.
+  // Used during deserialization (since set might contain itself as key/value).
+  static LinkedHashSetPtr NewUninitialized(Heap::Space space = Heap::kNew);
+
+  friend class Class;
 };
 
 class Closure : public Instance {

@@ -17,7 +17,7 @@ namespace dart {
 // Size of the class-id part of the object header. See UntaggedObject.
 typedef uint16_t ClassIdTagType;
 
-#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
+#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                   \
   V(Class)                                                                     \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
@@ -88,10 +88,15 @@ typedef uint16_t ClassIdTagType;
   V(RegExp)                                                                    \
   V(WeakProperty)                                                              \
   V(MirrorReference)                                                           \
-  V(LinkedHashMap)                                                             \
   V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
   V(TransferableTypedData)
+
+// TODO(http://dartbug.com/45908): Add ImmutableLinkedHashMap.
+#define CLASS_LIST_MAPS(V) V(LinkedHashMap)
+
+// TODO(http://dartbug.com/45908): Add ImmutableLinkedHashSet.
+#define CLASS_LIST_SETS(V) V(LinkedHashSet)
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \
@@ -163,12 +168,16 @@ typedef uint16_t ClassIdTagType;
   V(Float64x2)
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
-  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
+  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                         \
+  V(LinkedHashMap)                                                             \
+  V(LinkedHashSet)                                                             \
   V(Array)                                                                     \
   V(String)
 
 #define CLASS_LIST_NO_OBJECT(V)                                                \
-  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
+  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                         \
+  CLASS_LIST_MAPS(V)                                                           \
+  CLASS_LIST_SETS(V)                                                           \
   CLASS_LIST_ARRAYS(V)                                                         \
   CLASS_LIST_STRINGS(V)
 

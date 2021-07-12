@@ -606,7 +606,23 @@ void Object::InitVtables() {
     clazz fake_handle;                                                         \
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
-  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(INIT_VTABLE)
+  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(INIT_VTABLE)
+#undef INIT_VTABLE
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    LinkedHashMap fake_handle;                                                 \
+    builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
+  }
+  CLASS_LIST_MAPS(INIT_VTABLE)
+#undef INIT_VTABLE
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    LinkedHashSet fake_handle;                                                 \
+    builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
+  }
+  CLASS_LIST_SETS(INIT_VTABLE)
 #undef INIT_VTABLE
 
 #define INIT_VTABLE(clazz)                                                     \
@@ -1948,6 +1964,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
     pending_classes.Add(cls);
 
+    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(isolate_group);
+    object_store->set_linked_hash_set_class(cls);
+    cls.set_type_arguments_field_offset(
+        LinkedHashSet::type_arguments_offset(),
+        RTN::LinkedHashSet::type_arguments_offset());
+    cls.set_num_type_arguments_unsafe(1);
+    RegisterPrivateClass(cls, Symbols::_LinkedHashSet(), lib);
+    pending_classes.Add(cls);
+
     // Pre-register the async library so we can place the vm class
     // FutureOr there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartAsync());
@@ -2413,6 +2438,9 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate_group);
     object_store->set_linked_hash_map_class(cls);
+
+    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(isolate_group);
+    object_store->set_linked_hash_set_class(cls);
 
     cls = Class::New<Float32x4, RTN::Float32x4>(isolate_group);
     object_store->set_float32x4_class(cls);
@@ -24415,6 +24443,54 @@ LinkedHashMapPtr LinkedHashMap::NewUninitialized(Heap::Space space) {
 const char* LinkedHashMap::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   return zone->PrintToString("_LinkedHashMap len:%" Pd, Length());
+}
+
+LinkedHashSetPtr LinkedHashSet::New(const Array& data,
+                                    const TypedData& index,
+                                    intptr_t hash_mask,
+                                    intptr_t used_data,
+                                    intptr_t deleted_keys,
+                                    Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+         Class::null());
+  LinkedHashSet& result =
+      LinkedHashSet::Handle(LinkedHashSet::NewUninitialized(space));
+  result.SetData(data);
+  result.SetIndex(index);
+  result.SetHashMask(hash_mask);
+  result.SetUsedData(used_data);
+  result.SetDeletedKeys(deleted_keys);
+  return result.ptr();
+}
+
+LinkedHashSetPtr LinkedHashSet::NewDefault(Heap::Space space) {
+  const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
+  const TypedData& index = TypedData::Handle(
+      TypedData::New(kTypedDataUint32ArrayCid, kInitialIndexSize, space));
+  // On 32-bit, the top bits are wasted to avoid Mint allocation.
+  static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
+  static const intptr_t kInitialHashMask =
+      (1 << (kAvailableBits - kInitialIndexBits)) - 1;
+  return LinkedHashSet::New(data, index, kInitialHashMask, 0, 0, space);
+}
+
+LinkedHashSetPtr LinkedHashSet::NewUninitialized(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+         Class::null());
+  LinkedHashSet& result = LinkedHashSet::Handle();
+  {
+    ObjectPtr raw =
+        Object::Allocate(kLinkedHashSetCid, LinkedHashSet::InstanceSize(),
+                         space, LinkedHashSet::ContainsCompressedPointers());
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  return result.ptr();
+}
+
+const char* LinkedHashSet::ToCString() const {
+  Zone* zone = Thread::Current()->zone();
+  return zone->PrintToString("LinkedHashSet len:%" Pd, Length());
 }
 
 const char* FutureOr::ToCString() const {

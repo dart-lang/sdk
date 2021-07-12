@@ -4965,6 +4965,41 @@ TEST_CASE(LinkedHashMap_iteration) {
   EXPECT(!iterator.MoveNext());
 }
 
+TEST_CASE(LinkedHashSet_iteration) {
+  const char* kScript =
+      "makeSet() {\n"
+      "  var set = {'x', 'y', 'z', 'w'};\n"
+      "  set.remove('y');\n"
+      "  set.remove('w');\n"
+      "  return set;\n"
+      "}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeSet"), 0, NULL);
+  EXPECT_VALID(h_result);
+
+  TransitionNativeToVM transition(thread);
+  Instance& dart_set = Instance::Handle();
+  dart_set ^= Api::UnwrapHandle(h_result);
+  ASSERT(dart_set.IsLinkedHashSet());
+  const LinkedHashSet& cc_set = LinkedHashSet::Cast(dart_set);
+
+  EXPECT_EQ(2, cc_set.Length());
+
+  LinkedHashSet::Iterator iterator(cc_set);
+  Object& object = Object::Handle();
+
+  EXPECT(iterator.MoveNext());
+  object = iterator.CurrentKey();
+  EXPECT_STREQ("x", object.ToCString());
+
+  EXPECT(iterator.MoveNext());
+  object = iterator.CurrentKey();
+  EXPECT_STREQ("z", object.ToCString());
+
+  EXPECT(!iterator.MoveNext());
+}
+
 static void CheckConcatAll(const String* data[], intptr_t n) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
