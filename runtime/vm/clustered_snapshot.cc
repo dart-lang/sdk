@@ -7117,6 +7117,7 @@ void Serializer::PrintSnapshotSizes() {
     buffer.Printf(" %10s", "Cumulative");
     buffer.Printf(" %8s", "HeapSize");
     buffer.Printf(" %5s", "Cid");
+    buffer.Printf(" %9s", "Canonical");
     buffer.AddString("\n");
     GrowableArray<SerializationCluster*> clusters_by_size;
     for (intptr_t cid = 1; cid < num_cids_; cid++) {
@@ -7182,6 +7183,11 @@ void Serializer::PrintSnapshotSizes() {
         buffer.Printf(" %5" Pd "", cluster->cid());
       } else {
         buffer.Printf(" %5s", "");
+      }
+      if (cluster->is_canonical()) {
+        buffer.Printf(" %9s", "canonical");
+      } else {
+        buffer.Printf(" %9s", "");
       }
       buffer.AddString("\n");
     }
