@@ -82,9 +82,6 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       AnalysisSession session, String? path, Uri uri, this.units)
       : super(session, path, uri);
 
-  ParsedLibraryResultImpl.external(AnalysisSession session, Uri uri)
-      : this(session, null, uri, null);
-
   @override
   ResultState get state {
     if (path == null) {
@@ -173,9 +170,6 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   ResolvedLibraryResultImpl(
       AnalysisSession session, String? path, Uri uri, this.element, this.units)
       : super(session, path, uri);
-
-  ResolvedLibraryResultImpl.external(AnalysisSession session, Uri uri)
-      : this(session, null, uri, null, null);
 
   @override
   ResultState get state {
