@@ -3309,19 +3309,12 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  const auto target_address =
-      FieldAddress(TMP, base + target::kCompressedWordSize, kObjectBytes);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(R1, target_address);
-    __ ldr(
-        ARGS_DESC_REG,
-        FieldAddress(R5, target::CallSiteData::arguments_descriptor_offset()));
-  } else {
-    __ LoadCompressed(R0, target_address);
-    __ ldr(R1, FieldAddress(R0, target::Function::entry_point_offset()));
-    __ ldr(
-        ARGS_DESC_REG,
-        FieldAddress(R5, target::CallSiteData::arguments_descriptor_offset()));
+  __ LoadCompressed(
+      R0, FieldAddress(TMP, base + target::kCompressedWordSize, kObjectBytes));
+  __ ldr(R1, FieldAddress(R0, target::Function::entry_point_offset()));
+  __ ldr(ARGS_DESC_REG,
+         FieldAddress(R5, target::CallSiteData::arguments_descriptor_offset()));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
     __ LoadCompressed(CODE_REG,
                       FieldAddress(R0, target::Function::code_offset()));
   }
@@ -3374,22 +3367,20 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ b(&loop);
 
   __ Bind(&found);
-  const intptr_t code_offset =
-      target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;
-#if defined(DART_COMPRESSED_POINTERS)
-  __ LoadCompressed(CODE_REG,
-                    Address(R8, code_offset, Address::Offset, kObjectBytes));
-  __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ br(R1);
-#else
-  const intptr_t entry_offset =
-      target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
-  __ ldr(R1, Address(R8, entry_offset));
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ ldr(CODE_REG, Address(R8, code_offset));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    const intptr_t entry_offset =
+        target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
+    __ LoadCompressed(R1,
+                      Address(R8, entry_offset, Address::Offset, kObjectBytes));
+    __ ldr(R1, FieldAddress(R1, target::Function::entry_point_offset()));
+  } else {
+    const intptr_t code_offset =
+        target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;
+    __ LoadCompressed(CODE_REG,
+                      Address(R8, code_offset, Address::Offset, kObjectBytes));
+    __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
   __ br(R1);
-#endif
 
   __ Bind(&miss);
   __ LoadIsolate(R2);

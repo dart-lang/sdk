@@ -3251,21 +3251,16 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  const auto target_address = FieldAddress(RDI, RCX, TIMES_COMPRESSED_WORD_SIZE,
-                                           base + target::kCompressedWordSize);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ movq(R10, FieldAddress(
-                     RBX, target::CallSiteData::arguments_descriptor_offset()));
-    __ jmp(target_address);
-  } else {
-    __ LoadCompressed(RAX, target_address);
-    __ movq(R10, FieldAddress(
-                     RBX, target::CallSiteData::arguments_descriptor_offset()));
-    __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
+  __ LoadCompressed(RAX, FieldAddress(RDI, RCX, TIMES_COMPRESSED_WORD_SIZE,
+                                      base + target::kCompressedWordSize));
+  __ movq(R10, FieldAddress(
+                   RBX, target::CallSiteData::arguments_descriptor_offset()));
+  __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
     __ LoadCompressed(CODE_REG,
                       FieldAddress(RAX, target::Function::code_offset()));
-    __ jmp(RCX);
   }
+  __ jmp(RCX);
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
@@ -3316,19 +3311,17 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ jmp(&loop);
 
   __ Bind(&found);
-  const intptr_t code_offset =
-      target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;
-#if defined(DART_COMPRESSED_POINTERS)
-  __ LoadCompressed(CODE_REG, Address(R13, code_offset));
-  __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-#else
-  const intptr_t entry_offset =
-      target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ movq(CODE_REG, Address(R13, code_offset));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    const intptr_t entry_offset =
+        target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
+    __ LoadCompressed(RCX, Address(R13, entry_offset));
+    __ jmp(FieldAddress(RCX, target::Function::entry_point_offset()));
+  } else {
+    const intptr_t code_offset =
+        target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;
+    __ LoadCompressed(CODE_REG, Address(R13, code_offset));
+    __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
-  __ jmp(Address(R13, entry_offset));
-#endif
 
   __ Bind(&miss);
   __ LoadIsolate(RAX);

@@ -6968,8 +6968,6 @@ class MegamorphicCache : public CallSiteData {
   void EnsureContains(const Smi& class_id, const Object& target) const;
   ObjectPtr Lookup(const Smi& class_id) const;
 
-  void SwitchToBareInstructions();
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedMegamorphicCache));
   }
@@ -11961,17 +11959,6 @@ void MegamorphicCache::SetEntry(const Array& array,
                                 const Object& target) {
   ASSERT(target.IsNull() || target.IsFunction() || target.IsSmi());
   array.SetAt((index * kEntryLength) + kClassIdIndex, class_id);
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    if (target.IsFunction()) {
-      const auto& function = Function::Cast(target);
-      const auto& entry_point = Smi::Handle(
-          Smi::FromAlignedAddress(Code::EntryPointOf(function.CurrentCode())));
-      array.SetAt((index * kEntryLength) + kTargetFunctionIndex, entry_point);
-      return;
-    }
-  }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
   array.SetAt((index * kEntryLength) + kTargetFunctionIndex, target);
 }
 

@@ -3245,25 +3245,6 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
       cache->untag()->filled_entry_count_ = d->Read<int32_t>();
     }
   }
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (FLAG_use_bare_instructions) {
-      // By default, every megamorphic call site will load the target
-      // [Function] from the hash table and call indirectly via loading the
-      // entrypoint from the function.
-      //
-      // In --use-bare-instruction we reduce the extra indirection via the
-      // [Function] object by storing the entry point directly into the hashmap.
-      //
-      auto& cache = MegamorphicCache::Handle(d->zone());
-      for (intptr_t i = start_index_; i < stop_index_; ++i) {
-        cache ^= refs.At(i);
-        cache.SwitchToBareInstructions();
-      }
-    }
-  }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
