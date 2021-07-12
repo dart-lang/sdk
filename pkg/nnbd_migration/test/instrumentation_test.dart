@@ -149,7 +149,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
     var result =
-        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
+        await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
     source = result.unit!.declaredElement!.source;
     findNode = FindNode(content, result.unit!);
     migration.prepareInput(result);

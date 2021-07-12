@@ -37,7 +37,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     LibraryElement targetLibrary, Set<Source> libraries) async {
   var libraryPath = targetLibrary.source.fullName;
 
-  var resolveResult = await session.getResolvedUnit2(libraryPath);
+  var resolveResult = await session.getResolvedUnit(libraryPath);
   if (resolveResult is! ResolvedUnitResult) {
     return;
   }

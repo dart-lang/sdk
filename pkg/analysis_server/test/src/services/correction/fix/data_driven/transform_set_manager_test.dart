@@ -70,6 +70,6 @@ transforms:
 
 extension on AnalysisSession {
   Future<ResolvedLibraryResult> getResolvedLibraryValid(String path) async {
-    return await getResolvedLibrary2(path) as ResolvedLibraryResult;
+    return await getResolvedLibrary(path) as ResolvedLibraryResult;
   }
 }

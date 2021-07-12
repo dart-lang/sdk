@@ -118,7 +118,7 @@ $snippet
       if (contexts.length != 1) {
         fail('The snippets directory contains multiple analysis contexts.');
       }
-      var results = await contexts[0].currentSession.getErrors2(snippetPath);
+      var results = await contexts[0].currentSession.getErrors(snippetPath);
       if (results is ErrorsResult) {
         Iterable<AnalysisError> errors = results.errors.where((error) {
           ErrorCode errorCode = error.errorCode;

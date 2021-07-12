@@ -178,7 +178,7 @@ class _DartNavigationCollector {
       return null;
     }
 
-    var parsedLibrary = session.getParsedLibrary2(libraryPath);
+    var parsedLibrary = session.getParsedLibrary(libraryPath);
     if (parsedLibrary is! ParsedLibraryResult) {
       return null;
     }

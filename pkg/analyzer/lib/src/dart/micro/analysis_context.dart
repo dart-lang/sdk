@@ -181,18 +181,18 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   }
 
   @override
-  Future<SomeLibraryElementResult> getLibraryByUri2(String uriStr) async {
+  Future<SomeLibraryElementResult> getLibraryByUri(String uriStr) async {
     var element = analysisContext.fileResolver.getLibraryByUri(uriStr: uriStr);
     return LibraryElementResultImpl(element);
   }
 
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) async {
+  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) async {
     return analysisContext.fileResolver.resolveLibrary(path: path);
   }
 
   @override
-  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) async {
+  Future<SomeResolvedUnitResult> getResolvedUnit(String path) async {
     return analysisContext.fileResolver.resolve(path: path);
   }
 

@@ -172,7 +172,7 @@ class BulkFixProcessor {
             file_paths.isGenerated(path)) {
           continue;
         }
-        var library = await context.currentSession.getResolvedLibrary2(path);
+        var library = await context.currentSession.getResolvedLibrary(path);
         if (library is ResolvedLibraryResult) {
           await _fixErrorsInLibrary(library);
         }

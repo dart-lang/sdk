@@ -38,7 +38,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   Future<void> resolveTestUnit(String code) async {
     addTestSource(code, testUri);
     testAnalysisResult =
-        await session.getResolvedUnit2(testFile) as ResolvedUnitResult;
+        await session.getResolvedUnit(testFile) as ResolvedUnitResult;
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
       expect(testAnalysisResult.errors.where((AnalysisError error) {

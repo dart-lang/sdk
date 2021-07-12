@@ -363,7 +363,7 @@ class DocumentationGenerator {
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
-    var result = session.getParsedUnit2(path);
+    var result = session.getParsedUnit(path);
     if (result is! ParsedUnitResult) {
       throw StateError('Unable to parse "$path"');
     }

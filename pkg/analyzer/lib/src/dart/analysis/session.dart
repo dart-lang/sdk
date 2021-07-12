@@ -55,31 +55,55 @@ class AnalysisSessionImpl implements AnalysisSession {
   driver.AnalysisDriver getDriver() => _driver;
 
   @override
-  Future<SomeErrorsResult> getErrors2(String path) {
+  Future<SomeErrorsResult> getErrors(String path) {
     _checkConsistency();
     return _driver.getErrors2(path);
   }
 
+  @Deprecated('Use getErrors() instead')
   @override
-  SomeFileResult getFile2(String path) {
+  Future<SomeErrorsResult> getErrors2(String path) {
+    return getErrors(path);
+  }
+
+  @override
+  SomeFileResult getFile(String path) {
     _checkConsistency();
     return _driver.getFileSync2(path);
   }
 
+  @Deprecated('Use getFile() instead')
   @override
-  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) {
+  SomeFileResult getFile2(String path) {
+    return getFile(path);
+  }
+
+  @override
+  Future<SomeLibraryElementResult> getLibraryByUri(String uri) {
     _checkConsistency();
     return _driver.getLibraryByUri2(uri);
   }
 
+  @Deprecated('Use getLibraryByUri() instead')
   @override
-  SomeParsedLibraryResult getParsedLibrary2(String path) {
+  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) {
+    return getLibraryByUri(uri);
+  }
+
+  @override
+  SomeParsedLibraryResult getParsedLibrary(String path) {
     _checkConsistency();
     return _driver.getParsedLibrary2(path);
   }
 
+  @Deprecated('Use getParsedLibrary() instead')
   @override
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
+  SomeParsedLibraryResult getParsedLibrary2(String path) {
+    return getParsedLibrary(path);
+  }
+
+  @override
+  SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
     _checkConsistency();
 
     if (element.session != this) {
@@ -89,20 +113,38 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getParsedLibraryByUri2(element.source.uri);
   }
 
+  @Deprecated('Use getParsedLibraryByElement() instead')
   @override
-  SomeParsedUnitResult getParsedUnit2(String path) {
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
+    return getParsedLibraryByElement(element);
+  }
+
+  @override
+  SomeParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
     return _driver.parseFileSync2(path);
   }
 
+  @Deprecated('Use getParsedUnit() instead')
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) {
+  SomeParsedUnitResult getParsedUnit2(String path) {
+    return getParsedUnit(path);
+  }
+
+  @override
+  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) {
     _checkConsistency();
     return _driver.getResolvedLibrary2(path);
   }
 
+  @Deprecated('Use getResolvedLibrary() instead')
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) {
+    return getResolvedLibrary(path);
+  }
+
+  @override
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
     LibraryElement element,
   ) {
     _checkConsistency();
@@ -116,16 +158,36 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getResolvedLibraryByUri2(element.source.uri);
   }
 
+  @Deprecated('Use getResolvedLibraryByElement() instead')
   @override
-  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) {
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+    LibraryElement element,
+  ) {
+    return getResolvedLibraryByElement(element);
+  }
+
+  @override
+  Future<SomeResolvedUnitResult> getResolvedUnit(String path) {
     _checkConsistency();
     return _driver.getResult2(path);
   }
 
+  @Deprecated('Use getResolvedUnit() instead')
   @override
-  Future<SomeUnitElementResult> getUnitElement2(String path) {
+  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) {
+    return getResolvedUnit(path);
+  }
+
+  @override
+  Future<SomeUnitElementResult> getUnitElement(String path) {
     _checkConsistency();
     return _driver.getUnitElement2(path);
+  }
+
+  @Deprecated('Use getUnitElement() instead')
+  @override
+  Future<SomeUnitElementResult> getUnitElement2(String path) {
+    return getUnitElement(path);
   }
 
   /// Check to see that results from this session will be consistent, and throw

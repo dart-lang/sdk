@@ -450,7 +450,7 @@ class _ImportLibraryContainingExtension extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var result = await sessionHelper.session.getLibraryByUri2(uri.toString());
+    var result = await sessionHelper.session.getLibraryByUri(uri.toString());
     if (result is LibraryElementResult) {
       var library = result.element;
       if (library

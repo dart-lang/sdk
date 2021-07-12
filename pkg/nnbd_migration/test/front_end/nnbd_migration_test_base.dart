@@ -236,7 +236,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     Future<void> _forEachPath(
         void Function(ResolvedUnitResult) callback) async {
       for (var testPath in testPaths) {
-        var result = await driver!.currentSession.getResolvedUnit2(testPath!)
+        var result = await driver!.currentSession.getResolvedUnit(testPath!)
             as ResolvedUnitResult;
         callback(result);
       }

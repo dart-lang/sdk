@@ -1000,7 +1000,7 @@ class _FixCodeProcessor extends Object {
   bool get isPreviewServerRunning => _task?.isPreviewServerRunning ?? false;
 
   LineInfo getLineInfo(String path) =>
-      (context.currentSession.getFile2(path) as FileResult).lineInfo;
+      (context.currentSession.getFile(path) as FileResult).lineInfo;
 
   void prepareToRerun() {
     var driver = context.driver;
@@ -1015,7 +1015,7 @@ class _FixCodeProcessor extends Object {
     var pathsProcessed = <String?>{};
     for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
-      var result = await driver.getResolvedLibrary2(path);
+      var result = await driver.getResolvedLibrary(path);
       // Parts will either be found in a library, below, or if the library
       // isn't [isIncluded], will be picked up in the final loop.
       if (result is ResolvedLibraryResult) {
@@ -1029,7 +1029,7 @@ class _FixCodeProcessor extends Object {
     }
 
     for (var path in pathsToProcess.difference(pathsProcessed)) {
-      var result = await driver.getResolvedUnit2(path);
+      var result = await driver.getResolvedUnit(path);
       if (result is ResolvedUnitResult) {
         await process(result);
       }

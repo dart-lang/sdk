@@ -190,7 +190,7 @@ abstract class ContextResolutionTest
   Future<ResolvedUnitResult> resolveFile(String path) async {
     var analysisContext = contextFor(pathForContextSelection ?? path);
     var session = analysisContext.currentSession;
-    return await session.getResolvedUnit2(path) as ResolvedUnitResult;
+    return await session.getResolvedUnit(path) as ResolvedUnitResult;
   }
 
   @mustCallSuper
