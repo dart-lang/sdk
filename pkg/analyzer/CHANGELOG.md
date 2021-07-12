@@ -1,6 +1,8 @@
 ## 2.1.0
 * Changed `AnalysisResult.path` to be non-nullable.
 * Changed `ParsedLibraryResult.units` to be non-nullable.
+* Changed `ResolvedLibraryResult.element` to be non-nullable.
+* Changed `ResolvedLibraryResult.units` to be non-nullable.
 
 ## 2.0.0
 * Removed deprecated `Scope.lookup2()`.

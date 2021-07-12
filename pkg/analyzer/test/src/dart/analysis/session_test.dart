@@ -466,13 +466,13 @@ class B2 extends X {}
     var typeProvider = resolvedLibrary.typeProvider;
     expect(typeProvider.intType.element.name, 'int');
 
-    var libraryElement = resolvedLibrary.element!;
+    var libraryElement = resolvedLibrary.element;
 
     var aClass = libraryElement.getType('A')!;
 
     var bClass = libraryElement.getType('B')!;
 
-    var aUnitResult = resolvedLibrary.units![0];
+    var aUnitResult = resolvedLibrary.units[0];
     expect(aUnitResult.path, a);
     expect(aUnitResult.uri, Uri.parse('package:test/a.dart'));
     expect(aUnitResult.content, aContent);
@@ -481,7 +481,7 @@ class B2 extends X {}
     expect(aUnitResult.unit!.declarations, hasLength(1));
     expect(aUnitResult.errors, isEmpty);
 
-    var bUnitResult = resolvedLibrary.units![1];
+    var bUnitResult = resolvedLibrary.units[1];
     expect(bUnitResult.path, b);
     expect(bUnitResult.uri, Uri.parse('package:test/b.dart'));
     expect(bUnitResult.content, bContent);
@@ -534,7 +534,7 @@ int foo = 0;
 ''');
 
     var resolvedLibrary = await session.getResolvedLibraryValid(testPath);
-    var unitElement = resolvedLibrary.element!.definingCompilationUnit;
+    var unitElement = resolvedLibrary.element.definingCompilationUnit;
 
     var fooElement = unitElement.topLevelVariables[0];
     expect(fooElement.name, 'foo');
@@ -563,15 +563,15 @@ part 'c.dart';
 
     expect(resolvedLibrary.units, hasLength(3));
     expect(
-      resolvedLibrary.units![0].path,
+      resolvedLibrary.units[0].path,
       convertPath('/home/test/lib/test.dart'),
     );
     expect(
-      resolvedLibrary.units![1].path,
+      resolvedLibrary.units[1].path,
       convertPath('/home/test/lib/a.dart'),
     );
     expect(
-      resolvedLibrary.units![2].path,
+      resolvedLibrary.units[2].path,
       convertPath('/home/test/lib/c.dart'),
     );
   }
@@ -589,7 +589,7 @@ part 'c.dart';
     expect(result.path, testPath);
     expect(result.uri, Uri.parse('package:test/test.dart'));
     expect(result.units, hasLength(1));
-    expect(result.units![0].unit!.declaredElement, isNotNull);
+    expect(result.units[0].unit!.declaredElement, isNotNull);
   }
 
   test_getResolvedLibraryByElement2_differentSession() async {

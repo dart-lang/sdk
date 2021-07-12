@@ -452,14 +452,14 @@ class FileResolver {
         completionPath: path,
         performance: performance,
       );
-      var result = libraryUnit.units!
-          .firstWhereOrNull((element) => element.path == path);
+      var result =
+          libraryUnit.units.firstWhereOrNull((element) => element.path == path);
       // TODO(scheglov) Fix and remove.
       if (result == null) {
         throw StateError('''
 libraryFile.path: ${libraryFile.path}
 path: $path
-units: ${libraryUnit.units!.map((e) => '(${e.uri} = ${e.path})').toList()}
+units: ${libraryUnit.units.map((e) => '(${e.uri} = ${e.path})').toList()}
 ''');
       }
       return result;

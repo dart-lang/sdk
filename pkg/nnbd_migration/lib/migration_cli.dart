@@ -1019,7 +1019,7 @@ class _FixCodeProcessor extends Object {
       // Parts will either be found in a library, below, or if the library
       // isn't [isIncluded], will be picked up in the final loop.
       if (result is ResolvedLibraryResult) {
-        for (var unit in result.units!) {
+        for (var unit in result.units) {
           if (!pathsProcessed.contains(unit.path)) {
             await process(unit);
             pathsProcessed.add(unit.path);

@@ -50,7 +50,7 @@ class AnalysisSessionHelper {
     }
 
     var unitPath = element.source!.fullName;
-    return resolvedLibrary.units!.singleWhere((resolvedUnit) {
+    return resolvedLibrary.units.singleWhere((resolvedUnit) {
       return resolvedUnit.path == unitPath;
     });
   }

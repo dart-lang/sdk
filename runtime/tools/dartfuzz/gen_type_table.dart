@@ -1342,7 +1342,7 @@ Future<void> visitLibraryAtUri(
   var libPath = session.uriConverter.uriToPath(Uri.parse(uri));
   var result = await session.getResolvedLibrary2(libPath!);
   if (result is ResolvedLibraryResult) {
-    visitLibrary(result.element!, allTypes);
+    visitLibrary(result.element, allTypes);
   } else {
     throw StateError('Unable to resolve "$uri"');
   }

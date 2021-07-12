@@ -210,13 +210,13 @@ abstract class ParseStringResult {
 abstract class ResolvedLibraryResult
     implements SomeResolvedLibraryResult, AnalysisResult {
   /// The element representing this library.
-  LibraryElement? get element;
+  LibraryElement get element;
 
   /// The type provider used when resolving the library.
   TypeProvider get typeProvider;
 
   /// The resolved units of the library.
-  List<ResolvedUnitResult>? get units;
+  List<ResolvedUnitResult> get units;
 
   /// Return the declaration of the [element], or `null` if the [element]
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in

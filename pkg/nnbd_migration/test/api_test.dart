@@ -67,7 +67,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       var resolvedLibrary = await session.getResolvedLibrary2(path);
       if (resolvedLibrary is ResolvedLibraryResult) {
-        for (var unit in resolvedLibrary.units!) {
+        for (var unit in resolvedLibrary.units) {
           var errors =
               unit.errors.where((e) => e.severity == Severity.error).toList();
           if (!allowErrors && errors.isNotEmpty) {
@@ -82,7 +82,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       var resolvedLibrary = await session.getResolvedLibrary2(path);
       if (resolvedLibrary is ResolvedLibraryResult) {
-        for (var unit in resolvedLibrary.units!) {
+        for (var unit in resolvedLibrary.units) {
           migration.processInput(unit);
         }
       }
@@ -91,7 +91,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       var resolvedLibrary = await session.getResolvedLibrary2(path);
       if (resolvedLibrary is ResolvedLibraryResult) {
-        for (var unit in resolvedLibrary.units!) {
+        for (var unit in resolvedLibrary.units) {
           migration.finalizeInput(unit);
         }
       }

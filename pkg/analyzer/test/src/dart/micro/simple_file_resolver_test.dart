@@ -1084,7 +1084,7 @@ void func() {
 
     var result = fileResolver.resolveLibrary(path: aPath);
     expect(result.path, aPath);
-    expect(result.units?.length, 2);
+    expect(result.units.length, 2);
   }
 
   test_reuse_compatibleOptions() async {
