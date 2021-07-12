@@ -21,7 +21,9 @@ void main() {
 }
 
 class AbstractYamlChangeBuilderTest extends AbstractChangeBuilderTest {
-  String get testFilePath => '/home/my/pubspec.yaml';
+  String get testFilePath {
+    return resourceProvider.convertPath('/home/my/pubspec.yaml');
+  }
 
   void createPubspec(String content) {
     resourceProvider.newFile(testFilePath, content);
