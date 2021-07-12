@@ -646,8 +646,8 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
 
     while (offset < next_field_offset) {
       if (unboxed_fields.Get(offset / kCompressedWordSize)) {
-        uword* p = reinterpret_cast<uword*>(result->raw_value() -
-                                            kHeapObjectTag + offset);
+        compressed_uword* p = reinterpret_cast<compressed_uword*>(
+            result->raw_value() - kHeapObjectTag + offset);
         // Reads 32 bits of the unboxed value at a time
         *p = ReadWordWith32BitReads();
       } else {
