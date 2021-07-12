@@ -611,7 +611,7 @@ class EditDomainHandler extends AbstractRequestHandler {
             var provider = TopLevelDeclarationsProvider(tracker);
             return provider.get(
               result.session.analysisContext,
-              result.path!,
+              result.path,
               name,
             );
           }, extensionCache: server.getExtensionCacheFor(result));

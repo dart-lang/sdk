@@ -1,3 +1,6 @@
+## 2.1.0
+* Changed `AnalysisResult.path` to be non-nullable.
+
 ## 2.0.0
 * Removed deprecated `Scope.lookup2()`.
 * Removed deprecated setters in API of AST.

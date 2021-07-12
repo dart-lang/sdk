@@ -309,7 +309,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           var tracker = server.declarationsTracker!;
           return TopLevelDeclarationsProvider(tracker).get(
             unit.session.analysisContext,
-            unit.path!,
+            unit.path,
             name,
           );
         }, extensionCache: server.getExtensionCacheFor(unit));

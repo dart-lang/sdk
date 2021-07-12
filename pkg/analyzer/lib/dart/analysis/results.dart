@@ -17,9 +17,7 @@ import 'package:analyzer/src/generated/source.dart';
 abstract class AnalysisResult {
   /// The absolute and normalized path of the file that was analyzed.
   /// If [state] is not [ResultState.VALID], throws [StateError].
-  ///
-  /// TODO(migration): should not be nullable
-  String? get path;
+  String get path;
 
   /// Return the session used to compute this result.
   /// If [state] is not [ResultState.VALID], throws [StateError].

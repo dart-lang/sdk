@@ -374,7 +374,7 @@ class CompletionHandler
                   importingUris.first == '${library.uri}';
             }).map((item) => declarationToCompletionItem(
                       capabilities,
-                      unit.path!,
+                      unit.path,
                       offset,
                       includedSet,
                       library,

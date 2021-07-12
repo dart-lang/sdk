@@ -61,7 +61,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     utils = CorrectionUtils(resolveResult);
   }
 
-  String get file => resolveResult.path!;
+  String get file => resolveResult.path;
 
   @override
   String get refactoringName => 'Extract Local Variable';

@@ -17,7 +17,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   final AnalysisSession session;
 
   @override
-  final String? path;
+  final String path;
 
   @override
   final Uri uri;
@@ -79,17 +79,11 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   final List<ParsedUnitResult>? units;
 
   ParsedLibraryResultImpl(
-      AnalysisSession session, String? path, Uri uri, this.units)
+      AnalysisSession session, String path, Uri uri, this.units)
       : super(session, path, uri);
-
-  ParsedLibraryResultImpl.external(AnalysisSession session, Uri uri)
-      : this(session, null, uri, null);
 
   @override
   ResultState get state {
-    if (path == null) {
-      return ResultState.NOT_A_FILE;
-    }
     return ResultState.VALID;
   }
 
@@ -171,17 +165,11 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   final List<ResolvedUnitResult>? units;
 
   ResolvedLibraryResultImpl(
-      AnalysisSession session, String? path, Uri uri, this.element, this.units)
+      AnalysisSession session, String path, Uri uri, this.element, this.units)
       : super(session, path, uri);
-
-  ResolvedLibraryResultImpl.external(AnalysisSession session, Uri uri)
-      : this(session, null, uri, null, null);
 
   @override
   ResultState get state {
-    if (path == null) {
-      return ResultState.NOT_A_FILE;
-    }
     return ResultState.VALID;
   }
 

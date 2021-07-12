@@ -679,7 +679,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void listenAnalysisDriver(analysis.AnalysisDriver analysisDriver) {
     analysisDriver.results.listen((result) {
-      var path = result.path!;
+      var path = result.path;
       filesToFlush.add(path);
       if (analysisServer.isAnalyzed(path)) {
         _notificationManager.recordAnalysisErrors(NotificationManager.serverId,

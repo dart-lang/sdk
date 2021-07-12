@@ -826,11 +826,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
     analysisDriver.results.listen((result) {
       var path = result.path;
-      if (path == null) {
-        // This shouldn't occur - result.path is marked with a TODO to become
-        // non-nullable.
-        return;
-      }
       filesToFlush.add(path);
       if (analysisServer.isAnalyzed(path)) {
         final serverErrors = protocol.doAnalysisError_listFromEngine(result);

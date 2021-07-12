@@ -336,7 +336,7 @@ class BulkFixProcessor {
       await compute(producer);
       var newHash = computeChangeHash();
       if (newHash != oldHash) {
-        changeMap.add(result.path!, code);
+        changeMap.add(result.path, code);
       }
     }
 
@@ -401,7 +401,7 @@ class BulkFixProcessor {
     if (useConfigFiles) {
       var provider = result.session.resourceProvider;
       var context = provider.pathContext;
-      var dartFileName = result.path!;
+      var dartFileName = result.path;
       var configFileName = '${context.withoutExtension(dartFileName)}.config';
       var configFile = provider.getFile(configFileName);
       try {

@@ -12,6 +12,12 @@ import 'internal.dart';
 import 'test_utils.dart';
 
 main(args) async {
+  // We don't run this test in our artificial hot reload mode, because it would
+  // create too many threads during the reload (one per isolate), which can
+  // cause this test or other concurrently executing tests to Crash due to
+  // unability of `pthread_create` to create a new thread.
+  if (isArtificialReloadMode) return;
+
   final rp = ReceivePort();
   final int n = 18;
   await spawnInDetachedGroup(fibonacciRecursive, [rp.sendPort, n]);

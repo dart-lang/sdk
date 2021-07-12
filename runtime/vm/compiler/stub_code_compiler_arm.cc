@@ -3140,20 +3140,13 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  const auto target_address = FieldAddress(IP, base + target::kWordSize);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(
-        ARGS_DESC_REG,
-        FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
-    __ Branch(target_address);
-  } else {
-    __ ldr(R0, target_address);
+  __ ldr(R0, FieldAddress(IP, base + target::kWordSize));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
     __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
-    __ ldr(
-        ARGS_DESC_REG,
-        FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
-    __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
   }
+  __ ldr(ARGS_DESC_REG,
+         FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
+  __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
@@ -3194,14 +3187,17 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ b(&loop);
 
   __ Bind(&found);
-  const intptr_t code_offset =
-      target::ICData::CodeIndexFor(1) * target::kWordSize;
-  const intptr_t entry_offset =
-      target::ICData::EntryPointIndexFor(1) * target::kWordSize;
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ ldr(CODE_REG, Address(R8, code_offset));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    const intptr_t entry_offset =
+        target::ICData::EntryPointIndexFor(1) * target::kWordSize;
+    __ LoadCompressed(R0, Address(R8, entry_offset));
+    __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
+  } else {
+    const intptr_t code_offset =
+        target::ICData::CodeIndexFor(1) * target::kWordSize;
+    __ LoadCompressed(CODE_REG, Address(R8, code_offset));
+    __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
-  __ Branch(Address(R8, entry_offset));
 
   __ Bind(&miss);
   __ LoadIsolate(R2);

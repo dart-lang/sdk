@@ -15492,10 +15492,8 @@ void ICData::SetTargetAtPos(const Array& data,
   // AOT
   ASSERT(target.HasCode());
   const Code& code = Code::Handle(target.CurrentCode());
-  const Smi& entry_point =
-      Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
   data.SetAt(data_pos + CodeIndexFor(num_args_tested), code);
-  data.SetAt(data_pos + EntryPointIndexFor(num_args_tested), entry_point);
+  data.SetAt(data_pos + EntryPointIndexFor(num_args_tested), target);
 #endif
 }
 
@@ -17880,16 +17878,7 @@ void MegamorphicCache::EnsureContains(const Smi& class_id,
   }
 
 #if defined(DEBUG)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    if (target.IsFunction()) {
-      const auto& function = Function::Cast(target);
-      const auto& entry_point = Smi::Handle(
-          Smi::FromAlignedAddress(Code::EntryPointOf(function.CurrentCode())));
-      ASSERT(LookupLocked(class_id) == entry_point.ptr());
-    }
-  } else {
-    ASSERT(LookupLocked(class_id) == target.ptr());
-  }
+  ASSERT(LookupLocked(class_id) == target.ptr());
 #endif  // define(DEBUG)
 }
 
@@ -18003,25 +17992,6 @@ const char* MegamorphicCache::ToCString() const {
   const String& name = String::Handle(target_name());
   return OS::SCreate(Thread::Current()->zone(), "MegamorphicCache(%s)",
                      name.ToCString());
-}
-
-void MegamorphicCache::SwitchToBareInstructions() {
-  NoSafepointScope no_safepoint_scope;
-
-  intptr_t capacity = mask() + 1;
-  for (intptr_t i = 0; i < capacity; ++i) {
-    const intptr_t target_index = i * kEntryLength + kTargetFunctionIndex;
-    CompressedObjectPtr* slot = &Array::DataOf(buckets())[target_index];
-    ObjectPtr decompressed_slot = slot->Decompress(buckets()->heap_base());
-    const intptr_t cid = decompressed_slot->GetClassIdMayBeSmi();
-    if (cid == kFunctionCid) {
-      CodePtr code =
-          Function::CurrentCodeOf(Function::RawCast(decompressed_slot));
-      *slot = Smi::FromAlignedAddress(Code::EntryPointOf(code));
-    } else {
-      ASSERT(cid == kSmiCid || cid == kNullCid);
-    }
-  }
 }
 
 void SubtypeTestCache::Init() {

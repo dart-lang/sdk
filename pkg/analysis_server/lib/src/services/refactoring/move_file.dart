@@ -113,8 +113,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       }
 
       if (newDir != oldDir) {
-        await changeBuilder.addDartFileEdit(definingUnitResult.path!,
-            (builder) {
+        await changeBuilder.addDartFileEdit(definingUnitResult.path, (builder) {
           for (var directive in definingUnitResult.unit!.directives) {
             if (directive is UriBasedDirective) {
               _updateUriReference(builder, directive, oldDir, newDir);
