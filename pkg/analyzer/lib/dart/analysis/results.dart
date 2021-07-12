@@ -162,9 +162,7 @@ class NotPathOfUriResult
 abstract class ParsedLibraryResult
     implements SomeParsedLibraryResult, AnalysisResult {
   /// The parsed units of the library.
-  ///
-  /// TODO(migration): should not be null, probably empty list
-  List<ParsedUnitResult>? get units;
+  List<ParsedUnitResult> get units;
 
   /// Return the declaration of the [element], or `null` if the [element]
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in

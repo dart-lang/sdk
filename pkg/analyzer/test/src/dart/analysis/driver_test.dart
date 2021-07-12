@@ -1403,10 +1403,10 @@ class B {}
     var result = driver.getParsedLibrary2(testFile);
     result as ParsedLibraryResult;
     expect(result.units, hasLength(1));
-    expect(result.units![0].path, testFile);
-    expect(result.units![0].content, content);
-    expect(result.units![0].unit, isNotNull);
-    expect(result.units![0].errors, isEmpty);
+    expect(result.units[0].path, testFile);
+    expect(result.units[0].content, content);
+    expect(result.units[0].unit, isNotNull);
+    expect(result.units[0].errors, isEmpty);
   }
 
   test_getParsedLibrary2_invalidPath_notAbsolute() async {
@@ -1429,9 +1429,9 @@ class B {}
     result as ParsedLibraryResult;
     expect(result.uri, uri);
     expect(result.units, hasLength(1));
-    expect(result.units![0].uri, uri);
-    expect(result.units![0].path, testFile);
-    expect(result.units![0].content, content);
+    expect(result.units[0].uri, uri);
+    expect(result.units[0].path, testFile);
+    expect(result.units[0].content, content);
   }
 
   test_getParsedLibraryByUri2_notLibrary() async {

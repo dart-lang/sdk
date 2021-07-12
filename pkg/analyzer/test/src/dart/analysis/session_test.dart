@@ -233,7 +233,7 @@ class B {}
 
     expect(parsedLibrary.units, hasLength(1));
     {
-      var parsedUnit = parsedLibrary.units![0];
+      var parsedUnit = parsedLibrary.units[0];
       expect(parsedUnit.session, session);
       expect(parsedUnit.path, testPath);
       expect(parsedUnit.uri, Uri.parse('package:test/test.dart'));
@@ -288,21 +288,21 @@ class C3 {}
     expect(parsedLibrary.units, hasLength(3));
 
     {
-      var aUnit = parsedLibrary.units![0];
+      var aUnit = parsedLibrary.units[0];
       expect(aUnit.path, a);
       expect(aUnit.uri, Uri.parse('package:test/a.dart'));
       expect(aUnit.unit.declarations, hasLength(1));
     }
 
     {
-      var bUnit = parsedLibrary.units![1];
+      var bUnit = parsedLibrary.units[1];
       expect(bUnit.path, b);
       expect(bUnit.uri, Uri.parse('package:test/b.dart'));
       expect(bUnit.unit.declarations, hasLength(2));
     }
 
     {
-      var cUnit = parsedLibrary.units![2];
+      var cUnit = parsedLibrary.units[2];
       expect(cUnit.path, c);
       expect(cUnit.uri, Uri.parse('package:test/c.dart'));
       expect(cUnit.unit.declarations, hasLength(3));
@@ -378,15 +378,15 @@ part 'c.dart';
 
     expect(parsedLibrary.units, hasLength(3));
     expect(
-      parsedLibrary.units![0].path,
+      parsedLibrary.units[0].path,
       convertPath('/home/test/lib/test.dart'),
     );
     expect(
-      parsedLibrary.units![1].path,
+      parsedLibrary.units[1].path,
       convertPath('/home/test/lib/a.dart'),
     );
     expect(
-      parsedLibrary.units![2].path,
+      parsedLibrary.units[2].path,
       convertPath('/home/test/lib/c.dart'),
     );
   }

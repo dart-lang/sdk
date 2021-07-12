@@ -76,7 +76,7 @@ class LibraryElementResultImpl implements LibraryElementResult {
 class ParsedLibraryResultImpl extends AnalysisResultImpl
     implements ParsedLibraryResult {
   @override
-  final List<ParsedUnitResult>? units;
+  final List<ParsedUnitResult> units;
 
   ParsedLibraryResultImpl(
       AnalysisSession session, String path, Uri uri, this.units)
@@ -101,7 +101,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     }
 
     var elementPath = element.source!.fullName;
-    var unitResult = units!.firstWhere(
+    var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = element.getDisplayString(withNullability: true);
