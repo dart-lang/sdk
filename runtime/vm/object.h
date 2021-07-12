@@ -10874,8 +10874,6 @@ class Pointer : public Instance {
     return OFFSET_OF(UntaggedPointer, type_arguments_);
   }
 
-  static intptr_t NextFieldOffset() { return sizeof(UntaggedPointer); }
-
   static const intptr_t kNativeTypeArgPos = 0;
 
   // Fetches the NativeType type argument.
@@ -10885,7 +10883,7 @@ class Pointer : public Instance {
   }
 
  private:
-  HEAP_OBJECT_IMPLEMENTATION(Pointer, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Pointer, Instance);
 
   friend class Class;
 };
