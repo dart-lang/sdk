@@ -635,6 +635,13 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
+  @override
+  void visitTypedefTearOff(TypedefTearOff node) {
+    declareTypeParameters(node.typeParameters);
+    super.visitTypedefTearOff(node);
+    undeclareTypeParameters(node.typeParameters);
+  }
+
   void checkTargetedInvocation(Member target, InvocationExpression node) {
     visitChildren(node);
     // ignore: unnecessary_null_comparison

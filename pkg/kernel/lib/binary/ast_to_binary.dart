@@ -1615,9 +1615,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTypedefTearOff(TypedefTearOff node) {
     writeByte(Tag.TypedefTearOff);
+    enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.expression);
     writeNodeList(node.typeArguments);
+    leaveScope(typeParameters: node.typeParameters);
   }
 
   @override

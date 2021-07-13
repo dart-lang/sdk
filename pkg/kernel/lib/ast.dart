@@ -8729,9 +8729,11 @@ class TypedefTearOff extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(expression);
     printer.writeTypeParameters(typeParameters);
+    printer.write(".(");
+    printer.writeExpression(expression);
     printer.writeTypeArguments(typeArguments);
+    printer.write(")");
   }
 }
 

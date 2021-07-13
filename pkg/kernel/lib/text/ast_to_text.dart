@@ -2055,6 +2055,20 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeMemberReferenceFromReference(node.constructorReference);
   }
 
+  visitTypedefTearOff(TypedefTearOff node) {
+    writeTypeParameterList(node.typeParameters);
+    state = SYMBOL;
+    writeSymbol('.(');
+    writeNode(node.expression);
+    if (node.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.typeArguments, writeType);
+      writeSymbol('>');
+    }
+    writeSymbol(')');
+    state = WORD;
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     writeIndentation();
     writeExpression(node.expression);

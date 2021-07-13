@@ -846,6 +846,17 @@ class Forest {
     return new Instantiation(expression, typeArguments)
       ..fileOffset = fileOffset;
   }
+
+  TypedefTearOff createTypedefTearOff(
+      int fileOffset,
+      List<TypeParameter> typeParameters,
+      Expression expression,
+      List<DartType> typeArguments) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new TypedefTearOff(typeParameters, expression, typeArguments)
+      ..fileOffset = fileOffset;
+  }
 }
 
 class _VariablesDeclaration extends Statement {

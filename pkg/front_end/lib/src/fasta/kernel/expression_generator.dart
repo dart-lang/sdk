@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -24,6 +25,7 @@ import '../builder/prefix_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
+import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
 
 import '../constant_context.dart' show ConstantContext;
@@ -3099,6 +3101,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     TypeDeclarationBuilder? declarationBuilder = declaration;
     TypeAliasBuilder? aliasBuilder;
     List<TypeBuilder>? unaliasedTypeArguments;
+    bool isGenericTypedefTearOff = false;
     if (declarationBuilder is TypeAliasBuilder) {
       aliasBuilder = declarationBuilder;
       declarationBuilder = aliasBuilder.unaliasDeclaration(null,
@@ -3129,6 +3132,19 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   ..fileUri = _uri
                   ..offset = fileOffset);
           }
+          if (aliasedTypeArguments == null &&
+              aliasBuilder.typeVariablesCount != 0) {
+            isGenericTypedefTearOff = true;
+            aliasedTypeArguments = <TypeBuilder>[];
+            for (TypeVariableBuilder typeVariable
+                in aliasBuilder.typeVariables!) {
+              aliasedTypeArguments.add(new NamedTypeBuilder(typeVariable.name,
+                  const NullabilityBuilder.omitted(), null, _uri, fileOffset)
+                ..bind(typeVariable));
+            }
+          }
+          unaliasedTypeArguments =
+              aliasBuilder.unaliasTypeArguments(aliasedTypeArguments);
         }
       }
     }
@@ -3177,10 +3193,31 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 builtTypeArguments =
                     _helper.buildDartTypeArguments(typeArguments);
               }
-              return builtTypeArguments != null && builtTypeArguments.isNotEmpty
-                  ? _helper.forest.createInstantiation(
-                      token.charOffset, tearOffExpression, builtTypeArguments)
-                  : tearOffExpression;
+              if (isGenericTypedefTearOff) {
+                FreshTypeParameters freshTypeParameters =
+                    getFreshTypeParameters(
+                        aliasBuilder!.typedef.typeParameters);
+                List<DartType>? substitutedTypeArguments;
+                if (builtTypeArguments != null) {
+                  substitutedTypeArguments = <DartType>[];
+                  for (DartType builtTypeArgument in builtTypeArguments) {
+                    substitutedTypeArguments
+                        .add(freshTypeParameters.substitute(builtTypeArgument));
+                  }
+                }
+                tearOffExpression = _helper.forest.createTypedefTearOff(
+                    token.charOffset,
+                    freshTypeParameters.freshTypeParameters,
+                    tearOffExpression,
+                    substitutedTypeArguments ?? const <DartType>[]);
+              } else {
+                if (builtTypeArguments != null &&
+                    builtTypeArguments.isNotEmpty) {
+                  tearOffExpression = _helper.forest.createInstantiation(
+                      token.charOffset, tearOffExpression, builtTypeArguments);
+                }
+              }
+              return tearOffExpression;
             }
           }
           generator = new UnresolvedNameGenerator(_helper, send.token, name);
