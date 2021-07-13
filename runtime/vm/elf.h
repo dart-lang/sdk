@@ -16,6 +16,7 @@ namespace dart {
 #if defined(DART_PRECOMPILER)
 
 class Dwarf;
+class DynamicTable;
 class ElfWriteStream;
 class Section;
 class Segment;
@@ -42,7 +43,7 @@ class Elf : public ZoneAllocated {
   Zone* zone() const { return zone_; }
   const Dwarf* dwarf() const { return dwarf_; }
   Dwarf* dwarf() { return dwarf_; }
-  const SymbolTable* symtab() const { return symtab_; }
+  const SymbolTable& symtab() const { return *symtab_; }
 
   // Stores the information needed to appropriately generate a
   // relocation from the target to the source at the given section offset.
@@ -83,15 +84,7 @@ class Elf : public ZoneAllocated {
  private:
   static constexpr const char* kBuildIdNoteName = ".note.gnu.build-id";
 
-  // Adds the section and also creates a PT_LOAD segment for the section if it
-  // is an allocated section.
-  //
-  // For allocated sections, if a symbol_name is provided, a symbol for the
-  // section will be added to the dynamic table (if allocated) and static
-  // table (if not stripped) during finalization.
-  void AddSection(Section* section,
-                  const char* name,
-                  const char* symbol_name = nullptr);
+  void AddSection(Section* section, const char* name);
 
   const Section* FindSectionBySymbolName(const char* symbol_name) const;
 
@@ -100,7 +93,8 @@ class Elf : public ZoneAllocated {
 
   void OrderSectionsAndCreateSegments();
 
-  void FinalizeSymbols();
+  void InitializeSymbolTables();
+  void FinalizeSymbolTables();
   void FinalizeDwarfSections();
   void FinalizeProgramTable();
   void ComputeOffsets();
@@ -123,13 +117,11 @@ class Elf : public ZoneAllocated {
   // All our strings would fit in a single page. However, we use separate
   // .shstrtab and .dynstr to work around a bug in Android's strip utility.
   StringTable* const shstrtab_;
-  StringTable* const dynstrtab_;
-  SymbolTable* const dynsym_;
+  DynamicTable* dynamic_ = nullptr;
 
   // The static tables are always created for use in relocation calculations,
   // even though they may not end up in the final ELF file.
-  StringTable* const strtab_;
-  SymbolTable* const symtab_;
+  SymbolTable* symtab_ = nullptr;
 
   // We always create a BSS section for all Elf files to keep memory offsets
   // consistent, though it is NOBITS for separate debugging information.
