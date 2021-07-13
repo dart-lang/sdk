@@ -6,8 +6,8 @@ RESULT: _T {}?
 %K = _Parameter #0
 %V = _Parameter #1
 t2 = _CreateConcreteType (#lib::_NotRealHashMap @ (%K, %V))
-t3 = _Call direct [#lib::_NotRealHashMap.] (t2)
-RESULT: t2
+t3* = _Call direct [#lib::_NotRealHashMap.] (t2)
+RESULT: t3
 ------------ _NotRealHashMap. ------------
 %this = _Parameter #0 [_T (#lib::_NotRealHashMap)+]
 t1 = _Call direct [dart.core::Object.] (%this)
@@ -37,8 +37,8 @@ RESULT: _T {}?
 t1* = _Call direct [#lib::MockHashMap.] (#lib::Element*, dart.core::Object*)
 RESULT: t1
 ------------ main ------------
-t0 = _Call direct [#lib::InheritedElement.] (_T (#lib::InheritedElement))
-t1 = _Call [#lib::InheritedElement.setDependencies] (_T (#lib::InheritedElement), _T (#lib::InheritedElement), _T (dart.core::_Smi, 0))
-t2 = _Call direct [#lib::Element.] (_T (#lib::Element))
-t3 = _Call [#lib::InheritedElement.setDependencies] (_T (#lib::InheritedElement), _T (#lib::Element), _T {}?)
+t0* = _Call direct [#lib::InheritedElement.] (_T (#lib::InheritedElement))
+t1 = _Call [#lib::InheritedElement.setDependencies] (t0, t0, _T (dart.core::_Smi, 0))
+t2* = _Call direct [#lib::Element.] (_T (#lib::Element))
+t3 = _Call [#lib::InheritedElement.setDependencies] (t0, t2, _T {}?)
 RESULT: _T {}?
