@@ -301,6 +301,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     vm_isolate_->isolate_object_store()->Init();
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_->group());
+    OffsetsTable::Init();
     ArgumentsDescriptor::Init();
     ICData::Init();
     SubtypeTestCache::Init();
@@ -635,6 +636,7 @@ char* Dart::Cleanup() {
   ICData::Cleanup();
   SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();
+  OffsetsTable::Cleanup();
   TargetCPUFeatures::Cleanup();
   MarkingStack::Cleanup();
   StoreBuffer::Cleanup();

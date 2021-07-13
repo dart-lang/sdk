@@ -231,8 +231,7 @@ namespace dart {
 #define NON_HEADER_HASH_CLASSES_AND_FIELDS(F) F(String, hash_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
-  for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {
-    OffsetsTableEntry entry = offsets_table[i];
+  for (const OffsetsTableEntry& entry : OffsetsTable::offsets_table()) {
     cached_offsets_.Insert({{entry.class_id, entry.offset}, entry.field_name});
   }
 }
@@ -242,37 +241,46 @@ const char* OffsetsTable::FieldNameForOffset(intptr_t class_id,
   return cached_offsets_.LookupValue({class_id, offset});
 }
 
-#define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
-  {class_name::kClassId, #field_name,                                          \
-   OFFSET_OF(Untagged##class_name, field_name)},
+static MallocGrowableArray<OffsetsTable::OffsetsTableEntry> field_offsets_table;
 
-// clang-format off
-const OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
-    COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+const MallocGrowableArray<OffsetsTable::OffsetsTableEntry>&
+OffsetsTable::offsets_table() {
+  ASSERT(field_offsets_table.length() > 0);  // Initialized.
+  return field_offsets_table;
+}
+
+void OffsetsTable::Init() {
+#define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
+  field_offsets_table.Add({class_name::kClassId, #field_name,                  \
+                           OFFSET_OF(Untagged##class_name, field_name)});
+
+  COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
-    NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 
 #if !defined(HASH_IN_OBJECT_HEADER)
-    NON_HEADER_HASH_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  NON_HEADER_HASH_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-    AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
-    AOT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  AOT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 #else
-    JIT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  JIT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
-    JIT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  JIT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 #endif
-    {-1, nullptr, -1}
-};
-// clang-format on
 
 #undef DEFINE_OFFSETS_TABLE_ENTRY
+}
+
+void OffsetsTable::Cleanup() {
+  field_offsets_table.Clear();
+}
 
 #endif
 

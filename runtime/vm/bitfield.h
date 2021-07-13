@@ -226,22 +226,6 @@ class BitField<S,
                    void>::type>
     : public BitField<typename S::ContainedType, T, position, size, false> {};
 
-template <typename S, typename T, int position>
-class BitField<S,
-               T,
-               position,
-               (sizeof(S) * kBitsPerByte) - position,
-               false,
-               typename std::enable_if<
-                   std::is_base_of<AtomicBitFieldContainerBase, S>::value,
-                   void>::type>
-    : public BitField<typename S::ContainedType,
-                      T,
-                      position,
-                      (sizeof(typename S::ContainedType) * kBitsPerByte) -
-                          position,
-                      false> {};
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_BITFIELD_H_
