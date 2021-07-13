@@ -1867,9 +1867,13 @@ void ProgramReloadContext::DiscardSavedClassTable(bool is_rollback) {
       saved_class_table_.load(std::memory_order_relaxed);
   ClassPtr* local_saved_tlc_class_table =
       saved_tlc_class_table_.load(std::memory_order_relaxed);
-  IG->class_table()->ResetAfterHotReload(
-      local_saved_class_table, local_saved_tlc_class_table, saved_num_cids_,
-      saved_num_tlc_cids_, is_rollback);
+  {
+    auto thread = Thread::Current();
+    SafepointWriteRwLocker sl(thread, thread->isolate_group()->program_lock());
+    IG->class_table()->ResetAfterHotReload(
+        local_saved_class_table, local_saved_tlc_class_table, saved_num_cids_,
+        saved_num_tlc_cids_, is_rollback);
+  }
   saved_class_table_.store(nullptr, std::memory_order_release);
   saved_tlc_class_table_.store(nullptr, std::memory_order_release);
 }

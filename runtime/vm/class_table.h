@@ -354,6 +354,7 @@ class ClassTable {
   }
 
   void SetAt(intptr_t index, ClassPtr raw_cls);
+  void UpdateClassSize(intptr_t cid, ClassPtr raw_cls);
 
   bool IsValidIndex(intptr_t cid) const {
     if (IsTopLevelCid(cid)) {
