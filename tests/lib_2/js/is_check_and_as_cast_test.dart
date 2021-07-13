@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,6 @@
 library is_check_and_as_cast_test;
 
 import 'package:js/js.dart';
-import 'package:expect/expect.dart' show hasUnsoundNullSafety;
 import 'package:expect/minitest.dart';
 
 @JS()
@@ -131,29 +130,4 @@ void main() {
   expect(a is DartClass, isFalse);
   expect(confuse(a) is DartClass, isFalse);
   expect(() => (a as DartClass), throws);
-
-  // Test that nullability is still respected with JS types.
-  expect(foo is Foo?, isTrue);
-  expect(confuse(foo) is Foo?, isTrue);
-  expect(() => (foo as Foo?), returnsNormally);
-  Foo? nullableFoo = null;
-  expect(nullableFoo is Foo?, isTrue);
-  expect(confuse(nullableFoo) is Foo?, isTrue);
-  expect(() => (nullableFoo as Foo?), returnsNormally);
-  expect(nullableFoo is Foo, isFalse);
-  expect(confuse(nullableFoo) is Foo, isFalse);
-  expect(() => (nullableFoo as Foo),
-      hasUnsoundNullSafety ? returnsNormally : throws);
-
-  expect(a is LiteralA?, isTrue);
-  expect(confuse(a) is LiteralA?, isTrue);
-  expect(() => (a as LiteralA?), returnsNormally);
-  LiteralA? nullableA = null;
-  expect(nullableA is LiteralA?, isTrue);
-  expect(confuse(nullableA) is LiteralA?, isTrue);
-  expect(() => (nullableA as LiteralA?), returnsNormally);
-  expect(nullableA is LiteralA, isFalse);
-  expect(confuse(nullableA) is LiteralA, isFalse);
-  expect(() => (nullableA as LiteralA),
-      hasUnsoundNullSafety ? returnsNormally : throws);
 }
