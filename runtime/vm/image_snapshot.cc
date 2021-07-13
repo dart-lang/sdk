@@ -613,7 +613,6 @@ void ImageWriter::WriteText(bool vm) {
       FLAG_precompiled_mode && FLAG_use_bare_instructions;
 
   // Start snapshot at page boundary.
-  ASSERT(ImageWriter::kTextAlignment >= VirtualMemory::PageSize());
   if (!EnterSection(ProgramSection::Text, vm, ImageWriter::kTextAlignment)) {
     return;
   }
