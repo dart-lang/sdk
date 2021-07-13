@@ -32,7 +32,6 @@ import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
@@ -575,8 +574,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
-            Uri.file(file), true, content, lineInfo, false, null, errors);
+        var result = engine.ErrorsResultImpl(
+            session, file, Uri.file(file), lineInfo, false, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -674,8 +673,8 @@ error.errorCode: ${error.errorCode}
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
-            Uri.file(file), true, content, lineInfo, false, null, errors);
+        var result = engine.ErrorsResultImpl(
+            session, file, Uri.file(file), lineInfo, false, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -723,8 +722,8 @@ error.errorCode: ${error.errorCode}
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
-            Uri.file(file), true, content, lineInfo, false, null, errors);
+        var result = engine.ErrorsResultImpl(
+            session, file, Uri.file(file), lineInfo, false, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
