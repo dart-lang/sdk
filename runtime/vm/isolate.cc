@@ -867,6 +867,19 @@ bool IsolateVisitor::IsSystemIsolate(Isolate* isolate) const {
   return Isolate::IsSystemIsolate(isolate);
 }
 
+NoOOBMessageScope::NoOOBMessageScope(Thread* thread)
+    : ThreadStackResource(thread) {
+  if (thread->isolate() != nullptr) {
+    thread->DeferOOBMessageInterrupts();
+  }
+}
+
+NoOOBMessageScope::~NoOOBMessageScope() {
+  if (thread()->isolate() != nullptr) {
+    thread()->RestoreOOBMessageInterrupts();
+  }
+}
+
 Bequest::~Bequest() {
   if (handle_ == nullptr) {
     return;
