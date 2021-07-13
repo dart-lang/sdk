@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --no-enable-fast-object-copy
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --enable-fast-object-copy
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
 
 // The tests in this file are particularly for an implementation that tries to
 // allocate the entire graph in BFS order using a fast new space allocation
@@ -28,7 +31,7 @@ final Uint8List largeExternalTypedData =
 final Uint8List largeInternalTypedData = Uint8List(20 * 1024 * 1024)..[0] = 42;
 
 final Uint8List smallExternalTypedData =
-    File(Platform.script.toFilePath()).readAsBytesSync();
+    File(Platform.script.toFilePath()).readAsBytesSync()..[0] = 21;
 final Uint8List smallExternalTypedDataView =
     Uint8List.view(smallExternalTypedData.buffer, 1, 1);
 
@@ -110,6 +113,17 @@ void expectGraphsMatch(dynamic a, dynamic b) {
     }
     return;
   }
+  if (a is Set) {
+    final cb = b as Set;
+    Expect.equals(a.length, cb.length);
+    final aKeys = a.toList();
+    final cbKeys = cb.toList();
+    for (int i = 0; i < a.length; ++i) {
+      expectGraphsMatch(aKeys[i], cbKeys[i]);
+    }
+    return;
+  }
+
   throw 'Unexpected object encountered when matching object graphs $a / $b';
 }
 
@@ -126,6 +140,8 @@ void expectViewOf(Uint8List view, Uint8List backing) {
 class HashIncrementer {
   static int counter = 1;
 
+  const HashIncrementer();
+
   int get hashCode => counter++;
   bool operator ==(other) => identical(this, other);
 }
@@ -135,21 +151,39 @@ class UserObject {
   final double unboxedDouble;
   final dynamic slot;
 
-  UserObject(this.unboxedInt, this.unboxedDouble, this.slot);
+  const UserObject(this.unboxedInt, this.unboxedDouble, this.slot);
 }
 
-class SendReceiveTest {
+abstract class SendReceiveTestBase {
   late final ReceivePort receivePort;
   late final SendPort sendPort;
   late final StreamIterator si;
 
-  SendReceiveTest();
+  SendReceiveTestBase();
 
   Future run() async {
     receivePort = ReceivePort();
     sendPort = receivePort.sendPort;
     si = StreamIterator(receivePort);
 
+    await runTests();
+
+    si.cancel();
+    receivePort.close();
+    print('done');
+  }
+
+  Future runTests();
+
+  Future<T> sendReceive<T>(T graph) async {
+    sendPort.send(graph);
+    Expect.isTrue(await si.moveNext());
+    return si.current as T;
+  }
+}
+
+class SendReceiveTest extends SendReceiveTestBase {
+  Future runTests() async {
     await testTransferrable();
     await testTransferrable2();
     await testTransferrable3();
@@ -161,6 +195,7 @@ class SendReceiveTest {
     await testExternalTypedData3();
     await testExternalTypedData4();
     await testExternalTypedData5();
+    await testExternalTypedData6();
 
     await testInternalTypedDataView();
     await testInternalTypedDataView2();
@@ -172,16 +207,18 @@ class SendReceiveTest {
     await testExternalTypedDataView3();
     await testExternalTypedDataView4();
 
+    await testArray();
+
     await testMapRehash();
     await testMapRehash2();
     await testMapRehash3();
 
+    await testSetRehash();
+    await testSetRehash2();
+    await testSetRehash3();
+
     await testFastOnly();
     await testSlowOnly();
-
-    si.cancel();
-    receivePort.close();
-    print('done');
   }
 
   Future testTransferrable() async {
@@ -293,6 +330,16 @@ class SendReceiveTest {
     }
   }
 
+  Future testExternalTypedData6() async {
+    print('testExternalTypedData6');
+    final etd = await sendReceive([
+      smallExternalTypedData,
+      largeExternalTypedData,
+    ]);
+    Expect.equals(21, etd[0][0]);
+    Expect.equals(42, etd[1][0]);
+  }
+
   Future testInternalTypedDataView() async {
     print('testInternalTypedDataView');
     final graph = [
@@ -401,6 +448,18 @@ class SendReceiveTest {
     expectGraphsMatch(graph, copiedGraph);
   }
 
+  Future testArray() async {
+    print('testArray');
+    final oldSpace = List<dynamic>.filled(1024 * 1024, null);
+    final newSpace = UserObject(1, 1.1, 'foobar');
+    oldSpace[0] = newSpace;
+    final oldSpaceCopy = await sendReceive(oldSpace);
+    final newSpaceCopy = oldSpaceCopy[0] as UserObject;
+    Expect.equals(newSpaceCopy.unboxedInt, 1);
+    Expect.equals(newSpaceCopy.unboxedDouble, 1.1);
+    Expect.equals(newSpaceCopy.slot, 'foobar');
+  }
+
   Future testMapRehash() async {
     print('testMapRehash');
     final obj = Object();
@@ -437,9 +496,60 @@ class SendReceiveTest {
 
   Future testMapRehash3() async {
     print('testMapRehash3');
-    final obj = HashIncrementer();
+    final obj = const HashIncrementer();
     final graph = [
       {obj: 42},
+      notAllocatableInTLAB,
+    ];
+    final int before = HashIncrementer.counter;
+    await sendReceive(graph);
+    final int after = HashIncrementer.counter;
+    Expect.equals(before + 1, after);
+  }
+
+  Future testSetRehash() async {
+    print('testSetRehash');
+    final obj = Object();
+    final graph = <dynamic>[
+      <dynamic>{42, obj},
+      notAllocatableInTLAB,
+    ];
+    final result = await sendReceive(graph);
+    final setCopy = result[0] as Set<dynamic>;
+    Expect.equals(2, setCopy.length);
+    Expect.equals(42, setCopy.toList()[0]);
+    Expect.equals(obj.runtimeType, setCopy.toList()[1].runtimeType);
+    Expect.notIdentical(obj, setCopy.toList()[1]);
+    Expect.notEquals(
+        identityHashCode(obj), identityHashCode(setCopy.toList()[1]));
+    Expect.isFalse(setCopy.contains(obj));
+    Expect.isTrue(setCopy.contains(setCopy.toList()[1]));
+  }
+
+  Future testSetRehash2() async {
+    print('testSetRehash2');
+    final obj = Object();
+    final graph = <dynamic>[
+      notAllocatableInTLAB,
+      <dynamic>{42, obj},
+    ];
+    final result = await sendReceive(graph);
+    final setCopy = result[1] as Set<dynamic>;
+    Expect.equals(2, setCopy.length);
+    Expect.equals(42, setCopy.toList()[0]);
+    Expect.equals(obj.runtimeType, setCopy.toList()[1].runtimeType);
+    Expect.notIdentical(obj, setCopy.toList()[1]);
+    Expect.notEquals(
+        identityHashCode(obj), identityHashCode(setCopy.toList()[1]));
+    Expect.isFalse(setCopy.contains(obj));
+    Expect.isTrue(setCopy.contains(setCopy.toList()[1]));
+  }
+
+  Future testSetRehash3() async {
+    print('testSetRehash3');
+    final obj = const HashIncrementer();
+    final graph = [
+      {42, obj},
       notAllocatableInTLAB,
     ];
     final int before = HashIncrementer.counter;
@@ -468,12 +578,6 @@ class SendReceiveTest {
       expectGraphsMatch([notAllocatableInTLAB, smallContainer],
           await sendReceive([notAllocatableInTLAB, smallContainer]));
     }
-  }
-
-  Future<T> sendReceive<T>(T graph) async {
-    sendPort.send(graph);
-    Expect.isTrue(await si.moveNext());
-    return si.current as T;
   }
 }
 

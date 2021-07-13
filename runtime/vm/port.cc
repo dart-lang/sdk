@@ -243,7 +243,9 @@ bool PortMap::IsReceiverInThisIsolateGroup(Dart_Port receiver,
   MutexLocker ml(mutex_);
   auto it = ports_->TryLookup(receiver);
   if (it == ports_->end()) return false;
-  return (*it).handler->isolate()->group() == group;
+  auto isolate = (*it).handler->isolate();
+  if (isolate == nullptr) return false;
+  return isolate->group() == group;
 }
 
 void PortMap::Init() {

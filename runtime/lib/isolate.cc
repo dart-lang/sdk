@@ -20,6 +20,7 @@
 #include "vm/longjump.h"
 #include "vm/message_handler.h"
 #include "vm/object.h"
+#include "vm/object_graph_copy.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/resolver.h"
@@ -111,10 +112,22 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
     PortMap::PostMessage(
         Message::New(destination_port_id, obj.ptr(), Message::kNormalPriority));
   } else {
-    MessageWriter writer(can_send_any_object);
-    // TODO(turnidge): Throw an exception when the return value is false?
-    PortMap::PostMessage(writer.WriteMessage(obj, destination_port_id,
-                                             Message::kNormalPriority));
+    const bool same_group = IsolateGroup::AreIsolateGroupsEnabled() &&
+                            PortMap::IsReceiverInThisIsolateGroup(
+                                destination_port_id, isolate->group());
+    if (same_group) {
+      const auto& copy = Object::Handle(CopyMutableObjectGraph(obj));
+      auto handle = isolate->group()->api_state()->AllocatePersistentHandle();
+      handle->set_ptr(copy.ptr());
+      std::unique_ptr<Message> message(
+          new Message(destination_port_id, handle, Message::kNormalPriority));
+      PortMap::PostMessage(std::move(message));
+    } else {
+      MessageWriter writer(can_send_any_object);
+      // TODO(turnidge): Throw an exception when the return value is false?
+      PortMap::PostMessage(writer.WriteMessage(obj, destination_port_id,
+                                               Message::kNormalPriority));
+    }
   }
   return Object::null();
 }

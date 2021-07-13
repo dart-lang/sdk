@@ -188,6 +188,10 @@ class BaseGrowableArray : public B {
   // The content is uninitialized after calling it.
   void SetLength(intptr_t new_length);
 
+  // The content (if expanded) is uninitialized after calling it.
+  // The backing store (if expanded) will grow with by a power-of-2.
+  void Resize(intptr_t new_length);
+
   // Sort the array in place.
   inline void Sort(int compare(const T*, const T*));
 
@@ -210,9 +214,6 @@ class BaseGrowableArray : public B {
   intptr_t capacity_;
   T* data_;
   Allocator* allocator_;  // Used to (re)allocate the array.
-
-  // Used for growing the array.
-  void Resize(intptr_t new_length);
 
   DISALLOW_COPY_AND_ASSIGN(BaseGrowableArray);
 };
