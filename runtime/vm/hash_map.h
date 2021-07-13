@@ -631,7 +631,7 @@ class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
     DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Insert(pair);
   }
 
-  inline V Lookup(const Key& key) {
+  inline V Lookup(const Key& key) const {
     Pair* pair =
         DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
     if (pair == NULL) {
@@ -641,7 +641,7 @@ class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
     }
   }
 
-  inline Pair* LookupPair(const Key& key) {
+  inline Pair* LookupPair(const Key& key) const {
     return DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
   }
 

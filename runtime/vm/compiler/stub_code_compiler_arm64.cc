@@ -804,13 +804,13 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ Push(R5);  // Preserve cache (guarded CID as Smi).
+  __ Push(ZR);  // Result slot.
   __ Push(R0);  // Preserve receiver.
-  __ Push(ZR);
-  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
-  __ Pop(CODE_REG);
-  __ Pop(R0);  // Restore receiver.
-  __ Pop(R5);  // Restore cache (guarded CID as Smi).
+  __ Push(R5);  // Old cache value (also 2nd return value).
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 2);
+  __ Pop(R5);        // Get target cache object.
+  __ Pop(R0);        // Restore receiver.
+  __ Pop(CODE_REG);  // Get target Code object.
   // Remove the stub frame.
   __ LeaveStubFrame();
   // Jump to the dart function.

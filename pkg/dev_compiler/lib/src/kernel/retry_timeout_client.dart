@@ -99,7 +99,8 @@ class RetryTimeoutClient {
   void close({bool force = false}) => _inner.close(force: force);
 }
 
-bool _defaultWhen(HttpClientResponse response) => response.statusCode == 503;
+bool _defaultWhen(HttpClientResponse response) =>
+    response.statusCode == 500 || response.statusCode == 503;
 
 bool _defaultWhenError(Object error, StackTrace stackTrace) =>
     error is OSError ||

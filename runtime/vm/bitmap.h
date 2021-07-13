@@ -22,7 +22,9 @@ class BitmapBuilder : public ZoneAllocated {
   }
 
   BitmapBuilder(const BitmapBuilder& other)
-      : length_(other.length_), data_size_in_bytes_(other.data_size_in_bytes_) {
+      : ZoneAllocated(),
+        length_(other.length_),
+        data_size_in_bytes_(other.data_size_in_bytes_) {
     if (data_size_in_bytes_ == kInlineCapacityInBytes) {
       memmove(data_.inline_, other.data_.inline_, kInlineCapacityInBytes);
     } else {

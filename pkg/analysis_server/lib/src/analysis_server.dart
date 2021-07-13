@@ -679,83 +679,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void listenAnalysisDriver(analysis.AnalysisDriver analysisDriver) {
     analysisDriver.results.listen((result) {
-      var path = result.path;
-      filesToFlush.add(path);
-      if (analysisServer.isAnalyzed(path)) {
-        _notificationManager.recordAnalysisErrors(NotificationManager.serverId,
-            path, server.doAnalysisError_listFromEngine(result));
-      }
-      analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
-      analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
-      var unit = result.unit;
-      if (unit != null) {
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.HIGHLIGHTS, path)) {
-          _runDelayed(() {
-            _notificationManager.recordHighlightRegions(
-                NotificationManager.serverId,
-                path,
-                _computeHighlightRegions(unit));
-          });
-        }
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.NAVIGATION, path)) {
-          _runDelayed(() {
-            _notificationManager.recordNavigationParams(
-                NotificationManager.serverId,
-                path,
-                _computeNavigationParams(path, unit));
-          });
-        }
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.OCCURRENCES, path)) {
-          _runDelayed(() {
-            _notificationManager.recordOccurrences(
-                NotificationManager.serverId, path, _computeOccurrences(unit));
-          });
-        }
-//          if (analysisServer._hasAnalysisServiceSubscription(
-//              AnalysisService.OUTLINE, path)) {
-//            _runDelayed(() {
-//              // TODO(brianwilkerson) Change NotificationManager to store params
-//              // so that fileKind and libraryName can be recorded / passed along.
-//              notificationManager.recordOutlines(NotificationManager.serverId,
-//                  path, _computeOutlineParams(path, unit, result.lineInfo));
-//            });
-//          }
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.CLOSING_LABELS, path)) {
-          _runDelayed(() {
-            sendAnalysisNotificationClosingLabels(
-                analysisServer, path, result.lineInfo, unit);
-          });
-        }
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.FOLDING, path)) {
-          _runDelayed(() {
-            sendAnalysisNotificationFolding(
-                analysisServer, path, result.lineInfo, unit);
-          });
-        }
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.OUTLINE, path)) {
-          _runDelayed(() {
-            sendAnalysisNotificationOutline(analysisServer, result);
-          });
-        }
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.OVERRIDES, path)) {
-          _runDelayed(() {
-            sendAnalysisNotificationOverrides(analysisServer, path, unit);
-          });
-        }
-        if (analysisServer._hasFlutterServiceSubscription(
-            FlutterService.OUTLINE, path)) {
-          _runDelayed(() {
-            sendFlutterNotificationOutline(analysisServer, result);
-          });
-        }
-        // TODO(scheglov) Implement notifications for AnalysisService.IMPLEMENTED.
+      if (result is FileResult) {
+        _handleFileResult(result);
       }
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
@@ -786,6 +711,100 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     var collector = OccurrencesCollectorImpl();
     addDartOccurrences(collector, unit);
     return collector.allOccurrences;
+  }
+
+  void _handleFileResult(FileResult result) {
+    var path = result.path;
+    filesToFlush.add(path);
+
+    if (result is AnalysisResultWithErrors) {
+      if (analysisServer.isAnalyzed(path)) {
+        _notificationManager.recordAnalysisErrors(NotificationManager.serverId,
+            path, server.doAnalysisError_listFromEngine(result));
+      }
+    }
+
+    if (result is ResolvedUnitResult) {
+      _handleResolvedUnitResult(result);
+    }
+  }
+
+  void _handleResolvedUnitResult(ResolvedUnitResult result) {
+    var path = result.path;
+
+    analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
+    analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
+
+    var unit = result.unit;
+    if (unit != null) {
+      if (analysisServer._hasAnalysisServiceSubscription(
+          AnalysisService.HIGHLIGHTS, path)) {
+        _runDelayed(() {
+          _notificationManager.recordHighlightRegions(
+              NotificationManager.serverId,
+              path,
+              _computeHighlightRegions(unit));
+        });
+      }
+      if (analysisServer._hasAnalysisServiceSubscription(
+          AnalysisService.NAVIGATION, path)) {
+        _runDelayed(() {
+          _notificationManager.recordNavigationParams(
+              NotificationManager.serverId,
+              path,
+              _computeNavigationParams(path, unit));
+        });
+      }
+      if (analysisServer._hasAnalysisServiceSubscription(
+          AnalysisService.OCCURRENCES, path)) {
+        _runDelayed(() {
+          _notificationManager.recordOccurrences(
+              NotificationManager.serverId, path, _computeOccurrences(unit));
+        });
+      }
+      // if (analysisServer._hasAnalysisServiceSubscription(
+      //     AnalysisService.OUTLINE, path)) {
+      //   _runDelayed(() {
+      //     // TODO(brianwilkerson) Change NotificationManager to store params
+      //     // so that fileKind and libraryName can be recorded / passed along.
+      //     notificationManager.recordOutlines(NotificationManager.serverId, path,
+      //         _computeOutlineParams(path, unit, result.lineInfo));
+      //   });
+      // }
+      if (analysisServer._hasAnalysisServiceSubscription(
+          AnalysisService.CLOSING_LABELS, path)) {
+        _runDelayed(() {
+          sendAnalysisNotificationClosingLabels(
+              analysisServer, path, result.lineInfo, unit);
+        });
+      }
+      if (analysisServer._hasAnalysisServiceSubscription(
+          AnalysisService.FOLDING, path)) {
+        _runDelayed(() {
+          sendAnalysisNotificationFolding(
+              analysisServer, path, result.lineInfo, unit);
+        });
+      }
+      if (analysisServer._hasAnalysisServiceSubscription(
+          AnalysisService.OUTLINE, path)) {
+        _runDelayed(() {
+          sendAnalysisNotificationOutline(analysisServer, result);
+        });
+      }
+      if (analysisServer._hasAnalysisServiceSubscription(
+          AnalysisService.OVERRIDES, path)) {
+        _runDelayed(() {
+          sendAnalysisNotificationOverrides(analysisServer, path, unit);
+        });
+      }
+      if (analysisServer._hasFlutterServiceSubscription(
+          FlutterService.OUTLINE, path)) {
+        _runDelayed(() {
+          sendFlutterNotificationOutline(analysisServer, result);
+        });
+      }
+      // TODO(scheglov) Implement notifications for AnalysisService.IMPLEMENTED.
+    }
   }
 
   /// Run [f] in a new [Future].

@@ -241,15 +241,8 @@ class ImageWriter : public ValueObject {
   // ROData sections contain objects wrapped in an Image object.
   static constexpr intptr_t kRODataAlignment = kMaxObjectAlignment;
   // Text sections contain objects (even in bare instructions mode) wrapped
-  // in an Image object, and for now we also align them to the same page
-  // size assumed by Elf objects.
-  static constexpr intptr_t kTextAlignment = 16 * KB;
-#if defined(DART_PRECOMPILER)
-  static_assert(kTextAlignment == Elf::kPageSize,
-                "Page alignment must be consistent with max object alignment");
-  static_assert(Elf::kPageSize >= kMaxObjectAlignment,
-                "Page alignment must be consistent with max object alignment");
-#endif
+  // in an Image object.
+  static constexpr intptr_t kTextAlignment = kMaxObjectAlignment;
 
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;

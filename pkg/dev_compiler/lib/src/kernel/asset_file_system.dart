@@ -93,7 +93,7 @@ class AssetFileSystemEntity implements FileSystemEntity {
       Future<T> Function(RetryTimeoutClient httpClient) body) async {
     RetryTimeoutClient httpClient;
     try {
-      httpClient = RetryTimeoutClient(HttpClient(), retries: 4);
+      httpClient = RetryTimeoutClient(HttpClient(), retries: 5);
       return await body(httpClient);
     } on Exception catch (e, s) {
       throw FileSystemException(uri, '$e:$s');

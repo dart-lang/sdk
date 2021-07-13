@@ -1727,11 +1727,44 @@
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart ia32",
           "script": "tools/build.py",
           "arguments": [
             "--mode=all",
-            "--arch=all",
+            "--arch=ia32",
+            "--no-clang",
+            "--no-goma",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=x64",
+            "--no-clang",
+            "--no-goma",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart simarm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=simarm",
+            "--no-clang",
+            "--no-goma",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart simarm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=simarm64",
             "--no-clang",
             "--no-goma",
             "runtime"
