@@ -417,10 +417,11 @@ class Thread : public ThreadState {
   };
 
   void ScheduleInterrupts(uword interrupt_bits);
+  void ScheduleInterruptsLocked(uword interrupt_bits);
   ErrorPtr HandleInterrupts();
   uword GetAndClearInterrupts();
   bool HasScheduledInterrupts() const {
-    return (stack_limit_.load() & kInterruptsMask) != 0;
+    return (stack_limit_ & kInterruptsMask) != 0;
   }
 
   // Monitor corresponding to this thread.
@@ -1030,7 +1031,7 @@ class Thread : public ThreadState {
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  volatile RelaxedAtomic<uword> stack_limit_;
+  RelaxedAtomic<uword> stack_limit_;
   uword write_barrier_mask_;
   uword heap_base_;
   Isolate* isolate_;
@@ -1106,6 +1107,9 @@ class Thread : public ThreadState {
   int32_t no_safepoint_scope_depth_;
 #endif
   VMHandles reusable_handles_;
+  intptr_t defer_oob_messages_count_;
+  uint16_t deferred_interrupts_mask_;
+  uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
   uint32_t runtime_call_count_ = 0;
 
@@ -1201,6 +1205,9 @@ class Thread : public ThreadState {
 
   static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 
+  void DeferOOBMessageInterrupts();
+  void RestoreOOBMessageInterrupts();
+
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
   REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
@@ -1211,7 +1218,9 @@ class Thread : public ThreadState {
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateGroup;
+  friend class IsolateTestHelper;
   friend class NoActiveIsolateScope;
+  friend class NoOOBMessageScope;
   friend class NoReloadScope;
   friend class Simulator;
   friend class StackZone;

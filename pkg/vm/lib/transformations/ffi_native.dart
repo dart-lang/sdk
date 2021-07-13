@@ -72,14 +72,14 @@ class FfiNativeTransformer extends Transformer {
 
   // Transform:
   //   @FfiNative<Double Function(Double)>('Math_sqrt')
-  //   external double _sqrt(double x);
+  //   external double _square_root(double x);
   //
   // Into:
-  //   final _@FfiNative_Math_sqrt =
+  //   final _@FfiNative__square_root =
   //       Pointer<NativeFunction<Double Function(Double)>>
   //           .fromAddress(_ffi_resolver('dart:math', 'Math_sqrt'))
   //           .asFunction<double Function(double)>();
-  //   double _sqrt(double x) => _@FfiNative_Math_sqrt(x);
+  //   double _square_root(double x) => _@FfiNative__square_root(x);
   Statement transformFfiNative(
       Procedure node, InstanceConstant annotationConst) {
     assert(currentLibrary != null);
@@ -119,8 +119,8 @@ class FfiNativeTransformer extends Transformer {
     final asFunctionInvocation = StaticInvocation(asFunctionProcedure,
         Arguments([fromAddressInvocation], types: [nativeType, dartType]));
 
-    // final _@FfiNative_Math_sqrt = ...
-    final fieldName = Name('_@FfiNative_${functionName.value}', currentLibrary);
+    // final _@FfiNative__square_root = ...
+    final fieldName = Name('_@FfiNative_${node.name.text}', currentLibrary);
     final funcPtrField = Field.immutable(fieldName,
         type: dartType,
         initializer: asFunctionInvocation,
@@ -130,7 +130,7 @@ class FfiNativeTransformer extends Transformer {
         getterReference: currentLibraryIndex?.lookupGetterReference(fieldName));
     currentLibrary!.addField(funcPtrField);
 
-    // _@FfiNative_Math_sqrt(x)
+    // _@FfiNative__square_root(x)
     final callFuncPtrInvocation = FunctionInvocation(
         FunctionAccessKind.FunctionType,
         StaticGet(funcPtrField),
@@ -144,7 +144,7 @@ class FfiNativeTransformer extends Transformer {
   visitProcedure(Procedure node) {
     // Only transform functions that are external and have FfiNative annotation:
     //   @FfiNative<Double Function(Double)>('Math_sqrt')
-    //   external double _sqrt(double x);
+    //   external double _square_root(double x);
     if (!node.isExternal) {
       return node;
     }

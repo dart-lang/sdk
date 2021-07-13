@@ -11162,6 +11162,7 @@ ObjectPtr Field::EvaluateInitializer() const {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  NoOOBMessageScope no_msg_scope(thread);
   NoReloadScope no_reload_scope(thread);
   const Function& initializer = Function::Handle(EnsureInitializerFunction());
   return DartEntry::InvokeFunction(initializer, Object::empty_array());

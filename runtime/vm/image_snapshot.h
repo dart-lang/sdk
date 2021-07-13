@@ -397,13 +397,15 @@ class ImageWriter : public ValueObject {
   // relocated address of the target section and S is the final relocated
   // address of the source, the final value is:
   //   (T + target_offset + target_addend) - (S + source_offset)
-  // If either symbol is nullptr, then the corresponding is treated as an
-  // absolute address.
   virtual intptr_t Relocation(intptr_t section_offset,
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
                               intptr_t target_offset) = 0;
+  // Writes a target word-sized value that contains the relocated address
+  // pointed to by the given symbol.
+  virtual intptr_t RelocatedAddress(intptr_t section_offset,
+                                    const char* symbol) = 0;
   // Creates a static symbol for the given Code object when appropriate.
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
@@ -417,11 +419,6 @@ class ImageWriter : public ValueObject {
                       const char* source_symbol,
                       const char* target_symbol) {
     return Relocation(section_offset, source_symbol, 0, target_symbol, 0);
-  }
-  // An overload of Relocation for outputting the relocated address of the
-  // target symbol at the given section offset.
-  intptr_t Relocation(intptr_t section_offset, const char* target_symbol) {
-    return Relocation(section_offset, nullptr, 0, target_symbol, 0);
   }
 #endif
   // Writes a fixed-sized value of type T to the section contents.
@@ -549,6 +546,11 @@ class AssemblyImageWriter : public ImageWriter {
                               intptr_t source_offset,
                               const char* target_symbol,
                               intptr_t target_offset);
+  virtual intptr_t RelocatedAddress(intptr_t section_offset,
+                                    const char* symbol) {
+    // Cannot calculate snapshot-relative addresses in assembly snapshots.
+    return WriteTargetWord(Image::kNoRelocatedAddress);
+  }
   virtual void FrameUnwindPrologue();
   virtual void FrameUnwindEpilogue();
   virtual void AddCodeSymbol(const Code& code,
@@ -599,6 +601,11 @@ class BlobImageWriter : public ImageWriter {
                               intptr_t source_offset,
                               const char* target_symbol,
                               intptr_t target_offset);
+  virtual intptr_t RelocatedAddress(intptr_t section_offset,
+                                    const char* target_symbol) {
+    // ELF symbol tables always have a reserved symbol with name "" and value 0.
+    return ImageWriter::Relocation(section_offset, "", target_symbol);
+  }
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
                              intptr_t offset);

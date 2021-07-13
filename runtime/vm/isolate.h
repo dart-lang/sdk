@@ -134,6 +134,16 @@ class LambdaCallable : public Callable {
   DISALLOW_COPY_AND_ASSIGN(LambdaCallable);
 };
 
+// Disallow OOB message handling within this scope.
+class NoOOBMessageScope : public ThreadStackResource {
+ public:
+  explicit NoOOBMessageScope(Thread* thread);
+  ~NoOOBMessageScope();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoOOBMessageScope);
+};
+
 // Fixed cache for exception handler lookup.
 typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
 // Fixed cache for catch entry state lookup.

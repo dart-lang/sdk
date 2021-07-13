@@ -45,7 +45,9 @@ B<num> Function() test18() => DB3<num, String>.new; // Ok.
 B<num> Function() test19() => DB3<num, String>.foo; // Ok.
 B<num> Function() test20() => DB3<num, String>.bar; // Ok.
 B<num> Function() test21() => DB3.new; // Ok.
-B<Y> Function<Y extends num, Z extends String>() test22() => DB2.new; // Ok.
-B<Y> Function<Y, Z>() test23() => DB2.new; // Error.
+B<Y> Function<Y extends num, Z extends String>() test22() => DB3.new; // Ok.
+B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
+
+B<String> Function() test24() => DB2.new; // Ok.
 
 main() {}

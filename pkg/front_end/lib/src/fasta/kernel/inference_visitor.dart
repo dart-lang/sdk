@@ -7,7 +7,7 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart'
@@ -225,7 +225,37 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitTypedefTearOff(
       TypedefTearOff node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
+    ExpressionInferenceResult expressionResult = inferrer.inferExpression(
+        node.expression, const UnknownType(), true,
+        isVoidAllowed: true);
+    node.expression = expressionResult.expression..parent = node;
+
+    assert(
+        expressionResult.inferredType is FunctionType,
+        "Expected a FunctionType from tearing off a constructor from "
+        "a typedef, but got '${expressionResult.inferredType.runtimeType}'.");
+    FunctionType expressionType = expressionResult.inferredType as FunctionType;
+
+    assert(expressionType.typeParameters.length == node.typeArguments.length);
+    Substitution substitution = Substitution.fromPairs(
+        expressionType.typeParameters, node.typeArguments);
+    FunctionType resultType = substitution
+        .substituteType(expressionType.withoutTypeParameters) as FunctionType;
+    FreshTypeParameters freshTypeParameters =
+        getFreshTypeParameters(node.typeParameters);
+    resultType = freshTypeParameters.substitute(resultType) as FunctionType;
+    resultType = new FunctionType(resultType.positionalParameters,
+        resultType.returnType, resultType.declaredNullability,
+        namedParameters: resultType.namedParameters,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        requiredParameterCount: resultType.requiredParameterCount,
+        typedefType: null);
+    ExpressionInferenceResult inferredResult =
+        inferrer.instantiateTearOff(resultType, typeContext, node);
+    Expression ensuredResultExpression =
+        inferrer.ensureAssignableResult(typeContext, inferredResult);
+    return new ExpressionInferenceResult(
+        inferredResult.inferredType, ensuredResultExpression);
   }
 
   @override

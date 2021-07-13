@@ -65,5 +65,7 @@ static method test22() → <Y extends core::num = dynamic, Z extends core::Strin
   ;
 static method test23() → <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>
   ;
+static method test24() → () → self::B<core::String>
+  ;
 static method main() → dynamic
   ;
