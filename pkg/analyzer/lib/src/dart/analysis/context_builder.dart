@@ -7,9 +7,9 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/context/builder.dart' as old
-    show ContextBuilder, ContextBuilderOptions;
-import 'package:analyzer/src/context/context_root.dart' as old;
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
     show ByteStore, MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/driver.dart'
@@ -18,8 +18,15 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:cli_util/cli_util.dart';
 
 /// An implementation of a context builder.
@@ -57,45 +64,56 @@ class ContextBuilderImpl implements ContextBuilder {
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(StringBuffer());
 
-    DartSdkManager sdkManager = DartSdkManager(sdkPath);
-
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
       scheduler.start();
     }
 
-    // TODO(brianwilkerson) Move the required implementation from the old
-    // ContextBuilder to this class and remove the old class.
-    old.ContextBuilderOptions options = old.ContextBuilderOptions();
-    if (declaredVariables != null) {
-      options.declaredVariables = _toMap(declaredVariables);
-    }
-    if (sdkSummaryPath != null) {
-      options.dartSdkSummaryPath = sdkSummaryPath;
-    }
+    SummaryDataStore? summaryData;
     if (librarySummaryPaths != null) {
-      options.librarySummaryPaths = librarySummaryPaths;
+      summaryData = SummaryDataStore(librarySummaryPaths);
     }
-    options.defaultAnalysisOptionsFilePath = contextRoot.optionsFile?.path;
-    options.defaultPackageFilePath = contextRoot.packagesFile?.path;
 
-    old.ContextBuilder builder =
-        old.ContextBuilder(resourceProvider, sdkManager, options: options);
-    builder.analysisDriverScheduler = scheduler;
-    builder.byteStore = byteStore;
-    builder.enableIndex = enableIndex;
-    builder.performanceLog = performanceLog;
-    builder.retainDataForTesting = retainDataForTesting;
-
-    old.ContextRoot oldContextRoot = old.ContextRoot(
-        contextRoot.root.path, contextRoot.excludedPaths.toList(),
-        pathContext: resourceProvider.pathContext);
-    AnalysisDriver driver = builder.buildDriver(
-      oldContextRoot,
-      contextRoot.workspace,
-      fileContentCache: fileContentCache,
-      updateAnalysisOptions: updateAnalysisOptions,
+    var workspace = contextRoot.workspace;
+    var sdk = _createSdk(
+      workspace: workspace,
+      sdkPath: sdkPath,
+      sdkSummaryPath: sdkSummaryPath,
     );
+
+    // TODO(scheglov) Ensure that "librarySummaryPaths" not null only
+    // when "sdkSummaryPath" is not null.
+    if (sdk is SummaryBasedDartSdk) {
+      summaryData?.addBundle(null, sdk.bundle);
+    }
+
+    var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
+
+    var options = _getAnalysisOptions(contextRoot, sourceFactory);
+    if (updateAnalysisOptions != null) {
+      updateAnalysisOptions(options);
+    }
+
+    var driver = AnalysisDriver.tmp1(
+      scheduler: scheduler,
+      logger: performanceLog,
+      resourceProvider: resourceProvider,
+      byteStore: byteStore,
+      sourceFactory: sourceFactory,
+      analysisOptions: options,
+      packages: _createPackageMap(
+        contextRoot: contextRoot,
+      ),
+      enableIndex: enableIndex,
+      externalSummaries: summaryData,
+      retainDataForTesting: retainDataForTesting,
+      fileContentCache: fileContentCache,
+    );
+
+    if (declaredVariables != null) {
+      driver.declaredVariables = declaredVariables;
+      driver.configure();
+    }
 
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.
@@ -111,13 +129,103 @@ class ContextBuilderImpl implements ContextBuilder {
     return context;
   }
 
-  /// Convert the [declaredVariables] into a map for use with the old context
-  /// builder.
-  Map<String, String> _toMap(DeclaredVariables declaredVariables) {
-    Map<String, String> map = <String, String>{};
-    for (String name in declaredVariables.variableNames) {
-      map[name] = declaredVariables.get(name)!;
+  /// Return [Packages] to analyze the [contextRoot].
+  ///
+  /// TODO(scheglov) Get [Packages] from [Workspace]?
+  Packages _createPackageMap({
+    required ContextRoot contextRoot,
+  }) {
+    var configFile = contextRoot.packagesFile;
+    if (configFile != null) {
+      return parsePackagesFile(resourceProvider, configFile);
+    } else {
+      return Packages.empty;
     }
-    return map;
+  }
+
+  /// Return the SDK that that should be used to analyze code.
+  DartSdk _createSdk({
+    required Workspace workspace,
+    String? sdkPath,
+    String? sdkSummaryPath,
+  }) {
+    if (sdkSummaryPath != null) {
+      return SummaryBasedDartSdk(sdkSummaryPath, true,
+          resourceProvider: resourceProvider);
+    }
+
+    var folderSdk = FolderBasedDartSdk(
+      resourceProvider,
+      resourceProvider.getFolder(sdkPath!),
+    );
+
+    {
+      // TODO(scheglov) We already had partial SourceFactory in ContextLocatorImpl.
+      var partialSourceFactory = workspace.createSourceFactory(null, null);
+      var embedderYamlSource = partialSourceFactory.forUri(
+        'package:sky_engine/_embedder.yaml',
+      );
+      if (embedderYamlSource != null) {
+        var embedderYamlPath = embedderYamlSource.fullName;
+        var libFolder = resourceProvider.getFile(embedderYamlPath).parent2;
+        var locator = EmbedderYamlLocator.forLibFolder(libFolder);
+        var embedderMap = locator.embedderYamls;
+        if (embedderMap.isNotEmpty) {
+          return EmbedderSdk(
+            resourceProvider,
+            embedderMap,
+            languageVersion: folderSdk.languageVersion,
+          );
+        }
+      }
+    }
+
+    return folderSdk;
+  }
+
+  /// Return the `pubspec.yaml` file that should be used when analyzing code in
+  /// the [contextRoot], possibly `null`.
+  ///
+  /// TODO(scheglov) Get it from [Workspace]?
+  File? _findPubspecFile(ContextRoot contextRoot) {
+    for (var current in contextRoot.root.withAncestors) {
+      var file = current.getChildAssumingFile('pubspec.yaml');
+      if (file.exists) {
+        return file;
+      }
+    }
+  }
+
+  /// Return the analysis options that should be used to analyze code in the
+  /// [contextRoot].
+  ///
+  /// TODO(scheglov) We have already loaded it once in [ContextLocatorImpl].
+  AnalysisOptionsImpl _getAnalysisOptions(
+    ContextRoot contextRoot,
+    SourceFactory sourceFactory,
+  ) {
+    var options = AnalysisOptionsImpl();
+
+    var optionsFile = contextRoot.optionsFile;
+    if (optionsFile != null) {
+      try {
+        var provider = AnalysisOptionsProvider(sourceFactory);
+        var optionsMap = provider.getOptionsFromFile(optionsFile);
+        applyToAnalysisOptions(options, optionsMap);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    var pubspecFile = _findPubspecFile(contextRoot);
+    if (pubspecFile != null) {
+      var extractor = SdkConstraintExtractor(pubspecFile);
+      var sdkVersionConstraint = extractor.constraint();
+      if (sdkVersionConstraint != null) {
+        options.sdkVersionConstraint = sdkVersionConstraint;
+      }
+    }
+
+    return options;
   }
 }
