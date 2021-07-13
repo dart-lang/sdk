@@ -21,7 +21,14 @@ class RelaxedAtomic {
   T load(std::memory_order order = std::memory_order_relaxed) const {
     return value_.load(order);
   }
+  T load(std::memory_order order = std::memory_order_relaxed) const volatile {
+    return value_.load(order);
+  }
   void store(T arg, std::memory_order order = std::memory_order_relaxed) {
+    value_.store(arg, order);
+  }
+  void store(T arg,
+             std::memory_order order = std::memory_order_relaxed) volatile {
     value_.store(arg, order);
   }
 
@@ -42,6 +49,12 @@ class RelaxedAtomic {
       T& expected,  // NOLINT
       T desired,
       std::memory_order order = std::memory_order_relaxed) {
+    return value_.compare_exchange_weak(expected, desired, order, order);
+  }
+  bool compare_exchange_weak(
+      T& expected,  // NOLINT
+      T desired,
+      std::memory_order order = std::memory_order_relaxed) volatile {
     return value_.compare_exchange_weak(expected, desired, order, order);
   }
   bool compare_exchange_strong(
