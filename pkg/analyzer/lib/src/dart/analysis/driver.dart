@@ -201,10 +201,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _partsToAnalyze = <String>{};
 
   /// The controller for the [results] stream.
-  final _resultController = StreamController<ResolvedUnitResult>();
+  final _resultController = StreamController<Object>();
 
   /// The stream that will be written to when analysis results are produced.
-  late final Stream<ResolvedUnitResult> _onResults;
+  late final Stream<Object> _onResults;
 
   /// Resolution signatures of the most recently produced results for files.
   final Map<String, String> _lastProducedSignatures = {};
@@ -383,6 +383,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// an analysis result is produced for every added file prior to the next time
   /// the analysis state transitions to "idle".
   ///
+  /// [ResolvedUnitResult]s are produced for:
+  /// 1. Files requested using [getResult2].
+  /// 2. Files passed to [addFile] which are also in [priorityFiles].
+  ///
+  /// [ErrorsResult]s are produced for:
+  /// 1. Files passed to [addFile] which are not in [priorityFiles].
+  ///
   /// At least one analysis result is produced for every file passed to
   /// [addFile] or [changeFile] prior to the next time the analysis state
   /// transitions to "idle", unless the file is later removed from analysis
@@ -394,7 +401,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// Results might be produced even for files that have never been added
   /// using [addFile], for example when [getResult2] was called for a file.
-  Stream<ResolvedUnitResult> get results => _onResults;
+  Stream<Object> get results => _onResults;
 
   /// Return the search support for the driver.
   Search get search => _search;

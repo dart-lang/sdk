@@ -74,7 +74,11 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
       analysisOptions: AnalysisOptionsImpl(),
       packages: Packages.empty,
     );
-    driver.results.forEach(allResults.add);
+    driver.results.listen((result) {
+      if (result is ResolvedUnitResult) {
+        allResults.add(result);
+      }
+    });
     return driver;
   }
 

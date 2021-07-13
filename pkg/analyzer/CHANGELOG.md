@@ -4,6 +4,11 @@
 * Changed `ResolvedLibraryResult.element` to be non-nullable.
 * Changed `ResolvedLibraryResult.units` to be non-nullable.
 * Deprecated and renamed `AnalysisSession.getXyz2()` into `getXyz()`.
+* Changed `AnalysisDriver.results` to `Stream<Object>`.
+  It used to always produce `ResolvedUnitResult`s, but sometimes its
+  `content` and `unit` were `null`, when the result actually had only errors.
+  Now it produces either `ResolvedUnitResult`, or `ErrorsResult`, or
+  some other results that might be added in the future.
 
 ## 2.0.0
 * Removed deprecated `Scope.lookup2()`.

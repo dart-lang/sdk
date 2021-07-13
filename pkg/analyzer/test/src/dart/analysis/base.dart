@@ -141,7 +141,11 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
     driver = createAnalysisDriver();
     scheduler.start();
     scheduler.status.listen(allStatuses.add);
-    driver.results.listen(allResults.add);
+    driver.results.listen((result) {
+      if (result is ResolvedUnitResult) {
+        allResults.add(result);
+      }
+    });
     driver.exceptions.listen(allExceptions.add);
   }
 

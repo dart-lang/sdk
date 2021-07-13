@@ -825,37 +825,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
 
     analysisDriver.results.listen((result) {
-      var path = result.path;
-      filesToFlush.add(path);
-      if (analysisServer.isAnalyzed(path)) {
-        final serverErrors = protocol.doAnalysisError_listFromEngine(result);
-        recordAnalysisErrors(path, serverErrors);
-      }
-      analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
-      analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
-      final unit = result.unit;
-      if (unit != null) {
-        if (analysisServer.shouldSendClosingLabelsFor(path)) {
-          final labels = DartUnitClosingLabelsComputer(result.lineInfo, unit)
-              .compute()
-              .map((l) => toClosingLabel(result.lineInfo, l))
-              .toList();
-
-          analysisServer.publishClosingLabels(path, labels);
-        }
-        if (analysisServer.shouldSendOutlineFor(path)) {
-          final outline = DartUnitOutlineComputer(
-            result,
-            withBasicFlutter: true,
-          ).compute();
-          final lspOutline = toOutline(result.lineInfo, outline);
-          analysisServer.publishOutline(path, lspOutline);
-        }
-        if (analysisServer.shouldSendFlutterOutlineFor(path)) {
-          final outline = FlutterOutlineComputer(result).compute();
-          final lspOutline = toFlutterOutline(result.lineInfo, outline);
-          analysisServer.publishFlutterOutline(path, lspOutline);
-        }
+      if (result is FileResult) {
+        _handleFileResult(result);
       }
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
@@ -868,6 +839,54 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     filesToFlush.add(path);
     analysisServer.notificationManager
         .recordAnalysisErrors(NotificationManager.serverId, path, errorsToSend);
+  }
+
+  void _handleFileResult(FileResult result) {
+    var path = result.path;
+    filesToFlush.add(path);
+
+    if (result is AnalysisResultWithErrors) {
+      if (analysisServer.isAnalyzed(path)) {
+        final serverErrors = protocol.doAnalysisError_listFromEngine(result);
+        recordAnalysisErrors(path, serverErrors);
+      }
+    }
+
+    if (result is ResolvedUnitResult) {
+      _handleResolvedUnitResult(result);
+    }
+  }
+
+  void _handleResolvedUnitResult(ResolvedUnitResult result) {
+    var path = result.path;
+
+    analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
+    analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
+
+    final unit = result.unit;
+    if (unit != null) {
+      if (analysisServer.shouldSendClosingLabelsFor(path)) {
+        final labels = DartUnitClosingLabelsComputer(result.lineInfo, unit)
+            .compute()
+            .map((l) => toClosingLabel(result.lineInfo, l))
+            .toList();
+
+        analysisServer.publishClosingLabels(path, labels);
+      }
+      if (analysisServer.shouldSendOutlineFor(path)) {
+        final outline = DartUnitOutlineComputer(
+          result,
+          withBasicFlutter: true,
+        ).compute();
+        final lspOutline = toOutline(result.lineInfo, outline);
+        analysisServer.publishOutline(path, lspOutline);
+      }
+      if (analysisServer.shouldSendFlutterOutlineFor(path)) {
+        final outline = FlutterOutlineComputer(result).compute();
+        final lspOutline = toFlutterOutline(result.lineInfo, outline);
+        analysisServer.publishFlutterOutline(path, lspOutline);
+      }
+    }
   }
 
   bool _shouldSendError(protocol.AnalysisError error) =>

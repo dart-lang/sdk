@@ -27,7 +27,7 @@ export 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// Returns a list of AnalysisErrors corresponding to the given list of Engine
 /// errors.
 List<AnalysisError> doAnalysisError_listFromEngine(
-    engine.ResolvedUnitResult result) {
+    engine.AnalysisResultWithErrors result) {
   return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
 }
 
@@ -79,9 +79,10 @@ String? getReturnTypeString(engine.Element element,
 
 /// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
-    engine.ResolvedUnitResult result,
+    engine.AnalysisResultWithErrors result,
     List<engine.AnalysisError> errors,
-    T Function(engine.ResolvedUnitResult result, engine.AnalysisError error,
+    T Function(
+            engine.AnalysisResultWithErrors result, engine.AnalysisError error,
             [engine.ErrorSeverity errorSeverity])
         constructor) {
   var analysisOptions = result.session.analysisContext.analysisOptions;
@@ -106,7 +107,7 @@ List<T> mapEngineErrors<T>(
 ///
 /// If an [errorSeverity] is specified, it will override the one in [error].
 AnalysisError newAnalysisError_fromEngine(
-    engine.ResolvedUnitResult result, engine.AnalysisError error,
+    engine.AnalysisResultWithErrors result, engine.AnalysisError error,
     [engine.ErrorSeverity? errorSeverity]) {
   var errorCode = error.errorCode;
   // prepare location
@@ -155,7 +156,7 @@ AnalysisError newAnalysisError_fromEngine(
 
 /// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
 DiagnosticMessage newDiagnosticMessage(
-    engine.ResolvedUnitResult result, engine.DiagnosticMessage message) {
+    engine.AnalysisResultWithErrors result, engine.DiagnosticMessage message) {
   var file = message.filePath;
   var offset = message.offset;
   var length = message.length;
