@@ -515,13 +515,13 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ Bind(&monomorphic);
   // This was a switchable call.
   __ EnterStubFrame();
-  __ pushl(ECX);           // Preserve cache (guarded CID as Smi).
-  __ pushl(EBX);           // Preserve receiver.
   __ pushl(Immediate(0));  // Result slot.
-  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
-  __ popl(CODE_REG);  // Get Code object.
+  __ pushl(EBX);           // Preserve receiver.
+  __ pushl(ECX);           // Old cache value (also 2nd return value).
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 2);
+  __ popl(ECX);       // Get target cache object.
   __ popl(EBX);       // Restore receiver.
-  __ popl(ECX);       // Restore cache (guarded CID as Smi).
+  __ popl(CODE_REG);  // Get target Code object.
   __ movl(EAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ LeaveFrame();

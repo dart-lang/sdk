@@ -1613,6 +1613,7 @@ static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
 enum class MissHandler {
   kInlineCacheMiss,
   kSwitchableCallMiss,
+  kFixCallersTargetMonomorphic,
 };
 
 // Handles updating of type feedback and possible patching of instance calls.
@@ -2132,12 +2133,21 @@ void PatchableCallHandler::ReturnJIT(const Code& stub,
                                      const Function& target) {
   // In JIT we can have two different miss handlers to which we return slightly
   // differently.
-  if (miss_handler_ == MissHandler::kSwitchableCallMiss) {
-    arguments_.SetArgAt(0, stub);  // Second return value.
-    arguments_.SetReturn(data);
-  } else {
-    ASSERT(miss_handler_ == MissHandler::kInlineCacheMiss);
-    arguments_.SetReturn(target);
+  switch (miss_handler_) {
+    case MissHandler::kSwitchableCallMiss: {
+      arguments_.SetArgAt(0, stub);  // Second return value.
+      arguments_.SetReturn(data);
+      break;
+    }
+    case MissHandler::kFixCallersTargetMonomorphic: {
+      arguments_.SetArgAt(1, data);  // Second return value.
+      arguments_.SetReturn(stub);
+      break;
+    }
+    case MissHandler::kInlineCacheMiss: {
+      arguments_.SetReturn(target);
+      break;
+    }
   }
 }
 
@@ -2964,49 +2974,25 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
 
 // The caller must be a monomorphic call from unoptimized code.
 // Patch call to point to new target.
-DEFINE_RUNTIME_ENTRY(FixCallersTargetMonomorphic, 0) {
+DEFINE_RUNTIME_ENTRY(FixCallersTargetMonomorphic, 2) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
-                              StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  ASSERT(frame != NULL);
-  while (frame->IsStubFrame() || frame->IsExitFrame()) {
-    frame = iterator.NextFrame();
-    ASSERT(frame != NULL);
-  }
-  if (frame->IsEntryFrame()) {
-    // Since function's current code is always unpatched, the entry frame always
-    // calls to unpatched code.
-    UNREACHABLE();
-  }
-  ASSERT(frame->IsDartFrame());
-  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
-  RELEASE_ASSERT(!caller_code.is_optimized());
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& switchable_call_data =
+      Array::CheckedHandle(zone, arguments.ArgAt(1));
 
-  Object& cache = Object::Handle(zone);
-  const Code& old_target_code = Code::Handle(
-      zone, CodePatcher::GetInstanceCallAt(frame->pc(), caller_code, &cache));
-  const Function& target_function =
-      Function::Handle(zone, old_target_code.function());
-  const Code& current_target_code =
-      Code::Handle(zone, target_function.EnsureHasCode());
-  CodePatcher::PatchInstanceCallAt(frame->pc(), caller_code, cache,
-                                   current_target_code);
-  if (FLAG_trace_patching) {
-    OS::PrintErr(
-        "FixCallersTargetMonomorphic: caller %#" Px
-        " "
-        "target '%s' -> %#" Px " (%s)\n",
-        frame->pc(), target_function.ToFullyQualifiedCString(),
-        current_target_code.EntryPoint(),
-        current_target_code.is_optimized() ? "optimized" : "unoptimized");
-  }
-  // With isolate groups enabled, it is possible that the target code
-  // has been deactivated just now(as a result of re-optimizatin for example),
-  // which will result in another run through FixCallersTarget.
-  ASSERT(!current_target_code.IsDisabled() ||
-         IsolateGroup::AreIsolateGroupsEnabled());
-  arguments.SetReturn(current_target_code);
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  const auto& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
+  const auto& caller_function =
+      Function::Handle(zone, caller_frame->LookupDartFunction());
+
+  GrowableArray<const Instance*> caller_arguments(1);
+  caller_arguments.Add(&receiver);
+  PatchableCallHandler handler(
+      thread, caller_arguments, MissHandler::kFixCallersTargetMonomorphic,
+      arguments, caller_frame, caller_code, caller_function);
+  handler.ResolveSwitchAndReturn(switchable_call_data);
 #else
   UNREACHABLE();
 #endif
