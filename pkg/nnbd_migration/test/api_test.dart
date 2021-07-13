@@ -65,9 +65,9 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
     for (var path in input.keys) {
-      var resolvedLibrary = await session.getResolvedLibrary2(path);
+      var resolvedLibrary = await session.getResolvedLibrary(path);
       if (resolvedLibrary is ResolvedLibraryResult) {
-        for (var unit in resolvedLibrary.units!) {
+        for (var unit in resolvedLibrary.units) {
           var errors =
               unit.errors.where((e) => e.severity == Severity.error).toList();
           if (!allowErrors && errors.isNotEmpty) {
@@ -80,18 +80,18 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     expect(migration.unmigratedDependencies, isEmpty);
     _betweenStages();
     for (var path in input.keys) {
-      var resolvedLibrary = await session.getResolvedLibrary2(path);
+      var resolvedLibrary = await session.getResolvedLibrary(path);
       if (resolvedLibrary is ResolvedLibraryResult) {
-        for (var unit in resolvedLibrary.units!) {
+        for (var unit in resolvedLibrary.units) {
           migration.processInput(unit);
         }
       }
     }
     _betweenStages();
     for (var path in input.keys) {
-      var resolvedLibrary = await session.getResolvedLibrary2(path);
+      var resolvedLibrary = await session.getResolvedLibrary(path);
       if (resolvedLibrary is ResolvedLibraryResult) {
-        for (var unit in resolvedLibrary.units!) {
+        for (var unit in resolvedLibrary.units) {
           migration.finalizeInput(unit);
         }
       }

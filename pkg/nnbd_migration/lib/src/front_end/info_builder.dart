@@ -96,9 +96,9 @@ class InfoBuilder {
     for (var filePath in sources) {
       progressBar.tick();
       var session = driverProvider!.getAnalysisSession(filePath);
-      var result = await session.getResolvedLibrary2(filePath!);
+      var result = await session.getResolvedLibrary(filePath!);
       if (result is ResolvedLibraryResult) {
-        for (var unitResult in result.units!) {
+        for (var unitResult in result.units) {
           var sourceInfo =
               sourceInfoMap[unitResult.unit!.declaredElement!.source];
           // Note: there might have been no information for this unit in

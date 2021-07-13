@@ -86,14 +86,25 @@ class Histogram {
       }
     }
 
-    if (skipped > 0) print('And $skipped more less than 0.1%...');
+    if (skipped > 0) print('And $skipped more...');
 
     // If we're counting numeric keys, show other statistics too.
     if (_order == SortOrder.numeric && keys.isNotEmpty) {
       var sum = keys.fold<int>(
           0, (result, key) => result + (key as int) * _counts[key]!);
       var average = sum / total;
-      var median = _counts[keys[keys.length ~/ 2]];
+
+      // Find the median key where half the total count is below it.
+      var count = 0;
+      var median = -1;
+      for (var key in keys) {
+        count += _counts[key]!;
+        if (count >= total ~/ 2) {
+          median = key as int;
+          break;
+        }
+      }
+
       print('Sum $sum, average ${average.toStringAsFixed(3)}, median $median');
     }
   }

@@ -246,7 +246,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
 
     var session = workspace.getSession(path);
-    var result = await session?.getResolvedUnit2(path);
+    var result = await session?.getResolvedUnit(path);
     if (result is! ResolvedUnitResult) {
       throw AnalysisException('Cannot analyze "$path"');
     }

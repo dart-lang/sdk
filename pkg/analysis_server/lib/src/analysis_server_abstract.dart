@@ -380,7 +380,7 @@ abstract class AbstractAnalysisServer {
     }
 
     var session = getAnalysisDriver(path)?.currentSession;
-    var result = session?.getParsedUnit2(path);
+    var result = session?.getParsedUnit(path);
     return result is ParsedUnitResult ? result : null;
   }
 

@@ -536,7 +536,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
       DartCompletionRequest request);
 
   Future computeSuggestions({int times = 200}) async {
-    result = await session.getResolvedUnit2(testFile) as ResolvedUnitResult;
+    result = await session.getResolvedUnit(testFile) as ResolvedUnitResult;
     var baseRequest = CompletionRequestImpl(
         result, completionOffset, CompletionPerformance());
 

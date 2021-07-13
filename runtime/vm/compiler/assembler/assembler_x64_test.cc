@@ -5309,10 +5309,10 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ pushq(CODE_REG);
   __ pushq(THR);
   __ movq(THR, CallingConventions::kArg3Reg);
-  __ StoreIntoObject(CallingConventions::kArg2Reg,
-                     FieldAddress(CallingConventions::kArg2Reg,
-                                  GrowableObjectArray::data_offset()),
-                     CallingConventions::kArg1Reg);
+  __ StoreCompressedIntoObject(CallingConventions::kArg2Reg,
+                               FieldAddress(CallingConventions::kArg2Reg,
+                                            GrowableObjectArray::data_offset()),
+                               CallingConventions::kArg1Reg);
   __ popq(THR);
   __ popq(CODE_REG);
   __ ret();

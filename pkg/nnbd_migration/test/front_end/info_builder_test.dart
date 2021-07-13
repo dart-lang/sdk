@@ -24,7 +24,7 @@ void main() {
 @reflectiveTest
 class BuildEnclosingMemberDescriptionTest extends AbstractAnalysisTest {
   Future<ResolvedUnitResult> resolveTestFile() async {
-    return await session.getResolvedUnit2(testFile!) as ResolvedUnitResult;
+    return await session.getResolvedUnit(testFile!) as ResolvedUnitResult;
   }
 
   Future<void> test_classConstructor_named() async {

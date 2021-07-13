@@ -80,7 +80,7 @@ class CompletionRunner {
         }
         fileCount++;
         output.write('.');
-        var result = await context.currentSession.getResolvedUnit2(path)
+        var result = await context.currentSession.getResolvedUnit(path)
             as ResolvedUnitResult;
         var content = result.content!;
         var lineInfo = result.lineInfo;
@@ -94,7 +94,7 @@ class CompletionRunner {
                 content.substring(identifier.end);
             resourceProvider.setOverlay(path,
                 content: modifiedContent, modificationStamp: stamp++);
-            result = await context.currentSession.getResolvedUnit2(path)
+            result = await context.currentSession.getResolvedUnit(path)
                 as ResolvedUnitResult;
           }
 

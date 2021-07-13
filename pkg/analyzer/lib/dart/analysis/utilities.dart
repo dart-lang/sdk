@@ -115,7 +115,7 @@ Future<SomeResolvedUnitResult> resolveFile2(
     {required String path, ResourceProvider? resourceProvider}) async {
   AnalysisContext context =
       _createAnalysisContext(path: path, resourceProvider: resourceProvider);
-  return await context.currentSession.getResolvedUnit2(path);
+  return await context.currentSession.getResolvedUnit(path);
 }
 
 /// Return a newly create analysis context in which the file at the given [path]

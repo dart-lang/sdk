@@ -90,7 +90,7 @@ class AbstractContextTest with ResourceProviderMixin {
     var analysisContext = contextFor(testPackageRootPath);
     var files = analysisContext.contextRoot.analyzedFiles().toList();
     for (var path in files) {
-      await analysisContext.currentSession.getResolvedUnit2(path);
+      await analysisContext.currentSession.getResolvedUnit(path);
     }
   }
 
@@ -172,7 +172,7 @@ class AbstractContextTest with ResourceProviderMixin {
   Future<ResolvedUnitResult> resolveFile(String path) async {
     path = convertPath(path);
     var session = contextFor(path).currentSession;
-    return await session.getResolvedUnit2(path) as ResolvedUnitResult;
+    return await session.getResolvedUnit(path) as ResolvedUnitResult;
   }
 
   @mustCallSuper

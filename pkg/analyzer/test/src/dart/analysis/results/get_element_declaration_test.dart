@@ -439,7 +439,7 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
 
   ParsedLibraryResult _getParsedLibrary(String path) {
     var session = contextFor(path).currentSession;
-    return session.getParsedLibrary2(path) as ParsedLibraryResult;
+    return session.getParsedLibrary(path) as ParsedLibraryResult;
   }
 }
 
@@ -456,6 +456,6 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
 
   Future<ResolvedLibraryResult> _getResolvedLibrary(String path) async {
     var session = contextFor(path).currentSession;
-    return await session.getResolvedLibrary2(path) as ResolvedLibraryResult;
+    return await session.getResolvedLibrary(path) as ResolvedLibraryResult;
   }
 }

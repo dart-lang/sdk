@@ -4737,8 +4737,8 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ mov(THR, R2);
   __ ldr(HEAP_BITS, Address(THR, Thread::write_barrier_mask_offset()));
   __ LslImmediate(HEAP_BITS, HEAP_BITS, 32);
-  __ StoreIntoObject(R1, FieldAddress(R1, GrowableObjectArray::data_offset()),
-                     R0);
+  __ StoreCompressedIntoObject(
+      R1, FieldAddress(R1, GrowableObjectArray::data_offset()), R0);
   RESTORES_LR_FROM_FRAME(__ Pop(LR));
   __ Pop(HEAP_BITS);
   __ Pop(THR);

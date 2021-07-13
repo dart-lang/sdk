@@ -1394,7 +1394,7 @@ class CodeShapeMetricsComputer {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
           var resolvedUnitResult =
-              await context.currentSession.getResolvedUnit2(filePath);
+              await context.currentSession.getResolvedUnit(filePath);
           //
           // Check for errors that cause the file to be skipped.
           //

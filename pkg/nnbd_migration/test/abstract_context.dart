@@ -120,7 +120,7 @@ export 'package:test_core/test_core.dart';
   }
 
   LineInfo getLineInfo(String path) =>
-      (session.getFile2(path) as FileResult).lineInfo;
+      (session.getFile(path) as FileResult).lineInfo;
 
   void setUp() {
     setupResourceProvider();

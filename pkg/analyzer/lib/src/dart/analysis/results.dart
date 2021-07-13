@@ -76,7 +76,7 @@ class LibraryElementResultImpl implements LibraryElementResult {
 class ParsedLibraryResultImpl extends AnalysisResultImpl
     implements ParsedLibraryResult {
   @override
-  final List<ParsedUnitResult>? units;
+  final List<ParsedUnitResult> units;
 
   ParsedLibraryResultImpl(
       AnalysisSession session, String path, Uri uri, this.units)
@@ -101,7 +101,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     }
 
     var elementPath = element.source!.fullName;
-    var unitResult = units!.firstWhere(
+    var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = element.getDisplayString(withNullability: true);
@@ -159,10 +159,10 @@ class ParseStringResultImpl implements ParseStringResult {
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
     implements ResolvedLibraryResult {
   @override
-  final LibraryElement? element;
+  final LibraryElement element;
 
   @override
-  final List<ResolvedUnitResult>? units;
+  final List<ResolvedUnitResult> units;
 
   ResolvedLibraryResultImpl(
       AnalysisSession session, String path, Uri uri, this.element, this.units)
@@ -174,7 +174,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   }
 
   @override
-  TypeProvider get typeProvider => element!.typeProvider;
+  TypeProvider get typeProvider => element.typeProvider;
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
@@ -190,7 +190,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     }
 
     var elementPath = element.source!.fullName;
-    var unitResult = units!.firstWhere(
+    var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = element.getDisplayString(withNullability: true);
@@ -199,7 +199,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
         buffer.writeln(' is not defined in this library.');
         // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45430
         buffer.writeln('elementPath: $elementPath');
-        buffer.writeln('unitPaths: ${units!.map((e) => e.path).toList()}');
+        buffer.writeln('unitPaths: ${units.map((e) => e.path).toList()}');
         throw ArgumentError('$buffer');
       },
     );
