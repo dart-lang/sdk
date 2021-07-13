@@ -133,17 +133,13 @@ def _CheckDartFormat(input_api, output_api):
             dart,
             'format',
             '--set-exit-if-changed',
+            '--output=none',
+            '--summary=none',
+            filename,
         ]
-        if not contents:
-            args += [
-                '--output=none',
-                '--summary=none',
-                filename,
-            ]
 
         process = subprocess.Popen(
             args, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        process.communicate(input=contents)
 
         # Check for exit code 1 explicitly to distinguish it from a syntax error
         # in the file (exit code 65). The repo contains many Dart files that are
