@@ -792,20 +792,16 @@ class BitsContainer : public Section {
         }
         intptr_t source_address = reloc.source_offset;
         if (reloc.source_symbol != nullptr) {
-          if (strcmp(reloc.source_symbol, ".") == 0) {
-            source_address += section_start + offset + reloc.section_offset;
-          } else {
-            auto* const source_symbol = symtab.Find(reloc.source_symbol);
-            ASSERT(source_symbol != nullptr);
-            source_address += source_symbol->offset;
-          }
+          auto* const source_symbol = symtab.Find(reloc.source_symbol);
+          ASSERT(source_symbol != nullptr);
+          source_address += source_symbol->offset;
+        } else {
+          source_address += section_start + offset + reloc.section_offset;
         }
         ASSERT(reloc.size_in_bytes <= kWordSize);
         word to_write = reloc.target_offset - source_address;
         if (reloc.target_symbol != nullptr) {
-          if (strcmp(reloc.target_symbol, ".") == 0) {
-            to_write += section_start + offset + reloc.section_offset;
-          } else if (auto* const symbol = symtab.Find(reloc.target_symbol)) {
+          if (auto* const symbol = symtab.Find(reloc.target_symbol)) {
             to_write += symbol->offset;
           } else {
             ASSERT_EQUAL(strcmp(reloc.target_symbol, kSnapshotBuildIdAsmSymbol),
@@ -818,6 +814,8 @@ class BitsContainer : public Section {
             // InstructionsSection when there is no build ID.
             to_write = Image::kNoRelocatedAddress;
           }
+        } else {
+          to_write += section_start + offset + reloc.section_offset;
         }
         ASSERT(Utils::IsInt(reloc.size_in_bytes * kBitsPerByte, to_write));
         stream->WriteBytes(reinterpret_cast<const uint8_t*>(&to_write),
@@ -1249,12 +1247,12 @@ class DwarfElfStream : public DwarfWriteStream {
 
   void OffsetFromSymbol(const char* symbol, intptr_t offset) {
     relocations_->Add(
-        {kAddressSize, stream_->Position(), nullptr, 0, symbol, offset});
+        {kAddressSize, stream_->Position(), "", 0, symbol, offset});
     addr(0);  // Resolved later.
   }
   template <typename T>
   void RelativeSymbolOffset(const char* symbol) {
-    relocations_->Add({sizeof(T), stream_->Position(), ".", 0, symbol, 0});
+    relocations_->Add({sizeof(T), stream_->Position(), nullptr, 0, symbol, 0});
     stream_->WriteFixed<T>(0);  // Resolved later.
   }
   void InitializeAbstractOrigins(intptr_t size) {

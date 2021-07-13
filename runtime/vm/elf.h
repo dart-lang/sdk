@@ -51,9 +51,10 @@ class Elf : public ZoneAllocated {
 
   // Stores the information needed to appropriately generate a
   // relocation from the target to the source at the given section offset.
-  // If a given symbol is nullptr, then the offset is absolute (from 0).
-  // Both source and target symbols could be "." which is pseudosymbol
-  // corresponding to the location of the relocation itself.
+  // If a given symbol name is nullptr, then the corresponding offset is
+  // relative from the location of the relocation itself.
+  // If a given symbol name is "", then the corresponding offset is relative to
+  // the start of the snapshot.
   struct Relocation {
     size_t size_in_bytes;
     intptr_t section_offset;
