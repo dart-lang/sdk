@@ -127,8 +127,13 @@ class _SummaryNormalizer extends StatementVisitor {
           // This pattern may appear after approximations during summary
           // normalization (so it's not enough to handle it in _makeNarrow).
           final arg = st.arg;
-          if (arg is Type && st.type == const AnyType()) {
-            return (arg is NullableType) ? arg.baseType : arg;
+          if (st.type is AnyType) {
+            if (arg is Type) {
+              return (arg is NullableType) ? arg.baseType : arg;
+            }
+            if (arg is Call && arg.isInstanceCreation) {
+              return arg;
+            }
           }
         }
 
@@ -1073,7 +1078,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
     _declareVariable(decl, _typesBuilder.fromStaticType(decl.type, true));
   }
 
-  Call _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args) {
+  Call _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args,
+      {bool isInstanceCreation = false}) {
     Type staticResultType = null;
     Member target;
     if (selector is DirectSelector) {
@@ -1086,7 +1092,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
         node is Expression) {
       staticResultType = _staticType(node);
     }
-    Call call = new Call(selector, args, staticResultType);
+    Call call = new Call(selector, args, staticResultType, isInstanceCreation);
     _summary.add(call);
     if (node != null) {
       callSites[node] = call;
@@ -1109,6 +1115,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
       if (type == const AnyType()) {
         return (arg is NullableType) ? arg.baseType : arg;
       }
+    } else if (arg is Call && arg.isInstanceCreation && type is AnyType) {
+      return arg;
     }
     if (type is NullableType && type.baseType == const AnyType()) {
       return arg;
@@ -1495,12 +1503,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
   @override
   TypeExpr visitConstructorInvocation(ConstructorInvocation node) {
     ConcreteType klass =
-        _entryPointsListener.addAllocatedClass(node.constructedType.classNode);
+        _typesBuilder.getTFClass(node.constructedType.classNode).concreteType;
     TypeExpr receiver =
         _translator.instantiateConcreteType(klass, node.arguments.types);
     final args = _visitArguments(receiver, node.arguments);
-    _makeCall(node, new DirectSelector(node.target), args);
-    return receiver;
+    return _makeCall(node, new DirectSelector(node.target), args,
+        isInstanceCreation: true);
   }
 
   @override

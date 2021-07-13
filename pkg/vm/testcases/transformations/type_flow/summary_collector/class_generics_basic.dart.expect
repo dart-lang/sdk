@@ -6,8 +6,8 @@ RESULT: _T {}?
 %this = _Parameter #0 [_T (#lib::C)+]
 t1 = _Extract (%this[#lib::C/0]*)
 t2 = _CreateConcreteType (#lib::D @ (t1))
-t3 = _Call direct [#lib::D.] (t2)
-RESULT: t2
+t3* = _Call direct [#lib::D.] (t2)
+RESULT: t3
 ------------ C.id1 ------------
 %this = _Parameter #0 [_T (#lib::C)+]
 %x = _Parameter #1
@@ -36,14 +36,14 @@ RESULT: t1
 %this = _Parameter #0 [_T (#lib::E)+]
 t1 = _Extract (%this[#lib::E/0]*)
 t2 = _CreateConcreteType (#lib::D @ (t1))
-t3 = _Call direct [#lib::D.] (t2)
-RESULT: t2
+t3* = _Call direct [#lib::D.] (t2)
+RESULT: t3
 ------------ E.baz ------------
 %this = _Parameter #0 [_T (#lib::E)+]
 t1 = _Extract (%this[#lib::E/1]*)
 t2 = _CreateConcreteType (#lib::D @ (t1))
-t3 = _Call direct [#lib::D.] (t2)
-RESULT: t2
+t3* = _Call direct [#lib::D.] (t2)
+RESULT: t3
 ------------ X. ------------
 %this = _Parameter #0 [_T (#lib::X)+]
 t1 = _Call direct [dart.core::Object.] (%this)
@@ -88,21 +88,21 @@ t4 = _CreateRuntimeType (#lib::K @ (t3)*)
 t5 = _TypeCheck (%x against t4) (for #lib::K<#lib::I<#lib::C2.T*>*>* x;)
 RESULT: t5
 ------------ main ------------
-t0 = _Call direct [#lib::C.] (_T (#lib::C<dart.core::int*>))
-t1 = _Call [#lib::C.foo] (_T (#lib::C<dart.core::int*>))
-t2 = _Call direct [#lib::E.] (_T (#lib::E<dart.core::int*, dart.core::String*>))
-t3 = _Call [#lib::E.foo] (_T (#lib::E<dart.core::int*, dart.core::String*>))
-t4 = _Call direct [#lib::E.] (_T (#lib::E<dart.core::int*, dart.core::String*>))
-t5 = _Call [#lib::E.bar] (_T (#lib::E<dart.core::int*, dart.core::String*>))
-t6 = _Call direct [#lib::E.] (_T (#lib::E<dart.core::int*, dart.core::String*>))
-t7* = _Call [#lib::E.baz] (_T (#lib::E<dart.core::int*, dart.core::String*>))
-t8 = _Call direct [#lib::C.] (_T (#lib::C<#lib::Y*>))
-t9 = _Call direct [#lib::Y.] (_T (#lib::Y))
-t10 = _Call [#lib::C.id1] (_T (#lib::C<#lib::Y*>), _T (#lib::Y))
-t11 = _Call direct [#lib::Z.] (_T (#lib::Z))
-t12 = _Call [#lib::C.id2] (_T (#lib::C<#lib::Y*>), _T (#lib::Z))
-t13 = _Call direct [#lib::C2.] (_T (#lib::C2<dart.core::num*>))
-t14 = _Call [#lib::C2.id3] (_T (#lib::C2<dart.core::num*>), _T (dart.core::_Double, 3.0))
-t15 = _Call direct [#lib::K.] (_T (#lib::K<#lib::J*>))
-t16 = _Call [#lib::C2.id4] (_T (#lib::C2<dart.core::num*>), _T (#lib::K<#lib::J*>))
+t0* = _Call direct [#lib::C.] (_T (#lib::C<dart.core::int*>))
+t1 = _Call [#lib::C.foo] (t0)
+t2* = _Call direct [#lib::E.] (_T (#lib::E<dart.core::int*, dart.core::String*>))
+t3 = _Call [#lib::E.foo] (t2)
+t4* = _Call direct [#lib::E.] (_T (#lib::E<dart.core::int*, dart.core::String*>))
+t5 = _Call [#lib::E.bar] (t4)
+t6* = _Call direct [#lib::E.] (_T (#lib::E<dart.core::int*, dart.core::String*>))
+t7* = _Call [#lib::E.baz] (t6)
+t8* = _Call direct [#lib::C.] (_T (#lib::C<#lib::Y*>))
+t9* = _Call direct [#lib::Y.] (_T (#lib::Y))
+t10 = _Call [#lib::C.id1] (t8, t9)
+t11* = _Call direct [#lib::Z.] (_T (#lib::Z))
+t12 = _Call [#lib::C.id2] (t8, t11)
+t13* = _Call direct [#lib::C2.] (_T (#lib::C2<dart.core::num*>))
+t14 = _Call [#lib::C2.id3] (t13, _T (dart.core::_Double, 3.0))
+t15* = _Call direct [#lib::K.] (_T (#lib::K<#lib::J*>))
+t16 = _Call [#lib::C2.id4] (t13, t15)
 RESULT: t7

@@ -10,12 +10,12 @@ RESULT: _T {}?
 %a1 = _Parameter #0 [_T (dart.core::Object)+?]
 %a2 = _Parameter #1 [_T (dart.core::Object)+?]
 t2* = _Call direct get [#lib::someStatic] ()
-t3 = _Call direct [#lib::A.] (_T (#lib::A))
-a1_0 = _Join [dart.core::Object*] (_T (#lib::A), %a1)
+t3* = _Call direct [#lib::A.] (_T (#lib::A))
+a1_0 = _Join [dart.core::Object*] (t3, %a1)
 t5 = _Call direct [#lib::bar] (a1_0, _T (dart.core::_Smi, 42))
-t6 = _Call direct [#lib::B.] (_T (#lib::B))
-t7* = _Call [dart.core::Object.==] (_T (#lib::B), %a2)
-t8 = _Join [dart.core::Object*] (_T (#lib::B), %a2)
+t6* = _Call direct [#lib::B.] (_T (#lib::B))
+t7* = _Call [dart.core::Object.==] (t6, %a2)
+t8 = _Join [dart.core::Object*] (t6, %a2)
 t9 = _Narrow (t8 to _T (dart.core::Object)+?)
 RESULT: t9
 ------------ bar ------------

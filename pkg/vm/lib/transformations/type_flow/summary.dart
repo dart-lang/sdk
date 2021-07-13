@@ -18,6 +18,7 @@ abstract class CallHandler {
   Type applyCall(Call callSite, Selector selector, Args<Type> args,
       {bool isResultUsed});
   void typeCheckTriggered();
+  void addAllocatedClass(Class c);
 }
 
 /// Base class for all statements in a summary.
@@ -230,11 +231,15 @@ class Call extends Statement {
   final Args<TypeExpr> args;
   final Type staticResultType;
 
-  Call(this.selector, this.args, this.staticResultType) {
+  Call(this.selector, this.args, this.staticResultType,
+      bool isInstanceCreation) {
     // TODO(sjindel/tfa): Support inferring unchecked entry-points for dynamic
     // and direct calls as well.
     if (selector is DynamicSelector || selector is DirectSelector) {
       setUseCheckedEntry();
+    }
+    if (isInstanceCreation) {
+      setInstanceCreation();
     }
   }
 
@@ -260,12 +265,18 @@ class Call extends Statement {
     if (selector is! DirectSelector) {
       _observeReceiverType(argTypes[0], typeHierarchy);
     }
+    if (isInstanceCreation) {
+      callHandler
+          .addAllocatedClass((argTypes[0] as ConcreteType).cls.classNode);
+    }
     final Stopwatch timer = kPrintTimings ? (new Stopwatch()..start()) : null;
     Type result = callHandler.applyCall(
         this, selector, new Args<Type>(argTypes, names: args.names),
         isResultUsed: isResultUsed);
     summary.calleeTime += kPrintTimings ? timer.elapsedMicroseconds : 0;
-    if (isResultUsed) {
+    if (isInstanceCreation) {
+      result = argTypes[0];
+    } else if (isResultUsed) {
       if (staticResultType != null) {
         result = result.intersection(staticResultType, typeHierarchy);
       }
@@ -287,6 +298,7 @@ class Call extends Statement {
   static const int kReachable = (1 << 4);
   static const int kUseCheckedEntry = (1 << 5);
   static const int kReceiverMayBeInt = (1 << 6);
+  static const int kInstanceCreation = (1 << 7);
 
   Member _monomorphicTarget;
 
@@ -306,6 +318,8 @@ class Call extends Statement {
 
   bool get useCheckedEntry => (_flags & kUseCheckedEntry) != 0;
 
+  bool get isInstanceCreation => (_flags & kInstanceCreation) != 0;
+
   Type get resultType => _resultType;
 
   void setUseCheckedEntry() {
@@ -318,6 +332,10 @@ class Call extends Statement {
 
   void setReachable() {
     _flags |= kReachable;
+  }
+
+  void setInstanceCreation() {
+    _flags |= kInstanceCreation;
   }
 
   void setPolymorphic() {
