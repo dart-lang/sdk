@@ -5,24 +5,8 @@
 import 'dart:collection';
 import 'dart:core';
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverScheduler;
-import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -50,246 +34,6 @@ import 'package:yaml/yaml.dart';
 ///
 /// [1]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md.
 class ContextBuilder {
-  /// The [ResourceProvider] by which paths are converted into [Resource]s.
-  final ResourceProvider resourceProvider;
-
-  /// The manager used to manage the DartSdk's that have been created so that
-  /// they can be shared across contexts.
-  final DartSdkManager sdkManager;
-
-  /// The options used by the context builder.
-  final ContextBuilderOptions builderOptions;
-
-  /// The scheduler used by any analysis drivers created through this interface.
-  late final AnalysisDriverScheduler analysisDriverScheduler;
-
-  /// The performance log used by any analysis drivers created through this
-  /// interface.
-  late final PerformanceLog performanceLog;
-
-  /// If `true`, additional analysis data useful for testing is stored.
-  bool retainDataForTesting = false;
-
-  /// The byte store used by any analysis drivers created through this interface.
-  late final ByteStore byteStore;
-
-  /// Whether any analysis driver created through this interface should support
-  /// indexing and search.
-  bool enableIndex = false;
-
-  /// Sometimes `BUILD` files are not preserved, and other files are created
-  /// instead. But looking for them is expensive, so we want to avoid this
-  /// in cases when `BUILD` files are always available.
-  bool lookForBazelBuildFileSubstitutes = true;
-
-  /// Initialize a newly created builder to be ready to build a context rooted in
-  /// the directory with the given [rootDirectoryPath].
-  ContextBuilder(this.resourceProvider, this.sdkManager,
-      {ContextBuilderOptions? options})
-      : builderOptions = options ?? ContextBuilderOptions();
-
-  /// Return an analysis driver that is configured correctly to analyze code in
-  /// the directory with the given [path].
-  AnalysisDriver buildDriver(
-    ContextRoot contextRoot,
-    Workspace workspace, {
-    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
-    FileContentCache? fileContentCache,
-  }) {
-    String path = contextRoot.root;
-
-    var options = getAnalysisOptions(path, workspace, contextRoot: contextRoot);
-
-    if (updateAnalysisOptions != null) {
-      updateAnalysisOptions(options);
-    }
-    //_processAnalysisOptions(context, optionMap);
-
-    SummaryDataStore? summaryData;
-    var librarySummaryPaths = builderOptions.librarySummaryPaths;
-    if (librarySummaryPaths != null) {
-      summaryData = SummaryDataStore(librarySummaryPaths);
-    }
-
-    final sf =
-        createSourceFactoryFromWorkspace(workspace, summaryData: summaryData);
-
-    AnalysisDriver driver = AnalysisDriver.tmp1(
-      scheduler: analysisDriverScheduler,
-      logger: performanceLog,
-      resourceProvider: resourceProvider,
-      byteStore: byteStore,
-      sourceFactory: sf,
-      analysisOptions: options,
-      packages: createPackageMap(
-        resourceProvider: resourceProvider,
-        options: builderOptions,
-        rootPath: path,
-      ),
-      enableIndex: enableIndex,
-      externalSummaries: summaryData,
-      retainDataForTesting: retainDataForTesting,
-      fileContentCache: fileContentCache,
-    );
-
-    declareVariablesInDriver(driver);
-    return driver;
-  }
-
-//  void _processAnalysisOptions(
-//      AnalysisContext context, Map<String, YamlNode> optionMap) {
-//    List<OptionsProcessor> optionsProcessors =
-//        AnalysisEngine.instance.optionsPlugin.optionsProcessors;
-//    try {
-//      optionsProcessors.forEach(
-//          (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
-//
-//      // Fill in lint rule defaults in case lints are enabled and rules are
-//      // not specified in an options file.
-//      if (context.analysisOptions.lint && !containsLintRuleEntry(optionMap)) {
-//        setLints(context, linterPlugin.contributedRules);
-//      }
-//
-//      // Ask engine to further process options.
-//      if (optionMap != null) {
-//        configureContextOptions(context, optionMap);
-//      }
-//    } on Exception catch (e) {
-//      optionsProcessors.forEach((OptionsProcessor p) => p.onError(e));
-//    }
-//  }
-
-  SourceFactory createSourceFactory(String rootPath, Workspace workspace,
-      {SummaryDataStore? summaryData}) {
-    DartSdk sdk = findSdk(workspace);
-    if (summaryData != null && sdk is SummaryBasedDartSdk) {
-      summaryData.addBundle(null, sdk.bundle);
-    }
-    return workspace.createSourceFactory(sdk, summaryData);
-  }
-
-  SourceFactory createSourceFactoryFromWorkspace(Workspace workspace,
-      {SummaryDataStore? summaryData}) {
-    DartSdk sdk = findSdk(workspace);
-    if (summaryData != null && sdk is SummaryBasedDartSdk) {
-      summaryData.addBundle(null, sdk.bundle);
-    }
-    return workspace.createSourceFactory(sdk, summaryData);
-  }
-
-  /// Add any [declaredVariables] to the list of declared variables used by the
-  /// given analysis [driver].
-  void declareVariablesInDriver(AnalysisDriver driver) {
-    var variables = builderOptions.declaredVariables;
-    if (variables.isNotEmpty) {
-      driver.declaredVariables = DeclaredVariables.fromMap(variables);
-      driver.configure();
-    }
-  }
-
-  /// Return the SDK that should be used to analyze code. Use the given
-  /// [workspace] to locate the SDK.
-  DartSdk findSdk(Workspace? workspace) {
-    String? summaryPath = builderOptions.dartSdkSummaryPath;
-    if (summaryPath != null) {
-      return SummaryBasedDartSdk(summaryPath, true,
-          resourceProvider: resourceProvider);
-    }
-
-    DartSdk folderSdk;
-    {
-      String sdkPath = sdkManager.defaultSdkDirectory;
-      SdkDescription description = SdkDescription(sdkPath);
-      folderSdk = sdkManager.getSdk(description, () {
-        return FolderBasedDartSdk(
-          resourceProvider,
-          resourceProvider.getFolder(sdkPath),
-        );
-      });
-    }
-
-    if (workspace != null) {
-      var partialSourceFactory = workspace.createSourceFactory(null, null);
-      var embedderYamlSource = partialSourceFactory.forUri(
-        'package:sky_engine/_embedder.yaml',
-      );
-      if (embedderYamlSource != null) {
-        var embedderYamlPath = embedderYamlSource.fullName;
-        var libFolder = resourceProvider.getFile(embedderYamlPath).parent2;
-        EmbedderYamlLocator locator =
-            EmbedderYamlLocator.forLibFolder(libFolder);
-        Map<Folder, YamlMap> embedderMap = locator.embedderYamls;
-        if (embedderMap.isNotEmpty) {
-          EmbedderSdk embedderSdk = EmbedderSdk(
-            resourceProvider,
-            embedderMap,
-            languageVersion: folderSdk.languageVersion,
-          );
-          return embedderSdk;
-        }
-      }
-    }
-
-    return folderSdk;
-  }
-
-  /// Return the analysis options that should be used to analyze code in the
-  /// directory with the given [path]. Use [verbosePrint] to echo verbose
-  /// information about the analysis options selection process.
-  AnalysisOptionsImpl getAnalysisOptions(String path, Workspace workspace,
-      {void Function(String text)? verbosePrint, ContextRoot? contextRoot}) {
-    void verbose(String text) {
-      if (verbosePrint != null) {
-        verbosePrint(text);
-      }
-    }
-
-    SourceFactory sourceFactory = workspace.createSourceFactory(null, null);
-    AnalysisOptionsProvider optionsProvider =
-        AnalysisOptionsProvider(sourceFactory);
-
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
-
-    var optionsPath = builderOptions.defaultAnalysisOptionsFilePath;
-    if (optionsPath != null) {
-      var optionsFile = resourceProvider.getFile(optionsPath);
-      try {
-        contextRoot?.optionsFilePath = optionsFile.path;
-        var optionsMap = optionsProvider.getOptionsFromFile(optionsFile);
-        applyToAnalysisOptions(options, optionsMap);
-        verbose('Loaded analysis options from ${optionsFile.path}');
-      } catch (e) {
-        // Ignore exceptions thrown while trying to load the options file.
-        verbose('Exception: $e\n  when loading ${optionsFile.path}');
-      }
-    } else {
-      verbose('Using default analysis options');
-    }
-
-    var pubspecFile = _findPubspecFile(path);
-    if (pubspecFile != null) {
-      var extractor = SdkConstraintExtractor(pubspecFile);
-      var sdkVersionConstraint = extractor.constraint();
-      if (sdkVersionConstraint != null) {
-        options.sdkVersionConstraint = sdkVersionConstraint;
-      }
-    }
-
-    return options;
-  }
-
-  /// Return the `pubspec.yaml` file that should be used when analyzing code in
-  /// the directory with the given [path], possibly `null`.
-  File? _findPubspecFile(String path) {
-    var folder = resourceProvider.getFolder(path);
-    for (var current in folder.withAncestors) {
-      var file = current.getChildAssumingFile('pubspec.yaml');
-      if (file.exists) {
-        return file;
-      }
-    }
-  }
-
   /// Return [Packages] to analyze a resource with the [rootPath].
   static Packages createPackageMap({
     required ResourceProvider resourceProvider,
@@ -360,11 +104,6 @@ class ContextBuilder {
 
 /// Options used by a [ContextBuilder].
 class ContextBuilderOptions {
-  /// The file path of the file containing the summary of the SDK that should be
-  /// used to "analyze" the SDK. This option should only be specified by
-  /// command-line tools such as 'dartanalyzer' or 'ddc'.
-  String? dartSdkSummaryPath;
-
   /// The file path of the analysis options file that should be used in place of
   /// any file in the root directory or a parent of the root directory, or `null`
   /// if the normal lookup mechanism should be used.
@@ -377,10 +116,6 @@ class ContextBuilderOptions {
   /// file found using the normal (Package Specification DEP) lookup mechanism,
   /// or `null` if the normal lookup mechanism should be used.
   String? defaultPackageFilePath;
-
-  /// A list of the paths of summary files that are to be used, or `null` if no
-  /// summary information is available.
-  List<String>? librarySummaryPaths;
 
   /// Initialize a newly created set of options
   ContextBuilderOptions();
