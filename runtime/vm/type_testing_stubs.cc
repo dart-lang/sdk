@@ -50,7 +50,7 @@ const char* TypeTestingStubNamer::StringifyType(
       string_ = lib_.url();
       curl = OS::SCreate(Z, "%s_", string_.ToCString());
     } else {
-      static intptr_t counter = 0;
+      static std::atomic<intptr_t> counter = 0;
       curl = OS::SCreate(Z, "nolib%" Pd "_", counter++);
     }
 
