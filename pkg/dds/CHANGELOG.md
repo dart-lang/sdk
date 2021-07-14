@@ -1,3 +1,7 @@
+# 2.0.2
+- Fix possibility of `LateInitializationError` being thrown when trying to
+  cleanup after an error during initialization.
+
 # 2.0.1
 - Update `package:vm_service` to ^7.0.0.
 
