@@ -1080,4 +1080,33 @@ DART_EXPORT void ReleaseClosureCallback() {
   Dart_DeletePersistentHandle_DL(closure_to_callback_);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Functions for testing @FfiNative.
+
+DART_EXPORT Dart_Handle GetRootLibraryUrl() {
+  Dart_Handle root_lib = Dart_RootLibrary();
+  Dart_Handle lib_url = Dart_LibraryUrl(root_lib);
+  ENSURE(!Dart_IsError(lib_url));
+  return lib_url;
+}
+
+intptr_t ReturnIntPtr(intptr_t x) {
+  return x;
+}
+
+static void* FfiNativeResolver(const char* name) {
+  if (strcmp(name, "ReturnIntPtr") == 0) {
+    return reinterpret_cast<void*>(ReturnIntPtr);
+  }
+  // This should be unreachable in tests.
+  ENSURE(false);
+}
+
+DART_EXPORT void SetFfiNativeResolverForTest(Dart_Handle url) {
+  Dart_Handle library = Dart_LookupLibrary(url);
+  ENSURE(!Dart_IsError(library));
+  Dart_Handle result = Dart_SetFfiNativeResolver(library, &FfiNativeResolver);
+  ENSURE(!Dart_IsError(result));
+}
+
 }  // namespace dart

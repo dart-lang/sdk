@@ -9305,7 +9305,7 @@ static void* FfiNativeResolver(const char* name) {
 TEST_CASE(Dart_SetFfiNativeResolver) {
   const char* kScriptChars = R"(
     import 'dart:ffi';
-    @FfiNative<IntPtr Function(Double)>('EchoInt')
+    @FfiNative<IntPtr Function(Double)>('EchoInt', isLeaf:true)
     external int echoInt(double x);
     main() => echoInt(7.0);
     )";
@@ -9327,7 +9327,7 @@ TEST_CASE(Dart_SetFfiNativeResolver) {
 TEST_CASE(Dart_SetFfiNativeResolver_MissingResolver) {
   const char* kScriptChars = R"(
     import 'dart:ffi';
-    @FfiNative<IntPtr Function(Double)>('EchoInt')
+    @FfiNative<IntPtr Function(Double)>('EchoInt', isLeaf:true)
     external int echoInt(double x);
     main() => echoInt(7.0);
     )";
