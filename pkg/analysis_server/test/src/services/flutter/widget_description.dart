@@ -24,7 +24,7 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
     expect(fileEdit.file, testAnalysisResult.path);
 
     var actual = SourceEdit.applySequence(
-      testAnalysisResult.content!,
+      testAnalysisResult.content,
       fileEdit.edits,
     );
     expect(actual, expected);
@@ -50,7 +50,7 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
 
   Future<protocol.FlutterGetWidgetDescriptionResult?> getDescription(
       String search) async {
-    var content = testAnalysisResult.content!;
+    var content = testAnalysisResult.content;
 
     var offset = content.indexOf(search);
     if (offset == -1) {

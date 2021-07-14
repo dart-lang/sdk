@@ -336,7 +336,7 @@ class _WidgetDescriptionComputer {
 
     String? valueExpressionCode;
     if (valueExpression != null) {
-      valueExpressionCode = resolvedUnit.content!.substring(
+      valueExpressionCode = resolvedUnit.content.substring(
         valueExpression.offset,
         valueExpression.end,
       );

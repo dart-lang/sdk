@@ -122,7 +122,7 @@ void main() {
       expect(result.errors, isEmpty);
     }
 
-    var computer = DartUnitHighlightsComputer(result.unit!);
+    var computer = DartUnitHighlightsComputer(result.unit);
     highlights = computer.compute();
   }
 }

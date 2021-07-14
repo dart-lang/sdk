@@ -123,7 +123,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @override
   void finalizeInput(ResolvedUnitResult result) {
-    if (result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
+    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
@@ -132,7 +132,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       _propagated = true;
       _graph.propagate();
     }
-    var unit = result.unit!;
+    var unit = result.unit;
     var compilationUnit = unit.declaredElement!;
     var library = compilationUnit.library;
     var source = compilationUnit.source;
@@ -188,7 +188,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         !_queriedUnmigratedDependencies,
         'Should only query unmigratedDependencies after all calls to '
         'prepareInput');
-    if (result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
+    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
@@ -202,7 +202,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
           instrumentation: _instrumentation);
       _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
     }
-    var unit = result.unit!;
+    var unit = result.unit;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       unit.accept(NodeBuilder(
@@ -219,12 +219,12 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void processInput(ResolvedUnitResult result) {
-    if (result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
+    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
     ExperimentStatusException.sanityCheck(result);
-    var unit = result.unit!;
+    var unit = result.unit;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       unit.accept(EdgeBuilder(

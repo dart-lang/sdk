@@ -473,7 +473,7 @@ bool randomBool() {
     var result =
         await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
     var computer = ImportedElementsComputer(
-        result.unit!, content.indexOf(selection), selection.length);
+        result.unit, content.indexOf(selection), selection.length);
     importedElements = computer.compute();
   }
 }

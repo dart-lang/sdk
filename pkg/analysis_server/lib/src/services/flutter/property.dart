@@ -659,7 +659,7 @@ class _EdgeInsetsProperty {
 
   String? _expressionCode(Expression? expression) {
     if (expression != null) {
-      var content = property.resolvedUnit.content!;
+      var content = property.resolvedUnit.content;
       return content.substring(expression.offset, expression.end);
     }
     return null;

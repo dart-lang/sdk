@@ -297,7 +297,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       // add replace edit
       var edit = newSourceEdit_range(range, invocationSource);
       doSourceChange_addElementEdit(
-          change, resolveResult.unit!.declaredElement!, edit);
+          change, resolveResult.unit.declaredElement!, edit);
     }
     // add method declaration
     {
@@ -378,7 +378,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         var offset = _parentMember!.end;
         var edit = SourceEdit(offset, 0, '$eol$eol$prefix$declarationSource');
         doSourceChange_addElementEdit(
-            change, resolveResult.unit!.declaredElement!, edit);
+            change, resolveResult.unit.declaredElement!, edit);
       }
     }
     // done
@@ -450,7 +450,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       return RefactoringStatus.fatal(
           'The selection offset must be greater than zero.');
     }
-    if (selectionOffset + selectionLength >= resolveResult.content!.length) {
+    if (selectionOffset + selectionLength >= resolveResult.content.length) {
       return RefactoringStatus.fatal(
           'The selection end offset must be less then the length of the file.');
     }
@@ -658,12 +658,11 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     var originalSource = utils.getText(range.offset, range.length);
     var pattern = _SourcePattern();
     var replaceEdits = <SourceEdit>[];
-    resolveResult.unit!
-        .accept(_GetSourcePatternVisitor(range, pattern, replaceEdits));
+    resolveResult.unit.accept(_GetSourcePatternVisitor(range, pattern, replaceEdits));
     replaceEdits = replaceEdits.reversed.toList();
     var source = SourceEdit.applySequence(originalSource, replaceEdits);
     pattern.normalizedSource =
-        _getNormalizedSource(source, resolveResult.unit!.featureSet);
+        _getNormalizedSource(source, resolveResult.unit.featureSet);
     return pattern;
   }
 
@@ -706,7 +705,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     var result = RefactoringStatus();
     var assignedUsedVariables = <VariableElement>[];
 
-    var unit = resolveResult.unit!;
+    var unit = resolveResult.unit;
     _visibleRangeMap = VisibleRangesComputer.forNode(unit);
     unit.accept(
       _InitializeParametersVisitor(this, assignedUsedVariables),

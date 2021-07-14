@@ -150,8 +150,8 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
         warnOnWeakCode: warnOnWeakCode);
     var result =
         await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
-    source = result.unit!.declaredElement!.source;
-    findNode = FindNode(content, result.unit!);
+    source = result.unit.declaredElement!.source;
+    findNode = FindNode(content, result.unit);
     migration.prepareInput(result);
     expect(migration.unmigratedDependencies, isEmpty);
     migration.processInput(result);

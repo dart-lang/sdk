@@ -418,7 +418,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         DartCompletionRequestImpl(resourceProvider, completionOffset!, result);
 
     var target =
-        CompletionTarget.forOffset(request!.result.unit!, request!.offset);
+        CompletionTarget.forOffset(request!.result.unit, request!.offset);
     var range = target.computeReplacementRange(request!.offset);
     replacementOffset = range.offset;
     replacementLength = range.length;

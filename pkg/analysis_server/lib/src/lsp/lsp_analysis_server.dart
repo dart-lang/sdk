@@ -864,28 +864,26 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
 
     final unit = result.unit;
-    if (unit != null) {
-      if (analysisServer.shouldSendClosingLabelsFor(path)) {
-        final labels = DartUnitClosingLabelsComputer(result.lineInfo, unit)
-            .compute()
-            .map((l) => toClosingLabel(result.lineInfo, l))
-            .toList();
+    if (analysisServer.shouldSendClosingLabelsFor(path)) {
+      final labels = DartUnitClosingLabelsComputer(result.lineInfo, unit)
+          .compute()
+          .map((l) => toClosingLabel(result.lineInfo, l))
+          .toList();
 
-        analysisServer.publishClosingLabels(path, labels);
-      }
-      if (analysisServer.shouldSendOutlineFor(path)) {
-        final outline = DartUnitOutlineComputer(
-          result,
-          withBasicFlutter: true,
-        ).compute();
-        final lspOutline = toOutline(result.lineInfo, outline);
-        analysisServer.publishOutline(path, lspOutline);
-      }
-      if (analysisServer.shouldSendFlutterOutlineFor(path)) {
-        final outline = FlutterOutlineComputer(result).compute();
-        final lspOutline = toFlutterOutline(result.lineInfo, outline);
-        analysisServer.publishFlutterOutline(path, lspOutline);
-      }
+      analysisServer.publishClosingLabels(path, labels);
+    }
+    if (analysisServer.shouldSendOutlineFor(path)) {
+      final outline = DartUnitOutlineComputer(
+        result,
+        withBasicFlutter: true,
+      ).compute();
+      final lspOutline = toOutline(result.lineInfo, outline);
+      analysisServer.publishOutline(path, lspOutline);
+    }
+    if (analysisServer.shouldSendFlutterOutlineFor(path)) {
+      final outline = FlutterOutlineComputer(result).compute();
+      final lspOutline = toFlutterOutline(result.lineInfo, outline);
+      analysisServer.publishFlutterOutline(path, lspOutline);
     }
   }
 

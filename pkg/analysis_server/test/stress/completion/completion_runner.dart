@@ -82,9 +82,9 @@ class CompletionRunner {
         output.write('.');
         var result = await context.currentSession.getResolvedUnit(path)
             as ResolvedUnitResult;
-        var content = result.content!;
+        var content = result.content;
         var lineInfo = result.lineInfo;
-        var identifiers = _identifiersIn(result.unit!);
+        var identifiers = _identifiersIn(result.unit);
 
         for (var identifier in identifiers) {
           identifierCount++;

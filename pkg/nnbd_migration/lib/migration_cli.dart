@@ -1049,7 +1049,7 @@ class _FixCodeProcessor extends Object {
     // Process each source file.
     bool allSourcesAlreadyMigrated = true;
     await processResources((ResolvedUnitResult result) async {
-      if (!result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
+      if (!result.unit.featureSet.isEnabled(Feature.non_nullable)) {
         allSourcesAlreadyMigrated = false;
       }
       _progressBar.tick();

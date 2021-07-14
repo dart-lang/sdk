@@ -100,7 +100,7 @@ class InfoBuilder {
       if (result is ResolvedLibraryResult) {
         for (var unitResult in result.units) {
           var sourceInfo =
-              sourceInfoMap[unitResult.unit!.declaredElement!.source];
+              sourceInfoMap[unitResult.unit.declaredElement!.source];
           // Note: there might have been no information for this unit in
           // sourceInfoMap.  That can happen if there's an already-migrated
           // library being referenced by the code being migrated, but not all
@@ -185,7 +185,7 @@ class InfoBuilder {
         break;
       case NullabilityFixKind.addRequired:
         var metaImport =
-            _findImportDirective(result.unit!, 'package:meta/meta.dart');
+            _findImportDirective(result.unit, 'package:meta/meta.dart');
         if (metaImport == null) {
           edits.add(
               EditDetail('Add /*required*/ hint', offset, 0, '/*required*/ '));
@@ -273,7 +273,7 @@ class InfoBuilder {
   List<NavigationSource> _computeNavigationSources(ResolvedUnitResult result) {
     var collector = NavigationCollectorImpl();
     computeDartNavigation(
-        result.session.resourceProvider, collector, result.unit!, null, null);
+        result.session.resourceProvider, collector, result.unit, null, null);
     collector.createRegions();
     var files = collector.files;
     var regions = collector.regions;
@@ -377,8 +377,8 @@ class InfoBuilder {
     var content = result.content;
     unitInfo.diskContent = content;
     var alreadyMigrated =
-        result.unit!.featureSet.isEnabled(Feature.non_nullable);
-    unitInfo.wasExplicitlyOptedOut = result.unit!.languageVersionToken != null;
+        result.unit.featureSet.isEnabled(Feature.non_nullable);
+    unitInfo.wasExplicitlyOptedOut = result.unit.languageVersionToken != null;
     if (alreadyMigrated) {
       unitInfo.migrationStatus = UnitMigrationStatus.alreadyMigrated;
       unitInfo.migrationStatusCanBeChanged = false;
@@ -401,7 +401,7 @@ class InfoBuilder {
     // before we re-populate the region list.
     regions.clear();
 
-    var lineInfo = result.unit!.lineInfo;
+    var lineInfo = result.unit.lineInfo;
     var insertions = <int?, List<AtomicEdit>>{};
     var infosSeen = Set<AtomicEditInfo>.identity();
 
@@ -422,7 +422,7 @@ class InfoBuilder {
         var end = offset + length;
         // Insert the replacement text without deleting the replaced text.
         if (replacement.isNotEmpty) {
-          content = content!.replaceRange(end, end, replacement);
+          content = content.replaceRange(end, end, replacement);
           (insertions[sourceOffset] ??= []).add(AtomicEdit.insert(replacement));
         }
         var info = edit.info;

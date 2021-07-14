@@ -52,7 +52,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
 
   /// Analyze the selection, compute [status] and nodes.
   void analyze() {
-    resolveResult.unit!.accept(this);
+    resolveResult.unit.accept(this);
   }
 
   /// Records fatal error with given message and [Location].
@@ -73,7 +73,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
     {
       var selectionStart = selection.offset;
       var selectionEnd = selection.end;
-      var commentRanges = getCommentRanges(resolveResult.unit!);
+      var commentRanges = getCommentRanges(resolveResult.unit);
       for (var commentRange in commentRanges) {
         if (commentRange.contains(selectionStart)) {
           invalidSelection('Selection begins inside a comment.');
@@ -208,9 +208,9 @@ class StatementAnalyzer extends SelectionAnalyzer {
 
   /// Returns `true` if there are [Token]s in the given [SourceRange].
   bool _hasTokens(SourceRange range) {
-    var fullText = resolveResult.content!;
+    var fullText = resolveResult.content;
     var rangeText = fullText.substring(range.offset, range.end);
-    return _getTokens(rangeText, resolveResult.unit!.featureSet).isNotEmpty;
+    return _getTokens(rangeText, resolveResult.unit.featureSet).isNotEmpty;
   }
 
   /// Returns `true` if [nodes] contains [node].

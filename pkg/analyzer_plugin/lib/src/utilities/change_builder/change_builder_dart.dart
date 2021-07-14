@@ -1353,7 +1353,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void format(SourceRange range) {
-    var newContent = resolvedUnit.content!;
+    var newContent = resolvedUnit.content;
     var newRangeOffset = range.offset;
     var newRangeLength = range.length;
     for (var edit in fileEdit.edits) {
@@ -1437,7 +1437,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     LibraryDirective? libraryDirective;
     var importDirectives = <ImportDirective>[];
     PartDirective? partDirective;
-    var unit = resolvedUnit.unit!;
+    var unit = resolvedUnit.unit;
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         libraryDirective = directive;

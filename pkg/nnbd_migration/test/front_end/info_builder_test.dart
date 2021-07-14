@@ -35,7 +35,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit!.declarations.single as ClassDeclaration;
+        result.unit.declarations.single as ClassDeclaration;
     var constructor = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(constructor),
         equals("the constructor 'C.aaa'"));
@@ -49,7 +49,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit!.declarations.single as ClassDeclaration;
+        result.unit.declarations.single as ClassDeclaration;
     var constructor = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(constructor),
         equals("the default constructor of 'C'"));
@@ -63,7 +63,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit!.declarations.single as ClassDeclaration;
+        result.unit.declarations.single as ClassDeclaration;
     FieldDeclaration fieldDeclaration =
         class_.members.single as FieldDeclaration;
     var field = fieldDeclaration.fields.variables[0];
@@ -79,7 +79,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit!.declarations.single as ClassDeclaration;
+        result.unit.declarations.single as ClassDeclaration;
     FieldDeclaration fieldDeclaration =
         class_.members.single as FieldDeclaration;
     var type = fieldDeclaration.fields.type;
@@ -95,7 +95,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit!.declarations.single as ClassDeclaration;
+        result.unit.declarations.single as ClassDeclaration;
     var getter = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(getter),
         equals("the getter 'C.aaa'"));
@@ -109,7 +109,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit!.declarations.single as ClassDeclaration;
+        result.unit.declarations.single as ClassDeclaration;
     var method = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(method),
         equals("the method 'C.aaa'"));
@@ -123,7 +123,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit!.declarations.single as ClassDeclaration;
+        result.unit.declarations.single as ClassDeclaration;
     var operator = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(operator),
         equals("the operator 'C.=='"));
@@ -137,7 +137,7 @@ class C {
 ''');
     var result = await resolveTestFile();
     ClassDeclaration class_ =
-        result.unit!.declarations.single as ClassDeclaration;
+        result.unit.declarations.single as ClassDeclaration;
     var setter = class_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(setter),
         equals("the setter 'C.aaa='"));
@@ -151,7 +151,7 @@ extension E on List {
 ''');
     var result = await resolveTestFile();
     ExtensionDeclaration extension_ =
-        result.unit!.declarations.single as ExtensionDeclaration;
+        result.unit.declarations.single as ExtensionDeclaration;
     var method = extension_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(method),
         equals("the method 'E.aaa'"));
@@ -165,7 +165,7 @@ extension on List {
 ''');
     var result = await resolveTestFile();
     ExtensionDeclaration extension_ =
-        result.unit!.declarations.single as ExtensionDeclaration;
+        result.unit.declarations.single as ExtensionDeclaration;
     var method = extension_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(method),
         equals("the method 'aaa' in unnamed extension on List<dynamic>"));
@@ -179,7 +179,7 @@ mixin C {
 ''');
     var result = await resolveTestFile();
     MixinDeclaration mixin_ =
-        result.unit!.declarations.single as MixinDeclaration;
+        result.unit.declarations.single as MixinDeclaration;
     var method = mixin_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(method),
         equals("the method 'C.aaa'"));
@@ -190,7 +190,7 @@ mixin C {
 void aaa(value) {}
 ''');
     var result = await resolveTestFile();
-    var function = result.unit!.declarations.single;
+    var function = result.unit.declarations.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(function),
         equals("the function 'aaa'"));
   }
@@ -200,7 +200,7 @@ void aaa(value) {}
 int get aaa => 7;
 ''');
     var result = await resolveTestFile();
-    var getter = result.unit!.declarations.single;
+    var getter = result.unit.declarations.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(getter),
         equals("the getter 'aaa'"));
   }
@@ -210,7 +210,7 @@ int get aaa => 7;
 void set aaa(value) {}
 ''');
     var result = await resolveTestFile();
-    var setter = result.unit!.declarations.single;
+    var setter = result.unit.declarations.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(setter),
         equals("the setter 'aaa='"));
   }
@@ -221,7 +221,7 @@ int i;
 ''');
     var result = await resolveTestFile();
     TopLevelVariableDeclaration topLevelVariableDeclaration =
-        result.unit!.declarations.single as TopLevelVariableDeclaration;
+        result.unit.declarations.single as TopLevelVariableDeclaration;
     var variable = topLevelVariableDeclaration.variables.variables[0];
     expect(InfoBuilder.buildEnclosingMemberDescription(variable),
         equals("the variable 'i'"));
@@ -233,7 +233,7 @@ int i;
 ''');
     var result = await resolveTestFile();
     TopLevelVariableDeclaration topLevelVariableDeclaration =
-        result.unit!.declarations.single as TopLevelVariableDeclaration;
+        result.unit.declarations.single as TopLevelVariableDeclaration;
     var type = topLevelVariableDeclaration.variables.type;
     expect(InfoBuilder.buildEnclosingMemberDescription(type),
         equals("the variable 'i'"));

@@ -165,9 +165,6 @@ class _ExtensionMemberValidator {
         }
 
         var unit = result.unit;
-        if (unit == null) {
-          return const [];
-        }
 
         var collector = _LocalElementsCollector(name);
         unit.accept(collector);

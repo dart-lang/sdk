@@ -351,7 +351,7 @@ f() {
     List<String> expectedArguments,
   ) {
     var argumentStrings = argumentList.arguments
-        .map((e) => result.content!.substring(e.offset, e.end))
+        .map((e) => result.content.substring(e.offset, e.end))
         .toList();
     expect(argumentStrings, expectedArguments);
   }
@@ -383,7 +383,7 @@ f() {
     }
 
     var argumentStrings = argumentList.arguments
-        .map((e) => result.content!.substring(e.offset, e.end))
+        .map((e) => result.content.substring(e.offset, e.end))
         .toList();
     expect(argumentStrings, expectedArguments);
   }

@@ -140,7 +140,7 @@ class BaseDependencyTest extends PubPackageResolutionTest {
     var session = contextFor(libraryPath).currentSession;
     var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
     resolvedLibrary as ResolvedLibraryResult;
-    return resolvedLibrary.units.map((ru) => ru.unit!).toList();
+    return resolvedLibrary.units.map((ru) => ru.unit).toList();
   }
 }
 

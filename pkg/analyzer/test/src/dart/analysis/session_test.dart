@@ -476,8 +476,8 @@ class B2 extends X {}
     expect(aUnitResult.uri, Uri.parse('package:test/a.dart'));
     expect(aUnitResult.content, aContent);
     expect(aUnitResult.unit, isNotNull);
-    expect(aUnitResult.unit!.directives, hasLength(1));
-    expect(aUnitResult.unit!.declarations, hasLength(1));
+    expect(aUnitResult.unit.directives, hasLength(1));
+    expect(aUnitResult.unit.declarations, hasLength(1));
     expect(aUnitResult.errors, isEmpty);
 
     var bUnitResult = resolvedLibrary.units[1];
@@ -485,8 +485,8 @@ class B2 extends X {}
     expect(bUnitResult.uri, Uri.parse('package:test/b.dart'));
     expect(bUnitResult.content, bContent);
     expect(bUnitResult.unit, isNotNull);
-    expect(bUnitResult.unit!.directives, hasLength(1));
-    expect(bUnitResult.unit!.declarations, hasLength(2));
+    expect(bUnitResult.unit.directives, hasLength(1));
+    expect(bUnitResult.unit.declarations, hasLength(2));
     expect(bUnitResult.errors, isNotEmpty);
 
     var aDeclaration = resolvedLibrary.getElementDeclaration(aClass)!;
@@ -588,7 +588,7 @@ part 'c.dart';
     expect(result.path, testPath);
     expect(result.uri, Uri.parse('package:test/test.dart'));
     expect(result.units, hasLength(1));
-    expect(result.units[0].unit!.declaredElement, isNotNull);
+    expect(result.units[0].unit.declaredElement, isNotNull);
   }
 
   test_getResolvedLibraryByElement2_differentSession() async {
@@ -617,7 +617,7 @@ class B {}
     expect(unitResult.session, session);
     expect(unitResult.path, testPath);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
-    expect(unitResult.unit!.declarations, hasLength(2));
+    expect(unitResult.unit.declarations, hasLength(2));
     expect(unitResult.typeProvider, isNotNull);
     expect(unitResult.libraryElement, isNotNull);
   }

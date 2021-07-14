@@ -401,7 +401,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     var libraryUnit = result.libraryElement.definingCompilationUnit;
-    if (libraryUnit != result.unit!.declaredElement) {
+    if (libraryUnit != result.unit.declaredElement) {
       // The file in the request is a part of a library. We need to pass the
       // defining compilation unit to the computer, not the part.
       result = await server.getResolvedUnit(libraryUnit.source.fullName);
@@ -483,8 +483,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     var fileStamp = -1;
-    var code = result.content!;
-    var unit = result.unit!;
+    var code = result.content;
+    var unit = result.unit;
     var errors = result.errors;
     // check if there are scan/parse errors in the file
     var numScanParseErrors = _getNumberOfScanParseErrors(errors);
@@ -627,7 +627,7 @@ error: $error
 error.errorCode: ${error.errorCode}
 ''';
             throw CaughtExceptionWithFiles(exception, stackTrace, {
-              file: result.content!,
+              file: result.content,
               'parameters': parametersFile,
             });
           }
@@ -766,7 +766,7 @@ offset: $offset
 length: $length
       ''';
         throw CaughtExceptionWithFiles(exception, stackTrace, {
-          file: result.content!,
+          file: result.content,
           'parameters': parametersFile,
         });
       }

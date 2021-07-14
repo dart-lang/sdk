@@ -254,7 +254,7 @@ class CorrectionProducerContext {
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,
         selectionEnd = selectionOffset + selectionLength,
-        unit = resolvedResult.unit!,
+        unit = resolvedResult.unit,
         utils = CorrectionUtils(resolvedResult);
 
   /// Return `true` if the lint with the given [name] is enabled.

@@ -21,7 +21,7 @@ class ExtensionCache {
 
   /// Fill the cache with data from the [result].
   void cacheFromResult(ResolvedUnitResult result) {
-    var element = result.unit?.declaredElement;
+    var element = result.unit.declaredElement;
     if (element != null) {
       _cacheFromElement(element);
       for (var library in result.libraryElement.importedLibraries) {

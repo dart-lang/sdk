@@ -94,7 +94,7 @@ void sendAnalysisNotificationOutline(
     AnalysisServer server, ResolvedUnitResult resolvedUnit) {
   _sendNotification(server, () {
     protocol.FileKind fileKind;
-    var unit = resolvedUnit.unit!;
+    var unit = resolvedUnit.unit;
     if (unit.directives.any((d) => d is PartOfDirective)) {
       fileKind = protocol.FileKind.PART;
     } else {

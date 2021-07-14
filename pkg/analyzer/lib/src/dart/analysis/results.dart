@@ -204,13 +204,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       },
     );
 
-    var unit = unitResult.unit;
-    if (unit == null) {
-      throw StateError('The result has no unit');
-    }
-
     var locator = _DeclarationByElementLocator(element);
-    unit.accept(locator);
+    unitResult.unit.accept(locator);
     var declaration = locator.result;
 
     if (declaration == null) {
@@ -227,10 +222,10 @@ class ResolvedUnitResultImpl extends FileResultImpl
   final bool exists;
 
   @override
-  final String? content;
+  final String content;
 
   @override
-  final CompilationUnit? unit;
+  final CompilationUnit unit;
 
   @override
   final List<AnalysisError> errors;
@@ -249,10 +244,6 @@ class ResolvedUnitResultImpl extends FileResultImpl
 
   @override
   LibraryElement get libraryElement {
-    final unit = this.unit;
-    if (unit == null) {
-      throw StateError('The result has no unit');
-    }
     return unit.declaredElement!.library;
   }
 

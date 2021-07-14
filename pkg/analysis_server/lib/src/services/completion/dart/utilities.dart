@@ -194,7 +194,7 @@ DefaultArgument? getDefaultStringParameterValue(ParameterElement parameter,
 }
 
 String getRequestLineIndent(DartCompletionRequest request) {
-  var content = request.result.content!;
+  var content = request.result.content;
   var lineStartOffset = request.offset;
   var notWhitespaceOffset = request.offset;
   for (; lineStartOffset > 0; lineStartOffset--) {

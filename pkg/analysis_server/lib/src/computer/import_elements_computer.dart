@@ -32,11 +32,6 @@ class ImportElementsComputer {
   Future<SourceChange> createEdits(
       List<ImportedElements> importedElementsList) async {
     var unit = libraryResult.unit;
-    if (unit == null) {
-      // We should never reach this point because the libraryResult should be
-      // valid.
-      return SourceChange('');
-    }
     var filteredImportedElements =
         _filterImportedElements(importedElementsList);
     var libraryElement = libraryResult.libraryElement;
@@ -279,11 +274,6 @@ class ImportElementsComputer {
   /// Partially copied from DartFileEditBuilderImpl.
   _InsertionDescription _getInsertionDescription(String importUri) {
     var unit = libraryResult.unit;
-    if (unit == null) {
-      // We should never reach this point because the libraryResult should be
-      // valid.
-      return _InsertionDescription(0, after: 2);
-    }
     LibraryDirective? libraryDirective;
     var importDirectives = <ImportDirective>[];
     var otherDirectives = <Directive>[];

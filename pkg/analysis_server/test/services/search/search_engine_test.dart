@@ -41,8 +41,8 @@ class PubPackageResolutionTest extends AbstractContextTest {
     result = await resolveFile(path);
     expect(result.state, ResultState.VALID);
 
-    findNode = FindNode(result.content!, result.unit!);
-    findElement = FindElement(result.unit!);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   /// Put the [code] into the test file, and resolve it.

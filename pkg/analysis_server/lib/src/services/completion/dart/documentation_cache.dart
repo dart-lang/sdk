@@ -29,7 +29,7 @@ class DocumentationCache {
 
   /// Fill the cache with data from the [result].
   void cacheFromResult(ResolvedUnitResult result) {
-    var compilationUnit = result.unit?.declaredElement;
+    var compilationUnit = result.unit.declaredElement;
     if (compilationUnit != null) {
       documentationCache.remove(_keyForUnit(compilationUnit));
       _cacheFromElement(compilationUnit);

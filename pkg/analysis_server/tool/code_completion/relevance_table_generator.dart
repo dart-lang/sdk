@@ -317,7 +317,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Initialize this collector prior to visiting the unit in the [result].
   void initializeFrom(ResolvedUnitResult result) {
-    unit = result.unit!;
+    unit = result.unit;
   }
 
   @override
@@ -1484,7 +1484,7 @@ class RelevanceMetricsComputer {
           }
 
           collector.initializeFrom(resolvedUnitResult);
-          resolvedUnitResult.unit!.accept(collector);
+          resolvedUnitResult.unit.accept(collector);
         } catch (exception, stacktrace) {
           print('Exception caught analyzing: "$filePath"');
           print(exception);

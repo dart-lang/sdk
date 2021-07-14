@@ -231,7 +231,7 @@ abstract class ResolvedLibraryResult
 abstract class ResolvedUnitResult
     implements SomeResolvedUnitResult, AnalysisResultWithErrors {
   /// The content of the file that was scanned, parsed and resolved.
-  String? get content;
+  String get content;
 
   /// Return `true` if the file exists.
   bool get exists;
@@ -246,7 +246,7 @@ abstract class ResolvedUnitResult
   TypeSystem get typeSystem;
 
   /// The fully resolved compilation unit for the [content].
-  CompilationUnit? get unit;
+  CompilationUnit get unit;
 }
 
 /// An indication of whether an analysis result is valid, and if not why.

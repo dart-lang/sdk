@@ -28,7 +28,7 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
 
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
-    var contextUnit = LinterContextUnit(result.content!, result.unit!);
+    var contextUnit = LinterContextUnit(result.content, result.unit);
 
     final libraryElement = result.libraryElement;
     final analysisContext = libraryElement.session.analysisContext;

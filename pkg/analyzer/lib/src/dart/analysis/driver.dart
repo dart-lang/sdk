@@ -1672,7 +1672,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     List<AnalysisError> errors = _getErrorsFromSerialized(file, unit.errors);
     _updateHasErrorOrWarningFlag(file, errors);
     var index = unit.index!;
-    if (resolvedUnit != null) {
+    if (content != null && resolvedUnit != null) {
       var resolvedUnitResult = ResolvedUnitResultImpl(
         currentSession,
         file.path,

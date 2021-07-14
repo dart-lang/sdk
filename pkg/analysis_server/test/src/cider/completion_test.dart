@@ -806,7 +806,7 @@ import 'a.dart';
   /// for completion we don't resolve unnecessary node.
   void _configureToCheckNotResolved({required Set<String> identifiers}) {
     _testResolvedUnit = (resolvedUnitResult) {
-      var unit = resolvedUnitResult.unit!;
+      var unit = resolvedUnitResult.unit;
       unit.accept(
         FunctionAstVisitor(
           simpleIdentifier: (node) {

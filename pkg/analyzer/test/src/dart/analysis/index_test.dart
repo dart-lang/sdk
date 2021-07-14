@@ -1734,7 +1734,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
   Future<void> _indexTestUnit(String code) async {
     await resolveTestCode(code);
 
-    var indexBuilder = indexUnit(result.unit!);
+    var indexBuilder = indexUnit(result.unit);
     var indexBytes = indexBuilder.toBuffer();
     index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
   }

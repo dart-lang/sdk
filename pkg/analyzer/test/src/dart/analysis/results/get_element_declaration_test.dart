@@ -42,7 +42,7 @@ class A {} // 2
       expect(node.name.name, 'A');
       expect(
         node.name.offset,
-        this.result.content!.indexOf('A {} // 1'),
+        this.result.content.indexOf('A {} // 1'),
       );
     }
 
@@ -53,7 +53,7 @@ class A {} // 2
       expect(node.name.name, 'A');
       expect(
         node.name.offset,
-        this.result.content!.indexOf('A {} // 2'),
+        this.result.content.indexOf('A {} // 2'),
       );
     }
   }
@@ -66,7 +66,7 @@ class A {}
     await resolveTestCode(r'''
 part 'a.dart';
 ''');
-    var library = this.result.unit!.declaredElement!.library;
+    var library = this.result.unit.declaredElement!.library;
     var element = library.getType('A')!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
@@ -139,7 +139,7 @@ class A {
       expect(node.name!.name, 'named');
       expect(
         node.name!.offset,
-        this.result.content!.indexOf('named(); // 1'),
+        this.result.content.indexOf('named(); // 1'),
       );
     }
 
@@ -150,7 +150,7 @@ class A {
       expect(node.name!.name, 'named');
       expect(
         node.name!.offset,
-        this.result.content!.indexOf('named(); // 2'),
+        this.result.content.indexOf('named(); // 2'),
       );
     }
   }
@@ -169,7 +169,7 @@ class A {
       expect(node.name, isNull);
       expect(
         node.returnType.offset,
-        this.result.content!.indexOf('A(); // 1'),
+        this.result.content.indexOf('A(); // 1'),
       );
     }
 
@@ -180,7 +180,7 @@ class A {
       expect(node.name, isNull);
       expect(
         node.returnType.offset,
-        this.result.content!.indexOf('A(); // 2'),
+        this.result.content.indexOf('A(); // 2'),
       );
     }
   }

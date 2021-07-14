@@ -85,7 +85,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   }
 
   FeatureSet get _featureSet {
-    return resolveResult.unit!.featureSet;
+    return resolveResult.unit.featureSet;
   }
 
   Flutter get _flutter => Flutter.instance;

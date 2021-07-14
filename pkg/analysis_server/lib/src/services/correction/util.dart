@@ -537,9 +537,9 @@ class CorrectionUtils {
   String? _endOfLine;
 
   CorrectionUtils(ResolvedUnitResult result)
-      : unit = result.unit!,
+      : unit = result.unit,
         _library = result.libraryElement,
-        _buffer = result.content!;
+        _buffer = result.content;
 
   /// Returns the EOL to use for this [CompilationUnit].
   String get endOfLine {

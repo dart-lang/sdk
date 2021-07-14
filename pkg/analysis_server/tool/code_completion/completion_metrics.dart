@@ -1319,7 +1319,7 @@ class CompletionMetricsComputer {
       // Use the ExpectedCompletionsVisitor to compute the set of expected
       // completions for this CompilationUnit.
       final visitor = ExpectedCompletionsVisitor(filePath);
-      _resolvedUnitResult.unit!.accept(visitor);
+      _resolvedUnitResult.unit.accept(visitor);
 
       for (var expectedCompletion in visitor.expectedCompletions) {
         var resolvedUnitResult = _resolvedUnitResult;
@@ -1328,7 +1328,7 @@ class CompletionMetricsComputer {
         // have the context reanalyze the file
         if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
           var overlayContents = _getOverlayContents(
-              _resolvedUnitResult.content!, expectedCompletion);
+              _resolvedUnitResult.content, expectedCompletion);
 
           _provider.setOverlay(filePath,
               content: overlayContents,

@@ -3,6 +3,8 @@
 * Changed `ParsedLibraryResult.units` to be non-nullable.
 * Changed `ResolvedLibraryResult.element` to be non-nullable.
 * Changed `ResolvedLibraryResult.units` to be non-nullable.
+* Changed `ResolvedUnitResult.content` to be non-nullable.
+* Changed `ResolvedUnitResult.unit` to be non-nullable.
 * Deprecated and renamed `AnalysisSession.getXyz2()` into `getXyz()`.
 * Changed `AnalysisDriver.results` to `Stream<Object>`.
   It used to always produce `ResolvedUnitResult`s, but sometimes its
