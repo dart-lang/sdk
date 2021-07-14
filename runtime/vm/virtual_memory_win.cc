@@ -74,8 +74,9 @@ void VirtualMemory::Init() {
 
 void VirtualMemory::Cleanup() {
 #if defined(DART_COMPRESSED_POINTERS)
-  VirtualFree(VirtualMemoryCompressedHeap::Cleanup(), kCompressedHeapSize,
-              MEM_RELEASE);
+  void* heap_base = VirtualMemoryCompressedHeap::GetRegion();
+  VirtualFree(heap_base, kCompressedHeapSize, MEM_RELEASE);
+  VirtualMemoryCompressedHeap::Cleanup();
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
