@@ -99,6 +99,16 @@ Future testRequestOnProgress() async {
   validate200Response(xhr);
 }
 
+Future testRequestOnUploadProgress() async {
+  var progressCalled = false;
+  var xhr = await HttpRequest.request(url, onUploadProgress: (_) {
+    progressCalled = true;
+  });
+  expect(xhr.readyState, HttpRequest.DONE);
+  expect(progressCalled, HttpRequest.supportsProgressEvent);
+  validate200Response(xhr);
+}
+
 Future testRequestWithCredentialsNoFile() async {
   try {
     await HttpRequest.request('NonExistingFile', withCredentials: true);
